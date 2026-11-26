@@ -7,6 +7,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-25
  */
 
 package app.morphe.extension.youtube.patches.general;
@@ -108,7 +109,7 @@ public class FixPreferenceIconPatch {
             int selectedResource = getRvxSettingsIconResourceIdentifier();
             super.setImageDrawable(selectedResource == 0
                     ? drawable
-                    : getResources().getDrawable(selectedResource));
+                    : getContext().getDrawable(selectedResource));
         }
     }
 

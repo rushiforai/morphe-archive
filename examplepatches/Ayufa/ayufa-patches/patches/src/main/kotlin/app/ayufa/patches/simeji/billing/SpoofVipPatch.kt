@@ -10,7 +10,7 @@ import app.ayufa.patches.simeji.shared.returnTrueIfEnabled
 /**
  * The central paid-state query. Every VIP check in the app derives
  * from the Baidu Passport account data (or the Play subscription
- * state) through this method. Verified against Simeji 20.7.
+ * state) through this method. Verified against Simeji 22.5.
  */
 internal object UserInfoHelperGetPayStatusFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/cloudservices/UserInfoHelper;",
@@ -22,7 +22,7 @@ internal object UserInfoHelperGetPayStatusFingerprint : Fingerprint(
 
 /**
  * VIP tier 1 check, derived from the pay status. Verified against
- * Simeji 20.7.
+ * Simeji 22.5.
  */
 internal object UserInfoHelperIsVipLv1Fingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/cloudservices/UserInfoHelper;",
@@ -34,7 +34,7 @@ internal object UserInfoHelperIsVipLv1Fingerprint : Fingerprint(
 
 /**
  * VIP tier 2 check, derived from the pay status and the subscribed
- * level string. Verified against Simeji 20.7.
+ * level string. Verified against Simeji 22.5.
  */
 internal object UserInfoHelperIsVipLv2Fingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/cloudservices/UserInfoHelper;",

@@ -11,9 +11,9 @@ internal const val BARE_PACKAGE_NAME = "org.barebrowser"
  * .github/workflows/compat-check.yml appends new versions through a pull request.
  */
 internal val BARE_VERSIONS = listOf(
-    "2.0.5",
     "2.0.7",
     "2.0.8",
+    "2.0.9",
 )
 
 internal fun bareCompatibility() = Compatibility(

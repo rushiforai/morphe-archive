@@ -293,7 +293,7 @@ public final class RamblerEnhancementsActivity extends Activity {
             return "Voice dictionary & contacts";
         }
         if (SECTION_HISTORY.equals(normalized)) {
-            return "Dictation history";
+            return "Dictation stats & history";
         }
         if (SECTION_BACKUP.equals(normalized)) {
             return "Backup & restore";
@@ -343,6 +343,15 @@ public final class RamblerEnhancementsActivity extends Activity {
     }
 
     private void buildHubScreen() {
+        if (RamblerDynamicConfig.FEATURE_PRODUCTIVITY_TOOLS) {
+            LinearLayout statsCard = RamblerStatsCardView.buildCard(
+                    this, true, () -> openSection(SECTION_HISTORY), this::refreshUi);
+            LinearLayout.LayoutParams statsParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            statsParams.bottomMargin = dp(10);
+            contentContainer.addView(statsCard, statsParams);
+        }
+
         if (RamblerDynamicConfig.FEATURE_WAVEFORM) {
             SharedPreferences prefs = RamblerWaveformSettings.preferencesOrNull(this);
             RamblerWaveformSettings.SettingsSnapshot snap =
@@ -459,10 +468,10 @@ public final class RamblerEnhancementsActivity extends Activity {
         if (RamblerDynamicConfig.FEATURE_PRODUCTIVITY_TOOLS) {
             boolean histOn = RamblerEnhancementsSettings.readHistoryEnabled(this);
             int count = RamblerTextPipeline.readHistory(this).size();
-            String summary = (histOn ? "Recording ON" : "Recording OFF")
-                    + " · Search and copy your last "
-                    + RamblerTextPipeline.MAX_HISTORY_ENTRIES + " on-device dictations.";
-            addRow("Dictation history", summary, count + " saved", true,
+            String summary = (histOn ? "History ON" : "History OFF")
+                    + " · On-device WPM, latency & time-saved stats plus your last "
+                    + RamblerTextPipeline.MAX_HISTORY_ENTRIES + " dictations.";
+            addRow("Dictation stats & history", summary, count + " saved", true,
                     () -> openSection(SECTION_HISTORY));
         }
 
@@ -1210,10 +1219,29 @@ public final class RamblerEnhancementsActivity extends Activity {
     private void buildHistorySection() {
         ensureInstalledAppsLoadedAsync();
         RamblerWaveformDialogs.Palette pal = RamblerWaveformDialogs.palette(this);
+        boolean statsOn = RamblerEnhancementsSettings.readStatsEnabled(this);
         boolean historyOn = RamblerEnhancementsSettings.readHistoryEnabled(this);
         List<RamblerTextPipeline.HistoryEntry> entries =
                 new ArrayList<RamblerTextPipeline.HistoryEntry>(
                         RamblerTextPipeline.readHistory(this));
+
+        LinearLayout statsCard = RamblerStatsCardView.buildCard(
+                this, false, null, this::refreshUi);
+        LinearLayout.LayoutParams statsParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        statsParams.bottomMargin = dp(10);
+        contentContainer.addView(statsCard, statsParams);
+
+        addToggleRow(
+                "Track local dictation stats",
+                "Counts words, sessions, WPM, cloud latency, and time saved privately on device (no dictated text stored).",
+                statsOn,
+                checked -> {
+                    RamblerEnhancementsSettings.writeStatsEnabled(this, checked);
+                    refreshUi();
+                });
+
+        addSectionHeader("Recent dictations");
 
         addToggleRow(
                 "Keep local dictation history",

@@ -79,14 +79,12 @@ class QuietModeTest {
     }
 
     @Test fun eachProfileHooksItsOwnPoster() {
-        fun poster(host: String) = setOf("$host->A01(Landroid/app/Notification;Lcom/facebook/auth/usersession/FbUserSession;" +
+        fun poster(method: String) = setOf("$method(Landroid/app/Notification;Lcom/facebook/auth/usersession/FbUserSession;" +
             "Lcom/facebook/messaging/notify/type/MessagingNotification;Ljava/lang/String;I)Z")
         assertEquals(setOf(SYNTHETIC_NOTIFY_POSTER), SYNTHETIC_PROFILE.hooks.getValue(QUIET_MODE))
-        // The three families name the notification host differently, so each profile records its own.
-        assertEquals(poster("LX/75x;"), BASE_PROFILE.hooks.getValue(QUIET_MODE))
-        assertEquals(poster("LX/76j;"), controlProfileFor("347415280").hooks.getValue(QUIET_MODE))
-        assertEquals(poster("LX/77J;"), controlProfileFor("347415348").hooks.getValue(QUIET_MODE))
-        assertEquals(poster("LX/75x;"), controlProfileFor("347415302").hooks.getValue(QUIET_MODE))
+        // The two families name the notification host and its poster differently, so each profile records its own.
+        assertEquals(poster("LX/7dM;->A02"), BASE_PROFILE.hooks.getValue(QUIET_MODE))
+        assertEquals(poster("LX/7gM;->A01"), controlProfileFor("347617497").hooks.getValue(QUIET_MODE))
     }
 
     // A break has to quiet Messenger's messages and nothing else, so anything but the one messaging notification poster

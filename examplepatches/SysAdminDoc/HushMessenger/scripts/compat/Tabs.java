@@ -139,7 +139,8 @@ final class Tabs {
             var name = r.getDefiningClass() + "->" + r.getName() + "(" + String.join("", r.getParameterTypes()) + ")" + r.getReturnType();
             if (XANALYTICS_FLUSH.equals(name)) flushes++;
             else if (XANALYTICS_UPLOAD.equals(name)) { uploads++; uploadAfterFlush = flushes == 1; }
-            else if (!"get".equals(r.getName()) || !r.getParameterTypes().isEmpty() || !"Ljava/lang/Object;".equals(r.getReturnType())) return false;
+            // The provider's no-argument getter: get() up to 587, DRE() in 588.
+            else if (!r.getParameterTypes().isEmpty() || !"Ljava/lang/Object;".equals(r.getReturnType())) return false;
         }
         return flushes == 1 && uploads == 1 && uploadAfterFlush && returns == 1 && last.getOpcode() == Opcode.RETURN_VOID;
     }
@@ -699,11 +700,11 @@ final class Tabs {
                 refParams(target).equals(List.of("Landroid/content/res/Resources;", "I")));
     }
 
-    /** 587's numbering of the @ list row flags. Meta renumbers them with each release. Mirrors AiMentionRows.kt. */
+    /** 588's numbering of the @ list row flags. Meta renumbers them with each release. Mirrors AiMentionRows.kt. */
     record AiRowFlags(Set<Long> row, Set<Long> chat, long shared, long encrypted, long imagine, long imagineYourself) {}
     static final AiRowFlags AI_ROW_FLAGS =
-        new AiRowFlags(Set.of(0x810606011b2d20L, 0x81060601042d19L), Set.of(0x810606011b2d20L, 0x81060600042cd6L),
-            0x810606011b2d20L, 0x81060600052cd7L, 0x81060600402ce7L, 0x81060600f92d15L);
+        new AiRowFlags(Set.of(0x8105fd011b2d32L, 0x8105fd01042d2bL), Set.of(0x8105fd011b2d32L, 0x8105fd00042ce8L),
+            0x8105fd011b2d32L, 0x8105fd00052ce9L, 0x8105fd00402cf9L, 0x8105fd00f92d27L);
     static final String CAPABILITIES = "Lcom/facebook/xapp/messaging/capability/vector/Capabilities;";
     static final String FB_SESSION_TYPE = "Lcom/facebook/auth/usersession/FbUserSession;";
 
@@ -733,8 +734,13 @@ final class Tabs {
             if (method.getImplementation() != null && AccessFlags.STATIC.isSet(method.getAccessFlags()) && method.getParameterTypes().isEmpty() &&
                 "Z".equals(method.getReturnType()) && serverFlags(method).equals(Set.of(build.shared()))) getters.add(hookId(method));
         var rows = new TreeMap<String, List<Method>>();
+        var renders = new ArrayList<Method>();
         for (var cls : classes) for (var method : cls.getMethods()) {
-            if (method.getImplementation() == null || AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"Z".equals(method.getReturnType())) continue;
+            if (method.getImplementation() == null) continue;
+            if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"Z".equals(method.getReturnType())) {
+                if (serverFlags(method).contains(build.imagineYourself())) renders.add(method);
+                continue;
+            }
             var params = new ArrayList<String>();
             for (var p : method.getParameterTypes()) params.add(p.toString());
             var flags = serverFlags(method);
@@ -747,10 +753,48 @@ final class Tabs {
             else if (params.equals(List.of(FB_SESSION_TYPE, THREAD_KEY, CAPABILITIES, "Z", "Z")) && flags.contains(build.imagine())) row = "imagine";
             else if (params.equals(List.of(FB_SESSION_TYPE, THREAD_KEY, CAPABILITIES)) && flags.contains(build.imagineYourself())) row = "imagine_yourself";
             if (row != null) rows.computeIfAbsent(row, k -> new ArrayList<>()).add(method);
+            else if (flags.contains(build.imagineYourself())) renders.add(method);
         }
-        if (rows.size() != 5 || rows.values().stream().anyMatch(m -> m.size() != 1)) return List.of();
+        if (rows.values().stream().anyMatch(m -> m.size() != 1)) return List.of();
         var checks = rows.values().stream().map(m -> m.get(0)).toList();
-        return checks.stream().map(Method::getDefiningClass).distinct().count() == 1 ? checks : List.of();
+        if (checks.stream().map(Method::getDefiningClass).distinct().count() != 1) return List.of();
+        if (rows.size() == 5) return checks;
+        // 588 keeps four checks and inlines imagine yourself into the renders that build its row.
+        if (rows.size() != 4 || rows.containsKey("imagine_yourself") || renders.isEmpty() ||
+            renders.stream().anyMatch(m -> imagineYourselfGates(m, build.imagineYourself()) == null)) return List.of();
+        var all = new ArrayList<>(checks);
+        all.addAll(renders);
+        return all;
+    }
+
+    /**
+     * AiMentionRows.kt's imagineYourselfGates: each read of the flag is const-wide, a static (Object, J)Z getter,
+     * move-result and an if-eqz on the answer, with no branch landing inside and no try covering the if-eqz. The
+     * if-eqz indexes, or null when any read has another shape.
+     */
+    static List<Integer> imagineYourselfGates(Method method, long flag) {
+        var code = instructions(method);
+        var targets = mediaTargets(method);
+        int[] addresses = new int[code.size() + 1];
+        for (int i = 0; i < code.size(); i++) addresses[i + 1] = addresses[i] + code.get(i).getCodeUnits();
+        var gates = new ArrayList<Integer>();
+        for (int at = 0; at < code.size(); at++) {
+            if (code.get(at).getOpcode() != Opcode.CONST_WIDE || ((WideLiteralInstruction) code.get(at)).getWideLiteral() != flag) continue;
+            int wide = register(code.get(at));
+            if (at + 3 >= code.size()) return null;
+            var call = code.get(at + 1); var answer = code.get(at + 2); var gate = code.get(at + 3);
+            if (call.getOpcode() != Opcode.INVOKE_STATIC || !(call instanceof FiveRegisterInstruction args) || args.getRegisterCount() != 3 ||
+                args.getRegisterD() != wide || args.getRegisterE() != wide + 1 || args.getRegisterC() == wide || args.getRegisterC() == wide + 1 ||
+                !(((ReferenceInstruction) call).getReference() instanceof MethodReference getter) || !"Z".equals(getter.getReturnType()) ||
+                !refParams(getter).equals(List.of("Ljava/lang/Object;", "J")) || answer.getOpcode() != Opcode.MOVE_RESULT ||
+                gate.getOpcode() != Opcode.IF_EQZ || register(gate) != register(answer) ||
+                targets.contains(at + 1) || targets.contains(at + 2) || targets.contains(at + 3)) return null;
+            int address = addresses[at + 3];
+            for (var block : method.getImplementation().getTryBlocks())
+                if (block.getStartCodeAddress() <= address && address < block.getStartCodeAddress() + block.getCodeUnitCount()) return null;
+            gates.add(at + 3);
+        }
+        return gates.isEmpty() ? null : gates;
     }
 
     /**

@@ -19,20 +19,20 @@ val offlineDownloadPatch = patch(
 
     execute {
         // Unlock the OFFLINE entitlement in the policy model.
-        val hasEntitlement = mutableClassDefBy("Lcom/deezer/core/data/model/policy/IllIlIlIIlIllIll;").methods.single {
-            it.name == "lIIIIlllIlllll" && it.parameterTypes == listOf("LlIlIIIllIlIlll;") && it.returnType == "Z"
+        val hasEntitlement = mutableClassDefBy("Lcom/deezer/core/data/model/policy/lIIIIIlllllIIIII;").methods.single {
+            it.name == "IIIlIIIIIIIlIl" && it.parameterTypes == listOf("LIIllIlIllllllIlI;") && it.returnType == "Z"
         }
         check(
             checkNotNull(hasEntitlement.implementation).instructions.any { instruction ->
                 instruction.opcode == Opcode.IGET &&
                     (instruction as ReferenceInstruction).reference.toString() ==
-                    "Lcom/deezer/core/data/model/policy/IllIlIlIIlIllIll;->IIlllIlIIlIlII:I"
+                    "Lcom/deezer/core/data/model/policy/lIIIIIlllllIIIII;->IIllIIlIIIlIIlll:I"
             },
         )
         hasEntitlement.addInstructionsWithLabels(
             0,
             """
-                sget-object v0, LlIlIIIllIlIlll;->IIIIIllIIIlIIllI:LlIlIIIllIlIlll;
+                sget-object v0, LIIllIlIllllllIlI;->lIlIlIllIIIlIII:LIIllIlIllllllIlI;
                 if-ne p1, v0, :original_offline
                 const/4 v0, 0x1
                 return v0
@@ -42,9 +42,9 @@ val offlineDownloadPatch = patch(
         )
 
         // Hide the Premium upsell entry for download buttons so the native download action is shown.
-        val entrypointsClass = mutableClassDefBy("LlIlIIlllIIll;")
+        val entrypointsClass = mutableClassDefBy("LlIlIllIIllllI;")
         val entrypoints = entrypointsClass.methods.single {
-            it.name == "IllIlIlIIlIllIll" &&
+            it.name == "lIIIIIlllllIIIII" &&
                 it.parameterTypes == listOf("Ljava/lang/String;") &&
                 it.returnType == "Lcore/auth/module/models/AppConversionEntrypoint;"
         }
@@ -52,7 +52,7 @@ val offlineDownloadPatch = patch(
             checkNotNull(entrypoints.implementation).instructions.any { instruction ->
                 instruction.opcode == Opcode.IGET_OBJECT &&
                     (instruction as ReferenceInstruction).reference.toString() ==
-                    "LlIlIIlllIIll;->llIIIIIIlIIIIll:Ljava/util/HashMap;"
+                    "LlIlIllIIllllI;->IllIlllIIIllIlII:Ljava/util/HashMap;"
             },
         )
         check(entrypointsClass.methods.remove(entrypoints))
@@ -78,7 +78,7 @@ val offlineDownloadPatch = patch(
                 const/4 v0, 0x0
                 return-object v0
                 :original_download
-                iget-object v0, p0, LlIlIIlllIIll;->llIIIIIIlIIIIll:Ljava/util/HashMap;
+                iget-object v0, p0, LlIlIllIIllllI;->IllIlllIIIllIlII:Ljava/util/HashMap;
                 invoke-virtual {v0, p1}, Ljava/util/HashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
                 move-result-object v0
                 check-cast v0, Lcore/auth/module/models/AppConversionEntrypoint;

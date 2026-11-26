@@ -13,7 +13,7 @@ internal val downloadedMusicOfferPatch = patch {
     compatibleWith(deezerCompatibility)
 
     execute {
-        val page = mutableClassDefBy("LlIIlIIllIIIllI;").methods.single {
+        val page = mutableClassDefBy("LlIIllllIIIlI;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }
         val instructions = checkNotNull(page.implementation).instructions

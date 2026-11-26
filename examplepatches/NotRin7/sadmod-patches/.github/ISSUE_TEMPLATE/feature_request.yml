@@ -1,0 +1,33 @@
+name: "Feature request"
+description: Suggest an improvement to the UI, privacy routing, scanner, or permission editor.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search existing issues at https://github.com/NotRin7/sadmod-patches/issues?q=is%3Aissue before opening a new request.
+        Do NOT upload APKs or post links to external APK download sites.
+  - type: textarea
+    id: feature
+    attributes:
+      label: Feature description
+      description: Describe the proposed improvement or modernization in detail.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why would this improvement be useful for privacy, security, or usability?
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I have checked existing issues and this is not a duplicate.
+          required: true
+        - label: I confirm this issue does not include copyrighted APK files, proprietary keys, or links to external APK download sites.
+          required: true

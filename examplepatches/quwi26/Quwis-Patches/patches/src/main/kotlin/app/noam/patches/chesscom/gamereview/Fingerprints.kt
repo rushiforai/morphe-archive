@@ -47,9 +47,9 @@ internal object GameAnalysisPermissionsGetCanViewCoachCommentaryFingerprint : Fi
 
 /** GameAnalysisRepositoryImpl's entry point: (config, side, coach, skills, depth, engine, Z) -> Flow. */
 internal object GameAnalysisRepositoryGetGameAnalysisFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.type == "Lcom/chess/gamereview/repository/GameAnalysisRepositoryImpl;" &&
-            method.parameterTypes.size == 7 &&
+    definingClass = "Lcom/chess/gamereview/repository/GameAnalysisRepositoryImpl;",
+    custom = { method, _ ->
+        method.parameterTypes.size == 7 &&
             method.parameterTypes.contains("Lcom/chess/entities/AnalysisDepth;") &&
             method.parameterTypes.contains("Lcom/chess/entities/AnalysisEngine;")
     },
@@ -57,9 +57,9 @@ internal object GameAnalysisRepositoryGetGameAnalysisFingerprint : Fingerprint(
 
 /** Builds the engine-line preview for a review position: (variants.d, AnalyzedPosition$Eval) -> api type. */
 internal object GameReviewV2V0DFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.type.startsWith("Lcom/chess/gamereview/v2/") &&
-            method.parameterTypes.size == 2 &&
+    definingClass = "Lcom/chess/gamereview/v2/",
+    custom = { method, _ ->
+        method.parameterTypes.size == 2 &&
             method.parameterTypes[0].toString().startsWith("Lcom/chess/chessboard/variants/") &&
             method.parameterTypes[1].endsWith("/AnalyzedGameData\$AnalyzedPosition\$Eval;") &&
             method.returnType.startsWith("Lcom/chess/gamereview/api/")
@@ -68,9 +68,9 @@ internal object GameReviewV2V0DFingerprint : Fingerprint(
 
 /** Builds the per-move review item: (AnalyzedPosition, history.i, GameAnalysisPermissions, Z) -> api.d. */
 internal object GameReviewV2V0JFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.type.startsWith("Lcom/chess/gamereview/v2/") &&
-            method.parameterTypes.size == 4 &&
+    definingClass = "Lcom/chess/gamereview/v2/",
+    custom = { method, _ ->
+        method.parameterTypes.size == 4 &&
             method.parameterTypes[0].endsWith("/AnalyzedGameData\$AnalyzedPosition;") &&
             method.parameterTypes[1].toString().startsWith("Lcom/chess/chessboard/history/") &&
             method.parameterTypes[2] == "Lcom/chess/entities/GameAnalysisPermissions;" &&
@@ -81,9 +81,9 @@ internal object GameReviewV2V0JFingerprint : Fingerprint(
 
 /** GameAnalysisServiceImpl.a(CompatGameIdAndType, continuation): fetches the permissions object. */
 internal object GameAnalysisServiceImplGetPermissionsFingerprint : Fingerprint(
+    definingClass = "Lcom/chess/net/v1/analysis/",
     custom = { method, classDef ->
-        classDef.type.startsWith("Lcom/chess/net/v1/analysis/") &&
-            method.name == "a" &&
+        method.name == "a" &&
             method.parameterTypes.size == 2 &&
             method.parameterTypes[0] == "Lcom/chess/entities/CompatGameIdAndType;" &&
             method.returnType == "Ljava/lang/Object;" &&

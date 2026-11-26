@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.patches.utils.PatchStatus;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.music.utils.ExtendedUtils;
@@ -55,7 +56,12 @@ public class NavigationPatch {
             Settings.ENABLE_CUSTOM_NAVIGATION_BAR_COLOR_VALUE.resetToDefault();
         }
 
-        return colorGrey12;
+        return resolveLightNavigationBarDefault(colorGrey12);
+    }
+
+    /** Replaces only the native default; user-specified colors are resolved separately. */
+    public static int resolveLightNavigationBarDefault(int stockColor) {
+        return MusicLightTheme.isEnabled() ? MusicLightTheme.SURFACE : stockColor;
     }
 
     public static void hideNavigationLabel(TextView textview) {

@@ -265,6 +265,7 @@ public final class ConfigurationBackup {
         }
         if (PatchFamily.STORY_TIME.inBuild()) settings.put(Settings.STORY_TIME_MODE.key, Settings.STORY_TIME_MODE);
         if (PatchFamily.STORY_MENTIONS.inBuild()) settings.put(Settings.STORY_MENTIONS_LOOK.key, Settings.STORY_MENTIONS_LOOK);
+        if (PatchFamily.STORY_REPLY_BOX.inBuild()) settings.put(Settings.STORY_COMMENT_LINE.key, Settings.STORY_COMMENT_LINE);
         if (PatchFamily.CAROUSEL_ARROWS.inBuild()) settings.put(Settings.CAROUSEL_PILL_LOOK.key, Settings.CAROUSEL_PILL_LOOK);
         if (PatchFamily.EXPAND_CAPTIONS.inBuild()) settings.put(Settings.CAPTION_LINES.key, Settings.CAPTION_LINES);
         if (PatchFamily.FEED_SEEK_BAR.inBuild()) {
@@ -383,6 +384,7 @@ public final class ConfigurationBackup {
             settings.put(Settings.DOWNLOAD_SKIP_SAVED.key, Settings.DOWNLOAD_SKIP_SAVED);
             // The switch only, like the one above. The list itself stays on the phone and is never exported.
             settings.put(Settings.VIEWING_HISTORY.key, Settings.VIEWING_HISTORY);
+            settings.put(Settings.VIEWING_HISTORY_DAYS.key, Settings.VIEWING_HISTORY_DAYS);
             settings.put(Settings.SEND_DOWNLOADS_TO_APP.key, Settings.SEND_DOWNLOADS_TO_APP);
             settings.put(Settings.DOWNLOAD_QUALITY.key, Settings.DOWNLOAD_QUALITY);
             settings.put(Settings.SAVE_FOLDER.key, Settings.SAVE_FOLDER);
@@ -406,6 +408,8 @@ public final class ConfigurationBackup {
         settings.put(Settings.SETTINGS_BLACK_LOOK.key, Settings.SETTINGS_BLACK_LOOK);
         settings.put(Settings.SETTINGS_LIGHT_LOOK.key, Settings.SETTINGS_LIGHT_LOOK);
         settings.put(Settings.SETTINGS_INSTAGRAM_LOOK.key, Settings.SETTINGS_INSTAGRAM_LOOK);
+        // The name only. The logo can be a picture kept on this phone, so it stays here (#872).
+        settings.put(Settings.SETTINGS_HEADER_NAME.key, Settings.SETTINGS_HEADER_NAME);
         settings.put(Settings.DATE_SETTINGS_EXPORT.key, Settings.DATE_SETTINGS_EXPORT);
         return settings;
     }
@@ -645,6 +649,8 @@ public final class ConfigurationBackup {
         if (setting == Settings.SHARING_DOMAIN) return SharingDomain.normalize(text) != null;
         // The row saves the header text cleaned, so a file holds it that way or blank.
         if (setting == Settings.HEADER_TEXT) return text.equals(HeaderText.clean(text));
+        // The settings page name saves the same way, a little shorter (#872).
+        if (setting == Settings.SETTINGS_HEADER_NAME) return text.equals(SettingsHeader.cleanName(text));
         // The Place row keeps what was typed, spaces too, and takes blank as no place.
         if (setting == Settings.SPOOF_LOCATION_PLACE) return text.trim().isEmpty() || SpoofLocation.parse(text) != null;
         // The row saves the server as host:port, so a file holds it that way or blank.

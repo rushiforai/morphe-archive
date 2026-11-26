@@ -16,6 +16,8 @@ import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.nyandex.patches.yandexmusic.shared.Constants.COMPATIBILITY_YANDEX_MUSIC
+import app.nyandex.patches.yandexmusic.util.hasStringConstant
+import app.nyandex.patches.yandexmusic.util.mutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -26,7 +28,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import java.util.logging.Logger
@@ -52,9 +53,7 @@ val hideBottomBarTabsPatch = patch(
 
     execute {
         // The settings page shows the tab switches only when this patch is applied.
-        mutableClassDefBy(NYANDEX_SETTINGS_CLASS).methods
-            .single { it.name == "bottomTabsAvailable" }
-            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+        enableSettingsSection("bottomTabsAvailable")
 
         hookBottomBar()
     }
@@ -69,7 +68,7 @@ val hideBottomBarTabsPatch = patch(
 private fun hookBottomBar() {
     val tabEnum = classDefByStrings("MY_MUSIC").singleOrNull { candidate ->
         candidate.superclass == "Ljava/lang/Enum;" &&
-            TAB_NAMES.all { name -> candidate.hasString(name) }
+            TAB_NAMES.all { name -> candidate.hasStringConstant(name) }
     } ?: throw PatchException("Bottom tab enum was not found")
     val tabType = tabEnum.type
 
@@ -86,10 +85,7 @@ private fun hookBottomBar() {
             "Expected one bottom bar method, found ${candidates.map { "${it.first.type}.${it.second.name}" }}",
         )
 
-    val method = mutableClassDefBy(ownerClass.type).methods.single {
-        it.name == ownerMethod.name && it.parameterTypes == ownerMethod.parameterTypes &&
-            it.returnType == ownerMethod.returnType
-    }
+    val method = mutableMethodOf(ownerClass.type, ownerMethod)
     val adds = method.tabAdds(tabType)
     val lastAdd = adds.last()
     val setRegister = (method.implementation!!.instructions.elementAt(lastAdd) as FiveRegisterInstruction).registerC
@@ -179,12 +175,6 @@ private fun createTouchOverride(owner: String): MutableMethod {
         """.trimIndent(),
     )
     return override
-}
-
-private fun ClassDef.hasString(value: String): Boolean = methods.any { method ->
-    method.implementation?.instructions?.any { instruction ->
-        ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == value
-    } == true
 }
 
 /** Indexes of `set.add(TabEnum.X)` calls: an `sget-object` of a tab constant passed to `add`. */

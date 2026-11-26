@@ -28,14 +28,6 @@ internal object InlinePronunciation : Fingerprint(
     custom = { _, clazz -> clazz.type.startsWith("Lcom/apple/android/music/player/") },
 )
 
-private object LyricsClock : Fingerprint(
-    definingClass = "Lcom/apple/android/music/ttml/SongInfoTimeProcessor;",
-    name = "processEvents",
-    returnType = "J",
-    filters = listOf(methodCall(name = "processEvents_")),
-    custom = { method, _ -> method.parameterTypes.take(2) == listOf(SONG, "J") },
-)
-
 internal val karaokePronunciationPatch = bytecodePatch {
     execute {
         val inline = InlinePronunciation.method
@@ -149,10 +141,5 @@ internal val karaokePronunciationPatch = bytecodePatch {
             """,
         )
         karaoke.methods.add(lineWrapper)
-
-        LyricsClock.method.addInstructions(
-            0,
-            "invoke-static/range {p0 .. p3}, $HOOK->syncPosition(Ljava/lang/Object;Ljava/lang/Object;J)V",
-        )
     }
 }

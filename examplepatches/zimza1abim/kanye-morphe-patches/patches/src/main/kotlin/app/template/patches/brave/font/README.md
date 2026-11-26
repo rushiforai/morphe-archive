@@ -27,8 +27,13 @@ The native C source was recovered from historical source changes and its
 unmodified build matched the existing 2.3.3 engine byte-for-byte (SHA-256
 `bc34ee1b3c29253bc66d32f1e33d72466b6141ee6f9fcb4f1b77fe93107073d4`).
 The Brave variant changes JNI binding/log identity and the fallback locator.
-Selected-family registration, cmap checks, styles, Han/emoji/PUA handling,
+Selected-family registration, cmap checks, styles, emoji/PUA handling,
 GSUB icon checks and missing-glyph fallback remain the 2.3.3 implementation.
+Brave and Titanium builds define `FONTISM_SELECT_HAN`, so Chinese (Han) text
+also uses the selected font when it has the glyphs; Bare keeps Han in the
+page's font. `build-arm64.sh titanium` rebuilds the Titanium engine with its
+original 2.3.3 locator; without `FONTISM_SELECT_HAN` and with version `2.3.3`
+it reproduces the original engine byte for byte.
 
 `fallback_locator.h` recognizes the iterator and hint arguments, the stage
 field load, three consecutive stage comparisons and their conditional
@@ -52,7 +57,7 @@ not covered by the static validation.
 From the repository root, build the ARM64 engine with:
 
 ```sh
-sh native/brave/font/build-arm64.sh        # Brave (default); `bare` builds the Bare variant
+sh native/brave/font/build-arm64.sh        # Brave (default); `bare` or `titanium` builds that variant
 ./gradlew :patches:buildAndroid
 ```
 

@@ -1,3 +1,11 @@
+## [1.7.6](https://github.com/RikoDEV/morphed-pl/compare/v1.7.5...v1.7.6) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* add Meteo ICM 4.2.10 and 4.2.13 support, add InPost 4.25.0 support ([ecda3b7](https://github.com/RikoDEV/morphed-pl/commit/ecda3b7a6251fc77427df7c5c965b686ddeb2379))
+* add Meteo ICM 4.2.10 and 4.2.13 support, add InPost 4.25.0 support (resolves [#32](https://github.com/RikoDEV/morphed-pl/issues/32), [#31](https://github.com/RikoDEV/morphed-pl/issues/31)) ([3108518](https://github.com/RikoDEV/morphed-pl/commit/310851824a1d8efdd0eda4884abbd4e88c4cb40a))
+* revert patches-list.json from previous commit ([e7854f8](https://github.com/RikoDEV/morphed-pl/commit/e7854f8f20fd75c4335ee3831817cfcb9a33ea36))
+
 ## [1.7.5](https://github.com/RikoDEV/morphed-pl/compare/v1.7.4...v1.7.5) (2026-11-18)
 
 ### 🐛 Bug Fixes

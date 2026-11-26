@@ -24,6 +24,7 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -82,7 +83,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * gray and the liked heart keeps the badge color. The wordmark is tinted with the primary text color, so it stays
  * too. Litho trees, the feed's post buttons among them, read their icon colors from the theme of the
  * context they're built on, which isn't always one the overrides or the theme util reached, so the
- * icon style also goes onto each such theme as Litho takes it up ({@link #lithoIcons}, #724).
+ * icon style also goes onto each such theme as Litho takes it up ({@link #lithoIcons}, #724). Many
+ * icons are tinted with {@code igds_color_text_and_icon_primary}, the color text shares, which the
+ * icon style leaves alone: the patch hands their tints and colors to {@link #textIcons},
+ * {@link #textIcon} and {@link #tabIndicator}, which answer the theme's icon color for that one (#187).
  *
  * <p>With {@link Settings#ACCENT_TEXT} on under it, the picked color's text style goes on after the
  * icon style, wherever that does (#187). It points {@code igds_color_primary_text} and
@@ -91,7 +95,8 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *
  * <p>With {@link Settings#ACCENT_PILLS} on, Saved's filters take the picked color through
  * {@link #savedFilter} as each gets its background (#187): the outlined ones a border and title in the
- * link shade, the selected one the picked fill.
+ * link shade, the selected one the picked fill. The prism chips under a search take the same look
+ * through {@link #prismFill}, {@link #prismStroke} and {@link #prismChip}.
  *
  * <p>With {@link Settings#ACCENT_REELS} on, the buttons beside a reel and their counts take the picked
  * color (#187). The column reads one color for its counts, white over the video, and builds its buttons
@@ -166,6 +171,12 @@ public final class AccentTheme {
 
     /** What's counted each time a top bar's icon, a profile tab or the Search tab's Saved bookmark takes the picked color (#187). */
     static final String BAR_ICONS = "Top bar and profile tab icons given the accent color";
+
+    /** What's counted each time an icon in Instagram's text color takes the theme's icon color instead (#187). */
+    static final String TEXT_ICONS = "Icons in the text color given the accent color";
+
+    /** The theme attribute Instagram's text and many of its icons share, the second of the patch's TEXT_ATTRIBUTES. */
+    static final String TEXT_ICON_ATTRIBUTE = "igds_color_text_and_icon_primary";
 
     /** Counted each time the text style goes onto a theme. */
     static final String TEXT = "themes given accent text";
@@ -529,13 +540,13 @@ public final class AccentTheme {
      * screen paints itself with (#577) and each white or gray fill a light one does (#639). Compose
      * screens such as the message list take those from the code, not the theme, so {@link #apply}
      * alone leaves their rows and search field near-black under a colored page, or white beside an
-     * off-white one. With Classic colors or Backgrounds in the accent color on and a dark theme seen,
-     * answers a dark gray as the same shade the theme's own backgrounds hold, keeping the alpha. With
-     * Classic colors on and a light theme seen, does the same for the white page and the search
-     * field's gray. The white labels and icons Compose draws over colored fills and media share that
-     * field, so they take the page shade too (#fafafa against #ffffff, too slight to see). The light
-     * grays a dark screen writes its text with, and the dark ones a light screen does, aren't among
-     * either. Answers [value] itself for any other color. Never throws.
+     * off-white one. With Classic colors on, or Backgrounds in the accent color on and a dark theme
+     * seen, answers a dark gray as the same shade the theme's own backgrounds hold, keeping the
+     * alpha. With Classic colors on, does the same for the white page and the search field's gray,
+     * whichever kind of screen shows (see {@link #styledSurfaces}). The white labels and icons
+     * Compose draws over colored fills and media share that field, so they take the page shade too
+     * (#fafafa against #ffffff, too slight to see). The light grays a dark screen writes its text
+     * with aren't among either. Answers [value] itself for any other color. Never throws.
      */
     public static long composeSurface(long value) {
         return composeSurface(value, null);
@@ -571,20 +582,25 @@ public final class AccentTheme {
      * {@link #rememberSurfaces} keeps a styled theme's. Instagram builds its Compose palettes on a thread
      * of its own as it starts, while the first screen's theme is still being styled, so the first grays
      * they asked for were answered as Instagram's own and the Messages rows stayed black all session
-     * (#528). Only for the kind of screen the app will show, since a light screen writes its text in
-     * the dark grays, and not for Material You's or a typed color, whose shades load with the first
-     * screen. Null when none of that holds or the style can't be read.
+     * (#528). Classic colors' shades come for both kinds of screen, whichever shows then: Instagram
+     * switches between dark and light without a restart (a dark mode schedule, the quick settings
+     * tile), and palettes built on a light screen kept the dark one's Messages rows, Settings' header
+     * and its loading page black until the next start (#683). A light screen writing its text in the
+     * dark grays takes Classic's navy then, as it already did after a start in dark mode. The picked
+     * color's backgrounds come only for the kind of screen the app will show, since their tints would
+     * color a light screen's text, and not for Material You's or a typed color, whose shades load with
+     * the first screen. Null when none of that holds or the style can't be read.
      */
     @Nullable
     static int[] styledSurfaces(@Nullable Context context, boolean dark) {
         if (!Utils.settingsReady()) return null;
         Context app = context != null ? context : Utils.getContext();
-        if (app == null || showsDark(app) != dark) return null;
+        if (app == null) return null;
         Resources resources = app.getResources();
         String style = null;
         if (Settings.CLASSIC_COLORS.get()) {
             style = classicStyle(dark);
-        } else if (dark && Settings.ACCENT_BACKGROUNDS.get()) {
+        } else if (dark && Settings.ACCENT_BACKGROUNDS.get() && showsDark(app)) {
             AccentHue hue = AccentColor.picked();
             if (hue != null && hue != AccentHue.WALLPAPER && hue != AccentHue.CUSTOM) style = backgroundStyle(hue, true);
         }
@@ -1290,6 +1306,203 @@ public final class AccentTheme {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.ACCENT_COLOR, "search saved", failure);
         }
+    }
+
+    /**
+     * Injected after an image view lays the tint it was given on itself: at the end of Instagram's image
+     * view constructors through {@link AccentColor#image}, and where its tab icon view builds its tint
+     * (#187). Instagram tints many icons with {@link #TEXT_ICON_ATTRIBUTE}, the color its text shares,
+     * so the icon style never reached them: a follow list's sort arrows, the comment composer's GIF,
+     * gift and mention buttons, the switches in a reel's menu. With Icons in the accent color on, each
+     * color of [view]'s tint matching what its theme holds for that attribute takes the theme's icon
+     * color instead, keeping its alpha. Leaves [view] as it is with the switch off, HushGram paused, no
+     * tint, a theme holding the same color for both (Text in the accent color on, or a viewer's own) or
+     * anything thrown.
+     */
+    public static void textIcons(ImageView view) {
+        try {
+            HookStatus.invoked(FamilyNames.ACCENT_COLOR);
+            ColorStateList tint = view == null ? null : view.getImageTintList();
+            // A subclass may draw its own way, so only a plain list is rebuilt.
+            if (tint == null || tint.getClass() != ColorStateList.class) return;
+            int[] colors = textAndIconColors(view.getContext());
+            if (colors == null) return;
+            AccentColor.Read read = AccentColor.read(tint);
+            if (read == null) return;
+            boolean changed = false;
+            for (int i = 0; i < read.colors.length; i++) {
+                int icon = textToIcon(read.colors[i], colors);
+                changed |= icon != read.colors[i];
+                read.colors[i] = icon;
+            }
+            if (!changed) return;
+            view.setImageTintList(new ColorStateList(read.states, read.colors));
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, TEXT_ICONS);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "text icons", failure);
+        }
+    }
+
+    /**
+     * Injected where a drawable or view takes the color [context]'s theme holds for
+     * {@link #TEXT_ICON_ATTRIBUTE} for an icon (#187): the badged icons a profile's top bar and other
+     * bars draw, the bell, the Threads icon and the menu among them. Answers the theme's icon color for
+     * [color] the way {@link #textIcons} does for a tint, and [color] itself with the switch off,
+     * HushGram paused, any other color or anything thrown.
+     */
+    public static int textIcon(Context context, int color) {
+        return iconForText(context, color, "text icon");
+    }
+
+    /**
+     * Injected where a tab strip, [tabs], reads the color of the line under its selected tab as it draws
+     * it (#187). The follow lists and other tab strips color that line with Instagram's text and icon
+     * color, so it stayed white or black. Answers {@link #textIcon}'s answer for [color] in [tabs]'
+     * context, and 0, which draws the line's own color, as it is.
+     */
+    public static int tabIndicator(View tabs, int color) {
+        if (color == 0 || tabs == null) return color;
+        return iconForText(tabs.getContext(), color, "tab indicator");
+    }
+
+    /**
+     * Injected in place of each ImageView.setColorFilter(int) in the method laying out the rows of
+     * Instagram's menus, a reel's three-dot menu among them, for a row's icon, [view] (#187). The rows
+     * color their icons with Instagram's text and icon color, so they stayed white or black. Gives
+     * [view] {@link #textIcon}'s answer for [color] in its context. A missing view throws as the call
+     * it stands in for did.
+     */
+    public static void menuIcon(ImageView view, int color) {
+        int icon = view == null ? color : iconForText(view.getContext(), color, "menu icon");
+        view.setColorFilter(icon);
+    }
+
+    /** Counted each time a prism chip's fill, outline or label takes the picked color (#187). */
+    static final String PRISM_CHIPS = "Chips given the accent color";
+
+    /**
+     * Injected where the background of Instagram's prism chips reads its fill for each state, [fill],
+     * from [context]'s theme (#187): the filters under a search among them. With
+     * {@link Settings#ACCENT_PILLS} on, answers Saved's filters' look: the chip you're on filled with
+     * the picked color and the others left clear for {@link #prismStroke}'s outline, a pressed one
+     * keeping Instagram's color. Answers [fill] itself with the switch off, HushGram paused or anything
+     * thrown.
+     */
+    public static ColorStateList prismFill(Context context, ColorStateList fill) {
+        try {
+            HookStatus.invoked(FamilyNames.ACCENT_COLOR);
+            AccentHue hue = AccentColor.picked();
+            if (context == null || fill == null || hue == null || !Settings.ACCENT_PILLS.get()) return fill;
+            int picked = 0xff000000 | AccentColor.swap(FILL, hue);
+            int pressed = fill.getColorForState(new int[] {android.R.attr.state_pressed}, fill.getDefaultColor());
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, PRISM_CHIPS);
+            return new ColorStateList(
+                    new int[][] {{android.R.attr.state_selected}, {android.R.attr.state_pressed}, {}},
+                    new int[] {picked, pressed, 0});
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "prism fill", failure);
+            return fill;
+        }
+    }
+
+    /**
+     * Injected where the background of Instagram's prism chips reads the color it outlines a chip
+     * you're not on with, [color], from [context]'s theme (#187). With {@link Settings#ACCENT_PILLS}
+     * on, answers the shade of the picked color Saved's filters are outlined in. Answers [color] itself
+     * with the switch off, HushGram paused or anything thrown.
+     */
+    public static int prismStroke(Context context, int color) {
+        try {
+            HookStatus.invoked(FamilyNames.ACCENT_COLOR);
+            AccentHue hue = AccentColor.picked();
+            if (context == null || hue == null || !Settings.ACCENT_PILLS.get()) return color;
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, PRISM_CHIPS);
+            return pillLink(context, hue);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "prism stroke", failure);
+            return color;
+        }
+    }
+
+    /**
+     * Injected as one of Instagram's prism chips, [chip], is built and each time it's selected or not
+     * (#187). With {@link Settings#ACCENT_PILLS} on, its labels read as Saved's filters' do: black or
+     * white on the picked fill of the chip you're on, whichever reads, and the outline's shade on the
+     * others. Never throws.
+     */
+    public static void prismChip(View chip) {
+        try {
+            HookStatus.invoked(FamilyNames.ACCENT_COLOR);
+            AccentHue hue = AccentColor.picked();
+            if (!(chip instanceof ViewGroup) || hue == null || !Settings.ACCENT_PILLS.get()) return;
+            int fill = 0xff000000 | AccentColor.swap(FILL, hue);
+            ColorStateList labels = new ColorStateList(
+                    new int[][] {{android.R.attr.state_selected}, {}},
+                    new int[] {readsLight(fill) ? 0xff000000 : 0xffffffff, pillLink(chip.getContext(), hue)});
+            if (colorLabels((ViewGroup) chip, labels)) HookStatus.counted(FamilyNames.ACCENT_COLOR, PRISM_CHIPS);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "prism chip", failure);
+        }
+    }
+
+    /** Gives every TextView under [group] [labels], answering whether there was one. */
+    private static boolean colorLabels(ViewGroup group, ColorStateList labels) {
+        boolean any = false;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof TextView) {
+                ((TextView) child).setTextColor(labels);
+                any = true;
+            } else if (child instanceof ViewGroup) {
+                any |= colorLabels((ViewGroup) child, labels);
+            }
+        }
+        return any;
+    }
+
+    /** The shade of [hue] Saved's filters are outlined in and label the ones you're not on with, for [context]'s theme. */
+    private static int pillLink(Context context, AccentHue hue) {
+        Resources resources = context.getResources();
+        boolean dark = dark(context, context.getTheme(), id(resources, ICON_ATTRIBUTE, "attr", Utils.resourcePackage(context)));
+        return 0xff000000 | AccentColor.swap(dark ? LINK_ON_DARK : LINK_ON_LIGHT, hue);
+    }
+
+    /** {@link #textIcon}'s answer, apart from the hooks so each has only the patch calling it. */
+    private static int iconForText(@Nullable Context context, int color, String hook) {
+        try {
+            HookStatus.invoked(FamilyNames.ACCENT_COLOR);
+            int[] colors = textAndIconColors(context);
+            if (colors == null) return color;
+            int icon = textToIcon(color, colors);
+            if (icon != color) HookStatus.counted(FamilyNames.ACCENT_COLOR, TEXT_ICONS);
+            return icon;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, hook, failure);
+            return color;
+        }
+    }
+
+    /**
+     * What [context]'s theme holds for {@link #TEXT_ICON_ATTRIBUTE} and for {@link #ICON_ATTRIBUTE},
+     * with Icons in the accent color on, or null with the switch off, HushGram paused, either missing,
+     * a see-through text color or both the same color.
+     */
+    @Nullable
+    private static int[] textAndIconColors(@Nullable Context context) {
+        Integer icon = iconColor(context);
+        if (icon == null) return null;
+        int attr = id(context.getResources(), TEXT_ICON_ATTRIBUTE, "attr", Utils.resourcePackage(context));
+        if (attr == 0) return null;
+        int text = themeColor(context.getTheme(), attr);
+        if (text >>> 24 == 0 || (text & 0xffffff) == (icon & 0xffffff)) return null;
+        return new int[] {text, icon};
+    }
+
+    /** [color] in [colors]' icon color, its alpha kept, when it's [colors]' text color; otherwise [color]. */
+    private static int textToIcon(int color, int[] colors) {
+        if ((color & 0xffffff) != (colors[0] & 0xffffff)) return color;
+        int alpha = (color >>> 24) * (colors[1] >>> 24) / 0xff;
+        return (alpha << 24) | (colors[1] & 0xffffff);
     }
 
     /**

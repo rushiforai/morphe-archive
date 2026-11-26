@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
@@ -710,7 +711,9 @@ final class OfflineLibraryScreen implements OfflineScreens.Screen {
         private final TextView title = text(15, foreground, 2);
         private final TextView status = text(13, secondary, 1);
         private final ProgressBar progress = new ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal);
-        private String taskKey;
+        private final ImageButton pause = new ImageButton(activity);
+        private int taskId;
+        private boolean resume;
 
         TaskRow() {
             super(activity);
@@ -727,35 +730,41 @@ final class OfflineLibraryScreen implements OfflineScreens.Screen {
             texts.addView(status);
             addView(texts, new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
+            pause.setImageDrawable(OfflineUi.icon(activity, "pause", foreground));
+            pause.setBackgroundColor(Color.TRANSPARENT);
+            pause.setContentDescription(str("revanced_offline_download_pause"));
+            pause.setOnClickListener(v -> OfflineDownloader.setPaused(taskId, !resume));
+            addView(pause, new LayoutParams(Utils.dipToPixels(48), Utils.dipToPixels(48)));
+
             ImageButton cancel = new ImageButton(activity);
             cancel.setImageDrawable(OfflineUi.icon(activity, "close", foreground));
             cancel.setBackgroundColor(Color.TRANSPARENT);
             cancel.setContentDescription(str("revanced_offline_cancel"));
-            cancel.setOnClickListener(v -> {
-                if (taskKey != null) OfflineDownloader.cancel(taskKey);
-            });
+            cancel.setOnClickListener(v -> OfflineDownloader.cancel(taskId));
             addView(cancel, new LayoutParams(Utils.dipToPixels(48), Utils.dipToPixels(48)));
         }
 
         void bind(OfflineDownloader.Task task) {
-            taskKey = task.key;
+            taskId = task.id;
             title.setText(task.title);
             final int percent = task.getPercent();
-            final boolean determinate = task.getState() == OfflineDownloader.State.DOWNLOADING && percent >= 0;
-            progress.setIndeterminate(!determinate);
-            if (determinate) progress.setProgress(percent);
-            String state = switch (task.getState()) {
-                case QUEUED -> str("revanced_offline_download_queued");
-                case MERGING -> str("revanced_offline_download_merging");
-                case SAVING -> str("revanced_offline_download_saving");
-                default -> percent < 0
-                        ? str("revanced_offline_download_starting")
-                        : str("revanced_offline_download_progress", percent);
-            };
+            final OfflineDownloader.State phase = task.getState();
+            final boolean indeterminate = !phase.canPause()
+                    || phase == OfflineDownloader.State.DOWNLOADING && percent < 0;
+            progress.setIndeterminate(indeterminate);
+            if (!indeterminate) progress.setProgress(Math.max(0, percent));
+
+            pause.setVisibility(phase.canPause() ? View.VISIBLE : View.GONE);
+            if (resume != phase.isPaused()) {
+                resume = phase.isPaused();
+                pause.setImageDrawable(OfflineUi.icon(activity, resume ? "play" : "pause", foreground));
+                pause.setContentDescription(str(resume ? "revanced_offline_download_resume"
+                        : "revanced_offline_download_pause"));
+            }
             List<String> parts = new ArrayList<>();
             if (task.batch != null) parts.add(task.index + "/" + task.batch.total);
             if (!task.qualityLabel.isEmpty()) parts.add(task.qualityLabel);
-            parts.add(state);
+            parts.add(task.statusText(phase, percent));
             status.setText(TextUtils.join(" · ", parts));
         }
     }

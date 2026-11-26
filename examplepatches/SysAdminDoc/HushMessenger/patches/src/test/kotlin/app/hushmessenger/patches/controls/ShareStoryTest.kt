@@ -130,7 +130,7 @@ class ShareStoryTest {
 
     @Test fun eachFamilyMapsItsOwnSection() {
         val hoisted = "$HOISTED_SHARE_LOADER->A01()V"
-        assertEquals(setOf("LX/P4A;->A8j()V", hoisted), BASE_PROFILE.hooks.getValue(SHARE_STORY))
+        assertEquals(setOf("LX/PU3;->A9m()V", hoisted), BASE_PROFILE.hooks.getValue(SHARE_STORY))
     }
 
     // The switch promises that only Your story leaves the list. A row we can't tie to the story, or a gate that could
@@ -220,9 +220,8 @@ class ShareStoryTest {
     @Test fun theChatListsYourStoryShareTargetToggleIsFound() {
         assertEquals(setOf(SYNTHETIC_STORY_TARGET), target(shareTargetFixture()))
         validateControls(mirroredControls(shareTargetFixture()), setOf(SHARE_STORY_TARGET))
-        assertEquals(setOf("LX/4Dk;->onActivityCreated(Landroid/os/Bundle;)V"), PROFILE_347415354.hooks.getValue(SHARE_STORY_TARGET))
-        assertEquals(setOf("LX/4ED;->onActivityCreated(Landroid/os/Bundle;)V"), PROFILE_347415262.hooks.getValue(SHARE_STORY_TARGET))
-        assertEquals(setOf("LX/4D6;->onActivityCreated(Landroid/os/Bundle;)V"), PROFILE_347415280.hooks.getValue(SHARE_STORY_TARGET))
+        assertEquals(setOf("LX/7dm;->onActivityCreated(Landroid/os/Bundle;)V"), PROFILE_347617503.hooks.getValue(SHARE_STORY_TARGET))
+        assertEquals(setOf("LX/7gm;->onActivityCreated(Landroid/os/Bundle;)V"), PROFILE_347617497.hooks.getValue(SHARE_STORY_TARGET))
     }
 
     // Only Messenger's own answer for Your story may change. A call we can't tie to that activity and to a toggle that

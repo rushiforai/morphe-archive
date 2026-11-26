@@ -1,0 +1,17 @@
+# Targets that the audit cannot resolve because the target build does not contain them, checked in
+# by the Build workflow:
+#
+#   java -cp "libs/morphe-cli.jar" tools/bindings/BindingAudit.java \
+#     src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/generated/GboardVersionBindings.kt \
+#     <gboard-18.6.3.apk> --known-missing tools/bindings/unresolved-baseline.txt
+#
+# One binding name per line; blank lines and # comments are ignored. Every entry here is reported as
+# "declared missing" and does not fail the run. Every other target must resolve, so a binding that
+# drifts away from the build fails CI instead of being noticed the next time someone re-derives.
+#
+# Remove an entry once the binding is re-derived or dropped; a stale entry only prints a warning.
+#
+# customSymbolsIdentityFactory: Lpjp;->ag(Ljava/lang/Object;)Lpkx; is not declared by Lpjp;
+# ocrOptionalRequest: Lzej;->a(Laabb;)[Lkzf; is not declared by Lzej; (only (I)I exists)
+customSymbolsIdentityFactory
+ocrOptionalRequest

@@ -1,7 +1,7 @@
 .class public Lcom/instagram/business/activity/Apo3;
 .super Linfo/my/app/common/base/PasswordAwareBaseActivity;
 
-.method public final K()V
+.method private K()V
     .locals 2
 
     const/4 v0, 0x1
@@ -136,7 +136,7 @@
 
     if-nez v1, :cond_1
 
-    invoke-virtual {p0}, Lcom/instagram/business/activity/Apo3;->K()V
+    invoke-direct {p0}, Lcom/instagram/business/activity/Apo3;->K()V
 
     :cond_1
     :goto_0
@@ -146,7 +146,7 @@
 .method private s()V
     .locals 0
 
-    invoke-virtual {p0}, Lcom/instagram/business/activity/Apo3;->K()V
+    invoke-direct {p0}, Lcom/instagram/business/activity/Apo3;->K()V
 
     return-void
 .end method

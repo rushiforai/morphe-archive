@@ -676,6 +676,19 @@ static int validate_fallback_state_machine(const uint32_t *candidate,
     return 1;
 }
 
+#ifdef FONTISM_TITANIUM_LOCATOR
+/* Titanium keeps the original 2.3.3 locator (prologue + stage state machine);
+   Brave and Bare use fallback_locator.h. */
+static int validate_titanium_fallback(const uint32_t *code, size_t bytes,
+                                      size_t *stage_offset, int *system_stage) {
+    return matches_fallback_prologue(code) &&
+           validate_fallback_state_machine(code, bytes, stage_offset, system_stage);
+}
+#define validate_fallback_candidate validate_titanium_fallback
+#else
+#define validate_fallback_candidate validate_brave_fallback
+#endif
+
 static int find_fallback_next(struct dl_phdr_info *info, size_t size,
                               void *opaque) {
     (void)size;
@@ -695,7 +708,7 @@ static int find_fallback_next(struct dl_phdr_info *info, size_t size,
              candidate += 4) {
             size_t stage_offset = 0;
             int system_stage = 0;
-            if (validate_brave_fallback((const uint32_t *)candidate,
+            if (validate_fallback_candidate((const uint32_t *)candidate,
                         (size_t)(segment_end - candidate), &stage_offset,
                         &system_stage)) {
                 int duplicate = 0;
@@ -930,6 +943,7 @@ static int find_match_family_style_character(struct dl_phdr_info *info,
     return 0;
 }
 
+#ifndef FONTISM_SELECT_HAN
 static int is_han_character(uint32_t codepoint) {
     return (codepoint >= 0x2e80 && codepoint <= 0x2fdf) ||
            (codepoint >= 0x31c0 && codepoint <= 0x31ef) ||
@@ -940,6 +954,7 @@ static int is_han_character(uint32_t codepoint) {
            (codepoint >= 0x2f800 && codepoint <= 0x2fa1f) ||
            (codepoint >= 0x30000 && codepoint <= 0x323af);
 }
+#endif
 
 static int is_private_use_icon(uint32_t codepoint) {
     return (codepoint >= 0xe000 && codepoint <= 0xf8ff) ||
@@ -1131,8 +1146,14 @@ static int is_emoji_or_icon(uint32_t codepoint) {
 }
 
 static int use_selected_font(uint32_t codepoint) {
+#ifdef FONTISM_SELECT_HAN
+    /* Chinese uses the selected font too; custom_font_has_glyph() still returns
+       characters the selected font lacks to Chromium's fallback. */
+    return codepoint <= 0x10ffff && !is_emoji_or_icon(codepoint);
+#else
     return codepoint <= 0x10ffff && !is_han_character(codepoint) &&
            !is_emoji_or_icon(codepoint);
+#endif
 }
 
 static int safe_process_copy(void *destination, const void *source,

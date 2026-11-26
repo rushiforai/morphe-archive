@@ -10,7 +10,9 @@ public final class SettingsProvider extends ContentProvider {
     @Override public boolean onCreate() {
         Settings.initialize(getContext());
         HostScreens.start(getContext());
-        // Brings the icon back after a repatch without the Menu row or a lost preference.
+        // Brings the icon back after a repatch without the Menu row or a lost preference. Hiding it waits for the first
+        // screen, since after an update the icon can be back and that screen may have been opened through it.
+        DrawerIconWait.atProcessStart(getContext());
         SettingsActivity.syncDrawerIcon(getContext());
         // Android keeps the launcher shortcuts between runs, so each start checks them against Hide the icon shortcuts.
         if (HostScreens.started) HostScreens.refreshShortcuts(getContext());

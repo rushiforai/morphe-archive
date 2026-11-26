@@ -6,11 +6,12 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Toast;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+
+import app.template.extension.zalo.buglog.NezumiLog;
 
 public final class ChatHeadAction {
     private static final int OPTION_ID = 0x4e7a;
@@ -45,7 +46,7 @@ public final class ChatHeadAction {
 
     public static boolean canObservePosture(Context context) {
         boolean allowed = Build.VERSION.SDK_INT < 31 || context.isUiContext();
-        if (!allowed) Log.i("ChatHeadAction", "Skipping posture listener for non-UI context");
+        if (!allowed) NezumiLog.i("ChatHeadAction", "Skipping posture listener for non-UI context");
         return allowed;
     }
 
@@ -64,9 +65,9 @@ public final class ChatHeadAction {
                 Object option = loader.loadClass(owner).getConstructor(int.class, int.class, int.class)
                     .newInstance(OPTION_ID, icon, label);
             ((ArrayList<Object>) items).add(option);
-            Log.i("ChatHeadAction", "Created chat head option; source rows=" + items.size());
+            NezumiLog.i("ChatHeadAction", "Created chat head option; source rows=" + items.size());
         } catch (ReflectiveOperationException | RuntimeException error) {
-            Log.w("ChatHeadAction", "Unable to add chat head option", error);
+            NezumiLog.w("ChatHeadAction", "Unable to add chat head option", error);
         }
     }
 
@@ -79,10 +80,11 @@ public final class ChatHeadAction {
                     found = true;
                     break;
                 }
-            } catch (ReflectiveOperationException ignored) {
+            } catch (ReflectiveOperationException failure) {
+                NezumiLog.swallowedOnce("ChatHeadAction", "option id unavailable (field b)", failure);
             }
         }
-        Log.i("ChatHeadAction", "ChatInfo rows: source=" + source.size()
+        NezumiLog.i("ChatHeadAction", "ChatInfo rows: source=" + source.size()
                 + ", displayed=" + displayed.size() + ", option=" + found);
     }
 
@@ -96,7 +98,7 @@ public final class ChatHeadAction {
         } catch (NoSuchFieldException error) {
             return false;
         } catch (ReflectiveOperationException | RuntimeException error) {
-            Log.w("ChatHeadAction", "Unable to handle chat head option", error);
+            NezumiLog.w("ChatHeadAction", "Unable to handle chat head option", error);
             return true;
         }
     }
@@ -107,7 +109,7 @@ public final class ChatHeadAction {
             Context context = (Context) applicationClass.getMethod("getAppContext").invoke(null);
             Toast.makeText(context, "Chat head is unavailable for this conversation", Toast.LENGTH_SHORT).show();
         } catch (ReflectiveOperationException | RuntimeException error) {
-            Log.w("ChatHeadAction", "Unable to show chat head status", error);
+            NezumiLog.w("ChatHeadAction", "Unable to show chat head status", error);
         }
     }
 
@@ -138,7 +140,7 @@ public final class ChatHeadAction {
             Runnable task = (Runnable) constructor.newInstance(controller, conversation, true, 0, true, "", bundle, true);
             return ((Handler) controllerClass.getField("b").get(controller)).post(task);
         } catch (ReflectiveOperationException | RuntimeException error) {
-            Log.w("ChatHeadAction", "Unable to open chat head", error);
+            NezumiLog.w("ChatHeadAction", "Unable to open chat head", error);
             return false;
         }
     }

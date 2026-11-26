@@ -16,7 +16,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / ".tools"
 BUILD = ROOT / "build" / "standalone"
-VERSION = "0.1.18-dev"
+VERSION = "0.1.19-dev"
 
 
 def run(args):
@@ -75,8 +75,9 @@ def build(test_only=False):
     shim_pkg.mkdir(parents=True, exist_ok=True)
     settings_raw = (ROOT / "extensions/extension/src/main/java/app/linenotifications/extension/Settings.java").read_text(encoding="utf-8")
     settings_shim, patched_flags = re.subn(
-        r"(public static boolean \w+Included\(\)\s*\{\s*)return false;(\s*\})",
-        r"\1return true;\2",
+        r"public static boolean (\w+)Included\(\)\s*\{\s*return false;\s*\}",
+        r"static volatile boolean test_\1Included = true;\n"
+        r"    public static boolean \1Included() { return test_\1Included; }",
         settings_raw,
     )
     if patched_flags != 5:

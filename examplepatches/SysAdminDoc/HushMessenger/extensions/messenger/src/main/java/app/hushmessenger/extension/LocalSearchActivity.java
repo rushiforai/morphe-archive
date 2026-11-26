@@ -64,7 +64,7 @@ public final class LocalSearchActivity extends Activity {
     @Override @SuppressWarnings("deprecation") protected void onCreate(Bundle state) {
         HostScreens.start(this);
         Settings.initialize(this);
-        boolean light = Settings.preferences.getBoolean("light", false);
+        boolean light = SettingsTheme.light(this);
         setTheme(light ? android.R.style.Theme_Material_Light_NoActionBar : android.R.style.Theme_Material_NoActionBar);
         super.onCreate(state);
         chat = LocalSearchStore.chatNumber(getIntent().getStringExtra(EXTRA_CHAT_KEY));

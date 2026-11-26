@@ -1745,6 +1745,55 @@
       ]
     },
     {
+      "name": "Block sound on sound pages",
+      "description": "Adds a Block sound button under Save on a sound's page, the one the spinning record on a video opens, so you can skip every video using that sound from the sound itself. Needs Feed filter. On by default. Turn it off in Hushfeed settings > Feed screen.",
+      "category": "Interaction",
+      "use": true,
+      "dependencies": [
+        "Patch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.9.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.9.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024709030,
+                "ARMEABI_V7A": 2024709030,
+                "X86": 2024709030,
+                "X86_64": 2024709030
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "sound_page_block_button",
+          "title": "Default: sound page block button",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
       "name": "Block suggested video notifications",
       "description": "Stops TikTok's \"Videos you might like\" notifications about popular videos it picked for you. Messages, comments, likes and posts from people you follow still come through. On by default. Turn it off in Hushfeed settings > Inbox.",
       "category": "Inbox",
@@ -6425,6 +6474,55 @@
       ]
     },
     {
+      "name": "Hide sound page buttons",
+      "description": "Adds a switch that hides Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens. Off until you turn it on in Hushfeed settings > Feed screen.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "Patch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.9.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.9.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024709030,
+                "ARMEABI_V7A": 2024709030,
+                "X86": 2024709030,
+                "X86_64": 2024709030
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "hide_sound_page_buttons",
+          "title": "Default: hide sound page buttons",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
       "name": "Hide suggested accounts",
       "description": "Hides TikTok's People you may like suggestions in the Inbox, on profiles, on the Friends tab and in the feed. It uses the same switch as Hide inbox items. Starts off. Turn it on in Hushfeed settings > Inbox.",
       "category": "Inbox",
@@ -7906,7 +8004,7 @@
     },
     {
       "name": "LIVE controls",
-      "description": "Stops a LIVE in the feed from opening by itself after a countdown. It can show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and clear screen in more LIVE rooms, keep your quality pick after TikTok restarts, and line up the LIVEs you swipe to after one from the Following row in that row's order. Starts off. Turn it on in Hushfeed settings > Playback. It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it (or hides that row altogether), can hide the AI summary on LIVE previews, and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
+      "description": "Stops a LIVE in the feed from opening by itself after a countdown. It can show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and clear screen in more LIVE rooms, hide the chat that scrolls over a LIVE, keep your quality pick after TikTok restarts, and line up the LIVEs you swipe to after one from the Following row in that row's order. Starts off. Turn it on in Hushfeed settings > Playback. It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it (or hides that row altogether), can hide the AI summary on LIVE previews, and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -8053,6 +8151,15 @@
         {
           "key": "keep_live_clear_screen",
           "title": "Default: keep live clear screen",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_live_chat",
+          "title": "Default: hide live chat",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",

@@ -27,7 +27,7 @@ val gmsCoreSupportPatch = patch(
     name = "GmsCore support",
     description = "Makes Google sign-in work by signing in through microG RE (GmsCore) instead of Google Play " +
         "services. Needs microG RE installed and signed in to a Google account.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_TODAII)
     category("Feature")

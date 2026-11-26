@@ -1,8 +1,8 @@
 package app.template.extension.zalo.media;
 
-import android.util.Log;
-
 import java.lang.reflect.Field;
+
+import app.template.extension.zalo.buglog.NezumiLog;
 
 /** Hooks that unhide Zalo's native "Save" for profile avatar/cover and Story. Every hook fails safe. */
 public final class SaveMedia {
@@ -32,7 +32,7 @@ public final class SaveMedia {
             // Same guards as the own-story block: not type 3 (other) / 18, and not a disabled (1, 5) story.
             return type != 3 && type != 18 && status != 1 && status != 5;
         } catch (Throwable failure) {
-            Log.w(TAG, "canSaveStory", failure);
+            NezumiLog.w(TAG, "canSaveStory", failure);
             return false;
         }
     }

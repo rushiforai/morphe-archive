@@ -7,8 +7,8 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-private const val PLAYLOG_REQUESTS = "LIIIIIlIllIllIII;"
-private const val GATEWAY_REQUEST = "LlIlIlIIIlIlIIl;"
+private const val PLAYLOG_REQUESTS = "LIIIIlIlIIlIII;"
+private const val GATEWAY_REQUEST = "LIlllIlIlIlIlllII;"
 
 private fun MutableMethod.skipPlaylogRequest(apiMethod: String) {
     check(returnType == GATEWAY_REQUEST)
@@ -33,10 +33,10 @@ internal val playbackSessionPatch = patch {
         // Playback logs share their sender with other logs. Skip only the two listening endpoints.
         val requests = mutableClassDefBy(PLAYLOG_REQUESTS)
         requests.methods.single {
-            it.name == "IIIIIllIlIIllll" && it.parameterTypes == listOf("LllIlIIlllllII;")
+            it.name == "IllIIIlllIIlIlll" && it.parameterTypes == listOf("LIIIIlIIIIIlllllI;")
         }.skipPlaylogRequest("log.listen")
         requests.methods.single {
-            it.name == "llIIIIIIlIIIIll" && it.parameterTypes == listOf("Ljava/util/List;")
+            it.name == "IllIlllIIIllIlII" && it.parameterTypes == listOf("Ljava/util/List;")
         }.skipPlaylogRequest("log.batch_listen")
     }
 }

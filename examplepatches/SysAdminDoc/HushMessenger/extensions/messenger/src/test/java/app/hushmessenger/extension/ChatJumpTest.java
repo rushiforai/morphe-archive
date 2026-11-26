@@ -506,6 +506,8 @@ public class ChatJumpTest {
         assertSame(activity.findViewById(android.R.id.content), jump.bar.bar.getParent());
         idle(3 * ChatJump.TICK_MS);
         assertTrue(jump.bar.status.getText().toString().startsWith("Loading older messages"));
+        assertEquals("#191: listed in Invisible buttons by its words", jump.bar.cancel.getText().toString(),
+            InvisibleButtons.nameOf(jump.bar.cancel));
         idle(30 * ChatJump.TICK_MS);
         assertTrue(jump.done());
         assertNull(ChatJump.running);
@@ -810,13 +812,25 @@ public class ChatJumpTest {
         openChat();
         list.older = 1000;
         hold(name);
-        // The bar reads the Light theme switch, so with no preferences its show() throws.
+        // The bar reads the Light theme switch, so a store that can't answer for it makes its show() throw.
         android.content.SharedPreferences prefs = Settings.preferences;
-        Settings.preferences = null;
+        Settings.preferences = (android.content.SharedPreferences) java.lang.reflect.Proxy.newProxyInstance(
+            getClass().getClassLoader(), new Class<?>[] {android.content.SharedPreferences.class}, (proxy, method, args) -> {
+                if (method.getName().equals("getBoolean")
+                    && (SettingsTheme.LIGHT.equals(args[0]) || SettingsTheme.FOLLOW_PHONE.equals(args[0]))) {
+                    throw new IllegalStateException("unreadable " + args[0]);
+                }
+                try {
+                    return method.invoke(prefs, args);
+                } catch (java.lang.reflect.InvocationTargetException failed) {
+                    throw failed.getCause();
+                }
+            });
         try {
             asked.get(0).jump(0);
-            fail("the bar showed without preferences");
-        } catch (NullPointerException expected) {
+            fail("the bar showed without its theme");
+        } catch (IllegalStateException expected) {
+            assertTrue(expected.getMessage().startsWith("unreadable "));
         } finally {
             Settings.preferences = prefs;
         }

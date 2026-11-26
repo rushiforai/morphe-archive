@@ -3,6 +3,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  * https://github.com/MorpheApp/morphe-patches/pull/2451
+ * https://github.com/MorpheApp/morphe-patches/pull/5255
  *
  * Portions of this file are modified by anddea:
  * Copyright (C) 2026 anddea
@@ -13,7 +14,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.patches.youtube.general.navigation
@@ -21,6 +22,8 @@ package app.morphe.patches.youtube.general.navigation
 import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.returnEarly
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import app.morphe.patches.youtube.utils.playservice.is_21_35_or_greater
@@ -30,6 +33,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.shared.misc.bridge.addBridge
 import app.morphe.util.findFreeRegister
@@ -44,6 +48,8 @@ import app.morphe.patches.shared.misc.fix.proto.parseByteArrayWithRegistryMethod
 import app.morphe.patches.shared.spoof.guide.addClientOSVersionHook
 import app.morphe.patches.shared.spoof.guide.spoofClientGuideEndpointPatch
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.patches.youtube.utils.commandrouter.commandRouterHookInstalled
+import app.morphe.patches.youtube.utils.commandrouter.commandRouterHookPatch
 import app.morphe.patches.youtube.utils.YOUTUBE_PIVOT_BAR_CLASS_TYPE
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_PATH
 import app.morphe.patches.youtube.utils.extension.Constants.PATCHES_PATH
@@ -61,6 +67,7 @@ import app.morphe.patches.youtube.utils.playservice.is_20_26_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_28_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_31_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_46_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.resourceid.newContentCount
 import app.morphe.patches.youtube.utils.resourceid.newContentDot
@@ -193,6 +200,80 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 private const val THEME_EXTENSION_CLASS_DESCRIPTOR =
     "$PATCHES_PATH/theme/ThemePatch;"
 
+private object AccountSwitcherTouchFingerprint : Fingerprint(
+    definingClass = YOUTUBE_PIVOT_BAR_CLASS_TYPE,
+    name = "dispatchTouchEvent",
+    parameters = listOf("Landroid/view/MotionEvent;"),
+    returnType = "Z",
+    filters = listOf(
+        methodCall(smali = "Landroid/view/MotionEvent;->getAction()I"),
+        methodCall(opcode = Opcode.INVOKE_SUPER, name = "dispatchTouchEvent", returnType = "Z"),
+    ),
+)
+
+private object AccountSwitcherHostLongClickFingerprint : Fingerprint(
+    definingClass = YOUTUBE_PIVOT_BAR_CLASS_TYPE,
+    parameters = listOf("Landroid/view/MotionEvent;"),
+    returnType = "V",
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            smali = "Landroid/view/View;->performLongClick()Z",
+        ),
+        methodCall(smali = "Landroid/view/View;->performClick()Z"),
+    ),
+)
+
+private object AccountSwitcherModeFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "accountSwitcherMode",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC),
+    parameters = emptyList(),
+    returnType = "I",
+)
+
+private fun BytecodePatchContext.installAccountSwitcherShortcut(): Boolean {
+    val unsupportedReason = when {
+        !is_21_30_or_greater -> "requires YouTube 21.30 or newer; older versions can open Google sign-in."
+        !commandRouterHookInstalled -> "native command router hook not found."
+        else -> null
+    }
+    if (unsupportedReason != null) {
+        printWarn("Account switcher shortcut is unavailable: $unsupportedReason")
+        return false
+    }
+
+    val dispatch = AccountSwitcherTouchFingerprint.matchOrNull()?.method
+    val hostLongClick = AccountSwitcherHostLongClickFingerprint.matchOrNull()
+    if (dispatch == null || (dispatch.implementation?.registerCount ?: 0) < 3 || hostLongClick == null) {
+        printWarn("Account switcher shortcut is unavailable: native PivotBar gesture receiver not found.")
+        return false
+    }
+
+    val tabClick = hostLongClick.instructionMatches.first()
+    val tabRegister = tabClick.getInstruction<FiveRegisterInstruction>().registerC
+    val hostHook = "$EXTENSION_CLASS_DESCRIPTOR->handleAccountSwitcherHostLongClick(Landroid/view/View;)Z"
+    hostLongClick.method.replaceInstruction(tabClick.index, "invoke-static { v$tabRegister }, $hostHook")
+
+    val touchHook = "$EXTENSION_CLASS_DESCRIPTOR->" +
+            "handleAccountSwitcherTouch(Landroid/view/View;Landroid/view/MotionEvent;)Z"
+
+    // v0 is a local, not a parameter. Pass unhandled events to the original dispatcher unchanged.
+    dispatch.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p0 .. p1 }, $touchHook
+            move-result v0
+            if-eqz v0, :stock_dispatch
+            return v0
+        """,
+        ExternalLabel("stock_dispatch", dispatch.getInstruction(0)),
+    )
+    // 21.30–34 need the full native dialog; the server closes their lite sheet.
+    AccountSwitcherModeFingerprint.method.returnEarly(if (is_21_35_or_greater) 2 else 1)
+    return true
+}
+
 @Suppress("unused")
 val navigationBarComponentsPatch = bytecodePatch(
     NAVIGATION_BAR_COMPONENTS.title,
@@ -205,6 +286,7 @@ val navigationBarComponentsPatch = bytecodePatch(
         settingsPatch,
         sharedResourceIdPatch,
         navigationBarHookPatch,
+        commandRouterHookPatch,
         spoofClientGuideEndpointPatch,
         fixProtoLibraryPatch,
         versionCheckPatch,
@@ -1043,6 +1125,9 @@ val navigationBarComponentsPatch = bytecodePatch(
 
         // Hook navigation button created, in order to hide them.
         hookNavigationButtonCreated(EXTENSION_CLASS_DESCRIPTOR)
+        if (installAccountSwitcherShortcut()) {
+            settingArray += "SETTINGS: ACCOUNT_SWITCHER_SHORTCUT"
+        }
 
         // region add settings
 

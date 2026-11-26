@@ -16,10 +16,10 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
-private const val TAB_ENUM = "LIIIlIIlllIlll;"
-private const val PREMIUM_TAB_FIELD = "LIIIlIIlllIlll;->IIIIlIIlllIll:$TAB_ENUM"
+private const val TAB_ENUM = "LIIlIIIIIIllllI;"
+private const val PREMIUM_TAB_FIELD = "LIIlIIIIIIllllI;->llIIIlIIIIIlIll:$TAB_ENUM"
 private const val ARRAY_LIST_ADD = "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z"
-private const val CONVERSION_ENTRYPOINTS = "LlIlIIlllIIll;"
+private const val CONVERSION_ENTRYPOINTS = "LlIlIllIIllllI;"
 private const val CONVERSION_ENTRYPOINT = "Lcore/auth/module/models/AppConversionEntrypoint;"
 private const val FILTER_OFFER = "morpheFilterContextualOffer"
 
@@ -52,8 +52,8 @@ internal val premiumTabPatch = patch {
     compatibleWith(deezerCompatibility)
 
     execute {
-        val build = mutableClassDefBy("LlllIIIIllllllIl;").methods.single {
-            it.name == "build" && it.parameterTypes.isEmpty() && it.returnType == "LIIIIlIIIlIlIIIIl;"
+        val build = mutableClassDefBy("LlIllIIlIlIlI;").methods.single {
+            it.name == "build" && it.parameterTypes.isEmpty() && it.returnType == "LIllIlllIlIIIlllI;"
         }
         val instructions = checkNotNull(build.implementation).instructions
         val premiumLoad = instructions.indices.single { index ->
@@ -71,14 +71,14 @@ internal val premiumTabPatch = patch {
         build.replaceInstruction(premiumLoad, "nop")
         build.replaceInstruction(premiumLoad + 1, "nop")
 
-        val profileUpgrade = mutableClassDefBy("LIlllIIlIlIlII;").methods.single { method ->
+        val profileUpgrade = mutableClassDefBy("LlIlllIllIlII;").methods.single { method ->
             method.returnType == "V" && method.implementation?.instructions?.any {
                 ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "get-premium"
             } == true
         }
         profileUpgrade.addInstructions(0, "return-void")
 
-        val settings = mutableClassDefBy("LIllllIlIllllIIlI;").methods.single { method ->
+        val settings = mutableClassDefBy("LIlllIllIlIlIlIll;").methods.single { method ->
             method.name == "invoke" && method.parameterTypes == listOf("Ljava/lang/Object;", "Ljava/lang/Object;") &&
                 method.implementation?.instructions?.any {
                     ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "conversion_banner"
@@ -88,7 +88,7 @@ internal val premiumTabPatch = patch {
         val banner = settingsInstructions.indices.single { index ->
             val instruction = settingsInstructions[index]
             instruction.opcode == Opcode.IGET_OBJECT && (instruction as ReferenceInstruction).reference.toString() ==
-                "LIIIlIllIlIIllIlI;->IIlIlIlIlIllllll:LllIIIIIllIlIIIl;"
+                "LIIllIlIlIIlIIIlI;->lIIlIIlIlllllII:LIlllIlIlIIIlIllI;"
         }
         val bannerRegister = (settingsInstructions[banner] as OneRegisterInstruction).registerA
         check(settingsInstructions[banner + 1].opcode == Opcode.IF_NEZ ||
@@ -100,7 +100,7 @@ internal val premiumTabPatch = patch {
     finalize {
         val offers = mutableClassDefBy(CONVERSION_ENTRYPOINTS)
         val offer = offers.methods.single {
-            it.name == "IllIlIlIIlIllIll" && it.parameterTypes == listOf("Ljava/lang/String;") &&
+            it.name == "lIIIIIlllllIIIII" && it.parameterTypes == listOf("Ljava/lang/String;") &&
                 it.returnType == CONVERSION_ENTRYPOINT
         }
         val offerInstructions = checkNotNull(offer.implementation).instructions

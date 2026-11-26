@@ -22,6 +22,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
+/** Every 588 build, arm64 and armv7 alike, names the supplier's static subscribe call A0B (587: A0A). */
+private val STOCK_588_INBOX_ROUTE = InboxRefreshRoute("$INBOX_SUPPLIER->A0B(${INBOX_SUPPLIER}Z)V", "$INBOX_SUPPLIER->A00:I")
+
 class InboxRefreshTest {
     @AfterTest fun reset() {
         activeProfile = SYNTHETIC_PROFILE
@@ -167,7 +170,7 @@ class InboxRefreshTest {
             val discovered = mirroredControls(listOf(byType.getValue(INBOX_SUPPLIER)))
             validateControls(discovered, setOf(INBOX_REFRESH_HOOK))
             val native = discovered.getValue(INBOX_REFRESH_HOOK).single()
-            assertEquals(INBOX_ROUTE, resolveInboxRefresh(native) { byType[it] }, code)
+            assertEquals(STOCK_588_INBOX_ROUTE, resolveInboxRefresh(native) { byType[it] }, code)
             val items = MutableMethod(native)
             val before = items.implementation!!.instructions.toList()
             val tries = items.implementation!!.tryBlocks.map { it.startCodeAddress to it.codeUnitCount }

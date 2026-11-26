@@ -761,11 +761,11 @@ public final class LichessPuzzles {
             Object score = null;
             for (Constructor<?> constructor : Class.forName(scoreClass()).getConstructors()) {
                 Class<?>[] types = constructor.getParameterTypes();
-                if (types.length == 3 && types[0].isAssignableFrom(pathResultClass)
-                        && types[1].isAssignableFrom(ratingClass)) {
-                    score = constructor.newInstance(pathResult, rating, null);
-                    break;
-                }
+                if (types.length != 3 || !types[1].isAssignableFrom(ratingClass)) continue;
+                Object first = scorePathResult(types[0], pathResult, pathResultClass);
+                if (first == null) continue;
+                score = constructor.newInstance(first, rating, null);
+                break;
             }
             if (score == null) throw new IllegalStateException("The puzzle score constructor was not found");
             Class<?> result = Class.forName(resultClass());
@@ -789,6 +789,28 @@ public final class LichessPuzzles {
         } catch (Throwable ignored) {
             return null;
         }
+    }
+
+    /**
+     * The score model takes the path result directly up to 4.10.28. 4.10.29 wraps it in a nested
+     * class of a sealed interface, so build that wrapper when the constructor asks for it.
+     */
+    private static Object scorePathResult(Class<?> type, Object pathResult, Class<?> pathResultClass) {
+        if (type.isAssignableFrom(pathResultClass)) return pathResult;
+        if (type.isPrimitive() || type.isArray()) return null;
+        for (Class<?> nested : type.getDeclaredClasses()) {
+            for (Constructor<?> constructor : nested.getDeclaredConstructors()) {
+                Class<?>[] types = constructor.getParameterTypes();
+                if (types.length != 1 || !types[0].isAssignableFrom(pathResultClass)) continue;
+                try {
+                    constructor.setAccessible(true);
+                    return constructor.newInstance(pathResult);
+                } catch (Throwable ignored) {
+                    // Try the next wrapper.
+                }
+            }
+        }
+        return null;
     }
 
     /** Hands Lichess puzzles near the rating to chess.com's puzzle database as guest puzzles. */

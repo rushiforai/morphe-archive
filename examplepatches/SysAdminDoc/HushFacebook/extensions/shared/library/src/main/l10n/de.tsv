@@ -572,6 +572,8 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	Bl
 Hide profile notes	Profilnotizen ausblenden
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	Blendet die Notizblase auf Profilbildern aus. Gilt ab dem nächsten Öffnen eines Profils.
+Hide the gift button on profiles	Geschenk-Button auf Profilen ausblenden
+Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	Entfernt den Button zum Senden eines Geschenks von den Profilen anderer. Gilt ab dem nächsten Öffnen eines Profils.
 # context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
 Save button under posts	Speichern-Button unter Beiträgen
 # context: summary of that switch; Like, Comment and Share are the buttons under a post
@@ -3167,8 +3169,8 @@ Adds Facebook chats to Android's share menu. A photo or video you share there is
 Share to Facebook chats is off.	In Facebook-Chats teilen ist aus.
 Nothing in it to send.	Nichts zum Senden dabei.
 Couldn't save it to your gallery.	Speichern in der Galerie fehlgeschlagen.
-Copied and saved. Pick a chat.	Kopiert und gespeichert. Wähle einen Chat.
-In your gallery now. Pick a chat.	Jetzt in deiner Galerie. Wähle einen Chat.
+Copied and saved. Paste and attach in a chat.	Kopiert und gespeichert. Im Chat einfügen und anhängen.
+Saved to your gallery. Attach it in a chat.	In der Galerie gespeichert. Im Chat anhängen.
 Copied. Pick a chat and paste it.	Kopiert. Wähle einen Chat und füge es ein.
 Open your chats to pick one.	Öffne deine Chats und wähle einen.
 Post date after the caption	Veröffentlichungsdatum nach der Beschreibung
@@ -3185,3 +3187,17 @@ Open a chat, then come back here to give it a color of its own.	Öffne einen Cha
 %1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s, der zuletzt geöffnete Chat, nutzt den Chat-Hintergrund oben. Gib einen Farbcode ein, um ihm einen eigenen zu geben.
 %1$s, the last chat you opened, is %2$s.	%1$s, der zuletzt geöffnete Chat, ist %2$s.
 Type one color code, or two for a fade from top to bottom.	Gib einen Farbcode ein, oder zwei für einen Verlauf von oben nach unten.
+Hide the AI content label on reels	KI-Inhalt-Label bei Reels ausblenden
+Takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. A change shows from the next reel.	Entfernt das Label „KI-Inhalt“ oder „KI-Info“ von Reels, die Facebook als mit KI erstellt markiert. Eine Änderung gilt ab dem nächsten Reel.
+The %1$s row will be set to %2$s.	Die Zeile %1$s wird auf %2$s gesetzt.
+The %1$s row will go back to its default.	Die Zeile %1$s geht auf ihren Standardwert zurück.
+Save files to Downloads	Dateien in Downloads speichern
+A PDF, document or other file you download from a post goes to your phone's Downloads folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.	Eine PDF, ein Dokument oder eine andere Datei, die du aus einem Beitrag herunterlädst, landet im Downloads-Ordner deines Handys, wo ein Dateimanager sie öffnen kann. Ausgeschaltet behält Facebook sie dort, wo kein Dateimanager hinkommt.
+Hide hashtags in reel captions	Hashtags in Reel-Beschreibungen ausblenden
+Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	Entfernt die Hashtags aus Reel-Beschreibungen, etwa den Block am Ende. Ein Hashtag, der Teil eines Satzes ist, bleibt. Eine Änderung gilt ab dem nächsten Reel.
+Keep the keyboard closed when comments open	Tastatur beim Öffnen der Kommentare geschlossen lassen
+Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	Kommentare öffnen sich, ohne dass die Tastatur aufspringt, auch bei einem Beitrag ohne Kommentare. Tippe auf das Kommentarfeld, wenn du schreiben willst.
+Settings language	Sprache der Einstellungen
+Same as Facebook	Wie Facebook
+Show feed reels uncropped	Reels im Feed nicht beschneiden
+Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Reels in deinem Feed zeigen das ganze Bild in ihrem eigenen Format, statt auf Facebooks Rahmen zugeschnitten zu werden. Reels, die nach einer Änderung geladen werden, übernehmen sie.

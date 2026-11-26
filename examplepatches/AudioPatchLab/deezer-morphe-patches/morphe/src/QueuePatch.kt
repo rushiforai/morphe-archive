@@ -28,22 +28,22 @@ private fun MutableMethod.ignoreQueueOffer(marker: String, method: String, resul
 
 private fun MutableMethod.skipQueueOffers() {
     // The trial call can open a screen before returning. Skip the call itself.
-    ignoreQueueOffer("try_to_edit_queue_list", "LllllIIllIIlIIIl;->IIIIIllIlIIllll(LIllIIllIlIIll;)Z", Opcode.MOVE_RESULT)
+    ignoreQueueOffer("try_to_edit_queue_list", "LIIllIIlIlIIIlIIl;->IllIIIlllIIlIlll(LllIIIlIIllllII;)Z", Opcode.MOVE_RESULT)
     ignoreQueueOffer(
         "TRY_TO_EDIT_QUEUE_LIST",
-        "LlIlIIlllIIll;->IllIlIlIIlIllIll(Ljava/lang/String;)Lcore/auth/module/models/AppConversionEntrypoint;",
+        "LlIlIllIIllllI;->lIIIIIlllllIIIII(Ljava/lang/String;)Lcore/auth/module/models/AppConversionEntrypoint;",
         Opcode.MOVE_RESULT_OBJECT,
     )
 }
 
 internal fun bypassQueueEditUpsell(composeMenuClass: MutableClass, sheetMenuClass: MutableClass) {
     composeMenuClass.methods.single {
-        it.name == "llIIlIlIlIllI" &&
-            it.parameterTypes == listOf("LIlIIlIlIIIII;", "I", "I", "LIIIIIIllIIlIIIII;")
+        it.name == "IIIIlIlIllIllllI" &&
+            it.parameterTypes == listOf("LIlIIlIIlIIIIIIlI;", "I", "I", "LIlIIIlllIlIlIIIl;")
     }.skipQueueOffers()
 
     sheetMenuClass.methods.single {
-        it.name == "lIIIIlllIlllll" && it.parameterTypes == listOf("LIIllIlllIIIlllI;")
+        it.name == "IIIlIIIIIIIlIl" && it.parameterTypes == listOf("LIlIlllllIIIIlIII;")
     }.skipQueueOffers()
 }
 
@@ -52,20 +52,20 @@ internal val queuePatch = patch {
     dependsOn(queueInsertionSupportPatch)
 
     execute {
-        val hasEntitlement = mutableClassDefBy("Lcom/deezer/core/data/model/policy/IllIlIlIIlIllIll;").methods.single {
-            it.name == "lIIIIlllIlllll" && it.parameterTypes == listOf("LlIlIIIllIlIlll;") && it.returnType == "Z"
+        val hasEntitlement = mutableClassDefBy("Lcom/deezer/core/data/model/policy/lIIIIIlllllIIIII;").methods.single {
+            it.name == "IIIlIIIIIIIlIl" && it.parameterTypes == listOf("LIIllIlIllllllIlI;") && it.returnType == "Z"
         }
         check(
             checkNotNull(hasEntitlement.implementation).instructions.any { instruction ->
                 instruction.opcode == Opcode.IGET &&
                     (instruction as ReferenceInstruction).reference.toString() ==
-                    "Lcom/deezer/core/data/model/policy/IllIlIlIIlIllIll;->IIlllIlIIlIlII:I"
+                    "Lcom/deezer/core/data/model/policy/lIIIIIlllllIIIII;->IIllIIlIIIlIIlll:I"
             },
         )
         hasEntitlement.addInstructionsWithLabels(
             0,
             """
-                sget-object v0, LlIlIIIllIlIlll;->lIlIIlIIlIlIllI:LlIlIIIllIlIlll;
+                sget-object v0, LIIllIlIllllllIlI;->IllIlIlIlllIIlI:LIIllIlIllllllIlI;
                 if-ne p1, v0, :original
                 const/4 v0, 0x1
                 return v0
@@ -74,14 +74,14 @@ internal val queuePatch = patch {
             """.trimIndent(),
         )
 
-        mutableClassDefBy("LIIlllIIIIIlIlIlI;").methods.single {
-            it.name == "IIlllIlIIlIlII" && it.parameterTypes.size == 6
+        mutableClassDefBy("LlIlIlIIIllIlllI;").methods.single {
+            it.name == "IIllIIlIIIlIIlll" && it.parameterTypes.size == 6
         }.showAddTrackToQueue()
-        mutableClassDefBy("LIIIIIllllIllllI;").methods.single {
-            it.name == "IIlIlIlIlIllllll" &&
+        mutableClassDefBy("LIIllIllIIlIIll;").methods.single {
+            it.name == "lIIlIIlIlllllII" &&
                 it.parameterTypes == listOf("Ljava/lang/Object;", "Ljava/lang/Object;")
         }.showAddCollectionToQueue()
-        mutableClassDefBy("LIIllIIIIlIllIIIl;").methods.single { it.name == "<clinit>" }
-            .showPlayerQueueAction("IIllIIIllllllI")
+        mutableClassDefBy("LIIllIIIlIIIIllll;").methods.single { it.name == "<clinit>" }
+            .showPlayerQueueAction("IlIIllIIIIIIIlIl")
     }
 }

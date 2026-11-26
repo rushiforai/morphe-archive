@@ -48,6 +48,8 @@ public final class SearchSections {
     /** The row types Hide Meta AI drops from every section, the people found by a typed search included. */
     static final Set<String> AI_ROWS = Set.of("CONNECTED_AI_BOT", "UNCONNECTED_AI_BOT", "USER_GENERATED_CHARACTER_BOT",
         "AI_AGENT_PROMPT", "META_AI_VOICE", "META_AI_SNIPPET", "META_AI_SNIPPET_PROMPT");
+    /** The groups a typed search files Meta AI's own entries under: its bots, its "ask" row and its answer. */
+    static final Set<String> AI_GROUPS = Set.of("AI_BOTS", "META_AI_TYPEAHEAD", "META_AI_SNIPPET");
     /** The thread types Block Meta AI chats keeps closed. Groups with an AI bot in them aren't here. */
     static final Set<String> AI_THREADS = Set.of("AI_BOT", "BIZ_AI_AGENT", "AI_PROFILE", "AI_AGENT");
     private static final String META_AI_THREAD = "META_AI_";
@@ -61,6 +63,8 @@ public final class SearchSections {
 
     /** Each class's fields that can hold an enum, a thread key, a chat or a person, found once. */
     private static final Map<Class<?>, List<Field>> FIELDS = new ConcurrentHashMap<>();
+    /** Each class's fields that can name a typed search entry's group or hold its row, found once. */
+    private static final Map<Class<?>, List<Field>> ENTRY_FIELDS = new ConcurrentHashMap<>();
     /** Messenger's own AI bot check, looked up from the patch's route the first time a row holds a person. */
     private static volatile Method aiUser;
     private static volatile boolean aiUserLooked;
@@ -77,6 +81,8 @@ public final class SearchSections {
             for (int i = 0; i < sections.size(); i++) {
                 Object section = sections.get(i);
                 String hiddenBy = hiddenBy(enumNames(section), ai, suggested, reels);
+                // A typed search's result holds no sections: its rows and headings come one by one, each in a wrapper.
+                if (hiddenBy == null && ai && aiEntry(section)) hiddenBy = META_AI;
                 if (hiddenBy != null) {
                     Settings.enabled(hiddenBy);
                     if (kept == null) kept = new ArrayList<>(sections.subList(0, i));
@@ -124,6 +130,55 @@ public final class SearchSections {
             Settings.hookFailedPrivately(META_AI, "Can't look over search's rows", error);
             return items;
         }
+    }
+
+    /**
+     * Whether [entry] is Meta AI's in a typed search's list: a row or a heading filed under one of its groups, or the
+     * wrapper around one of its rows. A section of the empty search is neither.
+     */
+    static boolean aiEntry(Object entry) throws ReflectiveOperationException {
+        if (entry == null) return false;
+        for (Field field : entryFields(entry.getClass())) {
+            Object value = field.get(entry);
+            if (value instanceof Enum) {
+                if (AI_GROUPS.contains(((Enum<?>) value).name())) return true;
+            } else if (value != null && holdsRow(field.getType()) && aiRow(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether [type] is a search row's class: one of Messenger's own that can hold a thread key, a chat or a person. */
+    private static boolean holdsRow(Class<?> type) {
+        String name = type.getName();
+        if (type.isPrimitive() || type.isArray() || type.isEnum() || type.isInterface() || HELD.contains(name)
+            || name.startsWith("java.") || name.startsWith("android.") || name.startsWith("kotlin.")) return false;
+        for (Field field : fields(type)) if (HELD.contains(field.getType().getName())) return true;
+        return false;
+    }
+
+    /** Messenger declares an entry's group as an interface its enums implement, so those fields are read too. */
+    private static List<Field> entryFields(Class<?> type) {
+        List<Field> known = ENTRY_FIELDS.get(type);
+        if (known != null) return known;
+        List<Field> found = new ArrayList<>();
+        for (Class<?> at = type; at != null && at != Object.class; at = at.getSuperclass()) {
+            for (Field field : at.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) continue;
+                Class<?> kind = field.getType();
+                if (!kind.isEnum() && !kind.isInterface() && !holdsRow(kind)) continue;
+                try {
+                    field.setAccessible(true);
+                    found.add(field);
+                } catch (RuntimeException refused) {
+                    // A field this process can't open just isn't read.
+                }
+            }
+        }
+        List<Field> fixed = Collections.unmodifiableList(found);
+        ENTRY_FIELDS.put(type, fixed);
+        return fixed;
     }
 
     static boolean aiRow(Object item) throws ReflectiveOperationException {
@@ -261,6 +316,7 @@ public final class SearchSections {
 
     static void resetForTests() {
         FIELDS.clear();
+        ENTRY_FIELDS.clear();
         aiUser = null;
         aiUserLooked = false;
     }

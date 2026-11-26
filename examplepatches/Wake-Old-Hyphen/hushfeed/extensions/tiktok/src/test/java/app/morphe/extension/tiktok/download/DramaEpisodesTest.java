@@ -48,12 +48,12 @@ public class DramaEpisodesTest {
         DramaEpisodes.resetForTests();
     }
 
-    /** One episode as TikTok lists it: the post with its paid struct, and its place in the drama. */
+    /** One episode as TikTok lists it: the post with its paid struct and video, and its place in the drama. */
     private static JSONObject item(String id, int seq, boolean preview) throws Exception {
         JSONObject paid = new JSONObject().put("paid_collection_id", 7431100L)
                 .put("is_partial_preview", preview).put("episode_num", String.valueOf(seq));
-        return new JSONObject().put("seq_id", seq)
-                .put("aweme", new JSONObject().put("aweme_id", id).put("paid_content_info", paid));
+        return new JSONObject().put("seq_id", seq).put("aweme", new JSONObject().put("aweme_id", id)
+                .put("paid_content_info", paid).put("video", video(0)));
     }
 
     private static String reply(int page, boolean hasNext, JSONObject... items) throws Exception {
@@ -68,9 +68,10 @@ public class DramaEpisodesTest {
     @Test public void aPageReadsEachEpisodesPostNumberAndPreviewFlag() throws Exception {
         JSONObject intro = item("100", 0, false).put("is_intro", true);
         JSONObject locked = item("103", 3, true);
-        // A locked episode can come with the whole episode next to its preview.
-        JSONObject unlockedCopy = item("104", 4, true);
-        unlockedCopy.put("full_paid_videos_for_partial_preview", new JSONObject().put("aweme_id", "104")
+        // A locked episode can come with the whole paid episode next to its preview, which is
+        // what TikTok sells, so it's never the one listed (#527).
+        JSONObject paidCopy = item("104", 4, true);
+        paidCopy.put("full_paid_videos_for_partial_preview", new JSONObject().put("aweme_id", "904")
                 .put("paid_content_info", new JSONObject().put("is_partial_preview", false)));
         JSONObject unnumbered = new JSONObject().put("aweme", new JSONObject().put("aweme_id", "105")
                 .put("paid_content_info", new JSONObject().put("episode_num", "9")));
@@ -78,7 +79,7 @@ public class DramaEpisodesTest {
         JSONObject noPost = new JSONObject().put("seq_id", 7);
 
         DramaEpisodes.Page page = DramaEpisodes.page(reply(2, true, intro, item("101", 1, false), locked,
-                unlockedCopy, unnumbered, rowOnly, noPost), DramaEpisodes.readerForTests);
+                paidCopy, unnumbered, rowOnly, noPost), DramaEpisodes.readerForTests);
 
         assertTrue(page.hasNext);
         assertEquals(2, page.page);
@@ -89,8 +90,11 @@ public class DramaEpisodesTest {
         assertEquals("post 101", first.post);
         assertEquals(1, first.number);
         assertFalse(first.preview);
+        assertFalse(first.locked);
+        assertTrue("a row sent with no video is locked", page.episodes.get(4).locked);
         assertTrue("a locked episode is marked a preview", page.episodes.get(1).preview);
-        assertFalse("the whole episode is used when TikTok sends it", page.episodes.get(2).preview);
+        assertEquals("the paid copy was listed in place of the preview", "post 104", page.episodes.get(2).post);
+        assertTrue(page.episodes.get(2).preview);
         assertEquals(4, page.episodes.get(2).number);
         assertEquals("episode_num stands in for a missing seq_id", 9, page.episodes.get(3).number);
         assertEquals("the row stands in for both", 6, page.episodes.get(4).number);
@@ -219,30 +223,26 @@ public class DramaEpisodesTest {
                 .put("url_list", new JSONArray().put("https://v16m.example/play.mp4")));
     }
 
-    @Test public void anEpisodeListedWithoutItsVideoIsAskedForOnItsOwn() throws Exception {
-        Post episode = new Post(new Paid(7431100L, "Night Shift"));
-        DramaEpisodes.sourceForTests = (path, query) -> {
-            assertEquals("/aweme/v1/aweme/detail/", path);
-            asked.add(query);
-            return new JSONObject().put("status_code", 0).put("aweme_detail", new JSONObject()
-                    .put("aweme_id", query.get("aweme_id")).put("video", video(2))).toString();
-        };
-        assertEquals("post 13", DramaEpisodes.whole(episode, "13"));
-        assertEquals("13", asked.get(0).get("aweme_id"));
-        assertNull("a post that isn't a drama's isn't asked for", DramaEpisodes.whole(new Post(null), "14"));
-        assertNull(DramaEpisodes.whole(episode, ""));
-        assertEquals(1, asked.size());
+    /**
+     * #463, #527: past the episodes the account can watch, TikTok lists the rest with no video.
+     * Those are locked, and loading the list never asks for one of them another way.
+     */
+    @Test public void anEpisodeListedWithoutItsVideoIsLocked() throws Exception {
+        JSONObject bare = item("114", 14, false);
+        bare.getJSONObject("aweme").remove("video");
+        JSONObject emptyVideo = item("115", 15, false);
+        emptyVideo.getJSONObject("aweme").put("video", new JSONObject().put("play_addr", new JSONObject()));
+        replies.put("0", reply(0, true));
+        replies.put("1", reply(1, false, item("113", 13, false), bare, emptyVideo));
 
-        DramaEpisodes.sourceForTests = (path, query) -> new JSONObject().put("status_code", 0)
-                .put("aweme_detail", new JSONObject().put("aweme_id", "15")
-                        .put("video", new JSONObject().put("play_addr", new JSONObject()))).toString();
-        assertNull("a reply with no video either", DramaEpisodes.whole(episode, "15"));
-        DramaEpisodes.sourceForTests = (path, query) -> new JSONObject().put("status_code", 2053).toString();
-        assertNull("a refusal", DramaEpisodes.whole(episode, "16"));
-        DramaEpisodes.sourceForTests = (path, query) -> {
-            throw new IOException("offline");
-        };
-        assertNull(DramaEpisodes.whole(episode, "17"));
+        List<DramaEpisodes.Episode> episodes = DramaEpisodes.load(7431100L);
+
+        assertEquals(3, episodes.size());
+        assertFalse("an episode sent with its video", episodes.get(0).locked);
+        assertTrue("an episode sent with no video", episodes.get(1).locked);
+        assertFalse(episodes.get(1).preview);
+        assertTrue("an episode sent with an empty video", episodes.get(2).locked);
+        assertEquals("only the list's own pages were asked for", 2, asked.size());
     }
 
     /** Any post by id, for a data export's likes: a missing post is null, a failed ask throws. */

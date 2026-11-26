@@ -143,10 +143,18 @@ internal val mediaRequestPatch = bytecodePatch(
 
 context(patchContext: BytecodePatchContext)
 internal fun enableMobileWebMediaBridge() {
-    if (EXTENSION_WEB_MEDIA_REQUEST_INTERFACE in patchContext.mutableClassDefBy(HTTP_REQUEST_CLASS_TYPE).interfaces) {
+    if (hasNativeMediaHeaderBridge()) {
         updatePatchStatus("Lapp/morphe/extension/shared/patches/PatchStatus;", "MobileWebMediaRequest")
     }
 }
+
+/** Ghost mode also requires a resolved NetFetch entry point before enabling its guards. */
+context(patchContext: BytecodePatchContext)
+internal fun hasNativeMediaHeaderBridge() =
+    EXTENSION_WEB_MEDIA_REQUEST_INTERFACE in patchContext.mutableClassDefBy(HTTP_REQUEST_CLASS_TYPE).interfaces
+
+context(patchContext: BytecodePatchContext)
+internal fun hasNativeMediaRequestHook() = NetFetchStartFetchTaskFingerprint.matchOrNull() != null
 
 private fun MutableClass.addGetter(methodName: String, field: FieldReference) {
     methods.add(

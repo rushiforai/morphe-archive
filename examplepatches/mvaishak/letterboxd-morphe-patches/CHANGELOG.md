@@ -1,3 +1,9 @@
+## [3.1.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v3.1.0...v3.1.1) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* preserve external ratings when streaming availability is hidden ([0336651](https://github.com/mvaishak/letterboxd-morphe-patches/commit/03366510245e928c03f4f7b7810bfa3559b66cf4))
+
 ## [3.1.0](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v3.0.1...v3.1.0) (2026-11-22)
 
 ### 🐛 Bug Fixes

@@ -103,6 +103,27 @@ class MessageHistoryTest(unittest.TestCase):
         for sid in ("302", "303", "304"):
             self.assertEqual(self.db.execute(sql, ("test-room", sid, "self")).fetchall(), [])
 
+    def test_message_mention_query_excludes_content_and_checks_sender_and_room(self):
+        self.db.executemany(
+            "INSERT INTO chat_history(server_id, created_time, from_mid, content, chat_id, attachement_type, parameter, location_name, location_address) "
+            "VALUES(?,?,?,?,?,?,?,?,?)",
+            [
+                ("311", 3011, "peer", "secret body", "test-room", 0, 'MENTION\t{"MENTIONEES":[{"M":"self"}]}', "Secret Place", "Secret Addr"),
+                ("312", 3012, "self", "secret body", "test-room", 0, 'MENTION\t{"MENTIONEES":[{"A":"1"}]}', None, None),
+                ("313", 3013, None, "secret body", "test-room", 0, 'MENTION\t{"MENTIONEES":[{"A":"1"}]}', None, None),
+                ("314", 3014, "peer", "secret body", "other-room", 0, 'MENTION\t{"MENTIONEES":[{"A":"1"}]}', None, None),
+            ],
+        )
+        sql = production_query("MESSAGE_MENTION_SQL")
+        for forbidden in ("content", "location_name", "location_address"):
+            self.assertNotIn(forbidden, sql.lower())
+        self.assertEqual(
+            self.db.execute(sql, ("test-room", "311", "self")).fetchall(),
+            [('MENTION\t{"MENTIONEES":[{"M":"self"}]}',)],
+        )
+        for sid in ("312", "313", "314"):
+            self.assertEqual(self.db.execute(sql, ("test-room", sid, "self")).fetchall(), [])
+
     def test_latest_chat_message_query_includes_self_and_isolates_rooms(self):
         self.db.executemany(
             "INSERT INTO chat_history(type, server_id, created_time, from_mid, content, chat_id, attachement_type, parameter, location_name, location_address) "

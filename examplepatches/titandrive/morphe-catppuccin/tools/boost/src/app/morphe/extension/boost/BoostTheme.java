@@ -184,11 +184,70 @@ public final class BoostTheme {
         android.graphics.drawable.GradientDrawable bg=(android.graphics.drawable.GradientDrawable)view.getBackground().mutate();
         ColorStateList list=bg.getColor();if(list==null || android.graphics.Color.alpha(list.getDefaultColor())==0) return;
         int c=flairColor(list.getDefaultColor());bg.setColor(c);
-        double luminance=0.2126*linear(android.graphics.Color.red(c)/255.0)+0.7152*linear(android.graphics.Color.green(c)/255.0)+0.0722*linear(android.graphics.Color.blue(c)/255.0);
-        int light=color(0,0xffeff1f5,0xffcad3f5), dark=color(0,0xff4c4f69,0xff24273a);
-        double l=lum(light),d=lum(dark);
-        int fg=(Math.max(l,luminance)+0.05)/(Math.min(l,luminance)+0.05) > (Math.max(d,luminance)+0.05)/(Math.min(d,luminance)+0.05)?light:dark;
-        textChildren(view,fg);
+        textChildren(view, flairTextColor(c));
+    }
+    private static int flairTextColor(int background) {
+        double luminance = lum(background);
+        int light = color(0, 0xffeff1f5, 0xffcad3f5);
+        int dark = color(0, 0xff4c4f69, 0xff24273a);
+        double lightContrast = (Math.max(lum(light), luminance) + 0.05) / (Math.min(lum(light), luminance) + 0.05);
+        double darkContrast = (Math.max(lum(dark), luminance) + 0.05) / (Math.min(lum(dark), luminance) + 0.05);
+        return lightContrast > darkContrast ? light : dark;
+    }
+    public static void setBadgeText(android.widget.TextView view, CharSequence text) {
+        if (!enabled() || !(text instanceof android.text.Spanned)) {
+            view.setText(text);
+            return;
+        }
+        android.text.Spanned source = (android.text.Spanned) text;
+        android.text.SpannableString result = new android.text.SpannableString(text);
+        for (android.text.style.BackgroundColorSpan background :
+                source.getSpans(0, text.length(), android.text.style.BackgroundColorSpan.class)) {
+            if (android.graphics.Color.alpha(background.getBackgroundColor()) == 0) continue;
+            int start = source.getSpanStart(background);
+            int end = source.getSpanEnd(background);
+            int color = flairColor(background.getBackgroundColor());
+            result.removeSpan(background);
+            result.setSpan(new RoundedBadge(view, color, flairTextColor(color)),
+                start, end, source.getSpanFlags(background));
+        }
+        view.setText(result);
+    }
+    private static final class RoundedBadge extends android.text.style.ReplacementSpan {
+        private final java.lang.ref.WeakReference<android.widget.TextView> view;
+        private final int background;
+        private final int foreground;
+        private final float radius;
+        RoundedBadge(android.widget.TextView view, int background, int foreground) {
+            this.view = new java.lang.ref.WeakReference<>(view);
+            this.background = background;
+            this.foreground = foreground;
+            this.radius = 4 * view.getResources().getDisplayMetrics().density;
+        }
+        private float width(android.graphics.Paint paint, CharSequence text, int start, int end) {
+            float width = paint.measureText(text, start, end);
+            android.widget.TextView owner = view.get();
+            if (owner != null && owner.getWidth() > 0)
+                width = Math.min(width, Math.max(1, owner.getWidth() - owner.getTotalPaddingLeft() - owner.getTotalPaddingRight()));
+            return width;
+        }
+        @Override public int getSize(android.graphics.Paint paint, CharSequence text, int start, int end,
+                android.graphics.Paint.FontMetricsInt metrics) {
+            if (metrics != null) paint.getFontMetricsInt(metrics);
+            return (int) Math.ceil(width(paint, text, start, end));
+        }
+        @Override public void draw(android.graphics.Canvas canvas, CharSequence text, int start, int end,
+                float x, int top, int y, int bottom, android.graphics.Paint original) {
+            android.text.TextPaint paint = new android.text.TextPaint(original);
+            float width = width(paint, text, start, end);
+            android.graphics.Paint.FontMetrics metrics = paint.getFontMetrics();
+            paint.setColor(background);
+            canvas.drawRoundRect(x, y + metrics.ascent, x + width, y + metrics.descent, radius, radius, paint);
+            paint.setColor(foreground);
+            CharSequence label = android.text.TextUtils.ellipsize(text.subSequence(start, end),
+                paint, width, android.text.TextUtils.TruncateAt.END);
+            canvas.drawText(label, 0, label.length(), x, y, paint);
+        }
     }
     private static double linear(double c){return c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);}
     private static double lum(int c){return 0.2126*linear(android.graphics.Color.red(c)/255.0)+0.7152*linear(android.graphics.Color.green(c)/255.0)+0.0722*linear(android.graphics.Color.blue(c)/255.0);}

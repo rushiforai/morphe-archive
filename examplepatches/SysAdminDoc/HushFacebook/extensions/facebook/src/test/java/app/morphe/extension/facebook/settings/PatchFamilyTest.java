@@ -442,7 +442,7 @@ public class PatchFamilyTest {
                         + "Picture-in-picture, Keep playing in the background, Turn off HDR brightness, Skip silent parts, Video buffer, Keep feed videos muted, Keep the progress bar, Use the system font, "
                         + "Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Home header text, Open links in "
                         + "external browser, Sanitize sharing links, Stop update prompts, Download any story, "
-                        + "Download any reel, Download any video, Download any photo, Open on a chosen tab, Following "
+                        + "Download any reel, Download any video, Download any photo, Save files to Downloads, Open on a chosen tab, Following "
                         + "feed on Home, Marketplace only, Show View profile on Marketplace sellers, Remove the gap above Marketplace listings, Hide the Reels "
                         + "tab, Hide the Reels tab dot, Hide tab badges, Hide tabs, Tab bar at the bottom, Force dark "
                         + "mode, Hide the Get Messenger card, Clean up Facebook's chat list, Open Messenger from the "
@@ -466,7 +466,7 @@ public class PatchFamilyTest {
                         + "quality, Picture-in-picture, Keep playing in the background, Turn off HDR brightness, Skip silent parts, Video buffer, Keep feed videos muted, Keep the progress bar, Use the "
                         + "system font, Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Home header text, Open "
                         + "links in external browser, Sanitize sharing links, Stop update prompts, Download any "
-                        + "story, Download any reel, Download any video, Download any photo, Open on a chosen tab, "
+                        + "story, Download any reel, Download any video, Download any photo, Save files to Downloads, Open on a chosen tab, "
                         + "Following feed on Home, Marketplace only, Show View profile on Marketplace sellers, Remove the gap above Marketplace listings, Hide "
                         + "the Reels tab, Hide the Reels tab dot, Hide tab badges, Hide tabs, Tab bar at the bottom, "
                         + "Force dark mode, Hide the Get Messenger card, Clean up Facebook's chat list, Open "
@@ -496,14 +496,14 @@ public class PatchFamilyTest {
                         + "hushfacebook_show_reel_post_date=off, "
                         + "hushfacebook_reel_post_date_style=AGO, hushfacebook_reel_post_date_after_caption=off, hushfacebook_hide_reel_new_for_you=off, "
                         + "hushfacebook_hide_reel_sound_button=off, hushfacebook_reel_speaker_above_menu=off, "
-                        + "hushfacebook_hide_reel_audio_line=off, "
+                        + "hushfacebook_hide_reel_audio_line=off, hushfacebook_hide_reel_ai_label=off, hushfacebook_hide_reel_hashtags=off, "
                         + "hushfacebook_hide_slow_connection_message=off, hushfacebook_hide_up_next=off, "
                         + "hushfacebook_hide_reel_fullscreen_pill=off, hushfacebook_hide_feed_video_buttons=off, hushfacebook_feed_videos_alone=off, "
                         + "hushfacebook_shared_reels_alone=off, hushfacebook_hide_shared_reel_friend_sheet=off, hushfacebook_watch_again_in_place=off, "
                         + "hushfacebook_saved_videos_in_player=off, hushfacebook_saved_videos_in_order=off, "
                         + "hushfacebook_saved_videos_stay_on_end=off, hushfacebook_saved_posts_in_row=off, "
                         + "hushfacebook_skip_still_watching=off, hushfacebook_fill_reels=off, "
-                        + "hushfacebook_fill_every_reel=off, hushfacebook_play_feed_reels_whole=off)",
+                        + "hushfacebook_fill_every_reel=off, hushfacebook_play_feed_reels_whole=off, hushfacebook_uncropped_feed_reels=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DECLUTTER), false).get(0));
         // Share sheet items is set by its list, and its group switch is saved beside it.
         Settings.HIDE_SHARE_GROUP_BUTTONS.save(true);

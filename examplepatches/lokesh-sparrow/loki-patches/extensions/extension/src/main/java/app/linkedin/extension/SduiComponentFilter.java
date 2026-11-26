@@ -111,9 +111,11 @@ public final class SduiComponentFilter {
         String name = facts.name;
 
         if (Settings.hideAi() && isAssistantCard(name)) return "ai: " + name;
-        if (Settings.hideGames() && isGameCard(name)) return "games: " + name;
+        // The More page has its own switch for its "Puzzle games" row, so Hide games leaves that page alone.
+        boolean onMorePage = facts.screen != null && facts.screen.contains("flagshipnav.more");
+        if (Settings.hideGames() && !onMorePage && isGameCard(name)) return "games: " + name;
         // The heading over the game cards has no view name at all, so only its text can identify it.
-        if (Settings.hideGames() && name.isEmpty() && isPuzzleHeading(facts.bytes())) return "games heading";
+        if (Settings.hideGames() && !onMorePage && name.isEmpty() && isPuzzleHeading(facts.bytes())) return "games heading";
 
         ExactRule exact = EXACT.get(name);
         if (exact != null) return exact.apply(facts);
@@ -146,6 +148,12 @@ public final class SduiComponentFilter {
             return hideFeedUpdate(facts);
         });
         EXACT.put("job-card", facts -> hidePromotedJob(facts.bytes()));
+        // The rows of the More page. Each carries its own view name, so one can go without the others.
+        EXACT.put("nav-more-games", facts -> flag(Settings.hideMoreRow(Settings.HIDE_MORE_GAMES), "more: puzzle games"));
+        EXACT.put("nav-more-grow", facts -> flag(Settings.hideMoreRow(Settings.HIDE_MORE_DASHBOARD), "more: dashboard"));
+        EXACT.put("nav-more-groups", facts -> flag(Settings.hideMoreRow(Settings.HIDE_MORE_GROUPS), "more: groups"));
+        EXACT.put("nav-more-events", facts -> flag(Settings.hideMoreRow(Settings.HIDE_MORE_EVENTS), "more: events"));
+        EXACT.put("nav-more-newsletters", facts -> flag(Settings.hideMoreRow(Settings.HIDE_MORE_NEWSLETTERS), "more: newsletters"));
         EXACT.put("feed-reaction-count", facts -> focusedCount(facts.name));
         EXACT.put("feed-comment-count", facts -> focusedCount(facts.name));
         EXACT.put("feed-repost-count", facts -> focusedCount(facts.name));
@@ -252,6 +260,8 @@ public final class SduiComponentFilter {
 
     /** LinkedIn's puzzle games: the hub (games-sdui-hub) and the cards in search (search-game-card-queens). */
     private static boolean isGameCard(String name) {
+        // The More page rows (nav-more-*) have their own switches; Hide games must not touch them.
+        if (name.startsWith("nav-more-")) return false;
         return name.startsWith("games-") || name.startsWith("game-") || name.contains("-game-")
                 || name.endsWith("-game") || name.endsWith("-games");
     }
@@ -261,7 +271,7 @@ public final class SduiComponentFilter {
      * Network) is a small text part with no view name, so it is recognised by the word in its payload.
      */
     private static boolean isPuzzleHeading(byte[] bytes) {
-        return bytes != null && bytes.length < 4000 && ProtoScanner.containsAscii(bytes, "uzzle");
+        return bytes != null && bytes.length < 4000 && ProtoScanner.containsAscii(bytes, "puzzle");
     }
 
     /**

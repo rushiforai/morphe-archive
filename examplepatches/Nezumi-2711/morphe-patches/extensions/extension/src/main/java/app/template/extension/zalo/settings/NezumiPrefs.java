@@ -25,6 +25,8 @@ public final class NezumiPrefs {
     public static final String HIDE_ONLINE_STATUS = "hide_online_status";
     public static final String HIDE_DISCOVERY = "hide_discovery";
     public static final String CALL_RECORDING = "call_recording_button";
+    public static final String BUG_LOG = "bug_log_enabled";
+    public static final String BUG_LOG_EXIT_SEEN = "bug_log_exit_seen";
     static final String SAVED_ONLINE_SHARING = "saved_online_sharing";
 
     public static SharedPreferences of(Context context) {

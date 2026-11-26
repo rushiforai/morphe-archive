@@ -9,8 +9,8 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import dev.custom.gboardpatches.patches.shared.commitFunnel
 
-private const val COMMIT_UTIL_CLASS = "Lowy;"
 private const val INPUT_CONNECTION = "Landroid/view/inputmethod/InputConnection;"
 private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
 private const val CASE_SWIPE_HELPER = "Ldev/custom/gboardpatches/keyboard/SmartBarCaseSwipeRuntime;"
@@ -20,9 +20,9 @@ private const val HELPER_CLASS = "Ldev/custom/gboardpatches/punctuation/Punctuat
  * Pulls a stray space back before punctuation the language writes tight against the word, so a
  * typed period after a completed sentence leaves `Hey.` instead of `Hey .`.
  *
- * The hook is on Gboard's single commit funnel (`Lowy.f(InputConnection, CharSequence, int)`, the
- * same wrapper the Smart bar case swipe patch rewrites) rather than on
- * `AbstractAutoSpaceProcessor`. That processor looks like the natural home, but in 18.6.3 it is
+ * The hook is on Gboard's single commit funnel (`InputConnectionUtil.f(InputConnection,
+ * CharSequence, int)` — `Lowy.f` on 18.6.3 and 18.5.4, `Laerl.f` on 18.8.0 — the same wrapper the
+ * Smart bar case swipe patch rewrites) rather than on `AbstractAutoSpaceProcessor`. That processor looks like the natural home, but in 18.6.3 it is
  * only wired into the CJK input methods: the five subclasses are Chinese, Cantonese, Taiwan,
  * Korean and Korean 10-key, and no Latin IME definition instantiates it. Hooking it would compile
  * and apply while never running for the typing this feature is for.
@@ -44,6 +44,7 @@ val punctuationSpacingPatch = bytecodePatch(
             packageName = "com.google.android.inputmethod.latin",
             targets = listOf(
                 AppTarget(version = "18.6.3.1002251336-release-arm64-v8a"),
+                AppTarget(version = "18.8.0.1022711984-beta-arm64-v8a"),
                 AppTarget(version = "18.5.4.993608717-release-arm64-v8a"),
                 AppTarget(version = null, isExperimental = true),
             ),
@@ -52,12 +53,7 @@ val punctuationSpacingPatch = bytecodePatch(
     extendWith("colorwheel.dex")
 
     execute {
-        val commit = mutableClassDefByOrNull(COMMIT_UTIL_CLASS)
-            ?.methods
-            ?.firstOrNull { method ->
-                method.name == "f" && method.returnType == "V" &&
-                    method.parameterTypes == listOf(INPUT_CONNECTION, CHAR_SEQUENCE, "I")
-            } ?: error("Gboard commit funnel $COMMIT_UTIL_CLASS->f not found.")
+        val commit = commitFunnel { mutableClassDefByOrNull(it) }
 
         // The hook carries its own call inside the installed code, so a second run is a no-op.
         if (!commit.callsPunctuationRuntime("beforeCommit")) {

@@ -17,12 +17,12 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
-internal const val NUMBERED_TITLE = "LIIlllIlIlllIIlI;->morpheNumberedTitle(ILjava/lang/String;)Ljava/lang/String;"
+internal const val NUMBERED_TITLE = "LIllIlIIIlIIlIllI;->morpheNumberedTitle(ILjava/lang/String;)Ljava/lang/String;"
 
 internal val numberedTrackTitleSupport = patch {
     compatibleWith(deezerCompatibility)
     execute {
-        val track = "LIIlllIlIlllIIlI;"
+        val track = "LIllIlIIIlIIlIllI;"
         check(mutableClassDefBy(track).methods.add(numberedRowMethod(
             track, "morpheNumberedTitle", listOf("I", "Ljava/lang/String;"), "Ljava/lang/String;", 4,
             """
@@ -40,16 +40,16 @@ internal val numberedTrackTitleSupport = patch {
     }
 }
 
-private const val SIZE = "LIlllIIlIlIIIllll;"
+private const val SIZE = "LIllllIIllIlllIII;"
 private const val RANK = "$SIZE->morpheArtistRank:I"
 private const val RANKED_SIZE = "$SIZE->morpheWithArtistRank(${SIZE}I)$SIZE"
-private const val SWIPE_CELL = "LIlIIIlllIIIIlllI;"
-private const val TRACK_CELL = "LIIlIlIllllllIlII;"
-private const val SWIPE_OPTIONS = "LIllllllIllllIllI;"
-private const val TRACK_CELL_FLAGS = "LIIIlIIIllIIIlI;LIllllllIIlIlll;LlIIIIIllIlIIlllI;" +
-    "LIlIlIIllllllIll;LIlIIIlIlIIllIII;LIlIIIlIlIIllIII;LIlIIIlIlIIllIII;I"
-private const val CELL_TEXT = "LIlIIlllIIlIllII;"
-private const val ARTIST_ROW = "LIlIIIIllIIllIIl;->IIIIIllIlIIllll(Ljava/lang/String;$SIZE"
+private const val SWIPE_CELL = "LllIlIIlIllIIllI;"
+private const val TRACK_CELL = "LIlIIIlIIIllllIlI;"
+private const val SWIPE_OPTIONS = "LIlIIIIlIIIIIIlIl;"
+private const val TRACK_CELL_FLAGS = "LIIlllllIIllllIII;LIIIIlllllIlllIll;LIIIllIllllIIIll;" +
+    "LlIlllIIllIlI;LIlIlIIlllIllIllI;LIlIlIIlllIllIllI;LIlIlIIlllIllIllI;I"
+private const val CELL_TEXT = "LIllIlIlIIlIIIIlI;"
+private const val ARTIST_ROW = "LlllllIllIIllIIl;->IllIIIlllIIlIlll(Ljava/lang/String;$SIZE"
 
 internal val artistTrackNumberDisplaySupport = patch {
     compatibleWith(deezerCompatibility)
@@ -63,8 +63,8 @@ internal val artistTrackNumberDisplaySupport = patch {
         check(size.methods.add(numberedRowMethod(
             SIZE, "morpheWithArtistRank", listOf(SIZE, "I"), SIZE, 5,
             """
-                iget v1, p0, LIlllIIlIlIIIllll;->llIIIIIIlIIIIll:I
-                iget v2, p0, LIlllIIlIlIIIllll;->IllIlIlIIlIllIll:F
+                iget v1, p0, LIllllIIllIlllIII;->IllIlllIIIllIlII:I
+                iget v2, p0, LIllllIIllIlllIII;->lIIIIIlllllIIIII:F
                 new-instance v0, $SIZE
                 invoke-direct {v0, v1, v2}, $SIZE-><init>(IF)V
                 iput p1, v0, $RANK
@@ -87,12 +87,12 @@ internal val artistTrackNumberDisplaySupport = patch {
             nop
         """.trimIndent())
 
-        val abbreviated = mutableClassDefBy("LllIllIIIIIlIIII;").methods.single {
+        val abbreviated = mutableClassDefBy("LlllIIllIlIIllll;").methods.single {
             it.name == "invoke" && it.parameterTypes.size == 2
         }
         abbreviated.numberArtistSection()
 
-        val full = mutableClassDefBy("LIIlIlllllllIlIIl;").methods.single {
+        val full = mutableClassDefBy("LIlllIIlIIIlllII;").methods.single {
             it.name == "invoke" && it.parameterTypes.size == 4
         }
         val fullRender = full.findReference(Opcode.INVOKE_STATIC_RANGE, ARTIST_ROW)
@@ -105,11 +105,11 @@ internal val artistTrackNumberDisplaySupport = patch {
 
         val cellClass = mutableClassDefBy(SWIPE_CELL)
         check(cellClass.methods.add(artistDisplayCell()))
-        val renderer = mutableClassDefBy("LIIIIIllIlIIIl;").methods.single {
+        val renderer = mutableClassDefBy("LIlIlllIlIIlIll;").methods.single {
             it.name == "invoke" && it.parameterTypes.size == 3
         }
         val render = renderer.findReference(Opcode.INVOKE_STATIC_RANGE,
-            "LIIlIIllIIlIlllIl;->IIlllIlIIlIlII(${SWIPE_CELL}LIlllIlllIlIIlII;")
+            "LllIlIllll;->IIllIIlIIIlIIlll(${SWIPE_CELL}LlIIlIlIlIIllIll;")
         val input = (checkNotNull(renderer.implementation).instructions[render] as RegisterRangeInstruction).startRegister
         renderer.addInstructions(render, """
             invoke-static/range {v$input .. v${input + 1}}, $SWIPE_CELL->morpheNumberedArtistCell($SWIPE_CELL$SIZE)$SWIPE_CELL
@@ -121,7 +121,7 @@ internal val artistTrackNumberDisplaySupport = patch {
 private fun MutableMethod.numberArtistSection() {
     val instructions = checkNotNull(implementation).instructions
     val take = findReference(Opcode.INVOKE_STATIC,
-        "LllIlllIllIlllI;->lIlllIIIllIIll(Ljava/lang/Iterable;I)Ljava/util/List;")
+        "LlIIIIIIlIIIIIlII;->IIlIIlIlIllIIII(Ljava/lang/Iterable;I)Ljava/util/List;")
     check(instructions[take + 2].opcode == Opcode.CHECK_CAST &&
         (instructions[take + 2] as ReferenceInstruction).reference.toString() == "Ljava/lang/Iterable;")
     check((instructions[take + 3] as? ReferenceInstruction)?.reference.toString() ==
@@ -144,33 +144,33 @@ private fun artistDisplayCell() = numberedRowMethod(
     """
         iget v0, p1, $RANK
         if-lez v0, :original
-        iget-object v12, p0, LIlIIIlllIIIIlllI;->IllIlIlIIlIllIll:$TRACK_CELL
-        iget-object v11, v12, LIIlIlIllllllIlII;->IIIIIllIlIIllll:$CELL_TEXT
-        iget-object v1, v11, LIlIIlllIIlIllII;->IllIlIlIIlIllIll:Ljava/lang/String;
+        iget-object v12, p0, LllIlIIlIllIIllI;->lIIIIIlllllIIIII:$TRACK_CELL
+        iget-object v11, v12, LIlIIIlIIIllllIlI;->IllIIIlllIIlIlll:$CELL_TEXT
+        iget-object v1, v11, LIllIlIlIIlIIIIlI;->lIIIIIlllllIIIII:Ljava/lang/String;
         if-eqz v1, :original
         invoke-static {v0, v1}, $NUMBERED_TITLE
         move-result-object v1
         new-instance v0, $CELL_TEXT
-        iget-object v2, v11, LIlIIlllIIlIllII;->llIIIIIIlIIIIll:Ljava/lang/String;
-        iget-boolean v3, v11, LIlIIlllIIlIllII;->IIIIIllIlIIllll:Z
-        iget-object v4, v11, LIlIIlllIIlIllII;->IIlIlIlIlIllllll:LIIllllIIllIllII;
-        iget-object v5, v11, LIlIIlllIIlIllII;->IIllllIIIIIlIIl:LIIIIIIlllIIII;
-        iget-boolean v6, v11, LIlIIlllIIlIllII;->IIlllIlIIlIlII:Z
-        invoke-direct/range {v0 .. v6}, $CELL_TEXT-><init>(Ljava/lang/String;Ljava/lang/String;ZLIIllllIIllIllII;LIIIIIIlllIIII;Z)V
+        iget-object v2, v11, LIllIlIlIIlIIIIlI;->IllIlllIIIllIlII:Ljava/lang/String;
+        iget-boolean v3, v11, LIllIlIlIIlIIIIlI;->IllIIIlllIIlIlll:Z
+        iget-object v4, v11, LIllIlIlIIlIIIIlI;->lIIlIIlIlllllII:LlIIIIIllIIIllll;
+        iget-object v5, v11, LIllIlIlIIlIIIIlI;->lIIIlIlIIIIIlII:LlIIIIllIIIIlllII;
+        iget-boolean v6, v11, LIllIlIlIIlIIIIlI;->IIllIIlIIIlIIlll:Z
+        invoke-direct/range {v0 .. v6}, $CELL_TEXT-><init>(Ljava/lang/String;Ljava/lang/String;ZLlIIIIIllIIIllll;LlIIIIllIIIIlllII;Z)V
         move-object v3, v0
         new-instance v0, $TRACK_CELL
-        iget-object v1, v12, LIIlIlIllllllIlII;->IllIlIlIIlIllIll:LIlIlIIllIIIl;
-        iget-object v2, v12, LIIlIlIllllllIlII;->llIIIIIIlIIIIll:LlIllIllIIIIlIlI;
-        iget-object v4, v12, LIIlIlIllllllIlII;->IIlIlIlIlIllllll:LIIIlIIIllIIIlI;
-        iget-object v5, v12, LIIlIlIllllllIlII;->IIllllIIIIIlIIl:LIllllllIIlIlll;
-        iget-object v6, v12, LIIlIlIllllllIlII;->IIlllIlIIlIlII:LlIIIIIllIlIIlllI;
-        iget-object v7, v12, LIIlIlIllllllIlII;->lIlIIllIIlI:LIlIlIIllllllIll;
-        iget-object v8, v12, LIIlIlIllllllIlII;->lIIIIlllIlllll:LIlIIIlIlIIllIII;
-        iget-object v9, v12, LIIlIlIllllllIlII;->llIllllIllIIlIl:LIlIIIlIlIIllIII;
-        iget-object v10, v12, LIIlIlIllllllIlII;->IlIIIlIIIIlllIl:LIlIIIlIlIIllIII;
+        iget-object v1, v12, LIlIIIlIIIllllIlI;->lIIIIIlllllIIIII:LlIIIIlIIllllIIll;
+        iget-object v2, v12, LIlIIIlIIIllllIlI;->IllIlllIIIllIlII:LIllIIlIIIlIIllIl;
+        iget-object v4, v12, LIlIIIlIIIllllIlI;->lIIlIIlIlllllII:LIIlllllIIllllIII;
+        iget-object v5, v12, LIlIIIlIIIllllIlI;->lIIIlIlIIIIIlII:LIIIIlllllIlllIll;
+        iget-object v6, v12, LIlIIIlIIIllllIlI;->IIllIIlIIIlIIlll:LIIIllIllllIIIll;
+        iget-object v7, v12, LIlIIIlIIIllllIlI;->IIlIIIlIIIllllll:LlIlllIIllIlI;
+        iget-object v8, v12, LIlIIIlIIIllllIlI;->IIIlIIIIIIIlIl:LIlIlIIlllIllIllI;
+        iget-object v9, v12, LIlIIIlIIIllllIlI;->IIlIlIlIIIIlIll:LIlIlIIlllIllIllI;
+        iget-object v10, v12, LIlIIIlIIIllllIlI;->IIllIIllIlIII:LIlIlIIlllIllIllI;
         const/16 v11, 0x0
-        invoke-direct/range {v0 .. v11}, $TRACK_CELL-><init>(LIlIlIIllIIIl;LlIllIllIIIIlIlI;$CELL_TEXT$TRACK_CELL_FLAGS)V
-        iget-object v2, p0, LIlIIIlllIIIIlllI;->llIIIIIIlIIIIll:$SWIPE_OPTIONS
+        invoke-direct/range {v0 .. v11}, $TRACK_CELL-><init>(LlIIIIlIIllllIIll;LIllIIlIIIlIIllIl;$CELL_TEXT$TRACK_CELL_FLAGS)V
+        iget-object v2, p0, LllIlIIlIllIIllI;->IllIlllIIIllIlII:$SWIPE_OPTIONS
         new-instance v1, $SWIPE_CELL
         invoke-direct {v1, v0, v2}, $SWIPE_CELL-><init>($TRACK_CELL$SWIPE_OPTIONS)V
         return-object v1

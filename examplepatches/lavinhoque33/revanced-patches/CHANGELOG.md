@@ -1,5 +1,38 @@
 ## Unreleased
 
+### Features
+
+* **YouTube – Account switcher:** Enable **Account switcher shortcut** in **RVX → General → Navigation bar**.
+  On YouTube 21.39.525 and 21.45.90, holding **You** opens YouTube's account picker. Tapping **You** opens the tab.
+* **YouTube – Ghost mode:** Watch without sending YouTube's playback history updates while staying signed in.
+  Enable it in **RVX → General → Ghost mode**. Use the toolbar or player controls for a session, the video
+  menu or playback gear for one video, or the channel toolbar to set a rule for that channel.
+  On-device history and account-header removal are opt-in. Ghost mode does not erase existing history
+  or hide all activity from YouTube.
+  Available on 21.13.164, 21.39.525, and 21.45.90. The patch is unavailable on 20.05.46.
+* **YouTube Music – Light theme:** Choose **Light** in **RVX → General → App theme**, then restart.
+  Available on supported Music versions from 8.12 onward. Now Playing uses a pale gradient based on
+  the current cover without tinting artwork or video. The default and existing dark presets are unchanged.
+* **YouTube & YouTube Music – Custom branding:** **Reseam** adds a themed launcher icon, a mark beside the
+  native header, and a media notification icon. Turn on **Use icon in RVX settings** for the matching
+  Settings glyph. Stock remains the startup default, and Reseam keeps the official splash.
+
+### Bug Fixes
+
+* **YouTube – Glass menus:** The RVX quality shortcut now frosts in portrait and landscape, as does the main
+  Gear menu in landscape fullscreen. Opening frosted menus no longer moves the playing picture.
+  The menu uses a snapshot for its backdrop instead of redrawing the live video surface.
+* **YouTube – Feed video actions:** The Watch later clock now stays inside the thumbnail and lines up
+  with the like-count and duration badges in both Cards layouts, including after scrolling.
+* **YouTube – Home toolbar:** Restored access to the native Notifications inbox when Home omits the bell
+  and Notifications is not shown in the bottom bar. Available on supported 21.x versions; **Hide Notifications
+  button** still applies. Select **Create** or **Notifications** in **Navigation bar items** to swap the bottom slot.
+* **YouTube Music – Light theme:** Fixed contrast in the RVX Settings icon, Home and Now Playing menus,
+  native Share actions, Comments footer and editor, and Speed Dial titles. Solid menus use a white
+  background. The enhanced Lyrics title bar now matches the white sheet when it first opens.
+
+## [1.52.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.51.0...v1.52.0) (2026-11-25)
+
 ### Bug Fixes
 
 * **YouTube – Seekbar:** In Dark theme, the custom gradient ends at its accent color when portrait player
@@ -7,14 +40,27 @@
   miniplayers also show how much of the video has buffered.
 * **YouTube – Home feed:** **Show channel names on Home** keeps showing available channel names after
   searching, returning to Home, and refreshing the feed. Search results keep their original bylines.
+* **YouTube – Home feed:** The Shorts and community post filters now also hide standalone Shorts and
+  multi-image posts that YouTube shows as full-width cards. Regular videos and unrelated carousels
+  stay visible.
 * **YouTube – Downloads:** Fixed long seeks in YouTube’s watch player for saved videos larger than 2 GiB.
   The built-in player and YouTube’s watch player support custom speeds such as 0.05× and 2.75× without
   changing audio pitch. In the built-in player, changing speed while paused keeps playback paused.
+* **YouTube & YouTube Music – Glass menus:** Prepare the frosted panel and its dimming before the first draw
+  where supported, and refresh the blur when returning from Recents. Unsupported surfaces keep their stock style.
+* **YouTube – Settings:** Restoring the old YouTube settings screen no longer hides the player’s timestamp
+  or appended video quality when **Hide Fullscreen button** is on. The separate timestamp settings still apply.
+* **YouTube & YouTube Music – RVX settings:** Fixed stray indentation and line breaks in 11 preference
+  summaries, so their text wraps under the titles without changing the icons.
 
 ### Features
 
 * **YouTube – Downloads:** Swipe up in the built-in player to enter fullscreen or down to leave it.
   Assigned volume and brightness zones keep their existing gestures.
+* **YouTube – Downloads:** Pause and resume active RVX downloads from the Downloads screen or its
+  notification. If the connection drops, the download keeps its partial data and resumes when it
+  reconnects without restarting the file. Downloads you paused stay paused until you resume them.
+  Resume works while YouTube is running; it does not survive a force-stop.
 * **Patch Managers:** The RVX repository URL supports switching between stable and prerelease bundles
   in Morphe Manager, and the same URL works in UP Manager. The separate JSON links still work.
   The feeds now update automatically when new patch bundles are published.

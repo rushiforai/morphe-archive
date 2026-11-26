@@ -36,9 +36,9 @@ import java.lang.reflect.Method;
 public final class SimejiSettingsEntry {
 
     /** Id of the always-hidden test item in the settings layout. */
-    private static final int TEST_ITEM_ID = 2131364907;
+    private static final int TEST_ITEM_ID = 2131364862;
     /** Id of the "about" item, used as an anchor for insertion. */
-    private static final int ABOUT_ITEM_ID = 2131364515;
+    private static final int ABOUT_ITEM_ID = 2131364468;
     private static final String ITEM_CLASS = "com.simeji.common.ui.SimejiSettingItemView";
     private static final String NATIVE_TAG = "ayufa_simeji_native_item";
     private static final String ROW_TAG = "ayufa_simeji_settings_row";
@@ -84,6 +84,24 @@ public final class SimejiSettingsEntry {
         }
     }
 
+    /**
+     * Finds a method whether it is public or not. In Simeji 22.5 the
+     * item view's setTitle(String) and setIcon(Drawable) are private
+     * (they were public in 20.7), so fall back to the declared method
+     * and force access. The class belongs to the host app itself, so
+     * setAccessible is not restricted here.
+     */
+    private static Method findMethod(Class<?> cls, String name, Class<?>... params)
+            throws NoSuchMethodException {
+        try {
+            return cls.getMethod(name, params);
+        } catch (NoSuchMethodException ignored) {
+            Method method = cls.getDeclaredMethod(name, params);
+            method.setAccessible(true);
+            return method;
+        }
+    }
+
     private static boolean insertNativeItem(View root) {
         View about = root.findViewById(ABOUT_ITEM_ID);
         if (about == null || !(about.getParent() instanceof ViewGroup)) {
@@ -99,7 +117,7 @@ public final class SimejiSettingsEntry {
                     itemClass.getConstructor(Context.class, AttributeSet.class);
             final View item = (View) constructor.newInstance(root.getContext(), null);
             item.setTag(NATIVE_TAG);
-            itemClass.getMethod("setTitle", String.class)
+            findMethod(itemClass, "setTitle", String.class)
                     .invoke(item, "Ayufaパッチ設定");
             copyIcon(itemClass, about, item);
             item.setOnClickListener(new View.OnClickListener() {
@@ -127,7 +145,7 @@ public final class SimejiSettingsEntry {
             if (iconView instanceof ImageView) {
                 Drawable icon = ((ImageView) iconView).getDrawable();
                 if (icon != null) {
-                    itemClass.getMethod("setIcon", Drawable.class).invoke(to, icon);
+                    findMethod(itemClass, "setIcon", Drawable.class).invoke(to, icon);
                 }
             }
         } catch (Throwable ignored) {
@@ -141,7 +159,7 @@ public final class SimejiSettingsEntry {
             return false;
         }
         try {
-            Method setTitle = item.getClass().getMethod("setTitle", String.class);
+            Method setTitle = findMethod(item.getClass(), "setTitle", String.class);
             setTitle.invoke(item, "Ayufaパッチ設定");
         } catch (Throwable ignored) {
             // Without a title the row is useless; keep it hidden.

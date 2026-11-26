@@ -7,7 +7,7 @@ import app.ayufa.patches.simeji.shared.finishIfEnabledAfterSuperOnCreate
 
 /**
  * The dialog-style activity shown for push campaign messages.
- * Verified against Simeji 20.7.
+ * Verified against Simeji 22.5.
  */
 internal object PopupMsgDialogActivityOnCreateFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/push/PopupMsgDialogActivity;",

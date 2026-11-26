@@ -5,6 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Written by lavinhoque33, 2026-11-13.
  */
 
@@ -12,17 +13,25 @@ package app.morphe.extension.music.patches;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Outline;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.media.session.PlaybackState;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.TextAppearanceSpan;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
@@ -30,6 +39,8 @@ import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import app.morphe.extension.music.patches.player.PlayerPatch;
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceType;
@@ -70,6 +81,8 @@ public final class MusicGlassMiniplayer {
             getId("mini_player_play_pause_replay_button"),
             getId("mini_player_next_button")
     };
+
+    private static int lightGlassSurface = MusicLightTheme.SURFACE;
 
     /**
      * Added during patching to the class of the time bars, of which the miniplayer has one next to it
@@ -182,12 +195,205 @@ public final class MusicGlassMiniplayer {
     public static void onAlbumColorChanged() {
         GlassCapsuleDrawable glass = currentGlass.get();
         if (glass != null) {
-            Utils.runOnMainThread(() -> glass.setTintColor(getTintColor()));
+            Utils.runOnMainThread(() -> updateGlassTint(glass));
         }
     }
 
     private static int getTintColor() {
         return albumTint ? MusicGlassNavigationBar.getAlbumColor() : 0;
+    }
+
+    private static void updateGlassTint(GlassCapsuleDrawable glass) {
+        final int tint = getTintColor();
+        glass.setTintColor(tint);
+        if (MusicLightTheme.isEnabled()) {
+            lightGlassSurface = MusicChromeColors.glassSurface(tint, opacityScale, lightTint);
+        }
+    }
+
+    /** Injection point in the native watch-while layout, including when the player inflates later. */
+    public static void onLightWatchLayoutInflated(View layout) {
+        if (MusicLightTheme.isEnabled() && MINI_PLAYER != 0) {
+            new LightMiniplayerChrome(layout);
+        }
+    }
+
+    /** Injection point for both stock and swipeable miniplayer title binds. */
+    @Nullable
+    public static CharSequence useLightMiniplayerTitleColor(View view, @Nullable CharSequence title) {
+        if (!MusicLightTheme.isEnabled() || !(title instanceof Spanned styledTitle)) return title;
+
+        return LightMiniplayerChrome.useTitleViewColor(view.getContext(), styledTitle);
+    }
+
+    private static final class LightMiniplayerChrome implements View.OnAttachStateChangeListener,
+            ViewTreeObserver.OnGlobalLayoutListener, ViewTreeObserver.OnPreDrawListener {
+        private static final int[] LEGACY_SKIP_BUTTONS = {getId("TOP_START"), getId("TOP_END")};
+        private static final int TITLE = getId("mini_player_title");
+        private static final int SUBTITLE = getId("mini_player_subtitle");
+        private static final int SWIPE_PAGER = getId("mini_player_view_pager_container");
+        private static final int SWIPE_TITLE = getId("swipeable_mini_player_title");
+        private static final int SWIPE_SUBTITLE = getId("swipeable_mini_player_subtitle");
+        private static final int TITLE_WHITE = ResourceUtils.getIdentifier(ResourceType.COLOR, "ytm_color_white");
+        private static final int TITLE_MUTED =
+                ResourceUtils.getIdentifier(ResourceType.COLOR, "ytm_text_color_secondary_translucent");
+
+        private final View layout;
+        @Nullable
+        private ViewTreeObserver observer;
+        @Nullable
+        private View miniplayer;
+        @Nullable
+        private View swipePager;
+        @Nullable
+        private TextView title;
+        @Nullable
+        private TextView subtitle;
+        private final ImageView[] controls = new ImageView[BUTTONS.length + LEGACY_SKIP_BUTTONS.length];
+        private int surface;
+        private int primary;
+        private int secondary;
+        @Nullable
+        private ColorStateList controlTint;
+
+        LightMiniplayerChrome(View layout) {
+            this.layout = layout;
+            layout.addOnAttachStateChangeListener(this);
+            if (layout.isAttachedToWindow()) onViewAttachedToWindow(layout);
+        }
+
+        @Override
+        public void onViewAttachedToWindow(View view) {
+            observer = view.getViewTreeObserver();
+            observer.addOnGlobalLayoutListener(this);
+            observer.addOnPreDrawListener(this);
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View view) {
+            if (observer != null && observer.isAlive()) {
+                observer.removeOnGlobalLayoutListener(this);
+                observer.removeOnPreDrawListener(this);
+            }
+            observer = null;
+        }
+
+        @Override
+        public void onGlobalLayout() {
+            if (miniplayer == null) {
+                View found = layout.findViewById(MINI_PLAYER);
+                if (found == null) return;
+                bind(found);
+            }
+
+            updatePalette();
+            tintControls();
+        }
+
+        @Override
+        public boolean onPreDraw() {
+            if (miniplayer != null && miniplayer.isShown() && updatePalette()) tintControls();
+            return true;
+        }
+
+        private void bind(View view) {
+            miniplayer = view;
+            swipePager = SWIPE_PAGER == 0 ? null : layout.findViewById(SWIPE_PAGER);
+            title = TITLE != 0 && view.findViewById(TITLE) instanceof TextView text ? text : null;
+            subtitle = SUBTITLE != 0 && view.findViewById(SUBTITLE) instanceof TextView text ? text : null;
+            bindButtons(view, BUTTONS, 0);
+            bindButtons(view, LEGACY_SKIP_BUTTONS, BUTTONS.length);
+        }
+
+        private void bindButtons(View view, int[] ids, int start) {
+            for (int i = 0; i < ids.length; i++) {
+                if (ids[i] != 0 && view.findViewById(ids[i]) instanceof ImageView image) {
+                    controls[start + i] = image;
+                }
+            }
+        }
+
+        private boolean updatePalette() {
+            final int nextSurface = getSurface();
+            if (surface == nextSurface) return false;
+
+            surface = nextSurface;
+            final int nextPrimary = MusicChromeColors.foreground(surface);
+            final int nextSecondary = MusicChromeColors.secondary(surface, nextPrimary);
+            if (controlTint != null && primary == nextPrimary && secondary == nextSecondary) return false;
+            if (controlTint == null || primary != nextPrimary) {
+                controlTint = MusicChromeColors.controlTint(nextPrimary);
+            }
+
+            primary = nextPrimary;
+            secondary = nextSecondary;
+            return true;
+        }
+
+        private int getSurface() {
+            Drawable background = miniplayer.getBackground();
+            if (background instanceof GlassCapsuleDrawable) return lightGlassSurface;
+
+            Integer album = Settings.CHANGE_MINIPLAYER_COLOR.get() ? PlayerPatch.getLastMiniplayerColor() : null;
+            final int defaultSurface = album == null ? MusicLightTheme.SURFACE : album | 0xFF000000;
+            return MusicChromeColors.drawableSurface(background, defaultSurface);
+        }
+
+        private void tintControls() {
+            tintText(title, primary);
+            tintText(subtitle, secondary);
+
+            for (ImageView control : controls) {
+                if (control != null && control.getImageTintList() != controlTint) {
+                    control.setImageTintList(controlTint);
+                }
+            }
+            if (swipePager != null) tintSwipeMetadata(swipePager);
+        }
+
+        private void tintSwipeMetadata(View view) {
+            if (view instanceof TextView text) {
+                if (view.getId() == SWIPE_TITLE) tintText(text, primary);
+                if (view.getId() == SWIPE_SUBTITLE) tintText(text, secondary);
+            } else if (view instanceof ViewGroup group) {
+                for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                    tintSwipeMetadata(group.getChildAt(i));
+                }
+            }
+        }
+
+        private static void tintText(@Nullable TextView view, int color) {
+            if (view != null && view.getCurrentTextColor() != color) view.setTextColor(color);
+        }
+
+        private static Spanned useTitleViewColor(Context context, Spanned title) {
+            final TextAppearanceSpan[] spans = title.getSpans(0, title.length(), TextAppearanceSpan.class);
+            if (spans.length == 0) return title;
+
+            final int white = TITLE_WHITE == 0 ? 0 : context.getColor(TITLE_WHITE);
+            final int muted = TITLE_MUTED == 0 ? 0 : context.getColor(TITLE_MUTED);
+            SpannableString tintedTitle = null;
+            for (TextAppearanceSpan span : spans) {
+                if (!isStockTitleColor(span, white, muted)) continue;
+
+                // Keep all other spans and leave the native metadata object untouched. The title's
+                // surface-dependent TextView color now also covers stock color runs on this line.
+                if (tintedTitle == null) tintedTitle = new SpannableString(title);
+                tintedTitle.removeSpan(span);
+            }
+            return tintedTitle == null ? title : tintedTitle;
+        }
+
+        private static boolean isStockTitleColor(TextAppearanceSpan span, int white, int muted) {
+            final ColorStateList colors = span.getTextColor();
+            if (colors == null || colors.isStateful() || span.getLinkTextColor() != null
+                    || span.getFamily() != null || span.getTextSize() != 0 || span.getTextStyle() != 0) {
+                return false;
+            }
+
+            final int color = colors.getDefaultColor();
+            return color != 0 && (color == white || color == muted);
+        }
     }
 
     /**
@@ -234,7 +440,7 @@ public final class MusicGlassMiniplayer {
 
         CardHost host = new CardHost(miniplayer);
         GlassCapsuleDrawable glass = new GlassCapsuleDrawable(miniplayer, host, opacityScale, lightTint, rimScale);
-        glass.setTintColor(getTintColor());
+        updateGlassTint(glass);
         currentGlass = new WeakReference<>(glass);
         miniplayer.setBackground(glass);
 
@@ -254,7 +460,7 @@ public final class MusicGlassMiniplayer {
             if (!hasFocus || currentMiniplayer.get() != miniplayer) return;
             readSettings();
             glass.setStyle(opacityScale, lightTint, rimScale);
-            glass.setTintColor(getTintColor());
+            updateGlassTint(glass);
             if (styled) {
                 style(miniplayer, getPlayerPage(miniplayer));
             }

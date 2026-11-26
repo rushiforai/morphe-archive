@@ -46,6 +46,7 @@ import app.hushgram.extension.instagram.feed.CarouselPeek;
 import app.hushgram.extension.instagram.feed.CommentBox;
 import app.hushgram.extension.instagram.feed.CommentEmojiRow;
 import app.hushgram.extension.instagram.feed.CommentGifs;
+import app.hushgram.extension.instagram.feed.CommentSheetExtras;
 import app.hushgram.extension.instagram.feed.FeedFollowButton;
 import app.hushgram.extension.instagram.feed.FeedSaveRow;
 import app.hushgram.extension.instagram.feed.HideCaptions;
@@ -57,6 +58,7 @@ import app.hushgram.extension.instagram.media.BackgroundPlay;
 import app.hushgram.extension.instagram.metaai.MuseCard;
 import app.hushgram.extension.instagram.misc.MediaCache;
 import app.hushgram.extension.instagram.misc.RefreshRate;
+import app.hushgram.extension.instagram.misc.VideoFrameRate;
 import app.hushgram.extension.instagram.misc.GlassTabBar;
 import app.hushgram.extension.instagram.misc.PureBlackNav;
 import app.hushgram.extension.instagram.misc.StoryBands;
@@ -171,6 +173,7 @@ public final class SettingsEntry {
         CallRecorder.install(context);
         FullScreenBars.install(context);
         RefreshRate.install(context);
+        VideoFrameRate.install(context);
         ReelsTopBar.install(context);
         BurnInGuard.install(context);
         ReelColumnFit.install(context);
@@ -181,6 +184,7 @@ public final class SettingsEntry {
         SavedFastScroll.install(context);
         CommentEmojiRow.install(context);
         CommentBox.install(context);
+        CommentSheetExtras.install(context);
         CommentGifs.install(context);
         FeedFollowButton.install(context);
         ProfileFollowCounts.install(context);
@@ -670,6 +674,8 @@ public final class SettingsEntry {
             closedByUser = false;
             SettingsDialog.onPage(page).show(fragments, DIALOG_TAG);
             host = new WeakReference<>(activity);
+            // Opened another way since the viewing history's Open, so Back is Instagram's again.
+            ViewingHistoryReturn.disarm();
             Logger.printInfo(() -> "Settings opened over " + name);
             return true;
         } catch (Exception ex) {
@@ -794,6 +800,20 @@ public final class SettingsEntry {
         openPending = true;
         themeRetryPending = false;
         Logger.printInfo(() -> "Settings requested again after Restart now");
+    }
+
+    /**
+     * Back from the viewing history that came back after its Open (#865): the screen on [page]
+     * over [activity] again, as it was under the history. "" is the top of the list.
+     */
+    static void openOn(Activity activity, String page) {
+        requestedPage = page;
+        closedByUser = false;
+        requestedAt = SystemClock.elapsedRealtime();
+        openPending = true;
+        themeRetryPending = false;
+        Logger.printInfo(() -> "Settings requested again by Back from the viewing history");
+        OpenWhenResumed.openWhenSettled(activity);
     }
 
     /** Queues a gesture through the shortcut's same resume/account handoff, without starting a tab. */

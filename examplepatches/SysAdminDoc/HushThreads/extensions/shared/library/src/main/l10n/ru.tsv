@@ -1,0 +1,388 @@
+# Russian for HushThreads: the English key, a tab, the translation. One row per string.
+# Plural rows for few and many hang off the other form's key: key|few, key|many.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	Сборка %1$s
+%1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	%1$d элемент в этом файле не является настройкой, известной этой версии HushThreads, поэтому он будет пропущен.
+%1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	%1$d элементов в этом файле не являются настройками, известными этой версии HushThreads, поэтому они будут пропущены.
+%1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.|few	%1$d элемента в этом файле не являются настройками, известными этой версии HushThreads, поэтому они будут пропущены.
+%1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.|many	%1$d элементов в этом файле не являются настройками, известными этой версии HushThreads, поэтому они будут пропущены.
+%1$d switch will change.	Будет изменен %1$d переключатель.
+%1$d switches will change.	Будет изменено %1$d переключателей.
+%1$d switches will change.|few	Будут изменены %1$d переключателя.
+%1$d switches will change.|many	Будет изменено %1$d переключателей.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Это задано при патчинге, поэтому пауза не может это отключить. Чтобы исключить это, пропатчите заново без этого патча.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Это задано при патчинге, поэтому пауза не может это отключить. Чтобы исключить что-то одно, пропатчите заново без патча, указанного после него в скобках.
+A diagnostic report is already being saved.	Диагностический отчет уже сохраняется.
+A file named %1$s in %2$s paused HushThreads.	Файл %1$s в папке %2$s приостановил HushThreads.
+About	О приложении
+Advertising ID removed	Рекламный идентификатор удален
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 и более ранние версии не сообщают, какие ссылки открываются здесь. Нажмите, чтобы открыть настройки этого приложения, затем «Открывать по умолчанию».
+Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.	Android отправляет ссылки Threads только в приложение, подписанное Meta. Если выбрать эти адреса, их ссылки будут открываться здесь. Остальные настройки ссылок не изменятся.
+Android verified this app for Threads' web addresses, so their links open here.	Android подтвердил это приложение для веб-адресов Threads, поэтому их ссылки открываются здесь.
+Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	Не удалось открыть настройки Android для этого приложения. Откройте «О приложении» через значок Threads, затем «Открывать по умолчанию».
+Back	Назад
+Cancel	Отмена
+Changing these	Изменение настроек
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Выберите файл настроек. Перед импортом вы увидите, сколько переключателей он изменит.
+Clear diagnostic data	Очистить диагностические данные
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Скопируйте краткий отчет или сохраните полный в Download/Morphe. Ссылки, идентификаторы, файлы cookie и токены входа в него не попадают. Перед отправкой проверьте, нет ли в нем другой личной информации.
+Copy quick report	Скопировать краткий отчет
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Не удалось импортировать настройки и восстановить прежние. Проверьте переключатели на этом экране.
+Couldn't import the settings. Nothing was changed.	Не удалось импортировать настройки. Изменения не внесены.
+Couldn't open that file. Nothing was changed.	Не удалось открыть файл. Изменения не внесены.
+Couldn't open the file picker. Try again.	Не удалось открыть выбор файлов. Повторите попытку.
+Couldn't put back the diagnostic data. Try again.	Не удалось восстановить диагностические данные. Повторите попытку.
+Couldn't save the settings file. Try again.	Не удалось сохранить файл настроек. Повторите попытку.
+Couldn't start that. Try again in a moment.	Не удалось запустить операцию. Повторите попытку через некоторое время.
+Couldn't start the report export. Try again shortly.	Не удалось начать экспорт отчета. Повторите попытку позже.
+Couldn't turn HushThreads back on. Try again.	Не удалось снова включить HushThreads. Попробуйте еще раз.
+Debug logging	Журнал отладки
+Diagnostic data cleared. Tap again to put it back.	Диагностические данные очищены. Нажмите еще раз, чтобы восстановить их.
+Diagnostic data put back.	Диагностические данные восстановлены.
+Diagnostic report copied to the clipboard.	Диагностический отчет скопирован в буфер обмена.
+Clears the saved log, patch check results and any kept crash that a report would include.	Удаляет сохраненный журнал, результаты проверки патчей и сохраненные сбои, которые попали бы в отчет.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Все переключатели, кроме «Журнала отладки», работают так, будто выключены, а заданное при патчинге остается. Ваши настройки не меняются.
+Export diagnostic report	Экспортировать диагностический отчет
+Export settings	Экспортировать настройки
+Feed	Лента
+Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.	При следующем запуске Threads отключает все переключатели HushThreads, кроме «Журнала отладки». Выбранное при патчинге остается, а ваши настройки сохраняются.
+Hide ads	Скрывать рекламу
+HushThreads %1$s on Threads %2$s	HushThreads %1$s на Threads %2$s
+HushThreads %1$s targets Threads %2$s.	HushThreads %1$s рассчитан на Threads %2$s.
+HushThreads pauses when Threads restarts.	HushThreads приостановится после перезапуска Threads.
+HushThreads turns back on when Threads restarts.	HushThreads снова включится после перезапуска Threads.
+It targets Threads %1$s.	Он рассчитан на Threads %1$s.
+None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Ни один из веб-адресов Threads не выбран для этого приложения, поэтому их ссылки открываются в другом месте. Нажмите, чтобы выбрать их в настройках Android.
+Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Для этого приложения выбрана только часть веб-адресов Threads, а ссылки на остальные открываются в другом месте. Нажмите, чтобы выбрать их в настройках Android.
+Privacy	Конфиденциальность
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Сохраните переключатели в файл. Пауза, «Журнал отладки» и проверка выпусков в него не входят.
+Saved. Restart Threads to apply this change.	Сохранено. Перезапустите Threads, чтобы применить изменение.
+Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.	Некоторые экраны Threads проверяют подпись приложения и не работают в пропатченном. Это исправление снова их открывает.
+Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	Настройки экспортированы. Приложение, где хранится файл, не дало HushThreads его прочитать, поэтому файл не проверен.
+Sponsored posts come out of For you, Following and the posts you open before Threads shows them, so no gap is left.	Рекламные публикации убираются из «Для вас», «Подписок» и открытых публикаций до того, как Threads их покажет, поэтому пустых мест не остается.
+Sponsored posts in For you and Following	Рекламные публикации в «Для вас» и «Подписках»
+Suggested accounts in your feed	Рекомендуемые аккаунты в ленте
+Ads and suggested accounts in your feed	Реклама и рекомендуемые аккаунты в ленте
+Stop analytics uploads	Остановить отправку аналитики
+Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.	Удаляет метки отслеживания, например xmt и slof, из ссылок на публикации, которые вы копируете или отправляете. Короткая ссылка заменяется прямой ссылкой на публикацию.
+The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	Приложение, где хранится файл, отвечает слишком долго, поэтому HushThreads перестал ждать. Ничего не изменено.
+The app holding the last settings file still hasn't answered. Try again later.	Приложение, в котором находится последний файл настроек, по-прежнему не отвечает. Повторите попытку позже.
+The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Приложение, где хранится файл настроек, отвечает слишком долго, поэтому HushThreads перестал ждать. Оно еще может закончить сохранение, поэтому проверьте файл, прежде чем на него полагаться.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	Не удалось удалить файл %1$s. Удалите его из %2$s, затем снова нажмите «Возобновить».
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Файл настроек сохранен, но при чтении не совпадает с записанным. Сохраните его заново в новый файл.
+Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.	Не дает большинству отчетов об использовании дойти до Meta. Некоторые все же могут пройти. Выключите, чтобы отправлять их как раньше.
+Analytics address coverage	Охват адресов аналитики
+Blocked: %1$s. Not found in this build: %2$s.	Заблокировано: %1$s. Не найдено в этой сборке: %2$s.
+This build didn't record which report types it covers. Patch again to see them.	Эта сборка не записала, какие типы отчетов она охватывает. Пропатчите заново, чтобы их увидеть.
+none	нет
+Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads не может прочитать рекламный идентификатор телефона. Разрешение на это удалено из сборки.
+Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads три раза подряд падал или зависал в первую минуту после запуска, поэтому HushThreads приостановил себя.
+Threads' web addresses are selected for this app in Android's settings, so their links open here.	Веб-адреса Threads выбраны для этого приложения в настройках Android, поэтому их ссылки открываются здесь.
+Tracking in links and analytics uploads	Отслеживание в ссылках и отправка аналитики
+Try again, or go back to Threads.	Попробуйте еще раз или вернитесь в Threads.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Пока вы не возобновите работу, все переключатели, кроме «Журнала отладки», работают так, будто выключены. Изменения, внесенные при патчинге, остаются.
+Full report saved to %1$s	Полный отчет сохранен в %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, с уведомлениями проектов, на которых он основан
+HushThreads is on	HushThreads включен
+HushThreads is paused	HushThreads приостановлен
+HushThreads settings	Настройки HushThreads
+HushThreads settings couldn't open	Не удалось открыть настройки HushThreads
+Import	Импорт
+Import settings	Импортировать настройки
+Importing settings	Импорт настроек
+Licenses	Лицензии
+Links	Ссылки
+OK	ОК
+Pause HushThreads	Приостановить HushThreads
+Re-signed build fix	Исправление для переподписанной сборки
+Reading the settings file	Чтение файла настроек
+Remove tracking from shared links	Удалять отслеживание из ссылок для публикации
+Retry	Повторить
+Save full report	Сохранить полный отчет
+Check for new HushThreads releases	Проверять новые версии HushThreads
+Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.	Раз в день при запуске Threads проверяет на GitHub, вышла ли новая версия HushThreads, и сообщает здесь. Ничего не скачивается.
+Check now	Проверить сейчас
+Asks GitHub for the newest release right now, even with the switch above off.	Немедленно запрашивает на GitHub сведения о последнем выпуске, даже если переключатель выше выключен.
+Checking GitHub now.	Проверка GitHub...
+HushThreads %1$s is out. Update it in Morphe Manager.	Вышла версия HushThreads %1$s. Обновите ее через Morphe Manager.
+Version %1$s for Threads %2$s	Версия %1$s для Threads %2$s
+You have the newest HushThreads release.	У вас последняя версия HushThreads.
+The newest HushThreads release is %1$s.	Последняя версия HushThreads: %1$s.
+Couldn't reach GitHub. Try again later.	Не удалось подключиться к GitHub. Повторите попытку позже.
+GitHub is turning away checks from this network for now. Try again later.	GitHub пока отклоняет проверки из этой сети. Попробуйте позже.
+GitHub sent back something HushThreads couldn't read. Try again later.	GitHub вернул ответ, который HushThreads не смог прочитать. Попробуйте позже.
+Saving the settings file	Сохранение файла настроек
+Set when you patched	Значения на момент патчинга
+Settings couldn't open	Не удалось открыть настройки
+Settings couldn't refresh completely. Reopen settings and try again.	Не удалось полностью обновить настройки. Откройте их снова и повторите попытку.
+Settings exported.	Настройки экспортированы.
+Settings imported. %1$d switch changed.	Настройки импортированы. Изменен %1$d переключатель.
+Settings imported. %1$d switches changed.	Настройки импортированы. Изменено %1$d переключателей.
+Settings imported. %1$d switches changed.|few	Настройки импортированы. Изменено %1$d переключателя.
+Settings imported. %1$d switches changed.|many	Настройки импортированы. Изменено %1$d переключателей.
+Source code and issues	Исходный код и сообщения об ошибках
+Stays in while paused	Остается включенным при приостановке
+Tap to turn it back on.	Нажмите, чтобы снова включить.
+That file is too large to be a settings file. Nothing was changed.	Этот файл слишком велик, чтобы быть файлом настроек. Изменения не внесены.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Этот файл не содержит читаемый текст: возможно, он был поврежден при передаче. Изменения не внесены.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	В этом файле одна настройка указана дважды, и непонятно, какое значение использовать. Ничего не изменено.
+That isn't a HushThreads settings file. Nothing was changed.	Это не файл настроек HushThreads. Ничего не изменено.
+That settings file holds a value HushThreads can't read. Nothing was changed.	В этом файле настроек есть значение, которое HushThreads не может прочитать. Ничего не изменено.
+That settings file is damaged or only partly downloaded. Nothing was changed.	Файл настроек поврежден или загружен не полностью. Изменения не внесены.
+That settings file was written by a newer HushThreads than this one. Nothing was changed.	Этот файл настроек создан более новой версией HushThreads. Ничего не изменено.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Не удалось сохранить диагностический отчет. Повторите попытку через некоторое время.
+The diagnostic report couldn't be saved. Try again.	Не удалось сохранить диагностический отчет. Повторите попытку.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushThreads back on.	Не удалось удалить файл %1$s. Удалите его из %2$s, чтобы снова включить HushThreads.
+Your choices are saved. Tap Resume, then restart Threads.	Ваши настройки сохранены. Нажмите «Возобновить», затем перезапустите Threads.
+the re-signed build fix	исправление для переподписанной сборки
+The setting couldn't finish updating. Its saved value is shown.	Не удалось завершить обновление настройки. Показано сохраненное значение.
+There's no diagnostic data to clear.	Нет диагностических данных для очистки.
+There's no diagnostic data to put back.	Нет диагностических данных для восстановления.
+They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Они выбираются в Morphe Manager при патчинге, и функция «Приостановить» их не отключает. Чтобы изменить их, выполните патчинг повторно.
+This phone has no file picker, so there's no way to choose a file here.	На этом телефоне нет средства выбора файлов, поэтому выбрать файл здесь невозможно.
+Version	Версия
+Record patch activity and show errors for a bug report. Leave off during normal use.	Записывать работу патчей и показывать ошибки для отчета о проблеме. При обычном использовании держите выключенным.
+You paused HushThreads.	Вы приостановили HushThreads.
+Your switches already match that file, so nothing will change.	Ваши переключатели уже совпадают с этим файлом, поэтому ничего не изменится.
+Copy a short report to the clipboard.	Скопировать краткий отчет в буфер обмена.
+Save the full report in Download/Morphe.	Сохраните полный отчет в Download/Morphe.
+Settings imported.	Настройки импортированы.
+No app on this phone can open the link. The address is %1$s.	На этом телефоне нет приложения, которое может открыть ссылку. Адрес: %1$s.
+Pause, backup and diagnostics	Приостановка, резервное копирование и диагностика
+Updates	Обновления
+Jump to a section	Перейти к разделу
+Go straight to one group of settings. Back returns to where you were.	Открывает сразу нужную группу настроек. Кнопка «Назад» возвращает на прежнюю страницу.
+No matching settings	Настройки не найдены
+%1$d setting found	Найдена %1$d настройка
+%1$d settings found	Найдено %1$d настроек
+%1$d settings found|few	Найдено %1$d настройки
+%1$d settings found|many	Найдено %1$d настроек
+Try a different word or clear the search.	Попробуйте другое слово или очистите поиск.
+Search settings	Поиск настроек
+Clear search	Очистить поиск
+Saves	Сохранения
+No saves in progress.	Сейчас ничего не сохраняется.
+Pause	Приостановить
+Resume	Возобновить
+Undo	Отменить
+Supported links	Поддерживаемые ссылки
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	В настройках Android для этого приложения отключено открытие поддерживаемых ссылок. Нажмите, чтобы включить его.
+Android didn't say which links open here. Tap to check in Android's settings.	Android не сообщил, какие ссылки открываются здесь. Нажмите, чтобы проверить настройки Android.
+Selecting links by hand	Выбор ссылок вручную
+the removed advertising ID permission	удаленное разрешение на рекламный идентификатор
+Hide suggested users	Скрывать рекомендуемых пользователей
+Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.	Убирает карточки с рекомендациями аккаунтов в ленте и в профилях. Обычные публикации и репосты остаются.
+Keep feed position on return	Сохранять позицию в ленте при возвращении
+Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	Если вернуться в Threads в течение десяти минут, лента останется на том же месте. Обновление свайпом вниз по-прежнему работает.
+No time limit	Без ограничения времени
+With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Если включен переключатель выше, позиция сохраняется независимо от того, как долго вас не было. Обновление потягиванием вниз и новая загрузка по-прежнему показывают новые публикации.
+Where you left off in your feed	Место, где вы остановились в ленте
+Open links in your browser	Открывать ссылки в браузере
+Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.	Ссылки открываются в браузере или в приложении сайта, минуя отслеживание ссылок Threads. Страницы Threads и Instagram по-прежнему открываются в Threads.
+Tap to play videos	Видео по нажатию
+Videos in your feed wait for a tap instead of playing as you scroll.	Видео в ленте запускаются по нажатию, а не при прокрутке.
+Videos in your feed	Видео в ленте
+Tap to see which.	Нажмите, чтобы посмотреть какие.
+%1$d default patch isn't in this build	В этой сборке отсутствует %1$d патч, включенный по умолчанию
+%1$d default patches aren't in this build	В этой сборке отсутствует %1$d патчей, включенных по умолчанию
+%1$d default patches aren't in this build|few	В этой сборке отсутствуют %1$d патча, включенных по умолчанию
+%1$d default patches aren't in this build|many	В этой сборке отсутствует %1$d патчей, включенных по умолчанию
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	В этой сборке отсутствует: %1$s. Morphe Manager выбирает этот патч по умолчанию. Выполните патчинг повторно, выбрав его, чтобы получить соответствующую функцию.
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	В этой сборке отсутствуют: %1$s. Morphe Manager выбирает эти патчи по умолчанию. Выполните патчинг повторно, выбрав их, чтобы получить соответствующие функции.
+Appearance	Внешний вид
+Pure black dark mode	Полностью черная темная тема
+Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.	Темная тема использует чистый черный цвет вместо темно-серого. Включите темную тему в Threads, чтобы ее увидеть. Перезапустите Threads, чтобы увидеть изменение.
+Hide the Instagram button	Скрывать кнопку Instagram
+Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	Убирает кнопку Instagram вверху профилей, вашего и чужих. Перезапустите Threads, чтобы увидеть изменение.
+Hide ghost post bubbles	Скрывать пузыри исчезающих публикаций
+Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. Restart Threads to see the change.	Убирает пузыри исчезающих публикаций с фото профиля, в профилях и в ряду вверху ленты. Перезапустите Threads, чтобы увидеть изменение.
+Full size profile pictures	Фото профиля в полном размере
+A profile picture you open on a profile shows full size, where you can zoom in and save it, instead of the small circle.	Открытое в профиле фото показывается в полном размере вместо маленького кружка, и его можно увеличить и сохранить.
+Close	Закрыть
+Couldn't load the picture. Try again in a moment.	Не удалось загрузить фото. Попробуйте чуть позже.
+Turn features on or off	Включение и отключение функций
+%1$d saved in lower quality than on Threads.	Сохранено в качестве ниже, чем в Threads: %1$d.
+%1$d saves stopped. Reopen the post and save again.	Остановлено сохранений: %1$d. Откройте публикацию и повторите.
+%1$d saves were interrupted	Прервано сохранений: %1$d
+%1$s becomes the date and time of the save, %2$s the video's number on Threads, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s заменяется датой и временем сохранения, %2$s номером видео в Threads, %3$s автором публикации, %4$s днем публикации. Неизвестные при сохранении данные пропускаются, а к имени без этих элементов добавляется дата. Если такое имя уже есть в папке, в конец добавляется время сохранения. Недопустимые символы заменяются подчеркиваниями. Оставьте поле пустым, чтобы использовать значение по умолчанию, %5$s.
+%1$s of %2$s	%1$s из %2$s
+%1$s so far	Пока: %1$s
+A save stopped. Reopen the post and save again.	Сохранение остановлено. Откройте публикацию и повторите.
+A save was interrupted	Сохранение прервано
+Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.	Добавляет «Сохранить» в меню публикации. Если в публикации несколько фото или видео, сохраняются все. Когда функция выключена или на паузе, меню Threads обычное.
+Best	Наилучшее
+Cancel saving this carousel	Отменить сохранение карусели
+Cancel saving this photo	Отменить сохранение фото
+Cancel saving this video	Отменить сохранение видео
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Карусель отменена. Сохранено: %1$d. Ошибок: %2$d. Пропущено: %3$d.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Выберите имя папки в разделе «Фильмы» или «Изображения». Недопустимые символы будут заменены символами подчеркивания. Оставьте поле пустым, чтобы использовать папку по умолчанию: %1$s.
+Copying to the gallery	Копирование в галерею
+Download failed. Try again in a moment.	Не удалось скачать. Повторите попытку позже.
+Download quality	Качество скачивания
+Downloading	Скачивание
+Downloads	Загрузки
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Каждое видео сохраняется в качестве %1$s или в ближайшем более низком качестве. Если такого качества нет, используется ближайшее более высокое.
+Each video saves at its lowest quality, for the smallest file.	Каждое видео сохраняется в минимальном качестве, чтобы размер файла был как можно меньше.
+Each video saves at the best quality the player streams.	Каждое видео сохраняется в наилучшем качестве, доступном для воспроизведения.
+Example without post details	Пример без сведений о публикации
+File name	Имя файла
+File name set to %1$s.	Имя файла изменено на %1$s.
+Folder name	Имя папки
+Folder set to %1$s.	Папка изменена на %1$s.
+Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.	Помогает, если WhatsApp, редактор вроде CapCut или InShot либо галерея воспроизводит сохраненное видео без звука. Качество может снизиться.
+How far a photo or video you're saving has got, with a button to cancel it	Ход сохранения фото или видео с кнопкой отмены
+HushThreads saves	Сохранения HushThreads
+Joining the picture and sound	Объединение изображения и звука
+Last carousel save	Последнее сохранение карусели
+Link expired. Reopen the post and try again	Ссылка устарела. Откройте публикацию заново и повторите
+Not saved: a carousel can have at most %1$d pages	Не сохранено: в карусели слишком много страниц (максимум %1$d)
+Not saved: that isn't a Threads photo or video	Не сохранено: это не фото и не видео из Threads
+Not saved: the file is over 512 MB	Не сохранено: размер файла превышает 512 МБ
+Page %1$d of %2$d	Страница %1$d из %2$d
+Photos and videos you save from posts	Фото и видео, сохраненные из публикаций
+Reopen the post and save again.	Откройте публикацию заново и сохраните еще раз.
+Save	Сохранить
+Save all	Сохранить все
+Save cancelled	Сохранение отменено
+Save folder	Папка для сохранения
+Save photo	Сохранить фото
+Save photos and videos	Сохранение фото и видео
+Save video	Сохранить видео
+Save videos other apps can open	Сохранять видео в формате, совместимом с другими приложениями
+Saved %1$d. Failed %2$d. Skipped %3$d.	Сохранено: %1$d. Ошибок: %2$d. Пропущено: %3$d.
+Saved to %1$s	Сохранено в %1$s
+Saved to %1$s in lower quality than on Threads	Сохранено в %1$s в качестве ниже, чем в Threads
+Saved to the gallery	Сохранено в галерею
+Saved to the gallery in lower quality than on Threads	Сохранено в галерею в качестве ниже, чем в Threads
+Saving a carousel	Сохранение карусели
+Saving a photo	Сохранение фото
+Saving a video	Сохранение видео
+Saving...	Сохранение...
+Saving... To cancel, open Downloads in HushThreads settings.	Сохранение... Отменить можно в «Загрузках» настроек HushThreads.
+Smallest	Минимальный размер
+Video file name	Имя файла видео
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Видео называются %1$s. Фото всегда называются %2$s с датой и временем в конце.
+Videos go to %1$s and photos to %2$s.	Видео сохраняются в %1$s, а фото в %2$s.
+Version code raised	Код версии повышен
+The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Номер версии поднят до максимума, который допускает Android, поэтому Google Play не будет предлагать обновления Meta поверх этой сборки. Сам Threads видит свою настоящую версию. Чтобы вернуться к оригинальному Threads, сначала удалите эту сборку, при этом данные Threads на телефоне удалятся. Следующим сборкам HushThreads тоже нужен патч Change version code, иначе они не установятся поверх этой.
+the raised version code	повышенный код версии
+Share sheet entry removed	Пункт в меню «Поделиться» удален
+Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	Threads не показывается, когда вы делитесь из других приложений. Делиться из Threads в другие приложения по-прежнему можно.
+the removed share sheet entry	удаленный пункт в меню «Поделиться»
+User certificates trusted	Доверие пользовательским сертификатам
+Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads принимает сертификаты безопасности, которые вы добавили на телефон. Его собственные проверки сертификатов Meta не меняются, поэтому прокси по-прежнему не может прочитать большую часть его трафика.
+the user certificate trust	доверие пользовательским сертификатам
+Own package name	Собственное имя пакета
+This copy installs beside Threads as an app of its own, with its own sign-in.	Эта копия устанавливается рядом с Threads как отдельное приложение со своим входом в аккаунт.
+the new package name	новое имя пакета
+Own app name	Собственное название приложения
+The name under the app's icon.	Название под значком приложения.
+the new app name	новое название приложения
+Hide screenshots from Threads	Скрывать скриншоты от Threads
+Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads не узнает, когда вы делаете скриншот, поэтому не может его записать или на него отреагировать.
+Spoof SIM region	Подмена региона SIM
+Threads sees your SIM and network as the region picked below. Meta can still go by your connection and your account. Restart Threads to see the change.	Threads видит SIM-карту и сеть как регион, выбранный ниже. Meta все равно может ориентироваться на подключение и аккаунт. Перезапустите Threads, чтобы увидеть изменение.
+SIM region	Регион SIM
+Full size photos	Фото в полном размере
+Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	Фото загружаются в самом большом размере, который есть у Threads, а не в подобранном под экран. Они четче, но расходуют больше трафика.
+No swipe into Search	Без свайпа в поиск
+A sideways swipe on your feed no longer slides into Search. The Search button still opens it. Restart Threads to see the change.	Свайп в сторону по ленте больше не открывает поиск. Кнопка поиска по-прежнему его открывает. Перезапустите Threads, чтобы увидеть изменение.
+Support HushThreads	Поддержать HushThreads
+Copy a quick report or save the full one in Threads' own Downloads folder. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Скопируйте краткий отчет или сохраните полный в собственную папку Downloads приложения Threads. Ссылки, идентификаторы, файлы cookie и токены входа в него не попадают. Перед отправкой проверьте, нет ли в нем другой личной информации.
+Save the full report in Threads' own Downloads folder.	Сохраните полный отчет в собственную папку Downloads приложения Threads.
+Restore diagnostic data	Восстановить диагностические данные
+%1$s. This action will be available when it finishes.	%1$s. Это действие станет доступно после завершения.
+Open HushThreads settings	Открыть настройки HushThreads
+Restart Threads to apply this change	Перезапустите Threads, чтобы применить изменение
+Restart Threads to apply %1$d changes	Перезапустите Threads, чтобы применить изменения (%1$d)
+Threads closes and reopens on this page.	Threads закроется и снова откроется на этой странице.
+Posts	Публикации
+Copy text when you hold a post	Копировать текст долгим нажатием на публикацию
+Copy text on long press	Копирование текста долгим нажатием
+Holding a post's text opens Copy text, on an opened post too, so you get the whole post with its links instead of picking out words.	Долгое нажатие на текст публикации, в том числе открытой, вызывает «Копировать текст», и вы получаете всю публикацию со ссылками, а не отдельные слова.
+Copy text and exact post times	Копирование текста и точное время публикаций
+Show the date and time	Показывать дату и время
+Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's 12 or 24-hour format.	Публикации и ответы показывают дату и время появления вместо «3 ч» или «2 д», в 12-часовом или 24-часовом формате телефона.
+Quick setups	Быстрые настройки
+Quiet	Без лишнего
+Hides ads and the cards that suggest accounts to follow.	Скрывает рекламу и карточки с рекомендациями аккаунтов.
+Stops most usage reports and takes tracking off the links you share. Threads isn't told about your screenshots either.	Останавливает большинство отчетов об использовании и убирает отслеживание из ссылок, которыми вы делитесь. Threads также не узнает о ваших скриншотах.
+Back to defaults	Вернуть значения по умолчанию
+Puts every feature switch back the way it started.	Возвращает все переключатели функций в исходное состояние.
+Changed %1$d setting	Изменена %1$d настройка
+Changed %1$d settings	Изменено %1$d настроек
+Changed %1$d settings|few	Изменено %1$d настройки
+Changed %1$d settings|many	Изменено %1$d настроек
+Report a problem	Сообщить о проблеме
+Opens a GitHub report with your versions and settings filled in. Add what happened.	Открывает форму сообщения об ошибке на GitHub с уже заполненными версиями и настройками. Опишите, что произошло.
+Instagram won't open posts here	Instagram не открывает публикации здесь
+Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.	Ваш Instagram подписан Meta и открывает публикации и профили Threads только в Threads с подписью Meta. При нажатии на них в Instagram появляется ошибка о том, что не удалось загрузить сайт. Публикации, открытые в самом Threads, работают как обычно. Пропатчите Instagram через HushGram тем же ключом, что и HushThreads, и он будет открывать их здесь.
+Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Включите набор переключателей одним нажатием или верните все переключатели в исходное состояние. Нажмите и удерживайте, чтобы скрыть эту строку.
+Quick setups on the home page	Быстрые настройки на главной странице
+Hidden. Tap to show it again.	Скрыто. Нажмите, чтобы показать снова.
+Shown. Tap to hide it.	Показано. Нажмите, чтобы скрыть.
+Quick setups hidden. Bring it back from Pause, backup and diagnostics.	Быстрые настройки скрыты. Вернуть их можно в разделе «Приостановка, резервное копирование и диагностика».
+Not saved: Threads needs the Storage permission to save on Android 9. Turn it on in Threads' app info under Permissions, then save again.	Не сохранено: для сохранения на Android 9 приложению Threads нужно разрешение «Хранилище». Включите его в сведениях о приложении Threads в разделе «Разрешения», затем сохраните еще раз.
+Threads needs the Storage permission to save on Android 9. Turn it on in Threads' app info under Permissions, then save again.	Для сохранения на Android 9 приложению Threads нужно разрешение «Хранилище». Включите его в сведениях о приложении Threads в разделе «Разрешения», затем сохраните еще раз.
+Not saved: the download was too slow. Try a faster connection.	Не сохранено: слишком медленная загрузка. Попробуйте другую сеть.
+Hide follow suggestions in Search	Скрывать рекомендации подписок в поиске
+Takes the Follow suggestions row off the Search screen. Your searches and topics stay.	Убирает ряд рекомендаций подписок с экрана поиска. Ваши запросы и темы остаются.
+Hide suggested threads	Скрывать рекомендуемые ветки
+Takes the suggested threads off the bottom of a post you open. The post and its replies stay.	Убирает рекомендуемые ветки внизу открытой публикации. Сама публикация и ответы остаются.
+Not saved: the proxy wants a password. Try another network.	Не сохранено: прокси требует пароль. Попробуйте другую сеть.
+The proxy wants a password. Try another network.	Прокси требует пароль. Попробуйте другую сеть.
+Settings shortcut on the app icon	Ярлык настроек на значке приложения
+Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu.	Добавляет настройки HushThreads в меню, которое открывается долгим нажатием на значок Threads. Если выключено, пункт из меню убирается.
+Settings row in Threads' settings	Строка в настройках Threads
+Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone the next time you open Threads' settings.	Добавляет строку HushThreads прямо над «Другими настройками» в настройках Threads. Если выключено, строка исчезнет при следующем открытии настроек Threads.
+Open settings from the logo	Открывать настройки нажатием на логотип
+A long press on the Threads logo at the top of the feed opens these settings. Off, the long press does nothing.	Долгое нажатие на логотип Threads вверху ленты открывает эти настройки. Если выключено, долгое нажатие ничего не делает.
+Stays on, since it's the only way left into these settings.	Остается включенным, потому что это последний оставшийся путь к этим настройкам.
+Show all settings as a list	Показать все настройки списком
+Show settings by category	Показать настройки по категориям
+Expanded	Развернуто
+Collapsed	Свернуто
+Support	Поддержка
+Reports, restart and app information	Отчеты, перезапуск и сведения о приложении
+Help and restart	Помощь и перезапуск
+Support the project	Поддержать проект
+Restart Threads	Перезапустить Threads
+Version %1$s	Версия %1$s
+Build %1$s (modified)	Сборка %1$s (изменена)
+Build %1$s (source known)	Сборка %1$s (источник известен)
+Build %1$s (source unknown)	Сборка %1$s (источник неизвестен)
+Comments	Комментарии
+Spam replies by words or links	Спам-ответы по словам или ссылкам
+Filter comments	Фильтр комментариев
+Replies matching the patterns below are left out of a post's replies, so a spam reply never shows. A reply and the replies shown under it are checked and left out as one. Normal replies keep their order.	Ответы, совпадающие с шаблонами ниже, убираются из ответов к публикации, поэтому спам не появляется. Ответ и показанные под ним ответы проверяются и убираются вместе. Обычные ответы сохраняют свой порядок.
+Blocked words and domains	Заблокированные слова и домены
+One pattern a line, or separated by commas. A shop's domain such as shopee.vn takes out the replies linking to it.	По одному шаблону в строке или через запятую. Домен магазина, например shopee.vn, убирает ответы со ссылками на него.
+One pattern a line, or separated by commas. Matched whatever the letter case.	По одному шаблону в строке или через запятую. Регистр букв не учитывается.
+Hide comments with links	Скрывать комментарии со ссылками
+Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	Ответы с веб-ссылками убираются независимо от шаблонов. Чтобы убрать конкретный сайт, добавьте его имя, например shopee.vn, как шаблон.
+Hide the like button	Скрывать кнопку «Нравится»
+Takes the like button off posts and replies, with its count. Restart Threads to see the change.	Убирает кнопку «Нравится» вместе со счетчиком с публикаций и ответов. Перезапустите Threads, чтобы увидеть изменение.
+Hide the reply button	Скрывать кнопку ответа
+Takes the reply button off posts and replies, with its count. Restart Threads to see the change.	Убирает кнопку ответа вместе со счетчиком с публикаций и ответов. Перезапустите Threads, чтобы увидеть изменение.
+Hide the repost button	Скрывать кнопку репоста
+Takes the repost button off posts and replies, with its count. Restart Threads to see the change.	Убирает кнопку репоста вместе со счетчиком с публикаций и ответов. Перезапустите Threads, чтобы увидеть изменение.
+Hide the share button	Скрывать кнопку «Поделиться»
+Takes the share button off posts and replies. Restart Threads to see the change.	Убирает кнопку «Поделиться» с публикаций и ответов. Перезапустите Threads, чтобы увидеть изменение.
+Hide the save button	Скрывать кнопку сохранения
+Takes the save button off posts and replies, so you can't tap it by mistake. Restart Threads to see the change.	Убирает кнопку сохранения с публикаций и ответов, чтобы не нажать ее случайно. Перезапустите Threads, чтобы увидеть изменение.
+Use the HushThreads logo	Использовать логотип HushThreads
+Shows the HushThreads logo at the top of your feed in place of the Threads logo. It doesn't spin while the feed refreshes. Restart Threads to see the change.	Показывает логотип HushThreads вверху ленты вместо логотипа Threads. Он не вращается при обновлении ленты. Перезапустите Threads, чтобы увидеть изменение.
+HushThreads icon	Значок HushThreads
+The app's icon on your home screen is the HushThreads logo.	Значок приложения на главном экране заменен логотипом HushThreads.
+the HushThreads icon	значок HushThreads
+Custom font	Свой шрифт
+Shows Threads' text in the font file you pick below. Icons keep their own font. Restart Threads to see the change.	Показывает текст Threads шрифтом из файла, выбранного ниже. Значки сохраняют свой шрифт. Перезапустите Threads, чтобы увидеть изменение.
+Font file	Файл шрифта
+No font picked yet. Pick a .ttf or .otf file.	Шрифт еще не выбран. Выберите файл .ttf или .otf.
+A font file is picked. Tap to pick another.	Файл шрифта выбран. Нажмите, чтобы выбрать другой.
+%1$s is picked. Tap to pick another.	Выбран %1$s. Нажмите, чтобы выбрать другой.
+Copying the font file	Копирование файла шрифта
+Font file saved. Restart Threads to see it.	Файл шрифта сохранен. Перезапустите Threads, чтобы его увидеть.
+Font file saved. Turn on Custom font to use it.	Файл шрифта сохранен. Включите «Свой шрифт», чтобы использовать его.
+That file is too large to be a font. Nothing was changed.	Файл слишком большой для шрифта. Ничего не изменено.
+That isn't a font file Android can use. Nothing was changed.	Это не файл шрифта, который может использовать Android. Ничего не изменено.

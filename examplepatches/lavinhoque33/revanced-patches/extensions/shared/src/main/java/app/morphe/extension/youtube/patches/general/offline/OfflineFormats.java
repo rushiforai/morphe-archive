@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
  */
@@ -20,6 +21,7 @@ import android.os.Build;
 
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,7 +86,8 @@ final class OfflineFormats {
      * @param hls     {@link #url} is an HLS media playlist instead of a DASH stream.
      */
     record Stream(String url, int itag, String mimeType, long contentLength, int height, int fps,
-                  String codec, int bitrate, boolean playable, boolean premium, boolean hls) {
+                  String codec, int bitrate, boolean playable, boolean premium, boolean hls,
+                  long revision, String audioTrack) {
         boolean isAudioOnly() {
             return mimeType.toLowerCase(Locale.US).startsWith("audio/");
         }
@@ -107,6 +111,19 @@ final class OfflineFormats {
         String key() {
             if (isAudioOnly()) return "audio/" + codec;
             return height + "p" + fps + "/" + codec + (premium ? "/premium" : "");
+        }
+
+        private boolean sameDashBytes(Stream candidate) {
+            if (hls || candidate.hls || itag != candidate.itag || !mimeType.equals(candidate.mimeType)
+                    || !audioTrack.equals(candidate.audioTrack) || bitrate != candidate.bitrate
+                    || revision <= 0 || revision != candidate.revision
+                    || contentLength > 0 && candidate.contentLength > 0 && contentLength != candidate.contentLength) {
+                return false;
+            }
+            Uri original = Uri.parse(url);
+            Uri refresh = Uri.parse(candidate.url);
+            return Objects.equals(original.getQueryParameter("id"), refresh.getQueryParameter("id"))
+                    && Objects.equals(original.getQueryParameter("drc"), refresh.getQueryParameter("drc"));
         }
     }
 
@@ -194,6 +211,30 @@ final class OfflineFormats {
         return null;
     }
 
+    /** Use the exact itag and revision, not the picker list's best encode of a quality. */
+    @Nullable
+    static Stream refreshDash(String videoId, int clientIndex, Stream original, OfflineTransferControl.Attempt attempt)
+            throws IOException {
+        ClientType client = AVAILABLE_CLIENTS.get(clientIndex);
+        StreamOrDetailsDataRequest.StreamData data =
+                StreamOrDetailsDataRequest.fetchDownloadStream(videoId, client, requestHeaders());
+        if (data == null) {
+            throw OfflineDownloadTransfer.unavailableMetadata(attempt, "Could not refresh download metadata");
+        }
+
+        PlayerResponse response = PlayerResponse.parseFrom(data.streamingData());
+        for (Format format : response.getStreamingData().getAdaptiveFormatsList()) {
+            if (format.getItag() != original.itag() || format.getUrl().isEmpty()) continue;
+
+            String url = format.getUrl();
+            long length = format.getContentLength() > 0 ? format.getContentLength() : parseClen(url);
+            Stream candidate = original.isAudioOnly() ? audioStream(format, url, length, original.codec())
+                    : videoStream(format, url, format.getMimeType().toLowerCase(Locale.US), length);
+            if (candidate != null && original.sameDashBytes(candidate)) return candidate;
+        }
+        return null;
+    }
+
     static Map<String, String> requestHeaders() {
         Map<String, String> headers = SpoofVideoStreamsPatch.currentVideoRequestHeader;
         // AuthUtils retains headers across incognito changes. Do not revive a signed-in session there.
@@ -204,9 +245,9 @@ final class OfflineFormats {
     }
 
     /** The Premium stream is VP9, which is saved with Opus audio, so it needs the Opus stream. */
-    private static Resolved addPremium(Resolved resolved, Map<String, String> headers) {
+    private static Resolved addPremium(Resolved resolved, Map<String, String> headers) throws IOException {
         if (resolved.webmAudio() == null) return resolved;
-        OfflineHls.Premium premium = OfflineHls.fetchPremium(resolved.videoId(), headers);
+        OfflineHls.Premium premium = OfflineHls.fetchPremium(resolved.videoId(), headers, null);
         return premium == null ? resolved : resolved.withPremium(premium.stream(), premium.userAgent());
     }
 
@@ -270,7 +311,7 @@ final class OfflineFormats {
         };
         final boolean premium = format.getQualityLabel().contains(PREMIUM_LABEL);
         return new Stream(addCpn(url), format.getItag(), format.getMimeType(), length, quality[0], quality[1],
-                codec, format.getBitrate(), playable, premium, false);
+                codec, format.getBitrate(), playable, premium, false, streamRevision(format, url), "");
     }
 
     @Nullable
@@ -286,7 +327,7 @@ final class OfflineFormats {
 
     private static Stream audioStream(Format format, String url, long length, String codec) {
         return new Stream(addCpn(url), format.getItag(), format.getMimeType(), length, 0, 0, codec,
-                format.getBitrate(), true, false, false);
+                format.getBitrate(), true, false, false, streamRevision(format, url), format.getAudioTrack().getId());
     }
 
     private static void keepLargest(Map<String, Stream> streams, Stream candidate) {
@@ -511,10 +552,18 @@ final class OfflineFormats {
         return Uri.parse(url).buildUpon().appendQueryParameter("cpn", cpn.toString()).build().toString();
     }
 
+    private static long streamRevision(Format format, String url) {
+        return format.getLastModified() > 0 ? format.getLastModified() : numberParameter(url, "lmt");
+    }
+
     private static long parseClen(String url) {
+        return numberParameter(url, "clen");
+    }
+
+    private static long numberParameter(String url, String name) {
         try {
-            String clen = Uri.parse(url).getQueryParameter("clen");
-            return clen == null ? -1 : Long.parseLong(clen);
+            String value = Uri.parse(url).getQueryParameter(name);
+            return value == null ? -1 : Long.parseLong(value);
         } catch (Exception ex) {
             return -1;
         }

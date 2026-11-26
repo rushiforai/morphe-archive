@@ -17,9 +17,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
-private const val ARTIST_TRACK_DATA = "LIIIIIlIlIIllIII;"
-private const val RIGHTS_DATA = "LllIIlIIIIlIllll;"
-private const val ARTIST_TRACK_RIGHTS = "LlIlIlIlllIIIll;"
+private const val ARTIST_TRACK_DATA = "LlIIlIIIlllIl;"
+private const val RIGHTS_DATA = "LIIIllIlllIlIII;"
+private const val ARTIST_TRACK_RIGHTS = "LIlllllIllIlIII;"
 private const val DISPLAY_DATA = "morpheArtistTrackData"
 
 private fun selectableArtistTrackData(): MutableMethod {
@@ -31,20 +31,20 @@ private fun selectableArtistTrackData(): MutableMethod {
     method.addInstructionsWithLabels(
         0,
         """
-            iget-object v0, p0, LIIIIIlIlIIllIII;->IIlIlIlIlIllllll:$RIGHTS_DATA
-            iget-object v1, v0, LllIIlIIIIlIllll;->llIIIIIIlIIIIll:$ARTIST_TRACK_RIGHTS
-            sget-object v2, LlIlIlIlllIIIll;->IIlllIlllIlll:$ARTIST_TRACK_RIGHTS
+            iget-object v0, p0, LlIIlIIIlllIl;->lIIlIIlIlllllII:$RIGHTS_DATA
+            iget-object v1, v0, LIIIllIlllIlIII;->IllIlllIIIllIlII:$ARTIST_TRACK_RIGHTS
+            sget-object v2, LIlllllIllIlIII;->lIIlIlIllIl:$ARTIST_TRACK_RIGHTS
             if-ne v1, v2, :keep_data
-            iget-boolean v6, v0, LllIIlIIIIlIllll;->IllIlIlIIlIllIll:Z
-            sget-object v2, LlIlIlIlllIIIll;->IIllllllllIlll:$ARTIST_TRACK_RIGHTS
+            iget-boolean v6, v0, LIIIllIlllIlIII;->lIIIIIlllllIIIII:Z
+            sget-object v2, LIlllllIllIlIII;->lIlIIIlIllI:$ARTIST_TRACK_RIGHTS
             new-instance v4, $RIGHTS_DATA
             invoke-direct {v4, v6, v2}, $RIGHTS_DATA-><init>(Z$ARTIST_TRACK_RIGHTS)V
-            iget-object v1, p0, LIIIIIlIlIIllIII;->IllIlIlIIlIllIll:LIIllIIIlIIllIIl;
-            iget-object v2, p0, LIIIIIlIlIIllIII;->llIIIIIIlIIIIll:LllllIllllIllII;
-            iget-object v3, p0, LIIIIIlIlIIllIII;->IIIIIllIlIIllll:LIlIIIllIIIIIlI;
-            iget-boolean v5, p0, LIIIIIlIlIIllIII;->IIllllIIIIIlIIl:Z
+            iget-object v1, p0, LlIIlIIIlllIl;->lIIIIIlllllIIIII:LllllllllIIIllIl;
+            iget-object v2, p0, LlIIlIIIlllIl;->IllIlllIIIllIlII:LllIIlllIlllIIll;
+            iget-object v3, p0, LlIIlIIIlllIl;->IllIIIlllIIlIlll:LIIIlIllIllIlIlII;
+            iget-boolean v5, p0, LlIIlIIIlllIl;->lIIIlIlIIIIIlII:Z
             new-instance v0, $ARTIST_TRACK_DATA
-            invoke-direct/range {v0 .. v5}, $ARTIST_TRACK_DATA-><init>(LIIllIIIlIIllIIl;LllllIllllIllII;LIlIIIllIIIIIlI;${RIGHTS_DATA}Z)V
+            invoke-direct/range {v0 .. v5}, $ARTIST_TRACK_DATA-><init>(LllllllllIIIllIl;LllIIlllIlllIIll;LIIIlIllIllIlIlII;${RIGHTS_DATA}Z)V
             return-object v0
             :keep_data
             return-object p0
@@ -58,12 +58,12 @@ private fun MutableMethod.useArtistTrackAction() {
     val policy = instructions.indices.single { index ->
         val instruction = instructions[index]
         instruction.opcode == Opcode.INVOKE_VIRTUAL && (instruction as ReferenceInstruction).reference.toString() ==
-            "LIIIIllIIIlII;->IIlIlIlIlIllllll(Ljava/lang/String;)LIIIlIllIllllII;"
+            "LllIllIIlllIlII;->lIIlIIlIlllllII(Ljava/lang/String;)LlIIIIIlIIIllllll;"
     }
     val result = instructions[policy + 1] as OneRegisterInstruction
     check(result.opcode == Opcode.MOVE_RESULT_OBJECT)
     replaceInstruction(policy, "nop")
-    replaceInstruction(policy + 1, "sget-object v${result.registerA}, LllllllIIIIllIll;->IllIlIlIIlIllIll:LllllllIIIIllIll;")
+    replaceInstruction(policy + 1, "sget-object v${result.registerA}, LIIIIIIIlllIlIIIl;->lIIIIIlllllIIIII:LIIIIIIIlllIlIIIl;")
 }
 
 private fun MutableMethod.showSelectableArtistTrack() {
@@ -71,7 +71,7 @@ private fun MutableMethod.showSelectableArtistTrack() {
     val bind = instructions.indices.single { index ->
         val instruction = instructions[index]
         instruction.opcode == Opcode.INVOKE_VIRTUAL && (instruction as ReferenceInstruction).reference.toString() ==
-            "LIlllIIllIllIlll;->lIllIIllIIl(${ARTIST_TRACK_DATA}Z)LIlIIIlllIIIIlllI;"
+            "LIllIllIIIIlIIlIl;->IIlIIIIIIlllIIlI(${ARTIST_TRACK_DATA}Z)LllIlIIlIllIIllI;"
     }
     val call = instructions[bind] as FiveRegisterInstruction
     check(call.registerCount == 3)
@@ -82,7 +82,7 @@ private fun MutableMethod.showSelectableArtistTrack() {
         bind + 1,
         """
             move-result-object v$trackData
-            invoke-virtual {v${call.registerC}, v$trackData, v${call.registerE}}, LIlllIIllIllIlll;->lIllIIllIIl(${ARTIST_TRACK_DATA}Z)LIlIIIlllIIIIlllI;
+            invoke-virtual {v${call.registerC}, v$trackData, v${call.registerE}}, LIllIllIIIIlIIlIl;->IIlIIIIIIlllIIlI(${ARTIST_TRACK_DATA}Z)LllIlIIlIllIIllI;
         """.trimIndent(),
     )
 }
@@ -92,16 +92,16 @@ internal val artistTrackSelectionPatch = patch {
     dependsOn(artistTrackNumberDisplaySupport)
 
     execute {
-        val topTracks = mutableClassDefBy("LlIIlIIIIIllll;").methods.single {
-            it.name == "IllIlIlIIlIllIll" && it.parameterTypes == listOf("Ljava/lang/Object;")
+        val topTracks = mutableClassDefBy("LIIllIIlIIIIlII;").methods.single {
+            it.name == "lIIIIIlllllIIIII" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }
         val instructions = checkNotNull(topTracks.implementation).instructions
         val list = instructions.indices.single { index ->
             val instruction = instructions[index]
             instruction.opcode == Opcode.IGET_OBJECT && (instruction as ReferenceInstruction).reference.toString() ==
-                "LIIlIIlIIllIIIll;->IIIIIllIlIIllll:Ljava/util/List;" && index + 2 < instructions.size &&
+                "LIIlllIlIIllllIII;->IllIIIlllIIlIlll:Ljava/util/List;" && index + 2 < instructions.size &&
                 (instructions[index + 2] as? ReferenceInstruction)?.reference.toString() ==
-                "LlIIlIIIIIllll;->llIlIllIIIl:Z"
+                "LIIllIIlIIIIlII;->lIIlIlIIIlllIll:Z"
         }
         val compactFlag = instructions[list + 2] as OneRegisterInstruction
         check(compactFlag.opcode == Opcode.IGET_BOOLEAN)
@@ -109,25 +109,25 @@ internal val artistTrackSelectionPatch = patch {
 
         check(mutableClassDefBy(ARTIST_TRACK_DATA).methods.add(selectableArtistTrackData()))
         // The artist page and the full Top tracks screen bind their rows separately.
-        mutableClassDefBy("LIIIlllIlIIIlIIIl;").methods.single {
+        mutableClassDefBy("LIlllllllIIlIlIII;").methods.single {
             it.name == "invoke" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }.showSelectableArtistTrack()
-        mutableClassDefBy("LlIIlIIlllIlllI;").methods.single {
+        mutableClassDefBy("LIlIIIIlIlIlIIll;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }.showSelectableArtistTrack()
 
-        mutableClassDefBy("LlllllllIlll;").methods.single {
+        mutableClassDefBy("LIIIIllIIIIlllllI;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }.useArtistTrackAction()
 
-        val allTracks = mutableClassDefBy("LIllIllIIIlIlIIII;").methods.single {
+        val allTracks = mutableClassDefBy("LIIllllllIIIllI;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }
         val actions = checkNotNull(allTracks.implementation).instructions
         val rights = actions.indices.single { index ->
             val instruction = actions[index]
             instruction.opcode == Opcode.IGET_OBJECT && (instruction as ReferenceInstruction).reference.toString() ==
-                "LllIIlIIIIlIllll;->llIIIIIIlIIIIll:LlIlIlIlllIIIll;"
+                "LIIIllIlllIlIII;->IllIlllIIIllIlII:LIlllllIllIlIII;"
         }
         val readable = actions[rights + 3] as BuilderInstruction21t
         val noOnDemand = actions[rights + 4] as BuilderInstruction22t
@@ -138,14 +138,14 @@ internal val artistTrackSelectionPatch = patch {
         allTracks.useArtistTrackAction()
 
         // The artist's Mix button shares this router. Send only explicit tracks to the artist queue.
-        mutableClassDefBy("LIlIIIlIlIIIIIllI;").methods.single {
-            it.name == "IIlIlIlIlIllllll" && it.parameterTypes == listOf("LlIIIIIlllIlIlll;")
+        mutableClassDefBy("LIlllIlIIllIlII;").methods.single {
+            it.name == "lIIlIIlIlllllII" && it.parameterTypes == listOf("LlIIIIIlIIIIlllII;")
         }.addInstructionsWithLabels(
             0,
             """
-                iget-object v0, p0, LIlIIIlIlIIIIIllI;->IIllllIIIIIlIIl:LIllIllllIIIIlll;
-                iget-object v1, v0, LIllIllllIIIIlll;->lIlIIllIIlI:Ljava/lang/Object;
-                instance-of v1, v1, LIlIlIIllIlllIIII;
+                iget-object v0, p0, LIlllIlIIllIlII;->lIIIlIlIIIIIlII:LIlIIIllIlllIlllI;
+                iget-object v1, v0, LIlIIIllIlllIlllI;->IIlIIIlIIIllllll:Ljava/lang/Object;
+                instance-of v1, v1, LIllllIlllIlIlIIl;
                 if-eqz v1, :original
                 return-object v0
                 :original

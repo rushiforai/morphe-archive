@@ -71,11 +71,19 @@ fun main(args: Array<String>) = runBlocking {
                         "Native declaration changed: ${def.type}->${native.name}"
                     }
                 }
-                if (def.type == "LX/Ail9;") check(canonical(def) == canonical(original)) {
-                    "Native startup loader must remain unchanged"
+                if (def.type == "LX/Ail9;") {
+                    // Only the two Java task entry points change. JNI still
+                    // registers the original constructor and native c().
+                    for (method in def.methods.filter { it.name == "b" || it.name == "d" }) {
+                        check(method.implementation!!.instructions.none {
+                            val ref = (it as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference
+                                as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
+                            ref?.definingClass == "LX/Ail9;" && ref.name == "c"
+                        }) { "Java startup task still invokes remote loader" }
+                    }
                 }
             }
-            println("PASS: Original native loader and native UI method declarations preserved")
+            println("PASS: Native declarations preserved; Java startup tasks bypass remote loader")
             val asset = File(result.resources!!.otherResources!!, "assets/local-startup-module.dex")
             check(asset.readBytes().contentEquals(java.util.zip.ZipFile(bundle).use {
                 it.getInputStream(it.getEntry("honista/startup-module.dex")).readBytes()

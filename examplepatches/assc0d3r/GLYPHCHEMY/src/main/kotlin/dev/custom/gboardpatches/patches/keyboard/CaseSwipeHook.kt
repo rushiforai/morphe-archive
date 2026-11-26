@@ -2,7 +2,7 @@ package dev.custom.gboardpatches.patches.keyboard
 
 /**
  * The smali the Smart bar case swipe patch injects into Gboard's single commit funnel
- * (`Lowy;->f(InputConnection, CharSequence, int)V`).
+ * (`Lowy;->f(InputConnection, CharSequence, int)V` on 18.6.3 and 18.5.4, `Laerl;->f` on 18.8.0).
  *
  * The invariant lives here, not inline in the patch, because getting it wrong is not a compile
  * error: the flags int and the text argument are both single-register parameters, so passing the

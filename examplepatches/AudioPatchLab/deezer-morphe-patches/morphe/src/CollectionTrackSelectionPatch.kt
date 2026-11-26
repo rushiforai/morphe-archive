@@ -29,15 +29,17 @@ internal val deezerCompatibility = Compatibility(
     name = "Deezer",
     packageName = "deezer.android.app",
     apkFileType = ApkFileType.APKM_REQUIRED,
-    targets = listOf(AppTarget(version = "9.0.27.3", minSdk = 26)),
+    targets = listOf(
+        AppTarget(version = "9.0.27.4", minSdk = 26),
+    ),
 )
 
-private const val TRACK_RIGHTS = "LlIlIlIlllIIIll;"
+private const val TRACK_RIGHTS = "LIlllllIllIlIII;"
 private const val DISPLAY_RIGHTS = "morpheCollectionDisplayRights"
-private const val TRACK_ROW_CONSTRUCTOR = "LIIlllIlIlllIIlI;-><init>(" +
+private const val TRACK_ROW_CONSTRUCTOR = "LIllIlIIIlIIlIllI;-><init>(" +
     "Ljava/lang/String;Ljava/lang/String;$TRACK_RIGHTS" +
     "Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/lang/String;IZZIIZ" +
-    "LIlIlIIIlIIllllII;FZLIIlIlIIIIlIllIIl;Ljava/lang/Integer;I)V"
+    "LIIIIlIIIIIlIlll;FZLIlllIlIIIlllIlIl;Ljava/lang/Integer;I)V"
 
 private fun collectionDisplayRightsMethod(): MutableMethod {
     val method = MutableMethod(
@@ -50,9 +52,9 @@ private fun collectionDisplayRightsMethod(): MutableMethod {
     method.addInstructionsWithLabels(
         0,
         """
-            sget-object v0, LlIlIlIlllIIIll;->IIlllIlllIlll:$TRACK_RIGHTS
+            sget-object v0, LIlllllIllIlIII;->lIIlIlIllIl:$TRACK_RIGHTS
             if-ne p0, v0, :keep_rights
-            sget-object p0, LlIlIlIlllIIIll;->IIllllllllIlll:$TRACK_RIGHTS
+            sget-object p0, LIlllllIllIlIII;->lIlIIIlIllI:$TRACK_RIGHTS
             :keep_rights
             return-object p0
         """.trimIndent(),
@@ -146,7 +148,7 @@ private fun MutableMethod.useSelectedTrackAction() {
     val rightsRead = instructions.indices.single { index ->
         val instruction = instructions[index]
         instruction.opcode == Opcode.IGET_OBJECT && (instruction as ReferenceInstruction)
-            .reference.toString() == "LllIIlIIIIlIllll;->llIIIIIIlIIIIll:LlIlIlIlllIIIll;"
+            .reference.toString() == "LIIIllIlllIlIII;->IllIlllIIIllIlII:LIlllllIllIlIII;"
     }
     check(instructions[rightsRead + 1].opcode == Opcode.INVOKE_VIRTUAL)
     check(instructions[rightsRead + 2].opcode == Opcode.MOVE_RESULT)
@@ -164,7 +166,7 @@ private fun MutableMethod.useSelectedTrackAction() {
     val playbackPolicy = instructions.indices.single { index ->
         val instruction = instructions[index]
         instruction.opcode == Opcode.INVOKE_VIRTUAL && (instruction as ReferenceInstruction)
-            .reference.toString() == "LIIIIllIIIlII;->IIlIlIlIlIllllll(Ljava/lang/String;)LIIIlIllIllllII;"
+            .reference.toString() == "LllIllIIlllIlII;->lIIlIIlIlllllII(Ljava/lang/String;)LlIIIIIlIIIllllll;"
     }
     val policyResult = instructions[playbackPolicy + 1] as OneRegisterInstruction
     check(policyResult.opcode == Opcode.MOVE_RESULT_OBJECT)
@@ -172,7 +174,7 @@ private fun MutableMethod.useSelectedTrackAction() {
     replaceInstruction(playbackPolicy, "nop")
     replaceInstruction(
         playbackPolicy + 1,
-        "sget-object v${policyResult.registerA}, LllllllIIIIllIll;->IllIlIlIIlIllIll:LllllllIIIIllIll;",
+        "sget-object v${policyResult.registerA}, LIIIIIIIlllIlIIIl;->lIIIIIlllllIIIII:LIIIIIIIlllIlIIIl;",
     )
 }
 
@@ -183,57 +185,57 @@ internal val collectionTrackSelectionPatch = patch {
     execute {
         // The album page combines the preview flag with the user's playback mode.
         // When that combination selects TrackPreview, use the Tracks state instead.
-        val albumTrackState = "LIllIIIIlIlIIIl;"
-        mutableClassDefBy("LIllIlIllIlIIIII;").methods.single {
+        val albumTrackState = "LIIlIIIIlIlIlIIl;"
+        mutableClassDefBy("LIIIllllIlIIllIIl;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
-        }.replaceField(Opcode.SGET_OBJECT, albumTrackState, "IIlllIlllIlll", albumTrackState, "IIllllllllIlll")
+        }.replaceField(Opcode.SGET_OBJECT, albumTrackState, "lIIlIlIllIl", albumTrackState, "lIlIIIlIllI")
 
         // The playlist view model has separate data flows for inline tracks and the preview card.
-        mutableClassDefBy("LIllIlllIIIIlII;").methods.single {
+        mutableClassDefBy("LIlIlIIIIllIl;").methods.single {
             it.name == "invoke" && it.parameterTypes.isEmpty()
         }.replaceField(
-            Opcode.IGET_OBJECT, "LllIIllllIlIIIlI;", "IllIllIlIIlllIlI",
-            "LIlIlIllIllIIllII;", "IIIlIIlIlIIIlIlI",
+            Opcode.IGET_OBJECT, "LIlIlIIllIlIIIll;", "IIlIlIlllllIlIll",
+            "LlIlllIIllIllll;", "IIlllIlllIllIllI",
         )
 
         check(mutableClassDefBy(TRACK_RIGHTS).methods.add(collectionDisplayRightsMethod()))
         check(mutableClassDefBy(TRACK_ROW_CONSTRUCTOR.substringBefore("->")).methods.add(collectionNumberedTitleMethod()))
-        mutableClassDefBy("LlIIlIIlllIlllI;").methods.single {
+        mutableClassDefBy("LIlIIIIlIlIlIIll;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }.showSelectableRows(numberedTitle = true)
         // Album and playlist row constructors now share this merged coroutine.
 
-        mutableClassDefBy("LIllIIIlIlIlIllI;").methods.single {
+        mutableClassDefBy("LIIIlllIlIlllllII;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }.useSelectedTrackAction()
-        mutableClassDefBy("LIlIllllIllllIIIl;").methods.single {
-            it.name == "lIllIIIIIllIlI" && it.parameterTypes == listOf("Ljava/lang/Object;")
+        mutableClassDefBy("LIIlIIIlllIlllI;").methods.single {
+            it.name == "llIlIllIllIIlll" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }.useSelectedTrackAction()
 
         // Starting a collection and starting a selected track share the same router.
         // Only the FromTrack requests use the direct queue action on ad-supported accounts.
-        mutableClassDefBy("LIlllIIllllIIlI;").methods.single {
-            it.name == "IIlIlIlIlIllllll" && it.parameterTypes == listOf("LlIIIIIlllIlIlll;")
+        mutableClassDefBy("LllIIlIIlIIllIl;").methods.single {
+            it.name == "lIIlIIlIlllllII" && it.parameterTypes == listOf("LlIIIIIlIIIIlllII;")
         }.addInstructionsWithLabels(
             0,
             """
-                iget-object v0, p0, LIlllIIllllIIlI;->IIlllIlIIlIlII:LlIIIlIlIIIlI;
-                iget-object v1, v0, LlIIIlIlIIIlI;->IIllllIIIIIlIIl:LIlIIIllIllllIlI;
-                instance-of v1, v1, LIllIlIIlllIlII;
+                iget-object v0, p0, LllIIlIIlIIllIl;->IIllIIlIIIlIIlll:LllIIIIlIIlIlI;
+                iget-object v1, v0, LllIIIIlIIlIlI;->lIIIlIlIIIIIlII:LIIllIIIlIIlIIlIl;
+                instance-of v1, v1, LIIlIlllIIlIlIlII;
                 if-eqz v1, :original
                 return-object v0
                 :original
                 nop
             """.trimIndent(),
         )
-        mutableClassDefBy("LlllllIIIllI;").methods.single {
-            it.name == "IIlIlIlIlIllllll" && it.parameterTypes == listOf("LlIIIIIlllIlIlll;")
+        mutableClassDefBy("LIIllIIIllllIlIlI;").methods.single {
+            it.name == "lIIlIIlIlllllII" && it.parameterTypes == listOf("LlIIIIIlIIIIlllII;")
         }.addInstructionsWithLabels(
             0,
             """
-                iget-object v0, p0, LlllllIIIllI;->IIlIlIlIlIllllll:LlIIIIlIlIIIIIIll;
-                iget-object v1, v0, LlIIIIlIlIIIIIIll;->IIllllIIIIIlIIl:LIlIIIllIlIIlIIl;
-                instance-of v1, v1, LIlIllIIlllIII;
+                iget-object v0, p0, LIIllIIIllllIlIlI;->lIIlIIlIlllllII:LllIllIIlIlllll;
+                iget-object v1, v0, LllIllIIlIlllll;->lIIIlIlIIIIIlII:LIlllllIllllIIIIl;
+                instance-of v1, v1, LIIIIIlIllIlIllI;
                 if-eqz v1, :original
                 return-object v0
                 :original
@@ -242,16 +244,16 @@ internal val collectionTrackSelectionPatch = patch {
         )
 
         // Do not downgrade normal album/playlist playback to a radio mix when MOD is false.
-        mutableClassDefBy("LlIIIIllIllIIIl;").methods.single {
-            it.name == "llIIIlllllIlIl" &&
-                it.parameterTypes == listOf("LIllllIIIIlIllIII;", "LIlIIlllIIlIIllll;") &&
+        mutableClassDefBy("LllllIlIIIIIIlll;").methods.single {
+            it.name == "lIlIIlIllIIIlI" &&
+                it.parameterTypes == listOf("LlllllIIlIIlIIl;", "LlIIllIIlIlIlIll;") &&
                 it.returnType == "Z"
         }.apply {
             val instructions = checkNotNull(implementation).instructions
             val modCheck = instructions.indices.first { index ->
                 instructions[index].opcode == Opcode.INVOKE_VIRTUAL &&
                     (instructions[index] as ReferenceInstruction).reference.toString() ==
-                    "LIlIllIlIllIIllI;->IllIlIlIIlIllIll(I)Z"
+                    "LllIIlIllIIllII;->lIIIIIlllllIIIII(I)Z"
             }
             val moveResult = instructions[modCheck + 1] as OneRegisterInstruction
             check(moveResult.opcode == Opcode.MOVE_RESULT)
@@ -267,20 +269,20 @@ internal val collectionTrackSelectionPatch = patch {
         // Bypass JukeboxService's MOD/RADIO rights bitmask gate when starting selected tracks.
         val jukeboxService = mutableClassDefBy("Lcom/deezer/core/jukebox/JukeboxService;")
         jukeboxService.methods.single {
-            it.name == "lIIIIlllIlllll" && it.parameterTypes == listOf("LIlIlllIlIIIlllI;") && it.returnType == "V"
+            it.name == "IIIlIIIIIIIlIl" && it.parameterTypes == listOf("LlllIIIlIlIlIIlI;") && it.returnType == "V"
         }.apply {
             val instructions = checkNotNull(implementation).instructions
             val blockCall = instructions.indices.single { index ->
                 instructions[index].opcode == Opcode.INVOKE_VIRTUAL &&
                     (instructions[index] as ReferenceInstruction).reference.toString() ==
-                    "Lcom/deezer/core/jukebox/JukeboxService;->IIlIlIlIlIllllll(I)V"
+                    "Lcom/deezer/core/jukebox/JukeboxService;->lIIlIIlIlllllII(I)V"
             }
             val branch = instructions[blockCall - 1] as BuilderInstruction21t
             check(branch.opcode == Opcode.IF_EQZ)
             replaceInstruction(blockCall - 1, BuilderInstruction10t(Opcode.GOTO, branch.target))
         }
         jukeboxService.methods.single {
-            it.name == "IllIlIlIIlIllIll" && it.parameterTypes == listOf("LIIIlIlIIlllIlIIl;") && it.returnType == "Z"
+            it.name == "lIIIIIlllllIIIII" && it.parameterTypes == listOf("LIIIIIIllIIIllIIl;") && it.returnType == "Z"
         }.addInstructions(
             0,
             """

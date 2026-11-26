@@ -3,17 +3,19 @@ package app.aapam.patches.cred
 import app.aapam.patches.cred.manifest.manifestFixPatch
 import app.aapam.patches.cred.shared.Constants
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.instructionsOrNull
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.aapam.patches.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 @Suppress("unused")
 val credPatch = bytecodePatch(
     name = "Disable Spying & Security Checks",
-    description = "Suppresses background watchdog crashes, stubs app inventory harvesters, bypasses device profiling & root checks, and neutralizes OEM task-killer service flags.",
+    description = "Removes other app querying & root checks, for NFC support check the our readme file.",
 ) {
     compatibleWith(Constants.COMPATIBILITY_CRED)
     dependsOn(manifestFixPatch)
@@ -61,15 +63,7 @@ val credPatch = bytecodePatch(
                             """,
                         )
                     }
-                    "isRooted" -> {
-                        method.addInstructions(
-                            0,
-                            """
-                                const/4 v0, 0x0
-                                return v0
-                            """,
-                        )
-                    }
+                    "isRooted" -> method.returnEarly(false)
                 }
             }
         }
@@ -78,13 +72,7 @@ val credPatch = bytecodePatch(
         mutableClassDefByOrNull("Lminkasu2fa/w0;")?.let { minkasuClass ->
             minkasuClass.methods.forEach { method ->
                 if (method.returnType == "Z") {
-                    method.addInstructions(
-                        0,
-                        """
-                            const/4 v0, 0x0
-                            return v0
-                        """,
-                    )
+                    method.returnEarly(false)
                 }
             }
         }
@@ -93,14 +81,7 @@ val credPatch = bytecodePatch(
         mutableClassDefByOrNull("Lcom/wibmo/threeds2/sdk/impl/a;")?.let { wibmoClass ->
             wibmoClass.methods.forEach { method ->
                 if (method.name == "getTopUpAmountannotations" && method.returnType == "Ljava/lang/Object;") {
-                    method.addInstructions(
-                        0,
-                        """
-                            const/4 v0, 0x0
-                            new-array v0, v0, [Ljava/lang/Object;
-                            return-object v0
-                        """,
-                    )
+                    method.returnEarly(null)
                 }
             }
         }
@@ -137,39 +118,195 @@ val credPatch = bytecodePatch(
             val mutableClass = mutableClassDefBy(classDef)
             mutableClass.methods.forEach { method ->
                 if (method.parameterTypes.contains("Landroid/content/Context;") && method.returnType == "V") {
-                    method.addInstructions(
-                        0,
-                        """
-                            return-void
-                        """,
-                    )
+                    method.returnEarly()
                 }
             }
         }
 
-        // 7. Neutralize DexGuard tamper checks in CredFlutterActivity
+        // 7. Neutralize DexGuard tamper checks and lifecycle traps
+        // 7a. Preserved CredFlutterActivity tamper neutralization for backward compatibility (v6.1.2 - v6.1.6)
         mutableClassDefByOrNull("Lcom/dreamplug/androidapp/CredFlutterActivity;")?.let { credActivity ->
             credActivity.methods.forEach { method ->
-                val callsSuperOnCreate = method.instructions.any { ins ->
+                val instructions = method.instructionsOrNull ?: return@forEach
+                val callsSuperOnCreate = instructions.any { ins ->
                     (ins as? ReferenceInstruction)?.reference?.let { ref ->
                         ref is MethodReference &&
                             ref.name == "onCreate" &&
                             ref.parameterTypes == listOf("Landroid/os/Bundle;")
                     } ?: false
                 }
-                val callsTamperCheck = method.instructions.any { ins ->
+                val callsTamperCheck = instructions.any { ins ->
                     (ins as? ReferenceInstruction)?.reference?.toString()?.contains("CrashlyticsController$4") == true
                 }
-                val hasTamperToast = method.instructions.any { ins ->
+                val hasTamperToast = instructions.any { ins ->
                     (ins as? ReferenceInstruction)?.reference?.toString()?.contains("Toast;->makeText") == true
                 }
 
                 if (callsSuperOnCreate || callsTamperCheck || hasTamperToast) {
-                    val ifNeIndices = method.instructions.mapIndexedNotNull { idx, ins ->
+                    val ifNeIndices = instructions.mapIndexedNotNull { idx, ins ->
                         if (ins.opcode == Opcode.IF_NE) idx else null
                     }
                     ifNeIndices.reversed().forEach { idx ->
                         method.replaceInstruction(idx, "nop")
+                    }
+                }
+            }
+        }
+
+        // 7b. Generic 4-tier structural DexGuard lifecycle trap neutralizer (v6.1.9.205+)
+        val lifecycleMethods = setOf(
+            "attachBaseContext",
+            "onCreate",
+            "onReceive",
+            "onStartCommand",
+            "onBind",
+        )
+        val agetOpcodes = setOf(
+            Opcode.AGET,
+            Opcode.AGET_WIDE,
+            Opcode.AGET_OBJECT,
+            Opcode.AGET_BOOLEAN,
+            Opcode.AGET_BYTE,
+            Opcode.AGET_CHAR,
+            Opcode.AGET_SHORT,
+        )
+
+        classDefForEach { classDef ->
+            if (classDef.methods.any { it.name in lifecycleMethods }) {
+                val mutableClass = mutableClassDefBy(classDef)
+                mutableClass.methods.forEach { method ->
+                    if (method.name in lifecycleMethods) {
+                        val instructions = method.instructionsOrNull ?: return@forEach
+                        if (instructions.isEmpty()) return@forEach
+
+                        val codeAddresses = ArrayList<Int>(instructions.size)
+                        val addressToIndex = HashMap<Int, Int>(instructions.size)
+                        var currentAddress = 0
+                        for (idx in instructions.indices) {
+                            val ins = instructions[idx]
+                            addressToIndex[currentAddress] = idx
+                            codeAddresses.add(currentAddress)
+                            currentAddress += ins.codeUnits
+                        }
+
+                        val trapIndices = ArrayList<Int>()
+
+                        for (i in instructions.indices) {
+                            val ins = instructions[i]
+                            if (ins.opcode != Opcode.IF_NE) continue
+                            val offset = (ins as? OffsetInstruction)?.codeOffset ?: continue
+                            if (offset < 20) continue
+
+                            val targetAddress = codeAddresses[i] + offset
+                            val targetIdx = addressToIndex[targetAddress] ?: continue
+                            if (targetIdx <= i) continue
+
+                            val startIdx = maxOf(0, i - 7)
+                            var hasPrimArrayCast = false
+                            var hasArrayLookup = false
+                            for (k in startIdx until i) {
+                                val prev = instructions[k]
+                                if (prev.opcode == Opcode.CHECK_CAST) {
+                                    val ref = (prev as? ReferenceInstruction)?.reference?.toString()
+                                    // Single-dimension primitive array check: [I, [B, [C, [S, [Z, [J, [F, [D
+                                    if (ref != null && ref.length == 2 && ref[0] == '[' && ref[1] != 'L') {
+                                        hasPrimArrayCast = true
+                                    }
+                                }
+                                if (prev.opcode in agetOpcodes) {
+                                    hasArrayLookup = true
+                                }
+                            }
+                            if (!hasPrimArrayCast || !hasArrayLookup) continue
+
+                            val searchLimit = minOf(instructions.size, targetIdx + 15)
+                            var isTrapBlock = false
+                            for (t in targetIdx until searchLimit) {
+                                val ti = instructions[t]
+                                val top = ti.opcode
+
+                                if (top == Opcode.THROW) {
+                                    isTrapBlock = true
+                                    break
+                                }
+                                if (top == Opcode.DIV_INT ||
+                                    top == Opcode.DIV_INT_2ADDR ||
+                                    top == Opcode.DIV_INT_LIT8 ||
+                                    top == Opcode.REM_INT ||
+                                    top == Opcode.REM_INT_2ADDR ||
+                                    top == Opcode.REM_INT_LIT8
+                                ) {
+                                    isTrapBlock = true
+                                    break
+                                }
+                                if (top == Opcode.NEW_INSTANCE && ti is ReferenceInstruction) {
+                                    val typeRef = ti.reference.toString()
+                                    if (typeRef.contains("RuntimeException") ||
+                                        typeRef.contains("Exception") ||
+                                        typeRef.contains("Error") ||
+                                        typeRef.contains("ArrayList")
+                                    ) {
+                                        isTrapBlock = true
+                                        break
+                                    }
+                                }
+                                if (ti is ReferenceInstruction) {
+                                    val ref = ti.reference.toString()
+                                    if (ref.contains("Toast;->makeText") ||
+                                        ref.contains("ContextMenu_android") ||
+                                        ref.contains("bringIntoViewlocalRect") ||
+                                        ref.contains("VideoFrameReleaseEarlyTimeForecaster") ||
+                                        ref.contains("CrashlyticsController$4")
+                                    ) {
+                                        isTrapBlock = true
+                                        break
+                                    }
+                                }
+                            }
+
+                            if (isTrapBlock) {
+                                trapIndices.add(i)
+                            }
+                        }
+
+                        if (trapIndices.isNotEmpty()) {
+                            trapIndices.asReversed().forEach { idx ->
+                                method.replaceInstruction(idx, "nop")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 8. Stub Tap & Pay status holder class (Lo/putByte;)
+        mutableClassDefByOrNull("Lo/putByte;")?.let { putByteClass ->
+            putByteClass.methods.forEach { method ->
+                if (method.name == "Amount") {
+                    if (method.returnType == "Z") {
+                        method.returnEarly(false)
+                    } else if (method.returnType == "V" && method.parameterTypes == listOf("Z")) {
+                        method.returnEarly()
+                    }
+                }
+            }
+        }
+
+        // 9. Stub in-app card tokenization security check coroutine
+        mutableClassDefByOrNull("Lo/TextLinkScopeExternalSyntheticLambda10$1;")?.let { lambdaClass ->
+            lambdaClass.methods.forEach { method ->
+                when (method.name) {
+                    "invokeSuspend" -> {
+                        if (method.returnType == "Ljava/lang/Object;") {
+                            method.returnEarly(null)
+                        }
+                    }
+                    "Amount" -> {
+                        if (method.returnType == "Ljava/lang/Object;") {
+                            method.returnEarly(null)
+                        } else if (method.returnType == "V") {
+                            method.returnEarly()
+                        }
                     }
                 }
             }

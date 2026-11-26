@@ -162,14 +162,14 @@ class ScreenHostsTest {
     }
 
     /**
-     * 584 pushes conversation shortcuts from seven places, adds from two in its compat helper and sets from one for page
-     * message notifications. A new build has to have its count written here.
+     * 588 pushes conversation shortcuts from six places (584 to 587: seven, one helper pushed twice), adds from two in its
+     * compat helper and sets from one for page message notifications. A new build has to have its count written here.
      */
     @Test fun everySupportedBuildSendsEveryShortcutWriteThroughHostScreens() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         org.junit.jupiter.api.Assumptions.assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val expected = app.hushmessenger.patches.MessengerTarget.VERSION_CODES
-            .associateWith { mapOf("messengerPushed" to 7, "messengerAdded" to 2, "messengerSet" to 1) }
+            .associateWith { mapOf("messengerPushed" to 6, "messengerAdded" to 2, "messengerSet" to 1) }
         val apks = java.nio.file.Files.list(java.nio.file.Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
         assertEquals(controlProfiles.size, apks.size)
         for (apk in apks) {

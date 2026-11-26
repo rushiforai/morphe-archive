@@ -8,13 +8,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Looper;
-import android.util.Log;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.shared.ZaloEnv;
 
 /**
@@ -56,7 +56,7 @@ public final class DriveTokenRecovery {
                 for (long delay : RETRY_DELAYS_MS) {
                     Object retryRequest = forcedRequest(request, result, state);
                     if (retryRequest == null) break;
-                    Log.w(TAG, "Drive token refresh failed (state " + state + "), retrying in " + delay + " ms");
+                    NezumiLog.w(TAG, "Drive token refresh failed (state " + state + "), retrying in " + delay + " ms");
                     Thread.sleep(delay);
                     result = invoke(useCase, retryRequest);
                     state = intField(result, -1);
@@ -71,7 +71,7 @@ public final class DriveTokenRecovery {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (RuntimeException | ReflectiveOperationException e) {
-            Log.w(TAG, "Drive token recovery skipped", e);
+            NezumiLog.w(TAG, "Drive token recovery skipped", e);
         }
         return result;
     }
@@ -190,7 +190,7 @@ public final class DriveTokenRecovery {
             manager.notify(NOTIFICATION_ID, notification);
             prefs.edit().putLong(KEY_LAST_NOTIFIED, now).apply();
         } catch (SecurityException e) {
-            Log.w(TAG, "Cannot post Drive consent notification", e);
+            NezumiLog.w(TAG, "Cannot post Drive consent notification", e);
         }
     }
 

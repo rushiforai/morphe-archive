@@ -56,8 +56,8 @@ import static compat.Drawer.*;
 final class Bubbles {
 
     static final String BUBBLE_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;";
-    /** The specifier of the bubble rollout read as 587 numbers it (586 read 36311998572662839). Each release renumbers it, as in NativeBubbles.kt. */
-    static final long BUBBLE_ROLLOUT = 36311994277695516L;
+    /** The specifier of the bubble rollout read as 588 numbers it (587 read 36311994277695516). Each release renumbers it, as in NativeBubbles.kt. */
+    static final long BUBBLE_ROLLOUT = 36311959917957240L;
     static final String BUBBLE_ACTIVITY = "com.facebook.messaging.msys.thread.bubbles.activity.StaxThreadViewBubblesActivity";
     static final String SHORTCUT_BUILDER = "Landroid/content/pm/ShortcutInfo$Builder;";
     static final String MESSAGING_STYLE = "Landroidx/core/app/NotificationCompat$MessagingStyle;";
@@ -394,6 +394,26 @@ final class Bubbles {
                 if (code.get(at).getOpcode() == Opcode.RETURN_OBJECT && expected.equals(key(at, register(code.get(at))))) return true;
             return false;
         }
+        /** NativeBubbles.kt's passedArgument: the argument handed back as the only answer besides null, `this` counted as 0. */
+        Integer passedArgument() {
+            var all = new ArrayList<Integer>();
+            boolean any = false;
+            for (int at = 0; at < code.size(); at++) if (code.get(at).getOpcode() == Opcode.RETURN_OBJECT) {
+                var defs = definitions(at, register(code.get(at)));
+                if (defs.isEmpty()) return null;
+                all.addAll(defs); any = true;
+            }
+            if (!any) return null;
+            var passed = all.stream().filter(d -> d < 0).map(d -> -d - 1).distinct().toList();
+            if (passed.size() != 1) return null;
+            for (int d : all) if (d >= 0 && (code.get(d).getOpcode() != Opcode.CONST_4 || ((NarrowLiteralInstruction) code.get(d)).getNarrowLiteral() != 0)) return null;
+            int register = parameterStart + (AccessFlags.STATIC.isSet(method.getAccessFlags()) ? 0 : 1);
+            for (var p : bubbleParameters(method)) {
+                if (register == passed.get(0)) return p.equals(method.getReturnType()) ? passed.get(0) - parameterStart : null;
+                register += p.equals("J") || p.equals("D") ? 2 : 1;
+            }
+            return null;
+        }
         List<Integer> calls() {
             if (!valid) return List.of();
             var calls = new ArrayList<Integer>();
@@ -425,11 +445,22 @@ final class Bubbles {
         seen.put(hookId(method), depth);
         var f = new BubbleValues(method);
         for (int at = 0; at < f.code.size(); at++) if (f.code.get(at).getOpcode() == Opcode.RETURN_OBJECT)
-            for (int definition : f.definitions(at, register(f.code.get(at)))) {
-                if (definition <= 0 || f.code.get(definition).getOpcode() != Opcode.MOVE_RESULT_OBJECT) continue;
-                var called = bubbleTarget(byType, f.reference(definition - 1));
-                if (called != null && bubbleReturnsCall(byType, called, shortcut, id, depth - 1, seen)) return true;
-            }
+            for (int definition : f.definitions(at, register(f.code.get(at))))
+                if (bubbleAnswers(byType, f, definition, shortcut, id, depth, seen, 2)) return true;
+        return false;
+    }
+
+    /** NativeBubbles.kt's answers: the call answers with the shortcut, or hands back an argument that does (588's push helper). */
+    static boolean bubbleAnswers(Map<String, ClassDef> byType, BubbleValues f, int definition, Method shortcut, String id, int depth,
+                                 Map<String, Integer> seen, int left) {
+        if (definition <= 0 || f.code.get(definition).getOpcode() != Opcode.MOVE_RESULT_OBJECT) return false;
+        var called = bubbleTarget(byType, f.reference(definition - 1));
+        if (called == null) return false;
+        if (bubbleReturnsCall(byType, called, shortcut, id, depth - 1, seen)) return true;
+        Integer passed = new BubbleValues(called).passedArgument();
+        Integer argument = passed == null ? null : f.argument(definition - 1, passed);
+        if (left == 0 || argument == null) return false;
+        for (int d : f.definitions(definition - 1, argument)) if (bubbleAnswers(byType, f, d, shortcut, id, depth, seen, left - 1)) return true;
         return false;
     }
     static MethodReference bubbleFactory(BubbleValues f, int store, String container, String containerType, FieldReference metadata) {

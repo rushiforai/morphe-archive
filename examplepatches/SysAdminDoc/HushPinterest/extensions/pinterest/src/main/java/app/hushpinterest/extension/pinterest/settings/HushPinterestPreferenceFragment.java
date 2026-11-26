@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import app.hushpinterest.extension.pinterest.ads.SeenPins;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
@@ -325,6 +326,22 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         L10n.t("Takes pins you've saved out of search results and the More to explore pins under a pin "
                             + "you open. Your boards still show them.")),
                         SettingsIcons.BLOCK));
+            }
+            // Its own hook on every pin cell, read with Home's page hook (#52): no rows where they didn't go in.
+            if (build.contains(PatchFamily.FILTER_FEED) && PatchFamily.Capability.FEED_SEEN_PINS.installed()) {
+                feed.addPreference(mark(toggle(context, Settings.HIDE_SEEN_PINS, L10n.t("Hide pins you've already seen"),
+                        L10n.t("Takes pins you've scrolled past or opened on Home out of your home feed from then on. "
+                            + "Boards still show them. The change shows the next time Home loads.")),
+                        SettingsIcons.BLOCK));
+                // Search's page hook carries it there too.
+                if (PatchFamily.Capability.FEED_SAVED_SEARCH.installed()) {
+                    feed.addPreference(mark(toggle(context, Settings.HIDE_SEEN_PINS_SEARCH, L10n.t("Hide seen pins in search"),
+                            L10n.t("Search results leave out pins you've already seen, and pins you scroll past in search "
+                                + "count as seen too.")),
+                            SettingsIcons.BLOCK));
+                }
+                feed.addPreference(mark(new SeenPinsForPreference(context), SettingsIcons.SETTINGS));
+                feed.addPreference(mark(forgetSeenPinsRow(context), SettingsIcons.DELETE));
             }
             // Its own hooks, on the list hook and the pin's feedback bubble: no row where neither went in.
             if (build.contains(PatchFamily.FILTER_FEED) && (PatchFamily.Capability.FEED_HOME_SUGGESTIONS.installed()
@@ -1597,6 +1614,46 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         }
         return L10n.t("Hides the comments and comment photos shown under a pin. The comment box and the way into all "
             + "comments stay. The change shows the next time the screen updates.");
+    }
+
+    /**
+     * Forget pins you've seen (#52): a tap forgets them at once, so each can show again, and the next
+     * tap brings them back until Pinterest restarts. Nothing opens, so the row goes without a chevron.
+     */
+    private static Preference forgetSeenPinsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey("action_forget_seen_pins");
+        row.setTitle(L10n.t("Forget pins you've seen"));
+        row.setPersistent(false);
+        row.actsAtOnce = true;
+        row.setSummary(forgetSeenPinsSummary());
+        row.setOnPreferenceClickListener(tapped -> {
+            String said;
+            if (SeenPins.forgotten() > 0) {
+                int back = SeenPins.bringBack();
+                said = L10n.quantity(back, "Brought back one pin you've seen.", "Brought back %d pins you've seen.", back);
+            } else {
+                int gone = SeenPins.forget();
+                said = gone == 0 ? L10n.t("No pins remembered yet.")
+                        : L10n.quantity(gone, "Forgot one pin you've seen.", "Forgot %d pins you've seen.", gone);
+            }
+            tapped.setSummary(forgetSeenPinsSummary());
+            Utils.showToastLong(said);
+            return true;
+        });
+        return row;
+    }
+
+    static String forgetSeenPinsSummary() {
+        int gone = SeenPins.forgotten();
+        if (gone > 0) {
+            return L10n.quantity(gone, "Forgot one pin. Tap again to bring it back.",
+                    "Forgot %d pins. Tap again to bring them back.", gone);
+        }
+        int kept = SeenPins.remembered();
+        if (kept == 0) return L10n.t("No pins remembered yet.");
+        return L10n.quantity(kept, "Remembers one pin you've seen. Tap to forget it, so it can show again.",
+                "Remembers %d pins you've seen. Tap to forget them, so they can show again.", kept);
     }
 
     static SwitchPreference toggle(Context context, BooleanSetting setting, String title, String summary) {

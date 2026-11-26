@@ -233,7 +233,7 @@ final class EmojiFontFallback {
         for (int start = 0; start < bodyEnd;) {
             int codePoint = Character.codePointAt(source, start);
             int end = start + Character.charCount(codePoint);
-            if (!isEmojiBase(codePoint) && !isKeycapBase(source, start, codePoint)) {
+            if ((!isEmojiBase(codePoint) || codePoint < 0x1f000 && !EmojiPresentation.defaultEmojiPresentation(codePoint) && (end >= bodyEnd || source.charAt(end) != '\ufe0f')) && !isKeycapBase(source, start, codePoint)) {
                 start = end;
                 continue;
             }
@@ -354,7 +354,7 @@ final class EmojiFontFallback {
                 // fallback as a valid glyph for the newer hand emojis. Treat
                 // these code points as missing so the bundled Noto font span
                 // is applied consistently, including after adapter reloads.
-                if (codePoint == 0x1faf7 || codePoint == 0x1faf8) return false;
+                if (EmojiPresentation.forceFallback(codePoint)) return false;
                 if (!paint.hasGlyph(new String(Character.toChars(codePoint)))) return false;
             }
             index += Character.charCount(codePoint);

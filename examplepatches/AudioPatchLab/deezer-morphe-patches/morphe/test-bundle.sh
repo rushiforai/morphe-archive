@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-    printf 'Usage: %s [--patch "Exact name"] [--install <serial>] [--open <Deezer URL>]\n' "$0" >&2
+    printf 'Usage: %s [--patch "Exact name"] [--without-suffix] [--install <serial>] [--open <Deezer URL>]\n' "$0" >&2
     exit 2
 }
 
@@ -21,7 +21,14 @@ package=deezer.android.app.morphe
 selected_patch=
 serial=
 uri=
+without_suffix=false
 while [[ $# -gt 0 ]]; do
+    if [[ $1 == --without-suffix ]]; then
+        without_suffix=true
+        package=deezer.android.app
+        shift
+        continue
+    fi
     [[ $# -ge 2 && -n $2 ]] || usage
     case $1 in
         --patch) selected_patch=$2 ;;
@@ -42,6 +49,10 @@ done
 
 selection=()
 if [[ -n $selected_patch ]]; then selection=(-e "$selected_patch" --exclusive); fi
+if $without_suffix; then
+    [[ -z $selected_patch ]] || usage
+    selection=(-d "Install alongside official Deezer")
+fi
 
 adb="$sdk_root/platform-tools/adb"
 if [[ -n $serial ]]; then
@@ -60,7 +71,7 @@ output=$(mktemp -d "$test_dir/run.XXXXXXXX")
 
 # Desktop may report success after rebuilding an APK even when patching failed.
 # Never install that output or treat an unchanged APK as a successful test.
-python3 - "$output/result.json" "$selected_patch" <<'PY'
+python3 - "$output/result.json" "$selected_patch" "$without_suffix" <<'PY'
 import json
 import sys
 
@@ -70,8 +81,9 @@ if (not result.get("success") or not result.get("appliedPatches")
         or result.get("failedPatches")
         or any(not step.get("success") for step in result.get("stepResults", []))):
     raise SystemExit("Patching failed; inspect result.json and patch.log. Output will not be installed.")
-if not sys.argv[2] and len(result["appliedPatches"]) != 8:
-    raise SystemExit("Expected all eight public patches; output will not be installed.")
+expected = 8 if sys.argv[3] == "true" else 9
+if not sys.argv[2] and len(result["appliedPatches"]) != expected:
+    raise SystemExit(f"Expected {expected} selected public patches; output will not be installed.")
 PY
 
 "$sdk_root/build-tools/36.1.0/apksigner" verify "$output/deezer.apk"

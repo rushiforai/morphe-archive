@@ -3,9 +3,6 @@ package app.template.patches.openbot
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -43,23 +40,37 @@ private fun resource(name: String) = object {}.javaClass.classLoader.getResource
 private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes)
     .joinToString("") { "%02x".format(it.toInt() and 255) }
 
+/** Metadata of every registered adapter version, in index order. */
+private fun adapters(): List<Properties> {
+    val index = resource("openbot/adapters/index.properties")?.use { Properties().apply { load(it) } }
+        ?: throw PatchException("OpenBot adapter index is missing")
+    return index.getProperty("versions").orEmpty().split(',').filter { it.isNotBlank() }.map { version ->
+        resource("openbot/adapters/$version.properties")?.use { Properties().apply { load(it) } }
+            ?: throw PatchException("Missing OpenBot adapter metadata: $version")
+    }
+}
+
 private val openbotResources = resourcePatch {
     execute {
         val bundle = get("assets/index.android.bundle")
         if (!bundle.isFile) throw PatchException("OpenBot embedded bundle not found")
-        val metadata = resource("openbot/adapters/1.4.12.properties")?.use {
-            Properties().apply { load(it) }
-        } ?: throw PatchException("OpenBot 1.4.12 adapter metadata is missing")
-        if (sha256(bundle.readBytes()) != metadata.getProperty("originalSha256"))
-            throw PatchException("Unsupported OpenBot bundle. Use the verified Android 1.4.12 APK.")
-        val adapter = resource("openbot/adapters/1.4.12.bundle")?.use { it.readBytes() }
-            ?: throw PatchException("OpenBot Appearance adapter is missing")
+        // Adapters are matched on the original bundle hash, never on a nearby version.
+        val digest = sha256(bundle.readBytes())
+        val registered = adapters()
+        val metadata = registered.singleOrNull { it.getProperty("originalSha256") == digest }
+            ?: throw PatchException(
+                "Unsupported OpenBot bundle $digest. Verified versions: " +
+                    registered.joinToString { it.getProperty("version") }
+            )
+        val version = metadata.getProperty("version")
+        val adapter = resource("openbot/adapters/$version.bundle")?.use { it.readBytes() }
+            ?: throw PatchException("OpenBot $version Appearance adapter is missing")
         if (sha256(adapter) != metadata.getProperty("patchedSha256"))
-            throw PatchException("OpenBot Appearance adapter checksum mismatch")
-        val overlay = resource("openbot/adapters/1.4.12.assets.zip")?.use { it.readBytes() }
-            ?: throw PatchException("OpenBot adapter assets are missing")
+            throw PatchException("OpenBot $version adapter checksum mismatch")
+        val overlay = resource("openbot/adapters/$version.assets.zip")?.use { it.readBytes() }
+            ?: throw PatchException("OpenBot $version adapter assets are missing")
         if (sha256(overlay) != metadata.getProperty("assetsSha256"))
-            throw PatchException("OpenBot adapter assets checksum mismatch")
+            throw PatchException("OpenBot $version adapter assets checksum mismatch")
 
         document("AndroidManifest.xml").use { manifest ->
             val root = manifest.documentElement
@@ -150,12 +161,7 @@ val openbotCustomFontPatch = bytecodePatch(
     description = "Follow the system font or choose an installed device font in Settings > Appearance > Font.",
     default = true,
 ) {
-    compatibleWith(Compatibility(
-        name = "OpenBot",
-        packageName = "run.openbot.mobile",
-        apkFileType = ApkFileType.APK,
-        targets = listOf(AppTarget(version = "1.4.12")),
-    ))
+    compatibleWith(OPENBOT_COMPATIBILITY)
     dependsOn(openbotResources)
     extendWith("extensions/openbot.mpe")
     execute {

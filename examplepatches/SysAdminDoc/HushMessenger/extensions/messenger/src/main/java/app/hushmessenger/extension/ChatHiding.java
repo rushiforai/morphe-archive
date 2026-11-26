@@ -195,6 +195,19 @@ public final class ChatHiding {
         return true;
     }
 
+    /**
+     * Has each chat list read itself again, for a change Messenger's own data never saw: a chat marked read on this
+     * phone only. Nothing happens before a list has been shown, or when the patch didn't prove the list's route.
+     */
+    static void refreshLists() {
+        try {
+            Route target = route();
+            if (target != null) changed(target, null);
+        } catch (Throwable error) {
+            Settings.hookFailedPrivately(KEY, "Can't refresh the chat list", error);
+        }
+    }
+
     /** Runs each list's own subscribe again, which reads it back through {@link #inboxRows}, then says what happened. */
     private static void changed(Route target, String message) {
         List<Object> live = new ArrayList<>();

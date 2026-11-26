@@ -259,7 +259,10 @@ public final class KaraokePronunciation {
     }
 
     public static void syncPosition(Object processor, Object songPtr, long position) {
-        if (!usesLineGuide(songPtr)) return;
+        if (LyricsFeatures.editor()) {
+            LyricsInterludes.onTick(songPtr, position);
+        }
+        if (!LyricsFeatures.pronunciation() || !usesLineGuide(songPtr)) return;
         long alignmentPosition = position - suggestedWordOffset(processor);
         if (Looper.myLooper() != Looper.getMainLooper()) {
             MAIN.post(() -> updatePosition(songPtr, alignmentPosition));

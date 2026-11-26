@@ -27,6 +27,7 @@ import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.download.LiveRecorder;
 import app.morphe.extension.tiktok.download.LiveRecordingSaver;
+import app.morphe.extension.tiktok.ghostmode.LiveUnseenButton;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -175,7 +176,16 @@ public final class LiveRecordChip {
 
     /** True while Record is offered in the menu from holding the middle of a LIVE (#359). */
     public static boolean inMenu() {
-        return enabled() && Settings.LIVE_BUTTONS_IN_MENU.get();
+        return enabled() && buttonsInMenu();
+    }
+
+    /**
+     * Whether LIVE buttons in the long-press menu has the room's buttons in that menu now. A room
+     * Watch LIVEs unseen holds opens with none of TikTok's own widgets, so holding its middle
+     * opens nothing, and there they stay on the video until TikTok enters the room (D#359).
+     */
+    public static boolean buttonsInMenu() {
+        return Settings.LIVE_BUTTONS_IN_MENU.get() && !LiveUnseenButton.roomUnbuilt();
     }
 
     /** What Record's row in that menu says, which is what a tap on it will do. */
@@ -376,7 +386,7 @@ public final class LiveRecordChip {
     }
 
     private static void showChip(Activity activity) {
-        if (Settings.LIVE_BUTTONS_IN_MENU.get()) {
+        if (buttonsInMenu()) {
             removeChip();
             return;
         }
@@ -385,9 +395,7 @@ public final class LiveRecordChip {
         removeChip();
         ViewGroup content = activity.findViewById(android.R.id.content);
         if (content == null) return;
-        TextView view = new TextView(activity);
-        styleChip(view);
-        view.setOnClickListener(clicked -> onChipTap());
+        TextView view = buildChip(activity);
         markStacked(view, STACK_RECORD, dp(activity, TOP_DP), dp(activity, GAP_DP));
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -397,6 +405,25 @@ public final class LiveRecordChip {
         content.addView(view, params);
         chip = view;
         view.post(() -> stayClear(activity));
+    }
+
+    /**
+     * The Record chip: a tap starts or stops a recording, and holding it lists what recordings
+     * are made from, the stream or the screen (#529).
+     */
+    static TextView buildChip(Activity activity) {
+        TextView view = new TextView(activity);
+        styleChip(view);
+        view.setOnClickListener(clicked -> onChipTap());
+        view.setOnLongClickListener(held -> {
+            try {
+                LiveRecordSource.pick(held.getContext());
+            } catch (Throwable failure) {
+                Logger.printException(() -> "Could not list the LIVE recording sources", failure);
+            }
+            return true;
+        });
+        return view;
     }
 
     /** Below the room's top bar, where the chip sits unless something to tap is there. */
@@ -753,6 +780,14 @@ public final class LiveRecordChip {
     }
 
     private static void start() throws Exception {
+        start(false);
+    }
+
+    /**
+     * {@code nextVideo}: the room's stream outgrew its last video (#526) and carries on in a new
+     * one, from the stream again whatever the source setting now says.
+     */
+    private static void start(boolean nextVideo) throws Exception {
         Activity activity = host.get();
         Object fragment = page.get();
         if (activity == null || fragment == null || !enabled()) return;
@@ -763,7 +798,7 @@ public final class LiveRecordChip {
             return;
         }
         Object room = roomOf(fragment);
-        if (LiveRecordSource.screen()) {
+        if (!nextVideo && LiveRecordSource.screen()) {
             startScreen(activity, fragment, room);
             return;
         }
@@ -785,7 +820,9 @@ public final class LiveRecordChip {
         saving = false;
         started.start();
         autoVisit.startedManually(roomKey(room));
-        Utils.showToastShort(L10n.t("Recording this LIVE from now"));
+        Utils.showToastShort(nextVideo
+                ? L10n.t("2 GB reached. Recording goes on in a new video.")
+                : L10n.t("Recording this LIVE from now"));
         refresh();
         scheduleTick();
     }
@@ -845,9 +882,28 @@ public final class LiveRecordChip {
     /** Capture stopped and its source is durable. Saving can continue without holding the chip. */
     private static void onSourceClosed(LiveRecorder owner) {
         if (recorder != owner) return;
-        streamEnded(owner, owner.sourceEnd());
+        LiveRecorder.End end = owner.sourceEnd();
+        streamEnded(owner, end);
         releaseChip();
+        if (continuesInNewVideo(end, owner.target().transport, enabled(), sameRoom(owner, page.get()))) {
+            try {
+                start(true);
+            } catch (Throwable failure) {
+                Logger.printException(() -> "Could not go on recording the LIVE in a new video", failure);
+            }
+        }
         if (enabled() && Settings.AUTO_RECORD_LIVE.get()) scheduleTick();
+    }
+
+    /**
+     * A stream recording that reached the size of one video goes on in the next while its room is
+     * still in front, so a long LIVE is saved as a few videos instead of stopping (#526). A screen
+     * recording can't: Android asks again before every one.
+     */
+    static boolean continuesInNewVideo(LiveRecorder.End end, LiveRecorder.Transport transport,
+                                       boolean controls, boolean sameRoomInFront) {
+        return end == LiveRecorder.End.SIZE_LIMIT && transport != LiveRecorder.Transport.SCREEN
+                && controls && sameRoomInFront;
     }
 
     private static void streamEnded(LiveRecorder owner, LiveRecorder.End reason) {
@@ -1104,7 +1160,7 @@ public final class LiveRecordChip {
             }
             // Keep watching while a recording runs or the button is offered, on the video or in
             // the menu; a new resume restarts it.
-            if (recorder != null || (showing && (chip != null || Settings.LIVE_BUTTONS_IN_MENU.get()))) {
+            if (recorder != null || (showing && (chip != null || buttonsInMenu()))) {
                 scheduleTick();
             }
         } catch (Throwable failure) {

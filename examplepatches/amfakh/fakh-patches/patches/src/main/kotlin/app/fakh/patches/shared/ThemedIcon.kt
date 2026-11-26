@@ -29,7 +29,7 @@ private const val OWN_MONOCHROME = "@drawable/fakh_ic_launcher_monochrome"
  * @param folder bundled resource folder holding the layers.
  * @param icons `res/...xml` paths of every launcher icon the manifest points at (icon and round icon).
  * @param bundled the layers shipped in [folder].
- * @param background the app's own background layer, when [bundled] has none.
+ * @param background the app's own background layer, or a `#RRGGBB` color, when [bundled] has none.
  * @param foreground the app's own foreground layer, when [bundled] has none.
  * @param monochrome the app's own layer to tint, when [bundled] has none.
  */
@@ -59,9 +59,21 @@ internal fun themedIconPatch(
             }
         }
 
+        // A color goes in as a resource: some launchers show the default icon for one written into the layer.
+        if (background.startsWith("#")) {
+            document("res/values/colors.xml").use { xml ->
+                xml.documentElement.appendChild(
+                    xml.createElement("color").also {
+                        it.setAttribute("name", "fakh_ic_launcher_background")
+                        it.textContent = background
+                    },
+                )
+            }
+        }
+
         val adaptiveIcon = """<?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="$background" />
+    <background android:drawable="${if (background.startsWith("#")) "@color/fakh_ic_launcher_background" else background}" />
     <foreground android:drawable="$foreground" />
     <monochrome android:drawable="$monochrome" />
 </adaptive-icon>

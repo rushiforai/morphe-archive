@@ -97,6 +97,7 @@ import dev.jason.gboardpatches.patches.gboard.features.swipedismiss.gboardSwipeD
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.shared.gboardCompatibility18_8
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesSettingsPatch
 import dev.jason.gboardpatches.patches.gboard.shared.accesspoint.gboardAccessPointContributions1803Patch
@@ -241,7 +242,9 @@ val gboardSwipeDismissPatch = gboardPublicResourcePatch(
         "Swipe down from the suggestions or toolbar to close the keyboard.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_GBOARD)
+    // KeyboardViewHolder.dispatchTouchEvent(MotionEvent)Z is not obfuscated and keeps its six
+    // registers on 18.8.0, so the interceptor needs no per-release target and only the gate.
+    compatibleWith(gboardCompatibility18_8())
 
     dependsOn(
         gboardPatchesSettingsPatch,

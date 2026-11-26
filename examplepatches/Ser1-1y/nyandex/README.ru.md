@@ -39,7 +39,7 @@ Nyandex не связан ни с Яндексом, ни с Morphe.
 ## Патчи
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/Ser1-1y/nyandex/releases/tag/v1.7.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;Патчей: **15** · Приложений: **1**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Подробнее](PATCHES.md)
+> **[v1.8.0](https://github.com/Ser1-1y/nyandex/releases/tag/v1.8.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;Патчей: **15** · Приложений: **1**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Подробнее](PATCHES.md)
 
 | # | Приложение | Патчи | Версия | Пакет |
 |---|---|---|---|---|

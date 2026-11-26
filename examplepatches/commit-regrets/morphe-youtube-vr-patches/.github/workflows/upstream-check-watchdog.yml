@@ -1,0 +1,48 @@
+name: Upstream Check Watchdog
+
+# check-upstream-version.yml rides on GitHub's schedule event, which drops runs under load
+# (measured 2026-11-25: the daily 10:00 UTC cron produced no run at all -- not a failure,
+# nothing at all). Four slots a day make a full miss unlikely, but a drop streak would
+# otherwise be silent: the workflow cannot report that it never started. Push events are
+# not throttled the way schedule events are, so every push to develop or main runs this
+# witness -- it reads when the check last completed successfully and fails past 30h
+# (a healthy day is at most one delayed slot, ~12h of gap).
+#
+# Deliberately non-blocking: it is not a required check, so a red run here nags without
+# refusing a merge -- the staleness is environmental, not a bad commit, and its error line
+# names the manual dispatch that recovers it. Its blind spot is a quiet repo: no push, no
+# witness, no alarm. Accepted, because silence there also means nobody is looking.
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+permissions:
+  actions: read
+
+jobs:
+  freshness:
+    name: Upstream check completed within 30h
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read the last successful upstream check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          LAST=$(gh api "repos/$GH_REPO/actions/workflows/check-upstream-version.yml/runs?per_page=30" \
+            --jq '[.workflow_runs[] | select(.conclusion == "success")] | first | .created_at // empty')
+          if [ -z "$LAST" ]; then
+            echo "::error::no successful run of Check Upstream Version in its last 30 runs"
+            exit 1
+          fi
+          AGE_H=$(( ($(date -u +%s) - $(date -u -d "$LAST" +%s)) / 3600 ))
+          echo "Last successful upstream check: $LAST ($AGE_H h ago)"
+          LIMIT=30
+          if [ "$AGE_H" -ge "$LIMIT" ]; then
+            echo "::error::the upstream version check last succeeded ${AGE_H}h ago (limit ${LIMIT}h). GitHub's schedule event drops runs under load; recover with: gh workflow run check-upstream-version.yml --ref main"
+            exit 1
+          fi

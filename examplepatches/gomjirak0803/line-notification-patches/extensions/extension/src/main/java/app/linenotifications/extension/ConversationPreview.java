@@ -26,11 +26,13 @@ final class ConversationPreview {
     static Notification apply(Notification.Builder builder, NotificationPolicy.ChatKey chat, String room,
                               int unread, List<NotificationPolicy.Message> messages, Map<String, Icon> icons,
                               Map<String, NativeLine.MediaPreview> mediaPreviews) {
-        // recoverBuilder can retain the previous custom/Inbox style. Clear only presentation
-        // metadata, keeping LINE's routing, account marker, actions and native-action backup.
-        Bundle extras = new Bundle(builder.getExtras());
-        clearPresentationExtras(extras);
-        builder.setExtras(extras).setStyle(null).setCustomContentView(null).setCustomBigContentView(null)
+        // Android's recoverBuilder retains mN.extras and merges it over user extras at build().
+        // Materialize and strip presentation keys on an independent Notification copy before
+        // re-recovering so stale BigText/Picture/EXTRA_HISTORIC_MESSAGES cannot survive.
+        Notification base = builder.build();
+        Notification cleanBase = copyWithoutPresentationExtras(base);
+        Notification.Builder cleanBuilder = Notification.Builder.recoverBuilder(Settings.context(), cleanBase)
+                .setStyle(null).setCustomContentView(null).setCustomBigContentView(null)
                 .setCustomHeadsUpContentView(null).setSubText(null).setContentInfo(null).setNumber(unread);
 
         String title = room + "  [" + unread + "]";
@@ -67,19 +69,77 @@ final class ConversationPreview {
             String sender = group ? latest.sender : title;
             if (sender == null || sender.isEmpty()) sender = Strings.get("line_notify_fallback_sender", "Message");
             String ticker = group ? (sender + ": " + latest.text) : latest.text;
-            builder.setContentTitle(title).setContentText(latest.text).setTicker(ticker);
+            cleanBuilder.setContentTitle(title).setContentText(latest.text).setTicker(ticker);
+        } else {
+            cleanBuilder.setContentTitle(title);
         }
         // The platform determines wrapping, sender grouping and visible rows. The source
         // snapshot retains at most 25 messages; the native total count can be larger.
-        return builder.setStyle(style).build();
+        Notification built = cleanBuilder.setStyle(style).build();
+        if (built.extras != null) {
+            for (String key : new String[]{
+                    Notification.EXTRA_HISTORIC_MESSAGES, Notification.EXTRA_BIG_TEXT,
+                    Notification.EXTRA_TITLE_BIG, Notification.EXTRA_SUMMARY_TEXT,
+                    Notification.EXTRA_SUB_TEXT, Notification.EXTRA_INFO_TEXT,
+                    Notification.EXTRA_TEXT_LINES, "android.picture", "android.pictureIcon",
+                    "android.pictureContentDescription", "android.showBigPictureWhenCollapsed"
+            }) {
+                built.extras.remove(key);
+            }
+        }
+        return built;
+    }
+
+    static Notification copyWithoutPresentationExtras(Notification source) {
+        Notification copy = source.clone();
+        copy.extras = source.extras == null ? new Bundle() : new Bundle(source.extras);
+        clearPresentationExtras(copy.extras);
+        copy.extras.remove(Notification.EXTRA_TITLE);
+        copy.extras.remove(Notification.EXTRA_TEXT);
+        return copy;
+    }
+
+    static void clearStickerExtras(Bundle extras) {
+        if (extras == null) return;
+        extras.remove("line.sticker.id");
+        extras.remove("line.sticker.url");
+    }
+
+    static void clearCarExtensions(Bundle extras) {
+        if (extras == null) return;
+        extras.remove("android.car.EXTENSIONS");
+    }
+
+    static void clearRedactedMediaExtras(Bundle extras) {
+        if (extras == null) return;
+        clearPresentationExtras(extras);
+        clearStickerExtras(extras);
+        clearCarExtensions(extras);
+        extras.remove("android.largeIcon");
+        extras.remove("android.largeIcon.big");
+        extras.remove(Notification.EXTRA_REMOTE_INPUT_HISTORY);
+        extras.remove("android.remoteInputHistoryItems");
+        extras.remove("android.remoteInputDraft");
+        extras.remove("android.remoteInputSpinner");
+        Bundle wearable = extras.getBundle("android.wearable.EXTENSIONS");
+        if (wearable != null) {
+            Bundle cleanWearable = new Bundle(wearable);
+            cleanWearable.remove("background");
+            cleanWearable.remove("pages");
+            cleanWearable.remove("actions");
+            extras.putBundle("android.wearable.EXTENSIONS", cleanWearable);
+        }
     }
 
     /** Also used when a settings refresh redacts a previously visible conversation. */
     static void clearPresentationExtras(Bundle extras) {
+        if (extras == null) return;
         for (String key : new String[]{Notification.EXTRA_TEMPLATE, Notification.EXTRA_BIG_TEXT,
                 Notification.EXTRA_TITLE_BIG, Notification.EXTRA_SUMMARY_TEXT, Notification.EXTRA_SUB_TEXT,
                 Notification.EXTRA_INFO_TEXT, Notification.EXTRA_TEXT_LINES, Notification.EXTRA_MESSAGES,
                 Notification.EXTRA_HISTORIC_MESSAGES, Notification.EXTRA_CONVERSATION_TITLE,
+                "android.picture", "android.pictureIcon", "android.pictureContentDescription",
+                "android.showBigPictureWhenCollapsed",
                 "android.hiddenConversationTitle", "android.messagingStyleUser", "android.selfDisplayName",
                 "android.isGroupConversation"}) extras.remove(key);
     }

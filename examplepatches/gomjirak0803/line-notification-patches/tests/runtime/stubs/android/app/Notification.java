@@ -34,6 +34,10 @@ public class Notification implements Parcelable {
     public static final String EXTRA_MESSAGES = "android.messages";
     public static final String EXTRA_HISTORIC_MESSAGES = "android.messages.historic";
     public static final String EXTRA_CONVERSATION_TITLE = "android.conversationTitle";
+    public static final String EXTRA_REMOTE_INPUT_HISTORY = "android.remoteInputHistory";
+
+    /** True emulates Android 11/12 mN.extras winning over mUserExtras; false emulates Android 15. */
+    public static volatile boolean android11ExtrasPrecedenceForTest = true;
 
     public Bundle extras = new Bundle();
     public int flags;
@@ -48,6 +52,7 @@ public class Notification implements Parcelable {
     private String shortcutId;
     private Icon largeIcon;
     private Style style;
+    private boolean allowSystemGeneratedContextualActions = true;
 
     public Notification() {}
 
@@ -56,11 +61,30 @@ public class Notification implements Parcelable {
     public String getShortcutId() { return shortcutId; }
     public Icon getLargeIcon() { return largeIcon; }
     public Style getStyleForTest() { return style; }
+    public boolean getAllowSystemGeneratedContextualActions() { return allowSystemGeneratedContextualActions; }
 
     public void setChannelIdForTest(String channelId) { this.channelId = channelId; }
     public void setGroupForTest(String groupKey) { this.groupKey = groupKey; }
     public void setShortcutIdForTest(String shortcutId) { this.shortcutId = shortcutId; }
     public void setLargeIconForTest(Icon largeIcon) { this.largeIcon = largeIcon; }
+
+    @Override public Notification clone() {
+        Notification copy = new Notification();
+        copy.extras = extras == null ? new Bundle() : new Bundle(extras);
+        copy.flags = flags;
+        copy.visibility = visibility;
+        copy.actions = actions == null ? null : actions.clone();
+        copy.publicVersion = publicVersion == null ? null : publicVersion.clone();
+        copy.contentIntent = contentIntent;
+        copy.tickerText = tickerText;
+        copy.channelId = channelId;
+        copy.groupKey = groupKey;
+        copy.shortcutId = shortcutId;
+        copy.largeIcon = largeIcon;
+        copy.style = style;
+        copy.allowSystemGeneratedContextualActions = allowSystemGeneratedContextualActions;
+        return copy;
+    }
 
     @Override public int describeContents() { return 0; }
     @Override public void writeToParcel(Parcel dest, int flags) {}
@@ -77,6 +101,7 @@ public class Notification implements Parcelable {
         private final int semanticAction;
         private final boolean contextual;
         private final boolean authenticationRequired;
+        private final boolean allowGeneratedReplies;
 
         private Action(Builder b) {
             this.icon = b.icon;
@@ -87,6 +112,7 @@ public class Notification implements Parcelable {
             this.semanticAction = b.semanticAction;
             this.contextual = b.contextual;
             this.authenticationRequired = b.authenticationRequired;
+            this.allowGeneratedReplies = b.allowGeneratedReplies;
         }
 
         public Icon getIcon() { return icon; }
@@ -95,6 +121,7 @@ public class Notification implements Parcelable {
         public int getSemanticAction() { return semanticAction; }
         public boolean isContextual() { return contextual; }
         public boolean isAuthenticationRequired() { return authenticationRequired; }
+        public boolean getAllowGeneratedReplies() { return allowGeneratedReplies; }
 
         @Override public int describeContents() { return 0; }
         @Override public void writeToParcel(Parcel dest, int flags) {}
@@ -108,6 +135,7 @@ public class Notification implements Parcelable {
             private int semanticAction;
             private boolean contextual;
             private boolean authenticationRequired;
+            private boolean allowGeneratedReplies = true;
 
             public Builder(Icon icon, CharSequence title, PendingIntent intent) {
                 this.icon = icon;
@@ -116,7 +144,7 @@ public class Notification implements Parcelable {
             }
 
             public Builder addExtras(Bundle extras) { this.extras.putAll(extras); return this; }
-            public Builder setAllowGeneratedReplies(boolean allow) { return this; }
+            public Builder setAllowGeneratedReplies(boolean allow) { this.allowGeneratedReplies = allow; return this; }
             public Builder setSemanticAction(int semanticAction) { this.semanticAction = semanticAction; return this; }
             public Builder setContextual(boolean contextual) { this.contextual = contextual; return this; }
             public Builder setAuthenticationRequired(boolean auth) { this.authenticationRequired = auth; return this; }
@@ -185,9 +213,11 @@ public class Notification implements Parcelable {
     }
 
     public static class Builder {
-        private Bundle extras = new Bundle();
+        private Bundle recoveredExtras = new Bundle();
+        private Bundle userExtras = new Bundle();
         private int flags;
         private int visibility = VISIBILITY_PRIVATE;
+        private Action[] recoveredActions;
         private Action[] actions;
         private Notification publicVersion;
         private PendingIntent contentIntent;
@@ -197,6 +227,7 @@ public class Notification implements Parcelable {
         private String shortcutId;
         private Icon largeIcon;
         private Style style;
+        private boolean allowSystemGeneratedContextualActions = true;
 
         public Builder(Context context, String channelId) {
             this.channelId = channelId;
@@ -204,10 +235,12 @@ public class Notification implements Parcelable {
 
         public static Builder recoverBuilder(Context context, Notification n) {
             Builder b = new Builder(context, n.getChannelId());
-            b.extras = new Bundle(n.extras);
+            b.recoveredExtras = new Bundle(n.extras);
+            b.userExtras = new Bundle();
             b.flags = n.flags;
             b.visibility = n.visibility;
-            b.actions = n.actions;
+            b.recoveredActions = n.actions == null ? null : n.actions.clone();
+            b.actions = n.actions == null ? null : n.actions.clone();
             b.publicVersion = n.publicVersion;
             b.contentIntent = n.contentIntent;
             b.ticker = n.tickerText;
@@ -215,32 +248,35 @@ public class Notification implements Parcelable {
             b.shortcutId = n.getShortcutId();
             b.largeIcon = n.getLargeIcon();
             b.style = n.getStyleForTest();
+            b.allowSystemGeneratedContextualActions = n.getAllowSystemGeneratedContextualActions();
             return b;
         }
 
         public Builder setExtras(Bundle extras) {
-            this.extras = extras == null ? new Bundle() : new Bundle(extras);
+            this.userExtras = extras == null ? new Bundle() : new Bundle(extras);
             return this;
         }
 
         public Builder addExtras(Bundle extras) {
-            if (extras != null) this.extras.putAll(extras);
+            if (extras != null) this.userExtras.putAll(extras);
             return this;
         }
 
-        public Bundle getExtras() { return extras; }
+        public Bundle getExtras() { return userExtras; }
         public Builder setStyle(Style style) { this.style = style; return this; }
         public Builder setCustomContentView(RemoteViews views) { return this; }
         public Builder setCustomBigContentView(RemoteViews views) { return this; }
         public Builder setCustomHeadsUpContentView(RemoteViews views) { return this; }
 
         public Builder setContentTitle(CharSequence title) {
-            extras.putCharSequence(EXTRA_TITLE, title);
+            if (title == null) recoveredExtras.remove(EXTRA_TITLE);
+            else recoveredExtras.putCharSequence(EXTRA_TITLE, title);
             return this;
         }
 
         public Builder setContentText(CharSequence text) {
-            extras.putCharSequence(EXTRA_TEXT, text);
+            if (text == null) recoveredExtras.remove(EXTRA_TEXT);
+            else recoveredExtras.putCharSequence(EXTRA_TEXT, text);
             return this;
         }
 
@@ -250,14 +286,18 @@ public class Notification implements Parcelable {
         }
 
         public Builder setSubText(CharSequence subText) {
-            if (subText == null) extras.remove(EXTRA_SUB_TEXT);
-            else extras.putCharSequence(EXTRA_SUB_TEXT, subText);
+            if (subText == null) {
+                userExtras.remove(EXTRA_SUB_TEXT);
+                recoveredExtras.remove(EXTRA_SUB_TEXT);
+            } else recoveredExtras.putCharSequence(EXTRA_SUB_TEXT, subText);
             return this;
         }
 
         public Builder setContentInfo(CharSequence info) {
-            if (info == null) extras.remove(EXTRA_INFO_TEXT);
-            else extras.putCharSequence(EXTRA_INFO_TEXT, info);
+            if (info == null) {
+                userExtras.remove(EXTRA_INFO_TEXT);
+                recoveredExtras.remove(EXTRA_INFO_TEXT);
+            } else recoveredExtras.putCharSequence(EXTRA_INFO_TEXT, info);
             return this;
         }
 
@@ -269,6 +309,7 @@ public class Notification implements Parcelable {
             return this;
         }
 
+        public Builder setLargeIcon(Icon icon) { this.largeIcon = icon; return this; }
         public Builder setShortcutId(String shortcutId) { this.shortcutId = shortcutId; return this; }
         public Builder setContentIntent(PendingIntent intent) { this.contentIntent = intent; return this; }
         public Builder setActions(Action... actions) { this.actions = actions; return this; }
@@ -277,14 +318,69 @@ public class Notification implements Parcelable {
         public Builder setSound(Uri sound) { return this; }
         public Builder setVibrate(long[] pattern) { return this; }
         public Builder setVisibility(int visibility) { this.visibility = visibility; return this; }
-        public Builder setAllowSystemGeneratedContextualActions(boolean allowed) { return this; }
+        public Builder setAllowSystemGeneratedContextualActions(boolean allowed) {
+            this.allowSystemGeneratedContextualActions = allowed;
+            return this;
+        }
+
+        private void applyMessagingStyle(Bundle target, MessagingStyle ms) {
+            target.putString(EXTRA_TEMPLATE, "android.app.Notification$MessagingStyle");
+            target.putBoolean("android.isGroupConversation", ms.isGroupConversation());
+            if (ms.getConversationTitle() != null) {
+                target.putCharSequence(EXTRA_CONVERSATION_TITLE, ms.getConversationTitle());
+            }
+            List<MessagingStyle.Message> msgs = ms.getMessages();
+            Parcelable[] packed = new Parcelable[msgs.size()];
+            for (int i = 0; i < msgs.size(); i++) {
+                MessagingStyle.Message m = msgs.get(i);
+                Bundle item = new Bundle();
+                item.putCharSequence("text", m.getText());
+                item.putLong("time", m.getTimestamp());
+                if (m.getSenderPerson() != null) item.putParcelable("sender_person", m.getSenderPerson());
+                packed[i] = item;
+            }
+            target.putParcelableArray(EXTRA_MESSAGES, packed);
+            if (!msgs.isEmpty()) {
+                MessagingStyle.Message latest = msgs.get(msgs.size() - 1);
+                CharSequence sender = latest.getSenderPerson() != null ? latest.getSenderPerson().getName() : null;
+                CharSequence convTitle = ms.getConversationTitle();
+                CharSequence fixedTitle;
+                if (convTitle != null && sender != null && ms.isGroupConversation()) {
+                    fixedTitle = convTitle + ": " + sender;
+                } else if (convTitle != null) {
+                    fixedTitle = convTitle;
+                } else if (sender != null) {
+                    fixedTitle = sender;
+                } else {
+                    fixedTitle = target.getCharSequence(EXTRA_TITLE);
+                }
+                if (fixedTitle != null) target.putCharSequence(EXTRA_TITLE, fixedTitle);
+                if (latest.getText() != null) target.putCharSequence(EXTRA_TEXT, latest.getText());
+            }
+        }
 
         public Notification build() {
             Notification n = new Notification();
-            n.extras = new Bundle(extras);
+            Bundle merged;
+            if (android11ExtrasPrecedenceForTest) {
+                // Android 11/12: buildStyled() populates mN.extras, then mN.extras wins over mUserExtras.
+                Bundle builtMExtras = new Bundle(recoveredExtras);
+                if (style instanceof MessagingStyle) applyMessagingStyle(builtMExtras, (MessagingStyle) style);
+                merged = new Bundle(userExtras);
+                merged.putAll(builtMExtras);
+            } else {
+                // Android 15 AOSP order: merge userExtras onto mN.extras FIRST, then run buildStyled().
+                merged = new Bundle(recoveredExtras);
+                merged.putAll(userExtras);
+                if (style instanceof MessagingStyle) applyMessagingStyle(merged, (MessagingStyle) style);
+            }
+            n.extras = merged;
             n.flags = flags;
             n.visibility = visibility;
-            n.actions = actions;
+            // Emulate AOSP buildUnstyled(): empty mActions leaves mN.actions intact.
+            n.actions = (actions != null && actions.length > 0)
+                    ? actions.clone()
+                    : (recoveredActions == null ? null : recoveredActions.clone());
             n.publicVersion = publicVersion;
             n.contentIntent = contentIntent;
             n.tickerText = ticker;
@@ -293,25 +389,7 @@ public class Notification implements Parcelable {
             n.shortcutId = shortcutId;
             n.largeIcon = largeIcon;
             n.style = style;
-            if (style instanceof MessagingStyle) {
-                MessagingStyle ms = (MessagingStyle) style;
-                n.extras.putString(EXTRA_TEMPLATE, "android.app.Notification$MessagingStyle");
-                n.extras.putBoolean("android.isGroupConversation", ms.isGroupConversation());
-                if (ms.getConversationTitle() != null) {
-                    n.extras.putCharSequence(EXTRA_CONVERSATION_TITLE, ms.getConversationTitle());
-                }
-                List<MessagingStyle.Message> msgs = ms.getMessages();
-                Parcelable[] packed = new Parcelable[msgs.size()];
-                for (int i = 0; i < msgs.size(); i++) {
-                    MessagingStyle.Message m = msgs.get(i);
-                    Bundle item = new Bundle();
-                    item.putCharSequence("text", m.getText());
-                    item.putLong("time", m.getTimestamp());
-                    if (m.getSenderPerson() != null) item.putParcelable("sender_person", m.getSenderPerson());
-                    packed[i] = item;
-                }
-                n.extras.putParcelableArray(EXTRA_MESSAGES, packed);
-            }
+            n.allowSystemGeneratedContextualActions = allowSystemGeneratedContextualActions;
             return n;
         }
     }

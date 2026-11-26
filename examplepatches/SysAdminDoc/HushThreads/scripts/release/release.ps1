@@ -14,20 +14,15 @@
                previous release. Review the diff, README prose that still names the previous
                release included, and commit it as "chore(release): prepare vX.Y.Z". The bug report
                form names the published version, so it moves in the index stage.
-    preflight  The quick checks a release gate would otherwise reach late, in about five minutes:
-               the verified advisory comparator the script contracts read, the script contract
-               tests, the release text tests, the patch tests that don't read the Threads fixtures,
-               the extension's translation and release-check tests, both Android lints and the
-               release facts with the index still on the previous release. Then it pushes main at
-               release priority, so the pre-push gate runs everything on the prep commit.
+    preflight  The release facts with the index still on the previous release, then the prep commit
+               pushed to main. The tests run once, in build.
     build      From the pushed, clean prep commit (a tree with changes stamps the bundle 0): the
-               runtime and patch tests again with --rerun and both lints, the patch list, which
+               runtime and patch tests with --rerun and both lints, the patch list, which
                has to come out unchanged, then the bundle. Each declared Threads build in
                HUSHTHREADS_FIXTURE_DIR is patched once with verify-all-patches.ps1 -KeepIn, and the
                receipt reads those kept runs. The bundle, its SBOM, the receipt and SHA256SUMS.txt
                go to build/release-assets/<version>. Last, the commit is tagged vX.Y.Z and the tag
-               pushed: the gate already ran on that commit, and the hook reads a tag of it as
-               changing no file.
+               pushed.
     publish    First -Walk, the walk-receipt.json of a whole-app walk of the built bundle on a
                release phone or an emulator (walk-receipt.ps1): nothing goes out without one.
                Then the GitHub release, its notes carrying the CHANGELOG section's Threads bullets
@@ -37,9 +32,9 @@
                written.
     index      patches-bundle.json and the bug report form's version placeholder, the release facts
                against the published assets, then the commit "chore(release): point the index at
-               vX.Y.Z", pushed through the gate's index check.
+               vX.Y.Z", pushed.
 
-    Gradle goes through HUSHTHREADS_BUILD_WRAPPER as the pre-push gate does, or through the
+    Gradle goes through HUSHTHREADS_BUILD_WRAPPER, or through the
     machine's build queue (BUILD_QUEUE_SCRIPT) when no wrapper is set, and each fixture run and the
     receipt wait for a slot of that queue too. Every heavy step runs at release priority, and the
     variables this sets are put back when it ends. The text work is scripts/release/release_text.py,
@@ -170,17 +165,16 @@ function Assert-PushedHead {
     $head = Get-GitLine @('rev-parse', 'HEAD') 'HEAD'
     $remote = Get-RemoteRef 'refs/heads/main'
     if ($head -ne $remote) {
-        throw "HEAD $head isn't origin's main ($remote). Run -Stage preflight, which pushes the prep commit through the gate."
+        throw "HEAD $head isn't origin's main ($remote). Run -Stage preflight, which pushes the prep commit."
     }
     return $head
 }
 
 function Push-Main {
-    # The pre-push gate runs on this, at the release priority this script set.
     param([string]$What)
     Assert-OnMain
     Invoke-Git @('push', 'origin', 'HEAD:refs/heads/main') | Out-Host
-    if ($LASTEXITCODE -ne 0) { throw "The push of $What did not pass (exit $LASTEXITCODE). Fix what the gate said and run this stage again." }
+    if ($LASTEXITCODE -ne 0) { throw "The push of $What did not pass (exit $LASTEXITCODE). Fix what the hook said and run this stage again." }
 }
 
 function Invoke-Gradle {
@@ -384,55 +378,15 @@ try {
         'preflight' {
             Assert-Clean
             Assert-Prepared
-            $started = Get-Date
-
-            # The contract tests hold the release fixture's comparator to the verified one in
-            # build/advisory-tool, and the pre-push gate prepares it before them for the same reason.
-            Step 'verified advisory comparator'
-            Invoke-Gradle @('prepareAdvisoryTool')
-
-            Step 'script contract tests'
-            $global:LASTEXITCODE = 0
-            & (Get-Process -Id $PID).Path -NoProfile -File (Join-Path $root 'scripts/test-script-contracts.ps1') -Root $root
-            if ($LASTEXITCODE -ne 0) { throw "The script contract tests did not pass (exit $LASTEXITCODE)." }
-
-            Step 'release text tests'
-            Invoke-Python -Arguments @('-m', 'unittest', 'discover', '-s', $PSScriptRoot, '-p', 'test_release_text.py') `
-                -What 'The release text tests'
-
-            # One Gradle run: the patch tests without the fixture partition and its selection check,
-            # the extension tests a release's text depends on, and both lints. The pre-push gate's
-            # quick pass is the same patch partition, so this is what fails first there too.
-            Step 'quick patch tests, translation and release-check tests, both lints'
-            Invoke-Gradle @(
-                ':patches:test', '-x', ':patches:fixtureTest', '-x', ':patches:verifyPatchTestSelection',
-                ':extensions:threads:testDebugUnitTest', '--tests', '*L10nTest', '--tests', '*L10nCatalogTest',
-                '--tests', '*ReleaseCheckTest',
-                ':extensions:shared:library:lint', ':extensions:threads:lint')
-
-            # Gradle clears the runtime results before a run and writes only the classes it ran, so
-            # the filtered run above leaves part of a run there. The push below has the gate read that
-            # folder for the commit it carries, and a partial one stops it before any test runs.
-            # Nothing else reads these: build reruns every test before anything is counted.
-            $partialResults = Join-Path $root 'extensions/threads/build/test-results/testDebugUnitTest'
-            if (Test-Path -LiteralPath $partialResults) { Remove-Item -LiteralPath $partialResults -Recurse -Force }
-
             Invoke-FactsPrecheck
-
-            $minutes = ((Get-Date) - $started).TotalMinutes
-            if ($minutes -gt 5) {
-                Write-Warning (("Preflight took {0:N1} minutes, past its five-minute budget. A quick check that " +
-                    'got slow belongs in the gate, not here.') -f $minutes)
-            }
-            Step ("preflight passed in {0:N1} minutes" -f $minutes)
 
             $head = Get-GitLine @('rev-parse', 'HEAD') 'HEAD'
             if ((Get-RemoteRef 'refs/heads/main') -eq $head) {
                 Step "origin's main is $head already, so there's nothing to push. Run -Stage build"
             } else {
-                Step "pushing $head to main at release priority, so the pre-push gate runs everything on it"
+                Step "pushing $head to main"
                 Push-Main -What "the prep commit $head"
-                Step 'pushed through the gate. Run -Stage build'
+                Step 'pushed. Run -Stage build'
             }
         }
         'build' {
@@ -442,24 +396,24 @@ try {
             if ($remoteTag -and $remoteTag -ne $head) { throw "origin's $tag names $remoteTag, not $head." }
             $localTag = Get-LocalTag
             if ($localTag -and $localTag -ne $head) { throw "$tag names $localTag here, not $head." }
-            # The fixture tests read the folder too, and a skipped one leaves no count a release can quote.
-            if (-not $env:HUSHTHREADS_FIXTURE_DIR -or -not (Test-Path -LiteralPath $env:HUSHTHREADS_FIXTURE_DIR -PathType Container)) {
-                throw 'HUSHTHREADS_FIXTURE_DIR has to name the folder that holds the declared Threads builds.'
-            }
+            if (-not $env:HUSHTHREADS_FIXTURE_DIR -or -not (Test-Path -LiteralPath $env:HUSHTHREADS_FIXTURE_DIR -PathType Container)) { throw 'HUSHTHREADS_FIXTURE_DIR has to name the folder that holds the declared Threads builds.' }
             $desktopJar = Resolve-DesktopCli -Root $root -Required
             $catalog = Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json
             $fixtures = @(Get-ReleaseFixtures -Target (Get-PatchTarget -PatchList $catalog))
-
             Step 'clearing patches/build/release'
             $releaseFolder = Join-Path $root 'patches/build/release'
             if (Test-Path -LiteralPath $releaseFolder) { Remove-Item -LiteralPath $releaseFolder -Recurse -Force }
-
-            # Named with --rerun: Gradle calls a run of the same inputs up to date, and the facts
-            # check holds the results to the sources' dates. The aggregate :extensions:threads:test
-            # --rerun reruns only itself, not testDebugUnitTest.
-            Step "runtime and patch tests again from $head, both lints"
-            Invoke-Gradle @(':extensions:threads:testDebugUnitTest', '--rerun', ':patches:test', '--rerun',
-                ':extensions:shared:library:lint', ':extensions:threads:lint')
+            # --rerun, as Gradle calls the same inputs up to date. A fix reruns them only if it reaches what they read (not scripts/, docs or the CHANGELOG).
+            $stamp = Join-Path $root "build/release-tested-$Version.txt"
+            $tested = if (Test-Path -LiteralPath $stamp) { (Get-Content -LiteralPath $stamp -Raw).Trim() } else { '' }
+            $read = @(@(if ($tested) { Invoke-Git @('diff', '--name-only', $tested, $head); if ($LASTEXITCODE) { 'all' } } else { 'all' }) |
+                Where-Object { $_ -notmatch '^(scripts/|docs/|\.github/|CHANGELOG\.md$)' -or $_ -eq 'scripts/injected-mutation-contracts.txt' })
+            if ($read.Count -eq 0) { Step "tests passed on $tested, and nothing they read has changed since" } else {
+                Step "runtime and patch tests from $head, both lints"
+                Invoke-Gradle @(':extensions:threads:testDebugUnitTest', '--rerun', ':patches:test', '--rerun',
+                    ':extensions:shared:library:lint', ':extensions:threads:lint')
+                New-Item -ItemType File -Force -Path $stamp -Value $head | Out-Null
+            }
 
             Step 'patch list'
             Invoke-Gradle @(':patches:generatePatchesList')
@@ -513,7 +467,7 @@ try {
                 if ($LASTEXITCODE -ne 0) { throw "git could not tag $head as $tag." }
             }
             if (-not $remoteTag) {
-                Step "pushing $tag, a tag of the commit the gate already passed"
+                Step "pushing $tag"
                 Invoke-Git @('push', 'origin', "refs/tags/${tag}:refs/tags/$tag") | Out-Host
                 if ($LASTEXITCODE -ne 0) { throw "The push of $tag did not pass (exit $LASTEXITCODE)." }
             }
@@ -653,7 +607,7 @@ try {
                 Invoke-Git @('commit', '--quiet', '-m', $indexSubject, '-m', $body) | Out-Host
                 if ($LASTEXITCODE -ne 0) { throw 'git could not commit the index.' }
             }
-            Step 'pushing the index commit; the pre-push gate checks it against the published release'
+            Step 'pushing the index commit'
             Push-Main -What 'the index commit'
             Step "the index points at $tag"
         }

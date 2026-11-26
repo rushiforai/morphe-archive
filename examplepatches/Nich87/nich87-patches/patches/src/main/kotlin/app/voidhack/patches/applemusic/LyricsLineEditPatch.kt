@@ -62,6 +62,8 @@ private object NativeCustomLyricRender : Fingerprint(
 )
 
 internal val lyricsLineEditPatch = bytecodePatch {
+    dependsOn(lyricsBasePatch)
+
     execute {
         val nativeShare = ShareTimedLyric.method
         val adapterType = nativeShare.parameterTypes[2]

@@ -67,7 +67,7 @@ public final class HomeThreadOrder {
         RankOrder(String json,Map<String,Integer> ranks){this.json=json;this.ranks=ranks;}
     }
     private static Map<String,Integer> ranks(int mode){
-        int key=Math.abs(mode);String json=prefs().getString("order:"+key,"[]");
+        int key=Math.abs(mode);String json=prefs().getString(key==101?"unreadInheritedOrder":"order:"+key,prefs().getString("order:"+key,"[]"));
         synchronized(rankCache){
             RankOrder cached=rankCache.get(key);if(cached!=null&&Objects.equals(cached.json,json))return cached.ranks;
             Map<String,Integer> ranks=new HashMap<>();
@@ -213,6 +213,17 @@ public final class HomeThreadOrder {
     private static List<?> apply(List<?> source,int mode,boolean respectFolds){
         if(source==null||!target(mode)||Haiagaru.applicationContextForExtension()==null)return source;
 
+        // Unread keyword headings and repeated matches belong to the native grouping.
+        if(mode==101){
+            Map<String,Integer> inherited=ranks(mode);
+            ArrayList<Object> result=new ArrayList<>();ArrayList<Object> group=new ArrayList<>();
+            Comparator<Object> order=Comparator.comparingInt(row->inherited.getOrDefault(key(row),Integer.MAX_VALUE));
+            for(Object row:source){
+                if(key(row)==null||isBoard(key(row))){group.sort(order);result.addAll(group);group.clear();result.add(row);}
+                else group.add(row);
+            }
+            group.sort(order);result.addAll(group);return result;
+        }
         source = uniqueRows(source);
         if(searchActive())return source;
         synchronized(latest){latest.put(mode,new ArrayList<>(source));}
@@ -801,6 +812,8 @@ public final class HomeThreadOrder {
             try{labels.put(name,new JSONArray(members));}
             catch(JSONException error){android.util.Log.w("Haiagaru","Could not update HOME label",error);}
         }
+        if(mode==100||mode==102||mode==103||mode==104)
+            prefs().edit().putString("unreadInheritedOrder",new JSONArray(order).toString()).apply();
         prefs().edit().putString("order:"+Math.abs(mode),new JSONArray(order).toString())
             .putString("categories:"+Math.abs(mode),categories.toString())
             .putString("labels:"+mode,labels.toString()).apply();

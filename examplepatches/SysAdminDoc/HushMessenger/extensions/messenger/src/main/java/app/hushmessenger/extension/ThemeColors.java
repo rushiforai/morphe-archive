@@ -180,11 +180,36 @@ final class ThemeColors {
             return;
         }
         Runnable undo = keep();
-        Settings.preferences.edit().putString(ThemeFile.KEY, new ThemeFile("", accent, neutral, null).encode()).apply();
+        ThemeFile theme = new ThemeFile("", accent, neutral, null);
+        Settings.preferences.edit().putString(ThemeFile.KEY, theme.encode()).apply();
+        boolean turnedOn = switchOn(theme);
         page.refreshChoices();
         showTheme();
-        page.feedback(text.get("theme_pasted"), Toast.LENGTH_SHORT);
+        page.feedback(text.get(turnedOn ? "theme_pasted_on" : "theme_pasted"), Toast.LENGTH_SHORT);
         page.offerUndo(text.format("theme_change"), undo);
+    }
+
+    /**
+     * #237: a theme picked here is one you mean to see, so the switches it needs come on with it: Material You, and in a
+     * light chat Light mode accent when the theme has an accent. Picking a color used to save it and change nothing.
+     * Light mode grays stays yours, since it tints every gray. Undo from keep() puts both back.
+     *
+     * @return whether a switch came on
+     */
+    private static boolean switchOn(ThemeFile theme) {
+        SharedPreferences prefs = Settings.preferences;
+        SharedPreferences.Editor edit = prefs.edit();
+        boolean turnedOn = false;
+        if (!prefs.getBoolean(MaterialYouTheme.KEY, false)) {
+            edit.putBoolean(MaterialYouTheme.KEY, true);
+            turnedOn = true;
+        }
+        if (theme.accent != null && MaterialYouTheme.chatIsLight() && !prefs.getBoolean(MaterialYouTheme.LIGHT_KEY, false)) {
+            edit.putBoolean(MaterialYouTheme.LIGHT_KEY, true);
+            turnedOn = true;
+        }
+        if (turnedOn) edit.apply();
+        return turnedOn;
     }
 
     /** Names the saved theme, rings its accent, and shows Back to wallpaper colors only while there is one. */
@@ -235,26 +260,31 @@ final class ThemeColors {
         ThemeFile old = ThemeFile.saved();
         ThemeFile theme = new ThemeFile("", color, old == null ? null : old.neutral, null);
         Settings.preferences.edit().putString(ThemeFile.KEY, theme.encode()).apply();
+        boolean turnedOn = switchOn(theme);
         page.refreshChoices();
         showTheme();
-        page.feedback(page.text.get("theme_accent_saved"), Toast.LENGTH_SHORT);
+        page.feedback(page.text.get(turnedOn ? "theme_accent_saved_on" : "theme_accent_saved"), Toast.LENGTH_SHORT);
         page.offerUndo(page.text.format("theme_change"), undo);
     }
 
     /**
      * Undo for the theme as it is now, taken before a tap replaces or drops it. A pasted theme's name and its pure black
-     * choice can't be typed back in, so both come back with it.
+     * choice can't be typed back in, so both come back with it, and so do the switches switchOn may turn on.
      */
     private Runnable keep() {
         SharedPreferences prefs = Settings.preferences;
         String before = prefs.getString(ThemeFile.KEY, null);
-        Boolean black = prefs.contains(MaterialYouTheme.BLACK_KEY) ? prefs.getBoolean(MaterialYouTheme.BLACK_KEY, false) : null;
+        String[] switches = {MaterialYouTheme.BLACK_KEY, MaterialYouTheme.KEY, MaterialYouTheme.LIGHT_KEY};
+        Boolean[] was = new Boolean[switches.length];
+        for (int i = 0; i < switches.length; i++) was[i] = prefs.contains(switches[i]) ? prefs.getBoolean(switches[i], false) : null;
         return () -> {
             SharedPreferences.Editor edit = Settings.preferences.edit();
             if (before == null) edit.remove(ThemeFile.KEY);
             else edit.putString(ThemeFile.KEY, before);
-            if (black == null) edit.remove(MaterialYouTheme.BLACK_KEY);
-            else edit.putBoolean(MaterialYouTheme.BLACK_KEY, black);
+            for (int i = 0; i < switches.length; i++) {
+                if (was[i] == null) edit.remove(switches[i]);
+                else edit.putBoolean(switches[i], was[i]);
+            }
             edit.apply();
             page.refreshChoices();
             showTheme();
@@ -289,9 +319,10 @@ final class ThemeColors {
         SharedPreferences.Editor edit = Settings.preferences.edit().putString(ThemeFile.KEY, theme.withPureBlack(null).encode());
         if (theme.pureBlack != null) edit.putBoolean(MaterialYouTheme.BLACK_KEY, theme.pureBlack);
         edit.apply();
+        boolean turnedOn = switchOn(theme);
         page.refreshChoices();
         showTheme();
-        page.feedback(text.get("theme_pasted"), Toast.LENGTH_SHORT);
+        page.feedback(text.get(turnedOn ? "theme_pasted_on" : "theme_pasted"), Toast.LENGTH_SHORT);
         page.offerUndo(text.format("theme_change"), undo);
     }
 

@@ -17,6 +17,7 @@ This bundle currently supports:
 | Universal Copy | 7.2.0 | Unlock Plus, remove ads/upgrade prompts and the Internet permission |
 | NetMonster | 4.0.5 | Unlock premium |
 | HTTP Sniffer | 2.5.2-ad_mob, 2.4.9-ad_mob | Unlock VIP |
+| Proxyman | 1.33.0 | Unlock Pro |
 | VTVGo | 12.11.19 | Remove video/product ads, disable analytics, remove Ad ID permissions |
 | TeraBox | 4.29.0 | Bypass SSL pinning |
 
@@ -26,7 +27,7 @@ updated fingerprints before a patch can be applied.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.2](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v1.8.0](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details open>
 <summary><img src=".github/assets/apps/vn.vtv.vtvgo.png" alt="" height="20"> VTVGo&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -66,6 +67,21 @@ updated fingerprints before a patch can be applied.
 </details>
 
 <details open>
+<summary><img src=".github/assets/apps/com.dubox.drive.png" alt="" height="20"> TeraBox&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.29.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass SSL pinning](#bypass-ssl-pinning) | Skips TeraBox certificate pinning and hostname checks, trusts user-installed certificates and lets the WebView ignore certificate errors, so a proxy can read HTTPS. |  |
+
+</details>
+
+<details open>
 <summary><img src=".github/assets/apps/com.cloudflare.onedotonedotonedotone.png" alt="" height="20"> 1.1.1.1&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
@@ -100,7 +116,7 @@ updated fingerprints before a patch can be applied.
 </details>
 
 <details open>
-<summary><img src=".github/assets/apps/com.locket.Locket.png" alt="" height="20"> Locket Widget&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src=".github/assets/apps/com.locket.Locket.png" alt="" height="20"> Locket Widget&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -110,6 +126,7 @@ updated fingerprints before a patch can be applied.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Spoofer server](#spoofer-server) | Sends Locket's API traffic (feed, profile, AI frames, captions) to a self-hosted spoofer server instead of api.locketcamera.com. Enter the server address; the app keeps using the server's own HTTPS certificate, so no DNS profile or CA install is needed. Enable the second option to route RevenueCat and Firebase Remote Config through the same server as well. Not selected by default. | • Spoofer server<br>• Route RevenueCat and Remote Config |
 | [Unlock Locket Gold](#unlock-locket-gold) | Makes the app treat the signed-in account as a Locket Gold subscriber, enabling the Gold-only feature gates and replacing the paywall with subscription management. Client-side only: features validated by Locket's servers still need a real subscription. |  |
 
 </details>
@@ -141,6 +158,21 @@ updated fingerprints before a patch can be applied.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Unlocks all premium features. |  |
+
+</details>
+
+<details open>
+<summary><img src=".github/assets/apps/com.proxyman.proxymanandroid.png" alt="" height="20"> Proxyman&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.33.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Pro](#unlock-pro) | Unlocks Pro: unlimited SSL proxying entries, filters, pinning, block/map/rewrite and breakpoint rules, the advanced body editor, Compose entries, Live Update and the widget. Also bypasses the PairIP license check so the repacked app starts. |  |
 
 </details>
 

@@ -53,6 +53,7 @@ import app.morphe.extension.facebook.download.ClipboardLinkForTests;
 import app.morphe.extension.facebook.download.CommentGifForTests;
 import app.morphe.extension.facebook.download.CommentPhotoForTests;
 import app.morphe.extension.facebook.download.CommentVideoForTests;
+import app.morphe.extension.facebook.download.FileDownloadsForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
@@ -285,6 +286,10 @@ public class ColdStartHooksTest {
         assertNull(ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsRemixAttribution"))));
         assertFalse("a Reels tab audio line drawn before the context came off", ReelDeclutter.hideAudioLine());
         assertFalse("a Made with Edits line taken before the context came off", ReelDeclutter.hideEditsLabel());
+        assertNull("a reel's AI label taken before the context came off",
+                ReelDeclutter.filterAiLabel(Arrays.asList(new TypedFeedUnit("XFBFBShortsGenAITransparencyAttribution"))));
+        assertEquals("a reel caption's hashtags taken before the context came off", "Drive #a #b",
+                String.valueOf(ReelDeclutter.captionText("Drive #a #b")));
         assertFalse("a Made with Edits pill taken before the context came off", ReelDeclutter.hideEditsPill());
         assertFalse("a slow connection message posted before the context was held back",
                 ReelDeclutter.hideSlowConnectionMessage());
@@ -416,6 +421,7 @@ public class ColdStartHooksTest {
         assertFalse("a comment sheet built before the context got Save video", CommentVideoForTests.addsARow());
         assertFalse(PlayerSourcesForTests.recordsAVideoPlayer());
         assertFalse("a screen resumed before the context read the clipboard", ClipboardLinkForTests.readsTheClipboard());
+        assertFalse("a file download before the context went to Downloads", FileDownloadsForTests.movesAFile());
         assertFalse("a start before the context asked Facebook for a tab", StartTabRouteForTests.routes());
         assertFalse("a tab bar built before the context lost Home", MarketplaceOnlyForTests.hidesHome());
         assertFalse("a feed warm-up before the context was skipped", MarketplaceOnlyForTests.skipsFeedPrefetch());
@@ -454,6 +460,8 @@ public class ColdStartHooksTest {
                 CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS));
         assertFalse("a comment drawn before the context lost its dislike",
                 CommentSheetOptions.holdsCommentDislike());
+        assertTrue("comments opened before the context kept the keyboard closed",
+                CommentSheetOptions.keyboardOnFirstLoad(true));
         assertFalse("a comment drawn before the context lost Reply",
                 CommentSheetOptions.holdsCommentReply(CommentSheetOptions.REPLY_PLUGIN));
         assertFalse("a comment drawn before the context lost its commenter's badge",

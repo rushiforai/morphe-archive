@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -137,11 +137,16 @@ public class DrawableColorPatch {
             new ColorDrawable(Color.TRANSPARENT);
 
     /**
-     * Installs the selected dark palette before the activity inflates its first layout. Android
-     * 8–10 select precompiled resource configurations, while Android 11+ replaces the stable
-     * resources.
+     * Installs the selected dark palette before the activity inflates its first layout. Light
+     * already has its own scoped resources. Android 8–10 use precompiled dark configurations,
+     * while Android 11+ replaces the stable dark resources.
      */
     public static void setTheme(Activity activity) {
+        if (MusicLightTheme.isEnabled()) {
+            applySplashScreenTheme(activity);
+            return;
+        }
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             try {
                 PrecompiledResourcePalette.install(activity);
@@ -163,9 +168,8 @@ public class DrawableColorPatch {
     }
 
     /**
-     * Selects the concrete starting-window style after the runtime palette is ready. Android 12
-     * resolves the original splash before the activity draws its first layout, so the style must
-     * contain a stable color for the selected preset instead of a runtime-overlaid color.
+     * Android 12 resolves the starting window before Activity creation. Persist the concrete
+     * palette for the next launch, composing it with Android-managed branding when enabled.
      */
     private static void applySplashScreenTheme(Activity activity) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -173,6 +177,14 @@ public class DrawableColorPatch {
         }
         if (CustomBrandingPatch.isSystemSplashEnabled(activity)) {
             CustomBrandingPatch.updateSystemSplashTheme(activity);
+        } else {
+            applySelectedSplashScreenTheme(activity);
+        }
+    }
+
+    /** Persists the selected concrete Music palette without invoking the branding resolver. */
+    public static void applySelectedSplashScreenTheme(Activity activity) {
+        if (activity == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             return;
         }
 
@@ -213,6 +225,24 @@ public class DrawableColorPatch {
     public static int getLithoColor(int colorValue) {
         if (!ArrayUtils.contains(DARK_COLORS, colorValue)) return colorValue;
         return isStockTheme() ? colorValue : BaseThemeUtils.getThemeDarkColor();
+    }
+
+    public static int getLithoColor(Drawable fill, int colorValue) {
+        if (!MusicLightTheme.isEnabled()) return getLithoColor(colorValue);
+        // The Library's Elements chip strip supplies the stock black4 fill despite the Light key.
+        // Keep the same swatch on album headers, artwork scrims, and other Elements hosts.
+        if (colorValue != 0xFF030303) return colorValue;
+
+        Drawable.Callback callback = fill.getCallback();
+        for (int depth = 0; depth < 8 && callback instanceof Drawable wrapper; depth++) {
+            callback = wrapper.getCallback();
+        }
+        for (Object host = callback; host instanceof View view; host = view.getParent()) {
+            if ("morphe_light_library_chip_header".equals(view.getTag())) {
+                return MusicLightTheme.SURFACE;
+            }
+        }
+        return colorValue;
     }
 
     /**
@@ -311,7 +341,7 @@ public class DrawableColorPatch {
     }
 
     private static boolean isMaterialYouTheme() {
-        return Settings.DARK_THEME.get().startsWith("material_you_");
+        return !MusicLightTheme.isEnabled() && getSelectedDarkTheme().startsWith("material_you_");
     }
 
     /** Returns text that remains readable on the selected Material You indicator color. */
@@ -325,6 +355,8 @@ public class DrawableColorPatch {
     }
 
     public static void setHeaderGradient(ViewGroup viewGroup) {
+        if (MusicLightTheme.isEnabled()) return;
+
         viewGroup.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
             if (!(viewGroup.getChildAt(0) instanceof ViewGroup firstChildView))
                 return;
@@ -361,7 +393,13 @@ public class DrawableColorPatch {
     }
 
     private static boolean isStockTheme() {
-        return "stock".equals(Settings.DARK_THEME.get());
+        return "stock".equals(getSelectedDarkTheme());
+    }
+
+    private static String getSelectedDarkTheme() {
+        String selected = Settings.DARK_THEME.get();
+        // Selecting Light leaves the running dark palette intact until the process restarts.
+        return MusicLightTheme.VALUE.equals(selected) ? MusicLightTheme.getStartupDarkTheme() : selected;
     }
 
     private static int[] getSelectedColors(Context context) {
@@ -382,7 +420,7 @@ public class DrawableColorPatch {
 
     private static int getSelectedColor(Context context) {
         final int patchedColor = STOCK_DARK_THEME_COLORS[STOCK_DARK_THEME_MAIN_COLOR_INDEX];
-        return switch (Settings.DARK_THEME.get()) {
+        return switch (getSelectedDarkTheme()) {
             case "amoled_black" -> Color.BLACK;
             case "material_you_neutral" -> getSystemColor(context, "system_neutral1_900", patchedColor);
             case "material_you_primary" -> getSystemColor(context, "system_accent1_800", patchedColor);
@@ -423,7 +461,7 @@ public class DrawableColorPatch {
 
         static synchronized void install(Activity activity) {
             Resources activityResources = activity.getResources();
-            int themedMcc = qualifierFor(Settings.DARK_THEME.get());
+            int themedMcc = qualifierFor(getSelectedDarkTheme());
             apply(activityResources, themedMcc);
 
             Resources applicationResources = activity.getApplicationContext().getResources();

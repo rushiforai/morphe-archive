@@ -3,7 +3,6 @@ package app.template.extension.zalo.media;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.shared.ZaloEnv;
 
 /** "Lưu" item for the Zalo Video (short video tab) action sheet; downloads the progressive mp4 to Movies/Zalo. */
@@ -49,9 +49,9 @@ public final class ZaloVideoSave {
                     return;
                 }
             }
-            Log.w(TAG, "item constructor not found");
+            NezumiLog.w(TAG, "item constructor not found");
         } catch (Throwable failure) {
-            Log.w(TAG, "addItem", failure);
+            NezumiLog.w(TAG, "addItem", failure);
         }
     }
 
@@ -71,7 +71,7 @@ public final class ZaloVideoSave {
             start(url);
             return true;
         } catch (Throwable failure) {
-            Log.w(TAG, "onItemClick", failure);
+            NezumiLog.w(TAG, "onItemClick", failure);
             return false;
         }
     }
@@ -81,7 +81,7 @@ public final class ZaloVideoSave {
             Method method = sheet.getClass().getMethod("w6");
             method.invoke(sheet);
         } catch (Throwable failure) {
-            Log.w(TAG, "dismiss", failure);
+            NezumiLog.w(TAG, "dismiss", failure);
         }
     }
 
@@ -97,7 +97,7 @@ public final class ZaloVideoSave {
             if (url.isEmpty() || "null".equals(url) || !url.startsWith("http")) return null;
             return url;
         } catch (Throwable failure) {
-            Log.w(TAG, "mp4Url", failure);
+            NezumiLog.w(TAG, "mp4Url", failure);
             return null;
         }
     }
@@ -149,7 +149,7 @@ public final class ZaloVideoSave {
                     });
                     toast("Đã lưu vào Thư viện");
                 } catch (Throwable failure) {
-                    Log.e(TAG, "save failed", failure);
+                    NezumiLog.e(TAG, "save failed", failure);
                     toast("Lưu thất bại");
                 }
             }

@@ -25,7 +25,11 @@ import org.robolectric.annotation.Config;
 import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
 
-/** The chat bar the way Messenger builds it, and a + menu shaped like the one it opens (#198). */
+/**
+ * The chat bar the way Messenger 588 builds it, and a + menu shaped like the one it opens (#198, #241). The + bar is a
+ * frame holding + in a frame of its own plus the buttons it shows only in some states, and the camera, gallery and mic
+ * are in a second bar further along the same row, inflated from stubs into a column of its own.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 36)
 public class ChatBarPlusTest {
@@ -34,8 +38,14 @@ public class ChatBarPlusTest {
     private static final int MENU_Y = 100;
 
     /** Named as Messenger names it, which is what the bar is found by. */
-    public static class ComposerBarLeftPrimaryButtonsView extends LinearLayout {
+    public static class ComposerBarLeftPrimaryButtonsView extends FrameLayout {
         public ComposerBarLeftPrimaryButtonsView(Context context) {
+            super(context);
+        }
+    }
+
+    public static class ComposerActionBar extends LinearLayout {
+        public ComposerActionBar(Context context) {
             super(context);
         }
     }
@@ -52,8 +62,11 @@ public class ChatBarPlusTest {
 
     private Activity activity;
     private FrameLayout chat;
-    private LinearLayout bar;
+    private FrameLayout bar;
     private ComposerActionButton plus;
+    private ComposerActionButton collapse;
+    private ComposerActionButton deleteClip;
+    private LinearLayout stubs;
     private ComposerActionButton camera;
     private ComposerActionButton gallery;
     private ComposerActionButton mic;
@@ -68,16 +81,34 @@ public class ChatBarPlusTest {
         CrashGuard.resetForTests();
         activity = Robolectric.buildActivity(Activity.class).setup().get();
         chat = new FrameLayout(activity);
+        LinearLayout row = new LinearLayout(activity);
         bar = new ComposerBarLeftPrimaryButtonsView(activity);
         FrameLayout frame = new FrameLayout(activity);
         plus = button("Show more options.");
         frame.addView(plus, new FrameLayout.LayoutParams(56, 56));
         bar.addView(frame);
+        // Messenger shows these two only while typing and while a voice clip is recorded.
+        collapse = button("Show actions.");
+        ComposerActionButton close = button("Close.");
+        deleteClip = button("Delete voice clip.");
+        for (View view : new View[] {collapse, close, deleteClip}) {
+            view.setVisibility(View.GONE);
+            bar.addView(view, new FrameLayout.LayoutParams(56, 56));
+        }
+        row.addView(bar, new LinearLayout.LayoutParams(60, 56));
+        LinearLayout editor = new LinearLayout(activity);
+        FrameLayout container = new FrameLayout(activity);
+        ComposerActionBar actions = new ComposerActionBar(activity);
+        stubs = new LinearLayout(activity);
         camera = button("Open camera.");
         gallery = button("Open photo gallery.");
         mic = button("Open audio recorder.");
-        for (View view : new View[] {camera, gallery, mic}) bar.addView(view, new LinearLayout.LayoutParams(56, 56));
-        chat.addView(bar, new FrameLayout.LayoutParams(300, 56));
+        for (View view : new View[] {camera, gallery, mic}) stubs.addView(view, new LinearLayout.LayoutParams(56, 56));
+        actions.addView(stubs);
+        container.addView(actions);
+        editor.addView(container, new LinearLayout.LayoutParams(240, 56));
+        row.addView(editor, new LinearLayout.LayoutParams(240, 56));
+        chat.addView(row, new FrameLayout.LayoutParams(300, 56));
         activity.setContentView(chat);
         idle();
     }
@@ -136,6 +167,56 @@ public class ChatBarPlusTest {
         assertEquals(View.GONE, gallery.getVisibility());
         assertEquals(View.GONE, mic.getVisibility());
         assertEquals(View.VISIBLE, plus.getVisibility());
+    }
+
+    /** #241: the + bar's own buttons are Messenger's typing and voice clip controls, and they stay for it to show. */
+    @Test public void thePlusBarsOwnButtonsStayWhenMessengerShowsThem() {
+        ChatBarPlus.Chat open = ChatBarPlus.watch(chat);
+        collapse.setVisibility(View.VISIBLE);
+        deleteClip.setVisibility(View.VISIBLE);
+        open.look();
+        assertEquals(View.VISIBLE, collapse.getVisibility());
+        assertEquals(View.VISIBLE, deleteClip.getVisibility());
+        openMenu();
+        open.findMenu();
+        assertEquals(3, rows().getChildCount());
+        assertEquals("Open camera", rows().getChildAt(0).getContentDescription());
+    }
+
+    /** Messenger fills its stubs when it needs them, and a button that turns up later leaves on the next look. */
+    @Test public void aButtonMessengerAddsLaterLeavesToo() {
+        ChatBarPlus.Chat open = ChatBarPlus.watch(chat);
+        ComposerActionButton games = button("Play games.");
+        stubs.addView(games, new LinearLayout.LayoutParams(56, 56));
+        open.look();
+        assertEquals(View.GONE, games.getVisibility());
+        openMenu();
+        open.findMenu();
+        assertEquals(4, rows().getChildCount());
+        assertEquals("Play games", rows().getChildAt(3).getContentDescription());
+    }
+
+    /** Only the bar in the + bar's row is the one beside the message box. */
+    @Test public void anActionBarElsewhereInTheChatKeepsItsButtons() {
+        ComposerActionBar other = new ComposerActionBar(activity);
+        ComposerActionButton sticker = button("Send a sticker.");
+        other.addView(sticker, new LinearLayout.LayoutParams(56, 56));
+        chat.addView(other, new FrameLayout.LayoutParams(56, 56));
+        ChatBarPlus.watch(chat);
+        assertEquals(View.VISIBLE, sticker.getVisibility());
+        assertEquals(View.GONE, camera.getVisibility());
+    }
+
+    @Test public void aRowWithoutTheActionBarIsLeftAlone() {
+        ViewGroup actions = (ViewGroup) stubs.getParent();
+        ((ViewGroup) actions.getParent()).removeView(actions);
+        collapse.setVisibility(View.VISIBLE);
+        ChatBarPlus.Chat open = ChatBarPlus.watch(chat);
+        assertEquals(View.VISIBLE, collapse.getVisibility());
+        assertEquals(View.VISIBLE, plus.getVisibility());
+        openMenu();
+        open.findMenu();
+        assertNull(rows());
     }
 
     @Test public void aButtonMessengerShowsAgainLeavesAgainWithoutASecondRow() {

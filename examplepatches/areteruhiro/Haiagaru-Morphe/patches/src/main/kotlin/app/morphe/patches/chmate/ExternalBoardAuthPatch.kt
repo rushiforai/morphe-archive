@@ -2,6 +2,8 @@ package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -176,11 +178,29 @@ internal fun BytecodePatchContext.patchExternalBoardAuth(version: String) {
     editor.methods.add(MutableMethod(ImmutableMethod(editor.type,"haiagaruSaveExternalDraft",emptyList(),"V",
         0x1,emptySet(),emptySet(),ImmutableMethodImplementation(2,emptyList(),emptyList(),emptyList()))).apply {
         addInstructions(0,"""
-            const/4 v0, 0x1
+            const/4 v0, 0x0
             invoke-direct {p0, v0}, $saveDraft
             return-void
         """.trimIndent())
     })
+    val draftStore=when(version){
+        "0.8.10.191 dev" -> Triple("Lo/n9;","Lo/n7;","d")
+        "0.8.10.226 dev" -> Triple("Lo/getTileModeX;","Lo/setBorderWidth;","c")
+        "0.8.10.242 dev" -> Triple("Lo/PackageSignatureVerifier;","Ljp/syoboi/a2chMate/postdata/PostData;","b")
+        else -> null
+    }
+    if(draftStore!=null){
+    val writer=mutableClassDefBy(draftStore.first).methods.single {
+        it.name==draftStore.third && it.parameterTypes==listOf(draftStore.second) && it.returnType=="V"
+    }
+    check(writer.accessFlags and 0x8==0 && writer.implementation!!.registerCount>=3){"Native draft guard needs a local register: $version"}
+    writer.addInstructionsWithLabels(0,"""
+        invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/EmptyPostDrafts;->handle(Ljava/lang/Object;Ljava/lang/Object;)Z
+        move-result v0
+        if-eqz v0, :native_save
+        return-void
+    """.trimIndent(),ExternalLabel("native_save",writer.implementation!!.instructions.first()))
+    }
     patchPostingOverflowMenu(version,"ExternalBoardAuth","board_auth")
     check(observed>0){"External board authentication error UI not found"}
     println("External board auth: native cookie bridge + $observed error UI observers ($version)")

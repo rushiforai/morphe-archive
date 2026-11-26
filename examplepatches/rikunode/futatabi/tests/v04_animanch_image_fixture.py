@@ -21,7 +21,7 @@ class Handler(BaseHTTPRequestHandler):
             time.sleep(.25)
             body=self.jpeg; mime="image/jpeg"
         elif path.startswith("/board/") and path.endswith("/"):
-            body=b"<html><body><li id='res123'><div class='resbody'>hello</div></li></body></html>"
+            body=b"<html><body><li id='res123'><span class='resposted'>26/11/25(Wed) 12:00:00</span><div class='resbody'>hello</div></li></body></html>"
             mime="text/html; charset=utf-8"
         else:
             self.send_error(404);return

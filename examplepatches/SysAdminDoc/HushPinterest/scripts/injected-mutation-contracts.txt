@@ -35,7 +35,7 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 family|hideAds|Hide ads|feedAds,adViews,googleAds,metaAds,interstitialAds
 family|hideAiPins|Hide AI-labeled pins|feedAiPins
 family|hideShopping|Hide shopping and product pins|feedShopping,closeupShopping
-family|filterFeed|Filter feed|feedVideoPins,feedMutedWords,feedSavedPins,feedSavedSearch,feedSavedRelated,feedHomeSuggestions,feedbackFlyout
+family|filterFeed|Filter feed|feedVideoPins,feedMutedWords,feedSavedPins,feedSavedSearch,feedSavedRelated,feedSeenPins,feedHomeSuggestions,feedbackFlyout
 family|keepHomeFeed|Keep Home feed|homeFeed,homeBack,refreshPill
 family|disableAnalytics|Disable analytics|analyticsTasks,analyticsUploads
 family|stripLinkTracking|Strip link tracking|linkTracking,plainPinLinks
@@ -170,6 +170,7 @@ mutation|updateNag|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->dis
 mutation|signInFailure|signInFailure|Lapp/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness;->requestFailed(Ljava/lang/Exception;)V|Lapp/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness;->signsInThroughMicroG()Z|Lapp/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness;->isGoogleIdOption(Ljava/lang/String;)Z
 mutation|saveAndDownload|saveAndDownload|Lapp/hushpinterest/extension/pinterest/actions/SaveAndDownload;->saving(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/actions/SaveAndDownload;->saver(Ljava/lang/Object;)V|Lcom/pinterest/feature/pin/closeup/presenter/OrganicPinCloseupPresenter;
 mutation|feedSavedPins|homePage|Lapp/hushpinterest/extension/pinterest/ads/SavedPins;->homePage(Ljava/lang/Object;)V|Lcom/pinterest/feature/home/model/|Lcom/pinterest/legacy/feeds/DynamicFeed;
+mutation|feedSeenPins|seenPins|Lapp/hushpinterest/extension/pinterest/ads/SeenPins;->shown(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ads/SeenPins;->pinOf(Ljava/lang/Object;)Ljava/lang/Object;|Lcom/pinterest/feature/home/model/|Lcom/pinterest/legacy/feeds/DynamicFeed;
 mutation|feedSavedSearch,feedSavedRelated|savedElsewhere|Lapp/hushpinterest/extension/pinterest/ads/SavedPins;->elsewhereFields(Ljava/lang/String;)Ljava/lang/String;|Lapp/hushpinterest/extension/pinterest/ads/SavedPins;->searchPage(Ljava/util/List;)Ljava/util/List;|Lapp/hushpinterest/extension/pinterest/ads/SavedPins;->dropRelated(Ljava/lang/Object;)Z
 mutation|feedbackFlyout|feedbackFlyout|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->feedbackFlyout(Ljava/lang/Boolean;)Ljava/lang/Boolean;|show_feedback_flyout
 mutation|firebaseCertificate|firebaseCertificate|Lapp/hushpinterest/extension/pinterest/notifications/PushNotifications;->certificateHeader(Ljava/net/URLConnection;Ljava/lang/String;)Ljava/lang/String;

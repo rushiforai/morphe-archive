@@ -127,6 +127,7 @@ import app.hushgram.extension.instagram.share.ShareSheetActions;
 import app.hushgram.extension.instagram.share.SharingDomain;
 import app.hushgram.extension.instagram.stories.StoryBarThickness;
 import app.hushgram.extension.instagram.stories.StorySeekBarPosition;
+import app.hushgram.extension.instagram.stories.StoryCommentLine;
 import app.hushgram.extension.instagram.stories.StoryPriority;
 import app.hushgram.extension.instagram.stories.StoryEmoji;
 import app.hushgram.extension.instagram.stories.StoryFonts;
@@ -287,6 +288,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int PICK_EMOJI = 0x4851;
     private static final int PICK_ICON_PICTURE = 0x4852;
     private static final int PICK_HEADER_PICTURE = 0x4853;
+    private static final int PICK_SETTINGS_LOGO = 0x4854;
     /** Framework fragment callbacks run on the main thread. Never reuse a code across pages. */
     private static int documentSequence = PICK_FONT;
     private int documentRequest;
@@ -884,7 +886,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.FEED_AUTO_SCROLL && Settings.FEED_AUTO_SCROLL_SECONDS.key.equals(key);
                     belongs |= family == PatchFamily.EXPAND_CAPTIONS && Settings.CAPTION_LINES.key.equals(key);
                     belongs |= family == PatchFamily.MEDIA_CACHE && (Settings.MEDIA_CACHE_LIMIT_MB.key.equals(key)
-                            || CLEAR_MEDIA_CACHE_NOW.equals(key));
+                            || CLEAR_MEDIA_CACHE_NOW.equals(key) || StorageCategory.SPACE_USED.equals(key));
                     belongs |= family == PatchFamily.STORY_SEEK_BAR && (Settings.STORY_SEEK_BAR_LOOK.key.equals(key)
                             || Settings.STORY_SEEK_BAR_POSITION.key.equals(key)
                             || Settings.STORY_SEEK_TIME.key.equals(key) || Settings.STORY_SEEK_TIME_LEFT.key.equals(key));
@@ -892,6 +894,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || Settings.REEL_POST_TIME_AGO.key.equals(key));
                     belongs |= family == PatchFamily.FRIENDSHIP_STATUS && Settings.FOLLOW_LABEL_PLACE.key.equals(key);
                     belongs |= family == PatchFamily.FULL_SCREEN_BARS && Settings.FULL_SCREEN_HIDES.key.equals(key);
+                    belongs |= family == PatchFamily.STORY_REPLY_BOX && Settings.STORY_COMMENT_LINE.key.equals(key);
                     belongs |= family == PatchFamily.GLASS_TAB_BAR && (Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key.equals(key)
                             || Settings.GLASS_TAB_BAR_HAPTIC_STRENGTH.key.equals(key)
                             || Settings.GLASS_TAB_BAR_TAP_SOUND_VOLUME.key.equals(key));
@@ -985,6 +988,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             && (Settings.DOWNLOAD_SKIP_SAVED.key.equals(key) || CLEAR_DOWNLOAD_HISTORY.equals(key));
                     belongs |= family == PatchFamily.VIDEO_DOWNLOAD && CLEAR_DOWNLOAD_HISTORY.equals(key);
                     belongs |= family == PatchFamily.VIDEO_DOWNLOAD && (Settings.VIEWING_HISTORY.key.equals(key)
+                            || Settings.VIEWING_HISTORY_DAYS.key.equals(key)
                             || VIEWING_HISTORY_ROW.equals(key) || CLEAR_VIEWING_HISTORY.equals(key));
                     belongs |= family == PatchFamily.PROFILE_PICTURE
                             && (PROFILE_HISTORY_ROW.equals(key) || CLEAR_PROFILE_HISTORY.equals(key)
@@ -2119,6 +2123,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return reference == null ? null : reference.get();
     }
 
+    /**
+     * The page of the settings showing [row], as a restart comes back to it: a category's key, or
+     * "" for the top of the list. Null when [row] isn't on settings that are open.
+     */
+    @Nullable
+    static String pageHolding(@Nullable Preference row) {
+        HushgramPreferenceFragment owner = row == null ? null : mutationOwner(row);
+        return owner == null || !owner.isAdded() ? null : owner.currentPage();
+    }
+
     /** Native Save may already be posted when its page closes. An approval received later may not. */
     private static boolean allowMutation(Preference row, boolean needsLivePage) {
         HushgramPreferenceFragment owner = mutationOwner(row);
@@ -2501,6 +2515,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (result == Activity.RESULT_OK) keepHeaderPicture(data == null ? null : data.getData());
             return;
         }
+        if (request == PICK_SETTINGS_LOGO) {
+            documentRequest = 0;
+            documentCode = 0;
+            // Canceled: the logo stays as it was, with nothing to say.
+            if (result == Activity.RESULT_OK) keepSettingsLogo(data == null ? null : data.getData());
+            return;
+        }
         if (request == PICK_SAVE_FOLDER) {
             documentRequest = 0;
             documentCode = 0;
@@ -2627,7 +2648,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.actsAtOnce = true;
         row.setTitle(L10n.t("Home header picture"));
         row.setOnPreferenceClickListener(p -> {
-            pickHeaderPicture();
+            pickPicture(PICK_HEADER_PICTURE);
             return true;
         });
         headerPicture = row;
@@ -2664,14 +2685,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (removeHeaderPicture != null) removeHeaderPicture.setEnabled(!Settings.HEADER_PICTURE.savedValue().isEmpty());
     }
 
-    private void pickHeaderPicture() {
+    /** Opens Android's file picker for a picture, for [request]: the Home header's or the settings logo's. */
+    private void pickPicture(int request) {
         if (documentRequest != 0 || changingConfiguration || ExportStatus.CONFIGURATION.active() || Fonts.importActive()) return;
         if (!allowMutation()) return;
         if (documentSequence == Integer.MAX_VALUE) {
             Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
             return;
         }
-        documentRequest = PICK_HEADER_PICTURE;
+        documentRequest = request;
         documentCode = ++documentSequence;
         Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");
         try {
@@ -2739,6 +2761,125 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 Utils.showToastShort(saved ? L10n.t("Header picture removed.") : L10n.t("Couldn't start that. Try again."));
             });
         });
+    }
+
+    static final String RESET_SETTINGS_HEADER_KEY = "hushgram_reset_settings_header";
+
+    /**
+     * The logo at the top of this page (#872): HushGram's, Instagram's icon, or a picture of yours.
+     * Your picture opens Android's file picker each time it's picked, and saves only once the
+     * picture is kept, so a canceled picker leaves the logo as it was.
+     */
+    ChoiceRow<SettingsHeader.Logo> settingsLogoRow(Context context) {
+        SettingsHeader.Logo[] logos = SettingsHeader.Logo.values();
+        String[] summaries = {
+                L10n.t("HushGram's logo shows at the top of this page."),
+                L10n.t("Instagram's icon shows at the top of this page."),
+                L10n.t("Your picture shows at the top of this page. Pick Your picture again to change it."),
+        };
+        String[] labels = {
+                L10n.t("HushGram's logo"),
+                L10n.t("Instagram's icon"),
+                L10n.t("Your picture"),
+        };
+        ChoiceRow<SettingsHeader.Logo> row = new ChoiceRow<>(context, Settings.SETTINGS_HEADER_LOGO, logos, summaries, null);
+        fill(row, Settings.SETTINGS_HEADER_LOGO, logos, labels, L10n.t("Settings page logo"));
+        row.setOnPreferenceChangeListener((preference, value) -> {
+            if (SettingsHeader.Logo.PICTURE.name().equals(value)) {
+                pickPicture(PICK_SETTINGS_LOGO);
+                return false;
+            }
+            // Posted, so the header draws with the value this change saves.
+            Utils.runOnMainThread(this::headerChanged);
+            return true;
+        });
+        return row;
+    }
+
+    /** The name at the top of this page (#872), saved cleaned. Blank shows HushGram. */
+    SettingsNameRow settingsNameRow(Context context) {
+        SettingsNameRow row = new SettingsNameRow(context);
+        row.setKey(Settings.SETTINGS_HEADER_NAME.key);
+        row.setTitle(L10n.t("Settings page name"));
+        row.setDialogTitle(L10n.t("Settings page name"));
+        row.setDialogMessage(L10n.f("A name of your own at the top of this page, in place of HushGram. Up to %1$d "
+                + "characters. Leave it blank for HushGram.", SettingsHeader.MAX_NAME));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        field.setSingleLine(true);
+        field.setHint(SettingsHeader.DEFAULT_NAME);
+        field.setFilters(new InputFilter[]{new InputFilter.LengthFilter(SettingsHeader.MAX_NAME * 2)});
+        row.setText(Settings.SETTINGS_HEADER_NAME.savedValue());
+        row.setOnPreferenceChangeListener((preference, value) -> {
+            // Posted, so the header and the bar show the name this change saves.
+            Utils.runOnMainThread(this::headerChanged);
+            return true;
+        });
+        return row;
+    }
+
+    /** Puts HushGram's logo and name back at the top of this page and forgets a picked picture. */
+    Row resetSettingsHeaderRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(RESET_SETTINGS_HEADER_KEY);
+        row.setPersistent(false);
+        row.actsAtOnce = true;
+        row.setTitle(L10n.t("Reset the settings page header"));
+        row.setSummary(L10n.t("Puts HushGram's logo and name back at the top of this page."));
+        row.setOnPreferenceClickListener(p -> {
+            if (!allowMutation()) return true;
+            Context app = p.getContext().getApplicationContext();
+            Utils.runOnBackgroundThread(() -> {
+                boolean saved = SettingsHeader.reset(app);
+                Utils.runOnMainThread(() -> {
+                    headerChanged();
+                    Utils.showToastShort(saved ? L10n.t("Settings page header reset.") : L10n.t("Couldn't start that. Try again."));
+                });
+            });
+            return true;
+        });
+        return row;
+    }
+
+    /** Keeps the picked picture as the settings logo off the main thread, then draws the header again. */
+    private void keepSettingsLogo(@Nullable Uri uri) {
+        Activity activity = getActivity();
+        if (uri == null || activity == null) return;
+        Context context = activity.getApplicationContext();
+        Utils.runOnBackgroundThread(() -> {
+            String refused = null;
+            try {
+                SettingsHeader.keepPicture(context, context.getContentResolver().openInputStream(uri));
+            } catch (HeaderPicture.Refused refusal) {
+                Logger.printInfo(() -> "Settings logo refused: " + refusal.reason);
+                refused = headerPictureRefusal(refusal.reason);
+            } catch (Exception failure) {
+                // The class only: a provider's message can carry the document's name or address.
+                Logger.printInfo(() -> "Settings logo unreadable: " + failure.getClass().getSimpleName());
+                refused = headerPictureRefusal(HeaderPicture.Refusal.UNREADABLE);
+            }
+            String said = refused;
+            Utils.runOnMainThread(() -> {
+                headerChanged();
+                if (said == null) Utils.showToastShort(L10n.t("Settings page logo set."));
+                else Utils.showToastShort(said);
+            });
+        });
+    }
+
+    /** The header's name or logo changed: draw it again, and the bar's name with it (#872). */
+    void headerChanged() {
+        if (header instanceof SettingsHeader) ((SettingsHeader) header).refresh();
+        showTitle();
+    }
+
+    /** What the settings page name row says: the name at the top of this page. */
+    static String settingsNameSummary(String text) {
+        String name = SettingsHeader.cleanName(text);
+        return name.isEmpty()
+                ? L10n.t("HushGram shows at the top of this page.")
+                : L10n.f("The top of this page says %1$s.", L10n.isolate(name));
     }
 
     /** One short sentence per refusal, each fitting a toast. */
@@ -4524,9 +4665,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /**
      * Hands [changed] the activity under HushGram settings each time [row] is flipped. Settings are a
      * dialog over Instagram's screen, which never resumes when they close, so a helper that decides as
-     * an activity resumes hears of the change here.
+     * an activity resumes hears of the change here. A list row's new choice counts as a flip.
      */
-    static SwitchPreference onFlip(SwitchPreference row, java.util.function.Consumer<Activity> changed) {
+    static <P extends Preference> P onFlip(P row, java.util.function.Consumer<Activity> changed) {
         row.setOnPreferenceChangeListener((preference, value) -> {
             changed.accept(activityOf(preference.getContext()));
             return true;
@@ -4945,6 +5086,74 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** How many of the newest viewing history rows the settings row shows. Its page has them all. */
     static final int VIEWING_HISTORY_SHOWN = 3;
+
+    /**
+     * Keep history for (#228): the newest 500 whatever their age, the start, or 3, 7, 15 or 30 days,
+     * or Custom, which asks for a number of days. A list of everything ever seen isn't offered.
+     */
+    static HistoryDaysRow historyDaysRow(Context context) {
+        HistoryDaysRow row = new HistoryDaysRow(context);
+        row.setKey(Settings.VIEWING_HISTORY_DAYS.key);
+        row.setTitle(L10n.t("Keep history for"));
+        row.setDialogTitle(L10n.t("Keep history for"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        int[] presets = HistoryDaysRow.PRESETS;
+        CharSequence[] entries = new CharSequence[presets.length + 1];
+        CharSequence[] values = new CharSequence[presets.length + 1];
+        for (int i = 0; i < presets.length; i++) {
+            entries[i] = historyDaysLabel(presets[i]);
+            values[i] = String.valueOf(presets[i]);
+        }
+        entries[presets.length] = L10n.t("Custom");
+        values[presets.length] = HistoryDaysRow.CUSTOM;
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(String.valueOf(Settings.VIEWING_HISTORY_DAYS.savedValue()));
+        row.setOnPreferenceChangeListener((preference, value) -> {
+            if (!HistoryDaysRow.CUSTOM.equals(value)) return true;
+            askHistoryDays((HistoryDaysRow) preference);
+            return false;
+        });
+        return row;
+    }
+
+    /** Asks how many days Custom keeps, 1 to 365, and saves a whole number in that range. */
+    private static void askHistoryDays(HistoryDaysRow row) {
+        Activity activity = activityOf(row.getContext());
+        if (activity == null) return;
+        int pad = Math.round(20 * activity.getResources().getDisplayMetrics().density);
+        LinearLayout content = new LinearLayout(activity);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(pad, pad / 2, pad, 0);
+        EditText field = new EditText(activity);
+        field.setId(android.R.id.edit);
+        field.setInputType(InputType.TYPE_CLASS_NUMBER);
+        field.setSingleLine(true);
+        field.setFilters(new InputFilter[]{new InputFilter.LengthFilter(3)});
+        int saved = Settings.VIEWING_HISTORY_DAYS.savedValue();
+        if (saved > 0) field.setText(String.valueOf(saved));
+        content.addView(field, new LinearLayout.LayoutParams(-1, -2));
+        AlertDialog dialog = new AlertDialog.Builder(activity)
+                .setTitle(L10n.t("Keep history for"))
+                .setMessage(L10n.t("Type how many days to keep, from 1 to 365."))
+                .setView(content)
+                .setPositiveButton(L10n.t("Save"), (shown, which) -> {
+                    int days = HistoryDaysRow.customDays(field.getText().toString());
+                    if (days > 0) saveDeferred(row, Settings.VIEWING_HISTORY_DAYS, days);
+                })
+                .setNegativeButton(L10n.t("Cancel"), null)
+                .create();
+        dialog.show();
+        ScreenColors.dialog(dialog);
+        fitAboveKeyboard(dialog);
+    }
+
+    /** What Keep history for's list calls [days]: Newest 500 for 0, else the days. */
+    static String historyDaysLabel(int days) {
+        if (days <= 0) return L10n.t("Newest 500");
+        if (days == 1) return L10n.t("1 day");
+        return L10n.f("%1$s days", NumberFormat.getIntegerInstance(L10n.locale()).format(days));
+    }
 
     /**
      * The row with the newest of what the viewing history kept. Read off the main thread, so it
@@ -7202,6 +7411,22 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
+    /** How high the line for writing a comment sits on stories (#826). Its values are the heights' own names. */
+    static ChoiceRow<StoryCommentLine> storyCommentLineRow(Context context) {
+        ChoiceRow<StoryCommentLine> row = new ChoiceRow<>(context, Settings.STORY_COMMENT_LINE,
+                StoryCommentLine.values(), new String[] {
+                        L10n.t("The line for writing a comment sits where Instagram puts it, at the bottom of the story."),
+                        L10n.t("The line for writing a comment sits a little higher on the story."),
+                        L10n.t("The line for writing a comment sits higher on the story, well clear of the bottom edge."),
+                }, null);
+        fill(row, Settings.STORY_COMMENT_LINE, StoryCommentLine.values(), new String[] {
+                L10n.t("Where Instagram puts it"),
+                L10n.t("A little higher"),
+                L10n.t("Higher"),
+        }, L10n.t("Comment line height on stories"));
+        return row;
+    }
+
     /** What a seek bar looks like with each {@link OverlayLook}, in their order. */
     private static String[] seekBarLookSummaries() {
         return new String[] {
@@ -7659,6 +7884,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             ((BurnInGuardRow) preference).showSummary();
         } else if (preference instanceof BurnInWaitRow) {
             ((BurnInWaitRow) preference).showSummary();
+        } else if (preference instanceof HistoryDaysRow) {
+            ((HistoryDaysRow) preference).showSummary();
         } else if (preference instanceof ScrollBreakRow) {
             ((ScrollBreakRow) preference).showSummary();
         } else if (preference instanceof StoryTimeModeRow) {
@@ -7722,6 +7949,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             ((StoryTimeModeRow) listPreference).showSummary();
         } else if (listPreference instanceof StoryMentionsLookRow) {
             ((StoryMentionsLookRow) listPreference).showSummary();
+        } else if (listPreference instanceof HistoryDaysRow) {
+            ((HistoryDaysRow) listPreference).showSummary();
         } else if (listPreference instanceof ChoiceRow) {
             ((ChoiceRow<?>) listPreference).showSummary();
         } else if (listPreference instanceof FollowLabelPlaceRow) {
@@ -8946,6 +9175,36 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
+    /** The settings page name row (#872). Its summary follows its text, whoever sets it: the person, Reset or an import. */
+    static final class SettingsNameRow extends ValidatedEditRow {
+        SettingsNameRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(settingsNameSummary(text));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Any text cleans to a name the header can show, blank included, so nothing is refused. */
+        @Override String validatedValue(String typed) {
+            return SettingsHeader.cleanName(typed);
+        }
+
+        @Override String validationError() {
+            return "";
+        }
+    }
+
     /**
      * The video file name's row. Its summary follows its text, whoever sets it: the person, the
      * shared page syncing it from the setting, or an import. Its dialog shows what the typed
@@ -9589,6 +9848,78 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (candidate.name().equals(getValue())) wait = candidate;
             }
             setSummary(burnInWaitSummary(wait));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * Keep history for (#228). Its value is the days as a number, 0 for the newest 500, and a number
+     * that isn't one of the list's shows as Custom.
+     */
+    static final class HistoryDaysRow extends ListPreference {
+        /** The list's choices in days, 0 first for the newest 500. */
+        static final int[] PRESETS = {0, 3, 7, 15, 30};
+
+        /** The value of the list's Custom entry, never saved: picking it asks for a number instead. */
+        static final String CUSTOM = "custom";
+
+        HistoryDaysRow(Context context) {
+            super(context);
+        }
+
+        /** [text] as Custom's days, 1 to 365 (a bigger number is brought down), or 0 when it isn't a whole number above 0. */
+        static int customDays(@Nullable String text) {
+            try {
+                long days = Long.parseLong(text == null ? "" : text.trim());
+                return days < 1 ? 0 : (int) Math.min(365, days);
+            } catch (NumberFormatException notANumber) {
+                return 0;
+            }
+        }
+
+        /** The days a value names, 0 for one that isn't a number. */
+        static int daysOf(@Nullable String value) {
+            try {
+                return Math.max(0, Integer.parseInt(value == null ? "" : value.trim()));
+            } catch (NumberFormatException notANumber) {
+                return 0;
+            }
+        }
+
+        /** A saved number of days the list has no entry for is Custom's, so the list marks Custom. */
+        @Override
+        public int findIndexOfValue(String value) {
+            int found = super.findIndexOfValue(value);
+            if (found >= 0 || daysOf(value) <= 0) return found;
+            return super.findIndexOfValue(CUSTOM);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            int days = daysOf(getValue());
+            if (days == 0) setSummary(L10n.t("The newest 500 stay, however old they are."));
+            else if (days == 1) setSummary(L10n.t("Anything seen more than a day ago goes. At most 2000 stay."));
+            else setSummary(L10n.f("Anything seen more than %1$s days ago goes. At most 2000 stay.",
+                    NumberFormat.getIntegerInstance(L10n.locale()).format(days)));
         }
 
         @Override

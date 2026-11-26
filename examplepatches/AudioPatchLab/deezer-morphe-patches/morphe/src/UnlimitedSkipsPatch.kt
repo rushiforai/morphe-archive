@@ -16,14 +16,14 @@ internal val unlimitedSkipsPatch = patch {
 
     execute {
         // Return 0 (unlimited) for radio_skips in the policy model so licenses and UI counters agree.
-        val policySkips = mutableClassDefBy("Lcom/deezer/core/data/model/policy/IllIlIlIIlIllIll;").methods.single {
-            it.name == "IIlIlIlIlIllllll" && it.parameterTypes.isEmpty() && it.returnType == "I"
+        val policySkips = mutableClassDefBy("Lcom/deezer/core/data/model/policy/lIIIIIlllllIIIII;").methods.single {
+            it.name == "lIIlIIlIlllllII" && it.parameterTypes.isEmpty() && it.returnType == "I"
         }
         check(
             checkNotNull(policySkips.implementation).instructions.any { instruction ->
                 instruction.opcode == Opcode.IGET &&
                     (instruction as ReferenceInstruction).reference.toString() ==
-                    "Lcom/deezer/core/data/model/policy/IllIlIlIIlIllIll;->lIIIIlllIlllll:I"
+                    "Lcom/deezer/core/data/model/policy/lIIIIIlllllIIIII;->IIIlIIIIIIIlIl:I"
             },
         )
         policySkips.addInstructions(
@@ -35,15 +35,15 @@ internal val unlimitedSkipsPatch = patch {
         )
 
         // Allow skips and report unlimited (-1) remaining skips even before policy rights arrive.
-        val skipTracker = mutableClassDefBy("LlIIIlIlIlIIIII;")
+        val skipTracker = mutableClassDefBy("LllIIllIllIlllI;")
         val canSkipInWindow = skipTracker.methods.single {
-            it.name == "IIlllIlIIlIlII" && it.parameterTypes == listOf("Z") && it.returnType == "Z"
+            it.name == "IIllIIlIIIlIIlll" && it.parameterTypes == listOf("Z") && it.returnType == "Z"
         }
         check(
             checkNotNull(canSkipInWindow.implementation).instructions.any { instruction ->
                 instruction.opcode == Opcode.IGET &&
                     (instruction as ReferenceInstruction).reference.toString() ==
-                    "LIlIllIlIllIIllI;->IIlllIlllIlll:I"
+                    "LllIIlIllIIllII;->lIIlIlIllIl:I"
             },
         )
         canSkipInWindow.addInstructions(
@@ -55,13 +55,13 @@ internal val unlimitedSkipsPatch = patch {
         )
 
         val remainingSkips = skipTracker.methods.single {
-            it.name == "IIlIlIlIlIllllll" && it.parameterTypes.isEmpty() && it.returnType == "J"
+            it.name == "lIIlIIlIlllllII" && it.parameterTypes.isEmpty() && it.returnType == "J"
         }
         check(
             checkNotNull(remainingSkips.implementation).instructions.any { instruction ->
                 instruction.opcode == Opcode.IGET &&
                     (instruction as ReferenceInstruction).reference.toString() ==
-                    "LIlIllIlIllIIllI;->IIlllIlllIlll:I"
+                    "LllIIlIllIIllII;->lIIlIlIllIl:I"
             },
         )
         remainingSkips.addInstructions(
@@ -73,8 +73,8 @@ internal val unlimitedSkipsPatch = patch {
         )
 
         val controlRights = skipTracker.methods.single {
-            it.name == "IIIIIllIlIIllll" && it.parameterTypes == listOf("I") &&
-                it.returnType == "LlIllIlIllIIllll;"
+            it.name == "IllIIIlllIIlIlll" && it.parameterTypes == listOf("I") &&
+                it.returnType == "LIIIlIllIlIIIIll;"
         }
         val rightsInstructions = checkNotNull(controlRights.implementation).instructions
         val limitedMask = rightsInstructions.indices.single { index ->
@@ -100,8 +100,8 @@ internal val unlimitedSkipsPatch = patch {
         )
 
         // Allow skipping to the next track in on-demand contexts (albums/playlists) after queue-end checks.
-        val queueController = mutableClassDefBy("LlIIIIIlllIllllll;").methods.single {
-            it.name == "IIlIlIlIllIlll" && it.parameterTypes == listOf("Z", "Z") && it.returnType == "Z"
+        val queueController = mutableClassDefBy("LIlIIIlIlIIIll;").methods.single {
+            it.name == "IIIlllIllIllllI" && it.parameterTypes == listOf("Z", "Z") && it.returnType == "Z"
         }
         val queueImplementation = checkNotNull(queueController.implementation)
         val queueInstructions = queueImplementation.instructions
@@ -109,7 +109,7 @@ internal val unlimitedSkipsPatch = patch {
             val instruction = queueInstructions[index]
             instruction.opcode == Opcode.IGET_OBJECT &&
                 (instruction as ReferenceInstruction).reference.toString() ==
-                "LlIIIIIlllIllllll;->IIIIlIIlllIll:LIllIlIIllIlIlIlI;"
+                "LIlIIIlIlIIIll;->llIIIlIIIIIlIll:LlIlIIlllllIlI;"
         }
         val nonEmptyQueue = queueInstructions.withIndex().filter { (_, instruction) ->
             instruction is BuilderInstruction21t && instruction.target.location.index == rightsCheckIndex

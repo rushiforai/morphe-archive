@@ -1,6 +1,6 @@
 # 日本語化の方針と範囲（ayufa-patches-jp）
 
-いずれも「本家をクローンし、言語だけを日本語にする」方式で、翻訳済みソースのコピーを保持します（X 側: `sources/piko/`、Twitch 側: `sources/twitch/`、LINE 側: `sources/line/`、KakaoTalk 側: `sources/kakao/`）。
+いずれも「本家をクローンし、言語だけを日本語にする」方式で、翻訳済みソースのコピーを保持します（X 側: `sources/piko/`、Twitch 側: `sources/twitch/`、KakaoTalk 側: `sources/kakao/`）。
 
 **恒久ルール: パッチ名（タイトル）は絶対に翻訳しません。** Morphe のパッチャーはパッチを名前の文字列順に実行するため、名前を変えると実行順序が本家と入れ替わり、本家で成功する構成でも失敗します（X 12.39.0-prod.01 で実証済み。詳細は `docs/UPSTREAM.md` の「既知の問題」）。4アプリとも、パッチ宣言の `name` は本家の英語名のまま保持し、日本語化するのは `description` とアプリ内 UI 文字列だけです。本家が新しいパッチを追加した場合も同じです。
 
@@ -67,37 +67,9 @@ v1.2.0 からは Twitch 側と同じくソースのコピーを保持する方�
 
 Twitch 側には、本家に無い Ayufa の独自パッチ「Ayufa: Startup tab」（v1.3.0 追加）が1件だけ含まれます。日本語化ではなく新機能（起動時に開くタブの選択）なので、文字列は最初から日本語で書き、パッチ名だけは恒久ルールに従って英語のままにします。初期状態は未選択（おすすめに含めない）です。詳細は `docs/UPSTREAM.md` の Twitch 側の例外注記を参照してください。
 
-## LINE 側: ソース直接翻訳方式
+## LINE 側: 収録終了（2026-11-26）
 
-本家 `andrewliang25/morphe-patches` のパッチにも文字列リソースの仕組みが無く、
-表示文字列はソースコード内に直接書かれています。そのため Twitch 側と同じく、
-**コピー側リポジトリ（`sources/line/`）で文字列を直接翻訳する** 方式を取ります。
-本家の更新を取り込むたびに、翻訳行で競合が起きる可能性があります
-（対処は `docs/UPSTREAM.md`）。
-
-収録範囲は LINE 向けパッチだけです。コピーは本家のツリー全体
-（Facebook 向けパッチを含む）を保持しますが、Facebook 側は翻訳もしませんし、
-バンドルにも入りません（ビルドへの注入時に除外。詳細は `docs/UPSTREAM.md`）。
-
-翻訳するもの（ユーザーに見える表示文字列のみ）:
-
-- Morphe のパッチ選択画面（パッチ定義の Kotlin コード）: LINE 全39パッチの説明。パッチ名は本家の英語名のままです（上記の恒久ルール）。
-- LINE の設定画面に追加される「Andrew's Patch Setting」の UI 文字列（拡張機能の Java コード `LineSettingsScreen.java`）: セクション名、スイッチのラベルと説明、再起動・終了の行、注記、クレジットまわり、ライセンスダイアログのボタン類。
-
-翻訳しないもの:
-
-- 画面・メニューのタイトル「Andrew's Patch Setting」とプロジェクト名「Andrew's Patches」（固有名詞のため英語のまま）。LINE の設定一覧に追加される行のタイトルも同じ文字列で、本家のパッチコードがそのまま追加します。
-- GPL のライセンス告知文（`LICENSE_NOTICE`。法務文のため原文のまま）。
-- 設定キー、SharedPreferences のキー、機能ID（`hideWalletTab` など）、インテントやリソース名などの内部識別子（互換性のため絶対に変えない）。
-- LINE アプリ本体の文言と照合される文字列（「CHECK」のヒントなど、アプリ側の表示を指す語句はそのまま引用）。
-- ブランド名・サービス名: LINE、LINE Pay、VOOM、MicroG、OpenFreeMap など。
-- 例外メッセージ、ログ、内部エラー文字列。
-- Facebook 向けの拡張ファイル（`FacebookSettings.java` など。収録対象外のため手つかず）。
-
-### LINE 側の更新手順（本家に新しい文字列が増えたら）
-
-1. 本家が LINE パッチの説明を変えたり、新しい LINE パッチを足したりしたら、説明だけを日本語に訳してコピーへ反映し、`scripts/verify_bundle.py` の `EXPECTED_PATCHES`（`jp.naver.line.android`）を更新します。名前は本家の英語名をそのまま使います（新しいパッチも同様。絶対に翻訳しない）。
-2. 本家が「Andrew's Patch Setting」画面に表示文字列を足したら、`LineSettingsScreen.java` の該当文字列を翻訳します。設定キーや機能IDは変えません。
+本家 andrewliang25/morphe-patches が公式の日本語訳を提供し始めたため、LINE パッチの収録と翻訳は v1.8.0 で終了しました（経緯は `docs/UPSTREAM.md` の「LINE 側: 収録終了」参照）。かつては Twitch 側と同じソース直接翻訳方式で、`sources/line/` にコピーを保持していました。
 
 ## KakaoTalk 側: X 側と同じ addresources 方式
 

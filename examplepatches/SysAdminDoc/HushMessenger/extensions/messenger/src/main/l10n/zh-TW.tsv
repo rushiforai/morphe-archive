@@ -80,7 +80,7 @@ restart_account	你的帳號會保持登入。
 choices	你的設定
 restart_unavailable	無法重新啟動。請關閉後重新開啟 Messenger。
 settings_open_failed	無法開啟 HushMessenger 設定。
-settings_open_instead	Patch controls（修補功能控制）：長按主畫面上的 Messenger 圖示
+settings_open_instead	Patch controls：長按 Messenger 的主畫面圖示
 restart_save_failed	無法儲存，因此未重新啟動 Messenger。請再試一次。
 paused	暫停所有變更
 search	搜尋控制項
@@ -222,6 +222,20 @@ invisible_buttons_level_choice	%2$s 設為 %1$s
 invisible_buttons_invisible	現在看不見了
 invisible_buttons_visible	恢復原狀了
 invisible_buttons_level	現在以 %1$s 顯示
+invisible_buttons_pick	在畫面上挑選按鈕
+invisible_buttons_pick_help	在 Messenger 的畫面和選單旁放一個小圓形按鈕。點一下它，再點任何按鈕，就能選擇它要多透明。用完後請關閉。
+invisible_buttons_pick_dot	挑選按鈕
+invisible_buttons_pick_now	現在點一下你要的按鈕
+invisible_buttons_pick_none	那裡沒有可挑選的按鈕
+invisible_buttons_group_screen	聊天列表和其他畫面
+invisible_buttons_group_header	聊天的頂端
+invisible_buttons_group_composer	訊息框
+invisible_buttons_group_chat	聊天裡面
+invisible_buttons_group_menu	選單和面板
+invisible_buttons_group_ours	HushMessenger 的按鈕
+invisible_buttons_group_other	其他
+tab_bar_slide	沿著分頁列滑動
+tab_bar_slide_help	手指沿著下方的分頁列滑動，會有一個醒目框跟著手指一個分頁一個分頁移動。放開手指就會開啟底下的分頁。點一下還是跟以前一樣，而且關閉滑動切換分頁時也能用。開啟後請重新啟動 Messenger。
 message_actions_hidden_label	%1$s（已隱藏）
 message_actions_move_up	將%1$s上移
 message_actions_move_down	將%1$s下移
@@ -258,6 +272,14 @@ refresh_rate_hz	%1$s Hz
 refresh_rate_single	你的螢幕只有一種更新頻率，所以這裡沒有可選的項目。
 refresh_rate_picked	Messenger 會要求 %1$s Hz
 refresh_rate_help	頻率越高，捲動越流暢，也越耗電。回到 Messenger 後就會套用新的頻率。
+see_through_tab_bar_frosted	霧面
+see_through_tab_bar_standard	標準
+see_through_tab_bar_light	較透明
+see_through_tab_bar_clear	最透明
+see_through_tab_bar_picked	Messenger 重新啟動後會顯示%1$s
+see_through_tab_bar_help	霧面透出的聊天內容最少，最透明則最多。
+story_row_size_picked	限時動態列現在以 %1$s 顯示
+story_row_size_help	%1$s 最接近 Messenger 原本的大小，%2$s 最小。
 hidden_words_words	要隱藏的字詞
 hidden_words_hint	最多 %1$d 個字元，以逗號分隔
 hidden_words_help	必須整個字詞相符，所以「ok」不會隱藏「okay」。大小寫不影響。
@@ -279,6 +301,16 @@ home_header_unreadable	無法開啟該圖片。
 home_header_not_saved	無法儲存圖片。
 home_header_busy	仍在複製上一張圖片。
 home_header_timeout	圖片處理太久，請再試一次。
+home_header_font	文字字型
+home_header_font_none	文字目前使用粗體無襯線字型。選擇不超過 %1$d MB 的 .ttf 或 .otf 檔案，即可使用你自己的字型。
+home_header_font_using	文字使用 %1$s。
+home_header_font_missing	HushMessenger 儲存的 %1$s 副本已遺失，因此文字改用粗體無襯線字型。請重新選取檔案。
+home_header_font_choose	選擇文字的字型
+home_header_font_remove	移除字型
+home_header_font_help	只有標題的文字會使用這個字型，Messenger 的其他部分維持原本的字型。
+home_header_font_saved	字型已儲存。
+home_header_font_removed	字型已移除。
+home_header_font_remove_failed	無法移除字型。
 tab_icons_help	每個分頁都會換成簡單的線條圖示，顏色沿用 Messenger 原本的。想換成自己的圖片，就為該分頁挑一張。背景透明的正方形圖片最好看。圖片最大 %1$d MB。
 tab_icons_choose	選擇
 tab_icons_remove	移除
@@ -349,12 +381,16 @@ material_you_style_monochrome	單色
 material_you_style_changed	已儲存「%s」樣式
 light	淺色主題
 light_help	將此設定畫面改為淺色。Messenger 本身不受影響。
+follow_phone_theme	跟隨手機的深色模式
+follow_phone_theme_help	手機使用深色模式時，此設定畫面會變為深色，否則為淺色。Messenger 本身不受影響。
+light_follows_phone	「跟隨手機的深色模式」已開啟，因此由手機決定外觀。你的設定已儲存。
 theme_help	預設使用深色主題。你的設定會保留。
 theme_status_wallpaper	Material You 會使用桌布的顏色。選擇強調色或貼上主題即可使用自己的顏色。
 theme_status_saved	已儲存「%s」主題。開啟 Material You 時會使用它。
 theme_status_unnamed	已儲存你的主題。開啟 Material You 時會使用它。
 theme_accents	強調色
 theme_accent_saved	已儲存強調色
+theme_accent_saved_on	已儲存並開啟強調色
 theme_accent_blue	藍色
 theme_accent_purple	紫色
 theme_accent_pink	粉紅色
@@ -373,6 +409,7 @@ theme_paste	使用已複製的主題
 theme_copy	複製主題
 theme_clear	改回桌布顏色
 theme_pasted	已儲存主題
+theme_pasted_on	已儲存並開啟主題
 theme_paste_empty	沒有可貼上的內容。請先複製主題。
 theme_paste_invalid	這不是主題。你的顏色沒有變更。
 theme_copied	已複製主題
@@ -778,7 +815,7 @@ search_suggested.description	在你輸入任何內容前，隱藏搜尋頂端的
 search_reels.title	在搜尋中隱藏最近的 Reels
 search_reels.description	在你輸入任何內容前，從搜尋中隱藏你最近看過的 Reels。
 longer_notes.title	撰寫較長的便利貼
-longer_notes.description	讓便利貼最多可輸入 500 個字元，而不是 60 個。較長的便利貼能否發布由 Facebook 決定。
+longer_notes.description	讓便利貼最多可輸入 2000 個字元，而不是 60 個。較長的便利貼能否發布由 Facebook 決定。
 chat_preview.title	長按預覽聊天室
 chat_preview.description	長按聊天室，就能在 Messenger 內建的預覽中快速看一眼，下方附上聊天室選單，不必開啟聊天室。
 chat_preview_size.title	放大聊天室預覽
@@ -829,6 +866,8 @@ floating_tab_bar.title	浮動分頁列
 floating_tab_bar.description	把底部分頁列換成 Messenger 正在試用的浮動樣式，疊在聊天清單上，而不是放在清單下方。在部分螢幕上，Messenger 可能仍保留一般分頁列。重新啟動 Messenger 後生效。
 tab_swipe.title	滑動切換分頁
 tab_swipe.description	在聊天清單上左右滑動就能切到下方分頁列的下一個分頁，不用再伸手去按它的按鈕。隱藏的分頁會跳過，會左右滑動的清單也會留住自己的滑動。開啟後請重新啟動 Messenger。
+see_through_tab_bar.title	透明分頁列
+see_through_tab_bar.description	讓聊天內容透過下方的浮動分頁列顯示出來，透明程度依你在下方的選擇。你所在的分頁和圖示維持原樣。需要開啟浮動分頁列，或使用 Messenger 本身的浮動列。重新啟動 Messenger 即可看到變更。
 chat_animation.title	以滑動動畫開啟與關閉聊天室
 chat_animation.description	開啟聊天室時從側邊滑入，返回時滑出。聊天大頭貼與泡泡通知不受影響。
 story_hold.title	限時動態結束時停留
@@ -949,6 +988,8 @@ mark_read_button.title	標示為已讀按鈕
 mark_read_button.description	啟用「隱藏已讀標記」時，在聊天室頂端列加入 Messenger 的「標示為已讀」圖示。開啟聊天室仍不會傳送已讀標記；當你想讓對方看到已讀時，再點選圖示，本機也會將聊天室標示為已讀。頂端列已滿時，此圖示會取代聊天室詳細資料按鈕（點選聊天室名稱仍可開啟同一頁面）；聊天室沒有該按鈕時，則取代另一個非通話按鈕，通話按鈕都會保留原位。
 read_chats_locally.title	在這支手機上將聊天室標示為已讀
 read_chats_locally.description	開啟「隱藏已讀標記」時，清除你已看過的聊天室的未讀外觀，聊天室清單不再以粗體和未讀數量顯示它。不會傳送任何資料給 Messenger，所以對方仍然不會知道你已讀。聊天室收到新訊息時，未讀外觀會再次出現。
+mark_read_locally.title	「標示為已讀」只留在這支手機
+mark_read_locally.description	在聊天室清單中使用 Messenger 的「標示為已讀」，會讓對方知道你已讀他們的訊息。開啟此選項後，它只會清除這支手機上的未讀外觀，不會傳送任何資料給 Messenger。聊天室收到新訊息時，未讀外觀會再次出現。
 keep_unsent.title	保留已收回的訊息
 keep_unsent.description	在支援的聊天室中，當對方收回訊息後仍將訊息保留在畫面上。在加密聊天室中，訊息會改為保留在通知裡。尚未測試群組聊天室。你自己收回訊息的功能可能受到限制。
 hidden_words.title	隱藏含有你的字詞的訊息
@@ -973,6 +1014,8 @@ avatar_shape.title	方形大頭貼照
 avatar_shape.description	以方形取代圓形顯示用戶的大頭貼照。開啟下方的「圓角」可改為圓角方形。重新啟動 Messenger 後生效。
 thin_story_rings.title	細限時動態外框
 thin_story_rings.description	將有限時動態的大頭貼周圍的彩色外框以平常一半的粗細繪製，讓它占用更少空間。
+story_row_size.title	縮小限時動態列
+story_row_size.description	依你在下方選擇的大小，將聊天清單上方的限時動態與便利貼列縮小繪製，讓畫面上能顯示更多。輕觸仍會開啟手指下方的限時動態或便利貼。
 home_header.title	自訂首頁標題
 home_header.description	以你自己的文字或圖片取代聊天清單頂端的 Messenger 字標。在下方輸入文字或選擇圖片。兩者都沒有時，會保留原本的字標。重新啟動 Messenger 後即可看到變更。
 custom_font.title	使用自訂字型

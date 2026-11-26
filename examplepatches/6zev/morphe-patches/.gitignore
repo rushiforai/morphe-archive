@@ -126,6 +126,9 @@ gradle-app.setting
 # Dependency directories
 node_modules/
 
+# meow-memory store (local only, never commit)
+.dsh-meow/
+
 # gradle properties, due to Github token
 /gradle.properties
 

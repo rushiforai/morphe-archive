@@ -20,7 +20,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * answer goes through the extension first, which says yes while Show pinned messages is on, so every chat takes the
  * path those chats take and Messenger's bar shows the chat's pinned messages.
  *
- * The check is the ThreadKey ()Z call whose move-result feeds the if-nez that lands on the loader's new-instance. Other
+ * The check is the ThreadKey ()Z call whose move-result feeds the if-nez that lands on the loader's new-instance, or in
+ * 588 the if-eqz right above that new-instance, which skips the loader on a no. Other
  * banners sit behind gates of the same shape, so the loader found with the hooks picks which gate is the pinned one. The
  * fetch class keeps its own name in every build.
  */
@@ -46,7 +47,15 @@ internal fun Method.pinnedBarGate(loader: String): PinnedGate? {
     val made = code.indices.singleOrNull {
         code[it].opcode == Opcode.NEW_INSTANCE && (code[it] as ReferenceInstruction).reference.toString() == loader
     } ?: return null
-    val branch = code.indices.singleOrNull { code[it].opcode == Opcode.IF_NEZ && code.branchTarget(it) == made } ?: return null
+    // 587 jumps onto the loader with an if-nez. 588 falls into it from an if-eqz right above that skips it, and nothing
+    // else may land on the loader then.
+    val jumps = code.indices.filter { code[it].opcode == Opcode.IF_NEZ && code.branchTarget(it) == made }
+    val branch = when {
+        jumps.size == 1 -> jumps.single()
+        jumps.isEmpty() && made >= 1 && code[made - 1].opcode == Opcode.IF_EQZ && code.branchTarget(made - 1) > made &&
+            made !in jumpTargets() -> made - 1
+        else -> return null
+    }
     if (branch < 2 || branch in jumpTargets()) return null
     val register = (code[branch] as OneRegisterInstruction).registerA
     val result = code[branch - 1]

@@ -286,6 +286,32 @@ public class ChatHidingTest {
         assertSame(back, ChatHiding.inboxRows(supplier, back));
     }
 
+    // #222: a Mark as read held on this phone changes nothing the chat list listens to, so on the S22 the row stayed
+    // bold until Messenger restarted. Holding one makes each list read itself again.
+    @Test public void aMarkAsReadHeldOnThisPhoneMakesTheChatListReadItselfAgain() {
+        Settings.localReadChats = null;
+        Supplier supplier = new Supplier();
+        ChatHiding.inboxRows(supplier, Rows.of(new Summary("chat")));
+        assertFalse("off, Messenger marks it and its list hears about it", Settings.markedReadHere("ONE_TO_ONE:1:2"));
+        idle();
+        assertEquals(0, supplier.subscribed);
+
+        Settings.preferences.edit().putBoolean(Settings.LOCAL_MARK_KEY, true).commit();
+        assertTrue(Settings.markedReadHere("ONE_TO_ONE:1:2"));
+        idle();
+        assertEquals("The list reads itself again", 1, supplier.subscribed);
+
+        // Mark as unread on that chat: Messenger already had it unread, so its own call changes nothing either.
+        Settings.markedUnreadHere("ONE_TO_ONE:1:2");
+        idle();
+        assertEquals("Dropping the mark redraws the row too", 2, supplier.subscribed);
+        Settings.markedUnreadHere("ONE_TO_ONE:1:2");
+        Settings.markedUnreadHere("GROUP:9:9");
+        idle();
+        assertEquals("A chat with no mark here is Messenger's own business", 2, supplier.subscribed);
+        Settings.localReadChats = null;
+    }
+
     @Test public void a587RouteFillsTheDescriptionThroughTheBuildersSetter() throws Exception {
         String field = BUILDER + "->description:Ljava/lang/String;";
         ChatHiding.route = ChatHiding.Route.of(ROUTE.replace(field, BUILDER + "->describe(Ljava/lang/String;)V"), ChatHidingTest.class.getClassLoader());

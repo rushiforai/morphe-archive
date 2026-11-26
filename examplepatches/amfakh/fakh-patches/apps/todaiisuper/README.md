@@ -4,11 +4,11 @@ Patches for **Todaii Super** (`com.eup.todaiisuper`), version `1.1.5`, as an XAP
 
 ## Patches
 
-Every patch except **GmsCore support** is on by default. Morphe Manager groups them by category.
+Every patch is on by default. Morphe Manager groups them by category.
 
 | Category | Patch | Default | What it does |
 |---|---|---|---|
-| Feature | GmsCore support | Off | Makes Google sign-in work through [microG RE](https://github.com/WSTxda/MicroG-RE) (GmsCore) instead of Google Play services. |
+| Feature | GmsCore support | On | Makes Google sign-in work through [microG RE](https://github.com/WSTxda/MicroG-RE) (GmsCore) instead of Google Play services. |
 | Premium | Premium unlock | On | Unlocks the client-side Premium checks. |
 | Privacy | Disable analytics | On | Stops Firebase Analytics, Crashlytics, Performance and Sessions. |
 | Theme | Themed icon | On | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |

@@ -96,11 +96,27 @@ internal fun ResourcePatchContext.applyModernBoostResources() {
 }
 
 internal fun BytecodePatchContext.applyModernBoostTheme() {
-    val latest = packageMetadata.versionName == "1.14.3"
-    val themeUtils = if (latest) "Ln83;" else "Lk83;"
-    val downloadActivity = if (latest) "Lai0;" else "Ldi0;"
-    val drawerActivity = if (latest) "Luj0;" else "Lxj0;"
-    val viewUtils = if (latest) "Lkk3;" else "Ljk3;"
+    val version144 = packageMetadata.versionName == "1.14.4"
+    val version143 = packageMetadata.versionName == "1.14.3"
+    val themeUtils = when {
+        version144 -> "Lw83;"
+        version143 -> "Ln83;"
+        else -> "Lk83;"
+    }
+    val preferences = if (version144) "Lxs2;" else "Lps2;"
+    val downloadActivity = if (version143) "Lai0;" else "Ldi0;"
+    val drawerActivity = if (version143) "Luj0;" else "Lxj0;"
+    val mediaBase = if (version144) "Llq1;" else "Lgq1;"
+    val viewUtils = when {
+        version144 -> "Lal3;"
+        version143 -> "Lkk3;"
+        else -> "Ljk3;"
+    }
+    val imageLoader = when {
+        version144 -> "Lma1;"
+        version143 -> "Lha1;"
+        else -> "Lia1;"
+    }
     // Use URL-specific visited styling instead of coloring every link as an accent.
     mutableClassDefBy("Lcom/rubenmayayo/reddit/ui/customviews/LinkTextView;")
         .methods.single { it.name=="setText" }.addInstructions(0,"""
@@ -139,9 +155,9 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
     require(limits.size==1) { "Boost theme-selection loop changed" }
     for((i,reg) in limits) select.replaceInstruction(i,"const/16 v$reg, 19")
     mutableClassDefBy(modernExt).methods.single { it.name=="mode" }.addInstructions(0,"""
-        invoke-static {}, Lps2;->n()Lps2;
+        invoke-static {}, $preferences->n()$preferences
         move-result-object v0
-        invoke-virtual {v0}, Lps2;->R()I
+        invoke-virtual {v0}, $preferences->R()I
         move-result v0
         return v0
     """)
@@ -161,7 +177,7 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
         "g" to "header","h" to "header","i" to "secondary","j" to "sticky","k" to "secondary",
         "l" to "title","n" to "secondary","o" to "text","p" to "secondary")) hook(themeUtils,name,helper)
     hook(themeUtils,"t","material",true);hook(themeUtils,"s","dynamic",true);hook(themeUtils,"r","amoled",true)
-    hook("Lps2;","V","toolbarMode")
+    hook(preferences,"V","toolbarMode")
     val index=utils.methods.single { it.name=="q" }
     val indexLimits=index.implementation!!.instructions.mapIndexedNotNull { i,ins ->
         if(ins.opcode==Opcode.CONST_16 && (ins as NarrowLiteralInstruction).narrowLiteral==17)
@@ -180,7 +196,7 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
     }
     // Run after native media setup; the newer app reapplies AMOLED themes in
     // several base classes and inflates each gallery page separately.
-    for(type in listOf(downloadActivity, "Lgq1;",
+    for(type in listOf(downloadActivity, mediaBase,
         "Lcom/rubenmayayo/reddit/ui/activities/ImageActivity;",
         "Lcom/rubenmayayo/reddit/ui/activities/ImageActivity2;",
         "Lcom/rubenmayayo/reddit/ui/activities/MediaImageActivity;",
@@ -263,7 +279,7 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
             invoke-static/range {p0 .. p1}, $modernExt->divider(Landroid/view/View;I)I
             move-result p1
         """)
-    val depth=mutableClassDefBy("Lps2;").methods.single { it.name=="D" }
+    val depth=mutableClassDefBy(preferences).methods.single { it.name=="D" }
     val depthReturns=depth.implementation!!.instructions.mapIndexedNotNull { i,ins ->
         if(ins.opcode==Opcode.RETURN_OBJECT)i to (ins as OneRegisterInstruction).registerA else null
     }
@@ -282,6 +298,16 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
         invoke-static {p0,p1,v0}, $modernExt->username(Landroid/widget/TextView;Landroid/graphics/drawable/Drawable;I)V
         return-void
     """)
+    // Compact post metadata renders flair as inline text rather than RichFlairView.
+    val badgeText = mutableClassDefBy("Lcom/rubenmayayo/reddit/ui/customviews/BabushkaText;")
+        .methods.single { it.name == "i" && it.parameterTypes.isEmpty() }
+    val textAssignment = badgeText.implementation!!.instructions.withIndex().single { (_, instruction) ->
+        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.name == "setText" && ref.parameterTypes == listOf("Ljava/lang/CharSequence;")
+    }
+    val textRegisters = textAssignment.value as FiveRegisterInstruction
+    badgeText.replaceInstruction(textAssignment.index,
+        "invoke-static {v${textRegisters.registerC}, v${textRegisters.registerD}}, $modernExt->setBadgeText(Landroid/widget/TextView;Ljava/lang/CharSequence;)V")
     val author=mutableClassDefBy("Lcom/rubenmayayo/reddit/ui/adapters/CommentViewHolder;").methods.single { it.name=="w" }
     val authorCode=author.implementation!!.instructions.toList()
     for(i in authorCode.indices.reversed()) {
@@ -290,13 +316,13 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
         if(ref.name=="setTextColor") author.replaceInstruction(i,"invoke-static {v${call.registerC},v${call.registerD}}, $modernExt->usernameText(Landroid/widget/TextView;I)V")
         if(ref.name=="setBackground") {
             val field=(authorCode[i-1] as? ReferenceInstruction)?.reference as? FieldReference
-            val role=listOf("Y","X","Z","a0","b0").indexOf(field?.name)
+            val role=(if (version144) listOf("X", "W", "Y", "Z", "a0") else listOf("Y", "X", "Z", "a0", "b0")).indexOf(field?.name)
             require(role>=0) { "Unknown Boost author badge: $field" }
             author.replaceInstruction(i,"invoke-static {v${call.registerC},v${call.registerD}}, $modernExt->username$role(Landroid/widget/TextView;Landroid/graphics/drawable/Drawable;)V")
         }
     }
     endHook("Lcom/rubenmayayo/reddit/models/reddit/RichFlairView;","c","invoke-static/range {p0 .. p0}, $modernExt->flair(Landroid/view/View;)V")
-    val panelMethod = if(latest) "O" else "M"
+    val panelMethod = if (version144) "Q" else if (version143) "O" else "M"
     require(mutableClassDefBy(viewUtils).methods.single { it.name==panelMethod }.parameterTypes ==
         listOf("Landroid/content/Context;", "Landroid/view/View;")) { "Boost text-post panel signature changed" }
     endHook(viewUtils,panelMethod,"invoke-static/range {p1 .. p1}, $modernExt->postPanel(Landroid/view/View;)V")
@@ -383,7 +409,7 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
         val instructions=method.implementation?.instructions?.toList() ?: continue
         for(i in instructions.indices.reversed()) {
             val ref=(instructions[i] as? ReferenceInstruction)?.reference as? MethodReference ?: continue
-            if(ref.definingClass!=(if(latest) "Lha1;" else "Lia1;") || ref.name!="b")continue
+            if(ref.definingClass!=imageLoader || ref.name!="b")continue
             val call=instructions[i] as FiveRegisterInstruction
             method.addInstructions(i+1,"invoke-static {v${call.registerD}}, $modernExt->pattern(Landroid/widget/ImageView;)V")
             patternHooks++

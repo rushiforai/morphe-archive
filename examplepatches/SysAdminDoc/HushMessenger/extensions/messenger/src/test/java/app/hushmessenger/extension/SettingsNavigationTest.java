@@ -56,6 +56,22 @@ public class SettingsNavigationTest {
         }
     }
 
+    /** #207 on a phone: `Page up and page down buttons` was nowhere in settings. Every switch under another gets a row. */
+    @Test public void everySwitchThatSitsUnderAnotherHasItsRow() {
+        assertTrue(Settings.installed.contains(ChatJump.KEY));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            java.util.List<String> missing = new java.util.ArrayList<>();
+            for (java.util.Map.Entry<String, String> sub : Settings.SUB_SWITCHES.entrySet()) {
+                if (!Settings.installed.contains(sub.getValue())) continue;
+                // The log's Menu row switch adds to the Menu row control, so it only shows where that one is installed.
+                if (MessageLogButton.MENU_KEY.equals(sub.getKey()) && !Settings.installed.contains("menu_row")) continue;
+                if (root.findViewWithTag(sub.getKey()) == null) missing.add(sub.getKey() + " under " + sub.getValue());
+            }
+            assertEquals("[]", missing.toString());
+        }
+    }
+
     /** #207: searching for a reset leads to Back to defaults on the App tab, and brings back a hidden Quick setups. */
     @Test public void searchingResetLeadsToBackToDefaults() {
         Settings.preferences.edit().putBoolean(SettingsActivity.HIDE_QUICK_SETUPS, true).commit();
@@ -348,6 +364,25 @@ public class SettingsNavigationTest {
             assertTrue(root.findViewWithTag("open_messenger").getWidth() > 0);
             root.findViewWithTag("tab_app").performClick();
             assertEquals(View.VISIBLE, root.findViewWithTag("app_page").getVisibility());
+        }
+    }
+
+    // #228: Bulgarian's word for Open is twice as long, and the button's fixed width broke it over two lines.
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void openStaysOnOneLineInEveryLanguage() {
+        for (String language : new String[] {"en", "bg", "es", "it", "th", "tr", "vi", "zh-rTW"}) {
+            RuntimeEnvironment.setQualifiers(language + "-w411dp-h891dp-xxhdpi");
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = screen.get().getWindow().getDecorView();
+                root.measure(View.MeasureSpec.makeMeasureSpec(411 * 3, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(891 * 3, View.MeasureSpec.EXACTLY));
+                root.layout(0, 0, 411 * 3, 891 * 3);
+                TextView open = root.findViewWithTag("open_messenger");
+                java.util.Locale locale = java.util.Locale.forLanguageTag(language.replace("-r", "-"));
+                assertEquals(language, new SettingsText(locale).get("open"), open.getText().toString());
+                assertEquals(language + " wraps " + open.getText(), 1, open.getLineCount());
+                assertTrue(language + " leaves the title no room", open.getWidth() < 411 * 3 / 3);
+            }
         }
     }
 

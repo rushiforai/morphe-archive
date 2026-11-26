@@ -572,6 +572,8 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	Bi
 Hide profile notes	Profil notlarını gizle
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	Profil fotoğraflarının üzerindeki not balonunu gizler. Bir profili bir sonraki açışınızda uygulanır.
+Hide the gift button on profiles	Profillerde hediye düğmesini gizle
+Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	Başkalarının profillerinden hediye gönder düğmesini kaldırır. Bir profili bir sonraki açışınızda uygulanır.
 # context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
 Save button under posts	Gönderilerin altında Kaydet düğmesi
 # context: summary of that switch; Like, Comment and Share are the buttons under a post
@@ -3167,8 +3169,8 @@ Adds Facebook chats to Android's share menu. A photo or video you share there is
 Share to Facebook chats is off.	Facebook sohbetlerinde paylaş kapalı.
 Nothing in it to send.	Gönderilecek bir şey yok.
 Couldn't save it to your gallery.	Galeriye kaydedilemedi.
-Copied and saved. Pick a chat.	Kopyalandı ve kaydedildi. Bir sohbet seç.
-In your gallery now. Pick a chat.	Artık galerinde. Bir sohbet seç.
+Copied and saved. Paste and attach in a chat.	Kopyalandı ve kaydedildi. Sohbette yapıştır ve ekle.
+Saved to your gallery. Attach it in a chat.	Galerine kaydedildi. Bir sohbette ekle.
 Copied. Pick a chat and paste it.	Kopyalandı. Bir sohbet seçip yapıştır.
 Open your chats to pick one.	Birini seçmek için sohbetlerini aç.
 Post date after the caption	Paylaşım tarihi açıklamadan sonra
@@ -3185,3 +3187,17 @@ Open a chat, then come back here to give it a color of its own.	Bir sohbet açı
 %1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	Son açtığınız sohbet olan %1$s, yukarıdaki sohbet arka planını kullanıyor. Kendi rengini vermek için bir renk kodu yazın.
 %1$s, the last chat you opened, is %2$s.	Son açtığınız sohbet olan %1$s: %2$s.
 Type one color code, or two for a fade from top to bottom.	Bir renk kodu yazın ya da yukarıdan aşağıya geçiş için iki tane.
+Hide the AI content label on reels	Reels'te yapay zeka içeriği etiketini gizle
+Takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. A change shows from the next reel.	Facebook'un yapay zekayla yapıldı olarak işaretlediği reels'lerden "Yapay zeka içeriği" veya "Yapay zeka bilgisi" etiketini kaldırır. Değişiklik bir sonraki reel'den itibaren görünür.
+The %1$s row will be set to %2$s.	%1$s satırı %2$s olarak ayarlanacak.
+The %1$s row will go back to its default.	%1$s satırı varsayılanına dönecek.
+Save files to Downloads	Dosyaları İndirilenler'e kaydet
+A PDF, document or other file you download from a post goes to your phone's Downloads folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.	Bir gönderiden indirdiğin PDF, belge veya başka bir dosya telefonunun İndirilenler klasörüne gider ve orada bir dosya yöneticisi onu açabilir. Kapalıyken Facebook onu hiçbir dosya yöneticisinin erişemediği bir yerde tutar.
+Hide hashtags in reel captions	Reels açıklamalarındaki hashtag'leri gizle
+Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	Reels açıklamalarındaki hashtag'leri, sondaki etiket grubu gibi, kaldırır. Bir cümlenin parçası olan hashtag kalır. Değişiklik bir sonraki reel'den itibaren görünür.
+Keep the keyboard closed when comments open	Yorumlar açılınca klavyeyi kapalı tut
+Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	Yorumlar, henüz yorumu olmayan bir gönderide bile klavye açılmadan açılır. Yazmak istediğinde yorum kutusuna dokun.
+Settings language	Ayarlar dili
+Same as Facebook	Facebook ile aynı
+Show feed reels uncropped	Akıştaki reels'leri kırpmadan göster
+Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Akışındaki reels'ler Facebook'un çerçevesine göre kırpılmak yerine kendi oranlarıyla görüntünün tamamını gösterir. Değişiklikten sonra yüklenen reels'ler bunu uygular.

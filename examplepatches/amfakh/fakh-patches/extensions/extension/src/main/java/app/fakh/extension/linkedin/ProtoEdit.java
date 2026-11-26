@@ -8,7 +8,9 @@ package app.fakh.extension.linkedin;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Minimal protobuf wire format editor: splits a message into fields, and writes them back with
@@ -155,6 +157,95 @@ final class ProtoEdit {
             }
         }
         return write(fields);
+    }
+
+    /**
+     * Edits messages at any depth, looking only into the fields that hold {@code marker}.
+     *
+     * @param data the message to edit
+     * @param marker a text every message to edit contains
+     * @param edit changes the fields of one message in place and says whether it did
+     * @return the edited message, or {@code data} itself when nothing changed
+     */
+    static byte[] editMessages(byte[] data, String marker, Predicate<List<Field>> edit) {
+        List<Field> fields = parse(data);
+        if (fields == null) {
+            // Some embedded messages carry a leading zero byte.
+            if (data.length < 2 || data[0] != 0) return data;
+            byte[] rest = Arrays.copyOfRange(data, 1, data.length);
+            byte[] edited = editMessages(rest, marker, edit);
+            if (edited == rest) return data;
+            byte[] prefixed = new byte[edited.length + 1];
+            System.arraycopy(edited, 0, prefixed, 1, edited.length);
+            return prefixed;
+        }
+        byte[] markerBytes = marker.getBytes(StandardCharsets.UTF_8);
+        boolean changed = edit.test(fields);
+        for (Field field : fields) {
+            if (field.wireType != 2 || indexOf(field.data, markerBytes) < 0) continue;
+            byte[] edited = editMessages(field.data, marker, edit);
+            if (edited != field.data) {
+                field.data = edited;
+                changed = true;
+            }
+        }
+        return changed ? write(fields) : data;
+    }
+
+    /** The number a varint field holds. */
+    static long varintValue(Field field) {
+        return varint(field.data, new int[]{0});
+    }
+
+    private static int indexOf(byte[] data, byte[] needle) {
+        for (int i = 0; i <= data.length - needle.length; i++) {
+            int j = 0;
+            while (j < needle.length && data[i + j] == needle[j]) j++;
+            if (j == needle.length) return i;
+        }
+        return -1;
+    }
+
+    /**
+     * Removes every component whose view tracking (field 26) is named {@code viewName}, at any depth, from the message
+     * that holds it.
+     *
+     * @return the edited message, or {@code data} itself when no component was removed
+     */
+    static byte[] removeComponents(byte[] data, String viewName) {
+        if (!contains(data, viewName)) return data;
+        List<Field> fields = parse(data);
+        if (fields == null) return data;
+        boolean changed = false;
+        for (java.util.Iterator<Field> it = fields.iterator(); it.hasNext(); ) {
+            Field field = it.next();
+            if (field.wireType != 2 || !contains(field.data, viewName)) continue;
+            if (viewName.equals(viewName(field.data))) {
+                it.remove();
+                changed = true;
+                continue;
+            }
+            byte[] inner = removeComponents(field.data, viewName);
+            if (inner != field.data) {
+                field.data = inner;
+                changed = true;
+            }
+        }
+        return changed ? write(fields) : data;
+    }
+
+    /** The view name of a component (the first field of its view tracking, field 26), or null. */
+    private static String viewName(byte[] component) {
+        List<Field> fields = parse(component);
+        if (fields == null) return null;
+        for (Field field : fields) {
+            if (field.number != 26 || field.wireType != 2) continue;
+            List<Field> tracking = parse(field.data);
+            if (tracking != null && !tracking.isEmpty() && tracking.get(0).wireType == 2) {
+                return new String(tracking.get(0).data, StandardCharsets.UTF_8);
+            }
+        }
+        return null;
     }
 
     private static boolean startsWith(byte[] data, byte[] prefix) {

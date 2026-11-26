@@ -148,10 +148,57 @@ public final class LiveUnseenButton {
         return LiveUnseen.enabled() && !Setting.isPaused();
     }
 
+    /**
+     * True while the eye is a row of the menu from holding the middle of a LIVE instead of a
+     * button on the video (D#359), with LIVE buttons in the long-press menu on.
+     */
+    public static boolean inMenu() {
+        return enabled() && LiveRecordChip.buttonsInMenu();
+    }
+
+    /**
+     * Whether the room in front is one Watch LIVEs unseen holds, which TikTok opened without its
+     * chat, its host bar or the menu from holding the middle (D#359).
+     */
+    public static boolean roomUnbuilt() {
+        Activity activity = host.get();
+        return activity != null && LiveUnseen.unbuilt(roomInFront(activity));
+    }
+
+    /** Whether the host of the room in front can see you, for the eye drawn on the menu row. */
+    public static boolean menuRevealed() {
+        Activity activity = host.get();
+        return activity != null && LiveUnseen.revealed(roomInFront(activity));
+    }
+
+    /** What the eye's row in that menu says, which is what a tap on it will do. */
+    public static String menuLabel() {
+        Activity activity = host.get();
+        return menuLabel(activity == null ? null : roomInFront(activity));
+    }
+
+    static String menuLabel(String room) {
+        if (revealing) return L10n.t("Letting the host see you");
+        return LiveUnseen.revealed(room) ? L10n.t("Hide from the host next time") : L10n.t("Let the host see you");
+    }
+
+    /** The eye's row was tapped: the same as a tap on the eye, which isn't on the video now. */
+    public static void menuTap() {
+        Activity activity = host.get();
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            Utils.showToastShort(L10n.t("Couldn't tell which LIVE this is. Open it again."));
+            return;
+        }
+        onTapped(activity);
+    }
+
     /** Shows, hides or redraws the eye for the room open in {@code activity}. */
     static void refresh(Activity activity) {
         if (activity == null) return;
-        boolean wanted = enabled() && !activity.isFinishing() && !activity.isDestroyed()
+        // In the long-press menu, the eye is a row there and nothing covers the stream (D#359).
+        // A held room has no such menu, so there the eye stays: it's the only way out of the hold.
+        boolean wanted = enabled() && !LiveRecordChip.buttonsInMenu()
+                && !activity.isFinishing() && !activity.isDestroyed()
                 && !FeedVisibility.isFeedWindow(activity) && !inPictureInPicture(activity);
         if (!wanted) {
             removeButton();

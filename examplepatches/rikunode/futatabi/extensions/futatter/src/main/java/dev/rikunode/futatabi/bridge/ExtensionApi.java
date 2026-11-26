@@ -50,7 +50,7 @@ final class ExtensionApi {
         String supplied = headers.getOrDefault("x-futatabi-token", "");
         byte[] a = supplied.getBytes(StandardCharsets.US_ASCII);
         byte[] b = localToken().getBytes(StandardCharsets.US_ASCII);
-        return a.length == b.length && MessageDigest.isEqual(a, b);
+        return b.length > 0 && a.length == b.length && MessageDigest.isEqual(a, b);
     }
 
     BridgeServer.BridgeResponse route(String method, String path, Map<String,String> headers, byte[] body) {
@@ -68,6 +68,15 @@ final class ExtensionApi {
                 if ("mebuki".equals(board))
                     return BridgeServer.BridgeResponse.json(200, mebuki.threadsJson().toString());
                 return BridgeServer.BridgeResponse.text(404, "Unsupported board");
+            }
+            if ("GET".equals(method) && path.startsWith("/ext/reply-targets?")) {
+                Map<String,String> q = query(path);
+                String id = q.getOrDefault("id", "");
+                if ("aimoge".equals(q.get("board")))
+                    return BridgeServer.BridgeResponse.json(200, aimoge.replyTargets(id).toString());
+                if ("animanch".equals(q.get("board")) && id.matches("[0-9]{13}"))
+                    return BridgeServer.BridgeResponse.json(200, animanch.replyTargets(id).toString());
+                return BridgeServer.BridgeResponse.text(400, "Invalid reply target");
             }
             if ("POST".equals(method) && "/ext/login/aimoge/start".equals(path))
                 return startLogin();
@@ -88,7 +97,7 @@ final class ExtensionApi {
             if ("POST".equals(method) && "/ext/mebuki/reply".equals(path)) {
                 if (body.length == 0 || body.length > 24_000)
                     return BridgeServer.BridgeResponse.text(413, "Invalid request size");
-                return mebukiReplies.reply(new JSONObject(new String(body, StandardCharsets.UTF_8)));
+                return submitMebuki(new JSONObject(new String(body, StandardCharsets.UTF_8)));
             }
             return BridgeServer.BridgeResponse.text(404, "Not found");
         } catch (IllegalArgumentException ex) {
@@ -96,6 +105,10 @@ final class ExtensionApi {
         } catch (Exception ex) {
             return BridgeServer.BridgeResponse.text(503, "Request failed: " + ex.getClass().getSimpleName());
         }
+    }
+
+    BridgeServer.BridgeResponse submitMebuki(JSONObject payload) throws Exception {
+        return mebukiReplies.reply(payload);
     }
 
     private BridgeServer.BridgeResponse status() throws Exception {
@@ -125,14 +138,22 @@ final class ExtensionApi {
         request.put("state", state);
         request.put("codeChallenge", challenge);
         request.put("codeChallengeMethod", "S256");
-        AimogeWriteClient.Result upstream = client.post("/app-authorizations", request, null);
+        AimogeWriteClient.Result upstream;
+        try { upstream = client.post("/app-authorizations", request, null); }
+        catch (AimogeWriteClient.DnsUnavailableException ex) {
+            return BridgeServer.BridgeResponse.text(503, "Aimoge authorization start: DNS failed for api.nijiurachan.net. Check connectivity and retry login.");
+        }
         if (upstream.status != 201)
             return BridgeServer.BridgeResponse.json(upstream.status, safeJson(upstream.text));
         JSONObject reply = upstream.json();
         String url = reply.getString("authorizationUrl");
-        if (!url.startsWith("https://") || url.length() > 4096) throw new IllegalStateException("Invalid authorization URL");
-        prefs.edit().putString("pkce_verifier", verifier).putString("pkce_state", state)
-                .putLong("pkce_started", System.currentTimeMillis()).commit();
+        java.net.URI auth = new java.net.URI(url);
+        if (!"https".equals(auth.getScheme()) || !"nijiurachan.net".equalsIgnoreCase(auth.getHost())
+                || auth.getUserInfo() != null || (auth.getPort() != -1 && auth.getPort() != 443)
+                || url.length() > 4096) throw new IllegalStateException("Invalid authorization URL");
+        if (!prefs.edit().putString("pkce_verifier", verifier).putString("pkce_state", state)
+                .putLong("pkce_started", System.currentTimeMillis()).commit())
+            throw new IllegalStateException("PKCE state save failed");
         JSONObject result = new JSONObject();
         result.put("authorizationUrl", url);
         return BridgeServer.BridgeResponse.json(200, result.toString());
@@ -152,24 +173,37 @@ final class ExtensionApi {
         if (!code.matches("^[A-Za-z0-9_-]{43}$"))
             return BridgeServer.BridgeResponse.text(400, "Invalid code");
         String verifier = prefs.getString("pkce_verifier", "");
-        prefs.edit().remove("pkce_state").remove("pkce_verifier").remove("pkce_started").commit();
+        if (!verifier.matches("^[A-Za-z0-9._~-]{43,128}$"))
+            return BridgeServer.BridgeResponse.text(403, "Missing PKCE verifier");
         JSONObject request = new JSONObject();
         request.put("redirectUri", CALLBACK);
         request.put("code", code);
         request.put("codeVerifier", verifier);
-        AimogeWriteClient.Result response = client.post("/app-credentials", request, null);
+        AimogeWriteClient.Result response;
+        boolean retain = false;
+        try {
+            response = client.post("/app-credentials", request, null);
+        } catch (AimogeWriteClient.DnsUnavailableException ex) {
+            retain = true;
+            return BridgeServer.BridgeResponse.text(503,
+                    "Aimoge credential exchange: DNS failed for api.nijiurachan.net. Restore connectivity and reload this page before authorization expires. No credential was saved.");
+        } finally {
+            if (!retain && !prefs.edit().remove("pkce_state").remove("pkce_verifier")
+                    .remove("pkce_started").commit()) throw new IllegalStateException("PKCE state clear failed");
+        }
         if (response.status != 201) return BridgeServer.BridgeResponse.text(400, "Authorization could not be completed");
         JSONObject result = response.json();
         String credential = result.getString("credential");
         long expiry = java.time.Instant.parse(result.getString("expiresAt")).toEpochMilli();
         if (credential.isEmpty() || expiry <= System.currentTimeMillis())
             return BridgeServer.BridgeResponse.text(400, "Invalid credential result");
-        prefs.edit().putString("credential", credential).putLong("credential_expires", expiry).commit();
+        if (!prefs.edit().putString("credential", credential).putLong("credential_expires", expiry).commit())
+            return BridgeServer.BridgeResponse.text(503, "Credential save failed; start login again");
         return new BridgeServer.BridgeResponse(200, "text/html; charset=utf-8",
                 "<html><body>Login complete. Return to futatabi.</body></html>".getBytes(StandardCharsets.UTF_8));
     }
 
-    private BridgeServer.BridgeResponse submit(JSONObject payload) throws Exception {
+    BridgeServer.BridgeResponse submit(JSONObject payload) throws Exception {
         if (!loggedIn()) return BridgeServer.BridgeResponse.text(401, "Aimoge login required");
         String body = payload.optString("body", "");
         if (body.isEmpty() || body.codePointCount(0, body.length()) > 4000)
@@ -184,9 +218,15 @@ final class ExtensionApi {
         send.put("requestId", UUID.randomUUID().toString());
         send.put("body", body);
         send.put("deleteKey", deleteKey);
+        if(!threadId.isEmpty()){
+            if(payload.optBoolean("sage"))send.put("sage",true);
+            else if(payload.optBoolean("age"))send.put("age",true);
+        } else if(payload.optBoolean("sage")) send.put("sage",true);
         JSONArray attachments = payload.optJSONArray("attachments");
         if (attachments != null && attachments.length() > (threadId.isEmpty() ? 1 : 3))
             return BridgeServer.BridgeResponse.text(400, "Too many attachments");
+        if (threadId.isEmpty() && (attachments == null || attachments.length() == 0))
+            return BridgeServer.BridgeResponse.text(400, "New thread requires an image");
         JSONArray ids = new JSONArray();
         if (attachments != null) {
             for (int i = 0; i < attachments.length(); i++) {
@@ -202,10 +242,21 @@ final class ExtensionApi {
             else send.put("attachmentIds", ids);
         }
         String path = threadId.isEmpty() ? "/threads/aimg" : "/threads/" + threadId + "/posts";
+        // Obtain a fresh official challenge immediately before submission.
+        // The app credential is the documented x-aimg-token; no browser token
+        // or clearance cookie is copied or requested by the native client.
+        AimogeWriteClient.Result challenge = client.get("/altcha");
+        if (challenge.status != 200)
+            return BridgeServer.BridgeResponse.text(challenge.status, "ALTCHA challenge HTTP " + challenge.status);
+        try { send.put("altcha", AimogeProof.solve(challenge.json())); }
+        catch (Exception ex) {
+            return BridgeServer.BridgeResponse.text(503, "ALTCHA preparation failed: " + ex.getClass().getSimpleName());
+        }
         AimogeWriteClient.Result response = client.post(path, send, credential);
         if (response.status != 201)
             return BridgeServer.BridgeResponse.json(response.status, safeJson(response.text));
         JSONObject result = response.json();
+        if (aimoge != null && !threadId.isEmpty()) aimoge.invalidateThread(threadId);
         String key = "history_" + UUID.randomUUID();
         JSONObject history = new JSONObject();
         history.put("result", result);

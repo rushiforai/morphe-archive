@@ -13,6 +13,9 @@ from urllib.parse import parse_qs, urlsplit
 THREAD_UUID = "01900000-0000-7000-8000-000000000111"
 THREAD_BOARD = "7666191"
 TOKEN = "fixture-credential-not-real"
+ALTCHA_SALT = "fixture-salt"
+ALTCHA_CHALLENGE = hashlib.sha256((ALTCHA_SALT + "42").encode()).hexdigest()
+ALTCHA_SIGNATURE = "a" * 64
 ONE_PIXEL_JPEG = base64.b64decode(
     "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////"
     "2wBDAf//////////////////////////////////////////////////////////////////////////////////////"
@@ -65,6 +68,9 @@ class Handler(BaseHTTPRequestHandler):
                 "threadCreationCooldownSeconds": 60,
                 "replyCreationCooldownSeconds": 10
             }))
+        elif path == "/altcha":
+            self.reply(200, json_bytes({"algorithm": "SHA-256", "challenge": ALTCHA_CHALLENGE,
+                "salt": ALTCHA_SALT, "signature": ALTCHA_SIGNATURE, "maxnumber": 100}))
         elif path == "/catalog/aimg":
             self.reply(200, json_bytes({"threads": [{
                 "id": THREAD_UUID,
@@ -90,9 +96,9 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/board/" + THREAD_BOARD + "/":
             html = (
                 "<html><body><article id='reslist'>"
-                "<li id='res1' class='list-group-item'><div class='resbody good1'>"
+                "<li id='res1' class='list-group-item'><span class='resposted'>26/11/25(Wed) 12:00:00</span><div class='resbody good1'>"
                 "<p>Mock Animanch first post</p></div></li>"
-                "<li id='res2' class='list-group-item'><div class='resbody good1'>"
+                "<li id='res2' class='list-group-item'><span class='resposted'>26/11/25(Wed) 12:00:00</span><div class='resbody good1'>"
                 "<p>Mock Animanch reply</p></div></li>"
                 "</article></body></html>"
             )
@@ -133,6 +139,16 @@ class Handler(BaseHTTPRequestHandler):
             if self.headers.get("x-aimg-token") != TOKEN:
                 return self.reply(401, json_bytes({"error": "not authorized"}))
             request = json.loads(body)
+            try:
+                proof = json.loads(base64.b64decode(request["altcha"], validate=True))
+                valid = proof == {"algorithm": "SHA-256", "challenge": ALTCHA_CHALLENGE,
+                    "salt": ALTCHA_SALT, "signature": ALTCHA_SIGNATURE, "number": 42}
+            except (KeyError, ValueError, TypeError):
+                valid = False
+            if not valid:
+                return self.reply(403, json_bytes({"error": "invalid fixture proof"}))
+            if path == "/threads/aimg" and not (request.get("attachmentId") or request.get("attachmentIds")):
+                return self.reply(400, json_bytes({"error": "image required"}))
             if not request.get("body") or not request.get("deleteKey"):
                 return self.reply(422, json_bytes({"error": "missing fields"}))
             return self.reply(201, json_bytes({

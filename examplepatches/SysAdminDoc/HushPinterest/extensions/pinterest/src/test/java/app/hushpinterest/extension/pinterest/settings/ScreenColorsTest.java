@@ -519,6 +519,46 @@ public class ScreenColorsTest {
     }
 
     /**
+     * A choice dialog is as tall as its rows. The list measures each row before the row is attached,
+     * when its radio or checkbox at the start edge didn't count yet, so on the S22 four rows measured
+     * 152 px, laid out at 172 px, and the last one was cut in half (#52's Hide seen pins for).
+     */
+    @Test
+    @Config(qualifiers = "w411dp-h891dp-xxhdpi")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void everyChoiceRowFitsWholeInItsDialog() {
+        String[] names = {"A day", "A week", "A month",
+                "Forever, and long enough that a choice like this one has to wrap onto a second line"};
+        for (boolean multiple : new boolean[]{false, true}) {
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(controller.get(), ScreenColors.THEME)
+                        .setTitle("Hide seen pins for")
+                        .setNegativeButton("Cancel", null);
+                if (multiple) builder.setMultiChoiceItems(names, new boolean[names.length], null);
+                else builder.setSingleChoiceItems(names, names.length - 1, null);
+                AlertDialog dialog = builder.create();
+                HushDialogs.prepareChoices(dialog);
+                dialog.show();
+                try {
+                    HushDialogs.paint(dialog);
+                    ShadowLooper.idleMainLooper();
+                    ListView list = dialog.getListView();
+                    assertTrue("the dialog was never laid out", list.getHeight() > 0);
+                    assertEquals((multiple ? "checkboxes" : "radios") + ": rows on show", names.length, list.getChildCount());
+                    int floor = list.getHeight() - list.getPaddingBottom();
+                    for (int index = 0; index < list.getChildCount(); index++) {
+                        View row = list.getChildAt(index);
+                        assertTrue((multiple ? "checkboxes" : "radios") + ": \"" + names[index] + "\" ends at "
+                                + row.getBottom() + " of " + floor, row.getBottom() <= floor);
+                    }
+                } finally {
+                    dialog.dismiss();
+                }
+            }
+        }
+    }
+
+    /**
      * The recovery page's title and message are centred, and so is the space they're centred in.
      * Wrapping its own text, the message sat at the start while the title, wide enough to fill the
      * row, looked centred.

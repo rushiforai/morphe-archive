@@ -1,0 +1,19 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
+package app.fakh.extension.windy;
+
+import app.fakh.extension.shared.GmsCoreCheck;
+
+/** Tells the user when Google sign-in is started without GmsCore installed. */
+public final class GmsCore {
+    private GmsCore() {
+    }
+
+    /** Called where the app starts the Google sign-in. */
+    public static void require() {
+        GmsCoreCheck.require("Log in with Google");
+    }
+}

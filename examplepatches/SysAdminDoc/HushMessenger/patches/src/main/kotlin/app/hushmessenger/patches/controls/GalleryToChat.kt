@@ -3,11 +3,13 @@ package app.hushmessenger.patches.controls
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction30t
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -15,6 +17,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.PayloadInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 /**
@@ -35,6 +38,7 @@ private const val ITEM_TYPE_CALL = "Landroid/content/Intent;->getType()Ljava/lan
 private const val INVOKE_SUSPEND = "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;"
 private const val COROUTINE_STEP = "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
 private val TRAY_NULLS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
+private val TRAY_COPIES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 
 /**
  * How a pick reaches the chat's tray, read at discovery: the chat's handler for a photo from another app and the result
@@ -61,9 +65,12 @@ private fun Method.galleryChatEvent(): Int? {
     return event.takeIf { parameterRegister(0) >= 4 && it <= 15 }
 }
 
-/** Where the coroutine opens the editor with the item it copied, and the registers the hook there uses. */
+/**
+ * Where the coroutine opens the editor with the item it copied, and the registers the hook there uses. [jump] is the copy's
+ * goto on to the builder when the copy doesn't sit right before it, or null.
+ */
 internal class GalleryChatSite(val at: Int, val intent: Int, val media: Int, val chat: Int, val chatType: String, val params: Int,
-    val unit: String)
+    val unit: String, val jump: Int? = null)
 
 /**
  * The coroutine copies the picked item into a MediaResource and builds the editor's params with it right after:
@@ -82,12 +89,22 @@ internal class GalleryChatSite(val at: Int, val intent: Int, val media: Int, val
  * one of [chats], and neither register changes after. The hook at the builder uses all four registers, so each is a
  * local a plain invoke reaches, and no try covers it. A branch that lands on the builder itself skips the hook, which is
  * the coroutine's way round the copy when the result has no item.
+ *
+ * 588 copies inside a try, with the item's Uri checked first and a failed copy logged, and the copy's goto is what takes
+ * it on to the builder. There the hook goes past the method's last instruction, clear of every try, and the goto goes to
+ * it instead ([jump]), so only a copied item ever reaches the hook.
  */
 internal fun Method.galleryChatSite(chats: Set<String>): GalleryChatSite? {
     val code = implementation?.instructions?.toList() ?: return null
     val at = code.indices.filter { code[it].opcode == Opcode.NEW_INSTANCE && code[it].galleryType() == EDITOR_BUILDER }.singleOrNull()
         ?: return null
-    val media = copiedMedia(code, at) ?: return null
+    val jump = if (copiedMedia(code, at) != null) null else code.indices.singleOrNull {
+        code[it].opcode in GALLERY_GOTOS && code.branchTarget(it) == at && copiedMedia(code, it) != null
+    } ?: return null
+    val copied = jump ?: at
+    val media = copiedMedia(code, copied) ?: return null
+    // The hook past the end is only reached by the goto, so nothing may fall into it from the method's own last instruction.
+    if (jump != null && code.last().let { it !is PayloadInstruction && it.opcode !in GALLERY_ENDS && it.opcode !in GALLERY_GOTOS }) return null
     val params = (code[at] as OneRegisterInstruction).registerA
     // On from the builder, straight to the editor and the return after it.
     var open = at + 1
@@ -106,27 +123,28 @@ internal fun Method.galleryChatSite(chats: Set<String>): GalleryChatSite? {
             code[i].opcode == Opcode.IPUT_OBJECT && put!!.registerA == media && put.registerB == params &&
                 code[i].galleryField()?.let { it.definingClass == EDITOR_BUILDER && it.type == AUTO_REPLY_MEDIA } == true
         }) return null
-    // Back from the copy to the last branch, return or switch.
-    var start = at - 2
+    // Back from the copy to the last branch, return or switch. Nothing may land on the copy's goto either, since every way
+    // onto it would run the hook.
+    var start = copied - 2
     while (start > 0 && !code[start - 1].endsRun()) start--
     val landings = jumpTargets()
-    if ((start + 1 until at).any { it in landings }) return null
-    fun lastWrite(register: Int, from: Int) = (from + 1 until at).none { code[it].galleryWrites(register) }
-    val typed = (start until at).filter { code[it].opcode == Opcode.INVOKE_VIRTUAL && code[it].galleryMethod()?.toString() == ITEM_TYPE_CALL }
+    if ((start + 1 until copied).any { it in landings } || jump != null && jump in landings) return null
+    fun lastWrite(register: Int, from: Int) = (from + 1 until copied).none { code[it].galleryWrites(register) }
+    val typed = (start until copied).filter { code[it].opcode == Opcode.INVOKE_VIRTUAL && code[it].galleryMethod()?.toString() == ITEM_TYPE_CALL }
         .singleOrNull() ?: return null
     val intent = (code[typed] as FiveRegisterInstruction).registerC
-    val cast = (start until at).filter { code[it].opcode == Opcode.CHECK_CAST && code[it].galleryType() in chats }.singleOrNull() ?: return null
+    val cast = (start until copied).filter { code[it].opcode == Opcode.CHECK_CAST && code[it].galleryType() in chats }.singleOrNull() ?: return null
     val chat = (code[cast] as OneRegisterInstruction).registerA
     if (!lastWrite(intent, typed) || !lastWrite(chat, cast)) return null
     val registers = listOf(intent, media, chat, params)
     if (registers.distinct().size != 4 || registers.any { it > 15 || it >= parameterRegister(0) }) return null
     val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
-    if (implementation!!.tryBlocks.any { addresses[at] - it.startCodeAddress in 0 until it.codeUnitCount }) return null
-    return GalleryChatSite(at, intent, media, chat, code[cast].galleryType()!!, params, unit.toString())
+    if (jump == null && implementation!!.tryBlocks.any { addresses[at] - it.startCodeAddress in 0 until it.codeUnitCount }) return null
+    return GalleryChatSite(at, intent, media, chat, code[cast].galleryType()!!, params, unit.toString(), jump)
 }
 
 /**
- * The register holding the item's MediaResource copy right before the builder at [at]: a static copy with one parameter
+ * The register holding the item's MediaResource copy right before [at], the builder or the goto on to it: a static copy with one parameter
  * and its move-result (586 arm64), or the copy's constructor inlined (586 armv7):
  *
  *     new-instance vX, MediaResource
@@ -200,9 +218,38 @@ private fun trayPlugins(classes: Iterable<ClassDef>): Set<String> = trayPluginCl
 internal fun Method.traySite(): Int? {
     if (parameterTypes.isNotEmpty() || returnType != "Z") return null
     val code = implementation?.instructions?.toList() ?: return null
-    val at = code.indices.singleOrNull { code[it].opcode in GALLERY_ENDS } ?: return null
+    val at = code.indices.singleOrNull { code[it].opcode in GALLERY_ENDS } ?: trayDispatch()?.second ?: return null
     if (code[at].opcode != Opcode.RETURN || (code[at] as OneRegisterInstruction).registerA > 15 || at in jumpTargets()) return null
     return at
+}
+
+/**
+ * 588's Redex folds the chat factory's override of the tray gate into the base's gate, which answers for that one
+ * factory and false for every other:
+ *
+ *     instance-of vT, p0, <factory>
+ *     if-eqz vT, :other
+ *     ...                  (no branch)
+ *     return vR
+ *     :other
+ *     const/4 vR, 0x0
+ *     return vR
+ *
+ * The factory and the index of its branch's return, or null for any other shape.
+ */
+internal fun Method.trayDispatch(): Pair<String, Int>? {
+    if (AccessFlags.STATIC.isSet(accessFlags)) return null
+    val code = implementation?.instructions?.toList() ?: return null
+    val test = code.getOrNull(0) as? TwoRegisterInstruction ?: return null
+    if (code[0].opcode != Opcode.INSTANCE_OF || test.registerB != parameterRegister(0) || code.getOrNull(1)?.opcode != Opcode.IF_EQZ ||
+        (code[1] as OneRegisterInstruction).registerA != test.registerA) return null
+    val other = code.branchTarget(1)
+    val returned = code.getOrNull(other + 1) as? OneRegisterInstruction ?: return null
+    if (other < 3 || code[other].opcode != Opcode.CONST_4 || (code[other] as NarrowLiteralInstruction).narrowLiteral != 0 ||
+        (code[other] as OneRegisterInstruction).registerA != returned.registerA || code[other + 1].opcode != Opcode.RETURN ||
+        code.size != other + 2 || code[other - 1].opcode != Opcode.RETURN) return null
+    if ((2 until other - 1).any { code[it] is OffsetInstruction || code[it].opcode in GALLERY_ENDS }) return null
+    return (code[0].galleryType() ?: return null) to other - 1
 }
 
 /**
@@ -223,11 +270,19 @@ internal fun Method.traySite(): Int? {
  *
  * The hook is the factory's own override of the gate, so everything else that reads it sees the same answer. Only a
  * factory that overrides its gate counts: the chat composer's does, and another surface's composer builds the same
- * plugin behind a base gate it leaves alone.
+ * plugin behind a base gate it leaves alone. 588 folds that override into the base's gate behind an instance-of on the
+ * factory ([trayDispatch]), so there the hook is the base's gate, on the factory's branch only, and the null is a copy
+ * of a register that holds zero down every path to it:
+ *
+ *     :none
+ *     move-object/from16 vP, vZ
+ *     goto :built
  */
 private fun trayGate(classes: Iterable<ClassDef>, all: List<ClassDef>): Method? {
     val trays = trayPlugins(classes)
+    val base = all.singleOrNull { it.type == COMPOSER_FACTORY }
     val gates = mutableSetOf<String>()
+    fun Instruction.zero() = opcode in TRAY_NULLS && (this as NarrowLiteralInstruction).narrowLiteral == 0
     for (factory in all) {
         if (factory.superclass != COMPOSER_FACTORY) continue
         for (method in factory.methods) {
@@ -237,18 +292,21 @@ private fun trayGate(classes: Iterable<ClassDef>, all: List<ClassDef>): Method? 
                 val plugin = (code[built] as OneRegisterInstruction).registerA
                 for (none in 0 until code.size - 1) {
                     val zero = code[none]
-                    if (zero.opcode !in TRAY_NULLS || (zero as OneRegisterInstruction).registerA != plugin ||
-                        (zero as NarrowLiteralInstruction).narrowLiteral != 0 || code[none + 1].opcode !in GALLERY_GOTOS ||
+                    if ((zero as? OneRegisterInstruction)?.registerA != plugin || code[none + 1].opcode !in GALLERY_GOTOS ||
                         code.branchTarget(none + 1) <= built) continue
+                    val copied = (zero as? TwoRegisterInstruction)?.registerB?.takeIf { zero.opcode in TRAY_COPIES }
+                    val defs = copied?.let { runCatching { ReadFlow(method).definitionsAt(none, it) }.getOrNull() }.orEmpty()
+                    if (!zero.zero() && (defs.isEmpty() || defs.any { it < 0 || !code[it].zero() })) continue
                     for (guard in 2 until code.size) {
                         if (code[guard].opcode != Opcode.IF_EQZ || code.branchTarget(guard) != none) continue
                         val answer = (code[guard] as OneRegisterInstruction).registerA
                         val asked = code[guard - 2].galleryMethod()
                         if (code[guard - 1].opcode != Opcode.MOVE_RESULT || (code[guard - 1] as OneRegisterInstruction).registerA != answer ||
                             code[guard - 2].opcode !in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) || asked == null ||
-                            asked.definingClass != COMPOSER_FACTORY || asked.parameterTypes.isNotEmpty() || asked.returnType != "Z" ||
-                            factory.methods.none { it.name == asked.name && it.parameterTypes.isEmpty() && it.returnType == "Z" }) continue
-                        gates += "${factory.type}->${asked.name}()Z"
+                            asked.definingClass != COMPOSER_FACTORY || asked.parameterTypes.isNotEmpty() || asked.returnType != "Z") continue
+                        fun Method.isGate() = name == asked.name && parameterTypes.isEmpty() && returnType == "Z"
+                        if (factory.methods.any { it.isGate() }) gates += "${factory.type}->${asked.name}()Z"
+                        else if (base?.methods?.singleOrNull { it.isGate() }?.trayDispatch()?.first == factory.type) gates += "$COMPOSER_FACTORY->${asked.name}()Z"
                     }
                 }
             }
@@ -366,7 +424,7 @@ internal fun MutableMethod.injectGalleryToChat() {
     val intent = "v${site.intent}"
     val media = "v${site.media}"
     val list = "v${site.params}"
-    addInstructionsWithLabels(at, """
+    val hook = """
         invoke-static {$intent, $media}, $GALLERY_CHAT_ITEM_CALL
         move-result-object $list
         if-eqz $list, :editor
@@ -376,5 +434,14 @@ internal fun MutableMethod.injectGalleryToChat() {
         invoke-static {v${site.chat}, $intent}, ${route.dispatcher}
         sget-object $intent, ${site.unit}
         return-object $intent
-    """.trimIndent(), ExternalLabel("editor", getInstruction(at)))
+    """.trimIndent()
+    val jump = site.jump
+    if (jump == null) {
+        addInstructionsWithLabels(at, hook, ExternalLabel("editor", getInstruction(at)))
+        return
+    }
+    // Past the last instruction, then the copy's goto goes there instead of to the builder. "No" goes on to the builder.
+    val end = implementation!!.instructions.size
+    addInstructionsWithLabels(end, hook, ExternalLabel("editor", getInstruction(at)))
+    replaceInstruction(jump, BuilderInstruction30t(Opcode.GOTO_32, implementation!!.newLabelForIndex(end)))
 }

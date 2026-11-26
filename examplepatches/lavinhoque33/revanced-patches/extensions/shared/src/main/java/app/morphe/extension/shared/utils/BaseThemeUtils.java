@@ -31,13 +31,9 @@ public class BaseThemeUtils {
     // For YouTube Music, Modern dialog not yet supported.
     public static boolean isSupportModernDialog = true;
 
-    /**
-     * Injection point.
-     * <p>
-     * Forces dark mode since YT Music does not support light theme.
-     */
-    public static void updateDarkModeStatus() {
-        isDarkModeEnabled = Boolean.TRUE;
+    /** Applies Music's forced appearance without changing YouTube's light/dark resolver. */
+    public static void updateMusicThemeStatus(boolean dark) {
+        isDarkModeEnabled = dark;
         isSupportModernDialog = false;
         Logger.printDebug(() -> "Dark mode status: " + isDarkModeEnabled);
     }

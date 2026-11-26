@@ -36,7 +36,6 @@ class LrcLibCoreTest {
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun json(text: String): Any? = call("parseJson", text)
 
     @Suppress("UNCHECKED_CAST")

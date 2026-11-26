@@ -240,7 +240,7 @@ class SpoofSelfReadsTest {
                 continue
             }
             val found = planSelfVersionReads(methods, expected)
-            // The obfuscated owners move between 587's arm64 and armv7 builds, so those two go by the version check's log line and the trace hook's name.
+            // The obfuscated owners move between 588's arm64 and armv7 builds, so those two go by the version check's log line and the trace hook's name.
             val versionCheck = methods.filter { m ->
                 m.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith(VERSION_CHECK_LOG) == true } == true
             }.map { it.hookId() }.distinct()

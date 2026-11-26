@@ -105,6 +105,7 @@ final class ViewOnceSave {
             TextView pill = new TextView(context);
             pill.setTag(TAG);
             pill.setText(new SettingsText(context).get("save_view_once_button"));
+            InvisibleButtons.own(pill, pill.getText());
             pill.setTextSize(15);
             pill.setTextColor(0xFFFFFFFF);
             GradientDrawable shape = new GradientDrawable();

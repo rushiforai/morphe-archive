@@ -1,5 +1,56 @@
 # Changelog
 
+## [1.3.2](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.3.1...v1.3.2) (2026-11-26)
+
+### ⏪ Temporary Rollback
+
+* **Temporarily rolled back to the `v1.2.2` patchset** (pausing the `v1.3.0`/`v1.3.1` Spacebar long-press, Toolbar quick-access button, and Fix & Learn changes) while investigating reports of the keyboard crashing on startup for some users when stacking `v1.3.0+` alongside GboardWu.
+* Published as `v1.3.2` so Morphe Manager automatically updates users already on `v1.3.0` / `v1.3.1` back to the stable `v1.2.2` build without needing to remove and re-add the source.
+* All `v1.3.1` work remains preserved on the `dev` branch and will be re-enabled once the root cause is identified and fixed.
+
+## [1.3.1](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.3.0...v1.3.1) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* **Long-press Spacebar when Cursor Trackpad (`free_cursor`) is enabled:**
+  * Gboard's Spacebar softkey XML switches stationary Spacebar long-press from `SHOW_SYSTEM_IME_PICKER (-10022, "space")` to `SWITCH_KEYBOARD (-10004, "free_cursor", LONG_PRESS)` whenever Cursor Trackpad (`free_cursor` + `enable_scrub_move` + default-on `enable_free_cursor_by_long_press_space`) is enabled (including via GboardWu's Cursor Trackpad patch).
+  * `RamblerSpacebarTrigger` now intercepts **both** stock Spacebar long-press (`-10022, "space"`) and Cursor Trackpad Spacebar long-press (`-10004, "free_cursor", LONG_PRESS`), while keeping dedicated Trackpad button taps (`PRESS`) and swipe-on-Spacebar 2D Cursor Trackpad (`-10104`) completely working.
+  * Guards active Spacebar holds in **Smart hybrid** and **Hold to talk** modes against accidental `-10104` `free_cursor` triggers from slight thumb drift while speaking.
+  * Hardens `ModuleManager` fallback lookup to resolve `AgenticDictationExtension` via its registered module interfaces if constructor capture was not yet populated.
+
+## [1.3.0](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.2.2...v1.3.0) (2026-11-25)
+
+### ✨ New Features
+
+* **Long-press Spacebar for Rambler (Zero Extra Height, Conflict-Free):**
+  * Repurposes stationary Spacebar long-press (`-10022`, `"space"`) inside `LanguagePickerExtension` to start/stop Rambler dictation directly under your thumb — leaving normal Spacebar taps, Spacebar cursor-glide / Cursor Trackpad, Globe taps, floating globe long-presses, and the bottom-right keyboard switcher button completely untouched.
+  * Automatically clears `NO_IME_PICKER` when enabled so single-language keyboards also dispatch Spacebar long-press cleanly.
+  * **3 Configurable Trigger Modes** (in **Dictation & reliability → Quick access**, plus an ON/OFF switch):
+    * **Smart hybrid (default, like Hex on macOS):** quick release (`< 0.6s` after trigger) stays hands-free; keep holding while speaking (`>= 0.6s`) and lift your thumb to immediately stop & transcribe.
+    * **Hold to talk (Push-to-Talk):** hold Spacebar while speaking; lifting your thumb immediately stops listening & transcribes.
+    * **Toggle (Hands-free):** hold to start, lift your thumb and talk freely; stop via auto-stop, mic button, or another Spacebar long-press.
+  * Inspects `AgenticDictationExtension`'s live UI state (`LISTENING` / `WAITING`) before stopping on release so lifting your thumb never accidentally starts a new session if Rambler already auto-stopped or finished.
+* **Draggable "Rambler" Toolbar Quick-Access Button:**
+  * Adds a toggleable **"Rambler"** button in Gboard's 4-dots toolbar menu (pinable to the top strip) that opens **Rambler Enhancements** in 1 tap (dynamically fingerprinted for both Gboard 18.5.4 and 18.8.0+).
+* **1-Tap "Fix & Learn" from Dictation History:**
+  * Tap **Fix & Learn** on any saved dictation entry to pick a misheard word chip, type the right spelling, and simultaneously save a **Find & Replace** rule (global or scoped to that app) and add the word to your **MUSE_STATS** voice dictionary in one tap.
+* **Private Dictation History Card:**
+  * Keeps your recent dictated text tucked behind a **"View dictation history"** card inside **Dictation stats & history** instead of showing text immediately on screen.
+* **Backup & Restore:** Includes `toolbarButtonEnabled`, `spacebarLongPressRamblerEnabled`, and `spacebarLongPressMode` in portable `.json` backups.
+
+### 🐛 Bug Fixes
+
+* **Gboard 18.8.0+ constructor register safety:** Moves `RamblerContactsRuntime.onRamblerStart(Context)` immediately after `super.<init>()` in `AgenticDictationExtension.<init>` so R8's parameter register reuse before `return-void` on Gboard 18.8.0+ cannot cause a DEX `VerifyError`.
+
+## [1.2.2](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.2.1...v1.2.2) (2026-11-25)
+
+### ✨ New Features
+
+* **On-Device Dictation Stats:**
+  * Adds a private, 100% local stats card at the top of the **Rambler Enhancements** hub and inside **Dictation stats & history**: tracks **total words dictated**, **completed sessions**, **weighted average speaking WPM**, **average cloud commit latency** (measured directly from `AgenticDictationExtension.onListeningStop` to commit, matching Gboard's own `fhv` latency measurement), **daily totals**, **peak WPM**, and **estimated time saved vs. typing** (honestly subtracting both speaking time and cloud wait time).
+  * Includes a configurable **Typing speed baseline** (`30–60 WPM`, default `40 WPM` mobile average), a **Track local dictation stats** toggle (independent of text history so numeric stats can stay on without saving dictated text), and one-tap **Reset stats**.
+  * **Privacy-first:** Stores only aggregate numeric counters on device and is intentionally excluded from `.json` settings backups.
+
 ## [1.2.1](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.2.0...v1.2.1) (2026-11-24)
 
 ### ✨ UX & Settings Refactor

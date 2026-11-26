@@ -83,11 +83,11 @@ class CommunityInboxTest {
         val code = body(render)
         assertEquals(at + 9, code.branchTarget(at + 6))
         assertEquals(Opcode.CHECK_CAST, code[at + 9].opcode)
-        assertEquals(1, (code[at + 9] as OneRegisterInstruction).registerA)
+        assertEquals(15, (code[at + 9] as OneRegisterInstruction).registerA)
         assertEquals(IMMUTABLE_LIST, reference(code[at + 9]).toString())
     }
 
-    @Test fun theClosureFiltersTheListInV1AndUsesV0AndV3AsScratch() {
+    @Test fun theClosureFiltersTheListInV15AndUsesV0AndV3AsScratch() {
         val contract = assertNotNull(findCommunityInbox(communityInboxFixture()))
         val render = contract.render as MutableMethod
         val at = render.communityReadSite(contract.capturedScope)
@@ -95,25 +95,26 @@ class CommunityInboxTest {
         injectCommunityInbox(contract, render, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
         val code = body(render)
         val filter = code[at + 3] as FiveRegisterInstruction
-        assertEquals(listOf(1, 0, 3), listOf(filter.registerC, filter.registerD, filter.registerE))
+        assertEquals(listOf(15, 0, 3), listOf(filter.registerC, filter.registerD, filter.registerE))
         assertEquals(Opcode.CHECK_CAST, code[at + 9].opcode)
-        assertEquals(1, (code[at + 9] as OneRegisterInstruction).registerA)
-        // The renderer still takes the filtered v1 as its list, and the viewport callback still comes from v0's own read.
-        assertEquals(listOf(17, 1), (code[at + 20] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
-        assertEquals(listOf(18, 0), (code[at + 21] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(15, (code[at + 9] as OneRegisterInstruction).registerA)
+        // The sink still takes the filtered v15 as its list, and the callback and data key still come from their own reads.
+        assertEquals(listOf(18, 1), (code[at + 20] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(listOf(16, 0), (code[at + 21] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(15, (code[at + 22] as RegisterRangeInstruction).startRegister + 9)
 
         // v0 is scratch only because the closure writes it again before the sink reads it.
         val live = communityInboxFixture()
         val liveRender = assertNotNull(findCommunityInbox(live)).render as MutableMethod
-        liveRender.replaceInstruction(69, "nop")
+        liveRender.replaceInstruction(70, "nop")
         assertNull(findCommunityInbox(live))
     }
 
     /**
-     * 280's profile in 586's family B shape, which no 587 build has: the scope getter moves from the loader to the
+     * The base profile in 586's family B shape, which no 588 build has: the scope getter moves from the loader to the
      * loader's coordinator (347215273 named `LX/1zk;->A01()`), and the three key test IDs go.
      */
-    private fun familyBProfile() = controlProfileFor("347415280").run {
+    private fun familyBProfile() = BASE_PROFILE.run {
         val parts = nativeCommunityInbox.split('|')
         val coordinatorGetter = "${parts[13].substringAfter(':')}->A01()${parts[2].substringAfter(')')}"
         val inlined = (parts.take(2) + coordinatorGetter + parts.subList(3, 6) + parts.drop(9)).joinToString("|")
@@ -261,7 +262,7 @@ class CommunityInboxTest {
             assertEquals(contract.capturedScope, reference(after[at + 2]).toString())
             assertEquals("$SETTINGS->filterJoinedCommunityInboxRows(Ljava/util/List;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;", reference(after[at + 3]).toString())
             assertEquals(Opcode.MOVE_RESULT_OBJECT, after[at + 4].opcode)
-            assertEquals(1, (after[at + 4] as OneRegisterInstruction).registerA)
+            assertEquals(15, (after[at + 4] as OneRegisterInstruction).registerA)
             assertEquals("${render.definingClass}->\$inboxUnitItems:$IMMUTABLE_LIST", reference(after[at + 5]).toString())
             assertEquals(at + 9, after.branchTarget(at + 6))
             assertEquals(COMMUNITY_LIST_COPY, reference(after[at + 7]).toString())
@@ -274,7 +275,7 @@ class CommunityInboxTest {
     }
 
     @Test fun changedSnapshotScopePredicateAndForeignSearchCallerFailBeforeMutation() {
-        for (change in listOf("enum_init", "channel_field", "snapshot", "scope", "first_read", "second_alias", "predicate", "null_key", "foreign_search", "captured_write", "branch", "folder_path", "folder_getter", "scratch0", "scratch3", "scratch_one", "scratch_wide", "session_slot", "single_move")) {
+        for (change in listOf("enum_init", "channel_field", "snapshot", "scope", "first_read", "list_written", "predicate", "null_key", "foreign_search", "captured_write", "branch", "folder_path", "folder_getter", "scratch0", "scratch3", "scratch_one", "scratch_wide", "session_slot", "sink_slot")) {
             val classes = communityInboxFixture().toMutableList()
             val valid = assertNotNull(findCommunityInbox(classes))
             val ids = valid.identity.split('|')
@@ -287,9 +288,11 @@ class CommunityInboxTest {
                 "snapshot" -> update.replaceInstruction(58, "move-object/from16 v26, v2")
                 "scope" -> update.replaceInstruction(111, "const/16 v23, 0x0")
                 "first_read" -> renderer.replaceInstruction(6, "invoke-virtual {v1}, Ljava/util/AbstractCollection;->isEmpty()Z")
-                "second_alias" -> renderer.replaceInstruction(at + 11, "move-object/from16 v17, v0")
-                // An older sink took the list last, with no viewport callback moved in after it.
-                "single_move" -> renderer.replaceInstruction(at + 12, "nop")
+                "list_written" -> renderer.replaceInstruction(at + 11, "move-object/from16 v15, v0")
+                // 587's sink took the list as its twelfth argument.
+                "sink_slot" -> renderer.replaceInstruction(at + 13, "invoke-static/range {v6 .. v18}, LX/Section;->build(LX/Session;LX/Scope;" +
+                    "LX/Observer;LX/Binder;LX/Header;LX/Footer;LX/Loading;LX/Theme;LX/Publisher;Ljava/lang/String;Ljava/lang/String;" +
+                    "${IMMUTABLE_LIST}Lkotlin/jvm/functions/Function1;)LX/Section;")
                 "predicate" -> classes.flatMap { it.methods }.single { it.hookId() == ids[5] }.replaceInstruction(7, "const/4 v1, 0x0")
                 "null_key" -> classes.flatMap { it.methods }.single { it.hookId() == ids[6] }.replaceInstruction(6, "const/4 v0, 0x1")
                 "folder_path" -> classes.flatMap { it.methods }.single { it.hookId() == ids[2] }.replaceInstruction(8,
@@ -329,7 +332,7 @@ class CommunityInboxTest {
                 "helper" -> scope.replaceInstruction(0, "const/4 v0, 0x1")
                 "helper_return" -> scope.replaceInstruction(1, "return v1")
                 "private_helper" -> scope.accessFlags = AccessFlags.PRIVATE.value or AccessFlags.STATIC.value
-                "renderer" -> render.replaceInstruction(render.communityReadSite(contract.capturedScope) + 11, "move-object/from16 v17, v0")
+                "renderer" -> render.replaceInstruction(render.communityReadSite(contract.capturedScope) + 11, "move-object/from16 v15, v0")
                 "profile" -> activeProfile = BASE_PROFILE
             }
             val before = listOf(render, joined, scope).map { body(it).map(::structural) }

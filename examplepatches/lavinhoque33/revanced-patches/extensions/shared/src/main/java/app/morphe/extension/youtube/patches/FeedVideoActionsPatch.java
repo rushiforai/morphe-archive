@@ -5,6 +5,7 @@
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Modified by lavinhoque33, 2026-11-23
  * Modified by lavinhoque33, 2026-11-24
+ * Modified by lavinhoque33, 2026-11-25
  */
 
 package app.morphe.extension.youtube.patches;
@@ -50,17 +51,18 @@ import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.StringRef;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer;
-import app.morphe.extension.shared.utils.ResourceUtils;
-import app.morphe.extension.youtube.utils.ExtendedUtils;
+import app.morphe.extension.youtube.patches.feed.FeedViewCountPatch;
+import app.morphe.extension.youtube.patches.general.DownloadActionsPatch;
 import app.morphe.extension.youtube.patches.queue.ThumbnailQueueButton;
 import app.morphe.extension.youtube.patches.queue.ThumbnailQueuePatch;
 import app.morphe.extension.youtube.patches.utils.FeedVideoCardsPatch;
 import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
 import app.morphe.extension.youtube.settings.Settings;
-import app.morphe.extension.youtube.patches.general.DownloadActionsPatch;
+import app.morphe.extension.youtube.utils.ExtendedUtils;
 
 /**
  * Feed video actions.
@@ -102,14 +104,14 @@ public final class FeedVideoActionsPatch {
     private static final int THUMBNAIL_OVERLAP_DP = 8;
     private static final int MENU_BUTTON_MIN_DP = 20;
     private static final int MENU_BUTTON_MAX_DP = 72;
-    /** The menu button is in the right part of the video. */
+    /** The menu button is near the end of the video details. */
     private static final float MENU_BUTTON_MIN_CENTER_X = 0.8f;
 
     private static final int BADGE_SIZE_DP = 34;
     private static final int BADGE_ICON_DP = 20;
     private static final int BADGE_MARGIN_DP = 10;
-    /** Same as the duration badge of the thumbnail, so their right edges line up. */
-    public static final int BADGE_RIGHT_MARGIN_DP = 8;
+    /** Same end inset as the duration and like-count badges. */
+    private static final int BADGE_END_MARGIN_DP = 8;
     private static final int BADGE_TOUCH_SLOP_DP = 8;
     private static final int BADGE_COLOR = 0xA6000000;
     private static final int BADGE_ALPHA = 0xB3;
@@ -197,12 +199,14 @@ public final class FeedVideoActionsPatch {
         return false; // Modified during patching.
     }
 
-    private static final class VideoCard {
+    static final class VideoCard {
         WeakReference<View> menuButtonRef = new WeakReference<>(null);
         final WatchLaterBadge badge = new WatchLaterBadge();
         boolean badgeAdded;
-        /** Top of the thumbnail in the host, or -1 if it is not known. */
-        int thumbnailTop = -1;
+        private final Rect mountedThumbnail = new Rect();
+        private int thumbnailHostWidth;
+        @Nullable
+        private String menuDescription;
 
         @Nullable
         View getMenuButton() {
@@ -210,22 +214,76 @@ public final class FeedVideoActionsPatch {
             return menuButton != null && menuButton.isAttachedToWindow() ? menuButton : null;
         }
 
-        void placeBadge(ComponentHost host) {
+        void bind(ComponentHost host, View menuButton, boolean showBadge) {
+            final boolean sameMenu = menuButtonRef.get() == menuButton;
+            if (!sameMenu) {
+                menuButtonRef = new WeakReference<>(menuButton);
+            }
+            if (!showBadge) {
+                return;
+            }
+
+            final int width = host.getWidth();
+            CharSequence description = menuButton.getContentDescription();
+            if (!sameMenu || width != thumbnailHostWidth || !TextUtils.equals(menuDescription, description)) {
+                // Litho can retain the same view when it binds a different video.
+                mountedThumbnail.setEmpty();
+                thumbnailHostWidth = width;
+                menuDescription = description == null ? null : description.toString();
+                cancelBadgePress(host);
+            }
+
+            FeedViewCountPatch.ThumbnailFrame frame = FeedViewCountPatch.findThumbnailFrame(host);
+            if (frame.mountedThumbnail != null) {
+                mountedThumbnail.set(frame.mountedThumbnail);
+            }
+            // Litho may unmount the thumbnail while the same card is only partly visible.
+            if (!mountedThumbnail.isEmpty()) {
+                placeBadge(host, mountedThumbnail.left, mountedThumbnail.top, mountedThumbnail.right);
+                return;
+            }
+
+            // With no image mounted, use the native duration inset if available, then the old
+            // duration/menu heuristic for cards which do not expose their thumbnail bounds.
+            Rect duration = frame.duration;
+            final int inset = duration == null ? 0
+                    : Math.max(0, width - duration.right - dp(host, BADGE_END_MARGIN_DP));
+            final int top = findThumbnailTop(host, menuButton, duration, width - 2 * inset);
+            if (top >= 0) {
+                placeBadge(host, inset, top, width - inset);
+            } else {
+                removeBadge(host);
+            }
+        }
+
+        private void placeBadge(ComponentHost host, int thumbnailLeft, int thumbnailTop, int thumbnailRight) {
             final int size = dp(host, BADGE_SIZE_DP);
             final int top = thumbnailTop + dp(host, BADGE_MARGIN_DP);
-            final int right = host.getWidth() - dp(host, BADGE_RIGHT_MARGIN_DP);
-            badge.setBounds(right - size, top, right, top + size);
-            badge.hostRef = new WeakReference<>(host);
+            final int margin = dp(host, BADGE_END_MARGIN_DP);
+            final int left = host.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL
+                    ? thumbnailLeft + margin
+                    : thumbnailRight - margin - size;
+            badge.setBounds(left, top, left + size, top + size);
             if (!badgeAdded) {
+                badge.hostRef = new WeakReference<>(host);
                 host.getOverlay().add(badge);
                 badgeAdded = true;
             }
         }
 
         void removeBadge(ComponentHost host) {
+            cancelBadgePress(host);
             if (badgeAdded) {
                 host.getOverlay().remove(badge);
                 badgeAdded = false;
+            }
+        }
+
+        private void cancelBadgePress(ComponentHost host) {
+            if (gestureMode == GESTURE_BADGE && gestureHostRef.get() == host) {
+                badge.setPressed(false);
+                gestureMode = GESTURE_CONSUMED;
+                handler.removeCallbacks(badgeLongPressRunnable);
             }
         }
 
@@ -341,7 +399,7 @@ public final class FeedVideoActionsPatch {
 
     /**
      * @return If the view is where the menu button of a video is:
-     *         small, below the thumbnail and at the right side.
+     *         small, below the thumbnail and at the end of the details.
      */
     private static boolean isMenuButtonShaped(ComponentHost root, View view, Rect rect) {
         rect.set(0, 0, view.getWidth(), view.getHeight());
@@ -350,9 +408,12 @@ public final class FeedVideoActionsPatch {
         final int min = dp(root, MENU_BUTTON_MIN_DP);
         final int max = dp(root, MENU_BUTTON_MAX_DP);
         final int width = root.getWidth();
+        final int centerFromStart = root.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL
+                ? width - rect.centerX()
+                : rect.centerX();
         return rect.width() >= min && rect.width() <= max
                 && rect.height() >= min && rect.height() <= max
-                && rect.centerX() >= width * MENU_BUTTON_MIN_CENTER_X
+                && centerFromStart >= width * MENU_BUTTON_MIN_CENTER_X
                 && rect.top >= width * THUMBNAIL_RATIO - dp(root, THUMBNAIL_OVERLAP_DP);
     }
 
@@ -481,11 +542,10 @@ public final class FeedVideoActionsPatch {
      *
      * @return The top of the thumbnail in the host, or -1 if it is not known.
      */
-    private static int findThumbnailTop(ComponentHost host, View menuButton) {
-        final int width = host.getWidth();
+    private static int findThumbnailTop(ComponentHost host, View menuButton, @Nullable Rect duration, int width) {
         final int thumbnailHeight = Math.round(width * THUMBNAIL_RATIO);
         Rect rect = new Rect();
-        final int durationBottom = findDurationBottom(host, host, rect);
+        final int durationBottom = duration != null ? duration.bottom : findDurationBottom(host, host, rect);
         if (durationBottom >= 0) {
             final int top = durationBottom + dp(host, DURATION_BOTTOM_MARGIN_DP) - thumbnailHeight;
             return top > 0 && hasTextAbove(host, host, top, rect) ? top : 0;
@@ -665,21 +725,7 @@ public final class FeedVideoActionsPatch {
             card = new VideoCard();
             cards.put(host, card);
         }
-        final boolean sameMenuButton = card.menuButtonRef.get() == menuButton;
-        card.menuButtonRef = new WeakReference<>(menuButton);
-        if (WATCH_LATER_BUTTON) {
-            final int thumbnailTop = findThumbnailTop(host, menuButton);
-            // Litho mounts only the part of a card that is shown, so the duration badge
-            // may not be mounted. The thumbnail of the same video does not move.
-            if (thumbnailTop >= 0 || !sameMenuButton) {
-                card.thumbnailTop = thumbnailTop;
-            }
-            if (card.thumbnailTop >= 0) {
-                card.placeBadge(host);
-            } else {
-                card.removeBadge(host);
-            }
-        }
+        card.bind(host, menuButton, WATCH_LATER_BUTTON);
         return card;
     }
 
@@ -754,8 +800,11 @@ public final class FeedVideoActionsPatch {
             if (QUEUE_BUTTON) {
                 updateQueueButton(host);
             }
-            if (FEED_ACTIONS_ENABLED && updateCard(host) == null && videoId != null) {
-                FeedVideoCardsPatch.scheduleScrollCheck(host);
+            if (FEED_ACTIONS_ENABLED) {
+                VideoCard card = updateCard(host);
+                if (videoId != null && (card == null || (WATCH_LATER_BUTTON && card.mountedThumbnail.isEmpty()))) {
+                    FeedVideoCardsPatch.scheduleScrollCheck(host);
+                }
             }
         } catch (Exception ex) {
             Logger.printException(() -> "onCardLaidOut failure", ex);
@@ -1021,6 +1070,9 @@ public final class FeedVideoActionsPatch {
                 return;
             }
             card.badge.setPressed(false);
+            if (!card.isBadgeHit(host, downX, downY) || hasHostMoved(host)) {
+                return;
+            }
             vibrate(host, true);
             runVideoCommand(host, true);
         } catch (Exception ex) {

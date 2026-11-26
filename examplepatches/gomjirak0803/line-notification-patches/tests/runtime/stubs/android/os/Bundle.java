@@ -1,5 +1,6 @@
 package android.os;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,12 @@ public final class Bundle implements Parcelable {
         return v != null ? v : def;
     }
 
+    public void putCharSequenceArray(String key, CharSequence[] value) { map.put(key, value); }
+    public CharSequence[] getCharSequenceArray(String key) {
+        Object v = map.get(key);
+        return v instanceof CharSequence[] ? (CharSequence[]) v : null;
+    }
+
     public void putParcelable(String key, Parcelable value) { map.put(key, value); }
     @SuppressWarnings("unchecked")
     public <T extends Parcelable> T getParcelable(String key) {
@@ -58,6 +65,20 @@ public final class Bundle implements Parcelable {
     public Parcelable[] getParcelableArray(String key) {
         Object v = map.get(key);
         return v instanceof Parcelable[] ? (Parcelable[]) v : null;
+    }
+
+    public void putBundle(String key, Bundle value) { map.put(key, value); }
+    public Bundle getBundle(String key) {
+        Object v = map.get(key);
+        return v instanceof Bundle ? (Bundle) v : null;
+    }
+
+    public void putParcelableArrayList(String key, ArrayList<? extends Parcelable> value) { map.put(key, value); }
+    @SuppressWarnings("unchecked")
+    public <T extends Parcelable> ArrayList<T> getParcelableArrayList(String key) {
+        Object v = map.get(key);
+        if (!(v instanceof ArrayList)) return null;
+        try { return (ArrayList<T>) v; } catch (ClassCastException e) { return null; }
     }
 
     public boolean containsKey(String key) { return map.containsKey(key); }

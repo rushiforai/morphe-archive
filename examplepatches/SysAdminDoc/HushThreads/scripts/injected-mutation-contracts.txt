@@ -10,8 +10,7 @@
 #   once-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
 # A start-call, next-call, sole-call or once-call rule picks its method by every string it names
 # and its shape, and exactly one of Threads' methods may answer that; name as much as the patch
-# itself finds the method by. scripts/test-injected-registers.ps1 builds bad fixtures for every
-# rule here, and fails on a rule it has none for. A * in the method a sole-call replaces stands for
+# itself finds the method by. A * in the method a sole-call replaces stands for
 # any run, for the names each of the eleven variants makes up; it may match one call in the method.
 # A sole-call rule that names tapping <enum constant> also picks a method of its shape that hands
 # that call, or its own, a new lambda whose invoke() reads the enum constant built from that name,

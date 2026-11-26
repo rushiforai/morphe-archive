@@ -279,6 +279,8 @@ Block the creator in one tap. Once TikTok confirms, skip to the next video. A sm
 Block this commenter	Bu şərh yazanı bloklayın
 Block this creator	Bu yaradıcını bloklayın
 Block this sound	Bu səsi bloklayın
+Block sound	Səsi blokla
+Unblock sound	Səsi blokdan çıxar
 Blocked	Bloklanıb
 Blocked %1$s	%1$s bloklandı
 Blocked %1$s. Unblock	%1$s bloklandı. Blokdan çıxarın
@@ -605,6 +607,7 @@ Hide conversations	Söhbətləri gizlədin
 Hide every direct message conversation. Leaves the Inbox empty apart from whatever else is still turned on.	Bütün birbaşa mesaj söhbətlərini gizlədin. Hələ də yandırılmış başqa şeylər istisna olmaqla, Gələnlər boş qalır.
 Hide floating promotion badges, coins, and timer banners on the feed.	Lentdəki üzən tanıtım nişanlarını, sikkələri və taymer bannerlərini gizlədin.
 Hide floating promotions	Üzən tanıtımları gizlədin
+Hide from the host next time	Növbəti dəfə aparıcıdan gizlən
 Hide inserted cards	Əlavə edilmiş kartları gizlədin
 Hide location labels	Məkan etiketlərini gizlədin
 Hide message requests	Mesaj sorğularını gizlədin
@@ -1103,6 +1106,10 @@ Show the mute button on videos	Videolarda səssiz düyməsini göstərin
 Add a button beside the block control that turns the feed's sound off and on.	Bloklama idarəetməsinin yanına lentin səsini söndürüb yandıran düymə əlavə edin.
 Show the block button on videos	Videolarda bloklama düyməsini göstərin
 Show the block sound button	Səsi bloklama düyməsini göstərin
+Show Block sound on sound pages	Səs səhifələrində Səsi blokla düyməsini göstər
+Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound.	Səs səhifəsində Yadda saxla düyməsinin altına Səsi blokla düyməsi əlavə edir. Bu, videodakı fırlanan valın açdığı səhifədir. O səsdən istifadə edən bütün videoları keçir.
+Hide sound page buttons	Səs səhifəsinin düymələrini gizlət
+Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens.	Səs səhifəsinin altındakı Jam Sound və Səsdən istifadə et düymələrini gizlət. Bu, videodakı fırlanan valın açdığı səhifədir.
 Show the country a video was posted from next to the creator's name.	Videonun paylaşıldığı ölkəni yaradıcının adının yanında göstərin.
 Show the current spoken caption while the other controls are hidden.	Digər idarəetmələr gizlədiləndə cari danışılan başlığı göstərin.
 Show the handle instead of the name	Ad əvəzinə istifadəçi adını göstərin
@@ -1879,6 +1886,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	Növbəti LIVE-da təmiz ekranı saxla
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	Sürüşdürdüyünüz LIVE çatı, hədiyyələri və düymələri ilə geri gəlir. Bu, təmiz ekranı siz söndürənə qədər otaqdan otağa açıq saxlayır.
+# context: LIVE settings row under Keep clear screen in the next LIVE; hides the list of viewers' messages over a LIVE stream (#525)
+Hide LIVE chat	LIVE çatını gizlət
+# context: summary of Hide LIVE chat; the comment box is where you type a comment, the room's buttons are gifts, share and the rest (#525)
+Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.	LIVE videosunun üzərində axan çat mesajlarını gizlədir. Şərh qutusu və otağın düymələri qalır.
 # context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
 Offer full screen in more LIVEs	Daha çox LIVE-da tam ekran təklif et
 # context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
@@ -2281,6 +2292,7 @@ LIVE recording saved to %1$s	LIVE yazısı %1$s qovluğuna saxlanıldı
 LIVE ended or dropped. Recording saved to %1$s	LIVE bitdi və ya kəsildi. Qeyd saxlandı: %1$s
 Storage almost full. Recording saved to %1$s	Yaddaş dolmaq üzrədir. Qeyd saxlandı: %1$s
 Size limit reached. Recording saved to %1$s	Ölçü həddinə çatıldı. Qeyd saxlandı: %1$s
+2 GB reached. Recording goes on in a new video.	2 GB-a çatdı. Qeyd yeni videoda davam edir.
 TikTok closed. What was recorded is saved to %1$s	TikTok bağlandı. Qeyd saxlandı: %1$s
 Recording stopped early. Saved to %1$s	Qeyd vaxtından əvvəl dayandı. Saxlandı: %1$s
 This LIVE's stream can't be saved	Bu LIVE-ın yayımını saxlamaq mümkün deyil
@@ -2416,7 +2428,7 @@ Blur the part of the video that sits behind the glass pill on the main feed, so 
 LIVE recording source	LIVE yazısının mənbəyi
 Stream only	Yalnız yayım
 Screen	Ekran
-Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.	Yalnız yayım otağın videosunu əvvəlki kimi saxlayır. Ekran izləyərkən telefonunuzun göstərdiyini yazır, TikTok-un mikrofon icazəsi varsa tətbiqin səsi ilə. Android hər dəfə ekran yazısına icazə istəyir və yazarkən öz bildirişini göstərir.
+Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it.	Yalnız yayım otağın videosunu əvvəlki kimi saxlayır. Ekran izləyərkən telefonunuzun göstərdiyini yazır, TikTok-un mikrofon icazəsi varsa tətbiqin səsi ilə. Android hər dəfə ekran yazısına icazə istəyir və yazarkən öz bildirişini göstərir. Ekran yazısı izlədiyiniz keyfiyyət qədər aydın olur. Dəyişmək üçün LIVE-da Yaz düyməsini basıb saxlayın.
 Recording this LIVE's screen	Bu LIVE-ın ekranı yazılır
 Tap Stop or leave the room to save it.	Saxlamaq üçün Dayandır düyməsinə toxunun və ya otaqdan çıxın.
 Screen recording wasn't allowed	Ekran yazısına icazə verilmədi
@@ -3080,6 +3092,7 @@ Save episodes	Epizodları saxla
 Pick episodes to save	Saxlanacaq epizodları seç
 Episode %1$s	Epizod %1$s
 Preview only	Yalnız önizləmə
+Locked	Kilidli
 Loading episodes	Epizodlar yüklənir
 Couldn't load the episodes. Try again.	Epizodlar yüklənmədi. Yenidən cəhd edin.
 Pick at least one episode	Ən azı bir epizod seç
@@ -3110,7 +3123,7 @@ Writes TikTok's date by the creator's name with the month's name, like Oct 12. D
 Fade the name, date and caption	Ad, tarix və açıqlamanı solğunlaşdır
 Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	Yaradıcının adını, tarixi, açıqlamanı və musiqi sətrini videonun üzərində bu səviyyədə göstərir, onlara toxunmaq yenə mümkündür. 100 olduqda Video idarəetmələrini solğunlaşdır ayarına uyğun olur. 0 olduqda gizlənir.
 LIVE buttons in the long-press menu	LIVE düymələri uzun basma menyusunda
-Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	Yaz və Avto toxunma düymələrini videodan götürür və LIVE-ın ortasına basıb saxlayanda açılan menyuya qoyur.
+Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.	Yaz və Avto toxunma düymələrini və Xəyal rejiminin gözünü videodan götürür və LIVE-ın ortasına basıb saxlayanda açılan menyuya qoyur.
 Auto tap started	Avto toxunma başladı
 Hide stories from accounts you don't follow	İzləmədiyiniz hesabların hekayələrini gizlədin
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	İzləmədiyiniz hesabların hekayələri hekayə panelindən çıxır. İzlədiyiniz hesabların hekayələri qalır.
@@ -3220,7 +3233,7 @@ With the switch above on, landscape and square videos are cropped to cover the s
 Random time each day	Hər gün təsadüfi vaxt
 Sends at a different time each day, somewhere between When to send and Latest time.	Hər gün fərqli vaxtda, Nə vaxt göndərilsin ilə Ən gec vaxt arasında göndərir.
 Latest time	Ən gec vaxt
-The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	Təsadüfi aralığın sonu, Nə vaxt göndərilsin ilə eyni gündə. Ondan gec deyilsə, mesaj Nə vaxt göndərilsin vaxtında gedir.
+The end of the random window. If it's earlier than When to send, the window runs past midnight.	Təsadüfi aralığın sonu. Nə vaxt göndərilsin vaxtından tezdirsə, aralıq gecə yarısından sonraya keçir.
 # context: Jump to a date on Favorites grids (#508): the Favorites tab holds the videos you saved with the bookmark icon
 Jump to a date on Favorites grids	Sevimlilər şəbəkələrində tarixə keçin
 Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.	Sevimlilər şəbəkəsinin yuxarı küncünə düymə əlavə edir. O, yadda saxladığınız videoları seçdiyiniz il və ya aydan başladır, beləliklə köhnə yadda saxlananlar yeniləri keçmədən yüklənir. Geri qayıtmaq üçün orada Ən yeni yadda saxlananlar seçin.

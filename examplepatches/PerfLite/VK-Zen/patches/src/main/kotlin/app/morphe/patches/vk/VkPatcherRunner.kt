@@ -70,11 +70,12 @@ fun main(args: Array<String>) {
     val keyStore = if (keyStoreFile.exists()) {
         ApkSigner.readKeyStore(keyStoreFile.inputStream(), "morphekeystore")
     } else {
-        println("Creating new persistent BKS keystore: ${keyStoreFile.absolutePath}")
+        println("Creating new persistent keystore: ${keyStoreFile.absolutePath}")
         val pair = ApkSigner.newPrivateKeyCertificatePair("Morphe", java.util.Date(System.currentTimeMillis() + 100L * 365 * 24 * 3600 * 1000))
-        val ks = ApkSigner.newKeyStore(setOf(ApkSigner.KeyStoreEntry("morphe", "morphekeystore", pair)))
-        keyStoreFile.outputStream().use { ks.store(it, "morphekeystore".toCharArray()) }
-        ks
+        keyStoreFile.outputStream().use {
+            ApkSigner.writeKeyStore(it, "morphekeystore", mapOf("morphe" to pair))
+        }
+        ApkSigner.readKeyStore(keyStoreFile.inputStream(), "morphekeystore")
     }
 
     val cert = keyStore.getCertificate("morphe") as java.security.cert.X509Certificate

@@ -576,6 +576,8 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	�
 Hide profile notes	隱藏個人檔案便利貼
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	隱藏個人檔案相片上的便利貼泡泡。從下次開啟個人檔案起生效。
+Hide the gift button on profiles	隱藏個人檔案上的禮物按鈕
+Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	從別人的個人檔案移除送禮物按鈕。從下次開啟個人檔案起生效。
 # context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
 Save button under posts	貼文下方的儲存按鈕
 # context: summary of that switch; Like, Comment and Share are the buttons under a post
@@ -3171,8 +3173,8 @@ Adds Facebook chats to Android's share menu. A photo or video you share there is
 Share to Facebook chats is off.	分享到 Facebook 聊天已關閉。
 Nothing in it to send.	沒有可傳送的內容。
 Couldn't save it to your gallery.	無法儲存到圖庫。
-Copied and saved. Pick a chat.	已複製並儲存。請選擇聊天。
-In your gallery now. Pick a chat.	已在圖庫中。請選擇聊天。
+Copied and saved. Paste and attach in a chat.	已複製並儲存。請在聊天中貼上並加入附件。
+Saved to your gallery. Attach it in a chat.	已儲存到圖庫。請在聊天中加入附件。
 Copied. Pick a chat and paste it.	已複製。選擇聊天後貼上。
 Open your chats to pick one.	開啟聊天清單選擇一個。
 Post date after the caption	發佈日期放在說明後
@@ -3189,3 +3191,17 @@ Open a chat, then come back here to give it a color of its own.	先開啟一個�
 %1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s 是你最近開啟的聊天，使用上方的聊天背景。輸入色碼即可為它設定專屬顏色。
 %1$s, the last chat you opened, is %2$s.	%1$s 是你最近開啟的聊天，顏色為 %2$s。
 Type one color code, or two for a fade from top to bottom.	輸入一個色碼，或輸入兩個以從上到下漸變。
+Hide the AI content label on reels	隱藏 Reels 的 AI 內容標籤
+Takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. A change shows from the next reel.	移除 Facebook 標示為使用 AI 製作的 Reels 上的「AI 內容」或「AI 資訊」標籤。從下一則 Reels 起生效。
+The %1$s row will be set to %2$s.	%1$s 將設為 %2$s。
+The %1$s row will go back to its default.	%1$s 將恢復為預設值。
+Save files to Downloads	將檔案儲存到下載資料夾
+A PDF, document or other file you download from a post goes to your phone's Downloads folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.	你從貼文下載的 PDF、文件或其他檔案會存到手機的下載資料夾，檔案管理工具可以開啟它。關閉時，Facebook 會把它放在檔案管理工具無法存取的地方。
+Hide hashtags in reel captions	隱藏 Reels 說明中的主題標籤
+Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	移除 Reels 說明中的主題標籤，例如結尾的一串標籤。句子中的主題標籤會保留。從下一則 Reels 起生效。
+Keep the keyboard closed when comments open	開啟留言時不彈出鍵盤
+Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	開啟留言時不會彈出鍵盤，即使貼文還沒有留言也一樣。想留言時點一下留言框。
+Settings language	設定語言
+Same as Facebook	與 Facebook 相同
+Show feed reels uncropped	動態消息中的 Reels 不裁切
+Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	動態消息中的 Reels 會以原本比例顯示完整畫面，不再被裁成 Facebook 的框。變更後繪製的 Reels 才會生效。

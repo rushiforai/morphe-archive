@@ -154,8 +154,9 @@ internal const val XANALYTICS_UPLOAD = "Lcom/facebook/xanalytics/XAnalyticsNativ
 
 /**
  * The timer Messenger's startup jobs schedule with a fixed delay to send the native XAnalytics batch: a Runnable whose
- * run() flushes the batch, then starts its upload, and does nothing else but read the logger from a provider. Both calls
- * return nothing, so nothing waits on them, and a run that returns early leaves the schedule in place.
+ * run() flushes the batch, then starts its upload, and does nothing else but read the logger from a provider, whose
+ * no-argument getter Redex names per release (get() up to 587, DRE() in 588). Both calls return nothing, so nothing
+ * waits on them, and a run that returns early leaves the schedule in place.
  */
 internal fun Method.isXAnalyticsUploadTimer(): Boolean {
     if (entryPoint() != RUN || AccessFlags.STATIC.isSet(accessFlags)) return false
@@ -167,7 +168,7 @@ internal fun Method.isXAnalyticsUploadTimer(): Boolean {
     val upload = named.indexOf(XANALYTICS_UPLOAD)
     val providers = calls.filterIndexed { i, call -> i != flush && i != upload }
     return named.count { it == XANALYTICS_FLUSH } == 1 && named.count { it == XANALYTICS_UPLOAD } == 1 && flush < upload &&
-        providers.all { it.name == "get" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/Object;" } &&
+        providers.all { it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/Object;" } &&
         code.last().opcode == Opcode.RETURN_VOID && code.count { it.opcode == Opcode.RETURN_VOID } == 1
 }
 

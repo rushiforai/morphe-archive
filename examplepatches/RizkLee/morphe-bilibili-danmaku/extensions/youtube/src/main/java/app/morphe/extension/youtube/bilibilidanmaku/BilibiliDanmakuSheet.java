@@ -575,7 +575,10 @@ final class BilibiliDanmakuSheet {
         int count = BilibiliDanmakuController.loadedCount();
         String title = hasSource ? (sourceTitle.isEmpty() ? source : sourceTitle) : "尚未匹配 B 站视频";
         String meta;
-        if (!hasSource) meta = enabled ? "正在按标题自动匹配，也可以手动搜索" : "开启弹幕后会按标题自动匹配";
+        boolean autoMatching = BilibiliDanmakuController.autoMatchEnabled(host);
+        if (!hasSource) meta = enabled
+                ? (autoMatching ? "正在按标题自动匹配，也可以手动搜索" : "自动匹配已关闭，可搜索视频或粘贴链接")
+                : (autoMatching ? "开启弹幕后会按标题自动匹配" : "开启弹幕后可手动选择来源");
         else if (count > 0) meta = formatCount(count) + " 条弹幕" + (openable ? " · 点按在 B 站打开" : "");
         else meta = "本地 XML".equals(source) ? "本地 XML 文件" : "正在加载弹幕…";
         LinearLayout sourceRow = row();
@@ -641,6 +644,18 @@ final class BilibiliDanmakuSheet {
             BilibiliDanmakuController.openXmlPicker(host);
         }), tileParams(true));
         addBlock(actions, 6);
+
+        section("匹配");
+        LinearLayout matching = group();
+        boolean autoMatch = BilibiliDanmakuController.autoMatchEnabled(host);
+        Switch autoSwitch = toggle(autoMatch, value -> {
+            BilibiliDanmakuController.setAutoMatch(host, value);
+            render("home", true);
+        });
+        listRow(matching, "search", BLUE, "按标题自动匹配",
+                autoMatch ? "打开视频时用标题在 B 站搜索来源"
+                        : "已关闭 · 不会发送视频标题，可手动搜索或粘贴链接",
+                autoSwitch, () -> autoSwitch.setChecked(!autoSwitch.isChecked()));
 
         section("播放与外观");
         LinearLayout tuning = group();

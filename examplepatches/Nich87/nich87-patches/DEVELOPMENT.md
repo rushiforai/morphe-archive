@@ -78,29 +78,52 @@ patches. Each patch can be selected independently.
 Android 13+ provides live refraction. Older versions retain the native blur;
 that fallback has not been verified on a device.
 
-### Lyrics pronunciation
+### LRCLIB lyrics
 
-Turn on **Generate pronunciation guide** in the LRCLIB settings, then select
-**Show Pronunciation** in Apple Music's playback lyrics controls. This works
-with synced and unsynced Apple Music, custom and LRCLIB lyrics. Apple Music's
-existing pronunciation guides take precedence. The patch generates missing
-readings on-device using Kuromoji IPADIC for Japanese and Android ICU for
-supported scripts. For Japanese lyrics containing kanji, download the 13.3 MB
-Kuromoji IPADIC dictionary once from the LRCLIB settings. The app verifies the
-archive's SHA-256 and reads the dictionary entries from app-private storage.
-Subsequent Japanese readings work offline.
-Readings are approximate, especially for names and
-unusual spellings. The original lyrics and their timing are preserved.
-In word-synced Japanese lyrics, generated readings appear on a separate row
-and highlight at the corresponding source timings. A reading that spans
-multiple source segments uses their combined interval. If the reading cannot
-be aligned, its whole row highlights with the active line. The pronunciation
+`LRCLIB lyrics` loads synced and unsynced lyrics from LRCLIB, per-song local
+LRC files, an auto-matched local LRC folder, or directly pasted plain-text/LRC
+lyrics (even for tracks without official or LRCLIB lyrics). It provides a
+source indicator pill (`Official` / `LRCLIB` / `Local`) and Lyrics Source sheet
+for per-song manual search/overrides, millisecond timing offsets, and LRC
+export, and bundles internal scroll-sync recovery after manual scrolling.
+
+### On-device pronunciation guides
+
+`On-device pronunciation guides` is an opt-in patch (`default = false`) that
+works standalone on Apple Music official/custom lyrics or together with
+`LRCLIB lyrics` and `Lyrics editor`. Enable **Generate pronunciation guide**
+in Settings, then select **Show Pronunciation** in Apple Music's playback
+lyrics controls. Apple Music's existing pronunciation guides take precedence.
+Missing readings are generated on-device using Kuromoji IPADIC for Japanese and
+Android ICU for supported scripts. For Japanese lyrics containing kanji,
+download the 13.3 MB Kuromoji IPADIC dictionary once from Settings. The app
+verifies the archive's SHA-256 and reads the dictionary entries from
+app-private storage so subsequent Japanese readings work offline.
+Readings are approximate, especially for names and unusual spellings. The
+original lyrics and their timing are preserved. In word-synced Japanese lyrics,
+generated readings appear on a separate row and highlight at the corresponding
+source timings; a reading spanning multiple source segments uses their combined
+interval, and unaligned rows highlight with the active line. The pronunciation
 menu shows the source of the guide.
 
-Long-press a lyric line to edit its text or pronunciation. The app stores
-changes locally for the exact lyric source and line. Restore Original removes
-that line's changes. A text edit in word-synced lyrics uses the original
-line interval, and the rest of the song keeps its existing timings.
+### Lyrics editor
+
+`Lyrics editor` is a standalone Apple Music patch (`default = true`) that can
+be used alone on Apple Music official/custom lyrics or alongside `LRCLIB
+lyrics` and `On-device pronunciation guides`. Long-press any lyric line (or
+open the Lyrics Source sheet when `LRCLIB lyrics` is also enabled) to launch
+the full-screen Apple Music-native Lyrics Editor. It supports batch editing, a
+docked live playback bar with tap-to-sync, unsynced-to-synced conversion,
+per-line and cascade/batch timing shifts, automatic detection and manual
+insertion of interludes (including animated native three-dot indicators for
+interludes `>= 2.5 s` mid-song and `>= 3.0 s` intro), line
+splitting/insertion/deletion, find & replace, bulk text/LRC editing, undo/redo,
+direct LRC export from the editor's `More` menu, and one-tap restore to
+original. When `On-device pronunciation guides` is not installed or disabled
+and the current track has no existing readings, Romaji/pronunciation editing
+tabs and actions stay hidden automatically. Changes are stored locally per
+lyric source document, remain backwards compatible with legacy per-line edits,
+and bundle internal scroll-sync recovery after manual scrolling.
 
 ### On-device vocal separation
 

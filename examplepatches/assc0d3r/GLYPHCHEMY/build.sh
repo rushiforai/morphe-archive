@@ -188,10 +188,10 @@ Name: Glyphchemy
 Description: Glyphchemy, a bespoke Morphe patch collection for Gboard: typing and gesture improvements, themes and visual effects, voice typing, clipboard and toolbar tools, layouts, privacy switches and settings screens.
 Version: ${VERSION}
 Timestamp: ${TIMESTAMP}
-Source: https://github.com/assc0d3r/ART-GLIDGE-CUSTOMIZATION
+Source: https://github.com/assc0d3r/GLYPHCHEMY
 Author: assc0d3r
-Contact: https://github.com/assc0d3r/ART-GLIDGE-CUSTOMIZATION/issues
-Website: https://github.com/assc0d3r/ART-GLIDGE-CUSTOMIZATION
+Contact: https://github.com/assc0d3r/GLYPHCHEMY/issues
+Website: https://github.com/assc0d3r/GLYPHCHEMY
 License: GPLv3
 Patcher-Version: 1.8.0
 EOF

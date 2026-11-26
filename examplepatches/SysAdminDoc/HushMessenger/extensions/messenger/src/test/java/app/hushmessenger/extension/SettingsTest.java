@@ -52,6 +52,17 @@ public class SettingsTest {
         assertSame(enabled, Settings.hideMetaAiRow(enabled, disabled));
     }
 
+    @Test public void anInlinedImagineYourselfGateSaysNoOnlyWhileTheSwitchIsOn() {
+        assertTrue(Settings.metaAiRowShown(1));
+        assertFalse(Settings.metaAiRowShown(0));
+        Settings.preferences.edit().putBoolean("meta_ai", true).commit();
+        assertFalse(Settings.metaAiRowShown(1));
+        assertFalse(Settings.metaAiRowShown(0));
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        assertTrue(Settings.metaAiRowShown(1));
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
     @Test public void theSearchHintDropsMetaAiOnlyWhileTheSwitchIsOn() {
         assertTrue(Settings.metaAiSearchHint(true));
         assertFalse(Settings.metaAiSearchHint(false));

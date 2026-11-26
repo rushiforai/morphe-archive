@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -41,35 +42,35 @@ public final class OnlineStatus {
     public static void traceOnlineResponse(org.json.JSONObject data) {
         try {
             org.json.JSONArray onlines = data.optJSONArray("onlines");
-            android.util.Log.i("NezumiOnline", "onlineResponse sharing=" + originalOnlineSharing()
+            NezumiLog.i("NezumiOnline", "onlineResponse sharing=" + originalOnlineSharing()
                 + " hidden=" + isOnlineHidden() + " hasOnlines=" + data.has("onlines")
                 + " arrayPresent=" + (onlines != null)
                 + " count=" + (onlines == null ? -1 : onlines.length()));
         } catch (RuntimeException ignored) {
-            android.util.Log.w("NezumiOnline", "onlineResponse probe unavailable");
+            NezumiLog.w("NezumiOnline", "onlineResponse probe unavailable");
         }
     }
 
     public static void traceLastSeenResponse(org.json.JSONObject data) {
         try {
-            android.util.Log.i("NezumiOnline", "lastSeenResponse sharing=" + originalOnlineSharing()
+            NezumiLog.i("NezumiOnline", "lastSeenResponse sharing=" + originalOnlineSharing()
                 + " hidden=" + isOnlineHidden() + " hasTimestamp=" + data.has("timestamp")
                 + " timestampPositive=" + (data.optLong("timestamp") > 0)
                 + " hasVisibility=" + data.has("settingOnlineStatus")
                 + " visibility=" + data.optInt("settingOnlineStatus", -1));
         } catch (RuntimeException ignored) {
-            android.util.Log.w("NezumiOnline", "lastSeenResponse probe unavailable");
+            NezumiLog.w("NezumiOnline", "lastSeenResponse probe unavailable");
         }
     }
 
     public static void traceFriendListResponse(org.json.JSONObject data) {
         try {
             org.json.JSONArray onlines = data.optJSONArray("onlines");
-            android.util.Log.i("NezumiOnline", "friendListResponse sharing=" + originalOnlineSharing()
+            NezumiLog.i("NezumiOnline", "friendListResponse sharing=" + originalOnlineSharing()
                 + " hidden=" + isOnlineHidden() + " arrayPresent=" + (onlines != null)
                 + " count=" + (onlines == null ? -1 : onlines.length()));
         } catch (RuntimeException ignored) {
-            android.util.Log.w("NezumiOnline", "friendListResponse probe unavailable");
+            NezumiLog.w("NezumiOnline", "friendListResponse probe unavailable");
         }
     }
 
@@ -134,7 +135,7 @@ public final class OnlineStatus {
     public static void traceChatOnlineDispatch() {
         if (isChatOnlineRefresh()) {
             lastChatRefresh = android.os.SystemClock.elapsedRealtime();
-            android.util.Log.i("NezumiOnline", "chatRefresh dispatched");
+            NezumiLog.i("NezumiOnline", "chatRefresh dispatched");
         }
     }
 
@@ -144,10 +145,10 @@ public final class OnlineStatus {
             boolean inFlight = repository.getClass().getField("n").getBoolean(repository);
             long requestedAt = repository.getClass().getField("l").getLong(repository);
             long remaining = Math.max(0, onlineRefreshInterval() - (System.currentTimeMillis() - requestedAt));
-            android.util.Log.i("NezumiOnline", "chatRefresh gate inFlight=" + inFlight
+            NezumiLog.i("NezumiOnline", "chatRefresh gate inFlight=" + inFlight
                 + " throttleRemainingMs=" + remaining);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            android.util.Log.w("NezumiOnline", "Chat refresh gate unavailable");
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.w("NezumiOnline", "Chat refresh gate unavailable", failure);
         }
     }
 
@@ -237,10 +238,10 @@ public final class OnlineStatus {
                     lastChatAttempt = now;
                     CHAT_REFRESH.set(true);
                     try {
-                        android.util.Log.i("NezumiOnline", "chatRefresh attempt");
+                        NezumiLog.i("NezumiOnline", "chatRefresh attempt");
                         requestChatOnlineList();
-                    } catch (LinkageError | RuntimeException ignored) {
-                        android.util.Log.w("NezumiOnline", "Chat online refresh unavailable");
+                    } catch (LinkageError | RuntimeException failure) {
+                        NezumiLog.w("NezumiOnline", "Chat online refresh unavailable", failure);
                     } finally {
                         CHAT_REFRESH.remove();
                     }
@@ -255,7 +256,7 @@ public final class OnlineStatus {
         Context context = ZaloEnv.appContext();
         boolean hidden = isOnlineHidden();
         int mapped = state == 103 && hidden ? 102 : state;
-        android.util.Log.i("NezumiOnline", "socketState=" + state + " mapped=" + mapped
+        NezumiLog.d("NezumiOnline", "socketState=" + state + " mapped=" + mapped
             + " hidden=" + hidden + " contextAvailable=" + (context != null));
         return mapped;
     }

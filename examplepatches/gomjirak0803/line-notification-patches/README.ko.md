@@ -4,7 +4,7 @@
 
 Morphe 원격 소스: https://github.com/gomjirak0803/line-notification-patches
 
-* **[v0.1.18-dev 다운로드](https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.18-dev)** · [배포 검증 결과](docs/PUBLICATION_STATUS.md) · [실기기 검증표](docs/DEVICE_TESTS.md)
+* **[v0.1.19-dev 다운로드](https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.19-dev)** · [배포 검증 결과](docs/PUBLICATION_STATUS.md) · [실기기 검증표](docs/DEVICE_TESTS.md)
 
 [Morphe Manager에 소스 추가](https://morphe.software/add-source?github=gomjirak0803/line-notification-patches) · **Pre-release patches**와 **Experimental app versions**를 켜세요.
 

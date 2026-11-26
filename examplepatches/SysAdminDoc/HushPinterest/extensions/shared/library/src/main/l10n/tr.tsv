@@ -748,6 +748,38 @@ Takes pins you've saved out of your home feed. Your boards still show them.	Kayd
 # context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes pins the person has already saved out of search results and out of the "More to explore" pins Pinterest shows under a pin they open. "More to explore" is Pinterest's own name for that section, so use the app's translation of it. The title is also the name of that part of the patch in the build report.
 Hide saved pins in search and More to explore	Aramada ve "Daha fazlasını keşfet" bölümünde kayıtlı pinleri gizle
 Takes pins you've saved out of search results and the More to explore pins under a pin you open. Your boards still show them.	Kaydettiğin pinleri arama sonuçlarından ve açtığın bir pinin altındaki "Daha fazlasını keşfet" bölümünden kaldırır. Panoların onları göstermeye devam eder.
+# context: a Feed switch from the Filter feed patch (#52). Pins that came on screen on the Home feed, whether the person opened them or only scrolled past them, stay out of the Home feed after that. The title is also the name of that part of the patch in the build report.
+Hide pins you've already seen	Gördüğün pinleri gizle
+Takes pins you've scrolled past or opened on Home out of your home feed from then on. Boards still show them. The change shows the next time Home loads.	Ana akışta kaydırıp geçtiğin ya da açtığın pinleri o andan itibaren ana akışından kaldırır. Panolar onları göstermeye devam eder. Değişiklik ana akış bir sonraki yüklendiğinde görünür.
+# context: a Feed switch under Hide pins you've already seen (#52). With it on, search results also leave out pins the person has seen, and pins that come on screen in search results count as seen too.
+Hide seen pins in search	Gördüğün pinleri aramada gizle
+Search results leave out pins you've already seen, and pins you scroll past in search count as seen too.	Arama sonuçları gördüğün pinleri dışarıda bırakır, aramada kaydırıp geçtiğin pinler de görülmüş sayılır.
+# context: a Feed row under Hide pins you've already seen (#52). Tapping it opens a list of how long a seen pin stays hidden: A day, A week, A month or Forever. The row's text is the chosen length, then this sentence.
+Hide seen pins for	Görülen pinleri gizleme süresi
+Forever. A pin you've seen stays out until you forget it.	Sonsuza dek. Gördüğün bir pin, sen onu unutana kadar gizli kalır.
+# context: %s is one of A day, A week or A month, as chosen in Hide seen pins for.
+%s. After that, a pin you've seen can show up again.	%s. Sonrasında gördüğün bir pin yeniden görünebilir.
+# context: the choices in Hide seen pins for: how long a pin the person has seen stays hidden. Each is also the start of the row's text.
+A day	Bir gün
+A week	Bir hafta
+A month	Bir ay
+Forever	Sonsuza dek
+# context: a Feed row under Hide pins you've already seen (#52). A tap forgets every pin the person has seen, so they can show again; the next tap brings them back. It acts at once and opens nothing.
+Forget pins you've seen	Gördüğün pinleri unut
+# context: toast after a second tap on Forget pins you've seen puts back the pins the first tap forgot
+Brought back one pin you've seen.	Gördüğün bir pin geri getirildi.
+Brought back %d pins you've seen.	Gördüğün %d pin geri getirildi.
+# context: Forget pins you've seen, when no seen pin has been noted yet: its row text, and its toast when tapped then
+No pins remembered yet.	Henüz hatırlanan pin yok.
+# context: toast after a tap on Forget pins you've seen
+Forgot one pin you've seen.	Gördüğün bir pin unutuldu.
+Forgot %d pins you've seen.	Gördüğün %d pin unutuldu.
+# context: Forget pins you've seen's row text right after a tap forgot them; another tap puts them back
+Forgot one pin. Tap again to bring it back.	Bir pin unutuldu. Geri getirmek için yeniden dokun.
+Forgot %d pins. Tap again to bring them back.	%d pin unutuldu. Geri getirmek için yeniden dokun.
+# context: Forget pins you've seen's row text: how many seen pins are noted, which a tap forgets
+Remembers one pin you've seen. Tap to forget it, so it can show again.	Gördüğün bir pini hatırlıyor. Yeniden görünebilmesi için unutmak üzere dokun.
+Remembers %d pins you've seen. Tap to forget them, so they can show again.	Gördüğün %d pini hatırlıyor. Yeniden görünebilmeleri için unutmak üzere dokun.
 # context: toast when Download pin can't save a streamed video on the current network
 Your download settings block this network. Try again on Wi-Fi.	İndirme ayarların bu ağı engelliyor. Wi-Fi'da yeniden dene.
 # context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes Pinterest's own suggestion rows off the Home feed ("More ideas for your board" and "Inspired by your interests") and the "See more like this?" bubble Pinterest shows on a pin. The title is also the name of that part of the patch in the build report.

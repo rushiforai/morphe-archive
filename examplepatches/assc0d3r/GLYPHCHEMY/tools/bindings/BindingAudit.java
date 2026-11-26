@@ -34,10 +34,13 @@ import java.util.zip.ZipFile;
  *
  * Usage: java -cp "libs/morphe-cli.jar" tools/bindings/BindingAudit.java \
  *            src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/generated/GboardVersionBindings.kt \
- *            <gboard.apk>
+ *            <gboard.apk> [--known-missing <file>]
  *
- * Exits 1 when anything is unresolved, so it can gate a build or a re-derivation run; 0 when every
- * target resolves; 2 on a usage or parse error.
+ * A build that genuinely lacks some targets can be told so with --known-missing, a file naming them
+ * one per line (blank lines and # comments ignored). Those entries are reported separately and do not
+ * fail the run, so the audit can gate CI without demanding a re-derivation of every target a build
+ * never had. Exits 1 when any other target is unresolved; 0 when every target resolves or is declared
+ * missing; 2 on a usage or parse error.
  */
 public final class BindingAudit {
 
@@ -67,13 +70,33 @@ public final class BindingAudit {
     private static final Pattern CONSTANT = Pattern.compile(
             "const val (\\w+) = \"([^\"]*)\"");
 
+    private static final String USAGE =
+            "usage: BindingAudit <GboardVersionBindings.kt> <gboard.apk> [--known-missing <file>]";
+
     public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
-            System.err.println("usage: BindingAudit <GboardVersionBindings.kt> <gboard.apk>");
+        List<String> positional = new ArrayList<>();
+        Path knownMissingFile = null;
+        for (int index = 0; index < args.length; index++) {
+            if (args[index].equals("--known-missing")) {
+                if (index + 1 >= args.length) {
+                    System.err.println(USAGE);
+                    System.exit(2);
+                }
+                knownMissingFile = Path.of(args[++index]);
+            } else {
+                positional.add(args[index]);
+            }
+        }
+        if (positional.size() != 2) {
+            System.err.println(USAGE);
             System.exit(2);
         }
-        Path bindingsFile = Path.of(args[0]);
-        File apk = new File(args[1]);
+        if (knownMissingFile != null && !Files.isRegularFile(knownMissingFile)) {
+            System.err.println("error: known-missing file not found: " + knownMissingFile);
+            System.exit(2);
+        }
+        Path bindingsFile = Path.of(positional.get(0));
+        File apk = new File(positional.get(1));
         if (!Files.isRegularFile(bindingsFile)) {
             System.err.println("error: bindings file not found: " + bindingsFile);
             System.exit(2);
@@ -103,8 +126,12 @@ public final class BindingAudit {
         }
 
         Map<String, ClassDef> classes = loadClasses(apk);
+        Set<String> knownMissing = knownMissingFile == null
+                ? new LinkedHashSet<>()
+                : readKnownMissing(knownMissingFile);
 
         List<Target> unresolved = new ArrayList<>();
+        List<Target> expectedMissing = new ArrayList<>();
         Map<String, String> hints = new LinkedHashMap<>();
         Map<Kind, Integer> counts = new LinkedHashMap<>();
         counts.put(Kind.METHOD, 0);
@@ -116,7 +143,11 @@ public final class BindingAudit {
             owners.add(target.classType());
             String hint = resolve(target, classes);
             if (hint != null) {
-                unresolved.add(target);
+                if (knownMissing.contains(target.name())) {
+                    expectedMissing.add(target);
+                } else {
+                    unresolved.add(target);
+                }
                 hints.put(target.name(), hint);
             }
         }
@@ -132,8 +163,11 @@ public final class BindingAudit {
                 + counts.get(Kind.FIELD) + " fields, "
                 + counts.get(Kind.TYPE) + " types)");
         System.out.println();
-        System.out.println("resolved:   " + (targets.size() - unresolved.size()));
+        System.out.println("resolved:   " + (targets.size() - unresolved.size() - expectedMissing.size()));
         System.out.println("unresolved: " + unresolved.size());
+        if (knownMissingFile != null) {
+            System.out.println("known:      " + expectedMissing.size() + " declared in " + knownMissingFile);
+        }
 
         for (Kind kind : Kind.values()) {
             for (Target target : unresolved) {
@@ -143,12 +177,58 @@ public final class BindingAudit {
             }
         }
 
+        if (!expectedMissing.isEmpty()) {
+            System.out.println();
+            System.out.println("Declared missing, so not a failure:");
+            for (Kind kind : Kind.values()) {
+                for (Target target : expectedMissing) {
+                    if (target.kind() != kind) continue;
+                    System.out.println("  " + kind + " " + target.name() + ": " + target.descriptor()
+                            + " (" + hints.get(target.name()) + ")");
+                }
+            }
+        }
+
+        // A declaration that no longer matches an unresolved target is not a failure on its own, but
+        // it has stopped documenting anything, and the next real absence could hide behind it.
+        Set<String> matched = new LinkedHashSet<>();
+        for (Target target : expectedMissing) matched.add(target.name());
+        List<String> stale = new ArrayList<>();
+        for (String name : knownMissing) {
+            if (!matched.contains(name)) stale.add(name);
+        }
+        if (!stale.isEmpty()) {
+            System.out.println();
+            System.out.println("warning: declared missing but no longer unresolved, remove from "
+                    + knownMissingFile + ":");
+            for (String name : stale) System.out.println("  " + name);
+        }
+
         if (!unresolved.isEmpty()) {
             System.out.println();
             System.out.println("Re-derive the values above against " + apk.getName()
                     + " before pointing a target at it.");
+            if (knownMissingFile != null) {
+                System.out.println("If " + apk.getName() + " genuinely lacks them, declare them in "
+                        + knownMissingFile + ".");
+            }
             System.exit(1);
         }
+    }
+
+    /**
+     * Reads the targets a build is known not to contain: one binding name per line, blank lines and
+     * lines starting with # ignored. The file is the audit's only way to keep a real absence
+     * documented, so anything not listed in it still has to resolve.
+     */
+    private static Set<String> readKnownMissing(Path file) throws IOException {
+        Set<String> names = new LinkedHashSet<>();
+        for (String raw : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+            String line = raw.trim();
+            if (line.isEmpty() || line.startsWith("#")) continue;
+            names.add(line);
+        }
+        return names;
     }
 
     /**

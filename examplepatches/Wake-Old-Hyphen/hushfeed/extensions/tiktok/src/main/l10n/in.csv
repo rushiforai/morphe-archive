@@ -268,6 +268,8 @@ Block new bottom tabs,Blokir tab bawah yang baru
 Block this commenter,Blokir pengomentar ini
 Block this creator,Blokir kreator ini
 Block this sound,Blokir suara ini
+Block sound,Blokir suara
+Unblock sound,Buka blokir suara
 Blocked,Diblokir
 Blocked %1$s,%1$s diblokir
 Blocked %1$s. Unblock,%1$s diblokir. Buka blokir
@@ -588,6 +590,7 @@ Hide the tab names above the feed,Sembunyikan nama tab di atas feed
 The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.,Nama Mengikuti dan Untuk Anda di atas feed hilang. Menggeser antar feed dan tombol pencarian tetap seperti semula.
 "Hide floating promotion badges, coins, and timer banners on the feed.","Sembunyikan lencana promosi mengambang, koin, dan spanduk penghitung waktu di beranda."
 Hide floating promotions,Sembunyikan promosi mengambang
+Hide from the host next time,Sembunyi dari host lain kali
 Hide inserted cards,Sembunyikan kartu sisipan
 Hide message requests,Sembunyikan permintaan pesan
 Hide message streaks,Sembunyikan rentetan pesan
@@ -1058,6 +1061,10 @@ Show TikTok's own progress bar on videos where it's normally hidden.,Tampilkan b
 Show a video preview thumbnail while dragging the progress bar.,Tampilkan pratinjau video saat menggeser bilah progres.
 Show the block button on videos,Tampilkan tombol blokir di video
 Show the block sound button,Tampilkan tombol blokir suara
+Show Block sound on sound pages,Tampilkan Blokir suara di halaman suara
+"Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound.","Menambahkan tombol Blokir suara di bawah Simpan pada halaman suara, yang dibuka oleh piringan berputar di video. Melewati setiap video yang memakai suara itu."
+Hide sound page buttons,Sembunyikan tombol di halaman suara
+"Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens.","Sembunyikan Jam Sound dan Gunakan suara di bagian bawah halaman suara, yaitu halaman yang dibuka oleh piringan berputar di video."
 Show failures on screen,Tampilkan kegagalan di layar
 Show gates,Tampilkan gate
 Show last report,Tampilkan laporan terakhir
@@ -1846,6 +1853,8 @@ Offer clear screen in every LIVE room,Tawarkan layar bersih di setiap ruang LIVE
 "Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.","Layar bersih menyembunyikan obrolan, hadiah, dan tombol LIVE sehingga hanya siarannya yang terlihat. TikTok hanya menaruhnya di menu beberapa ruang. Ini menambahkannya ke ruang lainnya."
 Keep clear screen in the next LIVE,Pertahankan layar bersih di LIVE berikutnya
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.","LIVE yang kamu geser akan kembali menampilkan obrolan, hadiah, dan tombolnya. Ini membuat layar bersih tetap aktif dari ruang ke ruang sampai kamu mematikannya."
+Hide LIVE chat,Sembunyikan obrolan LIVE
+Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.,Menyembunyikan pesan obrolan yang bergulir di atas video LIVE. Kotak komentar dan tombol ruang tetap ada.
 Offer full screen in more LIVEs,Tawarkan layar penuh di lebih banyak LIVE
 TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok hanya menampilkan tombol layar penuh di LIVE yang disiarkan dari komputer atau layar yang dibagikan. Ini menampilkannya di setiap LIVE lain dengan video lebar.
 Keep watching in a small window,Tetap menonton di jendela kecil
@@ -2233,6 +2242,7 @@ Allow storage for TikTok to record LIVEs,Beri TikTok izin penyimpanan untuk mere
 LIVE ended or dropped. Recording saved to %1$s,LIVE berakhir atau terputus. Rekaman disimpan di %1$s
 Storage almost full. Recording saved to %1$s,Penyimpanan hampir penuh. Rekaman disimpan di %1$s
 Size limit reached. Recording saved to %1$s,Batas ukuran tercapai. Rekaman disimpan di %1$s
+2 GB reached. Recording goes on in a new video.,2 GB tercapai. Rekaman berlanjut di video baru.
 TikTok closed. What was recorded is saved to %1$s,TikTok ditutup. Bagian yang terekam disimpan di %1$s
 Recording stopped early. Saved to %1$s,Rekaman berhenti lebih awal. Disimpan di %1$s
 "This LIVE's stream can't be saved","Siaran LIVE ini tidak bisa disimpan"
@@ -2369,7 +2379,7 @@ Blur the video behind the bar,Buramkan video di belakang bilah
 LIVE recording source,Sumber rekaman LIVE
 Stream only,Hanya siaran
 Screen,Layar
-"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.","Hanya siaran menyimpan video ruangan seperti biasa. Layar merekam apa yang ditampilkan ponsel saat Anda menonton, beserta suara aplikasi jika TikTok punya izin mikrofon. Android meminta izin merekam layar setiap kali dan menampilkan pemberitahuannya sendiri saat merekam."
+"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it.","Hanya siaran menyimpan video ruangan seperti biasa. Layar merekam apa yang ditampilkan ponsel saat Anda menonton, beserta suara aplikasi jika TikTok punya izin mikrofon. Android meminta izin merekam layar setiap kali dan menampilkan pemberitahuannya sendiri saat merekam. Rekaman layar sejernih kualitas yang sedang Anda tonton. Tahan tombol Rekam di LIVE untuk menggantinya."
 Recording this LIVE's screen,Merekam layar LIVE ini
 Tap Stop or leave the room to save it.,Ketuk Berhenti atau keluar dari ruangan untuk menyimpannya.
 Screen recording wasn't allowed,Perekaman layar tidak diizinkan
@@ -2925,6 +2935,7 @@ Save episodes,Simpan episode
 Pick episodes to save,Pilih episode untuk disimpan
 Episode %1$s,Episode %1$s
 Preview only,Hanya pratinjau
+Locked,Terkunci
 Loading episodes,Memuat episode
 Couldn't load the episodes. Try again.,Tidak dapat memuat episode. Coba lagi.
 Pick at least one episode,Pilih setidaknya satu episode
@@ -2953,7 +2964,7 @@ Write the month as a word,Tulis bulan sebagai kata
 "Fade the name, date and caption","Pudarkan nama, tanggal, dan keterangan"
 "Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.","Menampilkan nama kreator, tanggal, keterangan, dan baris musik di atas video pada level ini, dan semuanya tetap bisa diketuk. Di 100 mengikuti Pudarkan kontrol video. Di 0 disembunyikan."
 LIVE buttons in the long-press menu,Tombol LIVE di menu tekan lama
-Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,Memindahkan tombol Rekam dan Ketuk otomatis dari video ke menu yang muncul saat menekan lama bagian tengah LIVE.
+Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.,Memindahkan tombol Rekam dan Ketuk otomatis serta mata Mode siluman dari video ke menu yang muncul saat menekan lama bagian tengah LIVE.
 Auto tap started,Ketuk otomatis dimulai
 Hide stories from accounts you don't follow,Sembunyikan Story dari akun yang tidak kamu ikuti
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,Story dari akun yang tidak kamu ikuti hilang dari deret Story. Story dari akun yang kamu ikuti tetap ada.
@@ -3051,7 +3062,7 @@ Fill wide videos too,Penuhi juga dengan video lebar
 Random time each day,Waktu acak setiap hari
 "Sends at a different time each day, somewhere between When to send and Latest time.","Mengirim pada waktu berbeda setiap hari, di antara Kapan dikirim dan Waktu paling lambat."
 Latest time,Waktu paling lambat
-"The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.","Akhir rentang acak, pada hari yang sama dengan Kapan dikirim. Jika tidak lebih lambat, pesan dikirim pada waktu Kapan dikirim."
+"The end of the random window. If it's earlier than When to send, the window runs past midnight.","Akhir rentang acak. Jika lebih awal dari Kapan dikirim, rentangnya berlanjut melewati tengah malam."
 Jump to a date on Favorites grids,Lompat ke tanggal di kisi Favorit
 "Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.","Menambahkan tombol di sudut atas kisi Favorit yang memulai video tersimpan Anda dari tahun atau bulan yang Anda pilih, sehingga yang lebih lama dimuat tanpa harus menggulir melewati yang lebih baru. Pilih Favorit terbaru di sana untuk kembali."
 Newest saves,Favorit terbaru

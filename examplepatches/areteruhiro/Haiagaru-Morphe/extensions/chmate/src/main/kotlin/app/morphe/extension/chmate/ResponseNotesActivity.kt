@@ -7,6 +7,8 @@ import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,6 +39,7 @@ class ResponseNotesActivity : HaiagaruComposeActivity() {
 internal class ResponseNotesScreen(
     private val activity: android.app.Activity,
     private val intent: Intent,
+    private val embedded: Boolean = false,
     private val close: () -> Unit
 ) {
     private val store = ResponseNotesStore.get(activity.applicationContext)
@@ -135,7 +138,7 @@ internal class ResponseNotesScreen(
                         }
                     } }
                 }
-            } else Column(Modifier.fillMaxSize().padding(padding).imePadding().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            } else Column(Modifier.fillMaxSize().padding(padding).then(if (embedded) Modifier else Modifier.imePadding()).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(title, { title = it.take(160) }, enabled = !busy, modifier = Modifier.fillMaxWidth(), label = { Text("タイトル（任意）") }, singleLine = true)
                 if (url.isNotEmpty()) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -157,7 +160,7 @@ internal class ResponseNotesScreen(
                         update = { view -> view.loadDataWithBaseURL(url, mediaHtml(source), "text/html", "UTF-8", null) }
                     )
                 }
-                OutlinedTextField(text, { text = it.take(30000) }, enabled = !busy, modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(memoFocus), label = { Text("メモ") },
+                OutlinedTextField(text, { text = it.take(30000) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp, max = 360.dp).focusRequester(memoFocus), label = { Text("メモ") },
                     placeholder = { Text("気になったことを書き留める") })
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("${text.length}/30000", style = MaterialTheme.typography.labelSmall)

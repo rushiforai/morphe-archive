@@ -7,7 +7,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-25
  */
 
 package app.morphe.extension.youtube.patches.components;
@@ -46,6 +46,8 @@ public final class FeedComponentsFilter extends LazyBufferFilter {
      * Browse id of the community page of a channel, which shows only community posts.
      */
     private static final String COMMUNITY_PAGE_BROWSE_ID = "FEcommunity_page";
+    private static final String POST_DETAIL_BROWSE_ID = "FEpost_detail";
+    private static final String LOCKUP_ROOT_SUFFIX = "|CellType|";
 
     /**
      * Browse id of the page that is shown, or empty for the search feed.
@@ -121,6 +123,8 @@ public final class FeedComponentsFilter extends LazyBufferFilter {
     private final StringFilterGroup chipsShelf;
     private final StringFilterGroup compactChannel;
     private final StringFilterGroup communityPosts;
+    private final StringFilterGroup communityPostLockup;
+    private final ByteArrayFilterGroup communityPostLockupBuffer;
     private final StringFilterGroup expandableCard;
     private final ByteArrayFilterGroup productCardBuffer;
     private final ByteArrayFilterGroup summaryCardBuffer;
@@ -207,6 +211,11 @@ public final class FeedComponentsFilter extends LazyBufferFilter {
                 "videos_post_responsive_root",
                 "videos_post_root"
         );
+
+        // New community posts use a shared lockup instead of a post-specific template.
+        // The path names the actual template even when the conversion inherits a different identifier.
+        communityPostLockup = new StringFilterGroup(null, "lockup.e");
+        communityPostLockupBuffer = new ByteArrayFilterGroup(null, "FEpost_home");
 
         final StringFilterGroup expandableShelf = new StringFilterGroup(
                 Settings.HIDE_EXPANDABLE_SHELF,
@@ -463,6 +472,7 @@ public final class FeedComponentsFilter extends LazyBufferFilter {
                 channelProfileSubscribeButton,
                 chipBar,
                 compactChannel,
+                communityPostLockup,
                 expandableCard,
                 forYouShelf,
                 imageShelf,
@@ -634,7 +644,45 @@ public final class FeedComponentsFilter extends LazyBufferFilter {
      * @return If the path is the root of a feed item: {@code identifier|hash|CellType|}.
      */
     private static boolean isLockupRoot(CharSequence path) {
-        return StringUtils.endsWith(path, "|CellType|");
+        return StringUtils.endsWith(path, LOCKUP_ROOT_SUFFIX);
+    }
+
+    private static boolean isPostLockupRoot(String path, int contentIndex) {
+        if (contentIndex != 0 || !isLockupRoot(path)) {
+            return false;
+        }
+
+        final int templateEnd = path.indexOf('|');
+        final int hashEnd = path.length() - LOCKUP_ROOT_SUFFIX.length();
+        return hashEnd > templateEnd + 1 && path.indexOf('|', templateEnd + 1) == hashEnd;
+    }
+
+    private boolean hideCommunityPosts(boolean postLockup) {
+        final String currentBrowseId = browseId;
+        if (PlayerType.getCurrent().isMaximizedOrFullscreen()) {
+            if (postLockup) {
+                // Related videos cover the page below the player, regardless of the selected tab.
+                return Settings.HIDE_COMMUNITY_POSTS_HOME_RELATED_VIDEOS.get();
+            }
+        } else {
+            // A standalone community or post page needs its body to load. Keep the legacy
+            // channel override for the old templates, but do not extend it to these lockups.
+            if (postLockup && (COMMUNITY_PAGE_BROWSE_ID.equals(currentBrowseId)
+                    || POST_DETAIL_BROWSE_ID.equals(currentBrowseId))) {
+                return false;
+            }
+
+            if (currentBrowseId.startsWith("UC") || COMMUNITY_PAGE_BROWSE_ID.equals(currentBrowseId)) {
+                return Settings.HIDE_COMMUNITY_POSTS_CHANNEL.get();
+            }
+        }
+
+        if (BROWSE_ID_SUBSCRIPTION.equals(currentBrowseId)
+                || NavigationButton.getSelectedNavigationButton() == NavigationButton.SUBSCRIPTIONS) {
+            return Settings.HIDE_COMMUNITY_POSTS_SUBSCRIPTIONS.get();
+        }
+
+        return Settings.HIDE_COMMUNITY_POSTS_HOME_RELATED_VIDEOS.get();
     }
 
     @Override
@@ -658,36 +706,14 @@ public final class FeedComponentsFilter extends LazyBufferFilter {
         }
 
         if (matchedGroup == communityPosts) {
-            // This fork also lets users hide posts on channel pages explicitly.
-            if (!PlayerType.getCurrent().isMaximizedOrFullscreen()
-                    && browseId.startsWith("UC")) {
-                return Settings.HIDE_COMMUNITY_POSTS_CHANNEL.get();
-            }
+            return hideCommunityPosts(false);
+        }
 
-            // YouTube now also shows community posts on a dedicated community page for channels,
-            // and hiding its posts prevents any posts from loading (the page shows a loading
-            // spinner forever) (https://github.com/MorpheApp/morphe-patches/issues/4101).
-            // The page is found by its browse id, as the back button it is navigated with is also
-            // visible on other pages, such as the search results, and on the page below the watch page.
-            // The watch page, with its related videos, comments and other panels, covers the page
-            // below it, also when the video is opened from the community page
-            // (https://github.com/MorpheApp/morphe-patches/issues/4170).
-            if (COMMUNITY_PAGE_BROWSE_ID.equals(browseId) && !PlayerType.getCurrent().isMaximizedOrFullscreen()) {
-                // Keep this fork's explicit channel override; the default leaves the page usable.
-                return Settings.HIDE_COMMUNITY_POSTS_CHANNEL.get();
-            }
-
-            // Subscriptions Feed
-            NavigationButton navButton = NavigationButton.getSelectedNavigationButton();
-            boolean isSubscriptions = (navButton == NavigationButton.SUBSCRIPTIONS)
-                    || BROWSE_ID_SUBSCRIPTION.equals(browseId);
-
-            if (isSubscriptions) {
-                return Settings.HIDE_COMMUNITY_POSTS_SUBSCRIPTIONS.get();
-            }
-
-            // If we are not in Channel or Subscriptions, we assume Home or Related Videos.
-            return Settings.HIDE_COMMUNITY_POSTS_HOME_RELATED_VIDEOS.get();
+        if (matchedGroup == communityPostLockup) {
+            // The root owns the post endpoint. Do not remove a carousel child or a regular lockup.
+            return isPostLockupRoot(path, contentIndex)
+                    && hideCommunityPosts(true)
+                    && communityPostLockupBuffer.check(buffer.get()).isFiltered();
         }
 
         if (matchedGroup == expandableCard) {

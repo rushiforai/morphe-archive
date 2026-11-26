@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -53,20 +53,29 @@
 package app.morphe.patches.music.layout.theme
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.colorOption
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.music.navigation.components.installMusicLightBarHooks
+import app.morphe.patches.music.player.components.musicPlayerLightThemePatch
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.music.utils.extension.Constants.PATCH_STATUS_CLASS_DESCRIPTOR
 import app.morphe.patches.music.utils.extension.Constants.UTILS_PATH
 import app.morphe.patches.music.utils.mainactivity.mainActivityResolvePatch
 import app.morphe.patches.music.utils.patch.PatchList.DARK_THEME
 import app.morphe.patches.music.utils.playservice.is_7_25_or_greater
+import app.morphe.patches.music.utils.playservice.is_8_12_or_greater
+import app.morphe.patches.music.utils.playservice.versionCheckPatch
 import app.morphe.patches.music.utils.resourceid.sharedResourceIdPatch
 import app.morphe.patches.music.utils.settings.ResourceUtils.updatePatchStatus
 import app.morphe.patches.music.utils.settings.addCustomPreference
@@ -76,18 +85,35 @@ import app.morphe.patches.music.utils.settings.settingsPatch
 import app.morphe.patches.shared.drawable.addDrawableColorHook
 import app.morphe.patches.shared.drawable.drawableColorHookPatch
 import app.morphe.patches.shared.mainactivity.injectOnCreateMethodCall
+import app.morphe.patches.shared.mainactivity.mainActivityMutableClass
 import app.morphe.patches.shared.mapping.resourceMappingPatch
 import app.morphe.util.ResourceGroup
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.copyResources
 import app.morphe.util.findMethodOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.valueOrThrow
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "$UTILS_PATH/DrawableColorPatch;"
+internal const val MUSIC_LIGHT_THEME_CLASS_DESCRIPTOR = "$UTILS_PATH/MusicLightTheme;"
+
+private const val MUSIC_APPLICATION_CLASS =
+    "Lcom/google/android/apps/youtube/music/application/YouTubeMusicTikTokRoot_Application;"
+private const val STOCK_SETTINGS_ACTIVITY_CLASS =
+    "Lcom/google/android/apps/youtube/music/settings/SettingsCompatActivity;"
+private const val GOOGLE_API_ACTIVITY_CLASS = "Lcom/google/android/gms/common/api/GoogleApiActivity;"
+private const val CONTEXT_TYPE = "Landroid/content/Context;"
+private const val LIGHT_THEME_KEY = "light"
+private const val LIGHT_THEME_SURFACE = "#FFF8F9FA"
 private const val SPLASH_THEME_PREFIX = "morphe_theme_splash_"
 private const val SPLASH_THEME_NO_ICON_SUFFIX = "_no_icon"
 private const val SPLASH_THEME_PARENT = "@style/Theme.YouTubeMusic"
@@ -185,6 +211,67 @@ private fun darkThemeColorWithStockAlpha(color: String, stockColor: String): Str
     return "#${stockHex.substring(0, 2)}${colorHex.takeLast(6)}"
 }
 
+private fun Method.isAttachBaseContext() =
+    name == "attachBaseContext" && parameterTypes == listOf(CONTEXT_TYPE) && returnType == "V"
+
+private fun BytecodePatchContext.installMusicLightThemeAttachHooks() {
+    val application = classDefBy(MUSIC_APPLICATION_CLASS)
+    // TikTok's generated base owns a final attachBaseContext on supported stock versions.
+    // Hook that declaration instead of adding an invalid override to the manifest application.
+    val applicationAttachOwner = generateSequence(application) { owner ->
+        owner.superclass?.let { classDefByOrNull(it) }
+    }.firstOrNull { owner -> owner.methods.any { it.isAttachBaseContext() } }
+
+    listOf(
+        mutableClassDefBy(applicationAttachOwner?.type ?: application.type),
+        mainActivityMutableClass,
+        mutableClassDefBy(STOCK_SETTINGS_ACTIVITY_CLASS),
+        mutableClassDefBy(GOOGLE_API_ACTIVITY_CLASS),
+    ).forEach { it.installMusicLightThemeAttachHook() }
+}
+
+private fun MutableClass.installMusicLightThemeAttachHook() {
+    val attach = methods.firstOrNull { it.isAttachBaseContext() }
+    if (attach != null) {
+        attach.wrapMusicLightThemeContext()
+        return
+    }
+
+    val baseClass = superclass ?: throw PatchException("Missing superclass for $type")
+    val attachOverride = ImmutableMethod(
+        type,
+        "attachBaseContext",
+        listOf(ImmutableMethodParameter(CONTEXT_TYPE, null, null)),
+        "V",
+        AccessFlags.PROTECTED.value,
+        null,
+        null,
+        MutableMethodImplementation(2),
+    ).toMutable()
+
+    attachOverride.addInstructions(
+        0,
+        """
+            invoke-super/range { p0 .. p1 }, $baseClass->attachBaseContext($CONTEXT_TYPE)V
+            return-void
+        """,
+    )
+    attachOverride.wrapMusicLightThemeContext()
+    methods.add(attachOverride)
+}
+
+private fun MutableMethod.wrapMusicLightThemeContext() {
+    val wrapContext = "$MUSIC_LIGHT_THEME_CLASS_DESCRIPTOR->wrapBaseContext($CONTEXT_TYPE)$CONTEXT_TYPE"
+
+    addInstructions(
+        0,
+        """
+            invoke-static/range { p1 .. p1 }, $wrapContext
+            move-result-object p1
+        """,
+    )
+}
+
 private val darkThemeBytecodePatch = bytecodePatch(
     description = "darkThemeBytecodePatch"
 ) {
@@ -194,11 +281,28 @@ private val darkThemeBytecodePatch = bytecodePatch(
         resourceMappingPatch,
         drawableColorHookPatch,
         mainActivityResolvePatch,
+        musicPlayerLightThemePatch,
+        versionCheckPatch,
     )
 
     execute {
         injectOnCreateMethodCall(EXTENSION_CLASS_DESCRIPTOR, "setTheme")
-        addDrawableColorHook("$EXTENSION_CLASS_DESCRIPTOR->getLithoColor(I)I")
+
+        if (is_8_12_or_greater) {
+            addDrawableColorHook(
+                "$EXTENSION_CLASS_DESCRIPTOR->getLithoColor(Landroid/graphics/drawable/Drawable;I)I",
+                passDrawable = true,
+            )
+            installMusicLightThemeAttachHooks()
+            installLightMusicWordmarkHook()
+            installLightMusicElementsHook()
+            installMusicLightBarHooks()
+            installMusicLightHomeHooks()
+            installMusicLightNativeChromeHooks()
+        } else {
+            addDrawableColorHook("$EXTENSION_CLASS_DESCRIPTOR->getLithoColor(I)I")
+            printWarn("Music light theme requires YouTube Music 8.12 or newer; keeping the dark-theme presets.")
+        }
 
         // The top bar shows either a count stub or a standalone dot for new content.
         if (is_7_25_or_greater) {
@@ -386,6 +490,9 @@ val darkThemePatch = resourcePatch(
         }
 
         addSplashTheme(customDarkThemeColor)
+        if (is_8_12_or_greater) {
+            addLightThemeEntry()
+        }
 
         addListPreference(CategoryType.GENERAL, "morphe_dark_theme", setSummary = false)
         addCustomPreference(
@@ -399,18 +506,30 @@ val darkThemePatch = resourcePatch(
             "app.morphe.extension.shared.settings.preference.ColorPickerPreference",
         )
         updatePatchStatus(DARK_THEME)
+    }
 
+    finalize {
+        if (is_8_12_or_greater) {
+            addMusicLightThemeResources()
+        }
     }
 }
 
 /**
- * Adds stable starting-window styles for every built-in Music dark-theme preset.
+ * Adds stable starting-window styles for the supported Music theme presets.
  *
  * Android 12 creates the original splash before the runtime resource overlay is installed. The
  * generated styles therefore keep concrete colors for the system process, while the Activity
  * hook selects the matching style on the next launch.
  */
 private fun ResourcePatchContext.addSplashTheme(customDarkThemeColor: String) {
+    val presetColors = splashThemeColors + ("custom" to customDarkThemeColor)
+    val themeColors = if (is_8_12_or_greater) {
+        presetColors + (LIGHT_THEME_KEY to LIGHT_THEME_SURFACE)
+    } else {
+        presetColors
+    }
+
     listOf(
         "res/values/styles.xml" to false,
         "res/values-v31/styles.xml" to true,
@@ -424,8 +543,7 @@ private fun ResourcePatchContext.addSplashTheme(customDarkThemeColor: String) {
         document(path).use { document ->
             val resources = document.documentElement
 
-            (splashThemeColors + ("custom" to customDarkThemeColor))
-                .forEach { (themeKey, color) ->
+            themeColors.forEach { (themeKey, color) ->
                 listOf("" to false, SPLASH_THEME_NO_ICON_SUFFIX to true).forEach {
                     (iconSuffix, hideSplashIcon) ->
                     val themeName = SPLASH_THEME_PREFIX + themeKey + iconSuffix
@@ -444,6 +562,20 @@ private fun ResourcePatchContext.addSplashTheme(customDarkThemeColor: String) {
                         setAttribute("name", "android:windowBackground")
                         textContent = color
                     })
+                    if (themeKey == LIGHT_THEME_KEY) {
+                        mapOf(
+                            "android:statusBarColor" to color,
+                            "android:navigationBarColor" to color,
+                            "android:windowLightStatusBar" to "true",
+                            "android:windowLightNavigationBar" to "true",
+                        ).forEach { (name, value) ->
+                            style.appendChild(document.createElement("item").apply {
+                                setAttribute("name", name)
+                                textContent = value
+                            })
+                        }
+                    }
+
                     if (includeSplashBackground) {
                         style.appendChild(document.createElement("item").apply {
                             setAttribute("name", "android:windowSplashScreenBackground")
@@ -463,6 +595,25 @@ private fun ResourcePatchContext.addSplashTheme(customDarkThemeColor: String) {
                     resources.appendChild(style)
                 }
             }
+        }
+    }
+}
+
+/** Insert Light after the stock choice without changing the order of the dark presets. */
+private fun ResourcePatchContext.addLightThemeEntry() {
+    val entries = mapOf(
+        "morphe_dark_theme_entries" to "@string/morphe_theme_entry_light",
+        "morphe_dark_theme_entry_values" to LIGHT_THEME_KEY,
+    )
+
+    document("res/values/arrays.xml").use { document ->
+        val arrays = document.getElementsByTagName("string-array")
+        for (index in 0 until arrays.length) {
+            val array = arrays.item(index) as Element
+            val entry = entries[array.getAttribute("name")] ?: continue
+            val stockItem = array.getElementsByTagName("item").item(0)
+
+            array.insertBefore(document.createElement("item").apply { textContent = entry }, stockItem.nextSibling)
         }
     }
 }

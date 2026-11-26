@@ -21,7 +21,7 @@ Morphe Manager에 이 저장소를 패치 소스로 추가하거나, [Morphe Des
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/ocel07/kmaps-nav-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.0](https://github.com/ocel07/kmaps-nav-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 KakaoMap&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -30,9 +30,9 @@ Morphe Manager에 이 저장소를 패치 소스로 추가하거나, [Morphe Des
 
 **🎯 Supported versions:**
 
-| 6.32.0 | 5.17.8 |
-| :---: | :---: |
-| APKPure XAPK (not on APKMirror) | APKMirror universal APK |
+| 6.33.0 | 6.32.0 | 5.17.8 |
+| :---: | :---: | :---: |
+| APKPure XAPK (not on APKMirror) | APKPure XAPK (not on APKMirror) | APKMirror universal APK |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

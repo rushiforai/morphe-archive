@@ -37,7 +37,7 @@ All 7 patches appear **directly inside Gboard Settings → Voice typing → Ramb
 - **Waveform** — **Waveform animation (Hex)** (jumps straight into Listening/Processing style, colors, and Hex tuning)
 - **Voice dictionary & contacts** — live **Use dictionary words** switch + **Manage voice dictionary (MUSE_STATS)** + **Contact names sync** (alongside stock *Rambler dictionary* and *Clear all corrected words*)
 - **Dictation behavior** — live switches right on the page for **Append-only dictation**, **Cursor-aware editing**, **Re-select after edit** *(off by default)*, **App context**, **Auto parallel retry**, plus **Max dictation duration**
-- **Productivity tools** — **Voice snippets, replace & actions** (opt-in Hands-Free Voice Send & Search suffixes, deterministic Voice Snippets, Find & Replace, Strip Trailing Period), **Dictation history** (last 50 on-device dictations), and **Backup & restore (.json)**
+- **Productivity tools** — **Voice actions, snippets & replace** (opt-in Hands-Free Voice Send & Search suffixes, deterministic Voice Snippets, Find & Replace), **Dictation stats & history** (private on-device stats card with total words, sessions, avg WPM, avg cloud latency & estimated time saved vs typing, plus searchable last 50 dictations), and **Backup & restore (.json)**
 
 1. **`Rambler Waveform Animation`** *(ported from [Hex by Anomaly](https://github.com/anomalyco/hex))*
    - Replaces Rambler's header light bar with Hex's **Listening** and **Processing** animations, independent colors, and minimal tuning (**Strip trace** vs **iOS halo**, dot spacing, glow strength, voice response).
@@ -52,7 +52,7 @@ All 7 patches appear **directly inside Gboard Settings → Voice typing → Ramb
 6. **`Rambler App Context`** *(credit: [nl-morphe-patches](https://gitlab.com/johninnld/nl-morphe-patches))*
    - Enables sharing the active app name, input type, and field hint so Rambler adapts formatting to the current app (with a live toggle).
 7. **`Rambler Productivity Tools`**
-   - Adds opt-in **Hands-Free Voice Send & Search Suffixes** (e.g. `"pls send the link, hit send"` in Send-capable chat fields), deterministic **Voice Snippets**, post-dictation **Find & Replace** (plain or regex, global or per-app) + **Strip Trailing Period**, private **Local Dictation History** (last 50 entries), **Auto Parallel Retry** on flaky networks, configurable **Longer Dictation Sessions**, and one-tap **JSON Settings Backup & Restore**.
+   - Adds a private **On-Device Dictation Stats** card (total words dictated, sessions, weighted avg WPM, avg cloud commit latency, daily totals, configurable typing-speed baseline, and estimated time saved vs. typing — stored purely locally and excluded from backups), opt-in **Hands-Free Voice Send & Search Suffixes** (e.g. `"pls send the link, hit send"` in Send-capable chat fields), deterministic **Voice Snippets**, post-dictation **Find & Replace** (plain or regex, global or per-app) + **Strip Trailing Period**, private **Local Dictation History** (last 50 entries), **Auto Parallel Retry** on flaky networks, configurable **Longer Dictation Sessions**, and one-tap **JSON Settings Backup & Restore**.
 
 ---
 

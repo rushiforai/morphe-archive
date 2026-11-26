@@ -210,6 +210,8 @@ public final class RamblerTextPipeline {
 
             ProcessedCommit result = transformText(ctx, rawText, editorInfo, packageName);
 
+            RamblerDictationStats.onDictationCommitted(ctx, result.text);
+
             if (RamblerEnhancementsSettings.readHistoryEnabled(ctx)) {
                 String trimmed = result.text.trim();
                 if (!trimmed.isEmpty()) {

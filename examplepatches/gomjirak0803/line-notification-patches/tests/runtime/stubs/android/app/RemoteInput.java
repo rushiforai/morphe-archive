@@ -12,6 +12,7 @@ public final class RemoteInput implements Parcelable {
     private final String resultKey;
     private final CharSequence label;
     private final boolean allowFreeFormInput;
+    private final CharSequence[] choices;
     private final Bundle extras;
     private final Set<String> allowedDataTypes;
 
@@ -19,6 +20,7 @@ public final class RemoteInput implements Parcelable {
         this.resultKey = b.resultKey;
         this.label = b.label;
         this.allowFreeFormInput = b.allowFreeFormInput;
+        this.choices = b.choices == null ? null : b.choices.clone();
         this.extras = new Bundle(b.extras);
         this.allowedDataTypes = new HashSet<String>(b.allowedDataTypes);
     }
@@ -26,6 +28,7 @@ public final class RemoteInput implements Parcelable {
     public String getResultKey() { return resultKey; }
     public CharSequence getLabel() { return label; }
     public boolean getAllowFreeFormInput() { return allowFreeFormInput; }
+    public CharSequence[] getChoices() { return choices; }
     public Bundle getExtras() { return extras; }
     public Set<String> getAllowedDataTypes() { return allowedDataTypes; }
 
@@ -36,13 +39,14 @@ public final class RemoteInput implements Parcelable {
         private final String resultKey;
         private CharSequence label;
         private boolean allowFreeFormInput = true;
+        private CharSequence[] choices;
         private final Bundle extras = new Bundle();
         private final Set<String> allowedDataTypes = new HashSet<String>();
 
         public Builder(String resultKey) { this.resultKey = resultKey; }
         public Builder setLabel(CharSequence label) { this.label = label; return this; }
         public Builder setAllowFreeFormInput(boolean allow) { this.allowFreeFormInput = allow; return this; }
-        public Builder setChoices(CharSequence[] choices) { return this; }
+        public Builder setChoices(CharSequence[] choices) { this.choices = choices; return this; }
         public Builder addExtras(Bundle extras) { this.extras.putAll(extras); return this; }
         public Builder setAllowDataType(String mimeType, boolean doAlow) {
             if (doAlow) allowedDataTypes.add(mimeType);

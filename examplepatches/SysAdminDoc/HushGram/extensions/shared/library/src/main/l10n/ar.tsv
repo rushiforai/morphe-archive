@@ -303,7 +303,14 @@ Ask to unlock	السؤال قبل الفتح
 Ask what to save	السؤال عما تريد حفظه
 Asked to follow you	طلب متابعتك
 Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution. Some phones keep their own limit for apps, and battery saver can still lower it.	يطلب من Android تشغيل Instagram بأعلى معدل تحديث لشاشتك، وبنفس الدقة. بعض الهواتف تفرض حدًا خاصًا للتطبيقات، وقد يخفضه موفر البطارية أيضًا.
+# context: Layout: a switch under Use the highest refresh rate (#868). While a video plays it tells Android the video's frames per second and asks Instagram's window for a refresh rate that frame rate divides into (60 Hz for a 30 fps video, 120 Hz for 24 fps). Use the highest refresh rate is the other switch's name, as on its own row.
+Match the video's frame rate	مطابقة معدل إطارات الفيديو
+While a video plays, tells Android its frame rate and asks for a refresh rate that frame rate divides into, like 60 Hz for a 30 fps reel. Use the highest refresh rate comes first while it's on.	أثناء تشغيل فيديو، يخبر Android بمعدل إطاراته ويطلب معدل تحديث يقبل القسمة عليه، مثل 60 هرتز لـ Reel بمعدل 30 إطارًا في الثانية. عند تشغيل «استخدم أعلى معدل تحديث» تكون له الأولوية.
 Asks before a Follow or Follow back button follows someone or sends them a request, so a stray tap on a profile or in a Followers or Following list doesn't do it for you.	يسأل قبل أن يتابع زر Follow أو Follow back شخصًا أو يرسل إليه طلبًا، حتى لا تؤدي نقرة عابرة على ملف أو في قائمة Followers أو Following ذلك نيابة عنك.
+# context: Profiles > title of the switch that skips Instagram's "Review this account before following" sheet, so one tap on Follow follows (#867)
+Follow without the review sheet	المتابعة بدون نافذة المراجعة
+# context: Profiles > summary of Follow without the review sheet; the quoted title is Instagram's own sheet and Follow its button; Ask before a follow is the switch above (#867)
+For some accounts Instagram opens a "Review this account before following" sheet before a follow. With this on, the follow goes through at once, the same as the sheet's Follow button, so one tap follows. Ask before a follow still asks first.	لبعض الحسابات يفتح Instagram نافذة "Review this account before following" قبل المتابعة. مع تشغيل هذا الخيار تتم المتابعة فورًا، كما يفعل زر Follow في النافذة، فتكفي نقرة واحدة. ويظل السؤال قبل المتابعة يسأل أولًا.
 Asks before a pull down or another tap on its tab refreshes Home, Reels or another list. Cancel keeps what's on screen.	يسأل قبل أن تُحدّث عملية السحب لأسفل أو نقرة أخرى على تبويبها الصفحة الرئيسية أو Reels أو أي قائمة أخرى. الإلغاء يُبقي ما هو معروض على الشاشة.
 Asks before the Like button under a post, on a reel or on a comment likes or unlikes it, so a stray tap doesn't do it for you. Double taps aren't asked about.	يسأل قبل أن يُعجب زر Like أسفل منشور أو على Reel أو على تعليق أو يُلغي إعجابه، حتى لا تؤدي نقرة عابرة ذلك. لا يُسأل عن النقر المزدوج.
 At once	في الحال
@@ -999,7 +1006,7 @@ Text in the accent color	النص بلون التمييز
 Names, captions and other main text take the same color as the icons. Gray text stays gray. Restart Instagram to see the change.	تأخذ الأسماء والتعليقات والنصوص الرئيسية الأخرى لون الأيقونات نفسه. يبقى النص الرمادي رماديًا. أعد تشغيل Instagram لرؤية التغيير.
 # context: Layout > Accent color switch. Saved is Instagram's own Saved page, in its label for this language.
 Filters in the accent color	عوامل التصفية بلون التمييز
-The filters along the top of Saved take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	تأخذ عوامل التصفية أعلى المحفوظات اللون الذي اخترته، ويُملأ به العامل الذي تستخدمه. أعد تشغيل Instagram لرؤية التغيير.
+The filters along the top of Saved and under a search take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	تأخذ عوامل التصفية أعلى المحفوظات وأسفل البحث اللون الذي اخترته، ويُملأ به العامل الذي تستخدمه. أعد تشغيل Instagram لرؤية التغيير.
 Import HushGram settings	استيراد إعدادات HushGram
 Imported %1$d settings.	تم استيراد %1$d إعدادات.
 Imported %1$d settings. Skipped %2$d that this version doesn't know.	تم استيراد %1$d إعدادات. تم تخطي %2$d لا تعرفها هذه النسخة.
@@ -1056,6 +1063,9 @@ Instagram's text uses your phone's font. Restart Instagram to see a change.	يس
 Instagram's thickness	سماكة Instagram
 Interested	مهتم
 Items in the three-dot menus	العناصر في قوائم النقاط الثلاث
+# context: Feed: a switch right under Items in the three-dot menus (#815). It adds Instagram's Interested row (the same word as the Interested item in that list) to the three-dot menus that leave it out, like the menu of a reel from an account you follow.
+Interested on every post and reel	«مهتم» في كل منشور وReel
+Adds Interested to the three-dot menu of posts and reels that leave it out, like reels from accounts you follow.	يضيف «مهتم» إلى قائمة النقاط الثلاث في المنشورات وReels التي لا تعرضه، مثل Reels الحسابات التي تتابعها.
 Joined-up handwriting.	كتابة متصلة.
 Joining the picture and sound	دمج الصورة والصوت
 Jump a profile's posts to a date	القفز من منشورات ملف شخصي إلى تاريخ
@@ -1142,6 +1152,12 @@ Leaves the Suggested for you section off the followers, following and mutual lis
 Leaves the back arrow off the top left of a chat, and the picture and the name move over. Swipe back or use the phone's back button to leave the chat. Shows the next time a chat opens.	يزيل سهم الرجوع من أعلى يسار المحادثة، وتنتقل الصورة والاسم إلى مكانه. اسحب للخلف أو استخدم زر الرجوع في الهاتف لمغادرة المحادثة. يظهر في المرة التالية التي تُفتح فيها محادثة.
 Leaves the place on the line under names, on its own, so it stays put instead of taking turns with the song.	يترك المكان المخصص في السطر أسفل الأسماء وحده، فيبقى ثابتًا بدلًا من التناوب مع الأغنية.
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	عند مغادرة Instagram أثناء تشغيل مقطع، يتقلص إلى نافذة صغيرة فوق تطبيقاتك الأخرى. يعمل في Reels وعلى المقاطع المفتوحة من الموجز، على Android 15 أو أحدث.
+# context: a switch on the Playback page under Picture in picture for reels; the reels window is Instagram's small picture in picture window for reels, and the button is Android's own button in that window
+Pause button in the reels window	زر الإيقاف المؤقت في نافذة المقاطع
+Instagram's small window for reels gets a button to pause the reel and play it again.	تحصل نافذة Instagram الصغيرة للمقاطع على زر لإيقاف المقطع مؤقتًا وتشغيله مجددًا.
+# context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
+Previous and next in the reels window	السابق والتالي في نافذة المقاطع
+Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	تحصل نافذة Instagram الصغيرة للمقاطع على زرّيها للرجوع إلى المقطع السابق أو الانتقال إلى التالي.
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	عند مغادرة Instagram أثناء تشغيل قصة، تتقلص إلى نافذة صغيرة فوق تطبيقاتك الأخرى، حيث تستمر في عرض القصص.
 Left off other profiles: %1$s. The grid of posts stays.	يزيل من الملفات الشخصية الأخرى: %1$s. تبقى شبكة المنشورات.
 Left off the message box: %1$s. Gallery and Voice message are in the plus menu while Gallery and microphone in the plus menu is on. The text box and Send stay.	يزيل من مربع الرسائل: %1$s. تظهر الصور والرسالة الصوتية في قائمة الإضافة بينما يكون معرض الصور والميكروفون في قائمة الإضافة مفعّلًا. يبقى مربع النص وزر إرسال.
@@ -1651,6 +1667,9 @@ Removes every single-video post and reel from Home, even from accounts you follo
 Removes posts by business and creator accounts from Home and Following, friends who use one included. Pull down on Home to refresh after changing it.	يزيل من الرئيسية وFollowing منشورات الحسابات التجارية وحسابات صناع المحتوى، بما فيها الأصدقاء الذين يستخدمونها. اسحب للأسفل في الرئيسية للتحديث بعد تغييره.
 Removes posts you've already liked from Home and Following. A post you like now stays until you pull down on Home to refresh.	يزيل من الرئيسية وFollowing المنشورات التي أعجبت بها بالفعل. المنشور الذي تعجب به الآن يبقى حتى تسحب للأسفل في الرئيسية للتحديث.
 Removes the Blend invite button from reels. Everything else on a reel stays.	يزيل زر دعوة Blend من الـreels. كل شيء آخر في الـreel يبقى.
+# context: Meta AI: a Hide Meta AI switch (#866) that removes the line Instagram shows at the top of a story made with a Meta AI tool, such as Restyled with Meta AI followed by a Try it link, and the same restyle credit on reels. Restyled with Meta AI and Try it are Instagram's own labels, so use this language's Instagram wording for them where it's known.
+Hide Meta AI restyle credits	إخفاء إشارات إعادة التنسيق من Meta AI
+Removes lines like Restyled with Meta AI and its Try it link from the top of stories, and the same credit from reels. Music and effect credits stay.	يزيل أسطرًا مثل «أُعيد تنسيقه باستخدام Meta AI» ورابط «جرّبه» من أعلى القصص، والإشارة نفسها من الـreels. تبقى إشارات الموسيقى والمؤثرات.
 Removes the Meet Muse card, with its Try Muse button, from Home and your profile. Your other cards stay.	يزيل بطاقة Meet Muse مع زر Try Muse من الرئيسية ومن ملفك الشخصي. بطاقاتك الأخرى تبقى.
 Removes the Muse button from the top bar of your profile. Your username and the menu stay.	يزيل زر Muse من الشريط العلوي في ملفك الشخصي. يبقى اسم المستخدم والقائمة.
 Removes the empty gap under Instagram's tab bar that appears when your phone hides its navigation bar or Instagram is in a pop-up window. Restart Instagram to see the change.	يزيل الفراغ تحت شريط تبويبات Instagram الذي يظهر عندما يخفي هاتفك شريط التنقل أو عندما يكون Instagram في نافذة منبثقة. أعد تشغيل Instagram لرؤية التغيير.
@@ -1719,6 +1738,13 @@ Saved @%s	تم حفظ @%s
 Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	تبقى المحفوظات وكل ما بداخلها مخفية حتى تؤكد بصمة إصبعك أو وجهك أو قفل الشاشة أنك أنت.
 Saved is locked	المحفوظات مقفلة
 Saved photos and videos take up %1$s now.	تشغل الصور ومقاطع الفيديو المحفوظة %1$s الآن.
+# context: Storage: a row that adds up how much space Instagram's data takes up outside its cache (#683), names its biggest folders (folder names like files/mqtt stay as they are) and HushGram's own files. Adding it up shows while it reads.
+Space used	المساحة المستخدمة
+Adding it up…	جارٍ الحساب…
+Couldn't add up the space used.	تعذّر حساب المساحة المستخدمة.
+Instagram's data takes up %1$s, its cache aside.	تشغل بيانات Instagram %1$s، دون ذاكرة التخزين المؤقت.
+Biggest: %1$s.	الأكبر: %1$s.
+HushGram's own files take up %1$s.	تشغل ملفات HushGram الخاصة %1$s.
 Saved profiles	الملفات الشخصية المحفوظة
 Saved profiles added: %d.	الملفات الشخصية المحفوظة المضافة: %d.
 Saved profiles is full.	الملفات الشخصية المحفوظة ممتلئة.
@@ -2059,6 +2085,14 @@ Takes the banner reminding you to be respectful off the bottom of a chat.	يزي
 Takes the big prompt for your first post off your own profile while it has no posts. Other people's profiles stay as they are.	يزيل المطالبة الكبيرة بنشر أول منشور من ملفك الشخصي عندما لا يحتوي على منشورات. وتبقى ملفات الآخرين الشخصية كما هي.
 Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet still shows it.	يزيل التعليق من المنشورات في خلاصتك ومن المقاطع. ويبقى المنشور، ولا تزال ورقة التعليقات تعرضه.
 Takes the comment box, with your picture and Post, off the bottom of a post's or reel's comments. Turn it off when you want to comment.	يزيل مربع التعليق، بصورتك وزر Post، من أسفل تعليقات منشور أو Reel. أوقفه عندما تريد التعليق.
+# context: Comments: two Hide comments switches (#869). One hides the Meta AI search suggestion some comment sheets show above the comments (a pill reading Search plus a topic), the other the gift button at the end of the comment box. Comment box is the field where you type a comment.
+Hide search suggestions in comments	إخفاء اقتراحات البحث في التعليقات
+Takes the Meta AI search suggestion off the top of a post's or reel's comments. Not every post has one.	يزيل اقتراح البحث من Meta AI من أعلى تعليقات منشور أو Reel. ليس لكل منشور اقتراح.
+Hide the gift button	إخفاء زر الهدية
+Takes the gift button off the right end of the comment box. The box itself stays.	يزيل زر الهدية من طرف مربع التعليق. يبقى المربع نفسه.
+# context: Comments: a Hide comments switch (#869) that hides the round (i) info button some comment sheets draw at the top right, just above the first comment. Write (i) as is.
+Hide the (i) button in comments	إخفاء زر (i) في التعليقات
+Takes the (i) button off the top right of a post's or reel's comments, and the row with an (i) that can sit above a reel's first comment. Not every post has them.	يزيل زر (i) من أعلى يمين تعليقات منشور أو Reel، والصف الذي فيه (i) وقد يظهر فوق أول تعليق في Reel. ليس لكل منشور هذان العنصران.
 Takes the heart and the like count off each comment in a post's or reel's comments.	يزيل القلب وعدد الإعجابات من كل تعليق في تعليقات منشور أو Reel.
 # context: Comments: a Hide comments switch that takes AI labels like AI-generated profile off the line with a commenter's name and time in a comment sheet (#787). AI-generated profile is a label Instagram shows there, use this language's Instagram words for it if you know them.
 Hide AI labels on comments	إخفاء تصنيفات الذكاء الاصطناعي في التعليقات
@@ -2249,6 +2283,8 @@ Turn Ghost mode on or off with a tab long press	شغّل وضع الشبح أو 
 Turn it back on in HushGram settings.	شغّله مرة أخرى في إعدادات HushGram.
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	أوقفه لإبقاء الشريط العلوي للدردشة كما يرسمه Instagram، بدون شريط معتم خلفها. تبقى الأزرار الزجاجية الدائرية وشريط الرسالة الزجاجي.
 Turn off HDR brightness boosts	أوقف تعزيزات سطوع HDR
+Keep HDR on photo uploads	احتفظ بـ HDR عند رفع الصور
+Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	تجريبي. تحتفظ صورة Ultra HDR التي تنشرها بخريطة الكسب على Android 14 والإصدارات الأحدث، لتظل تظهر بتقنية HDR. أوقفه إذا بدت صورة تنشرها غير صحيحة.
 Turn off Hide the Search tab and restart.	أوقف إخفاء علامة تبويب البحث وأعد التشغيل.
 Turn off Show the whole reel to use this choice.	أوقف إظهار الريل بالكامل لاستخدام هذا الخيار.
 # context: Settings page, Feed: the line under the greyed-out Time in the top corner switch while Time under the tags button is on (#788)
@@ -2503,3 +2539,87 @@ Getting the file ready	جارٍ تجهيز الملف
 Couldn't get the file	تعذّر جلب الملف
 # context: Details in a post's menu (#839): a toast when no app on the phone takes the photo or video Open with offers
 No app here can open it	لا يوجد تطبيق هنا يفتحه
+# context: Keep history for (#228): the title of a list row under Keep a viewing history, and of its dialogs
+Keep history for	الاحتفاظ بالسجل لمدة
+# context: Keep history for (#228): its first choice, the newest 500 rows whatever their age
+Newest 500	أحدث 500
+# context: Keep history for (#228): a choice of one day, typed under Custom
+1 day	يوم واحد
+# context: Keep history for (#228): a choice of days, like 7 days; %1$s is the number
+%1$s days	%1$s يومًا
+# context: Keep history for (#228): the message of the dialog Custom opens
+Type how many days to keep, from 1 to 365.	اكتب عدد الأيام التي تريد الاحتفاظ بها، من 1 إلى 365.
+# context: Keep history for (#228): the row's summary with Newest 500 chosen
+The newest 500 stay, however old they are.	تبقى أحدث 500 مهما كان عمرها.
+# context: Keep history for (#228): the row's summary with one day chosen
+Anything seen more than a day ago goes. At most 2000 stay.	يُحذف كل ما شوهد قبل أكثر من يوم. يبقى 2000 على الأكثر.
+# context: Keep history for (#228): the row's summary with some days chosen; %1$s is the number
+Anything seen more than %1$s days ago goes. At most 2000 stay.	يُحذف كل ما شوهد قبل أكثر من %1$s يومًا. يبقى 2000 على الأكثر.
+# context: Feed > title of the switch that shows a drag handle at the right edge of Home's feed while it scrolls, like Fast scroll in Saved; Home is Instagram's own Home tab (#826)
+Fast scroll on Home	التمرير السريع في الصفحة الرئيسية
+# context: Feed > summary of Fast scroll on Home; the feed is the list of posts on Home (#826)
+Shows a handle at the right edge of Home while it scrolls. Drag it to jump down your feed and back to the top.	يعرض مقبضًا عند الحافة اليمنى من الصفحة الرئيسية أثناء التمرير. اسحبه للانتقال إلى أسفل موجزك والعودة إلى الأعلى.
+# context: Messages > title of the switch that shows a drag handle at the right edge of a chat while its messages scroll (#826)
+Fast scroll in chats	التمرير السريع في المحادثات
+# context: Messages > summary of Fast scroll in chats; the newest messages are at the bottom of a chat (#826)
+Shows a handle at the right edge of a chat while it scrolls. Drag it up to your older messages and back down to the newest.	يعرض مقبضًا عند الحافة اليمنى من المحادثة أثناء التمرير. اسحبه لأعلى إلى رسائلك الأقدم ثم لأسفل إلى أحدثها.
+# context: Stories > title of the switch that hides the comments Instagram floats over a story while you watch it, next to Hide the Comment button on stories (#826)
+Hide comments on stories	إخفاء التعليقات على القصص
+# context: Stories > summary of Hide comments on stories; the faces are the small round profile pictures of the commenters; the Comment button is the story's own Comment button, translated as in Hide the Comment button on stories (#826)
+Takes the comments floating over stories off them, along with the faces of the people who wrote them. The Comment button still opens them.	يزيل التعليقات العائمة فوق القصص، ومعها صور الأشخاص الذين كتبوها. ولا يزال زر التعليق يفتحها.
+# context: Stories > title of the choice of how high the line you tap to write a comment sits on a story, under Hide comments on stories (#826)
+Comment line height on stories	ارتفاع سطر التعليق في القصص
+# context: Stories > Comment line height on stories > choice that leaves the line where Instagram puts it; 'it' is the comment line (#826)
+Where Instagram puts it	حيث يضعه Instagram
+# context: Stories > Comment line height on stories > choice that lifts the comment line a little (#826)
+A little higher	أعلى قليلًا
+# context: Stories > Comment line height on stories > choice that lifts the comment line more than A little higher (#826)
+Higher	أعلى
+# context: Stories > summary of Comment line height on stories while Where Instagram puts it is chosen; the line is the one you tap on a story to write a comment (#826)
+The line for writing a comment sits where Instagram puts it, at the bottom of the story.	يبقى سطر كتابة التعليق حيث يضعه Instagram، في أسفل القصة.
+# context: Stories > summary of Comment line height on stories while A little higher is chosen (#826)
+The line for writing a comment sits a little higher on the story.	يرتفع سطر كتابة التعليق قليلًا في القصة.
+# context: Stories > summary of Comment line height on stories while Higher is chosen; the bottom edge is the bottom of the screen (#826)
+The line for writing a comment sits higher on the story, well clear of the bottom edge.	يرتفع سطر كتابة التعليق أكثر في القصة، بعيدًا عن الحافة السفلية.
+# context: Stories: a switch (#187), named like Full screen Reels, Full screen Home and Full screen Messages
+Full screen stories	ملء الشاشة للقصص
+# context: Full screen stories (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while a story shows. Swipe in from the edge to bring them back for a moment.	يخفي شريط الحالة وشريط التنقل أثناء ظهور قصة. اسحب من الحافة لإعادتهما للحظات.
+# context: Explore: a switch (#187), named like Full screen Home. Explore is Instagram's tab, as the app names it
+Full screen Explore	ملء الشاشة للاستكشاف
+# context: Full screen Explore (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while Explore shows. Swipe in from the edge to bring them back for a moment.	يخفي شريط الحالة وشريط التنقل أثناء ظهور الاستكشاف. اسحب من الحافة لإعادتهما للحظات.
+# context: Profiles: a switch (#187) for your own profile's tab, named like Full screen Home
+Full screen profile	ملء الشاشة للملف الشخصي
+# context: Full screen profile (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while your profile tab shows. Swipe in from the edge to bring them back for a moment.	يخفي شريط الحالة وشريط التنقل أثناء ظهور تبويب ملفك الشخصي. اسحب من الحافة لإعادتهما للحظات.
+# context: Settings entry > summary of Settings page logo while HushGram's logo is picked; this page is HushGram's settings page (#872)
+HushGram's logo shows at the top of this page.	يظهر شعار HushGram في أعلى هذه الصفحة.
+# context: Settings entry > summary of Settings page logo while Instagram's icon is picked (#872)
+Instagram's icon shows at the top of this page.	تظهر أيقونة Instagram في أعلى هذه الصفحة.
+# context: Settings entry > summary of Settings page logo while Your picture is picked; Your picture is the list choice of that name (#872)
+Your picture shows at the top of this page. Pick Your picture again to change it.	تظهر صورتك في أعلى هذه الصفحة. اختر «صورتك» مرة أخرى لتغييرها.
+# context: Settings entry > Settings page logo list choice: HushGram's own logo (#872)
+HushGram's logo	شعار HushGram
+# context: Settings entry > Settings page logo list choice: Instagram's own app icon (#872)
+Instagram's icon	أيقونة Instagram
+# context: Settings entry > Settings page logo list choice: a picture the person picks from their phone (#872)
+Your picture	صورتك
+# context: Settings entry > row and list title: the picture at the top of HushGram's settings page, over its name (#872)
+Settings page logo	شعار صفحة الإعدادات
+# context: Settings entry > row and dialog title: the name at the top of HushGram's settings page (#872)
+Settings page name	اسم صفحة الإعدادات
+# context: Settings entry > Settings page name dialog message; %1$d is the most characters it takes (#872)
+A name of your own at the top of this page, in place of HushGram. Up to %1$d characters. Leave it blank for HushGram.	اسم من اختيارك في أعلى هذه الصفحة بدلًا من HushGram. حتى %1$d حرفًا. اتركه فارغًا لإظهار HushGram.
+# context: Settings entry > row that puts HushGram's logo and name back at the top of the settings page (#872)
+Reset the settings page header	إعادة ضبط ترويسة صفحة الإعدادات
+# context: Settings entry > summary of Reset the settings page header (#872)
+Puts HushGram's logo and name back at the top of this page.	يعيد شعار HushGram واسمه إلى أعلى هذه الصفحة.
+# context: toast after Reset the settings page header; keep under two short lines (#872)
+Settings page header reset.	أُعيد ضبط ترويسة الإعدادات.
+# context: toast after a picked picture becomes the settings page logo; keep under two short lines (#872)
+Settings page logo set.	تم تعيين شعار الإعدادات.
+# context: Settings entry > summary of Settings page name while no name is typed (#872)
+HushGram shows at the top of this page.	يظهر HushGram في أعلى هذه الصفحة.
+# context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
+The top of this page says %1$s.	أعلى هذه الصفحة يعرض %1$s.

@@ -11,21 +11,21 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.classDefForEach
-import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.resourceXml
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
+import app.nyandex.patches.yandexmusic.shared.Constants.COMPATIBILITY_YANDEX_MUSIC
+import app.nyandex.patches.yandexmusic.util.mutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
-import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
-import app.nyandex.patches.yandexmusic.shared.Constants.COMPATIBILITY_YANDEX_MUSIC
 import java.util.logging.Logger
 
 private val logger = Logger.getLogger("YandexMusicMonetTheme")
@@ -138,7 +138,7 @@ private fun hookWaveButtonColors() {
     var found: Pair<String, Method>? = null
     classDefForEach { classDef ->
         classDef.methods.forEach { method ->
-            if (!method.accessFlags.isStatic() ||
+            if (!AccessFlags.STATIC.isSet(method.accessFlags) ||
                 method.parameterTypes.map(Any::toString) != listOf(agent)
             ) {
                 return@forEach
@@ -151,10 +151,7 @@ private fun hookWaveButtonColors() {
     }
     val (ownerType, original) = found ?: throw PatchException("My Vibe agent mapper was not found")
 
-    val method = mutableClassDefBy(ownerType).methods.single {
-        it.name == original.name && it.parameterTypes == original.parameterTypes &&
-            it.returnType == original.returnType
-    }
+    val method = mutableMethodOf(ownerType, original)
     val instructions = method.implementation!!.instructions.toList()
     val constructor = instructions[method.coverConstructorIndex()] as FiveRegisterInstruction
     val colorRegister = constructor.registerE // (this, uri, color, …)
@@ -206,7 +203,7 @@ private fun useAccentForThemeLogoColor() {
     var found: Pair<String, Method>? = null
     classDefForEach { classDef ->
         classDef.methods.forEach { method ->
-            if (!method.accessFlags.isStatic()) return@forEach
+            if (!AccessFlags.STATIC.isSet(method.accessFlags)) return@forEach
             val literals = method.implementation?.instructions
                 ?.mapNotNullTo(mutableSetOf()) { (it as? WideLiteralInstruction)?.wideLiteral }
                 ?: return@forEach
@@ -218,10 +215,7 @@ private fun useAccentForThemeLogoColor() {
     }
     val (ownerType, original) = found ?: throw PatchException("Compose theme color builder was not found")
 
-    val method = mutableClassDefBy(ownerType).methods.single {
-        it.name == original.name && it.parameterTypes == original.parameterTypes &&
-            it.returnType == original.returnType
-    }
+    val method = mutableMethodOf(ownerType, original)
     var replaced = 0
     method.implementation!!.instructions.toList().forEachIndexed { index, instruction ->
         if (instruction.opcode != Opcode.CONST) return@forEachIndexed
@@ -246,6 +240,3 @@ private fun Method.coverConstructorIndex(): Int =
             reference.parameterTypes[0].toString() == "Ljava/lang/String;" &&
             reference.parameterTypes[1].toString() == "Ljava/lang/String;"
     } ?: -1
-
-private fun Int.isStatic(): Boolean = this and AccessFlags.STATIC.value != 0
-

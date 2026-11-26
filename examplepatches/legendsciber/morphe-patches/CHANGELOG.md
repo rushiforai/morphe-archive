@@ -1,3 +1,9 @@
+## [1.58.0](https://github.com/legendsciber/morphe-patches/compare/v1.57.0...v1.58.0) (2026-11-25)
+
+### ✨ New Features
+
+* **hungryshark:** update to 14.6.0 and add free iap patch ([a52b2ca](https://github.com/legendsciber/morphe-patches/commit/a52b2ca5ccf791d7f8dc9af22ad21aac15dfd5d1))
+
 ## [1.57.0](https://github.com/legendsciber/morphe-patches/compare/v1.56.0...v1.57.0) (2026-11-25)
 
 ### ✨ New Features

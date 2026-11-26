@@ -8,8 +8,10 @@ import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -27,11 +29,15 @@ private const val BUILDER = "$BUILDER_CLASS->A00()Z"
 private const val GATE = "LX/Cpg;->A00()Z"
 private const val PREVIEW_READ = "invoke-static {v4, v2, v3}, LX/18A;->A1Z(Ljava/lang/Object;J)Z"
 private const val ENCRYPTED_READ = "invoke-static {v0, v4, v2, v3}, LX/18A;->A1X(LX/30w;Ljava/lang/Object;J)Z"
+private const val WARM = "LX/Cpf;->A00()Z"
+private const val COLD_FLAG = 0x2101053700084493L
+private const val COLD_READ = "invoke-static {v4, v2, v3}, LX/18A;->A1Y(Ljava/lang/Object;J)Z"
 
 /**
- * The long-press handler as Messenger 587 writes it, cut down: an encrypted chat asks the encrypted-chat flag first,
- * every chat asks the preview flag and branches on the answer a little later, an encrypted chat asks its flag again,
- * and only then does it call the static method that builds the preview. Any no falls back to the plain menu.
+ * The long-press handler as Messenger 587 and 588 write it, cut down: an encrypted chat asks the encrypted-chat flag
+ * first, every chat asks the preview flag and branches on the answer a little later, a cold Messenger asks the
+ * cold-start flag, an encrypted chat asks its flag again, and only then does it call the static method that builds
+ * the preview. Any no, or a yes from the cold-start flag, falls back to the plain menu.
  */
 private val HANDLER_BODY = """
     const/4 v4, 0x0
@@ -50,6 +56,14 @@ private val HANDLER_BODY = """
     invoke-virtual {p0}, $HANDLER->A00()Z
     move-result v0
     if-eqz v6, :menu
+    invoke-static {}, $WARM
+    move-result v0
+    if-nez v0, :warm
+    const-wide v2, ${COLD_FLAG}L
+    $COLD_READ
+    move-result v0
+    if-nez v0, :menu
+    :warm
     if-eqz v1, :show
     sget-object v0, LX/30w;->A0A:LX/30w;
     const-wide v2, ${CHAT_PREVIEW_ENCRYPTED_FLAG}L
@@ -104,7 +118,10 @@ private fun gateClass(method: MutableMethod = gate()) = fixtureClass("LX/Cpg;", 
 
 private fun Method.code() = implementation!!.instructions.toList()
 
-private fun Method.helperCalls() = code().indices.filter { (code()[it] as? ReferenceInstruction)?.reference?.toString() == CHAT_PREVIEW_HELPER }
+private fun Instruction.helper() = (this as? ReferenceInstruction)?.reference?.toString()
+    ?.takeIf { it == CHAT_PREVIEW_HELPER || it == CHAT_PREVIEW_COLD_HELPER }
+
+private fun Method.helperCalls() = code().indices.filter { code()[it].helper() != null }
 
 class ChatPreviewTest {
     @AfterTest fun reset() {
@@ -116,7 +133,15 @@ class ChatPreviewTest {
     @Test fun theLongPressHandlerIsFoundWhenItCallsTheBuilderBehindBothFlags() {
         assertEquals(setOf(SYNTHETIC_CHAT_PREVIEW), found(chatPreviewFixture()))
         validateControls(mirroredControls(chatPreviewFixture()), setOf(CHAT_PREVIEW))
-        assertEquals(listOf(CHAT_PREVIEW_ENCRYPTED_FLAG, CHAT_PREVIEW_FLAG, CHAT_PREVIEW_ENCRYPTED_FLAG), handler().chatPreviewSites().map { it.flag })
+        assertEquals(listOf(CHAT_PREVIEW_ENCRYPTED_FLAG, CHAT_PREVIEW_FLAG, COLD_FLAG, CHAT_PREVIEW_ENCRYPTED_FLAG),
+            handler().chatPreviewSites().map { it.flag })
+    }
+
+    // A method that only asks whether Messenger is cold has nothing to do with the switch.
+    @Test fun aColdStartReadAloneMakesNoReader() {
+        val cold = fixtureClass("LX/Cpe;", listOf(fixtureMethod("LX/Cpe;->A00()Z",
+            "const/4 v4, 0x0\nconst-wide v2, ${COLD_FLAG}L\n$COLD_READ\nmove-result v0\nreturn v0", 5, STATIC)))
+        assertEquals(setOf(SYNTHETIC_CHAT_PREVIEW), found(chatPreviewFixture() + cold))
     }
 
     @Test fun everyOtherReaderOfThePreviewFlagIsTakenWithIt() {
@@ -133,8 +158,8 @@ class ChatPreviewTest {
 
     @Test fun eachMappingHooksItsOwnHandler() {
         assertEquals(setOf(SYNTHETIC_CHAT_PREVIEW), SYNTHETIC_PROFILE.hooks.getValue(CHAT_PREVIEW))
-        assertEquals(setOf("LX/37H;->A05(LX/37H;I)Ljava/lang/Object;", "LX/37M;->A00(ILjava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
-            "LX/37S;->A07(ILjava/lang/Object;)Ljava/lang/Object;"), BASE_PROFILE.hooks.getValue(CHAT_PREVIEW))
+        assertEquals(setOf("LX/3Aq;->A02(LX/1Dr;LX/3Aq;)Ljava/lang/Object;", "LX/3Au;->A00(ILjava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+            "LX/3B1;->A07(ILjava/lang/Object;)Ljava/lang/Object;"), BASE_PROFILE.hooks.getValue(CHAT_PREVIEW))
     }
 
     // The switch says a long press opens the preview. Readers that ask other questions, or ask these some other way,
@@ -151,6 +176,8 @@ class ChatPreviewTest {
             "a read that doesn't take the flag last" to chatPreviewFixture(changed(PREVIEW_READ, "invoke-static {v2, v3, v4}, LX/18A;->A1Z(JLjava/lang/Object;)Z")),
             "a read that isn't a yes or no" to chatPreviewFixture(changed(PREVIEW_READ, "invoke-static {v4, v2, v3}, LX/18A;->A1Z(Ljava/lang/Object;J)I")),
             "an answer nothing takes" to chatPreviewFixture(changed("$PREVIEW_READ\nmove-result v6", "$PREVIEW_READ\nconst/4 v6, 0x1")),
+            "a cold-start read that isn't static" to chatPreviewFixture(changed(COLD_READ, "invoke-virtual {v4, v2, v3}, LX/18A;->A1Y(J)Z")),
+            "a cold-start answer nothing takes" to chatPreviewFixture(changed("$COLD_READ\nmove-result v0", "$COLD_READ\nconst/4 v0, 0x1")),
             "a jump into the read" to chatPreviewFixture(handler(HANDLER_BODY.replaceFirst("if-eqz v1, :preview_flag", "if-eqz v1, :preview_read")
                 .replaceFirst("$PREVIEW\n$PREVIEW_READ", "$PREVIEW\n:preview_read\n$PREVIEW_READ"))),
             "a cast read asked on another register" to chatPreviewFixture() + gateClass(gate(GATE_BODY.replace("invoke-interface {v4,", "invoke-interface {v1,"))),
@@ -171,7 +198,7 @@ class ChatPreviewTest {
         injectControl(CHAT_PREVIEW, mapOf(CHAT_PREVIEW to listOf(method)))
         val code = method.code()
         val calls = method.helperCalls()
-        assertEquals(3, calls.size)
+        assertEquals(listOf(CHAT_PREVIEW_HELPER, CHAT_PREVIEW_HELPER, CHAT_PREVIEW_COLD_HELPER, CHAT_PREVIEW_HELPER), calls.map { code[it].helper() })
         for (at in calls) {
             // The flag's own answer goes in, and the switch's answer comes back to the same register.
             val answer = (code[at - 1] as OneRegisterInstruction).registerA
@@ -184,6 +211,11 @@ class ChatPreviewTest {
         val branch = code.indexOfFirst { it.opcode == Opcode.IF_EQZ && (it as OneRegisterInstruction).registerA == 6 }
         assertTrue(branch > calls[1])
         assertEquals(MENU, (code[code.branchTarget(branch)] as ReferenceInstruction).reference.toString())
+        // The cold-start answer the switch hands back is what sends a cold Messenger to the plain menu.
+        val cold = code[calls[2] + 2]
+        assertEquals(Opcode.IF_NEZ, cold.opcode)
+        assertEquals((code[calls[2] + 1] as OneRegisterInstruction).registerA, (cold as OneRegisterInstruction).registerA)
+        assertEquals(MENU, (code[code.branchTarget(calls[2] + 2)] as ReferenceInstruction).reference.toString())
         // Everything else runs as Messenger wrote it.
         assertEquals(before.map { it.opcode }, code.filterIndexed { i, _ -> calls.none { i == it || i == it + 1 } }.map { it.opcode })
     }
@@ -200,6 +232,36 @@ class ChatPreviewTest {
         }
     }
 
+    // #231: a cold Messenger also asked two flags that gave the first long press after a restart the plain menu, and
+    // turning the switch on means a restart.
+    @Test fun everySupportedBuildPassesBothColdStartReadsThroughTheSwitch() {
+        val root = System.getenv("HUSH_NATIVE_FIXTURES")
+        assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
+        val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
+        val coldFlags = setOf(0x2101053700044490L, 0x2101053700084493L)
+        for (apk in apks) {
+            val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
+            activeProfile = controlProfileFor(code)
+            val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
+            val seen = mutableSetOf<Long>()
+            for (hook in findChatPreview(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })) {
+                val method = MutableMethod(hook)
+                method.injectChatPreview()
+                val after = method.code()
+                for (at in after.indices) {
+                    val flag = (after[at] as? WideLiteralInstruction)?.wideLiteral
+                    if (after[at].opcode != Opcode.CONST_WIDE || flag !in coldFlags) continue
+                    // The flag's answer goes through the switch, and the switch's answer back into the same register.
+                    val answer = (at until after.size).first { after[it].opcode == Opcode.MOVE_RESULT }
+                    assertEquals("$SETTINGS->chatPreviewCold(I)Z", (after[answer + 1] as? ReferenceInstruction)?.reference?.toString(), code)
+                    assertEquals((after[answer] as OneRegisterInstruction).registerA, (after[answer + 2] as OneRegisterInstruction).registerA, code)
+                    seen += flag!!
+                }
+            }
+            assertEquals(coldFlags, seen, code)
+        }
+    }
+
     @Test fun everySupportedBuildPassesEveryPreviewReadThroughTheSwitch() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
@@ -212,17 +274,22 @@ class ChatPreviewTest {
             val hooks = findChatPreview(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })
             assertEquals(activeProfile.hooks.getValue(CHAT_PREVIEW), hooks.map { it.hookId() }.toSet(), code)
             validateControls(mapOf(CHAT_PREVIEW to hooks), setOf(CHAT_PREVIEW))
-            // The long-press handler asks the encrypted-chat flag around its preview read.
+            // The long-press handler asks the encrypted-chat flag around its preview read, and the cold-start flag
+            // between them.
             assertTrue(hooks.any { MutableMethod(it).chatPreviewSites().map { s -> s.flag } ==
-                listOf(CHAT_PREVIEW_ENCRYPTED_FLAG, CHAT_PREVIEW_FLAG, CHAT_PREVIEW_ENCRYPTED_FLAG) }, code)
+                listOf(CHAT_PREVIEW_ENCRYPTED_FLAG, CHAT_PREVIEW_FLAG, COLD_FLAG, CHAT_PREVIEW_ENCRYPTED_FLAG) }, code)
+            // Both cold-start flags are asked somewhere the switch reaches, so a long press right after launch opens
+            // the preview too (#231).
+            val flags = hooks.flatMap { MutableMethod(it).chatPreviewSites().map { s -> s.flag } }.toSet()
+            assertTrue(flags.containsAll(CHAT_PREVIEW_COLD_FLAGS), code)
             for (hook in hooks) {
                 val method = MutableMethod(hook)
-                val sites = method.chatPreviewSites().size
+                val helpers = method.chatPreviewSites().map { it.helper }
                 val before = method.code()
                 method.injectChatPreview()
                 val calls = method.helperCalls()
-                assertEquals(sites, calls.size, code)
                 val after = method.code()
+                assertEquals(helpers, calls.map { after[it].helper() }, code)
                 assertTrue(calls.all { after[it - 1].opcode == Opcode.MOVE_RESULT && after[it + 1].opcode == Opcode.MOVE_RESULT }, code)
                 assertEquals(before.map { it.opcode }.filter { it != Opcode.NOP },
                     after.filterIndexed { i, _ -> calls.none { i == it || i == it + 1 } }.map { it.opcode }.filter { it != Opcode.NOP }, code)

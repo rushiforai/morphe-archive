@@ -34,12 +34,12 @@ of them.
 | Privacy | Disable analytics | Smart Life, Tuya Smart | Stops AppsFlyer from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. Tuya's own usage statistics stay on. |
 | Feature | Swipe between tabs | all | Swipe sideways to go to the next or previous tab of the navigation bar, with a slide animation. Where Scene shows Automation and Tap-to-Run as tabs (BARDI), it switches between them first. Does not act where something under the finger can scroll sideways. |
 | Feature | Spoof signature | all | Lets the patched app start. Without it the app's integrity check closes it a few seconds after it opens. |
-| Feature | GmsCore support | Smart Life, Tuya Smart, BARDI | Makes "Sign in with Google" and location work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
+| Feature | GmsCore support | Smart Life, Tuya Smart, BARDI | Makes "Sign in with Google" and location work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |
 | Theme | Themed icon | all | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 Settings has a Fakh Patches row above About that opens a page with one switch for each of these patches, in sections by where they act. They are all on until turned off, and a change applies after the app restarts, except Dark Device Panels.
 
-The layout patches, Glass navigation bar, Glass cards, Dark device panels, Swipe between tabs, Hide ads, Disable analytics and Spoof signature are on by default.
+The layout patches, Glass navigation bar, Glass cards, Dark device panels, Swipe between tabs, Hide ads, Disable analytics, Spoof signature and GmsCore support are on by default.
 
 ## Signature check
 

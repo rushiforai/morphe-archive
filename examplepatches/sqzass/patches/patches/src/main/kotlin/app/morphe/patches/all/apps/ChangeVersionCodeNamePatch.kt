@@ -74,14 +74,12 @@ val changeVersionPatch = patch(
         val newName = if (nameOption.value == "Current") packageMetadata.versionName else nameOption.value!!
         val newCode = if (codeOption.value == "Current") packageMetadata.versionCode else codeOption.value!!
 
-        // Manifest.
         document("AndroidManifest.xml").use { doc ->
             val manifest = doc.getElementsByTagName("manifest").item(0) as Element
             manifest.setAttribute("android:versionName", newName)
             manifest.setAttribute("android:versionCode", newCode)
         }
 
-        // BuildConfig (baked into dex).
         val codeInt = newCode.toIntOrNull()
         classDefForEach { classDef ->
             if (!classDef.type.endsWith("/BuildConfig;")) return@classDefForEach

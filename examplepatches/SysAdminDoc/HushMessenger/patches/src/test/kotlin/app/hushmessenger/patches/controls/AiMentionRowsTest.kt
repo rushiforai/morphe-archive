@@ -1,14 +1,21 @@
 package app.hushmessenger.patches.controls
 
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableTryBlock
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -119,6 +126,39 @@ private fun rowClass(type: String = ROW_CHECKS, checks: List<Method> = rowChecks
 /** The five checks for the catalog-wide discovery fixture. */
 internal fun aiMentionRowsFixture() = listOf(rowClass())
 
+private const val RENDER = "LX/GU6;->render(LX/2Gk;)LX/1Jx;"
+private const val WIDE_RENDER = "LX/GZs;->render(LX/2Gk;)LX/1Jx;"
+
+/**
+ * 588's render with the imagine yourself check inlined: the flag read, then its gate skipping the row on false. [gate]
+ * is the line at the gate, [answer] the register the read answers into.
+ */
+private fun inlinedRender(id: String = RENDER, answer: Int = 0, gate: String = "if-eqz v$answer, :no_row", before: String = "",
+    registers: Int = if (answer > 15) 20 else 7) = fixtureMethod(id, """
+    const/4 v4, 0x0
+    $before
+    invoke-static {}, LX/1B2;->A09()LX/5k2;
+    move-result-object v2
+    const-wide v0, ${IMAGINE_YOURSELF_ROW_FLAG}L
+    invoke-static {v2, v0, v1}, LX/18k;->A1Y(Ljava/lang/Object;J)Z
+    move-result v$answer
+    $gate
+    new-instance v4, LX/1Jx;
+    :no_row
+    return-object v4
+""".trimIndent(), registers = registers)
+
+/** [render] with a catch-all try over its gate. */
+private fun coveredRender(): MutableMethod {
+    val plain = inlinedRender()
+    val code = plain.implementation!!.instructions.toList()
+    val address = IntArray(code.size + 1).also { for (i in code.indices) it[i + 1] = it[i] + code[i].codeUnits }
+    val gate = code.indexOfFirst { it.opcode == Opcode.IF_EQZ }
+    val tried = ImmutableMethodImplementation(7, code, listOf(ImmutableTryBlock(address[gate - 1], address[gate + 2] - address[gate - 1],
+        listOf(ImmutableExceptionHandler(null, address[code.size - 1])))), null)
+    return MutableMethod(ImmutableMethod(plain.definingClass, plain.name, plain.parameters, plain.returnType, plain.accessFlags, null, null, tried))
+}
+
 private fun Method.code() = implementation!!.instructions.toList()
 
 /** The switch prologue answers false ahead of the stock check, which stays as it was. */
@@ -198,6 +238,57 @@ class AiMentionRowsTest {
         assertEquals(5, findAiMentionRows(listOf(rowClass(checks = listOf(meta, chats, encrypted, imagine, yourself)))).size)
     }
 
+    @Test fun a588RenderWithImagineYourselfInlinedAsksTheSwitchAtItsGate() {
+        val checks = rowChecks().take(4)
+        val renders = listOf(inlinedRender(), inlinedRender(WIDE_RENDER, answer = 17))
+        val classes = listOf(rowClass(checks = checks), fixtureClass("LX/GU6;", renders.take(1)), fixtureClass("LX/GZs;", renders.drop(1)))
+        val found = mirroredControls(classes)
+        assertEquals(setOf(SYNTHETIC_META_AI_ROW, SYNTHETIC_META_AI_CHATS_ROW, SYNTHETIC_META_AI_ENCRYPTED_ROW, SYNTHETIC_IMAGINE_ROW,
+            RENDER, WIDE_RENDER), found.getValue(AI_MENTION_ROWS).map { it.hookId() }.toSet())
+        assertEquals(listOf(6), renders[0].imagineYourselfGates())
+        val before = (checks + renders).map { it.code() }
+        injectControl(AI_MENTION_ROWS, mapOf(AI_MENTION_ROWS to checks + renders))
+        checks.zip(before).forEach { (method, code) -> assertSwitched(code, method.code(), method.hookId()) }
+        for ((render, stock) in renders.zip(before.drop(4))) {
+            val after = render.code()
+            val answer = (stock[5] as OneRegisterInstruction).registerA
+            assertEquals(stock.take(6), after.take(6), render.hookId())
+            assertEquals(stock.drop(6), after.drop(8), render.hookId())
+            assertEquals(META_AI_ROW_SHOWN, (after[6] as ReferenceInstruction).reference.toString(), render.hookId())
+            assertEquals(if (answer > 15) Opcode.INVOKE_STATIC_RANGE else Opcode.INVOKE_STATIC, after[6].opcode, render.hookId())
+            assertEquals(Opcode.MOVE_RESULT, after[7].opcode, render.hookId())
+            assertEquals(answer, (after[7] as OneRegisterInstruction).registerA, render.hookId())
+            assertEquals(after.size - 1, (render.getInstruction(8) as BuilderOffsetInstruction).target.location.index, render.hookId())
+        }
+        // The check itself in an older build takes the switch as before, while a render that reads its flag stays out.
+        assertEquals(5, findAiMentionRows(listOf(rowClass(), fixtureClass("LX/GU6;", listOf(inlinedRender())))).size)
+    }
+
+    @Test fun a588RenderReadingImagineYourselfAnotherWayLeavesTheRowsUnhooked() {
+        val checks = rowChecks().take(4)
+        val moved = mapOf(
+            "the gate asks another register" to inlinedRender(gate = "if-eqz v3, :no_row"),
+            "the gate skips the row on true" to inlinedRender(gate = "if-nez v0, :no_row"),
+            "a branch lands on the gate" to inlinedRender(gate = ":gate\nif-eqz v0, :no_row", before = "if-nez v4, :gate"),
+            "a try covers the gate" to coveredRender(),
+        )
+        for ((case, render) in moved) {
+            assertNull(render.imagineYourselfGates(), case)
+            assertTrue(findAiMentionRows(listOf(rowClass(checks = checks), fixtureClass("LX/GU6;", listOf(render)))).isEmpty(), case)
+        }
+        // Four checks with no render, the imagine check missing instead, or one good render beside one that moved.
+        assertTrue(findAiMentionRows(listOf(rowClass(checks = checks))).isEmpty())
+        assertTrue(findAiMentionRows(listOf(rowClass(checks = rowChecks().take(3) + rowChecks()[4]),
+            fixtureClass("LX/GU6;", listOf(inlinedRender())))).isEmpty())
+        assertTrue(findAiMentionRows(listOf(rowClass(checks = checks), fixtureClass("LX/GU6;", listOf(inlinedRender())),
+            fixtureClass("LX/GZs;", listOf(inlinedRender(WIDE_RENDER, gate = "if-nez v0, :no_row"))))).isEmpty())
+        // A render the build's profile didn't record stops the control before any edit.
+        val stranger = inlinedRender(gate = "if-nez v0, :no_row")
+        val code = checks.map { it.code() }
+        assertFailsWith<PatchException> { injectControl(AI_MENTION_ROWS, mapOf(AI_MENTION_ROWS to checks + stranger)) }
+        assertEquals(code, checks.map { it.code() })
+    }
+
     @Test fun anUnexpectedMethodStopsTheControlBeforeAnyEdit() {
         val checks = rowChecks()
         val stranger = imagineRow(SYNTHETIC_IMAGINE_ROW.replace("A0y", "A0z"), 0x81062d00000001L)
@@ -207,6 +298,7 @@ class AiMentionRowsTest {
         assertEquals(before, checks.map { it.code() })
     }
 
+    /** Every supported build hooks its row checks, or in 588 four checks and the renders the fifth was inlined into. */
     @Test fun everySupportedBuildHooksItsFiveRowChecks() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
@@ -222,8 +314,15 @@ class AiMentionRowsTest {
             for (check in checks) {
                 val method = MutableMethod(check)
                 val before = method.code()
+                val gates = if (check.aiMentionRow() == null) check.imagineYourselfGates()!! else emptyList()
                 method.injectAiMentionRows()
-                assertSwitched(before, method.code(), "$code ${check.hookId()}")
+                if (gates.isEmpty()) assertSwitched(before, method.code(), "$code ${check.hookId()}")
+                else gates.sorted().forEachIndexed { n, gate ->
+                    val at = gate + 2 * n
+                    assertEquals(META_AI_ROW_SHOWN, (method.code()[at] as ReferenceInstruction).reference.toString(), "$code ${check.hookId()}")
+                    assertEquals((before[gate] as OneRegisterInstruction).registerA, (method.code()[at + 1] as OneRegisterInstruction).registerA)
+                    assertEquals(before[gate], method.code()[at + 2], "$code ${check.hookId()}")
+                }
             }
         }
     }

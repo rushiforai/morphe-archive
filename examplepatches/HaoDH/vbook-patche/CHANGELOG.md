@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/HaoDH/vbook-patche/compare/v1.3.0...v1.3.1) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* **editor:** use distinct target language to enable Vietnamese chapter editing [skip ci] ([d0be665](https://github.com/HaoDH/vbook-patche/commit/d0be665c1d0b247917d6a907d0a0b29f727efbda))
+
 ## [1.3.0](https://github.com/HaoDH/vbook-patche/compare/v1.2.0...v1.3.0) (2026-11-25)
 
 ### ✨ New Features

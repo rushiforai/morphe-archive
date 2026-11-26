@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,6 +51,49 @@ final class PostCommentary {
         return read(component(payload, "comment-commentary", 0));
     }
 
+    /**
+     * What a post says: its own text and that of the post it reposts.
+     *
+     * @param payload the item's payload
+     * @return the texts, empty when the post has none
+     */
+    static List<String> texts(byte[] payload) {
+        List<String> texts = new ArrayList<>();
+        String own = text(payload);
+        if (own != null) texts.add(own);
+        String original = read(component(payload, "feed-original-share-description", 0));
+        if (original != null) texts.add(original);
+        return texts;
+    }
+
+    /**
+     * The names of a post's author and, on a repost, of the original author.
+     *
+     * @param payload the item's payload
+     * @return the names, empty when the payload has no author
+     */
+    static List<String> authors(byte[] payload) {
+        List<String> names = new ArrayList<>();
+        for (String view : new String[]{"feed-actor", "feed-original-share-actor"}) {
+            String name = firstShownText(component(payload, view, 0), 0);
+            if (name != null) names.add(name);
+        }
+        return names;
+    }
+
+    /** The first text of a CompactAny (field 35) below a message, which on an author is the name. */
+    private static String firstShownText(byte[] message, int depth) {
+        List<ProtoEdit.Field> fields = message == null || depth > MAX_DEPTH ? null : ProtoEdit.parse(message);
+        if (fields == null) return null;
+        for (ProtoEdit.Field field : fields) {
+            if (field.wireType != 2) continue;
+            String text = field.number == COMPACT_DATA ? plain(ProtoEdit.nested(field.data, 2, 1, 1)) : null;
+            if (text == null) text = firstShownText(field.data, depth + 1);
+            if (text != null) return text;
+        }
+        return null;
+    }
+
     /** The text of a component: the known place first, then the longest plain text under its content fields. */
     private static String read(byte[] component) {
         List<ProtoEdit.Field> fields = component == null ? null : ProtoEdit.parse(component);
@@ -69,7 +113,7 @@ final class PostCommentary {
     }
 
     /** The first message, outermost first, whose view tracking is named {@code name}. */
-    private static byte[] component(byte[] message, String name, int depth) {
+    static byte[] component(byte[] message, String name, int depth) {
         if (message == null || depth > MAX_DEPTH || !ProtoEdit.contains(message, name)) return null;
         List<ProtoEdit.Field> fields = ProtoEdit.parse(message);
         if (fields == null) return null;

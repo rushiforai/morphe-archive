@@ -1,3 +1,15 @@
+## [1.4.0](https://github.com/Ayufa/ayufa-patches/compare/v1.3.0...v1.4.0) (2026-11-25)
+
+### ✨ New Features
+
+* move Simeji patch target from 20.7 to 22.5 ([030413d](https://github.com/Ayufa/ayufa-patches/commit/030413d515ef0f10e8376a78f99196c2c0a9ab96))
+
+## [1.4.0-dev.1](https://github.com/Ayufa/ayufa-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-11-25)
+
+### ✨ New Features
+
+* move Simeji patch target from 20.7 to 22.5 ([030413d](https://github.com/Ayufa/ayufa-patches/commit/030413d515ef0f10e8376a78f99196c2c0a9ab96))
+
 ## [1.3.0](https://github.com/Ayufa/ayufa-patches/compare/v1.2.0...v1.3.0) (2026-11-06)
 
 ### ✨ New Features

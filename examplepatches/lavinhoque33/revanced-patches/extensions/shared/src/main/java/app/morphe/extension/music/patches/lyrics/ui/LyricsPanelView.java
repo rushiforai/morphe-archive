@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2269
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.music.patches.lyrics.ui;
@@ -20,6 +20,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -89,9 +90,11 @@ import app.morphe.extension.music.patches.lyrics.requests.LyricsRequests;
 import app.morphe.extension.music.patches.lyrics.romanizers.RimeDictStore;
 import app.morphe.extension.music.patches.lyrics.romanizers.ScriptDetector;
 import app.morphe.extension.music.patches.lyrics.LyricsFileSaver;
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.music.shared.VideoInformation;
 import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -110,7 +113,7 @@ import app.morphe.extension.shared.ui.ViewAnimations;
 @SuppressLint("ClickableViewAccessibility")
 public final class LyricsPanelView extends FrameLayout implements LyricsManager.Listener {
 
-    private static final float INACTIVE_LINE_ALPHA = 0.35f;
+    private static final float INACTIVE_LINE_ALPHA = MusicLightTheme.isEnabled() ? 0.82f : 0.35f;
 
     static final long SECONDARY_REVEAL_MILLISECONDS = 250;
 
@@ -422,6 +425,23 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
     /** Built-in views hidden by this panel, so that only what was hidden is shown again. */
     private final Set<View> hiddenSiblings = new HashSet<>();
 
+    // The engagement header lives outside the content covered by this overlay.
+    private View lightSheetHeader;
+    private View lightSheetHeaderRow;
+    private View lightSheetTransitionHeaderRow;
+    private ColorStateList originalSheetHeaderTint;
+    private ColorStateList originalSheetHeaderRowTint;
+    private ColorStateList originalSheetTransitionHeaderRowTint;
+    private boolean lightSheetHeaderResolved;
+
+    private static final class LightSheetHeader {
+        private static final int CONTENT = ResourceUtils.getIdentifier(ResourceType.ID, "panel_content");
+        private static final int CONTAINER = ResourceUtils.getIdentifier(ResourceType.ID, "header_container");
+        private static final int ROW_WRAPPER = ResourceUtils.getIdentifier(ResourceType.ID, "panel_header_wrapper");
+        private static final int ROW_CONTENT = ResourceUtils.getIdentifier(ResourceType.ID, "panel_header");
+        private static final ColorStateList TINT = ColorStateList.valueOf(Color.WHITE);
+    }
+
     private final Set<View> hiddenToolbarButtons = new HashSet<>();
 
     /** Suppresses auto scrolling for a while after the user scrolls manually. */
@@ -508,9 +528,14 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
     public LyricsPanelView(Context context) {
         super(context);
 
-        dynamicBackgroundView = new DynamicBackgroundView(context);
-        dynamicBackgroundView.setVisibility(Settings.LYRICS_DYNAMIC_BACKGROUND.get() ? VISIBLE : GONE);
-        addView(dynamicBackgroundView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        if (MusicLightTheme.isEnabled()) {
+            setBackgroundColor(Color.WHITE);
+            dynamicBackgroundView = null;
+        } else {
+            dynamicBackgroundView = new DynamicBackgroundView(context);
+            dynamicBackgroundView.setVisibility(Settings.LYRICS_DYNAMIC_BACKGROUND.get() ? VISIBLE : GONE);
+            addView(dynamicBackgroundView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        }
 
         final int horizontalPadding = Dim.dp24;
         final int verticalPadding = Dim.dp16;
@@ -794,6 +819,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        restoreLightSheetHeader();
         try {
             if (pendingAnchorScroll != null) {
                 linesContainer.getViewTreeObserver().removeOnPreDrawListener(pendingAnchorScroll);
@@ -896,7 +922,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
 
             switch (state) {
                 case LOADING:
-                    dynamicBackgroundView.setVideoId(VideoInformation.getVideoId());
+                    updateDynamicBackgroundArtwork();
                     if (newLyrics == null || newLyrics.isEmpty()) {
                         showLoading();
                     } else {
@@ -912,7 +938,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
                             updateRefreshLabel();
                         }
                     } else {
-                        dynamicBackgroundView.setVideoId(VideoInformation.getVideoId());
+                        updateDynamicBackgroundArtwork();
                         if (Settings.LYRICS_RUBY.get()) {
                             applyRuby(newLyrics);
                             newLyrics = lyrics;
@@ -1113,6 +1139,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         }
 
         if (cachedOtherPanelOpen) {
+            restoreLightSheetHeader();
             if (getParent() instanceof ViewGroup parent) {
                 parent.removeView(this);
             }
@@ -1135,8 +1162,12 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         }
 
         if (!visible) {
+            restoreLightSheetHeader();
             restoreHiddenSiblings();
             return;
+        }
+        if (!lightSheetHeaderResolved && MusicLightTheme.isEnabled()) {
+            tintLightSheetHeader(parent);
         }
 
         for (int i = 0; i < parent.getChildCount(); i++) {
@@ -1148,6 +1179,75 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
             }
             sibling.setVisibility(GONE);
             hiddenSiblings.add(sibling);
+        }
+    }
+
+    private void tintLightSheetHeader(ViewGroup content) {
+        lightSheetHeaderResolved = true;
+
+        // The legacy lyrics tab has no engagement header.
+        if (content.getId() != LightSheetHeader.CONTENT
+                || !(content.getParent() instanceof View wrapper)
+                || !(wrapper.getParent() instanceof ViewGroup sheet)) {
+            return;
+        }
+
+        View header = sheet.findViewById(LightSheetHeader.CONTAINER);
+        if (header == null || header.getParent() != sheet
+                || !(header.findViewById(LightSheetHeader.ROW_WRAPPER) instanceof ViewGroup rows)) {
+            return;
+        }
+
+        lightSheetHeader = header;
+        originalSheetHeaderTint = tintSheetBackground(header);
+
+        // The title and close button sit on the engagement_panel_header layout's own drawable.
+        // Stock has up to two roots for transitions and rebinds the content inside them. Keeping
+        // the tint on the views also covers drawable changes without polling or replacing them.
+        lightSheetHeaderRow = findSheetHeaderRow(rows, 0);
+        originalSheetHeaderRowTint = tintSheetBackground(lightSheetHeaderRow);
+        lightSheetTransitionHeaderRow = findSheetHeaderRow(rows, 1);
+        originalSheetTransitionHeaderRowTint = tintSheetBackground(lightSheetTransitionHeaderRow);
+    }
+
+    @Nullable
+    private static View findSheetHeaderRow(ViewGroup rows, int index) {
+        View row = rows.getChildAt(index);
+        return row != null && row.findViewById(LightSheetHeader.ROW_CONTENT) != null ? row : null;
+    }
+
+    @Nullable
+    private static ColorStateList tintSheetBackground(@Nullable View view) {
+        if (view == null) return null;
+
+        ColorStateList originalTint = view.getBackgroundTintList();
+        view.setBackgroundTintList(LightSheetHeader.TINT);
+        // Music can share this drawable with the content view, which owns its only callback.
+        // A tint change then invalidates the content but leaves the title's cached draw intact.
+        view.invalidate();
+        return originalTint;
+    }
+
+    private void restoreLightSheetHeader() {
+        lightSheetHeaderResolved = false;
+        if (lightSheetHeader == null) return;
+
+        restoreSheetBackground(lightSheetHeader, originalSheetHeaderTint);
+        restoreSheetBackground(lightSheetHeaderRow, originalSheetHeaderRowTint);
+        restoreSheetBackground(lightSheetTransitionHeaderRow, originalSheetTransitionHeaderRowTint);
+
+        lightSheetHeader = null;
+        lightSheetHeaderRow = null;
+        lightSheetTransitionHeaderRow = null;
+        originalSheetHeaderTint = null;
+        originalSheetHeaderRowTint = null;
+        originalSheetTransitionHeaderRowTint = null;
+    }
+
+    private static void restoreSheetBackground(@Nullable View view, @Nullable ColorStateList originalTint) {
+        if (view != null && view.getBackgroundTintList() == LightSheetHeader.TINT) {
+            view.setBackgroundTintList(originalTint);
+            view.invalidate();
         }
     }
 
@@ -4494,7 +4594,14 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         creditView.setVisibility(visible ? VISIBLE : GONE);
     }
 
+    private void updateDynamicBackgroundArtwork() {
+        if (dynamicBackgroundView != null) {
+            dynamicBackgroundView.setVideoId(VideoInformation.getVideoId());
+        }
+    }
+
     public void applyDynamicBackgroundSettings() {
+        if (dynamicBackgroundView == null) return;
         dynamicBackgroundView.setVisibility(Settings.LYRICS_DYNAMIC_BACKGROUND.get() ? VISIBLE : GONE);
         dynamicBackgroundView.onSettingsChanged();
     }
@@ -4708,7 +4815,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         GradientDrawable background = new GradientDrawable();
         background.setShape(GradientDrawable.RECTANGLE);
         background.setCornerRadius(Dim.dp20);
-        background.setColor(ResourceUtils.getColor(APP_BUTTON_BACKGROUND_COLOR, 0x1AFFFFFF));
+        background.setColor(inactiveButtonColor());
         button.setBackground(background);
 
         ViewAnimations.applyPressEffect(button);
@@ -4743,17 +4850,24 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
             button.setCompoundDrawablePadding(labelling ? Dim.dp8 : 0);
         }
 
-        LyricsViewSupport.fadeButtonColors(button,
-                active ? ACTIVE_BUTTON_BG_COLOR
-                        : ResourceUtils.getColor(APP_BUTTON_BACKGROUND_COLOR, 0x1AFFFFFF),
-                active ? BaseThemeUtils.getAppBackgroundColor() : LyricsColors.lineTextColor());
+        final boolean light = MusicLightTheme.isEnabled();
+        int activeBackground = light ? MusicLightTheme.FOREGROUND : ACTIVE_BUTTON_BG_COLOR;
+        int activeForeground = light ? Color.WHITE : BaseThemeUtils.getAppBackgroundColor();
+
+        LyricsViewSupport.fadeButtonColors(button, active ? activeBackground : inactiveButtonColor(),
+                active ? activeForeground : LyricsColors.lineTextColor());
+    }
+
+    private static int inactiveButtonColor() {
+        return MusicLightTheme.isEnabled()
+                ? MusicLightTheme.CONTROL_SURFACE
+                : ResourceUtils.getColor(APP_BUTTON_BACKGROUND_COLOR, 0x1AFFFFFF);
     }
 
     /**
-     * Sets a button's text label and whether it is in the active (white background, app
-     * background color foreground) state. A {@code null} or empty text collapses the button back to icon-only, but the active
-     * state is independent of the label: a button can be active and icon-only (e.g. translation or
-     * romanization is on) or flash a label while staying active.
+     * Sets a button's text label and whether its foreground and background are inverted.
+     * A {@code null} or empty text collapses the button back to icon-only, but the active
+     * state is independent of the label (e.g. while translation or romanization is enabled).
      */
     private void setButtonLabel(@Nullable TextView button, @Nullable String text, boolean active) {
         if (button == null) {

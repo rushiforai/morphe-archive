@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Written by lavinhoque33, 2026-11-20.
  */
 package app.morphe.extension.youtube.patches.general.offline;
@@ -140,7 +141,7 @@ public class OfflineDownloadArtworkTest {
         String host = "http://127.0.0.1:" + server.getListeningPort();
 
         var audio = new OfflineFormats.Stream("", 140, "audio/mp4", MP4.length, 0, 0,
-                OfflineFormats.CODEC_AAC, 128_000, true, false, false);
+                OfflineFormats.CODEC_AAC, 128_000, true, false, false, -1, "");
         var resolved = new OfflineFormats.Resolved(VIDEO_ID, 0, null, null, TITLE, "Fixture channel", "", 0,
                 host + LIBRARY, List.of(), audio, null, new OfflineCaptions.Catalog(List.of()));
         var sponsor = new OfflineSponsorBlock.Selection(false, List.of(), null);

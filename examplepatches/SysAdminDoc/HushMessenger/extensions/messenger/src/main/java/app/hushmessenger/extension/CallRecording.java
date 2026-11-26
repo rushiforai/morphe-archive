@@ -383,6 +383,9 @@ public final class CallRecording {
             pill.setText(running == null ? text.get("call_recording_start")
                 : text.get(paused ? "call_recording_paused_time" : "call_recording_stop_time", clock(running.elapsed())));
             pill.setContentDescription(running == null ? null : text.get("call_recording_stop_pill"));
+            // Listed under the words it starts with and the words it pauses with, whatever the time on it says.
+            InvisibleButtons.own(pill, text.get("call_recording_start"));
+            InvisibleButtons.own(pausePill, text.get("call_recording_pause"));
             paint(pill, running != null ? SettingsUi.RECORDING : SettingsUi.CALL_SCRIM);
             pausePill.setVisibility(running == null ? View.GONE : View.VISIBLE);
             pausePill.setText(text.get(paused ? "call_recording_resume" : "call_recording_pause"));

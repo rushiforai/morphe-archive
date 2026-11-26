@@ -43,17 +43,16 @@ val blockPlusEventsPatch = patch(
     compatibleWith(COMPATIBILITY_YANDEX_MUSIC)
 
     execute {
+        val triggers = TRIGGER_PATHS.map { StringReplacement(it, LOOPBACK) }.toTypedArray()
         var changed = replaceStringConstants(
             *PLUS_HOSTS.map { StringReplacement(it, LOOPBACK) }.toTypedArray(),
         )
-        changed += replaceStringConstants(
-            *TRIGGER_PATHS.map { StringReplacement(it, LOOPBACK) }.toTypedArray(),
-        )
+        changed += replaceStringConstants(*triggers)
 
         // Retrofit endpoint paths are annotation values, not const-string instructions.
         changed += replaceAnnotationStrings(
             TRIGGER_API,
-            *TRIGGER_PATHS.map { StringReplacement(it, LOOPBACK) }.toTypedArray(),
+            *triggers,
         )
 
         if (changed == 0) {

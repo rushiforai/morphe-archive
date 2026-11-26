@@ -10,7 +10,7 @@ import app.ayufa.patches.simeji.shared.returnVoidIfEnabled
 /**
  * Drives every visibility change of the keyboard's pet (AI assistant)
  * icon: it attaches the icon view to the keyboard's top area and
- * shows it. Verified against Simeji 20.7.
+ * shows it. Verified against Simeji 22.5.
  */
 internal object PetKeyboardManagerChangeModeFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/pet/PetKeyboardManager;",
@@ -21,7 +21,7 @@ internal object PetKeyboardManagerChangeModeFingerprint : Fingerprint(
 
 /**
  * Reports whether the pet icon may currently be shown on the
- * keyboard. Verified against Simeji 20.7.
+ * keyboard. Verified against Simeji 22.5.
  */
 internal object PetKeyboardManagerCanShowFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/pet/PetKeyboardManager;",
@@ -34,7 +34,7 @@ internal object PetKeyboardManagerCanShowFingerprint : Fingerprint(
  * strip that hosts the pet icon (and suggestion/ad items sized from
  * the same value). The candidate line has its own separate height,
  * so zeroing this collapses only the top strip. Verified against
- * Simeji 20.7.
+ * Simeji 22.5.
  */
 internal object StuffHeightFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/KbdControlPanelHeightVal;",

@@ -114,6 +114,8 @@ public final class EdgeReporterHistory {
 
     /** Keep reporter metadata on screen, but copy the original thread title. */
     public static String copyTitle(String text) {
+        String cleaned=ReporterCopyText.clean(text,FeatureSwitches.enabled(EdgeReporterOptions.COPY_SUFFIX,true));
+        if(!java.util.Objects.equals(cleaned,text))return cleaned;
         if (!ReporterMetadataWrites.headroom()) return text;
         String suffix = EdgeReporterId.suffix(text);
         if (suffix == null || text.indexOf('\n') >= 0 || text.indexOf('\r') >= 0) return text;

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="224" height="44" viewBox="0 0 224 44" role="img" aria-labelledby="title">
+  <title id="title">Add to Morphe Manager</title>
+  <rect width="224" height="44" rx="9" fill="#5737b8"/>
+  <path d="M23 15v14m-7-7h14" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+  <text x="42" y="22" dominant-baseline="central" fill="#fff" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600">Add to Morphe Manager</text>
+</svg>

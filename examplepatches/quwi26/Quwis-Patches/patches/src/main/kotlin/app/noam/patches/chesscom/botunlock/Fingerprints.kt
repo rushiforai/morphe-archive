@@ -13,9 +13,9 @@ import app.morphe.patcher.Fingerprint
 // 4.10.18 has "h", found by matching the class's Kotlin metadata parameter-name table against
 // its field declaration order). Both are kept so a future rename has a chance of still matching.
 internal object BotPersonalityBotGetCanPlayFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.type == "Lcom/chess/features/versusbots/Bot\$PersonalityBot;" &&
-            (method.name == "i" || method.name == "k" || method.name == "h") &&
+    definingClass = "Lcom/chess/features/versusbots/Bot\$PersonalityBot;",
+    custom = { method, _ ->
+        (method.name == "i" || method.name == "k" || method.name == "h") &&
             method.parameterTypes.isEmpty() &&
             method.returnType == "Z"
     },
@@ -23,9 +23,9 @@ internal object BotPersonalityBotGetCanPlayFingerprint : Fingerprint(
 
 // 4.10.17 had "E"/"B"; 4.10.18 has "s" (isAssociatedWithCampaignThatRequiresAccountActivation).
 internal object BotPersonalityBotGetRequiresActivationFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.type == "Lcom/chess/features/versusbots/Bot\$PersonalityBot;" &&
-            (method.name == "E" || method.name == "B" || method.name == "s") &&
+    definingClass = "Lcom/chess/features/versusbots/Bot\$PersonalityBot;",
+    custom = { method, _ ->
+        (method.name == "E" || method.name == "B" || method.name == "s") &&
             method.parameterTypes.isEmpty() &&
             method.returnType == "Z"
     },

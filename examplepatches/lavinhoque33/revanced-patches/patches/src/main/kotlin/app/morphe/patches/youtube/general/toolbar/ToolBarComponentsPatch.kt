@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-25.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -86,6 +86,7 @@ import app.morphe.patches.youtube.utils.playservice.is_19_16_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_19_46_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_15_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_31_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_13_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.resourceid.sharedResourceIdPatch
 import app.morphe.patches.youtube.utils.resourceid.ytPremiumWordMarkHeader
@@ -826,6 +827,7 @@ val toolBarComponentsPatch = bytecodePatch(
                 val buttonByteRegister = freeRegisters.getFreeRegister()
 
                 // The commands of the buttons are extensions, which are parsed only with the extension registry.
+                var homeNotificationsHooked = false
                 val parseByteArrayMethod = parseByteArrayMethodRef.get()!!
                 mutableClassDefBy(parseByteArrayMethod.definingClass).methods.firstOrNull { method ->
                     method.name == "parseFrom" && method.parameterTypes.map { type -> type.toString() } == listOf(
@@ -854,6 +856,11 @@ val toolBarComponentsPatch = bytecodePatch(
                             return-object p0
                         """
                     )
+
+                    homeNotificationsHooked = is_21_13_or_greater && hookHomeToolbarNotifications(this, it.classDef)
+                }
+                if (!homeNotificationsHooked) {
+                    printWarn("Home toolbar Notifications fallback skipped: native menu or registry not matched.")
                 }
 
                 addInstructionsWithLabels(

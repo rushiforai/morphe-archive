@@ -72,6 +72,42 @@
       "menu": "Account menu",
       "highlights": "💾 🔑 👯",
       "blurb": "Unlimited original-quality backup, installs beside the stock app"
+    },
+    "net.dinglisch.android.taskerm": {
+      "name": "Tasker",
+      "slug": "tasker",
+      "category": "Automation",
+      "file": "APK",
+      "menu": "Overflow menu",
+      "highlights": "💎",
+      "blurb": "Full Tasker, no trial limit"
+    },
+    "idm.internet.download.manager": {
+      "name": "1DM",
+      "slug": "1dm",
+      "category": "Downloads",
+      "file": "APKM",
+      "menu": "Navigation drawer",
+      "highlights": "🚫 🎨",
+      "blurb": "Ads and 1DM+ upsells removed, optional IDM+ rename"
+    },
+    "com.dv.adm": {
+      "name": "ADM",
+      "slug": "adm",
+      "category": "Downloads",
+      "file": "APKM",
+      "menu": "Overflow menu",
+      "highlights": "🚫",
+      "blurb": "Advanced Download Manager without ads"
+    },
+    "com.metalsoft.trackchecker_mobile": {
+      "name": "TrackChecker",
+      "slug": "trackchecker",
+      "category": "Shopping",
+      "file": "APK",
+      "menu": "Overflow menu",
+      "highlights": "🚫",
+      "blurb": "Parcel tracking without ads"
     }
   }
 }

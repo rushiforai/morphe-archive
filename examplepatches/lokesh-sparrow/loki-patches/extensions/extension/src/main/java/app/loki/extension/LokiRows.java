@@ -23,7 +23,87 @@ public final class LokiRows {
         return "Loki Patches";
     }
 
+    /** Tasker's overflow menu entry; an id far outside the ones Tasker's own switch handles. */
+    private static final int TASKER_ITEM_ID = 0x4C4F4B49;
 
+    /** Tasker: adds the row to the end of the overflow menu Tasker has just built. Never throws into the host. */
+    public static void taskerAdd(android.view.Menu menu) {
+        try {
+            if (menu != null) menu.add(0, TASKER_ITEM_ID, 0, title());
+        } catch (Throwable error) {
+            LokiLog.note("menu row: could not add to Tasker's menu: " + error);
+        }
+    }
+
+    /** Tasker: true when the tap was ours (and the Loki Patches screen is opening), false to let Tasker handle it. */
+    public static boolean taskerSelected(Context context, android.view.MenuItem item) {
+        try {
+            if (item == null || item.getItemId() != TASKER_ITEM_ID) return false;
+            open(context);
+            return true;
+        } catch (Throwable error) {
+            return false;
+        }
+    }
+
+
+
+    /** Generic options-menu row (ADM, TrackChecker): same item as Tasker's, added after the host built its menu. */
+    public static void optionsAdd(android.view.Menu menu) {
+        taskerAdd(menu);
+    }
+
+    private static android.view.Menu rememberedMenu;
+
+    /** Called when the host starts building its menu: the menu to add the row to once it has finished. */
+    public static void optionsRemember(android.view.Menu menu) {
+        rememberedMenu = menu;
+    }
+
+    /** Called at each return of the host's menu builder: adds the row to the remembered menu, once. */
+    public static void optionsAddRemembered() {
+        try {
+            android.view.Menu menu = rememberedMenu;
+            if (menu != null && menu.findItem(TASKER_ITEM_ID) == null) taskerAdd(menu);
+        } catch (Throwable error) {
+            LokiLog.note("menu row: could not add to the host menu: " + error);
+        }
+    }
+
+    public static boolean optionsSelected(Context context, android.view.MenuItem item) {
+        return taskerSelected(context, item);
+    }
+
+    /**
+     * 1DM: takes over the drawer's old "Upgrade to 1DM+" row. The view is the app's own, so it keeps the drawer's
+     * padding, colours and ripple; this gives it the Loki Patches text, the puzzle icon and the tap. Never throws.
+     */
+    public static void idmRow(View view) {
+        try {
+            if (!(view instanceof android.widget.TextView)) return;
+            android.widget.TextView text = (android.widget.TextView) view;
+            text.setVisibility(View.VISIBLE);
+            text.setText(title());
+            // The view was the 1DM+ sales row: a green fill and white text. Give it what the drawer's own rows have.
+            android.content.res.TypedArray theme = text.getContext().obtainStyledAttributes(new int[] {
+                android.R.attr.selectableItemBackground, android.R.attr.textColorSecondary});
+            try {
+                text.setBackground(theme.getDrawable(0));
+                android.content.res.ColorStateList color = theme.getColorStateList(1);
+                if (color != null) text.setTextColor(color);
+            } finally {
+                theme.recycle();
+            }
+            int size = Math.round(24 * text.getResources().getDisplayMetrics().density);
+            android.graphics.drawable.Drawable puzzle =
+                new app.linkedin.extension.IconDrawable(app.linkedin.extension.IconDrawable.EXTENSION, text.getCurrentTextColor());
+            puzzle.setBounds(0, 0, size, size);
+            text.setCompoundDrawablesRelative(puzzle, null, null, null);
+            text.setOnClickListener(photosClick());
+        } catch (Throwable error) {
+            LokiLog.note("menu row: could not set up the 1DM drawer row: " + error);
+        }
+    }
 
     /** Teal glyph for the Photos account menu. */
     public static int photosIcon() {

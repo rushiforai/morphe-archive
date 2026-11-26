@@ -68,7 +68,8 @@ private fun List<Instruction>.folderChecks(folder: Int, type: String): Map<Int, 
 /**
  * The coroutine body of MsysNotificationParser's getThreadLevelResult: an instance invokeSuspend(Object)Object that fails
  * with both [FETCH_FAILURES]. Up to 586 it was a class of its own, getThreadLevelResult$2. 587 merges it with unrelated
- * coroutines into one class that switches on which of them it runs, so only its strings still name it.
+ * coroutines into one class that switches on which of them it runs, so only its strings still name it. 588 gives it its
+ * own class again.
  */
 internal fun Method.isThreadCheck(): Boolean = name == "invokeSuspend" && !AccessFlags.STATIC.isSet(accessFlags) &&
     returnType == "Ljava/lang/Object;" && parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;") &&

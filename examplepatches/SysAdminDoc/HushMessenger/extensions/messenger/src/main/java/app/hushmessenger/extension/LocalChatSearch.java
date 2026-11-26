@@ -87,6 +87,7 @@ public final class LocalChatSearch {
             bar.setBackgroundColor(ui.background);
             bar.setPadding(ui.dp(16), ui.dp(8), ui.dp(16), ui.dp(8));
             Button button = ui.button(new SettingsText(context).get("local_search_open"));
+            InvisibleButtons.own(button, button.getText());
             button.setOnClickListener(tapped -> {
                 try {
                     Intent screen = screen(context);

@@ -1,11 +1,11 @@
 ![HushPinterest. Keep the pins. Lose the ads.](assets/readme-hero.png)
 
 <p>
-  <img src="https://img.shields.io/badge/version-0.0.14-E60023" alt="Version 0.0.14">
+  <img src="https://img.shields.io/badge/version-0.0.15-E60023" alt="Version 0.0.15">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%2010%2B-3DDC84" alt="Platform Android 10+">
-  <img src="https://img.shields.io/badge/Pinterest-14.44.0-E60023" alt="Pinterest 14.44.0">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.5.0%2B-8A2BE2" alt="For Morphe Manager 2.5.0 or newer">
+  <img src="https://img.shields.io/badge/Pinterest-14.45.0-E60023" alt="Pinterest 14.45.0">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.7.0%2B-8A2BE2" alt="For Morphe Manager 2.7.0 or newer">
 </p>
 
 <p>
@@ -24,7 +24,7 @@ HushPinterest is a set of [Morphe](https://morphe.software) patches for Pinteres
 
 Hide ads, Disable analytics, Strip link tracking, Hide advertising ID and Fix push notifications start on. Every other switch starts off, so a freshly patched Pinterest looks like stock until you turn something on. What changed in each version is in the [changelog](CHANGELOG.md).
 
-The latest release is [v0.0.14](https://github.com/SysAdminDoc/HushPinterest/releases/tag/v0.0.14), with 36 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out.
+The latest release is [v0.0.15](https://github.com/SysAdminDoc/HushPinterest/releases/tag/v0.0.15), with 59 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out.
 
 **[Add HushPinterest to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushPinterest)**
 
@@ -33,9 +33,9 @@ The latest release is [v0.0.14](https://github.com/SysAdminDoc/HushPinterest/rel
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.5.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.7.0 or newer.
 2. Add HushPinterest as a patch source with the link above. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushPinterest`.
-3. Get Pinterest 14.44.0, version code 14448030. APKMirror has it as a plain APK for Android 10 or newer, so there's nothing to merge. Pick that file in Manager.
+3. Get Pinterest 14.45.0, version code 14458020. APKMirror has it as a plain APK for Android 10 or newer, so there's nothing to merge. Pick that file in Manager.
 4. Patch it with the default selection. It holds every switch, so you don't need Expert mode. GmsCore support, Spoof signature for Google sign-in and Change package name are left out. If you want one, turn on **Settings > Advanced > Expert mode** in Manager and pick it before you patch.
 
 A patched Pinterest can't install over the stock app, because Android only accepts an update signed with the same key. Save anything local you need, uninstall stock Pinterest, then install the patched one. Your boards and pins come back when you sign in. Local settings and drafts don't. If you'd rather keep stock Pinterest, patch with Change package name and the patched app installs beside it as a separate app with its own sign-in.
@@ -80,7 +80,7 @@ From a feed, search or board grid, **Download visible pins** in a pin's menu let
 
 ## Patches
 
-There are 58 patches. Where a patch has a switch, its description names the settings page that holds it.
+There are 59 patches. Where a patch has a switch, its description names the settings page that holds it.
 
 | Patch | What it does |
 |---|---|
@@ -97,7 +97,7 @@ There are 58 patches. Where a patch has a switch, its description names the sett
 | `Download board` | Adds Download board to a board's menu. It saves every pin Pinterest has loaded for that board, up to 500, and skips ones already in Download history, so you can keep a board without picking pins one at a time. Needs Download pins on too. Starts off. Turn it on in HushPinterest settings > Pin actions. |
 | `Download pins` | Adds downloads for a pin, or for several pins you select in a grid. Saves the original image or the highest-quality video Pinterest supplies to your phone. When it saves an image, Pinterest's own Download image row is hidden. Downloads go to the Download folder. Turn on Save in Pinterest's folder to keep them in Pictures/100PINT/Pins with Pinterest's own saves, or use Pick a download folder to choose any folder inside Pictures, DCIM, Download or Documents. Starts off. Copy image puts an image pin's full-size picture on the clipboard, and Share image sends it through Android's share menu. Each has its own switch, also off. Save pins you download also saves a pin you download to your profile, and Download pins you save also downloads a pin you save. Those two start off as well. Turn them on in HushPinterest settings > Pin actions. |
 | `Expand board list` | Opens the Save to sheet all the way up when you save a pin, so more of your boards show without dragging it. Starts off. Turn it on in HushPinterest settings > Interface. |
-| `Filter feed` | Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your home feed, search, related pins and other people's boards, pins you've already saved out of your home feed, search and More to explore, and Pinterest's suggestion rows out of your home feed. Starts off. Set it up in HushPinterest settings > Feed. |
+| `Filter feed` | Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your home feed, search, related pins and other people's boards, pins you've already saved out of your home feed, search and More to explore, pins you've already seen out of your home feed and search, and Pinterest's suggestion rows out of your home feed. Starts off. Set it up in HushPinterest settings > Feed. |
 | `Filter pin menu` | Lets you hide Add to collage, Remix collage, Search image and Promote pin in a pin's menu, each with its own switch. Another switch takes out the rows you pick from a list, including the ones HushPinterest adds. Starts off. Turn them on in HushPinterest settings > Interface. |
 | `Fix push notifications` | Lets the patched app sign up for push notifications. Google's Firebase service only signs Pinterest up when the request names Pinterest's original signature, so this sends that signature's fingerprint and changes nothing else in the request. On by default. Turn it off in HushPinterest settings > Notifications. |
 | `Fold related pins` | Puts an arrow under a pin you open. Related pins stay folded and don't load until you tap it, and tapping again folds them. Your last choice is kept. Hide related pins wins when both are on. Starts off. Turn it on in HushPinterest settings > Interface. |
@@ -155,7 +155,7 @@ Every patch but GmsCore support, Spoof signature for Google sign-in and Change p
   - Over your own patched copy, it fails when the new build was signed with a different key, usually after reinstalling Manager or moving to a new phone. Restore your old key under **Settings > System > Import & export > Signing key** in Manager and patch again, or uninstall the patched copy first (its settings go with it). Back that key up once and every later update installs over the top.
   - If Android says it isn't allowed to install unknown apps from this source, it's asking once for whichever app opened the APK. Tap **Settings** on that prompt and allow Morphe Manager, or the file manager you used.
   - For any other message, open an issue with the exact wording plus your phone model and Android version.
-- **Manager rejects the APK, or a patch fails.** Use Pinterest 14.44.0, version code 14448030, unmodified. Each patch finds its code by what it does in that build, and Pinterest renames almost everything between releases, so a patch that can't find its spot stops instead of patching the wrong place.
+- **Manager rejects the APK, or a patch fails.** Use Pinterest 14.45.0, version code 14458020, unmodified. Each patch finds its code by what it does in that build, and Pinterest renames almost everything between releases, so a patch that can't find its spot stops instead of patching the wrong place.
 - **Google sign-in fails.** Use your email and a Pinterest password. See [Signing in](#signing-in).
 
 ### Reporting a problem
@@ -179,20 +179,18 @@ Disable analytics stops Pinterest's usage uploads, the AppsFlyer and Bugsnag tra
 | Field | Value |
 | --- | --- |
 | Package | `com.pinterest` |
-| Version | Pinterest 14.44.0 |
-| Version code | `14448030` |
+| Version | Pinterest 14.45.0 |
+| Version code | `14458020` |
 | APK | APKMirror's universal APK (`.apk`) |
 | Minimum Android version | Android 10 |
 
 Each release patches its own build only, so an older Pinterest is refused. SHA-256 of the stock APK the patches were checked against:
 
 ```text
-14448030  fc84952636f66fd97e5f76d6d6878024fe2f480eaa446d47cdaafa43df10504f
+14458020  44b55011fa101614cd343bd356257345808d5c05ba8a5e23cf1dd4856c131c7a
 ```
 
 On Windows, compare yours with `Get-FileHash -Algorithm SHA256 .\pinterest.apk`. Other Pinterest versions aren't supported.
-
-The next release moves to Pinterest 14.45.0, version code 14458020, and it'll need Morphe Manager 2.6.0 or newer. APKMirror has that one as a plain APK for Android 10 or newer too. Stick with 14.44.0 until the release is out.
 
 ## Verify a release download
 

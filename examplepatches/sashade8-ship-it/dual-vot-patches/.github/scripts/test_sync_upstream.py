@@ -20,6 +20,64 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev2412_streaming_keeps_sign_in_and_dual_accessors(self):
+        methods = (
+            "        public boolean usesSabr() {\n"
+            "            return client.requireSABR;\n"
+            "        }\n"
+            "\n"
+            "        public String clientUserAgent() {\n"
+            "            return client.userAgent;\n"
+            "        }\n"
+        )
+        ours = "                             ClientType client) {\n" + methods
+        theirs = "                             ClientType client, boolean signedIn) {\n"
+        conflict = "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> v2.4.0-dev.12\n"
+        before, after = "    public record StreamData(\n", "    }\n"
+        self.assertEqual(
+            sync_upstream.merge_streaming_data_request_dev2412(before + conflict + after),
+            before + theirs + methods + after,
+        )
+        for invalid in (conflict.replace("signedIn", "unknown"), conflict + "<<<<<<< extra\n"):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_streaming_data_request_dev2412(invalid)
+
+    def test_dev2412_overlay_accounts_for_native_mute_and_keeps_dual_api(self):
+        ours = (
+            "            final float xOffset = (int) (source.getX()\n"
+            "                    - (buttonNumber * (spacingPercentage * source.getWidth())));\n"
+        )
+        theirs = (
+            "            final float buttonSpacing = spacingPercentage * source.getWidth();\n"
+            "            // The buttons after the mute button continue from its left, and a button in the place\n"
+            "            // of the hidden fullscreen button stays there.\n"
+            "            final float xOffset = muteButton != null && buttonNumber > 0\n"
+            "                    ? (int) (muteButton.getX() - buttonNumber * buttonSpacing)\n"
+            "                    : (int) (source.getX() - buttonNumber * buttonSpacing);\n"
+            "\n"
+        )
+        conflict = "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> v2.4.0-dev.12\n"
+        before = "            View muteButton = getShownMuteButton();\n"
+        after = "    public static <T extends ImageView> T addButton(View sourceButton,\n"
+        path = sync_upstream.DEV2412_PLAYER_OVERLAY_PATH
+        blobs = sync_upstream.DEV2412_PLAYER_OVERLAY_CONFLICT_BLOBS
+        with (mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
+              mock.patch.object(sync_upstream, "output_of", side_effect=blobs),
+              mock.patch.object(sync_upstream, "ROOT") as root,
+              mock.patch.object(sync_upstream, "run") as run):
+            destination = root.__truediv__.return_value
+            destination.read_text.return_value = before + conflict + after
+            sync_upstream.resolve_dev2412_player_overlay_conflict()
+            destination.write_text.assert_called_once_with(
+                before + theirs + after, encoding="utf-8", newline=""
+            )
+            run.assert_called_once_with("git", "add", "--", path)
+
+            destination.read_text.return_value = conflict.replace("buttonNumber > 0", "buttonNumber >= 0")
+            with mock.patch.object(sync_upstream, "output_of", side_effect=blobs):
+                with self.assertRaises(sync_upstream.SyncError):
+                    sync_upstream.resolve_dev2412_player_overlay_conflict()
+
     def test_dev2411_streaming_prefers_configured_client_only_for_playback_failure(self):
         ours = "        ClientType preferredClient = clients[0];\n"
         theirs = (
@@ -606,6 +664,10 @@ class SyncUpstreamTests(unittest.TestCase):
 
     def test_dev210_unknown_inputs_remain_unresolved(self):
         cases = (
+            (sync_upstream.STREAMING_DATA_REQUEST_DEV2412_CONFLICT_BLOBS,
+             sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
+            (sync_upstream.DEV2412_PLAYER_OVERLAY_CONFLICT_BLOBS,
+             sync_upstream.DEV2412_PLAYER_OVERLAY_PATH, sync_upstream.resolve_dev2412_player_overlay_conflict),
             (sync_upstream.STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS,
              sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
             (sync_upstream.DEV2411_SETTINGS_CONFLICT_BLOBS,

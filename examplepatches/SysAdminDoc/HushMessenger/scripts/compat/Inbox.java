@@ -66,10 +66,9 @@ final class Inbox {
     }
     record AiCellShape(int label, int sources, int size, int menu, int menuSources, int registers) {}
     static final List<AiCellShape> AI_CELL_SHAPES = List.of(
-        new AiCellShape(GENERATE_AI_LABEL, 4, 105, GENERATE_MENU_LABEL, 1, 24),
-        new AiCellShape(GENERATE_AI_LABEL, 4, 105, GENERATE_MENU_LABEL_ARMV7, 1, 24),
-        // 587's other arm64 builds (347415280, 281 and 285): arm64's Generate label, a render an instruction shorter and a register wider.
-        new AiCellShape(GENERATE_AI_LABEL, 4, 104, GENERATE_MENU_LABEL, 1, 25));
+        new AiCellShape(GENERATE_AI_LABEL, 4, 107, GENERATE_MENU_LABEL, 1, 24),
+        // 588's armv7 builds: their own Generate label, and a render two instructions shorter (one call fewer for the tint).
+        new AiCellShape(GENERATE_AI_LABEL, 4, 105, GENERATE_MENU_LABEL_ARMV7, 1, 24));
     record FoundAiCell(AiCell cell, Method render) {}
     static List<FoundAiCell> discoverAiCells(List<ClassDef> classes) {
         var byType = new HashMap<String, List<ClassDef>>();
@@ -410,14 +409,15 @@ final class Inbox {
         return true;
     }
     /**
-     * The closure body's pinned layout by register count: second read, list register, alias register, moves after the
-     * alias, then the hook's two scratch registers. Mirrors communityLayout in CommunityInbox.kt.
+     * The closure body's pinned layout by register count: second read, list register, alias register (-1 when the read
+     * lands in the sink's own slot), moves after the alias, the hook's two scratch registers, then the sink's list
+     * argument. Mirrors communityLayout in CommunityInbox.kt.
      */
     static int[] communityLayout(Method invoke) {
         if(invoke.getImplementation()==null || AccessFlags.STATIC.isSet(invoke.getAccessFlags())) return null;
         return switch(invoke.getImplementation().getRegisterCount()) {
-            case 21 -> new int[]{63,1,17,1,0,3};
-            case 22 -> new int[]{76,2,18,2,0,1};
+            case 21 -> new int[]{63,15,-1,0,0,3,9};
+            case 22 -> new int[]{76,2,18,2,0,1,11};
             default -> null;
         };
     }
@@ -605,23 +605,27 @@ final class Inbox {
         Method invoke=single(methods(closure).stream().filter(m->m.getName().equals("invoke") && m.getParameterTypes().equals(List.of("Ljava/lang/Object;"))).toList(),"section closure invoke");
         var code=instructions(invoke);
         var listReads=new ArrayList<Integer>(); for(int at=0;at<code.size();at++) if(reads(code.get(at),captured.toString())) listReads.add(at);
-        // Two pinned layouts, picked by the body's register count. 587 (21 registers) reads the list into v1 at 63,
-        // alias it into v17 and move the $onThreadInViewport after it, with v0 and v3 free. Family B (22 registers)
-        // inlines the section builder's helpers, reads the list into v2 at 76, aliases it into v18 and moves the callback
-        // and the data key after it, with v3 holding the builder and v0 and v1 free.
+        // Two pinned layouts, picked by the body's register count. 588 (21 registers) reads the list at 63 straight into
+        // v15, the sink's tenth argument, now an ImmutableList, with v0 and v3 free; 587 read it into v1 and aliased it
+        // into v17 for the twelfth. Family B (22 registers) inlines the section builder's helpers, reads the list into v2
+        // at 76, aliases it into v18 and moves the callback and the data key after it, with v3 holding the builder and
+        // v0 and v1 free.
         var layout=communityLayout(invoke);
         require(layout!=null,"presentation body shape changed");
         require(listReads.size()==2 && listReads.get(0)==5 && listReads.get(1)==layout[0],"presentation read shape changed: "+listReads);
         int secondRead=listReads.get(1), listRegister=layout[1];
         require(hasString(invoke,"searchBarSection") && code.get(secondRead) instanceof TwoRegisterInstruction read && read.getRegisterA()==listRegister && read.getRegisterB()==4,"header or local presentation read changed");
-        int aliasAt=-1;
-        for(int at=secondRead+1;at<code.size() && aliasAt<0;at++) if(code.get(at).getOpcode()==Opcode.MOVE_OBJECT_FROM16 && ((TwoRegisterInstruction)code.get(at)).getRegisterA()==layout[2]) aliasAt=at;
-        require(aliasAt>0 && ((TwoRegisterInstruction)code.get(aliasAt)).getRegisterB()==listRegister,"second list alias changed");
-        for(int at=aliasAt+1;at<=aliasAt+layout[3];at++) require(at<code.size() && code.get(at).getOpcode()==Opcode.MOVE_OBJECT_FROM16,"viewport callback alias changed");
-        int sinkAt=aliasAt+layout[3]+1;
-        require(sinkAt<code.size() && code.get(sinkAt).getOpcode()==Opcode.INVOKE_STATIC_RANGE && ref(code.get(sinkAt)) instanceof MethodReference,"list section sink changed");
+        int aliasAt=-1, sinkAt, passed;
+        if(layout[2]<0) { sinkAt=code.size()-8; aliasAt=sinkAt; passed=listRegister; }
+        else {
+            for(int at=secondRead+1;at<code.size() && aliasAt<0;at++) if(code.get(at).getOpcode()==Opcode.MOVE_OBJECT_FROM16 && ((TwoRegisterInstruction)code.get(at)).getRegisterA()==layout[2]) aliasAt=at;
+            require(aliasAt>0 && ((TwoRegisterInstruction)code.get(aliasAt)).getRegisterB()==listRegister,"second list alias changed");
+            for(int at=aliasAt+1;at<=aliasAt+layout[3];at++) require(at<code.size() && code.get(at).getOpcode()==Opcode.MOVE_OBJECT_FROM16,"viewport callback alias changed");
+            sinkAt=aliasAt+layout[3]+1; passed=layout[2];
+        }
+        require(sinkAt>secondRead && sinkAt<code.size() && code.get(sinkAt).getOpcode()==Opcode.INVOKE_STATIC_RANGE && ref(code.get(sinkAt)) instanceof MethodReference,"list section sink changed");
         var sink=(MethodReference)ref(code.get(sinkAt));
-        require(sink.getParameterTypes().size()==13 && sink.getParameterTypes().get(11).toString().equals("Ljava/util/List;") && args(code.get(sinkAt)).get(11)==layout[2],"renderer list argument disconnected");
+        require(sink.getParameterTypes().size()==13 && Set.of("Ljava/util/List;",LIST).contains(sink.getParameterTypes().get(layout[6]).toString()) && args(code.get(sinkAt)).get(layout[6])==passed,"renderer list argument disconnected");
         require(code.size()==sinkAt+8 && invoke.getImplementation().getTryBlocks().isEmpty(),"presentation body shape changed");
         require(code.get(6).getOpcode()==Opcode.INVOKE_VIRTUAL && Objects.toString(ref(code.get(6))).equals("Ljava/util/AbstractCollection;->isEmpty()Z") && args(code.get(6)).equals(List.of(0)),"original empty/header gate changed");
         for(int at=secondRead+1;at<aliasAt;at++) require(!writes(code.get(at),listRegister),"list overwritten before render");
@@ -743,10 +747,16 @@ final class Inbox {
             !INBOX_ITEMS_TRACE.equals(inboxString(code.get(0))) || mediaTargets(items).contains(0)) return null;
         var supplier = byType.get(INBOX_SUPPLIER);
         if (supplier == null || !AccessFlags.FINAL.isSet(supplier.getAccessFlags())) return null;
+        // 588 moves the warning into a static (supplier, flag) helper the subscribe call asks before it creates the observer.
+        var helpers = new HashSet<String>();
+        for (var m : supplier.getMethods())
+            if (AccessFlags.STATIC.isSet(m.getAccessFlags()) && !"V".equals(m.getReturnType()) && inboxParams(m).equals(List.of(INBOX_SUPPLIER, "Z")) &&
+                instructions(m).stream().anyMatch(i -> INBOX_SUBSCRIBE_WARNING.equals(inboxString(i)))) helpers.add(hookId(m));
         Method subscribe = null;
         for (var m : supplier.getMethods()) {
             if (!AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"V".equals(m.getReturnType()) || !inboxParams(m).equals(List.of(INBOX_SUPPLIER, "Z")) ||
-                instructions(m).stream().noneMatch(i -> INBOX_SUBSCRIBE_WARNING.equals(inboxString(i)))) continue;
+                instructions(m).stream().noneMatch(i -> INBOX_SUBSCRIBE_WARNING.equals(inboxString(i)) ||
+                    (i.getOpcode() == Opcode.INVOKE_STATIC && helpers.contains(ref(i))))) continue;
             if (subscribe != null) return null;
             subscribe = m;
         }

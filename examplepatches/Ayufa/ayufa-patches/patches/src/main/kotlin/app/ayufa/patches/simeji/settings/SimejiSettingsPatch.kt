@@ -17,7 +17,7 @@ import app.ayufa.patches.simeji.shared.SIMEJI_SETTINGS_ENTRY_CLASS
  * compiler has recycled it as scratch — an end-of-method hook here
  * received an unrelated item view instead). The extension posts the
  * actual work, so it runs after this method has finished resetting
- * the items. Verified against Simeji 20.7.
+ * the items. Verified against Simeji 22.5.
  */
 internal object SettingHomeFragmentInitItemsFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/home/setting/SettingHomeFragment;",

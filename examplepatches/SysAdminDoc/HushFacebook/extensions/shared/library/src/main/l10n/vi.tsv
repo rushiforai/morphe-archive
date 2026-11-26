@@ -572,6 +572,8 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	�
 Hide profile notes	Ẩn ghi chú trên trang cá nhân
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	Ẩn bong bóng ghi chú trên ảnh đại diện. Áp dụng vào lần tới bạn mở một trang cá nhân.
+Hide the gift button on profiles	Ẩn nút quà tặng trên trang cá nhân
+Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	Bỏ nút gửi quà khỏi trang cá nhân của người khác. Áp dụng vào lần tới bạn mở một trang cá nhân.
 # context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
 Save button under posts	Nút Lưu dưới bài viết
 # context: summary of that switch; Like, Comment and Share are the buttons under a post
@@ -3167,8 +3169,8 @@ Adds Facebook chats to Android's share menu. A photo or video you share there is
 Share to Facebook chats is off.	Chia sẻ vào chat của Facebook đang tắt.
 Nothing in it to send.	Không có gì để gửi.
 Couldn't save it to your gallery.	Không lưu được vào thư viện.
-Copied and saved. Pick a chat.	Đã sao chép và lưu. Chọn một đoạn chat.
-In your gallery now. Pick a chat.	Đã có trong thư viện. Chọn đoạn chat.
+Copied and saved. Paste and attach in a chat.	Đã sao chép và lưu. Dán và đính kèm trong đoạn chat.
+Saved to your gallery. Attach it in a chat.	Đã lưu vào thư viện. Đính kèm trong đoạn chat.
 Copied. Pick a chat and paste it.	Đã sao chép. Chọn đoạn chat rồi dán.
 Open your chats to pick one.	Mở các đoạn chat để chọn một.
 Post date after the caption	Ngày đăng sau chú thích
@@ -3185,3 +3187,17 @@ Open a chat, then come back here to give it a color of its own.	Mở một đo�
 %1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s, đoạn chat bạn mở gần nhất, đang dùng nền đoạn chat ở trên. Nhập mã màu để đặt màu riêng cho nó.
 %1$s, the last chat you opened, is %2$s.	%1$s, đoạn chat bạn mở gần nhất, có màu %2$s.
 Type one color code, or two for a fade from top to bottom.	Nhập một mã màu, hoặc hai mã để chuyển màu từ trên xuống dưới.
+Hide the AI content label on reels	Ẩn nhãn nội dung AI trên reel
+Takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. A change shows from the next reel.	Bỏ nhãn "Nội dung AI" hoặc "Thông tin về AI" khỏi các reel mà Facebook đánh dấu là làm bằng AI. Thay đổi hiện từ reel tiếp theo.
+The %1$s row will be set to %2$s.	Mục %1$s sẽ được đặt thành %2$s.
+The %1$s row will go back to its default.	Mục %1$s sẽ trở về mặc định.
+Save files to Downloads	Lưu tệp vào Tải xuống
+A PDF, document or other file you download from a post goes to your phone's Downloads folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.	Tệp PDF, tài liệu hoặc tệp khác bạn tải xuống từ bài viết sẽ vào thư mục Tải xuống của điện thoại, nơi trình quản lý tệp có thể mở. Khi tắt, Facebook giữ tệp ở nơi không trình quản lý tệp nào truy cập được.
+Hide hashtags in reel captions	Ẩn hashtag trong chú thích reel
+Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	Bỏ hashtag khỏi chú thích reel, như cụm thẻ ở cuối. Hashtag là một phần của câu thì vẫn giữ. Thay đổi hiện từ reel tiếp theo.
+Keep the keyboard closed when comments open	Giữ bàn phím đóng khi mở bình luận
+Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	Bình luận mở ra mà bàn phím không bật lên, kể cả ở bài viết chưa có bình luận nào. Chạm vào ô bình luận khi bạn muốn viết.
+Settings language	Ngôn ngữ cài đặt
+Same as Facebook	Giống Facebook
+Show feed reels uncropped	Hiện reel trong bảng tin không bị cắt
+Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Các reel trong bảng tin hiện toàn bộ khung hình theo đúng tỉ lệ của chúng, thay vì bị cắt cho vừa khung của Facebook. Các reel hiện ra sau khi thay đổi sẽ áp dụng.

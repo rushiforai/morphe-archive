@@ -2,9 +2,9 @@
   "metadata": {
     "name": "DeepSeek – Biên tập truyện convert",
     "author": "HaoDH",
-    "version": 3,
+    "version": 11,
     "source": "https://api.deepseek.com",
-    "description": "Biên tập QT/Hán Việt thành tiếng Việt tự nhiên khi đọc; xử lý riêng khoảng chương A–B và lưu kết quả theo truyện.",
+    "description": "Biên tập nguyên chương Việt convert bằng nhiều nguồn AI (DeepSeek, Gemini free, OpenRouter, Groq, tùy chỉnh); tự chuyển sang DeepSeek khi nguồn miễn phí hết hạn mức; lưu toàn chương và bộ nhớ tên theo truyện.",
     "locale": "vi_VN",
     "regexp": "",
     "type": "translate",
@@ -19,5 +19,10 @@
     "style": "style.js",
     "translate": "translate.js"
   },
-  "config": { "support_auto_detect": true, "max_line": 100, "max_length": 12000, "support_url": "https://platform.deepseek.com/api_keys" }
+  "config": {
+    "support_auto_detect": true,
+    "max_line": 0,
+    "max_length": 0,
+    "support_url": "https://platform.deepseek.com/api_keys"
+  }
 }

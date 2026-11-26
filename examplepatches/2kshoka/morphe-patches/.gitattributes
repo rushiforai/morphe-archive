@@ -1,0 +1,11 @@
+#
+# https://help.github.com/articles/dealing-with-line-endings/
+#
+# Linux scripts should use lf
+/gradlew        text eol=lf
+*.sh            text eol=lf
+*.py            text eol=lf
+
+# These are Windows script files and should use crlf
+*.bat           text eol=crlf
+

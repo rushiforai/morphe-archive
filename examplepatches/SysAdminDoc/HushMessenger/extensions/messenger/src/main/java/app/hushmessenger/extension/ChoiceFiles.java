@@ -25,8 +25,8 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * The choices that live in files instead of preferences: the home header picture, the tab pictures, your own font, the
- * auto reply pictures and who Special contacts follows. Save to a file carries them in a zip beside the same text the
+ * The choices that live in files instead of preferences: the home header picture and its words' font, the tab
+ * pictures, your own font, the auto reply pictures and who Special contacts follows. Save to a file carries them in a zip beside the same text the
  * clipboard carries. Read a file puts each one back through the copy its own row makes, under that row's limits, so a
  * backup can't save anything a pick couldn't. Special contacts go in as who's followed, never what was seen of them.
  */
@@ -35,6 +35,9 @@ final class ChoiceFiles {
     static final String HEADER = "header.png";
     static final String FONT = "font";
     static final String FONT_NAME = "font-name.txt";
+    /** #212: the home header words' own font file and its name. */
+    static final String HEADER_FONT = "header-font";
+    static final String HEADER_FONT_NAME = "header-font-name.txt";
     static final String TAB = "tab-";
     static final String AUTO_REPLY = "auto-reply/";
     static final String SPECIAL = "special/";
@@ -82,6 +85,8 @@ final class ChoiceFiles {
     /** Whether there's a file-backed choice to carry, so Save makes a zip. Only asks whether the files are there. */
     static boolean any(Context context, SharedPreferences prefs, Set<String> installed) {
         if (installed.contains(HomeHeader.KEY) && HomeHeader.file(context).isFile()) return true;
+        if (installed.contains(HomeHeader.KEY) && !prefs.getString(HomeHeader.FONT_NAME, "").isEmpty()
+                && HomeHeader.fontFile(context).isFile()) return true;
         if (installed.contains(TabIcons.KEY)) for (String key : TabIcons.SHOWN) if (TabIcons.file(context, key).isFile()) return true;
         if (installed.contains(OwnFont.KEY) && !prefs.getString(OwnFont.NAME_KEY, "").isEmpty() && FontFile.file(context).isFile())
             return true;
@@ -119,17 +124,13 @@ final class ChoiceFiles {
 
     /** Each file-backed choice of an installed patch, under the entry name it gets. */
     private static void collect(Context context, SharedPreferences prefs, Set<String> installed, Sink sink) throws IOException {
-        if (installed.contains(HomeHeader.KEY)) add(sink, HEADER, HomeHeader.file(context), MAX_PICTURE);
+        if (installed.contains(HomeHeader.KEY)) {
+            add(sink, HEADER, HomeHeader.file(context), MAX_PICTURE);
+            addFont(sink, HEADER_FONT, HEADER_FONT_NAME, HomeHeader.fontFile(context), prefs, HomeHeader.FONT_NAME);
+        }
         if (installed.contains(TabIcons.KEY))
             for (String key : TabIcons.SHOWN) add(sink, TAB + key + ".png", TabIcons.file(context, key), MAX_PICTURE);
-        if (installed.contains(OwnFont.KEY)) {
-            // The name and the copy change together under this lock, so the two read here belong together.
-            synchronized (FontFile.LOCK) {
-                String name = prefs.getString(OwnFont.NAME_KEY, "");
-                if (!name.isEmpty() && add(sink, FONT, FontFile.file(context), FontFile.MAX_BYTES))
-                    sink.put(FONT_NAME, name.getBytes(StandardCharsets.UTF_8));
-            }
-        }
+        if (installed.contains(OwnFont.KEY)) addFont(sink, FONT, FONT_NAME, FontFile.file(context), prefs, OwnFont.NAME_KEY);
         if (installed.contains(AutoReply.KEY))
             for (String name : pictures(prefs)) add(sink, AUTO_REPLY + name, AutoReplyPicture.fileFor(context, name), MAX_REPLY_PICTURE);
         if (installed.contains(SpecialContacts.KEY)) for (String account : SpecialContacts.accounts(context)) {
@@ -138,6 +139,15 @@ final class ChoiceFiles {
             StringBuilder list = new StringBuilder();
             for (SpecialContactsStore.Person person : people) list.append(person.id).append('\t').append(person.name).append('\n');
             if (list.length() > 0) sink.put(SPECIAL + account + ".txt", list.toString().getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    /** A picked font file under [entry] and its name, saved under [key], under [nameEntry], when there's one of each. */
+    private static void addFont(Sink sink, String entry, String nameEntry, File file, SharedPreferences prefs, String key) throws IOException {
+        // The name and the copy change together under this lock, so the two read here belong together.
+        synchronized (FontFile.LOCK) {
+            String name = prefs.getString(key, "");
+            if (!name.isEmpty() && add(sink, entry, file, FontFile.MAX_BYTES)) sink.put(nameEntry, name.getBytes(StandardCharsets.UTF_8));
         }
     }
 
@@ -167,8 +177,8 @@ final class ChoiceFiles {
     static long limit(String name) {
         if (TEXT.equals(name)) return ChoiceCodec.MAX_BYTES;
         if (HEADER.equals(name)) return MAX_PICTURE;
-        if (FONT.equals(name)) return FontFile.MAX_BYTES;
-        if (FONT_NAME.equals(name)) return MAX_FONT_NAME_BYTES;
+        if (FONT.equals(name) || HEADER_FONT.equals(name)) return FontFile.MAX_BYTES;
+        if (FONT_NAME.equals(name) || HEADER_FONT_NAME.equals(name)) return MAX_FONT_NAME_BYTES;
         if (tab(name) != null) return MAX_PICTURE;
         if (name.startsWith(AUTO_REPLY) && AutoReplyPicture.validName(name.substring(AUTO_REPLY.length()))) return MAX_REPLY_PICTURE;
         if (account(name) != null) return MAX_SPECIAL;
@@ -244,8 +254,9 @@ final class ChoiceFiles {
         for (Map.Entry<String, byte[]> file : files.entrySet()) {
             String name = file.getKey();
             byte[] bytes = file.getValue();
-            if (FONT_NAME.equals(name)) continue;
-            String owner = HEADER.equals(name) ? HomeHeader.KEY : FONT.equals(name) ? OwnFont.KEY : name.startsWith(TAB) ? TabIcons.KEY
+            if (FONT_NAME.equals(name) || HEADER_FONT_NAME.equals(name)) continue;
+            String owner = HEADER.equals(name) || HEADER_FONT.equals(name) ? HomeHeader.KEY : FONT.equals(name) ? OwnFont.KEY
+                : name.startsWith(TAB) ? TabIcons.KEY
                 : name.startsWith(AUTO_REPLY) ? AutoReply.KEY : SpecialContacts.KEY;
             if (!installed.contains(owner)) {
                 result.unavailable++;
@@ -259,7 +270,11 @@ final class ChoiceFiles {
                     HomeHeaderPicture.MAX_HEIGHT, HomeHeader::forget);
                 else if (name.startsWith(TAB)) changed = picture(bytes, TabIcons.file(context, tab(name)), TabIcons.MAX_SIDE,
                     TabIcons.MAX_SIDE, TabIcons::forget);
-                else if (FONT.equals(name)) changed = font(context, prefs, bytes, files.get(FONT_NAME));
+                else if (FONT.equals(name)) changed = font(prefs, bytes, files.get(FONT_NAME), FontFile.file(context), OwnFont.NAME_KEY);
+                else if (HEADER_FONT.equals(name)) {
+                    changed = font(prefs, bytes, files.get(HEADER_FONT_NAME), HomeHeader.fontFile(context), HomeHeader.FONT_NAME);
+                    if (Boolean.TRUE.equals(changed)) HomeHeader.forget();
+                }
                 else if (name.startsWith(AUTO_REPLY)) changed = replyPicture(context, name.substring(AUTO_REPLY.length()), bytes);
                 else changed = special(context, account(name), bytes);
             } catch (RuntimeException | OutOfMemoryError failure) {
@@ -288,13 +303,13 @@ final class ChoiceFiles {
         }
     }
 
-    private static Boolean font(Context context, SharedPreferences prefs, byte[] bytes, byte[] savedName) {
+    /** A font file back into [target] with its name under [key], checked the way a picked one is. */
+    private static Boolean font(SharedPreferences prefs, byte[] bytes, byte[] savedName, File target, String key) {
         // Cleaned the way a picked file's name is, so the row shows it the same.
         String name = FontFileRow.cleanFontName(savedName == null ? null : new String(savedName, StandardCharsets.UTF_8));
-        File target = FontFile.file(context);
         synchronized (FontFile.LOCK) {
             try {
-                if (name.equals(prefs.getString(OwnFont.NAME_KEY, "")) && target.length() == bytes.length
+                if (name.equals(prefs.getString(key, "")) && target.length() == bytes.length
                         && Arrays.equals(bytes, Files.readAllBytes(target.toPath()))) return false;
             } catch (IOException | RuntimeException unreadable) {
                 // Copied again below.
@@ -306,13 +321,13 @@ final class ChoiceFiles {
                 private Object before;
 
                 @Override public boolean save() {
-                    before = prefs.getAll().get(OwnFont.NAME_KEY);
+                    before = prefs.getAll().get(key);
                     wrote = true;
-                    return prefs.edit().putString(OwnFont.NAME_KEY, name).commit();
+                    return prefs.edit().putString(key, name).commit();
                 }
 
                 @Override public void undo() {
-                    if (wrote) OwnFont.restore(prefs, OwnFont.NAME_KEY, before);
+                    if (wrote) OwnFont.restore(prefs, key, before);
                 }
             });
             return true;

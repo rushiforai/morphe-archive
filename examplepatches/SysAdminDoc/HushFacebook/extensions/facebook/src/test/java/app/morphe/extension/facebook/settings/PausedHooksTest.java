@@ -70,6 +70,7 @@ import app.morphe.extension.facebook.download.ClipboardLinkForTests;
 import app.morphe.extension.facebook.download.CommentGifForTests;
 import app.morphe.extension.facebook.download.CommentPhotoForTests;
 import app.morphe.extension.facebook.download.CommentVideoForTests;
+import app.morphe.extension.facebook.download.FileDownloadsForTests;
 import app.morphe.extension.facebook.download.ListingPhotoForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
@@ -614,12 +615,13 @@ public class PausedHooksTest {
         probes.put(PatchFamily.PHOTO_CAROUSEL, Arrays.asList(() -> PhotoCarousel.carousel(0),
                 () -> PhotoCarousel.skipLayout("com.facebook.feedplugins.attachments.album.PhotoLayoutFramePlugin")));
         // A post marked for automatic translation reads as one to translate on request, the reels
-        // footer hears a caption can't be translated by itself, so it asks for nothing, an
-        // auto-translated comment reads as one shown as written, and a comment's See translation
-        // handler is tapped once the main thread is free.
+        // footer hears a caption can't be translated by itself, so it asks for nothing, a Reels
+        // query asks the server for captions as written, an auto-translated comment reads as one
+        // shown as written, and a comment's See translation handler is tapped once the main thread
+        // is free.
         probes.put(PatchFamily.AUTO_TRANSLATION, Arrays.asList(AutoTranslationForTests::keepsThePost,
-                AutoTranslationForTests::keepsTheCaption, AutoTranslationForTests::keepsTheComment,
-                TranslateCommentsForTests::tapsTheLink));
+                AutoTranslationForTests::keepsTheCaption, AutoTranslationForTests::asksForCaptionsAsWritten,
+                AutoTranslationForTests::keepsTheComment, TranslateCommentsForTests::tapsTheLink));
         // The Feeds tab's yes to a title row is answered as a no, its filters go to a container
         // that's never on screen, and its posts get no room for them. The room follows what the
         // tab did with its filters, so that probe builds a tab first.
@@ -748,6 +750,10 @@ public class PausedHooksTest {
                 },
                 // And "Made with Edits" under the caption.
                 ReelDeclutter::hideEditsLabel,
+                // A reel's "AI info" label, left out of its attributions (#574).
+                () -> ReelDeclutter.filterAiLabel(Arrays.asList(new TypedFeedUnit("XFBFBShortsGenAITransparencyAttribution"))) != null,
+                // A reel caption's runs of hashtags (#594).
+                () -> !"Drive #a #b".contentEquals(ReelDeclutter.captionText("Drive #a #b")),
                 // And the "Made with Edits" pill over a feed video (#314).
                 ReelDeclutter::hideEditsPill,
                 // A stalled video's slow connection message.
@@ -1008,6 +1014,8 @@ public class PausedHooksTest {
                 CommentGifForTests::addsARow,
                 CommentPhotoForTests::addsARow,
                 ListingPhotoForTests::keepsTheAddress));
+        // A file downloaded from a post goes to the Downloads folder.
+        probes.put(PatchFamily.FILE_DOWNLOADS, Collections.singletonList(FileDownloadsForTests::movesAFile));
         // A start from the launcher icon asks Facebook for the chosen tab.
         probes.put(PatchFamily.START_TAB, Collections.singletonList(StartTabRouteForTests::routes));
         // Home's request for its feed goes out for the most recent feed.
@@ -1124,6 +1132,8 @@ public class PausedHooksTest {
                 () -> CommentSheetOptions.incomingTypers(3) == 0,
                 () -> CommentSheetOptions.newCommentsPill("3 new comments").isEmpty(),
                 CommentSheetOptions::holdsEmojiRow,
+                // Comments open with the keyboard closed (#594).
+                () -> !CommentSheetOptions.keyboardOnFirstLoad(true),
                 () -> {
                     // The bar along the bottom of a live video is held gone (#537).
                     View bar = new View(RuntimeEnvironment.getApplication());

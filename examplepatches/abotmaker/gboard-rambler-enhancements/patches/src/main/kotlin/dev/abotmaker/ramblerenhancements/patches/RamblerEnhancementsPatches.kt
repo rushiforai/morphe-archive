@@ -225,7 +225,7 @@ val ramblerAppContextPatch = bytecodePatch(
 @Suppress("unused")
 val ramblerProductivityToolsPatch = bytecodePatch(
     name = "Rambler Productivity Tools",
-    description = "Adds opt-in hands-free Voice Send & Search suffixes, deterministic Voice Snippets, post-dictation Find & Replace (plain or regex, global or per-app), Strip Trailing Period, Local Dictation History (last 50 entries), Auto Parallel Retry on flaky networks, configurable Longer Dictation Sessions, and one-tap JSON Settings Backup & Restore. $VERSION_NOTE",
+    description = "Adds private On-Device Dictation Stats (words, sessions, avg WPM, cloud latency, time saved vs typing), opt-in hands-free Voice Send & Search suffixes, deterministic Voice Snippets, post-dictation Find & Replace (plain or regex, global or per-app), Strip Trailing Period, Local Dictation History (last 50 entries), Auto Parallel Retry on flaky networks, configurable Longer Dictation Sessions, and one-tap JSON Settings Backup & Restore. $VERSION_NOTE",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)

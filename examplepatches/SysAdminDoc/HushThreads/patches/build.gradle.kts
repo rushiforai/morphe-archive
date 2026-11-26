@@ -865,7 +865,7 @@ val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph"
 }
 
 // By type rather than by the one name, so a second test task cannot start on a graph nothing
-// has looked at. :patches:test is what scripts/pre-push.ps1 runs when a patch source changes.
+// has looked at. :patches:test is what a release's build stage runs.
 tasks.withType<Test>().configureEach {
     dependsOn(verifyBouncyCastleBuildGraph)
 }
@@ -905,8 +905,8 @@ dependencies {
 // known by their source calling Fixtures or FixtureDex, the two helpers that open the fixture
 // folder, and :patches:test runs the rest once fixtureTest is done. :patches:test runs without
 // HUSHTHREADS_FIXTURE_DIR and without the fixtures among its inputs, so a fixture change reruns
-// only fixtureTest, a run with -x :patches:fixtureTest is the quick pass scripts/pre-push.ps1 makes
-// first, and a fixture reader that slipped into :patches:test skips there, which
+// only fixtureTest, a run with -x :patches:fixtureTest is a quick pass without the fixtures,
+// and a fixture reader that slipped into :patches:test skips there, which
 // verifyPatchTestSelection refuses. Asked for by name, :patches:test still runs both.
 val patchTestSources = file("src/test/kotlin")
 val fixtureReader = Regex("""\b(Fixtures|FixtureDex)\.[A-Za-z]""")

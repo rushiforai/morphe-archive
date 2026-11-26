@@ -46,7 +46,9 @@
     walk as PARTIAL with its receipt. -RestoreApp keeps a copy of the installed Messenger first and
     puts it back after the walk, with its overlay and notification grants as they were. Without
     -Serial the walk takes the first free device on HushMessenger's walk list in HUSH_RELEASE_CONFIG,
-    with that device's key, model, chat and restore choice from the same file.
+    with that device's key, model, chat and restore choice from the same file. It passes over one
+    whose Messenger build has no stock APK in HUSH_NATIVE_FIXTURES and says so. -ListedSerial walks
+    one device off that list.
 
 .EXAMPLE
     scripts/walk-app.ps1 -Serial <adb serial> -ExpectedModel SM-S908U1 -Keystore <key the installed app uses> -Thread <user id>
@@ -79,6 +81,8 @@ param(
     [switch]$RestoreApp,
     # The release config whose HushMessenger walk list picks the device when -Serial isn't given.
     [string]$ReleaseConfig = $env:HUSH_RELEASE_CONFIG,
+    # Without -Serial: walk this device from the walk list, with its key, model, chat and restore choice.
+    [string]$ListedSerial,
     [int]$SettleSeconds = 4,
     [string]$OutDir = (Join-Path ([IO.Path]::GetTempPath()) 'hushmessenger-walk'),
     # The key the installed Messenger is signed with, so the build installs over it in place.
@@ -320,22 +324,41 @@ function Select-WalkDevice {
     .SYNOPSIS
         The first device on -Config's HushMessenger walk list that adb has attached and no one leases, with the key,
         model, chat and restore choice the config gives it, or a throw naming why each one was passed over.
+        With -FixtureCodes and -ReadInstalledCode it also passes over a device whose installed Messenger build has
+        no stock APK to patch, and -OnlySerial keeps the list to that one device. Skipped lists each one passed over.
     #>
-    param($Config, [string]$Package, [string[]]$Attached = @(), [string]$LeaseDirectory)
+    param($Config, [string]$Package, [string[]]$Attached = @(), [string]$LeaseDirectory, [string[]]$FixtureCodes,
+        [scriptblock]$ReadInstalledCode, [string]$OnlySerial)
     $entry = $Config.HushMessenger
     $order = @($entry.walk.$Package | Where-Object { $_ })
     if ($order.Count -eq 0) { throw "The release config has no HushMessenger walk list for $Package. Pass -Serial." }
-    $passed = foreach ($candidate in $order) {
-        if ($Attached -cnotcontains $candidate) { "$candidate isn't attached"; continue }
-        if (Test-Path -LiteralPath (Join-Path $LeaseDirectory "$candidate.json")) { "$candidate is leased"; continue }
+    if ($OnlySerial) {
+        if ($order -cnotcontains $OnlySerial) { throw "$OnlySerial isn't on the HushMessenger walk list for $Package ($($order -join ', '))." }
+        $order = @($OnlySerial)
+    }
+    $reasons = [Collections.Generic.List[string]]::new()
+    foreach ($candidate in $order) {
+        if ($Attached -cnotcontains $candidate) { $reasons.Add("$candidate isn't attached"); continue }
+        if (Test-Path -LiteralPath (Join-Path $LeaseDirectory "$candidate.json")) { $reasons.Add("$candidate is leased"); continue }
+        $model = [string]$entry.models.$candidate
+        if ($null -ne $FixtureCodes -and $ReadInstalledCode -and $model) {
+            # The walk installs over the device's own build, so a build with no stock APK would stop it later.
+            $installed = ''
+            try { $installed = [string](& $ReadInstalledCode $candidate $model) }
+            catch { $reasons.Add("$candidate couldn't be read ($($_.Exception.Message))"); continue }
+            if ($installed -and $FixtureCodes -cnotcontains $installed) {
+                $reasons.Add("$candidate has Messenger build $installed, which has no stock APK in the fixtures ($(@($FixtureCodes | Sort-Object) -join ', '))")
+                continue
+            }
+        }
         $key = if ($entry.keys.$candidate) { $entry.keys.$candidate } else { $entry.keys.default }
         return [pscustomobject]@{
-            Serial = $candidate; Model = [string]$entry.models.$candidate; Thread = [string]$entry.threads.$candidate
+            Serial = $candidate; Model = $model; Thread = [string]$entry.threads.$candidate
             Keystore = [string]$key.Keystore; KeyAlias = [string]$key.KeyAlias; KeystorePassword = [string]$key.KeystorePassword
-            Restore = @($entry.restore) -ccontains $candidate
+            Restore = @($entry.restore) -ccontains $candidate; Skipped = @($reasons)
         }
     }
-    throw "No walk device is free ($($passed -join ', ')). Walk again once one is."
+    throw "No walk device is free ($($reasons -join ', ')). Walk again once one is."
 }
 
 function Find-WalkNodeCenter {
@@ -989,7 +1012,16 @@ if ($MyInvocation.InvocationName -ne '.') {
         if (-not $ReleaseConfig) { $ReleaseConfig = [Environment]::GetEnvironmentVariable('HUSH_RELEASE_CONFIG', 'User') }
         if (-not $ReleaseConfig -or -not (Test-Path -LiteralPath $ReleaseConfig -PathType Leaf)) { throw 'Name the device with -Serial, or point -ReleaseConfig (HUSH_RELEASE_CONFIG) at the walk list.' }
         $attached = @(& $Adb devices | Where-Object { $_ -cmatch '^(\S+)\s+device\s*$' } | ForEach-Object { $Matches[1] })
-        $pick = Select-WalkDevice -Config (Get-Content -LiteralPath $ReleaseConfig -Raw | ConvertFrom-Json) -Package $Package -Attached $attached -LeaseDirectory $LeaseDirectory
+        # When the walk patches a fixture, a device whose Messenger build has none is passed over for the next one.
+        $fixtureCodes = $null
+        if (-not $Apk -and -not $SkipPatch -and $env:HUSH_NATIVE_FIXTURES -and (Test-Path -LiteralPath $env:HUSH_NATIVE_FIXTURES -PathType Container)) {
+            $fixtureCodes = @(Get-ChildItem -LiteralPath $env:HUSH_NATIVE_FIXTURES -File -Filter 'messenger-*.apk' |
+                ForEach-Object { if ($_.Name -cmatch '-(\d+)\.apk\z') { $Matches[1] } })
+        }
+        $readInstalled = { param($candidate, $model) Get-WalkInstalledVersionCode -AdbExe $Adb -Serial $candidate -ExpectedModel $model -Package $Package -LeaseDirectory $LeaseDirectory }
+        $pick = Select-WalkDevice -Config (Get-Content -LiteralPath $ReleaseConfig -Raw | ConvertFrom-Json) -Package $Package -Attached $attached `
+            -LeaseDirectory $LeaseDirectory -FixtureCodes $fixtureCodes -ReadInstalledCode $readInstalled -OnlySerial $ListedSerial
+        foreach ($reason in $pick.Skipped) { Write-Host "[walk] passed over $reason" }
         $Serial = $pick.Serial
         if (-not $PSBoundParameters.ContainsKey('ExpectedModel') -and $pick.Model) { $ExpectedModel = $pick.Model }
         if (-not $PSBoundParameters.ContainsKey('Thread') -and $pick.Thread) { $Thread = $pick.Thread }

@@ -45,7 +45,7 @@ public class L10nTest {
 
     @Test
     public void everyLanguageTheBundleCarriesHasATableWithTheKey() {
-        assertEquals(Arrays.asList("de", "es", "in", "it", "ko", "pt-rbr", "tr", "zh-rtw"),
+        assertEquals(Arrays.asList("de", "es", "in", "it", "ko", "pt-rbr", "ru", "tr", "zh-rtw"),
                 Arrays.asList(L10nTranslations.LANGUAGES));
         for (String language : L10nTranslations.LANGUAGES) {
             Map<String, String> table = L10nTranslations.of(language);
@@ -231,6 +231,25 @@ public class L10nTest {
         assertEquals("f", L10n.pluralRow("few", one, other, polish));
         assertEquals("o", L10n.pluralRow("many", one, other, polish));
         assertEquals(one, L10n.pluralRow("one", one, other, polish));
+    }
+
+    @Test
+    public void aRussianPhoneCountsWithRussiansThreeForms() {
+        Context russian = in(new Locale("ru", "RU"));
+        String one = "%1$d setting found";
+        String other = "%1$d settings found";
+        Map<String, String> table = table("ru");
+        // 1 and 21 take the one form, 2 to 4 and 22 the few form, 5, 11 and 25 the many form.
+        assertEquals(String.format(table.get(one), 1), L10n.quantity(russian, 1, one, other));
+        assertEquals(String.format(table.get(one), 21), L10n.quantity(russian, 21, one, other));
+        assertEquals(String.format(table.get(other + "|few"), 3), L10n.quantity(russian, 3, one, other));
+        assertEquals(String.format(table.get(other + "|few"), 22), L10n.quantity(russian, 22, one, other));
+        assertEquals(String.format(table.get(other + "|many"), 5), L10n.quantity(russian, 5, one, other));
+        assertEquals(String.format(table.get(other + "|many"), 11), L10n.quantity(russian, 11, one, other));
+        assertNotEquals(table.get(one), table.get(other + "|few"));
+        assertNotEquals(table.get(other + "|few"), table.get(other + "|many"));
+        // A Russian phone reads its own table, in a region with no table of its own too.
+        assertEquals(table.get(KEY), L10n.t(in(new Locale("ru", "KZ")), KEY));
     }
 
     @Test

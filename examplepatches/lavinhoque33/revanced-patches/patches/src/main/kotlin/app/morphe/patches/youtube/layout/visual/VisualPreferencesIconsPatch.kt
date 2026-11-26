@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-25.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -1095,6 +1095,19 @@ private val rvxPreferenceKey = mapOf(
     "morphe_glass_menus_opacity" to "revanced_swipe_overlay_background_opacity",
     "morphe_glass_menus_blur" to "revanced_swipe_overlay_background_opacity",
     "morphe_glass_menus_dim" to "revanced_swipe_overlay_background_opacity",
+    "morphe_ghost_play_enabled" to "morphe_ghost_play_screen",
+    "morphe_ghost_play_mode_active" to "morphe_ghost_play_screen",
+    "morphe_ghost_play_persist_mode" to "time_management_key",
+    "morphe_ghost_play_toolbar_button" to "revanced_preference_screen_toolbar",
+    "morphe_ghost_play_flyout_button" to "revanced_preference_screen_player_flyout_menu",
+    "morphe_ghost_play_player_button" to "morphe_ghost_play_screen",
+    "morphe_ghost_play_anonymize_requests" to "privacy_key",
+    "morphe_ghost_play_auto_shorts" to "revanced_preference_screen_shorts",
+    "morphe_ghost_play_auto_search" to "revanced_hide_shorts_shelf_search",
+    "morphe_ghost_play_manage_channels" to "account_switcher_key",
+    "morphe_ghost_play_local_history" to "history_key",
+    "morphe_ghost_play_view_history" to "history_key",
+    "morphe_ghost_play_history_limit" to "history_key",
     "morphe_live_chat_translate_provider" to "morphe_vot_translation_service",
     "morphe_live_chat_translate_style" to "morphe_custom_branding_name",
     "morphe_live_chat_translate_use_color" to "revanced_enable_custom_seekbar_color",
@@ -1119,6 +1132,7 @@ private val rvxPreferenceKey = mapOf(
     "morphe_hide_post_comments_preview" to "morphe_post_buttons_screen",
     "morphe_hide_post_share_button" to "morphe_post_buttons_screen",
     "morphe_proxy_auth_username" to "account_switcher_key",
+    "morphe_you_button_account_switcher" to "account_switcher_key",
     "morphe_proxy_host" to "sb_api_url",
     "morphe_replace_links_with_shortener" to "revanced_bypass_url_redirects",
     "morphe_save_to_watch_later_shorts_flyout_button" to "morphe_save_to_watch_later_button",
@@ -1274,6 +1288,14 @@ private val rvxPreferenceKey = mapOf(
         "M 231 729 L 729 729 L 729 400 Q 729 231 560 231 L 231 231 Z " +
         "M 480 320 L 560 320 Q 640 320 640 400 L 640 480 L 609 480 L 609 400 " +
         "Q 609 351 560 351 L 480 351 Z",
+    "morphe_ghost_play_screen" to
+        "M 480 140 C 303 140 160 283 160 460 L 160 755 Q 160 792 194 769 " +
+        "L 292 694 L 374 756 Q 389 768 404 756 L 480 694 L 556 756 Q 571 768 586 756 " +
+        "L 668 694 L 766 769 Q 800 792 800 755 L 800 460 C 800 283 657 140 480 140 Z " +
+        "M 480 171 C 640 171 769 300 769 460 L 769 731 L 668 655 L 571 729 " +
+        "L 480 655 L 389 729 L 292 655 L 191 731 L 191 460 C 191 300 320 171 480 171 Z " +
+        "M 385 422 A 30 30 0 1 1 385 482 A 30 30 0 1 1 385 422 Z " +
+        "M 575 422 A 30 30 0 1 1 575 482 A 30 30 0 1 1 575 422 Z",
     "morphe_proxy_auth_password" to
         "M 300 300 A 180 180 0 1 0 470 540 L 600 540 L 600 660 L 631 660 " +
         "L 631 540 L 729 540 L 729 620 L 760 620 L 760 509 L 451 509 " +

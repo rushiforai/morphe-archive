@@ -55,6 +55,7 @@ APP_ICONS = {
     "com.locket.Locket": ".github/assets/apps/com.locket.Locket.png",
     "com.pioneerdj.WeDJ": ".github/assets/apps/com.pioneerdj.WeDJ.png",
     "com.dubox.drive": ".github/assets/apps/com.dubox.drive.png",
+    "com.proxyman.proxymanandroid": ".github/assets/apps/com.proxyman.proxymanandroid.png",
 }
 
 

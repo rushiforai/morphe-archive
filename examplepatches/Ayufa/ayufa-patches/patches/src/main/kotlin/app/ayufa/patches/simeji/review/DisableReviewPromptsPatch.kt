@@ -8,7 +8,7 @@ import app.ayufa.patches.simeji.shared.returnVoidIfEnabled
 
 /**
  * Simeji's own Google Play guide / rating dialog activity.
- * Verified against Simeji 20.7.
+ * Verified against Simeji 22.5.
  */
 internal object GpGuideDialogActivityOnCreateFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simejicore/popup/gppop/GPGuideDialogActivity;",
@@ -19,7 +19,7 @@ internal object GpGuideDialogActivityOnCreateFingerprint : Fingerprint(
 
 /**
  * Entry point of the Play in-app review flow. Verified against
- * Simeji 20.7.
+ * Simeji 22.5.
  */
 internal object GpInAppReviewAskFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simejicore/popup/gppop/GpInAppReview;",

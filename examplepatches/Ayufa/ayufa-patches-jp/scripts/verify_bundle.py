@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Verify a combined Ayufa Patches JP bundle (.mpp).
 
-Checks that the single bundle really contains all four patch sets:
+Checks that the single bundle really contains all three patch sets:
 
-- bundle structure: patch classes dex plus all five extension
-  payloads (newx, shared, twitch, extension, kakaotalk) and the
+- bundle structure: patch classes dex plus all four extension
+  payloads (newx, shared, twitch, kakaotalk) and the
   resource sets (addresources with the Japanese settings resources,
   reactnative/, hermes/).
 - MANIFEST metadata points at this project and carries a
@@ -14,9 +14,9 @@ Checks that the single bundle really contains all four patch sets:
 - patch inventory: since v1.2.0 the bundle ships upstream's patches
   individually again (no umbrella patches). When a patches-list.json
   from the build is given, it must contain exactly the patches of the
-  four source copies -- 52 for X (com.twitter.android), 14 for
-  Twitch (tv.twitch.android.app; upstream 13 plus one Ayufa original),
-  39 for LINE (jp.naver.line.android) and 76 for KakaoTalk
+  three source copies -- 51 for X (com.twitter.android), 14 for
+  Twitch (tv.twitch.android.app; upstream 13 plus one Ayufa original)
+  and 76 for KakaoTalk
   (com.kakao.talk) -- plus upstream's named universal patch
   "Disable Sentry telemetry" (no compatible packages; the KakaoTalk
   "Disable Sentry" patch depends on it, and it is part of upstream's
@@ -45,7 +45,6 @@ EXPECTED_EXTENSIONS = {
     "extensions/newx.mpe",
     "extensions/shared.mpe",
     "extensions/twitch.mpe",
-    "extensions/extension.mpe",
     "extensions/kakaotalk.mpe",
 }
 JA_STRINGS_ENTRY = "addresources/values-ja-rJP/newx/strings.xml"
@@ -58,9 +57,9 @@ JA_KAKAO_STRINGS_ENTRY = "addresources/values-ja-rJP/kakaotalk/strings.xml"
 EXPECTED_UNIVERSAL_PATCHES = {
     "Disable Sentry telemetry",
 }
-# The full listed patch inventory of the four source copies
+# The full listed patch inventory of the three source copies
 # (sources/piko @ 340dd02, sources/twitch @ v1.5.0 base,
-# sources/line @ v3.10.0 base, sources/kakao @ v1.5.0 base). Patch names
+# sources/kakao @ v1.5.0 base). Patch names
 # are upstream's English names and are NEVER translated (the patcher
 # sorts execution by name; see docs/UPSTREAM.md). The X list is kept
 # in the exact order of upstream crimera/piko-newx v3.73.0's
@@ -136,50 +135,6 @@ EXPECTED_PATCHES = {
         # Ayufa original patch (not from upstream; added in v1.3.0).
         # Its name is English by the same never-translate rule.
         "Ayufa: Startup tab",
-    },
-    # LINE patches from andrewliang25/morphe-patches (v3.10.0 base).
-    # Only the LINE set is bundled; upstream's Facebook patches are
-    # not injected into the build (see docs/UPSTREAM.md).
-    "jp.naver.line.android": {
-        "[General] Trust user-installed CAs",
-        "[Chat] Hide AI Friends button",
-        "[Chat] Hide community button",
-        "[General] Custom font",
-        "[General] Redirect LINE Pay",
-        "[General] Disable VOOM",
-        "[General] Open links in external browser",
-        "[Fix] Restore biometric login",
-        "[Fix] Restore location maps via MicroG-RE",
-        "[Fix] Restore push notifications",
-        "[Fix] Restore chat backup sign-in via MicroG-RE",
-        "[Ad] Hide ad views",
-        "[General] Hide Agent i buttons",
-        "[Chat] Hide attach menu extra tools",
-        "[Chat] Hide calendar buttons",
-        "[Chat] Hide tips under messages",
-        "[Chat] Hide Events button",
-        "[Chat] Hide LINE GIFT button",
-        "[Home] Hide Home content feed",
-        "[Home] Hide Home modules",
-        "[Tab] Hide LINE TODAY tab",
-        "[General] Hide new item badges",
-        "[Premium] Disable LINE Premium",
-        "[Premium] Hide premium unsend upsells",
-        "[Tab] Hide Shopping tab",
-        "[Chat] Hide Transfer button",
-        "[Tab] Hide VOOM tab",
-        "[Tab] Hide Wallet tab",
-        "[Chat] Keep chats unread",
-        "[Chat] Keep unsent messages",
-        "[Ad] Remove banner ads",
-        "[General] Andrew's Patch Setting",
-        "[Call] Auto-record calls",
-        "[Call] Record calls without notifying",
-        "[Call] Remove recording time limit",
-        "[Call] Save recordings to device",
-        "[Fix] Restore Google login via MicroG-RE",
-        "[General] Enable themes on sub devices",
-        "[General] Hide LINE AI image editing",
     },
     # KakaoTalk patches from AmpleReVanced/revanced-patches (v1.5.0 base).
     # Only the KakaoTalk set is bundled; upstream's other apps' patches
@@ -327,16 +282,12 @@ EXPECTED_LISTED_COUNT = sum(
 DEX_CODE_MARKERS = [
     b"app/crimera/patches/newx",
     b"dev/twitchpatches/patches",
-    b"app/andrewliang/patches",
     b"app/revanced/patches/kakaotalk",
     b"newx.timeline.hide_post_dividers",
 ]
 # The Twitch settings screen title must be inside the Twitch extension
 # payload (the feature toggles live there at runtime).
 TWITCH_EXTENSION_MARKER = "パッチ設定"
-# A LINE settings switch label must be inside the LINE extension
-# payload (the "Andrew's Patch Setting" screen lives there at runtime).
-LINE_EXTENSION_MARKER = "トークを未読のままにする"
 # The KakaoTalk extension payload must carry the KakaoTalk extension
 # classes (its settings UI text lives in the addresources strings,
 # so a class-name marker is used instead of a UI string).
@@ -419,11 +370,6 @@ def main() -> int:
         twitch_ext = (
             archive.read("extensions/twitch.mpe")
             if "extensions/twitch.mpe" in names
-            else b""
-        )
-        line_ext = (
-            archive.read("extensions/extension.mpe")
-            if "extensions/extension.mpe" in names
             else b""
         )
         kakao_ext = (
@@ -518,10 +464,6 @@ def main() -> int:
         ok("Twitch extension contains the パッチ設定 screen strings")
     else:
         fail("Twitch extension lacks パッチ設定 strings", failures)
-    if LINE_EXTENSION_MARKER.encode("utf-8") in line_ext:
-        ok("LINE extension contains the translated settings screen strings")
-    else:
-        fail("LINE extension lacks translated settings screen strings", failures)
     if KAKAO_EXTENSION_MARKER.encode("utf-8") in kakao_ext:
         ok("KakaoTalk extension contains the KakaoTalk extension classes")
     else:
@@ -538,7 +480,6 @@ def main() -> int:
                 f"expected exactly {EXPECTED_LISTED_COUNT} "
                 f"(X {len(EXPECTED_PATCHES['com.twitter.android'])} + "
                 f"Twitch {len(EXPECTED_PATCHES['tv.twitch.android.app'])} + "
-                f"LINE {len(EXPECTED_PATCHES['jp.naver.line.android'])} + "
                 f"KakaoTalk {len(EXPECTED_PATCHES['com.kakao.talk'])} + "
                 f"universal {len(EXPECTED_UNIVERSAL_PATCHES)})",
                 failures,
@@ -615,9 +556,6 @@ def main() -> int:
     summary["twitch_patch_count"] = sum(
         1 for p in listed if "tv.twitch.android.app" in p["packages"]
     )
-    summary["line_patch_count"] = sum(
-        1 for p in listed if "jp.naver.line.android" in p["packages"]
-    )
     summary["kakao_patch_count"] = sum(
         1 for p in listed if "com.kakao.talk" in p["packages"]
     )
@@ -635,7 +573,6 @@ def main() -> int:
     print(
         f"patches: NewX (X) = {summary['newx_patch_count']}, "
         f"Twitch = {summary['twitch_patch_count']}, "
-        f"LINE = {summary['line_patch_count']}, "
         f"KakaoTalk = {summary['kakao_patch_count']}"
     )
 

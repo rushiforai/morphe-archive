@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
  */
@@ -52,8 +53,11 @@ public final class OfflineServiceHooks {
     static final String ACTION_PLAYBACK_PREVIOUS = ACTION_PREFIX + "PLAYBACK_PREVIOUS";
     static final String ACTION_PLAYBACK_CLOSE = ACTION_PREFIX + "PLAYBACK_CLOSE";
     static final String ACTION_DOWNLOAD_START = ACTION_PREFIX + "DOWNLOAD_START";
+    static final String ACTION_DOWNLOAD_PAUSE = ACTION_PREFIX + "DOWNLOAD_PAUSE";
+    static final String ACTION_DOWNLOAD_RESUME = ACTION_PREFIX + "DOWNLOAD_RESUME";
     static final String ACTION_DOWNLOAD_CANCEL = ACTION_PREFIX + "DOWNLOAD_CANCEL";
     static final String ACTION_DOWNLOAD_CANCEL_ALL = ACTION_PREFIX + "DOWNLOAD_CANCEL_ALL";
+    static final String EXTRA_DOWNLOAD_ID = ACTION_PREFIX + "DOWNLOAD_ID";
 
     private static final class ServiceState {
         final String name;
@@ -335,8 +339,10 @@ public final class OfflineServiceHooks {
                         OfflineDownloader.buildProgressNotification(service));
                 if (!OfflineDownloader.hasWork()) stopDownloadForeground();
             } else if (ACTION_DOWNLOAD_CANCEL.equals(action)) {
-                String key = intent.getStringExtra(OfflineScreens.EXTRA_VIDEO_ID);
-                if (key != null) OfflineDownloader.cancel(key);
+                OfflineDownloader.cancel(intent.getIntExtra(EXTRA_DOWNLOAD_ID, 0));
+            } else if (ACTION_DOWNLOAD_PAUSE.equals(action) || ACTION_DOWNLOAD_RESUME.equals(action)) {
+                OfflineDownloader.setPaused(intent.getIntExtra(EXTRA_DOWNLOAD_ID, 0),
+                        ACTION_DOWNLOAD_PAUSE.equals(action));
             } else if (ACTION_DOWNLOAD_CANCEL_ALL.equals(action)) {
                 OfflineDownloader.cancelAll(false);
             }

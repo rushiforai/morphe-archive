@@ -20,7 +20,7 @@ No root operation or de-Googled ROM is required by the install procedure. The Is
 
 ## Morphe Manager configuration
 
-Use **v0.3.5 or newer** with the matching original APKs. This includes compatibility with optional update blocking, the Google startup fix from v0.3.3 and an explanation of the initial account permissions. Manager 2.5.0 / Patcher 2.3.0 generation and Android12 runtime were checked directly for v0.3.5. The bundle is now built for Morphe Patcher 2.5.0 (Manager 2.7.1, Desktop 2.3.0); see the [Patcher 2.5 migration](testing/issue-9-patcher-2.5.md). See the [Manager regression](testing/issue-8-manager-registers.md). The official patches bundle is not needed for normal patching; 1.41.0 was used for Desktop compatibility tests and 2.2.0 in Android Manager.
+Use the [current stable patch bundle](https://github.com/ryuya0124/gemini-microg-patches/releases/latest) with **Morphe Manager 2.7.1 or newer** and the matching original APKs. Follow the [README](../README.md#installation) to add the stable source from GitHub or GitLab. The official patches bundle is optional for normal patching.
 
 For **both** Google and Gemini:
 
@@ -65,27 +65,8 @@ The `.morphe` clones are separate packages from the official Store apps. The upd
 
 ## Verified local build
 
-For the default API 32 inputs, follow the repository quick start, then:
+See the [developer guide](development.md) for building from source, signing, and checking APKs exported from Manager.
 
-```sh
-scripts/build-all.sh
-scripts/sign-apks.sh
-ANDROID_USER=0 ADB_SERIAL=your_device_serial scripts/install-device.sh
-```
-
-The pipeline uses this source's default selection with no external Clone app or option flags. It verifies final package names, isolated permission declarations, unchanged protection levels, manifest/DEX permission references and noncolliding provider authorities. It also checks fresh patch-result JSON so a failed patch cannot be mistaken for an old successful APK. Set `ANDROID_USER=150` for Secure Folder; installation defaults to user 0.
-
-For an APK exported from Manager, export it **before installation** and run:
-
-```sh
-scripts/setup-tools.sh
-scripts/compile-patches.sh
-scripts/verify-clone-contract.sh original-google-base.apk manager-google-output.apk
-scripts/verify-clone-contract.sh original-gemini-base.apk manager-gemini-output.apk
-```
-
-The CLI scripts enforce this additional output validation. Manager does not run these host scripts; automatic clone setup is implemented inside the MPP itself.
-
-For the original API 30/API 29 pair, [the Android 12 regression guide](testing/issue-8-android12.md) builds an isolated set of local test APKs without replacing the default inputs or `dist/`. All 14 Google DEX files and all 3 Gemini DEX files are identical between these original variants and the default originals. Only the local default input selection required API 32, not the patch bundle itself. [Default clone verification](testing/default-clone.md) records the v0.3.2 tests.
+## Troubleshooting installation
 
 If the duplicate-permission error persists, provide your exact Google/Gemini/patch/Morphe versions, final package name, selected patches and Clone app option values. Do not publish signing keys, account tokens or full authentication logs.

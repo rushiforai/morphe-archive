@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-23
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -74,6 +74,8 @@ import android.os.Bundle;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.system.StructStat;
+import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
@@ -86,7 +88,13 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+
 import app.morphe.extension.music.patches.utils.DrawableColorPatch;
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.settings.preference.IconListPreference;
@@ -303,7 +311,11 @@ public final class CustomBrandingPatch {
             boolean hasLegacyTheme = Setting.preferences.preferences.contains(LEGACY_SYSTEM_SPLASH_THEME_KEY);
             if (!enabled) {
                 if (forceReset || appliedStamp != null || hasLegacyTheme) {
-                    SplashScreenBridge.resetTheme(activity);
+                    if (usesMusicLightSplash(activity)) {
+                        DrawableColorPatch.applySelectedSplashScreenTheme(activity);
+                    } else {
+                        SplashScreenBridge.resetTheme(activity);
+                    }
                     if (appliedStamp != null) state.edit().remove(SYSTEM_SPLASH_STAMP).commit();
                     if (hasLegacyTheme) Setting.preferences.removeKey(LEGACY_SYSTEM_SPLASH_THEME_KEY);
                 }
@@ -329,6 +341,14 @@ public final class CustomBrandingPatch {
         }
     }
 
+    private static boolean usesMusicLightSplash(Activity activity) {
+        // Keep the concrete starting-window color when switching both into and out of Light.
+        return MusicLightTheme.isEnabled()
+                || ("light".equals(Setting.preferences.getString(DARK_THEME_KEY, ""))
+                    && ResourceUtils.getIdentifier(
+                            MUSIC_SPLASH_THEME_PREFIX + "light", ResourceType.STYLE, activity) != 0);
+    }
+
     @RequiresApi(Build.VERSION_CODES.S)
     private static String splashSourceIdentity(String path) {
         if (path == null || path.isEmpty()) return null;
@@ -351,7 +371,7 @@ public final class CustomBrandingPatch {
      * Resolves a static Theme-preset background combined with the selected branding animation.
      *
      * <p>YouTube may force an appearance independently of the device configuration, so its last
-     * resolved appearance is used before the resolver runs. Music has one dark preset selector.
+     * resolved appearance is used before the resolver runs. Music has one appearance selector.
      * When Theme is not included, or an imported setting is invalid, the icon-only style remains
      * a safe fallback.</p>
      */
@@ -439,6 +459,30 @@ public final class CustomBrandingPatch {
             return label.isEmpty() ? fallback : label;
         } catch (Exception ignored) {
             return fallback;
+        }
+    }
+
+    /** Resolve Reseam against the exact light/dark and normal/Ringo2 stock header of this theme. */
+    public static Drawable getReseamHeaderDrawable(Context context, int originalAttribute) {
+        if (!"reseam".equals(SharedYouTubeSettings.CUSTOM_BRANDING_ICON.get())) return null;
+
+        int premium = ResourceUtils.getIdentifier("ytPremiumWordmarkHeader", ResourceType.ATTR, context);
+        int normal = ResourceUtils.getIdentifier("ytWordmarkHeader", ResourceType.ATTR, context);
+        if (originalAttribute != premium && originalAttribute != normal) return null;
+
+        try {
+            TypedValue stockWordmark = new TypedValue();
+            if (!context.getTheme().resolveAttribute(originalAttribute, stockWordmark, true)
+                    || stockWordmark.resourceId == 0) {
+                return null;
+            }
+
+            String stockName = context.getResources().getResourceEntryName(stockWordmark.resourceId);
+            int replacement = ResourceUtils.getIdentifier(
+                    HEADER_RESOURCE_PREFIX + "reseam_" + stockName, ResourceType.DRAWABLE, context);
+            return replacement == 0 ? null : context.getDrawable(replacement);
+        } catch (Resources.NotFoundException ignored) {
+            return null;
         }
     }
 
@@ -533,7 +577,16 @@ public final class CustomBrandingPatch {
      */
     public static final class RvxSettingsIconDrawable extends Drawable {
         private Drawable delegate;
+        private Resources.Theme inflationTheme;
         private final int stockIconSize = getStockSettingsIconSize();
+
+        @Override
+        public void inflate(@NonNull Resources resources, @NonNull XmlPullParser parser,
+                            @NonNull AttributeSet attrs, Resources.Theme theme)
+                throws XmlPullParserException, IOException {
+            super.inflate(resources, parser, attrs, theme);
+            inflationTheme = theme;
+        }
 
         /**
          * Keeps launcher fallbacks aligned with Music's legacy preference icon slot. Dedicated
@@ -571,7 +624,8 @@ public final class CustomBrandingPatch {
             int identifier = getRvxSettingsIconDrawableId(context);
             if (identifier == 0) return null;
 
-            delegate = context.getResources().getDrawable(identifier);
+            Resources resources = inflationTheme == null ? context.getResources() : inflationTheme.getResources();
+            delegate = resources.getDrawable(identifier, inflationTheme);
             updateDelegateBounds(getBounds());
             delegate.setState(getState());
             delegate.setLevel(getLevel());

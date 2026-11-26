@@ -32,6 +32,7 @@ import app.morphe.extension.music.patches.general.ChangeStartPagePatch.StartPage
 import app.morphe.extension.music.patches.misc.AlbumMusicVideoPatch.RedirectType;
 import app.morphe.extension.music.patches.utils.PatchStatus;
 import app.morphe.extension.music.patches.utils.DrawableColorPatch;
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.sponsorblock.SponsorBlockSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.EnumSetting;
@@ -145,7 +146,7 @@ public class Settings extends SharedYouTubeSettings {
 
     /** Precompiled presets work on Android 8+, while arbitrary colors require Android 11+. */
     public static final StringSetting DARK_THEME = new StringSetting(
-            "morphe_dark_theme", DrawableColorPatch.DEFAULT_DARK_THEME, true);
+            MusicLightTheme.THEME_PREFERENCE_KEY, DrawableColorPatch.DEFAULT_DARK_THEME, true);
     /** Arbitrary runtime color, enabled for the Custom selector on Android 11+. */
     public static final StringSetting DARK_THEME_CUSTOM_COLOR = new StringSetting(
             "morphe_dark_theme_custom_color",

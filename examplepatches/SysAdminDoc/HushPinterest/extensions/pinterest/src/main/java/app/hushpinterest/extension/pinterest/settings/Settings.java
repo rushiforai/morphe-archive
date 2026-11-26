@@ -79,6 +79,18 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SAVED_PINS_ELSEWHERE =
             new BooleanSetting("hushpinterest_hide_saved_pins_elsewhere", FALSE);
     /**
+     * Pins that came on screen on Home, opened or scrolled past, stay out of Home's later pages for the
+     * time SeenPins.FOR picks, on Filter feed's switch (#52). Off to start.
+     */
+    public static final BooleanSetting HIDE_SEEN_PINS =
+            new BooleanSetting("hushpinterest_hide_seen_pins", FALSE);
+    /**
+     * Search results leave out pins you've seen too, and pins that come on screen there count as seen,
+     * on Filter feed's switch (#52). Off to start.
+     */
+    public static final BooleanSetting HIDE_SEEN_PINS_SEARCH =
+            new BooleanSetting("hushpinterest_hide_seen_pins_search", FALSE);
+    /**
      * Pinterest's own suggestion rows leave Home, on Filter feed's switch: the "More ideas for your
      * board" card, the "Inspired by your interests" row, and the "See more like this?" bubble on a
      * pin. Off to start.

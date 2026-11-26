@@ -8,7 +8,6 @@ import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeature
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeatureSpec
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationAdapter
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPointerOwnerFeaturePatch
-import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.pointerOwnerEntryCleanupCount
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
@@ -16,7 +15,6 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitt
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val TOUCH_EVENT_TYPE = "Landroid/view/MotionEvent;"
-private const val UPDATE_TARGET_VIEW_NAME = "F"
 
 internal val gboardSwipeLeftDeletePointerTransformation =
     GboardPointerOwnerTransformationAdapter { context ->
@@ -47,17 +45,17 @@ internal val gboardSwipeLeftDeletePointerTransformation =
         // Appended after the existing cleanup entry chain so the family's ordered cleanup checks
         // keep seeing the other features' delegates first.
         context.pointerResetMethod.addInstructions(
-            context.pointerResetMethod.pointerOwnerEntryCleanupCount(),
+            context.pointerResetMethod.pointerOwnerEntryCleanupCount(context.targets),
             resetDelegate,
         )
         // The pre-reset runs at the end of every pointer session, right after the release is
         // dispatched, so the stray committed key is removed there.
-        val preReset = GboardVersionBindings.pointerPreReset.resolve(context.ownerClass)
+        val preReset = context.targets.pointerPreReset.resolve(context.ownerClass)
         preReset.addInstructions(0, resetDelegate)
         preReset.addInstructions(0, finishDelegate)
 
         val updateTargetView = context.ownerClass.methods.firstOrNull { method ->
-            method.name == UPDATE_TARGET_VIEW_NAME &&
+            method.name == context.targets.updateTargetViewName &&
                 method.returnType == "V" &&
                 method.parameterTypes == listOf(TOUCH_EVENT_TYPE, "I")
         } ?: error("Unable to find the Gboard pointer target update method")
@@ -83,7 +81,7 @@ internal val gboardSwipeLeftDeletePointerTransformation =
         )
 
         context.pointerCancelMethod.addInstructions(
-            context.pointerCancelMethod.pointerOwnerEntryCleanupCount(),
+            context.pointerCancelMethod.pointerOwnerEntryCleanupCount(context.targets),
             resetDelegate,
         )
     }

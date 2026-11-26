@@ -91,7 +91,7 @@ class WholePatchTest {
     private fun assertExtensionAsBuilt(temporary: Path, patches: Set<Patch>, intended: Set<String>) {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
-        val apk = File(root!!, "messenger-587.0-347415354.apk")
+        val apk = File(root!!, "messenger-588.1-347617503.apk")
         assertTrue(apk.isFile, "$apk is missing")
         // The built dex also carries framework classes it was compiled against (android/speech/RecognitionSupportCallback),
         // which aren't the extension's own code.

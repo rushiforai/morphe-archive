@@ -191,7 +191,8 @@ public final class BilibiliDanmakuController {
         if (text.startsWith("加载失败")) return TONE_ERROR;
         if (text.startsWith("正在") || text.startsWith("搜索中") || text.startsWith("下载弹幕")
                 || text.startsWith("等待")) return TONE_BUSY;
-        if (text.equals("弹幕已关闭") || text.equals("点击选择弹幕") || text.equals("当前视频尚未匹配")) return TONE_IDLE;
+        if (text.equals("弹幕已关闭") || text.equals("点击选择弹幕") || text.equals("当前视频尚未匹配")
+                || text.equals(MANUAL_MATCH_STATUS)) return TONE_IDLE;
         return TONE_WARN;
     }
 
@@ -316,10 +317,34 @@ public final class BilibiliDanmakuController {
         String stored = prefs(context).getString("source_" + videoId, "");
         if ("xml".equals(stored)) loadSavedXml(context);
         else if (!stored.isEmpty()) loadVideoSource(context, stored);
-        else {
+        else if (!autoMatchEnabled(context)) {
+            // Privacy: the title is only sent to Bilibili when the user allows automatic matching.
+            setStatus(MANUAL_MATCH_STATUS);
+            BilibiliDanmakuSheet.sourceChanged();
+        } else {
             ViewGroup root = rootRef.get();
             Activity host = root == null ? null : activity(root.getContext());
             if (host != null) autoSearch(host);
+        }
+    }
+
+    static final String AUTO_MATCH = "auto_match";
+    static final String MANUAL_MATCH_STATUS = "自动匹配已关闭";
+
+    static boolean autoMatchEnabled(Context context) {
+        return prefs(context).getBoolean(AUTO_MATCH, true);
+    }
+
+    /** Called by the menu switch; stops a pending title lookup or starts one for the current video. */
+    static void setAutoMatch(Activity host, boolean enabled) {
+        prefs(host).edit().putBoolean(AUTO_MATCH, enabled).apply();
+        boolean nothingLoaded = currentSource.isEmpty() && currentData.isEmpty();
+        if (!nothingLoaded) return;
+        if (!enabled) {
+            cancelTask();
+            setStatus(MANUAL_MATCH_STATUS);
+        } else if (prefs(host).getBoolean("enabled", false) && !videoId.isEmpty()) {
+            restartAutoSearch(host);
         }
     }
 

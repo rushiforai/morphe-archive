@@ -5,6 +5,8 @@ public final class c {
     }
 
     public pn8.c a(String chatId) {
+        Runnable hook = testenv.FakeLineEnv.onMutedCheck;
+        if (hook != null) hook.run();
         testenv.FakeLineEnv.ChatRow row = testenv.FakeLineEnv.CHATS.get(chatId);
         return new pn8.c(row == null || !row.nativeMuted);
     }

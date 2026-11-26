@@ -55,7 +55,7 @@ import app.fakh.extension.shared.TabSheet;
 
 /**
  * Fakh Patches settings screen, laid out like LinkedIn's own settings pages (Account preferences and the like):
- * one page with a titled section per category, plus search across all settings.
+ * a list of categories, each opening a page of its own with titled groups, plus search across all settings.
  * Declared in the manifest by the settings patch; built in code so it needs no resources.
  */
 @SuppressWarnings("unused")
@@ -90,6 +90,11 @@ public final class SettingsActivity extends Activity {
             this.checkbox = checkbox;
             this.choices = choices;
         }
+
+        /** Whether the row only titles the rows below it. */
+        boolean isHeader() {
+            return key == null && value == null && !checkbox;
+        }
     }
 
     private interface ValueRow {
@@ -104,9 +109,14 @@ public final class SettingsActivity extends Activity {
     private static final class Category {
         final String title;
         final List<Item> items = new ArrayList<>();
-
         Category(String title) {
             this.title = title;
+        }
+
+        /** Titles the rows added after it; dropped when none follow. */
+        Category header(String title) {
+            items.add(new Item(null, false, title, null, null, null, false, null));
+            return this;
         }
 
         Category toggle(String key, boolean def, String title, String summary) {
@@ -201,54 +211,85 @@ public final class SettingsActivity extends Activity {
             categories.add(ads);
         }
 
-        if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()
-                || Settings.isExpandPostsIncluded() || Settings.isSwipeTabsIncluded()
-                || Settings.isKeepFeedIncluded()
-                || Settings.isViewerTapToHideIncluded()
-                || Settings.isCopyTextIncluded() || Settings.isScreenshotShareIncluded()) {
-            Category feed = new Category("Feed");
-            if (Settings.isDisableDoubleTapLikeIncluded()) {
-                feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Turn off double-tap to like", null);
-            }
-            if (Settings.isSwipeTabsIncluded()) {
-                feed.toggle(Settings.SWIPE_TABS, true, "Swipe between tabs", null);
-            }
-            if (Settings.isKeepFeedIncluded()) {
-                feed.toggle(Settings.KEEP_FEED, true, "Keep feed position on reopen", null);
-            }
-            if (Settings.isScreenshotShareIncluded()) {
-                feed.toggle(Settings.NO_SCREENSHOT_SHARE, true, "Turn off screenshot share sheet", null);
-            }
-            if (Settings.isCopyTextIncluded()) {
-                feed.toggle(Settings.COPY_TEXT, true, "Copy text",
-                        "Adds Copy text to the ⋯ menu of posts and comments.");
-            }
-            if (Settings.isViewerTapToHideIncluded()) {
-                feed.toggle(Settings.VIEWER_TAP_TO_HIDE, true, "Tap to hide controls in viewers", null);
-            }
-            if (Settings.isExpandPostsIncluded()) {
-                feed.toggle(Settings.EXPAND_POSTS, false, "Expand posts by default", "Tap the text to collapse.");
-            }
-            if (Settings.isFeedFiltersIncluded()) {
-                feed.toggle(Settings.FOCUS_MODE, false, "Hide engagement counts", "Hide like, comment, and repost counts.")
-                        .toggle(Settings.HIDE_CELEBRATIONS, false, "Hide celebration posts",
-                                "Work anniversaries and new jobs.")
-                        .toggle(Settings.HIDE_FEED_JOBS, false, "Hide job posts", null)
-                        .toggle(Settings.HIDE_REPOSTS, false, "Hide network activity",
-                                "Likes, comments and reposts of people you know.")
-                        .toggle(Settings.HIDE_VIDEO_POSTS, false, "Hide video posts", null)
-                        .toggle(Settings.HIDE_RECOMMENDATIONS, false, "Hide \"Recommended for you\"",
-                                "Lists of people and pages to follow.")
-                        .toggle(Settings.HIDE_GAMES, false, "Hide puzzle games", null)
-                        .toggle(Settings.HIDE_NEW_POSTS_PILL, false, "Hide the \"New posts\" button", null)
-                        .toggle(Settings.HIDE_TRANSLATION, false, "Hide \"Show translation\"", null);
-            }
-            categories.add(feed);
+        Category feed = new Category("Feed");
+        if (Settings.isFeedFiltersIncluded()) {
+            feed.header("Muted")
+                    .value("Muted words", mutedRow(Settings.MUTED_WORDS, "Muted words",
+                            "Hide posts with these words.",
+                            "One word or phrase per line, in any letter case. A post is hidden when its text, or "
+                                    + "the text of the post it reposts, matches."))
+                    .value("Muted authors", mutedRow(Settings.MUTED_AUTHORS, "Muted authors",
+                            "Hide posts from these people and pages.",
+                            "One name per line, in any letter case. A post is hidden when its author, or the "
+                                    + "author of the post it reposts, matches."))
+                    .header("Hide posts")
+                    .toggle(Settings.HIDE_CELEBRATIONS, false, "Hide celebration posts",
+                            "Work anniversaries and new jobs.")
+                    .toggle(Settings.HIDE_FEED_JOBS, false, "Hide job posts", null)
+                    .toggle(Settings.HIDE_REPOSTS, false, "Hide network activity",
+                            "Likes, comments and reposts of people you know.")
+                    .toggle(Settings.HIDE_VIDEO_POSTS, false, "Hide video posts", null)
+                    .header("Hide extras")
+                    .toggle(Settings.HIDE_RECOMMENDATIONS, false, "Hide \"Recommended for you\"",
+                            "Lists of people and pages to follow.")
+                    .toggle(Settings.HIDE_GAMES, false, "Hide puzzle games", null)
+                    .toggle(Settings.HIDE_NEW_POSTS_PILL, false, "Hide the \"New posts\" button", null);
         }
+        feed.header("Position");
+        if (Settings.isKeepFeedIncluded()) {
+            feed.toggle(Settings.KEEP_FEED, true, "Keep feed position on reopen", null);
+        }
+        categories.add(feed);
 
+        Category posts = new Category("Posts");
+        posts.header("Text");
+        if (Settings.isExpandPostsIncluded()) {
+            posts.toggle(Settings.EXPAND_POSTS, false, "Expand posts by default", "Tap the text to collapse.");
+        }
+        if (Settings.isCopyTextIncluded()) {
+            posts.toggle(Settings.COPY_TEXT, true, "Copy text", "Adds Copy text to the ⋯ menu of posts and comments.");
+        }
+        if (Settings.isFeedFiltersIncluded()) {
+            posts.toggle(Settings.HIDE_TRANSLATION, false, "Hide \"Show translation\"", null)
+                    .header("Details")
+                    .toggle(Settings.FOCUS_MODE, false, "Hide engagement counts", "Hide like, comment, and repost counts.")
+                    .toggle(Settings.HIDE_POST_FOLLOW, false, "Hide Follow and Connect", null)
+                    .toggle(Settings.HIDE_DEGREE, false, "Hide connection degree",
+                            "The 1st, 2nd and 3rd next to names.")
+                    .toggle(Settings.EXACT_POST_TIME, false, "Show exact post time",
+                            "Instead of 3d or 5h.");
+        }
+        posts.header("Actions");
+        if (Settings.isDisableDoubleTapLikeIncluded()) {
+            posts.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Turn off double-tap to like", null);
+        }
+        if (Settings.isScreenshotShareIncluded()) {
+            posts.toggle(Settings.NO_SCREENSHOT_SHARE, true, "Turn off screenshot share sheet", null);
+        }
+        if (Settings.isFeedFiltersIncluded()) {
+            posts.header("Comments")
+                    .toggle(Settings.NEWEST_COMMENTS, false, "Most recent comments first", null);
+        }
+        categories.add(posts);
+
+        Category video = new Category("Video & viewers");
+        if (Settings.isViewerTapToHideIncluded()) {
+            video.toggle(Settings.VIEWER_TAP_TO_HIDE, true, "Tap to hide controls in viewers", null);
+        }
+        if (Settings.isVideoTabIncluded()) {
+            video.toggle(Settings.VIDEO_TAB_TIME, true, "Show video time", null)
+                    .header("Video tab")
+                    .toggle(Settings.VIDEO_TAB_AUTO_SCROLL, false, "Auto-scroll videos", null);
+        }
+        categories.add(video);
+
+        Category navigation = new Category("Navigation bar");
+        navigation.header("Style");
+        if (Settings.isSwipeTabsIncluded()) {
+            navigation.toggle(Settings.SWIPE_TABS, true, "Swipe between tabs", null);
+        }
         if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()
                 || Settings.isAlwaysShowNavigationBarIncluded() || Settings.isMaterialTabIconsIncluded()) {
-            Category navigation = new Category("Navigation bar");
             List<String[]> tabSpecs = orderedTabs();
             List<Item> tabs = new ArrayList<>();
             for (String[] tab : tabSpecs) tabs.add(tab[1] == null ? fixed(tab[2]) : choice(tab[1], tabDefault(tab[0]), tab[2]));
@@ -267,41 +308,37 @@ public final class SettingsActivity extends Activity {
             if (Settings.isNavigationBarIncluded()) {
                 navigation.toggle(Settings.HIDE_TAB_LABELS, false, "Hide tab labels", null)
                         .toggle(Settings.HIDE_TAB_BADGES, false, "Hide notification badges", null)
+                        .header("Buttons")
                         .sheet("Navigation bar tabs", tabs, () -> showTabsSheet(tabSpecs, tabs));
             }
-            categories.add(navigation);
         }
-
+        // Titled here too for when the tabs sheet is left out.
+        if (!Settings.isNavigationBarIncluded()) navigation.header("Buttons");
         if (Settings.isTopBarButtonsIncluded()) {
             List<Item> topBar = new ArrayList<>();
             topBar.add(choice(Settings.SHOW_TOP_BAR_POST, true, "Post"));
             topBar.add(choice(Settings.SHOW_TOP_BAR_MESSAGING, true, "Messaging"));
-            categories.add(new Category("Top bar").sheet("Top bar buttons", topBar,
+            topBar.add(choice(Settings.FEED_SORT_BUTTON, Settings.get(Settings.FEED_SORT_STOCK, false), "Feed sort"));
+            navigation.sheet("Top bar buttons", topBar,
                     () -> showSheet("Top bar buttons", "Choose which buttons the top bar shows.", topBar, Arrays.asList(
                             stockIcon("POST", IconDrawable.POST_TAB_OUTLINE),
-                            stockIcon("MESSAGING", IconDrawable.CHAT_TAB_OUTLINE)))));
+                            stockIcon("MESSAGING", IconDrawable.CHAT_TAB_OUTLINE),
+                            feedSortIcon())));
         }
-
-        if (Settings.isVideoTabIncluded()) {
-            categories.add(new Category("Video tab")
-                    .toggle(Settings.VIDEO_TAB_TIME, true, "Show video time", null)
-                    .toggle(Settings.VIDEO_TAB_AUTO_SCROLL, false, "Auto scroll", null));
-        }
-
         if (Settings.isMoreMenuIncluded()) {
-            Category more = new Category("More tab")
-                    .toggle(Settings.MOVE_MORE_ITEMS, Settings.moveMoreItems(), "Show item in profile menu", null);
             List<Item> moreItems = new ArrayList<>();
             for (MoreMenu.Item item : MoreMenu.items()) moreItems.add(choice(item.key(), true, item.label));
-            more.sheet("Items in the More tab", moreItems, () -> {
+            navigation.sheet("Items in the More tab", moreItems, () -> {
                 List<Drawable> icons = new ArrayList<>();
                 for (MoreMenu.Item item : MoreMenu.items()) icons.add(moreIcon(item.id));
                 showSheet("Items in the More tab", "Choose which items the More tab lists.", moreItems, icons);
             });
-            categories.add(more);
-            categories.add(new Category("Shortcuts")
-                    .toggle(Settings.GAMES_SHORTCUT, true, "Puzzle games shortcut", null, () -> GamesShortcut.update(this)));
+            navigation.toggle(Settings.MOVE_MORE_ITEMS, Settings.moveMoreItems(),
+                    "Show More tab items in profile menu", null);
+            navigation.toggle(Settings.GAMES_SHORTCUT, true, "Puzzle games shortcut", null,
+                    () -> GamesShortcut.update(this));
         }
+        categories.add(navigation);
 
         if (Settings.isRemoveGapsAndDividersIncluded() || Settings.isMaterialYouIncluded()
                 || Settings.isAmoledBlackIncluded() || Settings.isDarkAppIconIncluded()) {
@@ -325,6 +362,7 @@ public final class SettingsActivity extends Activity {
             categories.add(new Category("Download")
                     .toggle(Settings.DOWNLOAD_MEDIA, true, "Download media",
                             "On profile photos and banners, and in the ⋯ menu of posts.")
+                    .header("Location")
                     .value("Download location", new ValueRow() {
                         public String currentValue() {
                             return Settings.downloadSplitByType()
@@ -373,44 +411,55 @@ public final class SettingsActivity extends Activity {
                             "Photos go to Pictures, videos to Movies.", this::refresh));
         }
 
+        Category chat = new Category("Chat & privacy");
+        chat.header("Messaging");
         if (Settings.isMessagingIncluded()) {
-            categories.add(new Category("Chat")
-                    .toggle(Settings.HIDE_SPONSORED_MESSAGES, true, "Hide sponsored messages", null)
+            chat.toggle(Settings.HIDE_SPONSORED_MESSAGES, true, "Hide sponsored messages", null)
                     .toggle(Settings.GHOST_MODE, false, "Ghost mode",
-                            "Don't send typing or seen status. Mark chats as read from the chat list."));
+                            "Don't send typing or seen status. Mark chats as read from the chat list.")
+                    .toggle(Settings.MARK_READ_AFTER_REPLY, true, "Mark as read when you reply",
+                            "With ghost mode on, a chat you reply to is marked as read.");
         }
-
-        if (Settings.isOpenLinksDirectlyIncluded() || Settings.isBlockTrackingIncluded()
-                || Settings.isSanitizeShareLinksIncluded() || Settings.isAnonymousProfileViewingIncluded()) {
-            Category privacy = new Category("Privacy");
-            if (Settings.isOpenLinksDirectlyIncluded()) {
-                privacy.toggle(Settings.OPEN_LINKS_DIRECTLY, true, "Open links directly",
-                        "Skip LinkedIn's warning page in posts and chats.");
-                privacy.toggle(Settings.RESOLVE_SHORT_LINKS, true, "Expand lnkd.in links",
-                        "Open the real address instead of the redirect.");
-            }
-            if (Settings.isSanitizeShareLinksIncluded()) {
-                privacy.toggle(Settings.SANITIZE_SHARE_LINKS, true, "Clean share links",
-                        "Strip tracking from LinkedIn links you copy or share.");
-            }
-            if (Settings.isBlockTrackingIncluded()) {
-                privacy.toggle(Settings.BLOCK_TRACKING, true, "Disable analytics",
-                        "Stop most analytics events. Turn off if something breaks.");
-            }
-            if (Settings.isAnonymousProfileViewingIncluded()) {
-                privacy.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, true, "Anonymous profile viewing",
-                        "Visit profiles without being listed in Who viewed your profile.");
-            }
-            categories.add(privacy);
+        chat.header("Links");
+        if (Settings.isOpenLinksDirectlyIncluded()) {
+            chat.toggle(Settings.OPEN_LINKS_DIRECTLY, true, "Open links directly",
+                    "Skip LinkedIn's warning page in posts and chats.");
+            chat.toggle(Settings.RESOLVE_SHORT_LINKS, true, "Expand lnkd.in links",
+                    "Open the real address instead of the redirect.");
         }
+        if (Settings.isSanitizeShareLinksIncluded()) {
+            chat.toggle(Settings.SANITIZE_SHARE_LINKS, true, "Clean share links",
+                    "Strip tracking from LinkedIn links you copy or share.");
+        }
+        chat.header("Privacy");
+        if (Settings.isBlockTrackingIncluded()) {
+            chat.toggle(Settings.BLOCK_TRACKING, true, "Disable analytics",
+                    "Stop most analytics events. Turn off if something breaks.");
+        }
+        if (Settings.isAnonymousProfileViewingIncluded()) {
+            chat.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, true, "Anonymous profile viewing",
+                    "Visit profiles without being listed in Who viewed your profile.");
+        }
+        categories.add(chat);
 
-        categories.add(new Category("Other")
+        categories.add(new Category("Backup & diagnostics")
+                .header("Backup")
                 .action("Export settings", null, this::exportSettings)
                 .action("Import settings", null, this::importSettings)
                 .action("Reset to defaults", null, this::resetSettings)
+                .header("Diagnostics")
                 .toggle(Settings.DEBUG_LOGGING, false, "Diagnostic logging", null)
                 .action("Copy diagnostic report", null, this::copyDiagnosticReport)
                 .action("Clear diagnostic log", null, this::clearDiagnosticLog));
+        for (Category category : categories) {
+            List<Item> items = category.items;
+            // From the end, so a header left last by an earlier removal goes too.
+            for (int i = items.size() - 1; i >= 0; i--) {
+                if (items.get(i).isHeader() && (i == items.size() - 1 || items.get(i + 1).isHeader())) items.remove(i);
+            }
+        }
+        // A category whose patches were all left out has nothing to show.
+        categories.removeIf(category -> category.items.isEmpty());
         return categories;
     }
 
@@ -418,14 +467,17 @@ public final class SettingsActivity extends Activity {
 
     private boolean dark;
     private int background;
-    /** Shows between sections, like the gaps between LinkedIn's settings groups. */
-    private int canvas;
     private int textPrimary;
     private int textSecondary;
     private int accent;
 
     private List<Category> categories;
     private boolean searching;
+    /** Title of the category on screen, or null for the list of them; kept while the screen is rebuilt, such as on folding the phone. */
+    private String page;
+    private static final String PAGE = "page";
+    /** Where the list of categories was scrolled to when a page was opened. */
+    private int listScroll;
     private String query = "";
 
     private TextView titleView;
@@ -465,19 +517,16 @@ public final class SettingsActivity extends Activity {
         dark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                 == Configuration.UI_MODE_NIGHT_YES;
         background = dark ? 0xFF1B1F23 : 0xFFFFFFFF;
-        canvas = dark ? 0xFF000000 : 0xFFF4F2EE;
         textPrimary = dark ? 0xFFFFFFFF : 0xFF141414;
         textSecondary = dark ? 0xFFA6A6A6 : 0xFF5F6368;
         accent = dark ? ACCENT_DARK : ACCENT_LIGHT;
         int[] materialYou = MaterialYou.settingsColors(dark);
         if (materialYou != null) {
             background = materialYou[0];
-            canvas = materialYou[1];
             accent = materialYou[3];
         }
         if (dark && Settings.pitchBlack()) {
             background = 0xFF0D0D0D;
-            canvas = 0xFF000000;
         }
 
         Window window = getWindow();
@@ -489,6 +538,7 @@ public final class SettingsActivity extends Activity {
         }
 
         categories = buildCategories();
+        if (savedInstanceState != null) page = savedInstanceState.getString(PAGE);
 
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
@@ -514,12 +564,22 @@ public final class SettingsActivity extends Activity {
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putString(PAGE, page);
+    }
+
+    @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
         if (sheet != null) {
             sheet.close();
         } else if (searching) {
             setSearching(false);
+        } else if (page != null) {
+            page = null;
+            render();
+            scroll.post(() -> scroll.scrollTo(0, listScroll));
         } else {
             super.onBackPressed();
         }
@@ -536,7 +596,8 @@ public final class SettingsActivity extends Activity {
         } else {
             titleView.setVisibility(View.VISIBLE);
             searchField.setVisibility(View.GONE);
-            renderMain();
+            titleView.setText(I18n.tr(page == null ? BRAND : page));
+            renderBrowsing();
         }
         scroll.scrollTo(0, 0);
     }
@@ -546,20 +607,15 @@ public final class SettingsActivity extends Activity {
         int y = scroll.getScrollY();
         content.removeAllViews();
         if (searching) renderSearch();
-        else renderMain();
+        else renderBrowsing();
         scroll.post(() -> scroll.scrollTo(0, y));
     }
 
-    /** Every category as a titled section on one page, with a gap between sections unless gaps are removed. */
-    private void renderMain() {
-        for (int i = 0; i < categories.size(); i++) {
-            if (i > 0 && !Settings.removeGapsAndDividers()) {
-                View gap = new View(this);
-                gap.setBackgroundColor(canvas);
-                content.addView(gap, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(8)));
-            }
-            content.addView(sectionHeader(categories.get(i).title));
-            renderItems(categories.get(i).items, null);
+    /** The rows of the open category, or a row for each category. */
+    private void renderBrowsing() {
+        for (Category category : categories) {
+            if (page == null) content.addView(categoryRow(category.title));
+            else if (category.title.equals(page)) renderItems(category.items, null);
         }
     }
 
@@ -567,7 +623,8 @@ public final class SettingsActivity extends Activity {
         for (int i = 0; i < items.size(); i++) {
             Item item = items.get(i);
             String prefix = categoryNames == null ? null : categoryNames.get(i);
-            content.addView(item.value == null ? toggleRow(item, prefix) : valueRow(item, prefix));
+            if (item.isHeader()) content.addView(header(item.title));
+            else content.addView(item.value == null ? toggleRow(item, prefix) : valueRow(item, prefix));
         }
     }
 
@@ -577,6 +634,7 @@ public final class SettingsActivity extends Activity {
         List<String> names = new ArrayList<>();
         for (Category category : categories) {
             for (Item item : category.items) {
+                if (item.isHeader()) continue;
                 StringBuilder choices = new StringBuilder();
                 if (item.choices != null) {
                     for (Item choice : item.choices) choices.append(' ').append(I18n.tr(choice.title));
@@ -669,10 +727,26 @@ public final class SettingsActivity extends Activity {
         }
     }
 
-    /** Section title, like the bold group titles of LinkedIn's settings pages. */
-    private TextView sectionHeader(String title) {
-        TextView view = text(title, 20, textPrimary, true);
-        view.setPadding(dp(24), dp(24), dp(24), dp(4));
+    /** A row of the list of categories, which opens the category's page. */
+    private View categoryRow(String title) {
+        LinearLayout row = settingRow();
+        row.addView(text(title, 18, textPrimary, false),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ImageView chevron = new ImageView(this);
+        chevron.setImageDrawable(new IconDrawable(IconDrawable.CHEVRON_RIGHT, textSecondary));
+        row.addView(chevron, new LinearLayout.LayoutParams(dp(24), dp(24)));
+        row.setOnClickListener(v -> {
+            listScroll = scroll.getScrollY();
+            page = title;
+            render();
+        });
+        return row;
+    }
+
+    /** The title of a group of rows on a category's page. */
+    private View header(String title) {
+        TextView view = text(title, 14, accent, true);
+        view.setPadding(dp(24), dp(20), dp(24), dp(4));
         return view;
     }
 
@@ -826,7 +900,7 @@ public final class SettingsActivity extends Activity {
         startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .setType("application/json")
-                .putExtra(Intent.EXTRA_TITLE, "fakh-patches-settings.json"), REQUEST_EXPORT);
+                .putExtra(Intent.EXTRA_TITLE, "fakh-linkedin-patches.json"), REQUEST_EXPORT);
     }
 
     private void importSettings() {
@@ -925,6 +999,58 @@ public final class SettingsActivity extends Activity {
                 .setNeutralButton(I18n.tr("Default"), (dialog, which) -> {
                     Settings.setString(Settings.DOWNLOAD_FOLDER, Settings.DEFAULT_DOWNLOAD_FOLDER);
                     refresh();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show();
+    }
+
+    // endregion
+
+    // region Muted lists
+
+    /** The row of a muted list: its entries, or what it hides while it is empty; a tap edits it. */
+    private ValueRow mutedRow(String key, String title, String summary, String help) {
+        return new ValueRow() {
+            public String currentValue() {
+                String list = Settings.muted(key).trim().replaceAll("\\s*\\n\\s*", ", ");
+                return list.isEmpty() ? summary : list;
+            }
+
+            public Runnable onClick() {
+                return () -> editList(key, title, help);
+            }
+
+            public boolean enabled() {
+                return true;
+            }
+        };
+    }
+
+    private void editList(String key, String title, String help) {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        input.setMinLines(4);
+        input.setGravity(Gravity.TOP | Gravity.START);
+        input.setText(Settings.muted(key));
+        input.setSelection(input.getText().length());
+
+        TextView helpView = text(help, 13, textSecondary, false);
+        helpView.setPadding(0, dp(8), 0, 0);
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(24), dp(8), dp(24), 0);
+        box.addView(input);
+        box.addView(helpView);
+
+        new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr(title))
+                .setView(box)
+                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                    Settings.setString(key, input.getText().toString().trim());
+                    refresh();
+                    showRestartBanner();
                 })
                 .setNegativeButton(I18n.tr("Cancel"), null)
                 .show();
@@ -1047,6 +1173,12 @@ public final class SettingsActivity extends Activity {
         Drawable drawable = getResources().getDrawable(resource, getTheme()).mutate();
         drawable.setTint(textPrimary);
         return drawable;
+    }
+
+    /** LinkedIn's own icon of the feed sort button, or none when the app no longer has it. */
+    private Drawable feedSortIcon() {
+        int resource = getResources().getIdentifier("feed_sort_order_icon", "drawable", getPackageName());
+        return resource == 0 ? null : tinted(resource);
     }
 
     /** The tab's icon as the navigation bar draws it: Material, or LinkedIn's own once the bar has drawn that. */

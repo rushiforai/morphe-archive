@@ -66,9 +66,6 @@ import app.hushgram.extension.shared.settings.HushgramPause;
  * chat, whose banner says when the other person wrote after the reel on screen (#489).
  */
 public final class ChatReels {
-    /** The name of Instagram's viewer source for a reel opened from a chat. */
-    private static final String CHAT_SOURCE = "DIRECT";
-
     /** The product type name Instagram gives a reel's media. */
     private static final String REEL_PRODUCT = "clips";
 
@@ -289,7 +286,7 @@ public final class ChatReels {
     }
 
     /**
-     * The reels to add to a viewer whose source is [source], its ClipsViewerSource, out of [items], a
+     * The reels to add to a viewer whose config is [config], its ClipsViewerConfig, out of [items], a
      * page of them. A viewer opened from a chat pages the chat's reels from the server too, past the
      * opener, and merges each page in through its update or an insert rather than its add, so while
      * "Only received reels" is on the reels the viewer sent there, as remembered by
@@ -298,16 +295,16 @@ public final class ChatReels {
      * on any failure. Never throws.
      */
     @Nullable
-    public static List<?> leaveOutSent(@Nullable List<?> items, @Nullable Object source) {
-        return leaveOutSent(items, source, ChatReels::mediaId);
+    public static List<?> leaveOutSent(@Nullable List<?> items, @Nullable Object config) {
+        return leaveOutSent(items, config, ChatReels::mediaId);
     }
 
     /** {@link #leaveOutSent(List, Object)}, reading each reel's media id with [ids]. */
     @Nullable
-    static List<?> leaveOutSent(@Nullable List<?> items, @Nullable Object source, Function<Object, String> ids) {
+    static List<?> leaveOutSent(@Nullable List<?> items, @Nullable Object config, Function<Object, String> ids) {
         try {
             HookStatus.invoked(FamilyNames.CHAT_REELS);
-            if (items == null || items.isEmpty() || !fromChat(source)) return items;
+            if (items == null || items.isEmpty() || !viewsChat(config)) return items;
             if (!Utils.settingsReady() || HushgramPause.isPaused() || !Settings.ONLY_RECEIVED_CHAT_REELS.get()) return items;
             synchronized (SENT) {
                 if (SENT.isEmpty()) return items;
@@ -442,15 +439,15 @@ public final class ChatReels {
     /**
      * The reply info for the reel at [position] of [adapter], a viewer's adapter, when the reply bar
      * updates for that page: [instagram], Instagram's own, or the info of the reel's own message in the
-     * chat (see {@link #reply(String, String)}). [instagram] for any viewer but a chat's ([source] is its
-     * ClipsViewerSource), while the chat's reels aren't chained, while HushGram is paused, before the
-     * settings are ready and on any failure. Never throws.
+     * chat (see {@link #reply(String, String)}). [instagram] for any viewer but a chat's ([config] is its
+     * ClipsViewerConfig, see {@link #viewsChat(Object)}), while the chat's reels aren't chained, while
+     * HushGram is paused, before the settings are ready and on any failure. Never throws.
      */
     @Nullable
-    public static Object replyTo(@Nullable Object instagram, @Nullable Object source, @Nullable Object adapter, int position) {
+    public static Object replyTo(@Nullable Object instagram, @Nullable Object config, @Nullable Object adapter, int position) {
         try {
             HookStatus.invoked(FamilyNames.CHAT_REELS);
-            if (adapter == null || position < 0 || !replies(source)) return instagram;
+            if (adapter == null || position < 0 || !replies(config)) return instagram;
             if (position >= count(adapter)) return instagram;
             Object own = ownReply(instagram, item(adapter, position));
             if (own == null) return instagram;
@@ -465,15 +462,15 @@ public final class ChatReels {
     /**
      * The reply info a reply typed or a reaction sent on [item], the reel on screen, quotes:
      * [instagram], Instagram's own, or the info of the reel's own message in the chat (see
-     * {@link #reply(String, String)}). [instagram] for any viewer but a chat's ([source] is its
-     * ClipsViewerSource), while the chat's reels aren't chained, while HushGram is paused, before the
-     * settings are ready and on any failure. Never throws.
+     * {@link #reply(String, String)}). [instagram] for any viewer but a chat's ([config] is its
+     * ClipsViewerConfig, see {@link #viewsChat(Object)}), while the chat's reels aren't chained, while
+     * HushGram is paused, before the settings are ready and on any failure. Never throws.
      */
     @Nullable
-    public static Object replyInfo(@Nullable Object instagram, @Nullable Object source, @Nullable Object item) {
+    public static Object replyInfo(@Nullable Object instagram, @Nullable Object config, @Nullable Object item) {
         try {
             HookStatus.invoked(FamilyNames.CHAT_REELS);
-            if (!replies(source)) return instagram;
+            if (!replies(config)) return instagram;
             Object own = ownReply(instagram, item);
             if (own == null) return instagram;
             HookStatus.counted(FamilyNames.CHAT_REELS, "reply moved to a swiped reel's message");
@@ -484,9 +481,9 @@ public final class ChatReels {
         }
     }
 
-    /** Whether a viewer whose ClipsViewerSource is [source] gets its reels' own messages on the reply bar. */
-    private static boolean replies(@Nullable Object source) {
-        return fromChat(source) && Utils.settingsReady() && !HushgramPause.isPaused() && chaining();
+    /** Whether a viewer whose ClipsViewerConfig is [config] gets its reels' own messages on the reply bar. */
+    static boolean replies(@Nullable Object config) {
+        return viewsChat(config) && Utils.settingsReady() && !HushgramPause.isPaused() && chaining();
     }
 
     /**
@@ -672,24 +669,26 @@ public final class ChatReels {
 
     /**
      * Whether the viewer skips putting in one of Instagram's cached reels: yes while the switch is on
-     * and [source], the viewer's ClipsViewerSource, is a chat's. No for any other viewer, and while
-     * the switch is off, HushGram is paused or the settings aren't ready. Never throws.
+     * and [config], the viewer's ClipsViewerConfig, is a chat's ({@link #viewsChat(Object)}). No for
+     * any other viewer, and while the switch is off, HushGram is paused or the settings aren't ready.
+     * Never throws.
      */
-    public static boolean stopCached(Object source) {
-        return fromChat(source) && stop();
+    public static boolean stopCached(Object config) {
+        return viewsChat(config) && stop();
     }
 
     /**
      * Whether a reel opened from a chat that has a Blend goes through the chat's other shared reels
      * before the Blend's (#804). Instagram's viewer otherwise pages only the Blend's reels for such a
-     * chat. Yes while the switch is on, for a viewer whose ClipsViewerSource [source] is a chat's and
-     * whose chat has an id, [thread]. No while HushGram is paused, the settings aren't ready, or a
-     * shared comment's tap opened the viewer, which keeps Instagram's own answer. Never throws.
+     * chat. Yes while the switch is on, for a chat's viewer ({@link #isChat(Object, String)}), opened
+     * from [source], its ClipsViewerSource, holding the chat with the id [thread]. No while HushGram is
+     * paused, the settings aren't ready, or a shared comment's tap opened the viewer, which keeps
+     * Instagram's own answer. Never throws.
      */
     public static boolean blendAfterChat(@Nullable Object source, @Nullable String thread) {
         try {
             HookStatus.invoked(FamilyNames.CHAT_REELS);
-            if (thread == null || thread.isEmpty() || !fromChat(source)) return false;
+            if (!isChat(source, thread)) return false;
             if (!Utils.settingsReady() || HushgramPause.isPaused()) return false;
             if (!Settings.SWIPE_CHAT_REELS.get() || onACommentsViewer()) return false;
             HookStatus.counted(FamilyNames.CHAT_REELS, "chat's reels before its Blend");
@@ -700,28 +699,33 @@ public final class ChatReels {
         }
     }
 
-    /** Whether [source], a viewer's ClipsViewerSource, is a chat's. */
-    static boolean fromChat(@Nullable Object source) {
-        return source instanceof Enum && CHAT_SOURCE.equals(((Enum<?>) source).name());
+    /** Whether [config], a Reels viewer's ClipsViewerConfig, is a chat's ({@link ViewerChat#holdsChat(Object, String)}). Never throws. */
+    static boolean viewsChat(@Nullable Object config) {
+        return ViewerChat.holdsChat(config, FamilyNames.CHAT_REELS);
+    }
+
+    /** Whether a viewer opened from [source] holding the chat with the id [thread] is that chat's ({@link ViewerChat#isChat(Object, String)}). */
+    static boolean isChat(@Nullable Object source, @Nullable String thread) {
+        return ViewerChat.isChat(source, thread);
     }
 
     /**
      * Whether a Reels viewer Instagram lets load fresh reels at a pull down still may: no while
-     * {@link #stopCached(Object)} is yes for [source], the viewer's ClipsViewerSource, since the fresh
+     * {@link #stopCached(Object)} is yes for [config], the viewer's ClipsViewerConfig, since the fresh
      * reels are suggested ones and they'd take the chat's place (#390). Yes for any other viewer, and
      * while the switch is off, HushGram is paused or the settings aren't ready. Never throws.
      */
-    public static boolean refresh(Object source) {
-        return !stopCached(source);
+    public static boolean refresh(Object config) {
+        return !stopCached(config);
     }
 
     /**
      * Whether the viewer puts its loading placeholder after the reels it adds: Instagram's [ghost]
-     * (nonzero for yes), except no while {@link #stopCached(Object)} is yes for [source], since
-     * nothing would replace it. Never throws.
+     * (nonzero for yes), except no while {@link #stopCached(Object)} is yes for [config], the viewer's
+     * ClipsViewerConfig, since nothing would replace it. Never throws.
      */
-    public static boolean placeholder(Object source, int ghost) {
-        return ghost != 0 && !stopCached(source);
+    public static boolean placeholder(Object config, int ghost) {
+        return ghost != 0 && !stopCached(config);
     }
 
     /**

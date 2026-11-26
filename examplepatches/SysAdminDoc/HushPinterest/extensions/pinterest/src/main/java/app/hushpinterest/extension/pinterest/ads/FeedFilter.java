@@ -178,7 +178,7 @@ public final class FeedFilter {
     /** The family whose report counts a removal [family] names. */
     static String owner(String family) {
         return AiPins.SELF_DESCRIBED.equals(family) ? FamilyNames.HIDE_AI_PINS
-                : MutedWords.MUTED.equals(family) || SavedPins.SAVED.equals(family)
+                : MutedWords.MUTED.equals(family) || SavedPins.SAVED.equals(family) || SeenPins.SEEN.equals(family)
                     || HomeSuggestions.SUGGESTION.equals(family) || RefineSearch.REFINE.equals(family)
                     ? FamilyNames.FILTER_FEED : family;
     }
@@ -191,6 +191,7 @@ public final class FeedFilter {
                 : family.equals(FamilyNames.FILTER_FEED) ? "video pin removed"
                 : family.equals(MutedWords.MUTED) ? "muted word pin removed"
                 : family.equals(SavedPins.SAVED) ? "saved pin removed"
+                : family.equals(SeenPins.SEEN) ? "seen pin removed"
                 : family.equals(HomeSuggestions.SUGGESTION) ? "Home suggestion removed"
                 : family.equals(RefineSearch.REFINE) ? "Refine your search list removed" : "shopping placement removed";
     }

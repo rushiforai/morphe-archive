@@ -10,7 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-25.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -78,6 +78,7 @@ import java.util.Map;
 import app.morphe.extension.music.patches.actionbar.ActionBarPatch;
 import app.morphe.extension.music.patches.downloads.LocalDownloadManager;
 import app.morphe.extension.music.patches.downloads.SongDownloadRoute;
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.music.shared.VideoInformation;
 import app.morphe.extension.music.shared.VideoType;
@@ -139,7 +140,8 @@ public class FlyoutPatch {
     }
     private static volatile boolean lastMenuWasDismissQueue = false;
     private static WeakReference<View> touchOutSideViewRef = new WeakReference<>(null);
-    private static final ColorFilter cf = new PorterDuffColorFilter(Color.parseColor("#ffffffff"), PorterDuff.Mode.SRC_ATOP);
+    private static final ColorFilter PLAYBACK_SPEED_ICON_FILTER = new PorterDuffColorFilter(
+            MusicLightTheme.isEnabled() ? MusicLightTheme.FOREGROUND : Color.WHITE, PorterDuff.Mode.SRC_ATOP);
 
     public static boolean disableTrimSilence(boolean original) {
         return VideoType.getCurrent().isPodCast() && !DISABLE_TRIM_SILENCE.get();
@@ -358,7 +360,7 @@ public class FlyoutPatch {
                                 ? "yt_bold_play_arrow_half_circle_black_24"
                                 : "yt_outline_play_arrow_half_circle_black_24";
                         imageView.setImageResource(getIdentifier(drawableName, ResourceType.DRAWABLE, clickAbleArea.getContext()));
-                        imageView.setColorFilter(cf);
+                        imageView.setColorFilter(PLAYBACK_SPEED_ICON_FILTER);
                         clickAbleArea.setOnClickListener(view -> {
                             clickView(touchOutSideViewRef.get());
                             VideoUtils.showPlaybackSpeedFlyoutMenu();

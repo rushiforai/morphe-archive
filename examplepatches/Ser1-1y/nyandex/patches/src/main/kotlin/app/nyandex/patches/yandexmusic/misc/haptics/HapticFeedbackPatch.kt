@@ -14,6 +14,7 @@ import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.nyandex.patches.yandexmusic.misc.settings.nyandexSettingsPatch
 import app.nyandex.patches.yandexmusic.shared.Constants.COMPATIBILITY_YANDEX_MUSIC
+import app.nyandex.patches.yandexmusic.util.hasSameSignature
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
 import java.util.logging.Logger
@@ -62,7 +63,7 @@ private fun hookClickable() {
     check(isRoleType(types[role])) { "Role parameter of ClickableElement was not found: $types" }
 
     // Parameter n of an instance method is register p(n + 1).
-    mutableClassDefBy(CLICKABLE_ELEMENT).methods.single { it.sameAs(constructor) }.addInstructions(
+    mutableClassDefBy(CLICKABLE_ELEMENT).methods.single { it.hasSameSignature(constructor) }.addInstructions(
         0,
         wrapClick(role = register(role), callback = register(onClick)),
     )
@@ -83,7 +84,7 @@ private fun hookCombinedClickable() {
     val role = parameterTypes.indexOfFirst(::isRoleType)
     check(role in 0 until onClick) { "Role parameter of CombinedClickableElement was not found" }
 
-    mutableClassDefBy(COMBINED_CLICKABLE_ELEMENT).methods.single { it.sameAs(constructor) }.addInstructions(
+    mutableClassDefBy(COMBINED_CLICKABLE_ELEMENT).methods.single { it.hasSameSignature(constructor) }.addInstructions(
         0,
         wrapClick(role = register(role), callback = register(onClick)) + "\n" +
             wrapLongClick(callback = register(onLongClick)),
@@ -119,8 +120,6 @@ private fun isRoleType(type: String): Boolean {
 }
 
 private fun register(parameter: Int) = "p${parameter + 1}"
-
-private fun Method.sameAs(other: Method) = name == other.name && parameterTypes == other.parameterTypes
 
 private fun wrapClick(role: String, callback: String) = """
     invoke-static {$role, $callback}, $HAPTICS_HOOK->wrapClick($OBJECT$OBJECT)$OBJECT

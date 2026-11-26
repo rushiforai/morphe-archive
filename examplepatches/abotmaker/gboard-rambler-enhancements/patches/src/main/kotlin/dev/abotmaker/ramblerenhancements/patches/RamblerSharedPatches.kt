@@ -62,6 +62,8 @@ internal const val CUSTOM_INSTR_RULES_TYPE =
     "Ldev/abotmaker/ramblerenhancements/RamblerCustomInstructionRules;"
 internal const val TEXT_PIPELINE_TYPE =
     "Ldev/abotmaker/ramblerenhancements/RamblerTextPipeline;"
+internal const val DICTATION_STATS_TYPE =
+    "Ldev/abotmaker/ramblerenhancements/RamblerDictationStats;"
 
 internal enum class RamblerFeature {
     WAVEFORM,
@@ -85,6 +87,7 @@ internal class RamblerPatchRunState {
     var sessionBundleTargets: SessionBundleTargets? = null
     var activateHookTargets: ActivateHookTargets? = null
     var commitPipelineTargets: CommitPipelineTargets? = null
+    var voiceLifecycleTargets: VoiceLifecycleTargets? = null
     var agenticCtorHooked: Boolean = false
 }
 
@@ -195,6 +198,9 @@ internal val ramblerSharedExtensionPatch = bytecodePatch(
             val pipelineTargets = RamblerDynamicResolver.resolveCommitPipelineTargets(this, spacing)
             state.commitPipelineTargets = pipelineTargets
             installCommitPipelineHook(pipelineTargets)
+            val lifecycleTargets = RamblerDynamicResolver.resolveVoiceLifecycleTargets(agentic.extensionClass)
+            state.voiceLifecycleTargets = lifecycleTargets
+            installVoiceLifecycleStatsHooks(lifecycleTargets)
         }
 
         val prefLaunch = RamblerDynamicResolver.resolvePreferenceLaunchTargets(this)
@@ -222,6 +228,17 @@ internal fun installCommitPipelineHook(targets: CommitPipelineTargets) {
         invoke-static {v$pcnReg, v$textReg}, $TEXT_PIPELINE_TYPE->processCommitText(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
         move-result-object v$textReg
         """.trimIndent(),
+    )
+}
+
+internal fun installVoiceLifecycleStatsHooks(targets: VoiceLifecycleTargets) {
+    targets.onVoiceStartMethod.addInstructions(
+        0,
+        "invoke-static {}, $DICTATION_STATS_TYPE->onVoiceStart()V",
+    )
+    targets.onListeningStopMethod.addInstructions(
+        0,
+        "invoke-static {}, $DICTATION_STATS_TYPE->onListeningStop()V",
     )
 }
 
@@ -543,7 +560,7 @@ internal val ramblerSharedSettingsResourcePatch = resourcePatch(
             "values" to listOf(
                 "rambler_enhancements_entry_title" to "Rambler Enhancements",
                 "rambler_enhancements_entry_summary" to
-                    "Waveforms, instructions, dictation behavior, voice actions, dictionary, history, and backup",
+                    "Waveforms, instructions, dictation behavior, voice actions, dictionary, stats, history, and backup",
                 "rambler_enh_pref_instructions_title" to "Instructions & app rules",
                 "rambler_enh_pref_instructions_summary" to
                     "Default style prompt, per-app rules & behavior overrides, and disabled apps",
@@ -559,9 +576,9 @@ internal val ramblerSharedSettingsResourcePatch = resourcePatch(
                 "rambler_enh_pref_dictionary_title" to "Voice dictionary & contacts",
                 "rambler_enh_pref_dictionary_summary" to
                     "MUSE_STATS biasing words, import/export, and phone contact names sync",
-                "rambler_enh_pref_history_title" to "Dictation history",
+                "rambler_enh_pref_history_title" to "Dictation stats & history",
                 "rambler_enh_pref_history_summary" to
-                    "Search and copy your last 50 on-device Rambler dictations",
+                    "On-device WPM, cloud latency & time-saved stats plus your last 50 dictations",
                 "rambler_enh_pref_backup_title" to "Backup & restore (.json)",
                 "rambler_enh_pref_backup_summary" to
                     "Export or import all Rambler settings, rules, snippets, and dictionary words",
@@ -652,7 +669,7 @@ internal val ramblerProductivityToolsResourcePatch = ramblerFeatureSelectionReso
 
 private fun zhHantSettingsStrings(): List<Pair<String, String>> = listOf(
     "rambler_enhancements_entry_title" to "Rambler 增強功能",
-    "rambler_enhancements_entry_summary" to "聲波動畫、自訂指示、聽寫行為、語音動作、語音辭典、紀錄與備份",
+    "rambler_enhancements_entry_summary" to "聲波動畫、自訂指示、聽寫行為、語音動作、語音辭典、統計、紀錄與備份",
     "rambler_enh_pref_instructions_title" to "自訂指示與應用程式規則",
     "rambler_enh_pref_instructions_summary" to "預設風格指示、各應用程式規則與行為覆寫，以及停用名單",
     "rambler_enh_pref_waveform_title" to "聲波動畫 (Hex)",
@@ -663,8 +680,8 @@ private fun zhHantSettingsStrings(): List<Pair<String, String>> = listOf(
     "rambler_enh_pref_productivity_summary" to "語音送出/搜尋後綴、固定語音片語與尋找取代規則",
     "rambler_enh_pref_dictionary_title" to "語音辭典與聯絡人",
     "rambler_enh_pref_dictionary_summary" to "MUSE_STATS 詞彙管理、匯入/匯出與手機聯絡人同步",
-    "rambler_enh_pref_history_title" to "本機聽寫紀錄",
-    "rambler_enh_pref_history_summary" to "搜尋與複製最近 50 筆裝置本機 Rambler 聽寫內容",
+    "rambler_enh_pref_history_title" to "聽寫統計與本機紀錄",
+    "rambler_enh_pref_history_summary" to "裝置本機字數、語速 WPM、延遲與省時統計，以及最近 50 筆聽寫紀錄",
     "rambler_enh_pref_backup_title" to "備份與還原 (.json)",
     "rambler_enh_pref_backup_summary" to "匯出或匯入所有 Rambler 設定、規則、片語與語音辭典詞彙",
 )

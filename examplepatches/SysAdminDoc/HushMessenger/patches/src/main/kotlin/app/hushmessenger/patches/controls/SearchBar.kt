@@ -22,10 +22,10 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 internal const val INBOX_SEARCH_BAR = "inbox_search_bar"
 
 /**
- * Meta's server test that swaps the chat list's search bar for a search icon, as 587 numbers it (586 read 0x810b0200004674). Meta renumbers it with
+ * Meta's server test that swaps the chat list's search bar for a search icon, as 588 numbers it (587 read 0x810af1000046ad). Meta renumbers it with
  * each release.
  */
-internal const val SEARCH_ICON_FLAG = 0x810af1000046adL
+internal const val SEARCH_ICON_FLAG = 0x810ae70000471bL
 
 /** The top bar's search icon. Only the method that builds it names the class, which ties the flag to the search bar. */
 internal const val SEARCH_ICON_ANCHOR = "com.facebook.messaging.search.plugins.toolbarbutton.searchbutton.InboxSearchToolbarButtonImplementation"

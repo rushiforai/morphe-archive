@@ -24,9 +24,9 @@ still require device validation; local APK checks alone do not verify them.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.0-dev.1](https://github.com/Nezumi-2711/morphe-patches/releases/tag/v1.8.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;24 patches total
+> **[v1.8.0-dev.2](https://github.com/Nezumi-2711/morphe-patches/releases/tag/v1.8.0-dev.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;26 patches total
 <details open>
-<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;24 patches</summary>
+<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;26 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -36,7 +36,8 @@ still require device validation; local APK checks alone do not verify them.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [AMOLED dark theme](#amoled-dark-theme) | Use true-black backgrounds in Zalo's dark mode, with slightly lifted popups, sheets and chat bubbles. |  |
+| [AMOLED dark theme](#amoled-dark-theme) | Use true-black backgrounds in Zalo's dark mode, with slightly lifted popups, sheets and chat bubbles, and a dimmed call screen. |  |
+| [Bug log](#bug-log) | Adds a Debugging section to Nezumi's Settings that records patch errors, crashes and ANRs to a local log the user can export and share with the developer. Recording is off until the user turns it on. |  |
 | [Bypass conversation protection](#bypass-conversation-protection) | Unblock screenshots, screen recording, forwarding, copying and saving media in protected conversations when enabled in Nezumi Settings. |  |
 | [Call recording](#call-recording) | Adds a record button to the Zalo 1-1 in-call screen. Recordings are saved as m4a in Music/ZaloRecordings. |  |
 | [Chat heads instead of Android bubbles](#chat-heads-instead-of-android-bubbles) | Use Zalo's overlay chat heads rather than native Android bubbles on Android 11 and newer. |  |
@@ -56,6 +57,7 @@ still require device validation; local APK checks alone do not verify them.
 | [Hide text typing](#hide-text-typing) | Hide outgoing text typing in direct and group chats when enabled in Nezumi Settings. |  |
 | [Keep recalled messages](#keep-recalled-messages) | Keep received messages and locally available photos after another user recalls them, when enabled in Nezumi Settings. |  |
 | [Native signature fix](#native-signature-fix) | Allow Zalo 26.11.01 ARM64 to start after patching and re-signing. ARMv7 is not supported. |  |
+| [Open links in external browser](#open-links-in-external-browser) | Applies Zalo's "Mở bằng trình duyệt web" choice (Settings > Privacy > Chọn cách mở link) to all links, including link-preview video cards, feed and comment links, group board/My Cloud links and scanned QR links. Zalo's own links (zalo.me) still open in Zalo. You must select "Mở bằng trình duyệt web" in that setting; with the default "Mở bằng Zalo" nothing changes. |  |
 | [Save media](#save-media) | Adds Save to Gallery for profile avatar, profile cover, Story and Zalo Video. |  |
 | [Send photos in original quality](#send-photos-in-original-quality) | Unlocks Zalo's native original-photo quality option and selects it by default while preserving its normal quality picker. |  |
 | [Unlimited quick messages](#unlimited-quick-messages) | Remove the client-side limit on the number of quick messages, ignoring the server-provided cap. |  |

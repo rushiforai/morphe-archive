@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.57.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.57.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.58.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.58.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
 <details open>
 <summary>📦 Age Of War 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -122,18 +122,17 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 </details>
 
 <details open>
-<summary>📦 Hungry Shark&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Hungry Shark&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 14.5.0 |
+| 14.6.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Hungry Shark Currency Hack](#hungry-shark-currency-hack) | Coins and gems are always set to 2,147,483,647 whenever they are earned, spent, purchased, or loaded from a save. |  |
-| [Hungry Shark Installer Source Fix](#hungry-shark-installer-source-fix) | Spoofs the installer source as Google Play for every install-source check in the game and its SDKs, so sideloaded installs are treated as store installs and installer-based Play Store redirects are bypassed. |  |
+| [Hungry Shark Free IAP](#hungry-shark-free-iap) | Gems, coins, shark offers and every other in-app purchase are granted instantly and free without Google Play billing. |  |
 
 </details>
 

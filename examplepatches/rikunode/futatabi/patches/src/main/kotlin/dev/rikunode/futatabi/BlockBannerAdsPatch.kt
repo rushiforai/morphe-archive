@@ -27,7 +27,7 @@ val blockBannerAdsPatch = rawResourcePatch(
             name = "futatter",
             packageName = "com.Nanasaki.ftutter",
             apkFileType = ApkFileType.APK,
-            targets = listOf(AppTarget(version = "3.1.1", versionCode = 65)),
+            targets = listOf(AppTarget(version = "3.1.1", versionCodes = mapOf(app.morphe.patcher.patch.SupportedAbi.ARM64_V8A to 65))),
         )
     )
 
@@ -40,7 +40,9 @@ val blockBannerAdsPatch = rawResourcePatch(
         val digest = MessageDigest.getInstance("SHA-256")
         libapp.forEachBlock { buffer, size -> digest.update(buffer, 0, size) }
         val sha256 = digest.digest().joinToString("") { "%02x".format(it) }
-        if (sha256 != LIBAPP_SHA256) {
+        // Board login button may have run first; accept only its exact verified output.
+        if (sha256 != LIBAPP_SHA256 && sha256 != LOGIN_ONLY_LIBAPP_SHA256 &&
+            sha256 != REPLY_ONLY_LIBAPP_SHA256 && sha256 != REPLY_LOGIN_LIBAPP_SHA256) {
             throw PatchException("futatabi: unsupported ARM64 libapp.so (SHA-256 $sha256)")
         }
 

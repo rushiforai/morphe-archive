@@ -17,9 +17,9 @@ In Morphe Manager, add this repository as a patch source: https://github.com/bin
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.15.0](https://github.com/bin0culars/bin0culars-patches/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
+> **[v1.16.0](https://github.com/bin0culars/bin0culars-patches/releases/tag/v1.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details open>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;20 patches</summary>
+<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
 <br>
 
 **Package name:** `com.reddit.frontpage`
@@ -37,6 +37,7 @@ In Morphe Manager, add this repository as a patch source: https://github.com/bin
 | [Collapse all comments](#collapse-all-comments) | Adds a button next to the comment count on a post that collapses or expands all comments. Choose what it collapses in Settings → bin0culars mods. |  |
 | [Colorize comment indent lines](#colorize-comment-indent-lines) | Gives each reply level in a comment thread its own line colour. Turn it on in Settings → bin0culars mods. |  |
 | [Content-type filter](#content-type-filter) | Show only videos, images, text or link posts on Home and Popular. |  |
+| [Create button in communities](#create-button-in-communities) | Adds a Create post button to the top bar of each community. Turn it on in Settings → bin0culars mods. |  |
 | [Disable bottom bar auto-hide](#disable-bottom-bar-auto-hide) | Keeps the bottom navigation bar visible while scrolling. Turn it on in Settings → bin0culars mods. |  |
 | [Disable home feed auto-refresh](#disable-home-feed-auto-refresh) | Stops the home feed from reloading and jumping to the top when you come back to the app. Turn it on in Settings → bin0culars mods. |  |
 | [Disable refresh on back to exit](#disable-refresh-on-back-to-exit) | Pressing back on the home feed exits without scrolling to the top and reloading. Turn it on in Settings → bin0culars mods. |  |
@@ -51,6 +52,7 @@ In Morphe Manager, add this repository as a patch source: https://github.com/bin
 | [Share post content](#share-post-content) | App shortcuts and "Share via…" in the share sheet send the post's image, video or text instead of its link. |  |
 | [Swipe up for comments](#swipe-up-for-comments) | In the full-screen video player, swiping up opens the comments and the next video is a sideways swipe away. Turn it on in Settings → bin0culars mods. |  |
 | [Tablet grid feed](#tablet-grid-feed) | Shows the feed as a grid with 2 or 3 columns on tablets and other wide screens. Phones are unchanged. |  |
+| [Video playback speed](#video-playback-speed) | Adds Reddit's playback speed controls to the full-screen video player. Turn it on in Settings → bin0culars mods. |  |
 
 </details>
 
@@ -62,9 +64,9 @@ In Morphe Manager, add this repository as a patch source: https://github.com/bin
 
 - **Tablets:** a 2–3 column grid feed on wide screens, and posts that open in a side panel in landscape while the feed stays visible.
 - **Feed:** swipeable For You / Following / Popular tabs, a content-type filter, hands-free auto-scroll, Hide always available in the post menu, and no surprise reloads: Home keeps its place when you come back to the app or press back to exit.
-- **Navigation:** a floating see-through glass bar (side rail on tablets) with the feed scrolling underneath, in Auto, Light or Dark, Tinted or Frosted glass (a real blur of what's behind the bar with a light edge, Android 14 and newer), with sliders for opacity, blur strength, height and width and a choice of round ends or corners (on tablets the rail floats on the same background as the feed); a see-through status bar that lets the home feed scroll up under the clock and fade into it (phone layout); and keep the bottom bar visible while you scroll.
+- **Navigation:** a floating see-through glass bar (side rail on tablets) with the feed scrolling underneath, in Auto, Light or Dark, Tinted or Frosted glass (a real blur of what's behind the glass with a light edge, on the bar, the search button and the glass circles and tabs capsule at the top of Home, Android 14 and newer), a Glass strength choice (Clear, Balanced or Solid: a thin outline and soft shadow keep the glass visible on any background), with sliders for opacity, blur strength, height, width and bar position (lift it off the bottom edge), icons only (hide the labels), and a choice of round ends or corners (on tablets the rail floats on the same background as the feed), and an iOS-style search button: search moves from the top of Home into a round glass button next to the bar, while the menu and avatar float as small glass circles over the feed, the For You / Following / Popular tabs move up into a glass capsule in the same row (the selected tab gets a soft pill highlight, as does the selected item in the bottom bar), the top bar is white (black in dark theme) at the top of Home and see-through once you scroll, and a soft fade keeps posts clear of the clock (phone); a see-through status bar that lets the home feed scroll up under the clock and fade into it (phone layout); keep the bottom bar visible while you scroll, and a + button in each community's top bar (next to Search) that starts a post in that community, handy if you hide the Create button.
 - **Posts and comments:** a collapse/expand-all button next to the comment count (fold all comments, only replies, or only deep replies), the full-screen reply editor with the parent comment visible (select and quote its text), AutoModerator comments shown, collapsed or hidden, and coloured comment lines (one colour per reply level; Rainbow, Pastel or Muted).
-- **Media:** swipe up for comments in the video player, and full-screen media that stays in the subreddit you opened.
+- **Media:** playback speed for videos (0.5× to 2× from the player's ⋮ menu, plus hold to speed up), swipe up for comments in the video player, and full-screen media that stays in the subreddit you opened (the list ends when the subreddit has no more media, so it no longer gets stuck on a loading screen; videos hosted elsewhere, such as RedGIFs, aren't included).
 - **Sharing:** share the post's image, video or text instead of its link, and download every item of a gallery at once.
 - **Privacy:** choose whether the account switcher offers Anonymous Browsing or Incognito.
 

@@ -1,7 +1,7 @@
 {
-  "version": "1.1.8",
-  "created_at": "2026-11-24T17:52:00",
-  "description": "Fix Samsung One UI 7 ActivityThread.completeRemoveProvider NPE in Morphe handler",
-  "download_url": "https://raw.githubusercontent.com/Manishrdy/honista-patches/main/dist/patches-1.1.8.mpp",
-  "page_url": "https://github.com/Manishrdy/honista-patches/releases/tag/v1.1.8"
+  "version": "1.1.13",
+  "created_at": "2026-11-25T22:30:00",
+  "description": "Fix login failure: restore original b()/d() interceptor setup methods",
+  "download_url": "https://raw.githubusercontent.com/Manishrdy/honista-patches/main/dist/patches-1.1.13.mpp",
+  "page_url": "https://github.com/Manishrdy/honista-patches/releases/tag/v1.1.13"
 }

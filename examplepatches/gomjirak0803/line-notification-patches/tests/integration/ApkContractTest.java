@@ -14,7 +14,15 @@ public final class ApkContractTest {
     private static final Map<String, ClassDef> classes = new HashMap<>();
     private static int assertions;
     public static void main(String[] args) throws Exception {
-        boolean readOnly = args.length > 1 && "read-only".equals(args[1]);
+        String mode = args.length > 1 ? args[1] : "all";
+        boolean all = "all".equals(mode);
+        boolean hasSilent = all || "silent-only".equals(mode);
+        boolean hasInfo = all || "info-only".equals(mode);
+        boolean hasNoReply = all;
+        boolean hasRead = all || "read-only".equals(mode);
+        if (!all && !hasSilent && !hasInfo && !hasRead) {
+            throw new IllegalArgumentException("Unknown validation mode: " + mode);
+        }
         MultiDexContainer<? extends DexFile> dex = DexFileFactory.loadDexContainer(new File(args[0]), Opcodes.getDefault());
         for (String entry : dex.getDexEntryNames()) for (ClassDef type : dex.getEntry(entry).getDexFile().getClasses()) {
             if (classes.put(type.getType(), type) != null) throw new AssertionError("Duplicate DEX class: " + type.getType());
@@ -59,11 +67,59 @@ public final class ApkContractTest {
         ClassDef continuationBridge = classes.get(ext + "NotificationContinuation;");
         check(continuationBridge != null && "Ldt8/d;".equals(continuationBridge.getSuperclass()),
                 "Continuation bridge is an instance of native optimized setter's required base");
-        Method bridgeConstructor = find(ext + "NotificationContinuation;", "<init>", "Ljava/lang/Object;", "V");
-        check(callsTo(bridgeConstructor, "Ldt8/d;", "<init>").size() == 1,
-                "Continuation bridge delegates completion to native base");
-        for (Method declared : continuationBridge.getMethods()) check(!declared.getName().equals("resumeWith"),
-                "Continuation bridge retains final native resumeWith dispatcher");
+        Method bridgeConstructor = null;
+        Method declaredInvokeSuspend = null;
+        for (Method declared : continuationBridge.getMethods()) {
+            check(!declared.getName().equals("resumeWith"),
+                    "Continuation bridge retains final native resumeWith dispatcher");
+            if (declared.getName().equals("<init>") && parameters(declared).equals("Ljava/lang/Object;")
+                    && declared.getReturnType().equals("V")) {
+                bridgeConstructor = declared;
+            }
+            if (declared.getName().equals("invokeSuspend") && parameters(declared).equals("Ljava/lang/Object;")
+                    && declared.getReturnType().equals("Ljava/lang/Object;")) {
+                declaredInvokeSuspend = declared;
+            }
+        }
+        check(bridgeConstructor != null && bridgeConstructor.getImplementation() != null,
+                "Continuation bridge directly declares <init>(Object)V");
+        check(bridgeConstructor.getImplementation().getRegisterCount() == 2,
+                "Continuation bridge <init> keeps exact 2-register p0/p1 frame");
+        List<Instruction> bridgeInit = new ArrayList<>();
+        bridgeConstructor.getImplementation().getInstructions().forEach(bridgeInit::add);
+        check(bridgeInit.size() == 3
+                        && bridgeInit.get(0).getOpcode() == com.android.tools.smali.dexlib2.Opcode.CHECK_CAST
+                        && ((OneRegisterInstruction) bridgeInit.get(0)).getRegisterA() == 1
+                        && ((com.android.tools.smali.dexlib2.iface.reference.TypeReference) ((ReferenceInstruction) bridgeInit.get(0)).getReference())
+                                .getType().equals("Lkotlin/coroutines/Continuation;"),
+                "Continuation bridge casts parameter p1 directly to kotlin.coroutines.Continuation before super.<init>");
+        MethodReference superInitRef = bridgeInit.size() >= 2 && bridgeInit.get(1) instanceof ReferenceInstruction
+                && ((ReferenceInstruction) bridgeInit.get(1)).getReference() instanceof MethodReference
+                ? (MethodReference) ((ReferenceInstruction) bridgeInit.get(1)).getReference() : null;
+        check(bridgeInit.size() == 3
+                        && bridgeInit.get(1).getOpcode() == com.android.tools.smali.dexlib2.Opcode.INVOKE_DIRECT
+                        && bridgeInit.get(1) instanceof FiveRegisterInstruction
+                        && ((FiveRegisterInstruction) bridgeInit.get(1)).getRegisterCount() == 2
+                        && ((FiveRegisterInstruction) bridgeInit.get(1)).getRegisterC() == 0
+                        && ((FiveRegisterInstruction) bridgeInit.get(1)).getRegisterD() == 1
+                        && superInitRef != null
+                        && superInitRef.getDefiningClass().equals("Ldt8/d;")
+                        && superInitRef.getName().equals("<init>")
+                        && superInitRef.getParameterTypes().size() == 1
+                        && superInitRef.getParameterTypes().get(0).toString().equals("Lkotlin/coroutines/Continuation;")
+                        && superInitRef.getReturnType().equals("V")
+                        && bridgeInit.get(2).getOpcode() == com.android.tools.smali.dexlib2.Opcode.RETURN_VOID,
+                "Continuation bridge delegates {p0, p1} directly to Ldt8/d;-><init>(Lkotlin/coroutines/Continuation;)V and returns void");
+        check(declaredInvokeSuspend != null && AccessFlags.PUBLIC.isSet(declaredInvokeSuspend.getAccessFlags())
+                        && declaredInvokeSuspend.getImplementation() != null
+                        && declaredInvokeSuspend.getImplementation().getRegisterCount() == 2,
+                "Continuation bridge directly declares public invokeSuspend(Object)Object");
+        List<Instruction> invokeBody = new ArrayList<>();
+        declaredInvokeSuspend.getImplementation().getInstructions().forEach(invokeBody::add);
+        check(invokeBody.size() == 1
+                        && invokeBody.get(0).getOpcode() == com.android.tools.smali.dexlib2.Opcode.RETURN_OBJECT
+                        && ((OneRegisterInstruction) invokeBody.get(0)).getRegisterA() == 1,
+                "Continuation bridge invokeSuspend returns p1 directly");
         Map<String,Integer> calls = new HashMap<>();
         for (ClassDef type : classes.values()) for (Method m : type.getMethods()) {
             if (m.getImplementation() == null) continue;
@@ -91,13 +147,13 @@ public final class ApkContractTest {
             check(calls.getOrDefault(hook, 0) == 1, "Exactly one native hook for " + hook + ": " + calls.get(hook));
         }
         for (String hook : Arrays.asList("captureChatMenu", "addChatMenu", "interceptToggle", "interceptChatListToggle")) {
-            check(calls.getOrDefault(hook, 0) == (readOnly ? 0 : 1), "Optional quiet-mode hook selection: " + hook);
+            check(calls.getOrDefault(hook, 0) == (hasSilent ? 1 : 0), "Optional quiet-mode hook selection: " + hook);
         }
-        check(calls.getOrDefault("menuNotifiable", 0) == (readOnly ? 0 : 2),
+        check(calls.getOrDefault("menuNotifiable", 0) == (hasSilent ? 2 : 0),
                 "Optional quiet-mode presentation hooks (chat menu + chat list)");
-        check(calls.getOrDefault("chatListLastMessage", 0) == (readOnly ? 0 : 1),
+        check(calls.getOrDefault("chatListLastMessage", 0) == (hasInfo ? 1 : 0),
                 "Optional chat-list attachment label hook");
-        check(calls.getOrDefault("allowMuted", 0) == (readOnly ? 0 : 2), "Optional native per-room notification gates");
+        check(calls.getOrDefault("allowMuted", 0) == (hasSilent ? 2 : 0), "Optional native per-room notification gates");
         check(calls.getOrDefault("interceptNotificationMute", 0) == 0, "No duplicate old service dispatch hook");
         Method saved = find("Luq8/z2;", "f", "Lts8/od;JLtq8/r;Ljava/lang/String;Lso8/m;ZZJ", "V");
         List<Instruction> storedHooks = callsTo(saved, ext + "Notifications;", "onMessageStored");
@@ -125,7 +181,7 @@ public final class ApkContractTest {
         RegisterRangeInstruction actionHook = (RegisterRangeInstruction) actionHooks.get(0);
         check(actionHook.getStartRegister() == 27 && actionHook.getRegisterCount() == 2,
                 "Notification action receives original service and intent");
-        if (!readOnly) {
+        if (hasSilent) {
         Method registrant = find("Lgw3/i;", "c", "Landroid/content/Context;Lfw3/d;", "V");
         check(callsTo(registrant, ext + "Notifications;", "allowMuted").size() == 1,
                 "Message registrant retains its scoped mute hook");
@@ -181,13 +237,6 @@ public final class ApkContractTest {
         FiveRegisterInstruction chatListStateHook = (FiveRegisterInstruction) chatListStateHooks.get(0);
         check(chatListStateHook.getRegisterC() == 1 && chatListStateHook.getRegisterD() == 6,
                 "Chat-list state hook receives the chat ID and native notifiable flag");
-        List<Instruction> chatListLastMsgHooks = callsTo(chatListItem, ext + "Settings;", "chatListLastMessage");
-        check(chatListLastMsgHooks.size() == 1 && chatListLastMsgHooks.get(0) instanceof FiveRegisterInstruction,
-                "Chat-list attachment preview uses verified UI model constructor");
-        FiveRegisterInstruction chatListLastMsgHook = (FiveRegisterInstruction) chatListLastMsgHooks.get(0);
-        check(chatListLastMsgHook.getRegisterC() == 1 && chatListLastMsgHook.getRegisterD() == 8
-                        && chatListLastMsgHook.getRegisterE() == 10 && chatListLastMsgHook.getRegisterF() == 15,
-                "Chat-list attachment hook receives chatId, lastMessageRaw, lastTime, and hasDraft");
         Method chatListToggle = find("Ld42/d;", "u3", "Lf22/l;", "V");
         List<Instruction> chatListToggleHooks = callsTo(chatListToggle, ext + "Settings;", "interceptChatListToggle");
         check(chatListToggleHooks.size() == 1 && chatListToggleHooks.get(0) instanceof FiveRegisterInstruction,
@@ -201,6 +250,18 @@ public final class ApkContractTest {
                 "Native OpenChat chat-list toggle remains available");
         check(callsTo(chatListToggle, "Ld42/m;", "<init>").size() == 1,
                 "Native ServiceChat chat-list toggle remains available");
+        }
+        if (hasInfo) {
+        Method chatListItem = find("Lf22/i;", "<init>",
+                "Ljava/lang/String;Ljava/lang/String;ZZZZLjp/naver/line/android/model/ChatData$c;"
+                + "Ljava/lang/String;Lyk8/z;Ljava/lang/Long;IZZZZZ", "V");
+        List<Instruction> chatListLastMsgHooks = callsTo(chatListItem, ext + "Settings;", "chatListLastMessage");
+        check(chatListLastMsgHooks.size() == 1 && chatListLastMsgHooks.get(0) instanceof FiveRegisterInstruction,
+                "Chat-list attachment preview uses verified UI model constructor");
+        FiveRegisterInstruction chatListLastMsgHook = (FiveRegisterInstruction) chatListLastMsgHooks.get(0);
+        check(chatListLastMsgHook.getRegisterC() == 1 && chatListLastMsgHook.getRegisterD() == 8
+                        && chatListLastMsgHook.getRegisterE() == 10 && chatListLastMsgHook.getRegisterF() == 15,
+                "Chat-list attachment hook receives chatId, lastMessageRaw, lastTime, and hasDraft");
         field("Ljp/naver/line/android/common/LineCommonFileProvider;", "g",
                 "Ljp/naver/line/android/common/LineCommonFileProvider$a;");
         method("Ljp/naver/line/android/common/LineCommonFileProvider$a;", "d",
@@ -228,11 +289,15 @@ public final class ApkContractTest {
         for (String flag : Arrays.asList("rowIncluded", "silentIncluded", "infoIncluded", "noReplyIncluded", "readIncluded")) {
             Method m = find(ext + "Settings;", flag, "", "Z");
             Instruction first = m.getImplementation().getInstructions().iterator().next();
-            int expected = !readOnly || flag.equals("rowIncluded") || flag.equals("readIncluded") ? 1 : 0;
+            int expected = flag.equals("rowIncluded") ? 1
+                    : flag.equals("silentIncluded") ? (hasSilent ? 1 : 0)
+                    : flag.equals("infoIncluded") ? (hasInfo ? 1 : 0)
+                    : flag.equals("noReplyIncluded") ? (hasNoReply ? 1 : 0)
+                    : (hasRead ? 1 : 0);
             check(first instanceof NarrowLiteralInstruction && ((NarrowLiteralInstruction)first).getNarrowLiteral() == expected,
                     "Included flag matches selection: " + flag);
         }
-        System.out.println("APK static contracts (" + (readOnly ? "read-only" : "all features") + "): " + assertions + " assertions passed (Android execution not tested)");
+        System.out.println("APK static contracts (" + (all ? "all features" : mode) + "): " + assertions + " assertions passed (Android execution not tested)");
     }
     private static void nativeReadContracts() {
         field("Ln30/d;", "a", "Ln30/d$a;");

@@ -11,17 +11,17 @@ internal val libraryFavoriteTrackSelectionPatch = patch {
     dependsOn(trackCellDisplayRightsPatch)
 
     execute {
-        mutableClassDefBy("LIlIlIIlIIIllIlII;").methods.single {
+        mutableClassDefBy("LlIIlIlIIllllI;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }.showSelectableTrackCellsBeforeMapping(expectedCount = 2)
 
-        val tap = mutableClassDefBy("LIlIIIlIIIIIlIllI;").methods.single {
+        val tap = mutableClassDefBy("LlIllllllllIIIII;").methods.single {
             it.name == "invokeSuspend" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }
         val instructions = checkNotNull(tap.implementation).instructions
         val favoritePlayback = instructions.indices.single { index ->
             (instructions[index] as? ReferenceInstruction)?.reference.toString() ==
-                "LIlIlIIlII;->llIIIIIIlIIIIll(LIlIlIIlII;Ljava/lang/String;LlIllllllIllIlIl;LIlIlIllIlllllI;)Ljava/lang/Object;" &&
+                "LIlIIIIIIIllIIlII;->IllIlllIIIllIlII(LIlIIIIIIIllIIlII;Ljava/lang/String;LIIlllllIIIllll;LIIIllIlIIIIIIll;)Ljava/lang/Object;" &&
                 instructions.getOrNull(index - 3)?.opcode == Opcode.IF_EQZ
         }
         // Start the favorites queue at the tapped track through the native on-demand path.

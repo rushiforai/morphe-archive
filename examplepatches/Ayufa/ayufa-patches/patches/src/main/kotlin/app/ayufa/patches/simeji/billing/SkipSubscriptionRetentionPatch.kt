@@ -7,7 +7,7 @@ import app.ayufa.patches.simeji.shared.finishIfEnabledAfterSuperOnCreate
 
 /**
  * The retention ("please stay") screen shown when cancelling a VIP
- * subscription. Verified against Simeji 20.7.
+ * subscription. Verified against Simeji 22.5.
  */
 internal object SubscriptionKeepActivityOnCreateFingerprint : Fingerprint(
     definingClass = "Ljp/baidu/simeji/billing/subscription/SubscriptionKeepAct;",

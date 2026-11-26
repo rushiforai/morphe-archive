@@ -91,9 +91,10 @@ public final class ThreadWatch {
         android.widget.CheckBox check=new android.widget.CheckBox(a);check.setText(label);check.setChecked(value);box.addView(check);return check;
     }
     static void addSettingsButton(android.widget.LinearLayout box,Activity a){
-        android.widget.Switch ng=new android.widget.Switch(a);ng.setText("NGされたレスの返信通知を無効にする");
+        android.widget.Switch ng=new android.widget.Switch(a);ng.setText("登録済みNGに該当するレスを新着通知から除く");
         ng.setChecked(NotificationNg.enabled(a));box.addView(ng);
         ng.setOnCheckedChangeListener((button,value)->FeatureSwitches.prefs(a).edit().putBoolean(NotificationNg.KEY,value).apply());
+        android.widget.TextView ngHelp=new android.widget.TextView(a);ngHelp.setText("ID・名前・本文・BE・画像URLの個人NGと、有効な共有NG／プログラムNGを照合します。連鎖NGへの返信は下の設定で別に切り替えます。");box.addView(ngHelp);
         android.widget.Switch chain=new android.widget.Switch(a);chain.setText("連鎖NGされたレスへの返信も通知しない");
         chain.setChecked(FeatureSwitches.prefs(a).getBoolean(NotificationNg.CHAIN_KEY,false));box.addView(chain);
         chain.setOnCheckedChangeListener((button,value)->FeatureSwitches.prefs(a).edit().putBoolean(NotificationNg.CHAIN_KEY,value).apply());

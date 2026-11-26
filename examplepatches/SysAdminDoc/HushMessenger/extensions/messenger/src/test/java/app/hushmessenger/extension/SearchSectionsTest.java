@@ -51,6 +51,20 @@ public class SearchSectionsTest {
         Found(Item item, User user, ThreadSummary chat) { A0A = item; A0F = user; A07 = chat; }
     }
 
+    /** Where a typed search files an entry. Messenger declares the field as an interface its enums implement. */
+    interface Group { }
+
+    enum Heading implements Group { NONCONTACTS, PAGES, AI_BOTS, META_AI_TYPEAHEAD }
+
+    /** A typed search's entry as Messenger builds it: one row or one heading, next to the group it sits in. */
+    static final class Entry {
+        final Group A00;
+        final Heading A01;
+        final Found A03;
+        final Integer A04 = null;
+        Entry(Group group, Heading heading, Found row) { A00 = group; A01 = heading; A03 = row; }
+    }
+
     /** What the patch writes into the extension once it has proved Messenger's own check. */
     private static final String AI_USER_ROUTE = "Lcom/facebook/user/model/User;->A0A()Z";
 
@@ -159,6 +173,33 @@ public class SearchSectionsTest {
         SearchSections.useAiUserRoute(AI_USER_ROUTE);
         assertSame("Off leaves every row", rows, SearchSections.items(Type.SERVER_BLENDED, rows));
         assertTrue(Settings.activeAt.isEmpty());
+    }
+
+    // #204 on a phone: typing "meta ai" still listed the bot on top. A typed search's result holds no sections, only its
+    // rows and headings one by one, each in a wrapper, so the row check never saw them.
+    @Test public void hideMetaAiDropsItsRowsFromATypedSearch() {
+        SearchSections.useAiUserRoute(AI_USER_ROUTE);
+        Entry bot = new Entry(Heading.NONCONTACTS, null, new Found(Item.PAGE, new User("Meta AI", "AiBot", false), null));
+        Entry people = new Entry(Heading.NONCONTACTS, Heading.NONCONTACTS, null);
+        Entry namesake = new Entry(Heading.NONCONTACTS, null, new Found(Item.CONTACT, new User("Meta AI", "User", false), null));
+        Entry botChat = new Entry(Heading.NONCONTACTS, null, new Found(Item.CONTACT, null, new ThreadSummary("Meta AI", key(ThreadType.AI_BOT))));
+        Entry bots = new Entry(Heading.AI_BOTS, Heading.AI_BOTS, null);
+        Entry character = new Entry(Heading.AI_BOTS, null, new Found(Item.CONTACT, new User("Chef", "User", false), null));
+        Entry ask = new Entry(Heading.META_AI_TYPEAHEAD, null, null);
+        Entry pages = new Entry(Heading.PAGES, Heading.PAGES, null);
+        Entry page = new Entry(Heading.PAGES, null, new Found(Item.PAGE, new User("Meta", "Page", false), null));
+        List<Entry> typed = Arrays.asList(bot, people, namesake, botChat, bots, character, ask, pages, page);
+        assertSame("Off, the list is Messenger's own", typed, SearchSections.sections(typed));
+        assertTrue(Settings.activeAt.isEmpty());
+
+        turnOn(SearchSections.SUGGESTED, SearchSections.REELS);
+        assertSame("The other search switches leave a typed search alone", typed, SearchSections.sections(typed));
+
+        turnOn("meta_ai");
+        assertEquals("People and pages stay, under their headings", Arrays.asList(people, namesake, pages, page), SearchSections.sections(typed));
+        assertTrue(Settings.lastActive("meta_ai") > 0);
+        List<Entry> plain = Arrays.asList(people, namesake, pages, page);
+        assertSame(plain, SearchSections.sections(plain));
     }
 
     @Test public void withoutMessengersCheckAPersonsRowGoesByItsTypesAlone() {

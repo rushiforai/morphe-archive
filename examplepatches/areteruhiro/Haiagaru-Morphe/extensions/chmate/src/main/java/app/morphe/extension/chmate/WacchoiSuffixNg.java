@@ -230,7 +230,8 @@ public final class WacchoiSuffixNg {
             FilterPosition.ThreadTarget threadTarget=FilterPosition.currentVisibleThread();
             boolean sameThreadBoard=threadTarget!=null&&Objects.equals(threadTarget.board,currentBoard);
             CheckBox threadOnly=new CheckBox(activity);threadOnly.setText("このスレのみを対象にする");
-            threadOnly.setEnabled(sameThreadBoard);content.addView(threadOnly);
+            threadOnly.setEnabled(sameThreadBoard&&ThreadScopedNg.enabled(activity));
+            threadOnly.setVisibility(ThreadScopedNg.enabled(activity)?View.VISIBLE:View.GONE);content.addView(threadOnly);
             CheckBox oneWeek = new CheckBox(activity);
             oneWeek.setText("一週間のみNGにする（次回ワッチョイ更新まで）");
             oneWeek.setVisibility(weeklySite(host) ? View.VISIBLE : View.GONE);

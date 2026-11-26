@@ -448,22 +448,27 @@ private fun communitySplitKey(byType: Map<String, ClassDef>, predicate: Method, 
         listOf(k[1].communityRef().toString(), a[4].communityRef().toString()), listOf(nullable.hookId(), any.hookId(), channel.hookId()))
 }
 
-/** A closure body's pinned layout: the second read, the list, its alias, the moves after the alias, and the hook's two scratch registers. */
-internal data class CommunityLayout(val read: Int, val list: Int, val alias: Int, val moves: Int, val scratch: List<Int>)
+/**
+ * A closure body's pinned layout: the second read, the list, its alias (null when the read lands in the sink's own
+ * slot), the moves after the alias, the sink's list argument and the hook's two scratch registers.
+ */
+internal data class CommunityLayout(val read: Int, val list: Int, val alias: Int?, val moves: Int, val slot: Int, val scratch: List<Int>)
 
 /**
- * Two pinned layouts, picked by the body's register count. 587's builds (21 registers) read the list into v1 at 63,
- * alias it into v17 and move the $onThreadInViewport after it, with v0 and v3 free. 586 read it at 60, before a flag
- * helper was inlined into the session-gated block. Family B (22 registers) inlines the
- * section builder's helpers, reads the list into v2 at 76, aliases it into v18 and moves the callback and the data key
- * after it, with v3 holding the builder and v0 and v1 free. CompatReport's communityLayout keeps the same table.
+ * Two pinned layouts, picked by the body's register count. 588's builds (21 registers) read the list at 63 straight
+ * into v15, the sink's tenth argument, which now takes an ImmutableList, with v0 and v3 free. 587 read it into v1,
+ * aliased it into v17 for the sink's twelfth and moved the $onThreadInViewport after it. Family B (22 registers)
+ * inlines the section builder's helpers, reads the list into v2 at 76, aliases it into v18 and moves the callback and
+ * the data key after it, with v3 holding the builder and v0 and v1 free. CompatReport's communityLayout keeps the same table.
  */
 internal fun Method.communityLayout(): CommunityLayout? = if (implementation == null || AccessFlags.STATIC.isSet(accessFlags)) null
     else when (implementation!!.registerCount) {
-        21 -> CommunityLayout(63, 1, 17, 1, listOf(0, 3))
-        22 -> CommunityLayout(76, 2, 18, 2, listOf(0, 1))
+        21 -> CommunityLayout(63, 15, null, 0, 9, listOf(0, 3))
+        22 -> CommunityLayout(76, 2, 18, 2, 11, listOf(0, 1))
         else -> null
     }
+
+private val COMMUNITY_SINK_LISTS = setOf("Ljava/util/List;", IMMUTABLE_LIST)
 
 /** Preserve the first empty/header read and capture, and prove scratch liveness along every successor. */
 internal fun Method.communityReadSite(scope: String): Int {
@@ -476,17 +481,21 @@ internal fun Method.communityReadSite(scope: String): Int {
     val at = reads.last()
     // The sink takes an $onThreadInViewport after the list (and family B the data key after that), moved into place after the alias.
     val list = (c[at] as? TwoRegisterInstruction)?.takeIf { it.registerA == layout.list && it.registerB == 4 }?.registerA ?: throw CommunityChanged()
-    val alias = (at + 1 until c.size).firstOrNull { c[it].opcode == Opcode.MOVE_OBJECT_FROM16 && (c[it] as TwoRegisterInstruction).registerA == layout.alias }
-        ?: throw CommunityChanged()
-    communityRequire((1..layout.moves).all { c.getOrNull(alias + it)?.opcode == Opcode.MOVE_OBJECT_FROM16 })
-    val sink = alias + layout.moves + 1
+    // The register the sink reads the list from, and the last index before the sink where nothing may overwrite the list.
+    val aliasRegister = layout.alias
+    val (passed, kept, sink) = if (aliasRegister == null) Triple(list, c.size - 8, c.size - 8) else {
+        val alias = (at + 1 until c.size).firstOrNull { c[it].opcode == Opcode.MOVE_OBJECT_FROM16 && (c[it] as TwoRegisterInstruction).registerA == aliasRegister }
+            ?: throw CommunityChanged()
+        communityRequire((c[alias] as TwoRegisterInstruction).registerB == list &&
+            (1..layout.moves).all { c.getOrNull(alias + it)?.opcode == Opcode.MOVE_OBJECT_FROM16 })
+        Triple(aliasRegister, alias, alias + layout.moves + 1)
+    }
     val sinkTypes = (c.getOrNull(sink)?.communityRef() as? MethodReference)?.parameterTypes?.map(CharSequence::toString) ?: throw CommunityChanged()
     communityRequire(implementation!!.tryBlocks.isEmpty() && c.size == sink + 8 &&
         c[6].opcode == Opcode.INVOKE_VIRTUAL && c[6].communityRef().toString() == "Ljava/util/AbstractCollection;->isEmpty()Z" && c[6].communityArgs() == listOf(0) &&
         communityString("searchBarSection") && c.any { it.opcode == Opcode.IGET_OBJECT && it.communityRef().toString() == scope } &&
-        (c[alias] as TwoRegisterInstruction).registerB == list &&
-        c[sink].opcode == Opcode.INVOKE_STATIC_RANGE && sinkTypes.size == 13 && sinkTypes[11] == "Ljava/util/List;" &&
-        c[sink].communityArgs()[11] == layout.alias && (at + 1 until alias).none { c[it].communityWrites(list) } &&
+        c[sink].opcode == Opcode.INVOKE_STATIC_RANGE && sinkTypes.size == 13 && sinkTypes[layout.slot] in COMMUNITY_SINK_LISTS &&
+        c[sink].communityArgs()[layout.slot] == passed && (at + 1 until kept).none { c[it].communityWrites(list) } &&
         jumpTargets().none { it in at + 1..sink })
     val addresses = IntArray(c.size + 1)
     for (index in c.indices) addresses[index + 1] = addresses[index] + c[index].codeUnits

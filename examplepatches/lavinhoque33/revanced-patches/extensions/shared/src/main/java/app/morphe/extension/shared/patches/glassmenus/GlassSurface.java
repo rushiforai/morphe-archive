@@ -7,7 +7,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-24.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.shared.patches.glassmenus;
@@ -55,12 +55,13 @@ import app.morphe.extension.shared.utils.Logger;
 
 @RequiresApi(Build.VERSION_CODES.S)
 final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeObserver.OnPreDrawListener {
-    enum Shape { BOTTOM_SHEET, WINDOW_PANEL, ROUNDED, POPUP, PLAYLIST_LIST, FLAT }
+    enum Shape { BOTTOM_SHEET, WINDOW_PANEL, ROUNDED, LANDSCAPE_PLAYER, POPUP, PLAYLIST_LIST, FLAT }
 
     private record Fill(View host, Drawable drawable, boolean litho) { }
 
     private static final String[] MENU_ATTRIBUTES = {
-            "ytRaisedBackground", "ytBaseBackground", "ytMenuBackground", "ytAdditiveBackground"
+            "ytRaisedBackground", "ytBaseBackground", "ytMenuBackground", "ytAdditiveBackground",
+            "colorBackgroundFloating"
     };
     private static final ColorFilter CLEAR = new PorterDuffColorFilter(Color.TRANSPARENT, PorterDuff.Mode.SRC);
     private static final Map<View, WeakReference<GlassSurface>> tracked = new WeakHashMap<>();
@@ -86,6 +87,7 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
     private final Map<Drawable, ColorFilter> hidden = new IdentityHashMap<>();
     private final Consumer<Boolean> blurListener = this::onSystemBlur;
     private final ViewTreeObserver.OnGlobalLayoutListener layoutListener = () -> layoutChanged = true;
+    private final ViewTreeObserver.OnWindowFocusChangeListener focusListener = this::onWindowFocusChanged;
     private final BroadcastReceiver powerReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -96,6 +98,8 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
     @Nullable private WindowManager windowManager;
     @Nullable private PowerManager powerManager;
     @Nullable private ViewTreeObserver observer;
+    @Nullable private Runnable removeVisibilityListener;
+    @Nullable private Runnable removeSourceVisibilityListener;
     @Nullable private Drawable stock;
     @Nullable private GlassPanelDrawable tint;
     @Nullable private BlurRegion region;
@@ -109,20 +113,56 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
     private boolean nativeBlur;
     private boolean regionChecked;
     private boolean failed;
-    private boolean dimChanged;
-    private float stockDim;
-    private float appliedDim;
+    private boolean focusLost;
+    private boolean backdropDirty;
+    @Nullable private WindowDim windowDim;
     private int appliedRadius;
     private int windowBottom;
     private int lithoChanges = -1;
     private int stockColor;
     private float cornerRadius;
 
-    static void apply(View view, View foreground, @Nullable Window window, @Nullable Activity owner, Shape shape) {
-        if (!tracked.containsKey(view)) {
-            GlassSurface surface = new GlassSurface(view, foreground, window, owner, shape);
-            tracked.put(view, new WeakReference<>(surface));
+    static void apply(View view, View foreground, @Nullable Window window, @Nullable Activity owner,
+                      Shape shape, boolean beforeShow) {
+        WeakReference<GlassSurface> reference = tracked.get(view);
+        GlassSurface surface = reference == null ? null : reference.get();
+        if (surface != null) {
+            if (beforeShow) surface.prepareDimBeforeShow();
+            return;
         }
+
+        surface = new GlassSurface(view, foreground, window, owner, shape);
+        tracked.put(view, new WeakReference<>(surface));
+        if (beforeShow) surface.prepareDimBeforeShow();
+        view.addOnAttachStateChangeListener(surface);
+        if (view.isAttachedToWindow()) surface.onViewAttachedToWindow(view);
+    }
+
+    @Nullable
+    static View findPopupPanel(View content) {
+        int[] colors = themeColors(content.getContext());
+        if (content.getParent() instanceof View wrapper && isPopupFill(wrapper, colors)) return wrapper;
+
+        if (isPopupFill(content, colors)) return content;
+
+        // Some contextual sheets set their panel inside a shadow or touch-dismiss wrapper.
+        // Select one recognized panel; never replace the wrapper's shadow or full-window scrim.
+        if (content instanceof ViewGroup group) {
+            View panel = null;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                View child = group.getChildAt(index);
+                if (child.getVisibility() != View.VISIBLE || !isPopupFill(child, colors)) continue;
+
+                if (panel != null) return null;
+                panel = child;
+            }
+            if (panel != null) return panel;
+        }
+        return SolidColors.isTransparent(content.getBackground()) ? content : null;
+    }
+
+    private static boolean isPopupFill(View candidate, int[] colors) {
+        return matchesThemeColor(colors, SolidColors.colorOf(candidate.getBackground()));
     }
 
     static boolean hasOpenMenus() {
@@ -155,23 +195,48 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
                 && window.getContext().getTheme().resolveAttribute(android.R.attr.windowIsTranslucent, value, true)
                 && value.data != 0;
         menuColors = themeColors(view.getContext());
+    }
 
-        view.addOnAttachStateChangeListener(this);
-        if (view.isAttachedToWindow()) onViewAttachedToWindow(view);
+    private void prepareDimBeforeShow() {
+        if (window == null || view.isAttachedToWindow()
+                || (window.getAttributes().flags & WindowManager.LayoutParams.FLAG_DIM_BEHIND) == 0) return;
+
+        Drawable background = view.getBackground();
+        if (!isKnownSolidPanel(SolidColors.colorOf(background))) return;
+
+        Window source = BlurRegion.sourceWindow(view, owner);
+        Context context = view.getContext();
+        WindowManager manager = context.getSystemService(WindowManager.class);
+        PowerManager power = context.getSystemService(PowerManager.class);
+        if (source == null || !BlurRegion.canSample(source) || manager == null || power == null
+                || !manager.isCrossWindowBlurEnabled() || power.isPowerSaveMode()) return;
+
+        // This policy is decided before WindowManager sees the window. If the stock panel cannot be
+        // verified yet (e.g. the Quality fragment sets its background after show), keep its own dim.
+        if (windowDim == null) windowDim = new WindowDim(window);
+        applyDim();
     }
 
     @Override
     public void onViewAttachedToWindow(View view) {
-        if (!GlassMenusPatch.isEnabled() || !view.isHardwareAccelerated()) return;
+        if (observer != null || failed) return;
+        if (!GlassMenusPatch.isEnabled() || !view.isHardwareAccelerated()) {
+            deactivate();
+            return;
+        }
 
         try {
             Context context = view.getContext();
             windowManager = context.getSystemService(WindowManager.class);
             powerManager = context.getSystemService(PowerManager.class);
-            if (windowManager == null || powerManager == null) return;
+            if (windowManager == null || powerManager == null) {
+                deactivate();
+                return;
+            }
 
             powerSaver = powerManager.isPowerSaveMode();
             systemBlur = windowManager.isCrossWindowBlurEnabled();
+            if (powerSaver || !systemBlur) deactivate();
             windowManager.addCrossWindowBlurEnabledListener(context.getMainExecutor(), blurListener);
             registeredBlur = true;
 
@@ -184,9 +249,18 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
             registeredPower = true;
 
             observer = view.getViewTreeObserver();
+            visibleSurfaces++;
             observer.addOnPreDrawListener(this);
             observer.addOnGlobalLayoutListener(layoutListener);
-            visibleSurfaces++;
+            observer.addOnWindowFocusChangeListener(focusListener);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                Window source = BlurRegion.sourceWindow(view, owner);
+                View sourceDecor = source == null ? null : source.peekDecorView();
+                if (sourceDecor != null && sourceDecor != view.getRootView() && sourceDecor.isAttachedToWindow()) {
+                    removeSourceVisibilityListener = new WindowVisibilityListener(this, sourceDecor.getViewTreeObserver());
+                }
+                removeVisibilityListener = new WindowVisibilityListener(this, observer);
+            }
         } catch (RuntimeException ex) {
             fail(ex);
         }
@@ -194,54 +268,95 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
 
     @Override
     public void onViewDetachedFromWindow(View view) {
+        stopObserving();
+        deactivate();
+        failed = false;
+        focusLost = false;
+        backdropDirty = false;
+        windowDim = null;
+        stock = null;
+        stockColor = Color.TRANSPARENT;
+        viewFills.clear();
+        lithoFills.clear();
+    }
+
+    private void stopObserving() {
         if (observer != null && observer.isAlive()) {
             observer.removeOnPreDrawListener(this);
             observer.removeOnGlobalLayoutListener(layoutListener);
+            observer.removeOnWindowFocusChangeListener(focusListener);
+            if (removeVisibilityListener != null) removeVisibilityListener.run();
         }
         if (observer != null) visibleSurfaces--;
+        if (removeSourceVisibilityListener != null) removeSourceVisibilityListener.run();
 
         if (registeredBlur && windowManager != null) windowManager.removeCrossWindowBlurEnabledListener(blurListener);
         if (registeredPower) view.getContext().unregisterReceiver(powerReceiver);
 
-        deactivate();
+        removeVisibilityListener = null;
+        removeSourceVisibilityListener = null;
         observer = null;
         windowManager = null;
         powerManager = null;
         registeredBlur = false;
         registeredPower = false;
-        failed = false;
-        stock = null;
-        stockColor = Color.TRANSPARENT;
-        tint = null;
-        viewFills.clear();
-        lithoFills.clear();
     }
 
     private void onPowerChanged() {
         if (powerManager == null) return;
 
-        powerSaver = powerManager.isPowerSaveMode();
-        onCapabilityChanged();
+        boolean enabled = powerManager.isPowerSaveMode();
+        if (powerSaver != enabled) {
+            powerSaver = enabled;
+            view.invalidate();
+        }
     }
 
-    private void onSystemBlur(boolean enabled) {
-        systemBlur = enabled;
-        onCapabilityChanged();
+    private void onSystemBlur(boolean ignored) {
+        if (observer == null || windowManager == null) return;
+
+        // The executor can deliver an older notification after a detach/re-attach.
+        boolean enabled = windowManager.isCrossWindowBlurEnabled();
+        if (systemBlur != enabled) {
+            systemBlur = enabled;
+            view.invalidate();
+        }
     }
 
-    private void onCapabilityChanged() {
-        if (!systemBlur || powerSaver) deactivate();
-        view.postInvalidateOnAnimation();
+    private void onWindowFocusChanged(boolean focused) {
+        if (focused && focusLost) refreshBackdrop();
+        focusLost = !focused && view.getWindowVisibility() == View.VISIBLE;
+    }
+
+    private void onWindowVisibilityChanged(int visibility) {
+        focusLost = false;
+        if (visibility != View.VISIBLE) {
+            dropBackdrop();
+        } else {
+            refreshBackdrop();
+        }
+    }
+
+    private void refreshBackdrop() {
+        backdropDirty = true;
+        view.invalidate();
     }
 
     @Override
     public boolean onPreDraw() {
-        if (failed) return true;
+        if (failed || observer == null || view.getWindowVisibility() != View.VISIBLE) return true;
 
         try {
+            if (backdropDirty) {
+                backdropDirty = false;
+                dropBackdrop();
+                if (windowManager != null) systemBlur = windowManager.isCrossWindowBlurEnabled();
+                if (powerManager != null) powerSaver = powerManager.isPowerSaveMode();
+            }
+
             if (systemBlur && !powerSaver && GlassMenusPatch.isEnabled()) {
                 update();
-            } else if (installed || region != null) {
+            } else {
                 deactivate();
             }
         } catch (RuntimeException ex) {
@@ -258,6 +373,23 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
             stockColor = SolidColors.colorOf(stock);
             tint = null;
             layoutChanged = true;
+        }
+
+        if (windowBackground && (window == null
+                || window.getAttributes().height != WindowManager.LayoutParams.WRAP_CONTENT
+                || !isKnownSolidPanel(stockColor))) {
+            // The subclass has completed its synchronous show setup and this is not a known panel.
+            deactivate();
+            stopObserving();
+            return;
+        }
+
+        if (!isKnownSolidPanel(stockColor) && !SolidColors.isTransparent(stock)) {
+            if (windowDim != null) {
+                windowDim.restore();
+                windowDim = null;
+            }
+            return;
         }
 
         boolean layout = layoutChanged;
@@ -290,17 +422,29 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
         boolean boundsChanged = !previousPanel.equals(panel);
         if (!platform && !prepareRegion(blurRadius, layout || boundsChanged)) {
             restore();
+            if (windowDim != null && (region == null || region.hasFailedCopy())) windowDim.restore();
             return;
         }
 
-        if (!installed || nativeBlur != platform) {
+        applyDim();
+
+        boolean changeRenderer = !installed || nativeBlur != platform;
+        if (changeRenderer) {
             restore();
+            if (tint == null) {
+                tint = new GlassPanelDrawable(stock, BaseThemeUtils.getAppBackgroundColor(),
+                        BaseThemeUtils.isDarkModeEnabled());
+            }
+        }
+
+        boolean outlineChanged = tint.configure(panel, cornerRadius, roundBottom, opacity, platform ? null : region);
+        if (changeRenderer) {
             install(platform);
             updateHiddenFills();
         } else if (newLitho || boundsChanged) {
             updateHiddenFills();
         }
-        if (tint.configure(panel, cornerRadius, roundBottom, opacity, platform ? null : region)) {
+        if (outlineChanged) {
             view.invalidateOutline();
         }
         if (platform && window != null && appliedRadius != blurRadius) {
@@ -312,7 +456,8 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
     private boolean prepareRegion(int blurRadius, boolean layout) {
         if (!regionChecked) {
             regionChecked = true;
-            region = BlurRegion.create(view, foreground, owner, BaseThemeUtils.getAppBackgroundColor());
+            region = BlurRegion.create(view, foreground, owner, BaseThemeUtils.getAppBackgroundColor(),
+                    shape == Shape.LANDSCAPE_PLAYER);
         }
         return region != null && region.prepare(panel, blurRadius, layout);
     }
@@ -325,7 +470,7 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
     }
 
     private boolean hasRoundBottom() {
-        if (shape == Shape.ROUNDED || shape == Shape.POPUP) return true;
+        if (shape == Shape.ROUNDED || shape == Shape.LANDSCAPE_PLAYER || shape == Shape.POPUP) return true;
         if (shape == Shape.FLAT || shape == Shape.PLAYLIST_LIST || windowManager == null) return false;
 
         return viewLocation[1] + panel.bottom < windowBottom - Dim.dp2;
@@ -337,33 +482,31 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
 
         view.getLocationOnScreen(viewLocation);
         Drawable basis = null;
-        if (shape == Shape.BOTTOM_SHEET) {
-            // A modern bottom-sheet host may extend into transparent top and side margins. Use its
-            // actual mounted panel, not the full host or a bounding box around disjoint decorations.
+        boolean knownStock = isKnownSolidPanel(stockColor);
+
+        if (shape == Shape.BOTTOM_SHEET || (shape == Shape.POPUP && !knownStock)) {
+            // Use the mounted panel, not its host's transparent margins or disjoint decorations.
             basis = largestFill(viewFills, null);
             basis = largestFill(lithoFills, basis);
             if (basis != null) {
                 extendPanel(viewFills);
                 extendPanel(lithoFills);
-            } else if (isMenuColor(stockColor)) {
+            } else if (knownStock) {
                 basis = SolidColors.leafOf(stock);
                 setStockPanel(basis);
             }
-        } else if (shape == Shape.POPUP && view != foreground && !isMenuColor(stockColor)) {
-            // A popup wrapper may contain shadow padding around its content. Do not blur that padding.
-            foreground.getLocationOnScreen(hostLocation);
-            int left = hostLocation[0] - viewLocation[0];
-            int top = hostLocation[1] - viewLocation[1];
-            panel.set(left, top, left + foreground.getWidth(), top + foreground.getHeight());
-            if (!panel.intersect(0, 0, view.getWidth(), view.getHeight())) panel.setEmpty();
-        } else {
+        } else if (knownStock) {
             basis = SolidColors.leafOf(stock);
             setStockPanel(basis);
         }
         if (panel.isEmpty()) return false;
 
         fillOutline.setEmpty();
-        if (basis != null) basis.getOutline(fillOutline);
+        if (shape == Shape.LANDSCAPE_PLAYER && view.getClipToOutline() && view.getOutlineProvider() != null) {
+            view.getOutlineProvider().getOutline(view, fillOutline);
+        } else if (basis != null) {
+            basis.getOutline(fillOutline);
+        }
         float radius = fillOutline.getRadius();
         cornerRadius = shape == Shape.FLAT ? 0 : radius > 0 ? radius : Dim.dp12;
         cornerRadius = Math.min(cornerRadius, Math.min(panel.width(), panel.height()) / 2f);
@@ -476,29 +619,31 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
     }
 
     private void install(boolean platform) {
-        if (tint == null) {
-            tint = new GlassPanelDrawable(stock, BaseThemeUtils.getAppBackgroundColor(),
-                    BaseThemeUtils.isDarkModeEnabled());
-        }
         installed = true;
         nativeBlur = platform;
         setBackground(tint);
         if (stock != null) stock.setCallback(tint);
-        if (window != null && (window.getAttributes().flags & WindowManager.LayoutParams.FLAG_DIM_BEHIND) != 0) {
-            stockDim = window.getAttributes().dimAmount;
-            appliedDim = SeekBarPreference.clampToRange(SharedYouTubeSettings.GLASS_MENUS_DIM) / 100f;
-            dimChanged = true;
-            window.setDimAmount(appliedDim);
+    }
+
+    private void applyDim() {
+        if (windowDim != null && !windowDim.ownsDim) {
+            windowDim.apply(SeekBarPreference.clampToRange(SharedYouTubeSettings.GLASS_MENUS_DIM) / 100f);
         }
     }
 
     private void deactivate() {
         restore();
+        if (windowDim != null) windowDim.restore();
+        tint = null;
+        dropBackdrop();
+    }
+
+    private void dropBackdrop() {
         if (region != null) region.clear();
         region = null;
-        tint = null;
         regionChecked = false;
         layoutChanged = true;
+        appliedRadius = -1;
     }
 
     private void restore() {
@@ -517,9 +662,7 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
         if (view.getBackground() == tint) setBackground(stock);
         if (window != null) {
             if (nativeBlur) window.setBackgroundBlurRadius(0);
-            if (dimChanged && window.getAttributes().dimAmount == appliedDim) window.setDimAmount(stockDim);
         }
-        dimChanged = false;
         nativeBlur = false;
         appliedRadius = 0;
     }
@@ -543,12 +686,18 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
 
     private void fail(RuntimeException ex) {
         failed = true;
+        stopObserving();
         deactivate();
         Logger.printException(() -> "Could not render glass menu; keeping the stock panel", ex);
     }
 
     private boolean isMenuColor(int color) {
         return similarOpaque(color, stockColor) || matchesThemeColor(menuColors, color);
+    }
+
+    private boolean isKnownSolidPanel(int color) {
+        return Color.alpha(color) >= 0xF0 && (shape == Shape.ROUNDED || shape == Shape.LANDSCAPE_PLAYER
+                || matchesThemeColor(menuColors, color));
     }
 
     static boolean isThemeMenuColor(Context context, int color) {
@@ -590,5 +739,60 @@ final class GlassSurface implements View.OnAttachStateChangeListener, ViewTreeOb
             }
         }
         return colors;
+    }
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private static final class WindowVisibilityListener implements
+            ViewTreeObserver.OnWindowVisibilityChangeListener, Runnable {
+        private final GlassSurface surface;
+        private final ViewTreeObserver observer;
+
+        WindowVisibilityListener(GlassSurface surface, ViewTreeObserver observer) {
+            this.surface = surface;
+            this.observer = observer;
+            observer.addOnWindowVisibilityChangeListener(this);
+        }
+
+        @Override
+        public void onWindowVisibilityChanged(int visibility) {
+            surface.onWindowVisibilityChanged(visibility);
+        }
+
+        @Override
+        public void run() {
+            if (!observer.isAlive()) return;
+            observer.removeOnWindowVisibilityChangeListener(this);
+        }
+    }
+
+    /** Own only the dim value we set, not the stock flag or a later value set by the app. */
+    static final class WindowDim {
+        private final Window window;
+        private boolean ownsDim;
+        private float stockDim;
+        private float appliedDim;
+
+        WindowDim(Window window) {
+            this.window = window;
+        }
+
+        void apply(float amount) {
+            WindowManager.LayoutParams attributes = window.getAttributes();
+            if (ownsDim || (attributes.flags & WindowManager.LayoutParams.FLAG_DIM_BEHIND) == 0) return;
+
+            stockDim = attributes.dimAmount;
+            appliedDim = amount;
+            ownsDim = true;
+            if (stockDim != amount) window.setDimAmount(amount);
+        }
+
+        void restore() {
+            if (!ownsDim) return;
+
+            ownsDim = false;
+            if (stockDim != appliedDim && window.getAttributes().dimAmount == appliedDim) {
+                window.setDimAmount(stockDim);
+            }
+        }
     }
 }

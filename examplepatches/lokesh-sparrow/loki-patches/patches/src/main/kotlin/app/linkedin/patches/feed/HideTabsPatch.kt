@@ -8,6 +8,7 @@ package app.linkedin.patches.feed
 import app.linkedin.patches.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.linkedin.patches.shared.Constants.EXTENSION_PACKAGE
 import app.linkedin.patches.shared.markIncluded
+import app.linkedin.patches.shared.sduiComponentFilterPatch
 import app.linkedin.patches.shared.settingsPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -32,7 +33,7 @@ val hideTabsPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    dependsOn(settingsPatch)
+    dependsOn(settingsPatch, sduiComponentFilterPatch)
 
     execute {
         markIncluded("isHideTabsIncluded")

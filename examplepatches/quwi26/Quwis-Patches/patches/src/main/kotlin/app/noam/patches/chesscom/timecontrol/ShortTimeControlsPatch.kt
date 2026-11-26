@@ -160,10 +160,12 @@ val shortTimeControlsPatch = bytecodePatch(
         }
 
         // 4.10.23's custom time row: the shared stepper (i) and the minutes row (b) in gamesetup.
-        // 4.10.27 renamed the composable file g -> i, so the stepper's shape picks the class.
+        // 4.10.27 renamed the composable file g -> i, and 4.10.29 moved it to h, so the stepper's
+        // shape picks the class.
         if (CustomTimeSelectorFingerprint.matchOrNull() == null) {
             val gamesetup = listOf(
                 "Lcom/chess/features/gamesetup/compose/g;",
+                "Lcom/chess/features/gamesetup/compose/h;",
                 "Lcom/chess/features/gamesetup/compose/i;",
             ).firstNotNullOfOrNull { type ->
                 mutableClassDefByOrNull(type)?.takeIf { classDef ->

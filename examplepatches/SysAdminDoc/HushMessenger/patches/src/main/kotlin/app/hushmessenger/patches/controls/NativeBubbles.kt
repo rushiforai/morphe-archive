@@ -26,8 +26,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 internal const val BUBBLE_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;"
-/** The specifier of the bubble rollout read as 587 numbers it (586 read 36311998572662839, 585 36312002867630111). Each release renumbers it, and no other is accepted. */
-internal const val BUBBLE_ROLLOUT = 36311994277695516L
+/** The specifier of the bubble rollout read as 588 numbers it (587 read 36311994277695516, 586 36311998572662839). Each release renumbers it, and no other is accepted. */
+internal const val BUBBLE_ROLLOUT = 36311959917957240L
 internal const val BUBBLE_ACTIVITY = "com.facebook.messaging.msys.thread.bubbles.activity.StaxThreadViewBubblesActivity"
 internal const val NATIVE_BUBBLE_ROUTES = "$HOST_SCREENS->nativeBubbleRoutes()Z"
 internal const val NATIVE_BUBBLE_METADATA = "hush.native_bubble_routes"
@@ -437,6 +437,23 @@ private class BubbleValues(val method: Method) {
     fun returns(expected: String?) = expected != null && code.indices.any { at ->
         code[at].opcode == Opcode.RETURN_OBJECT && key(at, code[at].bubbleRegister()!!) == expected
     }
+    /**
+     * The argument a method hands back as its only answer besides null, counting `this` as argument 0 the way a call's
+     * registers do: 588's push helper pushes the shortcut and returns the container it was given, or null on failure.
+     */
+    fun passedArgument(): Int? {
+        val answers = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }.map { definitions(it, code[it].bubbleRegister()!!) }
+        if (answers.isEmpty() || answers.any { it.isEmpty() }) return null
+        val all = answers.flatten()
+        val passed = all.filter { it < 0 }.map { -it - 1 }.toSet().singleOrNull() ?: return null
+        if (all.any { it >= 0 && (code[it].opcode != Opcode.CONST_4 || (code[it] as NarrowLiteralInstruction).narrowLiteral != 0) }) return null
+        var register = parameterStart + if (AccessFlags.STATIC.isSet(method.accessFlags)) 0 else 1
+        for (p in method.bubbleParameters()) {
+            if (register == passed) return if (p == method.returnType) passed - parameterStart else null
+            register += if (p == "J" || p == "D") 2 else 1
+        }
+        return null
+    }
     fun calls() = if (!valid) emptyList() else code.indices.filter { code[it].opcode.toString().startsWith("INVOKE") }
     fun reference(at: Int) = (code[at] as? ReferenceInstruction)?.reference as? MethodReference
     fun argument(at: Int, argument: Int) = code[at].bubbleArgs().getOrNull(argument)
@@ -520,11 +537,17 @@ private fun connectedBubbleValues(classes: List<ClassDef>, shortcut: Method, att
         if (depth == 0 || (seen[m.hookId()] ?: -1) >= depth) return false
         seen[m.hookId()] = depth
         val f = flow(m)
+        // A definition answers with the call when its call does, or hands back an argument that does (588's push helper).
+        fun answers(definition: Int, left: Int): Boolean {
+            if (definition <= 0 || f.code[definition].opcode != Opcode.MOVE_RESULT_OBJECT) return false
+            val called = target(f.reference(definition - 1)) ?: return false
+            if (returnsCall(called, id, depth - 1, seen)) return true
+            val passed = flow(called).passedArgument() ?: return false
+            return left > 0 && f.argument(definition - 1, passed)?.let { r ->
+                f.definitions(definition - 1, r).any { answers(it, left - 1) } } == true
+        }
         return f.code.indices.filter { f.code[it].opcode == Opcode.RETURN_OBJECT }.any { at ->
-            f.definitions(at, f.code[at].bubbleRegister()!!).any { definition ->
-                definition > 0 && f.code[definition].opcode == Opcode.MOVE_RESULT_OBJECT &&
-                    target(f.reference(definition - 1))?.let { returnsCall(it, id, depth - 1, seen) } == true
-            }
+            f.definitions(at, f.code[at].bubbleRegister()!!).any { answers(it, 2) }
         }
     }
     val shortcutField = bubbleShortcutField(byType, shortcut) ?: return false

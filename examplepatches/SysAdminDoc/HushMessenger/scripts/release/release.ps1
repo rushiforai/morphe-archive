@@ -22,8 +22,8 @@ param(
     [switch]$DryRun, [string]$NeedsMatt, [switch]$Abandon,
     [ValidatePattern('^(\d{4}-\d{2}-\d{2})?$')][string]$Date,
     [string]$SigningKey, [string]$BundleKey, [string]$DesktopJar, [string]$CompatClasspath, [string]$Java,
-    # publish: the walk-receipt.json a whole-app walk of this exact bundle left.
-    [string]$Walk,
+    # publish: the walk-receipt.json a whole-app walk of this exact bundle left. WalkSerial: the walk-list device to walk on.
+    [string]$Walk, [string]$WalkSerial,
     [string]$Repository = 'SysAdminDoc/HushMessenger'
 )
 
@@ -215,7 +215,8 @@ if (-not $Stage) {
                 }
                 'walk' {
                     $out = Join-Path $work 'walk'
-                    Invoke-Script (Join-Path $root 'scripts/walk-app.ps1') -Bundle (Join-Path $assets $bundleName) -OutDir $out
+                    [string[]]$walkDevice = if ($WalkSerial) { @('-ListedSerial', $WalkSerial) } else { @() }
+                    Invoke-Script (Join-Path $root 'scripts/walk-app.ps1') -Bundle (Join-Path $assets $bundleName) -OutDir $out @walkDevice
                     Save-Stage 'walk' @{ commit = (Get-Head); sha256 = (Read-State).build.sha256; receipt = (Join-Path $out 'walk-receipt.json') }
                 }
                 'publish' { Invoke-Script $PSCommandPath -Stage publish @pass -Walk (Read-State).walk.receipt }

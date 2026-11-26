@@ -88,6 +88,8 @@ import app.hushpinterest.extension.pinterest.ads.Ads;
 import app.hushpinterest.extension.pinterest.ads.FeedFilter;
 import app.hushpinterest.extension.pinterest.ads.HomeFeed;
 import app.hushpinterest.extension.pinterest.ads.SavedPins;
+import app.hushpinterest.extension.pinterest.ads.SeenPins;
+import app.hushpinterest.extension.pinterest.ads.SeenPinsForTests;
 import app.hushpinterest.extension.pinterest.privacy.ActivityHistory;
 import app.hushpinterest.extension.pinterest.privacy.ActivityHistoryForTests;
 import app.hushpinterest.extension.pinterest.privacy.Analytics;
@@ -156,6 +158,12 @@ public class PausedHooksTest {
         @Json("is_video") Boolean video;
         @Json("created_at") Date createdAt;
         @Json("is_owned_by_viewer") Boolean owned;
+    }
+
+    /** A pin with an ID, which Hide pins you've already seen notes by. */
+    static final class ProbeSeenPin {
+        @Json("id") String id = "5252";
+        @Json("grid_title") String gridTitle = "";
     }
 
     /** 14.44.0's "More ideas for your board" card: a board's name and header over its images. */
@@ -449,6 +457,25 @@ public class PausedHooksTest {
                     mine.owned = true;
                     return SavedPins.dropRelated(mine);
                 }));
+        // A pin Home brought comes on screen, and the next Home page leaves it out (#52).
+        probes.put(Settings.HIDE_SEEN_PINS, Collections.singletonList(() -> {
+            SeenPinsForTests.clear();
+            ProbeSeenPin pin = new ProbeSeenPin();
+            SeenPinsForTests.homePage(new ArrayList<>(Collections.singletonList(pin)));
+            SeenPins.shown(pin);
+            List<Object> next = new ArrayList<>(Collections.singletonList(pin));
+            SeenPinsForTests.homePage(next);
+            return next.isEmpty();
+        }));
+        // The same for a search page, on its own switch.
+        probes.put(Settings.HIDE_SEEN_PINS_SEARCH, Collections.singletonList(() -> {
+            SeenPinsForTests.clear();
+            ProbeSeenPin pin = new ProbeSeenPin();
+            List<Object> page = Arrays.asList(pin, new ProbePin());
+            SavedPins.searchPage(page);
+            SeenPins.shown(pin);
+            return SavedPins.searchPage(page) != page;
+        }));
         // Home's board ideas card leaves the page, and a pin's "See more like this?" bubble is turned down.
         probes.put(Settings.HIDE_HOME_SUGGESTIONS, Arrays.asList(() -> {
             List<Object> page = new ArrayList<>(Arrays.asList(new ProbeBoardIdeas(), new ProbePin()));

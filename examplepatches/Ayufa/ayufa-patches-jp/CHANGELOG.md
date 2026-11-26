@@ -2,6 +2,12 @@
 
 このプロジェクトのバージョンは、バンドル全体に対する独立したセマンティックバージョニング（`vX.Y.Z`）で管理します。上流（crimera/piko、ryykitty/twitch-patched）のバージョンとは連動しません。方針は [docs/UPSTREAM.md](docs/UPSTREAM.md) を参照してください。
 
+## [1.8.0] - 2026-11-26
+
+### 削除
+
+- LINE パッチ（全39件）の収録を終了しました。本家 andrewliang25/morphe-patches が v4.0.0 で設定画面「Andrew's Patch Setting」の公式日本語訳を提供し始めたためです。LINE のパッチが必要な方は、本家を Morphe のパッチソースとして直接追加してください。X、Twitch、KakaoTalk のパッチに変更はありません。
+
 ## [1.6.1] - 2026-11-18
 
 ### 修正

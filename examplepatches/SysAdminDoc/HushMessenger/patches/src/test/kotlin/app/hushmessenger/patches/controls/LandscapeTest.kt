@@ -109,8 +109,8 @@ class LandscapeTest {
         assertEquals(setOf(LANDSCAPE_LOCK, LANDSCAPE_MEDIA), controlHooks.getValue(LANDSCAPE))
         assertEquals(setOf(SYNTHETIC_PORTRAIT_LOCK), SYNTHETIC_PROFILE.hooks.getValue(LANDSCAPE_LOCK))
         assertEquals(setOf(SYNTHETIC_MEDIA_ORIENTATION), SYNTHETIC_PROFILE.hooks.getValue(LANDSCAPE_MEDIA))
-        assertEquals(setOf("LX/07D;->A0K()Z"), BASE_PROFILE.hooks.getValue(LANDSCAPE_LOCK))
-        assertEquals(setOf("LX/7LD;->A00(LX/7LD;I)V"), BASE_PROFILE.hooks.getValue(LANDSCAPE_MEDIA))
+        assertEquals(setOf("LX/06f;->A0K()Z"), BASE_PROFILE.hooks.getValue(LANDSCAPE_LOCK))
+        assertEquals(setOf("LX/7km;->A00(LX/7km;I)V"), BASE_PROFILE.hooks.getValue(LANDSCAPE_MEDIA))
     }
 
     // The lock's answer is changed at each return, so a check that reads something else, or one whose returns or

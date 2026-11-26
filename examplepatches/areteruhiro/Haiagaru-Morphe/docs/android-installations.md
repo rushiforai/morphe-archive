@@ -4022,3 +4022,91 @@ Success。
 - 2026-11-24T02:09:25.446201+09:00 公開候補／公開版 board-label-checker-runtime-final: 191 / jp.co.airfront.android.a2chMate.haiagaru.reporter191 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/board-label-checker-runtime-final/chatmate191.apk` SHA-256 `961cc78056efdfe222fd5b4553c8cd52c1be92c9d725213efb6dc54538fed79c`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/board-label-checker-runtime-final/candidate.mpp` SHA-256 `3870cc759a179641fc372849bd1d68ae7dcb36a1349abf75175680fdcf665023`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
 
 - 2026-11-24T02:10:50.777482+09:00 公開候補／公開版 board-label-checker-runtime-final: 226 / jp.co.airfront.android.a2chMate.haiagaru.reporter226 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/board-label-checker-runtime-final/chatmate226.apk` SHA-256 `7db58d8a6bfb1c095d5f7ecdecaabd3a7543dc5f45745cc380fed8f427f305e2`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/board-label-checker-runtime-final/candidate.mpp` SHA-256 `3870cc759a179641fc372849bd1d68ae7dcb36a1349abf75175680fdcf665023`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
+
+## 2026-11-24 スレ限定NG専用判定・設定表示修正 242
+
+- 端末: d5497008 / Mi Note 10 / Android 11。
+- 対象: jp.co.airfront.android.a2chMate.haiagaru.reporter242（Haiagaru 修正確認 242）。adb install -r 成功、既存データ保持、HomeActivity起動成功。
+- APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/ng-registration-install242/chatmate242.apk
+- APK SHA-256: d327b1a6f6fa104fffbf262ee54a57002f8bfc4fd3ee787de030cb760db38ea6
+- MPP: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/ng-registration-install242/candidate.mpp
+- MPP SHA-256: e052d2da223f4bf9e8cae24e4e9d8183993332a4618865f5611c9904845ab540
+- 署名SHA-256（旧APKと一致）: 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed
+- 更新前APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/ng-registration-install242/previous242.apk
+- Frida実機確認: インストールしたネイティブ専用IDマッチャーで追加の比較フックなしに登録済みスレ限定NGの100件すべてが透明NG判定へ一致。NG登録内容は変更していない。
+- 結果: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/ng-registration-install242/frida-installed.log
+
+## 2026-11-24 通信量記録・画像動画管理 242
+
+- 端末 d5497008 / Mi Note 10 / Android11、jp.co.airfront.android.a2chMate.haiagaru.reporter242 へ署名一致確認後adb install -r Success、HomeActivity起動成功。
+- APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/storage-media-install242/chatmate242.apk
+- APK SHA256: cf0382ec9a00abc499c0b3c1db4057e5a2e2dbf15eec07decf033d8c8ea800a5
+- MPP: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/storage-media-install242/candidate.mpp
+- MPP SHA256: 97b573a14085b5059a8865355c1a709fb748d6f6e01d105af493d35db353dc23
+- 証明書SHA256: 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed
+- 更新前APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/storage-media-install242/previous242.apk
+- ローカルファイル477件検出。初回の5秒待機では集計未完了で、後続の確認では477件を表示。操作試験は画面が閉じられたため未完了。実ファイル削除なし。
+
+## 2026-11-24 画像動画管理・並び順・ドラッグスクロール最終242
+
+- d5497008 / Mi Note10 / Android11。検証用jp.co.airfront.android.a2chMate.haiagaru.reporter242へ署名照合後install-r Success、HomeActivity起動成功。
+- APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/media-scroll-install242/chatmate242.apk
+- APK SHA256: 5a36619053dbacc1d186930b6803e8f791a7dd68a200734b16a107424ba5214d
+- MPP: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/media-scroll-install242/candidate.mpp
+- MPP SHA256: d548948d845e5ca344d81f793accd5fb0b250208847635607d055f99b50c4bff
+- 証明書SHA256: 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed
+- 更新前APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/media-scroll-install242/previous242.apk
+- 実機Fridaで15項目成功。画像動画477件、検索・個別／全選択解除・画像動画切替・サムネイル切替・容量日付名前各昇順降順6種・fast scroll enabled/always visible。実データ削除なし。
+- 結果: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/media-scroll-install242/frida-browser.log
+- スクリーンショット: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/media-scroll-install242/screen.png
+
+## 2026-11-25 板・スレ選択／機能別Wi-Fi取得 最新242
+
+- d5497008 / Mi Note10 / Android11。jp.co.airfront.android.a2chMate.haiagaru.reporter242へ署名一致確認後install-r Success、起動成功。データ消去なし。
+- APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/board-picker-install242/chatmate242.apk
+- APK SHA256: 7661d219141edf113b14fab1890b574544db576c05eaef55f840adc679cffab9
+- MPP: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/board-picker-install242/candidate.mpp
+- MPP SHA256: 0f59351fe701c2ecc156d1356562e3b4625017463faa81c93d801916364179b8
+- 証明書SHA256: 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed
+- 更新前APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/board-picker-install242/previous242.apk
+- 実機Frida UI: ダイアログ表示・小さい幅・検索欄と一覧・登録板読込・検索絞り込み／解除・システム戻る・枠外タップの8項目成功。登録板9950件。初回5秒待ちでは未完了、15秒待ちで成功。登録URL・板の削除や投稿なし。
+- 結果: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/board-picker-install242/frida-popup.log
+
+## 2026-11-25 新着件数補正・空のエッヂ下書き・通信量記録軽量化
+
+- Android 16 AVD `emulator-5580` の隔離 reporter 191／226／242へ導入。物理端末 `d5497008` には導入していない。
+- MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/new-arrival-zero-fallback-20261125/final-candidate/candidate.mpp` SHA-256 `d33b8c5aa7a8643fd12294984e5fbe06145a8a92dacc3a7ef69f57c149f09d42`。
+- 191 APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/new-arrival-zero-fallback-20261125/final-candidate/chatmate191.apk` SHA-256 `bcebfc9f4bc858a8758cfbc70392bcf8e39904f3f3eb5092d1b8bf82c79f3d8d`。
+- 226 APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/new-arrival-zero-fallback-20261125/final-candidate/chatmate226.apk` SHA-256 `97d2c6aebf21f4abf1ad09980e39fe4fa10ec95807e1eb70ab7607df0acfcd17`。
+- 242 APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/new-arrival-zero-fallback-20261125/final-candidate/chatmate242.apk` SHA-256 `724ed41f784dfa193d3724155a6df05375762df4454ca2ce769c5f5334ef8003`。
+- 全APKの署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。各版のAPKにはインストール成功。
+- Frida 17.18.0、各版で新着件数の合成ケース7件、空のエッヂ下書き14件、通信量記録の一括保存・初期OFFを確認。1,000回の合成記録呼び出しは191で183ms、226で103ms、242で100ms。初期OFF時にサンプラーが起動しないことも確認。
+- DEX検査で全版の更新前／更新後／0件補正フックと空下書きガードを1か所ずつ確認。旧番号計算オプションはAPKに残っていない。
+- Frida結果・適用ログ・候補APK: `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/new-arrival-zero-fallback-20261125/final-candidate/`。
+- 実機報告スレ上での新着0件再現は未実施。公開投稿、端末 `d5497008` のデータ変更なし。
+
+## 2026-11-25 モバイルメディア判定・通信量OFF 負荷確認
+
+- d5497008 / Mi Note10 / Android 11。隔離reporter191／226／242に署名照合後install-r Success。通常版ChMateは置換せず、設定はFrida確認後に復元。
+- MPP: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/mobile-policy-cache-20261125/candidates/candidate.mpp
+- MPP SHA256: d70d8b5b9effb00df11e15074585b0bdfb7f3b1d703666e9af54c5ffff27d21f
+- 191 APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/mobile-policy-cache-20261125/candidates/chatmate191.apk / SHA256 `796ec4d00a0cb3c9341ad4a88ed53acc379797f28e294241595ef152c22fdbd9`
+- 226 APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/mobile-policy-cache-20261125/candidates/chatmate226.apk / SHA256 `01bfddb7243245b9780c38b038dfd66eb15da889ec0e7bc3eec1504b76f04542`
+- 242 APK: C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/mobile-policy-cache-20261125/candidates/chatmate242.apk / SHA256 `53344185f26728d486a05cd0185d861231a6c58039ff338d483fab9f448d363b`
+- 証明書SHA256: `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`
+- 各版で画像取得判定50,000回＋動画分割Wi-Fi判定50,000回。判定中の `getActiveNetwork()`／`getNetworkCapabilities()`／`getActiveNetworkInfo()`／`getAllNetworks()`／`getNetworkInfo()` は全て0回。時間は191 4,404ms／226 4,486ms／242 4,384ms。
+- 各版で通信量記録OFF時の入力計数ラッパー迂回、定期サンプラーの開始・停止を確認。
+- Fridaスクリプト: `scripts/frida-mobile-media-policy-cache.js`, `scripts/frida-app-traffic-default.js`
+- 記録: `docs/mobile-media-policy-performance-20261125.md`
+
+- 2026-11-26T10:06:54.575075+09:00 公開候補／公開版 wifi-media-options-20261126: 191 / jp.co.airfront.android.a2chMate.haiagaru.reporter191 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-20261126/chatmate191.apk` SHA-256 `5efefea617507e06fff01f5b0762bd4aa4b39670b3dec2ecc833b2e448f00a34`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-20261126/candidate.mpp` SHA-256 `b426af4f136348c005a56b347b5bd932441f4cb5ac9673a644c5558984f04848`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
+
+- 2026-11-26T10:08:21.169399+09:00 公開候補／公開版 wifi-media-options-20261126: 226 / jp.co.airfront.android.a2chMate.haiagaru.reporter226 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-20261126/chatmate226.apk` SHA-256 `48e5a62846ab1cc6e6d66ed9c216f2019371aa97ac845c6280c6815e3b06a050`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-20261126/candidate.mpp` SHA-256 `b426af4f136348c005a56b347b5bd932441f4cb5ac9673a644c5558984f04848`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
+
+- 2026-11-26T10:09:51.967895+09:00 公開候補／公開版 wifi-media-options-20261126: 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-20261126/chatmate242.apk` SHA-256 `bf3c7a88bdaff28cd8ceb72a27a8d7d6fc5412ac91c92018321306005361137e`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-20261126/candidate.mpp` SHA-256 `b426af4f136348c005a56b347b5bd932441f4cb5ac9673a644c5558984f04848`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
+
+- 2026-11-26T11:02:45.605643+09:00 公開候補／公開版 wifi-media-options-final-20261126: 191 / jp.co.airfront.android.a2chMate.haiagaru.reporter191 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/chatmate191.apk` SHA-256 `4fc0d41b7ddd9ed93b931715bc08ba0390e919a56dc2a9b25b10369a8a0305aa`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/candidate.mpp` SHA-256 `485c5271d66fb211c7a4a8e69a205be4b76df1fce991d8f81fa48d0cf21da886`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
+
+- 2026-11-26T11:04:18.169335+09:00 公開候補／公開版 wifi-media-options-final-20261126: 226 / jp.co.airfront.android.a2chMate.haiagaru.reporter226 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/chatmate226.apk` SHA-256 `3be9172aac6eb0c25ceec5098830d0cf72717ba322a14aebc065e3be3648ece3`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/candidate.mpp` SHA-256 `485c5271d66fb211c7a4a8e69a205be4b76df1fce991d8f81fa48d0cf21da886`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
+
+- 2026-11-26T11:05:46.989608+09:00 公開候補／公開版 wifi-media-options-final-20261126: 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/chatmate242.apk` SHA-256 `10706db81789e683fcad4543fd5044ab0634d87c02b168c78e28aaa1affea6e2`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/candidate.mpp` SHA-256 `485c5271d66fb211c7a4a8e69a205be4b76df1fce991d8f81fa48d0cf21da886`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。

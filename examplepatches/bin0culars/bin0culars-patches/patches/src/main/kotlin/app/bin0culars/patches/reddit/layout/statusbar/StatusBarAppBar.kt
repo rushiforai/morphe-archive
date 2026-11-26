@@ -76,11 +76,12 @@ private fun findGraphicsLayerMoveResult(
 }
 
 private fun isBackgroundRef(ref: MethodReference): Boolean {
-    val sizeOk = ref.parameterTypes.size == 3
-    val paramsOk = sizeOk && ref.parameterTypes[0].startsWith("L") && ref.parameterTypes[1] == "J" &&
-        ref.parameterTypes[2].startsWith("L")
-    val returnOk = paramsOk && ref.returnType.startsWith("L")
-    return returnOk && ref.returnType == ref.parameterTypes[0]
+    val params = ref.parameterTypes.map { it.toString() }
+    val returnType = ref.returnType.toString()
+    val sizeOk = params.size == 3
+    val paramsOk = sizeOk && params[0].startsWith("L") && params[1] == "J" && params[2].startsWith("L")
+    val returnOk = paramsOk && returnType.startsWith("L")
+    return returnOk && returnType == params[0]
 }
 
 private fun findBackgroundIndex(

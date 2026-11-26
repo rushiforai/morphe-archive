@@ -119,7 +119,7 @@ class AdEventsTest {
     }
 
     @Test fun everyProfileHooksBothEvents() {
-        assertEquals(setOf("LX/22m;->FS5(LX/0DT;Z)V", "LX/6Gm;->A00(LX/68I;$FB_USER_SESSION$S$S$S$S)V"),
+        assertEquals(setOf("LX/2Bj;->G3Z(LX/03B;Z)V", "LX/6gr;->A00(LX/6Wb;$FB_USER_SESSION$S$S$S$S)V"),
             BASE_PROFILE.hooks.getValue(AD_EVENTS))
         assertEquals(setOf(SYNTHETIC_INBOX_VISIBILITY, SYNTHETIC_AD_ENTRY), SYNTHETIC_PROFILE.hooks.getValue(AD_EVENTS))
     }

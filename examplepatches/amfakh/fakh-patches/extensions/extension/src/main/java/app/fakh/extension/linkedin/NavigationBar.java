@@ -113,6 +113,16 @@ public final class NavigationBar {
     }
 
     /**
+     * Injected at the start of MediaCachedLix.isVideoTabSduiScreenEnabled(). On an account LinkedIn gives no Video tab,
+     * the app's own video viewer stays blank, so a Video tab added here opens the server-driven video screen.
+     *
+     * @return true to force that screen, false to leave the choice to LinkedIn
+     */
+    public static boolean useServerVideoScreen() {
+        return Settings.optionalTabShown("VIDEO") && !Settings.tabOffered("VIDEO");
+    }
+
+    /**
      * Puts the tabs in the order sorted in the settings. Home stays first, and a tab the order does not name keeps
      * its place after the named ones. Returns whether anything moved.
      */

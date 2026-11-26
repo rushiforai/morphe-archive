@@ -10,6 +10,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -100,8 +102,27 @@ internal fun tabIconsFixture() = listOf(fixtureClass(SYNTHETIC_TAB_ICONS.substri
 
 private fun Method.body() = implementation!!.instructions.toList()
 
-/** The three instructions one icon takes, in front of the call that wraps it. */
+/**
+ * Every register a narrow call can reach is read again after the one icon, but v16 and v17 never are, so the icon has
+ * to go through a pair of them.
+ */
+private fun highPairBuilder() = fixtureMethod(SYNTHETIC_TAB_ICONS, """
+    const-string v0, "$TAB_ICON_TRACE"
+    invoke-static {v0}, LX/0Bv;->A01(Ljava/lang/String;)V
+    sget-object v0, $INBOX_PLUGIN->A00:Ljava/lang/Object;
+    invoke-static {v1}, $TAB_HOLDER->A00($DRAWABLE_TYPE)$TAB_HOLDER
+    move-result-object v1
+    invoke-direct {v0, v1, v2, v3, v4}, $TAB_DESCRIPTION-><init>(${TAB_HOLDER}Ljava/lang/String;Ljava/lang/String;Z)V
+    invoke-static/range {v0 .. v15}, LX/0Bv;->A02(${"Ljava/lang/Object;".repeat(16)})V
+    return-void
+""".trimIndent(), registers = 20)
+
+/** Where each site's hook starts once every earlier one has gone in. */
+private fun hookStarts(sites: List<TabIconSite>) = sites.indices.map { i -> sites[i].at + sites.take(i).sumOf { it.size } }
+
+/** The three instructions one icon takes in front of the call that wraps it, or four through a pair. */
 private fun assertIconHook(after: List<Instruction>, at: Int, site: TabIconSite, label: String) {
+    if (site.pair) return assertPairHook(after, at, site, label)
     assertEquals(Opcode.CONST_STRING, after[at].opcode, label)
     assertEquals(site.scratch, (after[at] as OneRegisterInstruction).registerA, label)
     assertEquals(site.key, ((after[at] as ReferenceInstruction).reference as StringReference).string, label)
@@ -115,6 +136,24 @@ private fun assertIconHook(after: List<Instruction>, at: Int, site: TabIconSite,
     assertEquals(site.register, (after[at + 2] as OneRegisterInstruction).registerA, label)
     // The drawable's register holds a drawable on both sides of the call, so a catch over the site sees no change.
     assertTrue(site.scratch != site.register, label)
+}
+
+/** The drawable copied into the pair's first register, the name in the second, and the helper reading both. */
+private fun assertPairHook(after: List<Instruction>, at: Int, site: TabIconSite, label: String) {
+    assertEquals(Opcode.MOVE_OBJECT_FROM16, after[at].opcode, label)
+    assertEquals(site.scratch, (after[at] as TwoRegisterInstruction).registerA, label)
+    assertEquals(site.register, (after[at] as TwoRegisterInstruction).registerB, label)
+    assertEquals(Opcode.CONST_STRING, after[at + 1].opcode, label)
+    assertEquals(site.scratch + 1, (after[at + 1] as OneRegisterInstruction).registerA, label)
+    assertEquals(site.key, ((after[at + 1] as ReferenceInstruction).reference as StringReference).string, label)
+    assertEquals(Opcode.INVOKE_STATIC_RANGE, after[at + 2].opcode, label)
+    assertEquals(PICK_TAB_ICON, (after[at + 2] as ReferenceInstruction).reference.toString(), label)
+    val call = after[at + 2] as RegisterRangeInstruction
+    assertEquals(site.scratch, call.startRegister, label)
+    assertEquals(2, call.registerCount, label)
+    assertEquals(Opcode.MOVE_RESULT_OBJECT, after[at + 3].opcode, label)
+    assertEquals(site.register, (after[at + 3] as OneRegisterInstruction).registerA, label)
+    assertTrue(site.register !in site.scratch..site.scratch + 1, label)
 }
 
 class TabIconsTest {
@@ -170,6 +209,32 @@ class TabIconsTest {
         for ((index, site) in sites.withIndex()) assertIconHook(method.body(), site.at + 3 * index, site, site.key)
     }
 
+    /** With no low register free the icon goes through two dead ones above v15, and the rest stays as it was. */
+    @Test fun anIconWithNoLowRegisterFreeGoesThroughAPair() {
+        val method = highPairBuilder()
+        val before = method.body()
+        val site = method.validateTabIcons().single()
+        assertEquals(TabIconSite(3, 1, "inbox", scratch = 16, pair = true), site)
+        injectControl("tab_icons", mapOf(TAB_ICONS to listOf(method)))
+        val after = method.body()
+        assertEquals(before.size + 4, after.size)
+        assertIconHook(after, site.at, site, "pair")
+        assertEquals(before.map { it.opcode }, after.filterIndexed { i, _ -> i !in site.at until site.at + 4 }.map { it.opcode })
+        // A frame one register short of the pair still has nothing to spare.
+        val short = fixtureMethod(SYNTHETIC_TAB_ICONS, """
+            const-string v0, "$TAB_ICON_TRACE"
+            invoke-static {v0}, LX/0Bv;->A01(Ljava/lang/String;)V
+            sget-object v0, $INBOX_PLUGIN->A00:Ljava/lang/Object;
+            invoke-static {v1}, $TAB_HOLDER->A00($DRAWABLE_TYPE)$TAB_HOLDER
+            move-result-object v1
+            invoke-direct {v0, v1, v2, v3, v4}, $TAB_DESCRIPTION-><init>(${TAB_HOLDER}Ljava/lang/String;Ljava/lang/String;Z)V
+            invoke-static/range {v0 .. v16}, LX/0Bv;->A02(${"Ljava/lang/Object;".repeat(17)})V
+            return-void
+        """.trimIndent(), registers = 17)
+        val failure = assertFailsWith<PatchException> { injectControl("tab_icons", mapOf(TAB_ICONS to listOf(short))) }
+        assertContains(failure.message.orEmpty(), "no register to spare")
+    }
+
     @Test fun onlyMessengersOwnTabBarBuilderIsTaken() {
         assertTrue(found(builder(trace = "TabBarPresenter.render")).getValue(TAB_ICONS).isEmpty())
     }
@@ -217,9 +282,9 @@ class TabIconsTest {
                 assertTrue(sites.isNotEmpty(), code)
                 assertContains(sites.map { it.key }, "inbox", "$code names the chat list's tab")
                 injectControl("tab_icons", mapOf(TAB_ICONS to listOf(method)))
-                assertEquals(before.size + 3 * sites.size, method.body().size, "$code ${built.hookId()}")
-                for ((index, site) in sites.withIndex())
-                    assertIconHook(method.body(), site.at + 3 * index, site, "$code ${site.key}")
+                assertEquals(before.size + sites.sumOf { it.size }, method.body().size, "$code ${built.hookId()}")
+                for ((site, at) in sites.zip(hookStarts(sites)))
+                    assertIconHook(method.body(), at, site, "$code ${site.key}")
             }
         }
     }

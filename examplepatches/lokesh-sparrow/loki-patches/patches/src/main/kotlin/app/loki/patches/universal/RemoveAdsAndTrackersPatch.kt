@@ -59,6 +59,51 @@ private val adsInitProvider = Fingerprint(
     definingClass = "$ADS/MobileAdsInitProvider;", name = "onCreate", returnType = "Z", parameters = listOf(),
 )
 
+// ---- AppBrain ----------------------------------------------------------------------------------------------------------
+// AppBrain ships its own SDK (ADM has it). It starts from a content provider when the app launches, so the first launch
+// loads its banner before anything else can stop it. Framework names only: AppBrain's own method names are obfuscated.
+
+private const val APPBRAIN = "Lcom/appbrain"
+
+/** The provider that starts AppBrain before the app's own code runs. */
+private val appBrainInitProvider = Fingerprint(
+    definingClass = "$APPBRAIN/AppBrainInitProvider;", name = "onCreate", returnType = "Z", parameters = listOf(),
+)
+
+/** The banner view: it loads its ad when it is attached, so it is attached empty and given no size. */
+private val appBrainBannerAttach = Fingerprint(
+    definingClass = "$APPBRAIN/AppBrainBanner;", name = "onAttachedToWindow", returnType = "V", parameters = listOf(),
+)
+private val appBrainBannerMeasure = Fingerprint(
+    definingClass = "$APPBRAIN/AppBrainBanner;", name = "onMeasure", returnType = "V", parameters = listOf("I", "I"),
+)
+
+/** The full-screen AppBrain ad: it closes the moment it opens. */
+private val appBrainScreen = Fingerprint(
+    definingClass = "$APPBRAIN/AppBrainActivity;", name = "onCreate", returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
+
+/**
+ * AppBrain's start-up routine itself. Several things call it (its provider, its job, an app's own ad set-up, its
+ * activity lifecycle hook), so it is stopped at the source, found by the message it prints because its name is
+ * obfuscated.
+ */
+private val appBrainStart = Fingerprint(
+    returnType = "V", parameters = listOf("Landroid/content/Context;", "Z"),
+    strings = listOf("To run AppBrain in test mode on this device, call AppBrain.addTestDevice(\""),
+)
+
+/** Its background job and legacy service: the job starts AppBrain on its own when it finds it not running. */
+private val appBrainJob = Fingerprint(
+    definingClass = "$APPBRAIN/AppBrainJobService;", name = "onStartJob", returnType = "Z",
+    parameters = listOf("Landroid/app/job/JobParameters;"),
+)
+private val appBrainService = Fingerprint(
+    definingClass = "$APPBRAIN/AppBrainService;", name = "onHandleIntent", returnType = "V",
+    parameters = listOf("Landroid/content/Intent;"),
+)
+
 // ---- Other ad networks ----------------------------------------------------------------------------------------------
 
 /**
@@ -281,6 +326,45 @@ internal fun BytecodePatchContext.stopAdSdks() {
         """
             const/4 v0, 0x0
             return v0
+        """
+    )
+    appBrainInitProvider.matchOrNull()?.method?.addInstructions(
+        0,
+        """
+            const/4 p0, 0x0
+            return p0
+        """
+    )
+    appBrainBannerAttach.matchOrNull()?.method?.addInstructions(
+        0,
+        """
+            invoke-super {p0}, Landroid/widget/FrameLayout;->onAttachedToWindow()V
+            return-void
+        """
+    )
+    appBrainBannerMeasure.matchOrNull()?.method?.addInstructions(
+        0,
+        """
+            const/4 p1, 0x0
+            invoke-virtual {p0, p1, p1}, Landroid/view/View;->setMeasuredDimension(II)V
+            return-void
+        """
+    )
+    appBrainStart.matchOrNull()?.method?.addInstructions(0, "return-void")
+    appBrainJob.matchOrNull()?.method?.addInstructions(
+        0,
+        """
+            const/4 p0, 0x0
+            return p0
+        """
+    )
+    appBrainService.matchOrNull()?.method?.addInstructions(0, "return-void")
+    appBrainScreen.matchOrNull()?.method?.addInstructions(
+        0,
+        """
+            invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
+            invoke-virtual {p0}, Landroid/app/Activity;->finish()V
+            return-void
         """
     )
 }

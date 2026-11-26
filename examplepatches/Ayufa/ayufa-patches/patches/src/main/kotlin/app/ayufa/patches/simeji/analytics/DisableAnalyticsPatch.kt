@@ -7,7 +7,7 @@ import app.ayufa.patches.simeji.shared.returnVoidIfEnabled
 
 private const val APPSFLYER_STATISTIC_CLASS =
     "Ljp/baidu/simeji/ad/statistic/AppsflyerStatistic;"
-private const val NEW_STATISTIC_CLASS = "Lka/e;"
+private const val NEW_STATISTIC_CLASS = "LW3/e;"
 
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
@@ -26,7 +26,7 @@ val disableAnalyticsPatch = bytecodePatch(
     execute {
         // AppsFlyer facade: every public statistic* entry point is
         // gated. Each one has at least one local register (verified
-        // against the 20.7 dex), which the gate needs as scratch.
+        // against the 22.5 dex), which the gate needs as scratch.
         val appsflyerStatistic = mutableClassDefByOrNull(APPSFLYER_STATISTIC_CLASS)
             ?: throw PatchException("AppsflyerStatistic class not found")
         val appsflyerMethods = appsflyerStatistic.methods.filter { method ->
@@ -40,15 +40,15 @@ val disableAnalyticsPatch = bytecodePatch(
         }
 
         // In-house statistic events: StatisticHelper.onEvent overloads
-        // all funnel into ka.e.b, and ka.e.f flushes the queued
+        // all funnel into W3.e.b, and W3.e.f flushes the queued
         // real-time logs, so gating these two senders covers the
         // dispatch. initStatistic must NOT be touched: it also
         // installs the statistic module's config object, which the
         // keyboard dereferences in onWindowShown — removing it
         // crashes the keyboard with a NullPointerException (verified
-        // on Simeji 20.7).
+        // on Simeji 20.7; class layout unchanged in 22.5).
         val newStatistic = mutableClassDefByOrNull(NEW_STATISTIC_CLASS)
-            ?: throw PatchException("New statistic class (ka.e) not found")
+            ?: throw PatchException("New statistic class (W3.e) not found")
         val senderMethods = newStatistic.methods.filter { method ->
             method.returnType == "V" &&
                 ((method.name == "b" &&

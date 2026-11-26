@@ -3,7 +3,6 @@ package app.template.extension.zalo.call;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -13,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.shared.ZaloEnv;
 
 /**
@@ -81,7 +81,7 @@ public final class CallRecorder {
                 start(context);
             }
         } catch (Throwable failure) {
-            Log.e(TAG, "toggle failed", failure);
+            NezumiLog.e(TAG, "toggle failed", failure);
             toast("Không thể ghi âm cuộc gọi");
         }
     }
@@ -105,9 +105,9 @@ public final class CallRecorder {
             wavFile = file;
             startedAt = System.currentTimeMillis();
             recording = true;
-            Log.i(TAG, "start " + file);
+            NezumiLog.i(TAG, "start " + file);
         } catch (Throwable failure) {
-            Log.e(TAG, "start failed", failure);
+            NezumiLog.e(TAG, "start failed", failure);
             toast("Không thể bắt đầu ghi âm");
         }
     }
@@ -129,11 +129,11 @@ public final class CallRecorder {
         try {
             Object peer = peerHandle();
             if (peer != null) nativeRecord(peer, false, "");
-            else Log.w(TAG, "peer already gone at stop; WAV header may be unfinished");
+            else NezumiLog.w(TAG, "peer already gone at stop; WAV header may be unfinished");
         } catch (Throwable failure) {
-            Log.e(TAG, "native stop failed", failure);
+            NezumiLog.e(TAG, "native stop failed", failure);
         }
-        Log.i(TAG, "stop after " + duration + " ms");
+        NezumiLog.i(TAG, "stop after " + duration + " ms");
         final File wav = file;
         final String who = name;
         final boolean isOut = out;
@@ -143,7 +143,7 @@ public final class CallRecorder {
                 Thread.sleep(400); // let the native writer flush
                 RecordingSaver.save(wav, who, isOut, when, MIN_DURATION_MS);
             } catch (Throwable failure) {
-                Log.e(TAG, "save failed", failure);
+                NezumiLog.e(TAG, "save failed", failure);
                 toast("Lưu bản ghi thất bại");
             }
         }, "NezumiCallRecSave");
@@ -159,7 +159,7 @@ public final class CallRecorder {
             Field field = holder.getClass().getField(PEER_FIELD);
             return field.get(holder);
         } catch (Throwable failure) {
-            Log.e(TAG, "peer lookup failed", failure);
+            NezumiLog.e(TAG, "peer lookup failed", failure);
             return null;
         }
     }
@@ -181,7 +181,7 @@ public final class CallRecorder {
             Object model = callModel();
             return model != null && (Boolean) model.getClass().getMethod(CALL_MODEL_CONNECTED).invoke(model);
         } catch (Throwable failure) {
-            Log.w(TAG, "connected check failed, assuming connected", failure);
+            NezumiLog.w(TAG, "connected check failed, assuming connected", failure);
             return true;
         }
     }
@@ -193,7 +193,9 @@ public final class CallRecorder {
             try {
                 Object value = model.getClass().getMethod(CALL_MODEL_NAME, Context.class).invoke(model, context);
                 if (value instanceof String && !((String) value).isEmpty()) return (String) value;
-            } catch (Throwable ignored) { }
+            } catch (Throwable failure) {
+                NezumiLog.swallowedOnce(TAG, "caller name lookup failed, using fallback", failure);
+            }
             Object value = model.getClass().getMethod(CALL_MODEL_NAME_FALLBACK).invoke(model);
             return value instanceof String ? (String) value : "";
         } catch (Throwable failure) {
@@ -212,7 +214,7 @@ public final class CallRecorder {
                 | android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
             context.startActivity(intent);
         } catch (Throwable failure) {
-            Log.w(TAG, "open folder failed", failure);
+            NezumiLog.w(TAG, "open folder failed", failure);
             Toast.makeText(context, "Thư mục bản ghi: " + RecordingSaver.RELATIVE_PATH, Toast.LENGTH_LONG).show();
         }
     }

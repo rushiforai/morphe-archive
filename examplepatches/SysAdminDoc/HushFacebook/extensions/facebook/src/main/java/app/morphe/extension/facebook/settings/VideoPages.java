@@ -278,6 +278,14 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_AUDIO_LINE,
                     L10n.t("Takes the line with the reel's sound, \"Original audio\" or a song, off the bottom of "
                             + "reels. Other info stays. A change shows from the next reel.")));
+            // Asked each time Facebook hands out a reel's attributions, which the label is drawn from.
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_AI_LABEL,
+                    L10n.t("Takes the \"AI content\" or \"AI info\" label off reels Facebook marks as made with AI. "
+                            + "A change shows from the next reel.")));
+            // Asked each time a reel's caption is built, collapsed or open.
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_HASHTAGS,
+                    L10n.t("Takes the hashtags off reel captions, like the block of tags at the end. A hashtag "
+                            + "that's part of a sentence stays. A change shows from the next reel.")));
             // Asked each time a video stalls long enough for the message, so a change shows right away.
             reels.addPreference(toggle(context, Settings.HIDE_SLOW_CONNECTION_MESSAGE,
                     L10n.t("Stops the \"This is taking a while\" message about your network connection when a video "
@@ -347,6 +355,10 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.PLAY_FEED_REELS_WHOLE,
                     L10n.t("The reels in your feed's Reels row play from the start and keep going, instead of "
                             + "repeating a second or two. Tiles drawn after a change pick it up.")));
+            // Asked as each feed reel's frame is shaped, so a change shows on the next reels (#581).
+            reels.addPreference(toggle(context, Settings.UNCROPPED_FEED_REELS,
+                    L10n.t("Reels in your feed show the whole picture at their own shape, instead of cut down to "
+                            + "Facebook's frame. Reels drawn after a change pick it up.")));
         }
         // Show full post text's reel half, a switch of its own since #398, read as each caption starts.
         if (build.contains(PatchFamily.FULL_POST_TEXT)) {
@@ -725,8 +737,9 @@ final class VideoPages {
      */
     @Nullable
     static PreferenceCategory downloads(PreferenceScreen screen, Context context, Set<PatchFamily> build) {
-        if (build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.REEL_DOWNLOAD)
-                || build.contains(PatchFamily.VIDEO_DOWNLOAD) || build.contains(PatchFamily.PHOTO_DOWNLOAD)) {
+        boolean media = build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.REEL_DOWNLOAD)
+                || build.contains(PatchFamily.VIDEO_DOWNLOAD) || build.contains(PatchFamily.PHOTO_DOWNLOAD);
+        if (media || build.contains(PatchFamily.FILE_DOWNLOADS)) {
             PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
             if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS,
@@ -755,6 +768,14 @@ final class VideoPages {
                 downloads.addPreference(toggle(context, Settings.MARKETPLACE_PHOTO_SAVE,
                         L10n.t("With Save any photo on, a long press on a photo you open from a Marketplace listing saves it.")));
             }
+            if (build.contains(PatchFamily.FILE_DOWNLOADS)) {
+                downloads.addPreference(toggle(context, Settings.SAVE_FILES_TO_DOWNLOADS,
+                        L10n.t("A PDF, document or other file you download from a post goes to your phone's Downloads "
+                                + "folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.")));
+            }
+            // The rows below shape a video or photo save, which a build with only Save files to
+            // Downloads doesn't have.
+            if (!media) return downloads;
             // Every save reads these, a story's and a reel's as much as a feed video's, so they're here
             // whichever download patch is in, the compatible ones above the quality they keep within.
             downloads.addPreference(toggle(context, Settings.ASK_BEFORE_DOWNLOAD,

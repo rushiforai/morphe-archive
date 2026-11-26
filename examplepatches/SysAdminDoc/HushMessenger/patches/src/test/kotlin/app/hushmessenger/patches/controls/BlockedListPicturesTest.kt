@@ -28,8 +28,7 @@ private const val ROW = "LX/91d;"
 private const val PICTURE = "LX/KNi;"
 
 /** The row's picture type in each stock build, the same one-method interface under each build's own name. */
-private val NATIVE_PICTURES = mapOf(PROFILE_347415280 to "LX/HMf;", PROFILE_347415262 to "LX/HRF;", PROFILE_347415302 to "LX/HPR;",
-    PROFILE_347415354 to "LX/HPS;")
+private val NATIVE_PICTURES = mapOf(PROFILE_347617503 to "LX/Kn5;", PROFILE_347617497 to "LX/KdX;")
 private const val TILE = "LX/91c;"
 private const val LOOKUP = "LX/NNP;->A0j(LX/1xr;Ljava/lang/String;)$USER_MODEL"
 private const val TILE_PARAMS = "LX/1xl;->A0f($USER_MODEL)LX/VuA;"
@@ -81,7 +80,7 @@ class BlockedListPicturesTest {
         assertEquals(listOf(SYNTHETIC_BLOCKED_ROWS), found(blockedListPicturesFixture()))
         validateControls(mirroredControls(blockedListPicturesFixture()), setOf(BLOCKED_LIST_PICTURES))
         assertEquals(setOf(SYNTHETIC_BLOCKED_ROWS), SYNTHETIC_PROFILE.hooks.getValue(BLOCKED_LIST_PICTURES))
-        assertEquals(setOf("LX/PbT;->call()Ljava/lang/Object;"), BASE_PROFILE.hooks.getValue(BLOCKED_LIST_PICTURES))
+        assertEquals(setOf("LX/Kd9;->call()Ljava/lang/Object;"), BASE_PROFILE.hooks.getValue(BLOCKED_LIST_PICTURES))
     }
 
     // On a list shaped any other way, a null could land on someone it shouldn't or skip the row's own empty case, so

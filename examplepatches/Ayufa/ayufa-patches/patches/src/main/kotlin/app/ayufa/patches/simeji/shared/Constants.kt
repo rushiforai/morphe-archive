@@ -9,17 +9,20 @@ internal object Constants {
     /**
      * Simeji (Japanese keyboard + emoji) by Baidu Japan.
      *
-     * The patches target 20.7 (2024-07-17), NOT the current release:
-     * in 23.7 the native conversion engine (libbaiduime.so) validates
-     * the app signing certificate via PackageManager from JNI and
-     * refuses to initialize in re-signed builds, which silently kills
-     * all conversion candidates (verified 2026-11-06: even a zero-patch
-     * rebuild shows the symptom). 20.7 predates that check — its
-     * JpImeShellInitialize takes no Context and its libbaiduime.so has
-     * no signature references — so conversion keeps working after
-     * patching. 20.7 is distributed as a single universal APK.
+     * The patches target 22.5 (2025-09-21), NOT the current release:
+     * starting with 22.6 the native conversion engine (libbaiduime.so)
+     * validates the app signing certificate via PackageManager from
+     * JNI and refuses to initialize in re-signed builds, which
+     * silently kills all conversion candidates (verified 2026-11-06
+     * on 23.7: even a zero-patch rebuild shows the symptom). 22.5 is
+     * the last version before that check — its JpImeShellInitialize
+     * takes no Context and its libbaiduime.so has no signature
+     * references — so conversion keeps working after patching
+     * (markers verified 2026-11-25; the clipboard feature added in
+     * 2025-04 is included). 22.5 is distributed as split APKs
+     * (XAPK), which Morphe Manager merges automatically.
      * The signing certificate below was verified against both the
-     * Play-installed copy of 23.7 and the APKMirror copy of 20.7
+     * Play-installed copy of 23.7 and the APKPure copy of 22.5
      * (identical certificate).
      */
     val COMPATIBILITY_SIMEJI = Compatibility(
@@ -33,7 +36,7 @@ internal object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "20.7",
+                version = "22.5",
                 minSdk = 23
             )
         )

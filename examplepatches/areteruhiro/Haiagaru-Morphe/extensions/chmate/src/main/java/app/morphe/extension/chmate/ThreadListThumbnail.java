@@ -112,7 +112,7 @@ public final class ThreadListThumbnail {
     /** Called at native adapter entry, before any title or subject is bound. */
     public static void begin(Object adapter){
         CURRENT.remove();
-        if(adapter==null)return;
+        if(adapter==null||!MobileMediaPolicy.allowed(MobileMediaPolicy.LIST))return;
         Context context=Haiagaru.applicationContextForExtension();
         if(context==null)return;
         String site=SiteThreadMetadata.currentBoard();
@@ -186,6 +186,7 @@ public final class ThreadListThumbnail {
         ExecutorService executor=animanch?ANIMANCH_IO:IO;
         Runnable task=()->{
             try{
+                if(!MobileMediaPolicy.allowed(MobileMediaPolicy.LIST))return;
                 List<String> sources=SOURCES.get(sourceKey);
                 if(sources==null){
                     // Collect spare candidates so an unavailable video does not hide later images.
@@ -358,7 +359,7 @@ public final class ThreadListThumbnail {
             int status=connection.getResponseCode();
             if(gate!=null)gate.check(status,connection.getHeaderField("Retry-After"));
             if(status!=200)throw new IOException("HTTP "+status);
-            try(InputStream input=new java.io.FilterInputStream(connection.getInputStream()){
+            try(InputStream input=new java.io.FilterInputStream(AppTrafficUsage.counting(Haiagaru.applicationContextForExtension(),"thread_list_images",connection.getInputStream())){
                 @Override public void close()throws IOException{connection.disconnect();super.close();}
             }){
                 String html=OpeningPostHtml.read(input,connection.getContentType(),address,"five",id,unused->false);
@@ -378,7 +379,7 @@ public final class ThreadListThumbnail {
             if(gate!=null)gate.check(status,connection.getHeaderField("Retry-After"));
             if(status!=200&&status!=206)throw new IOException("HTTP "+status);
             int cap=status==200?EdgeOpeningDat.MAX_BYTES+1:last-first+2;
-            try(InputStream input=connection.getInputStream()){
+            try(InputStream input=AppTrafficUsage.counting(Haiagaru.applicationContextForExtension(),"thread_list_images",connection.getInputStream())){
                 EdgeOpeningDat.Part part=new EdgeOpeningDat.Part(status,connection.getHeaderField("Content-Range"),
                         connection.getContentType(),EdgeOpeningDat.read(input,cap,address.startsWith("https://die-or.work/")?2:1));
                 connection.disconnect();return part;
@@ -398,8 +399,10 @@ public final class ThreadListThumbnail {
             byte[] body=result.getBody();String contentType=result.getContentType();
             if(body==null||body.length>limit||contentType==null||!contentType.toLowerCase(java.util.Locale.ROOT).startsWith("image/"))
                 throw new IOException("VPN経由でサムネイルを取得できません");
+            AppTrafficUsage.recordFeatureBytes(Haiagaru.applicationContextForExtension(),"thread_list_images",body.length);
             return body;
         }
+        limit=(int)MobileMediaPolicy.fileLimit(limit);
         HttpURLConnection c=(HttpURLConnection)URI.create(address).toURL().openConnection();
         c.setInstanceFollowRedirects(false);c.setConnectTimeout(6000);c.setReadTimeout(10000);
         c.setRequestProperty("User-Agent","Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36");
@@ -410,7 +413,7 @@ public final class ThreadListThumbnail {
             String type=c.getContentType();
             if(image&&(type==null||!type.toLowerCase(java.util.Locale.ROOT).startsWith("image/")))throw new IOException("画像ではありません");
             if(c.getContentLengthLong()>limit)throw new IOException("取得上限を超えました");
-            try(InputStream in=c.getInputStream();ByteArrayOutputStream result=new ByteArrayOutputStream()){
+            try(InputStream in=AppTrafficUsage.counting(Haiagaru.applicationContextForExtension(),"thread_list_images",c.getInputStream());ByteArrayOutputStream result=new ByteArrayOutputStream()){
                 byte[] buffer=new byte[8192];int n;
                 while((n=in.read(buffer))!=-1){if(result.size()+n>limit)throw new IOException("取得上限を超えました");result.write(buffer,0,n);}
                 return result.toByteArray();

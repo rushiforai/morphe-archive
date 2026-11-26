@@ -22,6 +22,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import app.morphe.extension.facebook.ads.MarketplaceListingAge;
+import app.morphe.extension.facebook.comments.CommentSheetOptions;
 import app.morphe.extension.facebook.download.PostDetails;
 import app.morphe.extension.facebook.feed.FeedFilter;
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -166,6 +167,18 @@ public final class ReelDeclutter {
     /** Counted under its own name each time a reel's "Made with Edits" line isn't drawn (#314). */
     static final String EDITS_ROUTE = "Reel Edits line";
     static final String EDITS_LABEL = "Made with Edits";
+
+    /**
+     * The GraphQL type of the attribution Facebook draws as a reel's "AI content" or "AI info" label
+     * (#574), and the one Facebook adds itself to a reel its server marks as made with AI.
+     */
+    static final String AI_LABEL_ATTRIBUTION = "XFBFBShortsGenAITransparencyAttribution";
+    /** Counted under its own name each time a reel's attribution list is handed over without its AI label. */
+    static final String AI_LABEL_ROUTE = "Reel AI label";
+
+    /** Counted under its own name for each reel caption built, and each run of hashtags left off one (#594). */
+    static final String HASHTAGS_ROUTE = "Reel caption hashtags";
+    static final String HASHTAG_RUN = "hashtag run";
 
     /** Counted under its own name each time a video's "Made with Edits" pill is answered as not shown (#314). */
     static final String EDITS_PILL_ROUTE = "Video Edits pill";
@@ -385,6 +398,70 @@ public final class ReelDeclutter {
             HookStatus.threw(FamilyNames.REEL_DECLUTTER, "reel chips", failure);
             Logger.printException(() -> "Reel chips: could not filter the list", failure);
             return null;
+        }
+    }
+
+    /**
+     * Injection point, before each return of the method that hands out a reel's attribution models,
+     * and of the story's own list it starts from (#574). Facebook draws the "AI content" or "AI info"
+     * label from the one of type {@link #AI_LABEL_ATTRIBUTION} in those lists: the footer's chip row
+     * builds its chips from the story's list and draws that one as a button beside the sound line, the
+     * label under a reel's caption walks the full list for it, and the sponsored info row and the
+     * reel's info row look it up by name there. The models to keep, when Hide the AI content label on
+     * reels took that one out, or null to keep the list Facebook built. A model whose type can't be
+     * read stays. Never throws.
+     *
+     * @param attributions the list Facebook is about to return, an ImmutableList of attribution models.
+     */
+    public static Object[] filterAiLabel(Object attributions) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (!(attributions instanceof List)) return null;
+            List<?> list = (List<?>) attributions;
+            if (list.isEmpty() || !Utils.settingsReady() || !Settings.HIDE_REEL_AI_LABEL.get()) return null;
+            List<Object> kept = new ArrayList<>(list.size());
+            for (Object attribution : list) {
+                if (attribution == null) return null;
+                if (AI_LABEL_ATTRIBUTION.equals(FeedFilter.typeName(attribution))) continue;
+                kept.add(attribution);
+            }
+            if (kept.size() == list.size()) return null;
+            FeedFilterCounters.sawList(AI_LABEL_ROUTE, list.size());
+            FeedFilterCounters.removed(AI_LABEL_ROUTE, list.size() - kept.size(), AI_LABEL_ATTRIBUTION);
+            logOnce(AI_LABEL_ROUTE, () -> "Reel AI label: left out of the reel's attributions");
+            return kept.toArray();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, "reel AI label", failure);
+            Logger.printException(() -> "Reel AI label: could not filter the attributions", failure);
+            return null;
+        }
+    }
+
+    /**
+     * Injection point, right after the builder of a reel caption's text is handed the caption (#594),
+     * so the collapsed caption, the open one and its dark box all start from what this answers. The
+     * caption without its hashtag runs while Hide hashtags in reel captions is on ({@link ReelHashtags}),
+     * or the one Facebook gave. Never throws: a failure answers Facebook's caption.
+     *
+     * @param caption the caption Facebook put into the builder, null or empty for a reel without one.
+     */
+    @Nullable
+    public static CharSequence captionText(@Nullable CharSequence caption) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (caption == null || caption.length() == 0) return caption;
+            if (!Utils.settingsReady() || !Settings.HIDE_REEL_HASHTAGS.get()) return caption;
+            FeedFilterCounters.sawList(HASHTAGS_ROUTE, 1);
+            int runs = ReelHashtags.runsLeftOff(caption);
+            if (runs == 0) return caption;
+            CharSequence kept = ReelHashtags.without(caption);
+            FeedFilterCounters.removed(HASHTAGS_ROUTE, runs, HASHTAG_RUN);
+            logOnce(HASHTAGS_ROUTE, () -> "Reel caption hashtags: left off a caption");
+            return kept;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, "reel caption hashtags", failure);
+            Logger.printException(() -> "Reel caption hashtags: could not read the caption", failure);
+            return caption;
         }
     }
 
@@ -772,12 +849,15 @@ public final class ReelDeclutter {
      * video and the one over a card that isn't a video. True when the pill is one of those and the
      * switch is on: the container is hidden and Facebook returns before it shows it. Any other pill,
      * the 2x speed one included, and any pill once the switch is off, gets a container this hid shown
-     * again first, since Facebook only shows what's inside it. Never throws: false shows the pill.
+     * again first, since Facebook only shows what's inside it. An UP NEXT pill that shows is told to
+     * Hide the video comment box, whose band keeps room for it only where it shows (#585). Never
+     * throws: false shows the pill.
      */
     public static boolean hideUpNextPill(@Nullable View pill, @Nullable Integer kind, int peekKind, int nextKind) {
         boolean upNext = kind != null && (kind == peekKind || kind == nextKind);
         if (!upNext || !hidesUpNext(UP_NEXT_PILL, "Up next: pill not shown")) {
             showHiddenPill(pill);
+            if (upNext) CommentSheetOptions.upNextPillShown();
             return false;
         }
         try {

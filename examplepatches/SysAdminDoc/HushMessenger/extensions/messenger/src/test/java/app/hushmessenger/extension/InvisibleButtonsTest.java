@@ -4,13 +4,17 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Looper;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +27,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowToast;
 import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -180,6 +185,36 @@ public class InvisibleButtonsTest {
         }
     }
 
+    /** #191: HushMessenger's own buttons that show words are listed by them, and text on Messenger's own views isn't. */
+    @Test public void hushMessengersOwnTextButtonsAreListedByTheirWordsAndMessengersTextIsnt() {
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            TextView save = new TextView(activity);
+            save.setText("Save");
+            save.setClickable(true);
+            save.setLayoutParams(new FrameLayout.LayoutParams(80, 40));
+            InvisibleButtons.own(save, save.getText());
+            TextView person = new TextView(activity);
+            person.setText("Alex Rivera");
+            person.setClickable(true);
+            person.setLayoutParams(new FrameLayout.LayoutParams(120, 40));
+            View call = button(activity, "Call", 48);
+            ViewGroup root = chat(activity, call, save, person);
+
+            InvisibleButtons.setLevel("Save", 25);
+            InvisibleButtons.chatShown(new Object(), root);
+
+            assertEquals(List.of("Call", "Save"), InvisibleButtons.seen());
+            assertEquals(0.25f, save.getAlpha(), 0.001f);
+            assertEquals("a person's name on Messenger's view stays off the list", 1f, person.getAlpha(), 0f);
+            save.setContentDescription("Save photo");
+            assertEquals("a spoken name still comes first", "Save photo", InvisibleButtons.nameOf(save));
+            save.setContentDescription(null);
+            InvisibleButtons.own(save, null);
+            assertNull(InvisibleButtons.nameOf(save));
+        }
+    }
+
     @Test public void theChatListAndTheOtherScreensAreLookedOverButHushMessengersOwnPagesArent() {
         InvisibleButtons.setLevel("New message", 0);
         InvisibleButtons.register(RuntimeEnvironment.getApplication());
@@ -232,6 +267,7 @@ public class InvisibleButtonsTest {
 
             assertEquals("a row of a menu's list is one of its buttons", 0f, forward.getAlpha(), 0f);
             assertTrue(InvisibleButtons.seen().containsAll(List.of("React", "Forward")));
+            assertEquals(InvisibleButtons.PLACE_MENU, InvisibleButtons.places().get("Forward"));
             menu.dismiss();
             shadowOf(Looper.getMainLooper()).idle();
             assertEquals("the menu closed, so its buttons are Messenger's again", 1f, forward.getAlpha(), 0f);
@@ -387,6 +423,236 @@ public class InvisibleButtonsTest {
             root.findViewWithTag("invisible_buttons_level_100_Call").performClick();
             assertEquals(Map.of(), InvisibleButtons.levels());
             assertEquals("Call", ((TextView) ((ViewGroup) root.findViewWithTag("invisible_buttons_row_Call")).getChildAt(0)).getText().toString());
+        }
+    }
+
+    /** [view] at a spot of its own in a FrameLayout, so buttons don't sit on top of each other. */
+    private static View at(View view, int left, int top, int width, int height) {
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height, Gravity.TOP | Gravity.LEFT);
+        params.leftMargin = left;
+        params.topMargin = top;
+        view.setLayoutParams(params);
+        return view;
+    }
+
+    private static int[] middleOf(View view) {
+        int[] at = new int[2];
+        view.getLocationOnScreen(at);
+        return new int[] {at[0] + view.getWidth() / 2, at[1] + view.getHeight() / 2};
+    }
+
+    /** A finger down and up at [point] on screen, the way the phone hands a tap to the view on top. */
+    private static void tap(View view, int[] point) {
+        long now = android.os.SystemClock.uptimeMillis();
+        MotionEvent down = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, point[0], point[1], 0);
+        MotionEvent up = MotionEvent.obtain(now, now + 60, MotionEvent.ACTION_UP, point[0], point[1], 0);
+        view.dispatchTouchEvent(down);
+        view.dispatchTouchEvent(up);
+        down.recycle();
+        up.recycle();
+    }
+
+    private static void layWindow(View window, int height) {
+        window.measure(View.MeasureSpec.makeMeasureSpec(400, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+        window.layout(0, 0, 400, height);
+    }
+
+    @Test public void eachButtonKeepsWhereItSitsAroundTheChatsMessages() {
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            View call = at(button(activity, "Call", 48), 300, 0, 48, 40);
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 40, 400, 120);
+            View jump = at(button(activity, "Jump to latest", 48), 176, 110, 48, 40);
+            View send = at(button(activity, "Send", 48), 340, 160, 48, 40);
+            TextView save = new TextView(activity);
+            save.setText("Save");
+            save.setClickable(true);
+            at(save, 0, 160, 80, 40);
+            InvisibleButtons.own(save, save.getText());
+            ViewGroup root = chat(activity, call, messages, jump, send, save);
+
+            InvisibleButtons.chatShown(new Object(), root);
+
+            Map<String, String> places = InvisibleButtons.places();
+            assertEquals("above the messages", InvisibleButtons.PLACE_HEADER, places.get("Call"));
+            assertEquals("over the messages", InvisibleButtons.PLACE_CHAT, places.get("Jump to latest"));
+            assertEquals("below them", InvisibleButtons.PLACE_COMPOSER, places.get("Send"));
+            assertEquals("HushMessenger's own, wherever it sits", InvisibleButtons.PLACE_OURS, places.get("Save"));
+            assertEquals(4, places.size());
+        }
+    }
+
+    /** Translucent chat bars runs the messages under both bars and pads the list, so the padding is where they stop. */
+    @Test public void underTranslucentBarsTheListsPaddingIsWhereTheMessagesStop() {
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 0, 400, 200);
+            messages.setPadding(0, 40, 0, 40);
+            messages.setClipToPadding(false);
+            View call = at(button(activity, "Call", 48), 300, 0, 48, 40);
+            View send = at(button(activity, "Send", 48), 340, 160, 48, 40);
+            ViewGroup root = chat(activity, messages, call, send);
+
+            InvisibleButtons.chatShown(new Object(), root);
+
+            assertEquals(Map.of("Call", InvisibleButtons.PLACE_HEADER, "Send", InvisibleButtons.PLACE_COMPOSER), InvisibleButtons.places());
+        }
+    }
+
+    @Test public void aButtonFirstSeenOnTheChatListStaysTheScreensAndOlderNamesHaveNoPlace() {
+        Settings.preferences.edit().putString("invisible_buttons_seen", "Old one").commit();
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            chat(activity, button(activity, "New message", 48));
+            InvisibleButtons.screenShown(activity);
+        }
+        assertEquals(Map.of("New message", InvisibleButtons.PLACE_SCREEN), InvisibleButtons.places());
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 40, 400, 160);
+            ViewGroup root = chat(activity, at(button(activity, "New message", 48), 300, 0, 48, 40), messages);
+            InvisibleButtons.chatShown(new Object(), root);
+        }
+        assertEquals("the first place stays", Map.of("New message", InvisibleButtons.PLACE_SCREEN), InvisibleButtons.places());
+        assertEquals(List.of("Old one", "New message"), InvisibleButtons.seen());
+    }
+
+    @Test public void settingsGroupsTheButtonsByWhereTheyWereSeenAndOlderOnesGoLast() {
+        Settings.preferences.edit().putString("invisible_buttons_seen", "Call\nSend\nNew message\nOld one")
+            .putString(InvisibleButtons.PLACES, "header\tCall\ncomposer\tSend\nscreen\tNew message").commit();
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            ViewGroup list = page.get().getWindow().getDecorView().findViewWithTag("invisible_buttons_list");
+            List<Object> order = new ArrayList<>();
+            for (int i = 0; i < list.getChildCount(); i++) order.add(list.getChildAt(i).getTag());
+            assertEquals(List.of("invisible_buttons_group_screen", "invisible_buttons_row_New message",
+                "invisible_buttons_group_header", "invisible_buttons_row_Call",
+                "invisible_buttons_group_composer", "invisible_buttons_row_Send",
+                "invisible_buttons_group_other", "invisible_buttons_row_Old one"), order);
+            TextView header = list.findViewWithTag("invisible_buttons_group_header");
+            assertEquals(new SettingsText(page.get()).get("invisible_buttons_group_header"), header.getText().toString());
+            assertTrue("a heading for TalkBack", header.isAccessibilityHeading());
+        }
+        Settings.preferences.edit().remove(InvisibleButtons.PLACES).commit();
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            ViewGroup list = page.get().getWindow().getDecorView().findViewWithTag("invisible_buttons_list");
+            assertNotNull(list.findViewWithTag("invisible_buttons_row_Old one"));
+            assertNull("only older names: one plain list, as before", list.findViewWithTag("invisible_buttons_group_other"));
+        }
+    }
+
+    @Test public void theRoundButtonPicksTheButtonTappedAndOpensItsLevelsRightThere() {
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            View call = at(button(activity, "Call", 48), 200, 0, 48, 40);
+            View video = at(button(activity, "Video call", 48), 260, 0, 48, 40);
+            chat(activity, call, video);
+            ViewGroup window = (ViewGroup) activity.getWindow().getDecorView();
+            InvisibleButtons.screenShown(activity);
+            assertNull("off until its switch is on", window.findViewWithTag(InvisibleButtonsPick.DOT));
+
+            Settings.preferences.edit().putBoolean(InvisibleButtonsPick.KEY, true).commit();
+            InvisibleButtons.look(window, true);
+            View dot = window.findViewWithTag(InvisibleButtonsPick.DOT);
+            assertNotNull("the round button sits on the screen's window", dot);
+            assertSame(window, dot.getParent());
+            layWindow(window, 600);
+            // A walk now that the round button has its size, so it would be listed if the walk took it.
+            InvisibleButtons.look(window, true);
+            SettingsText text = new SettingsText(activity);
+            assertEquals(text.get("invisible_buttons_pick_dot"), dot.getContentDescription().toString());
+            assertFalse("never listed itself", InvisibleButtons.seen().contains(text.get("invisible_buttons_pick_dot")));
+
+            assertTrue(dot.performClick());
+            assertEquals(text.get("invisible_buttons_pick_now"), ShadowToast.getTextOfLatestToast());
+            tap(window.findViewWithTag(InvisibleButtonsPick.CATCHER), middleOf(call));
+            assertNull("one tap picks", window.findViewWithTag(InvisibleButtonsPick.CATCHER));
+            ViewGroup card = window.findViewWithTag(InvisibleButtonsPick.CARD);
+            assertNotNull("the levels open where the button is", card);
+            assertEquals("Call", ((TextView) ((ViewGroup) card.getChildAt(0)).getChildAt(0)).getText().toString());
+            View none = card.findViewWithTag(InvisibleButtonsPick.LEVEL + 0);
+            assertEquals(text.get("invisible_buttons_level_choice", text.percent(0), "Call"), none.getContentDescription().toString());
+            assertTrue("as Messenger draws it now", card.findViewWithTag(InvisibleButtonsPick.LEVEL + 100).isSelected());
+            none.performClick();
+
+            assertEquals(0, InvisibleButtons.level("Call"));
+            assertEquals("drawn at once", 0f, call.getAlpha(), 0f);
+            assertEquals(1f, video.getAlpha(), 0f);
+            assertNull("the card closed", window.findViewWithTag(InvisibleButtonsPick.CARD));
+            assertEquals(text.get("invisible_buttons_invisible"), ShadowToast.getTextOfLatestToast());
+
+            // An invisible button is picked the same way, which is how it's brought back.
+            dot.performClick();
+            tap(window.findViewWithTag(InvisibleButtonsPick.CATCHER), middleOf(call));
+            card = window.findViewWithTag(InvisibleButtonsPick.CARD);
+            assertTrue(card.findViewWithTag(InvisibleButtonsPick.LEVEL + 0).isSelected());
+            card.findViewWithTag(InvisibleButtonsPick.LEVEL + 50).performClick();
+            assertEquals(0.5f, call.getAlpha(), 0.001f);
+            assertEquals(text.get("invisible_buttons_level", text.percent(50)), ShadowToast.getTextOfLatestToast());
+
+            // A tap with no button under it, then a tap back on the round button, which only stops picking.
+            dot.performClick();
+            int[] window0 = new int[2];
+            window.getLocationOnScreen(window0);
+            tap(window.findViewWithTag(InvisibleButtonsPick.CATCHER), new int[] {window0[0] + 20, window0[1] + 400});
+            assertEquals(text.get("invisible_buttons_pick_none"), ShadowToast.getTextOfLatestToast());
+            assertNull(window.findViewWithTag(InvisibleButtonsPick.CARD));
+            dot.performClick();
+            tap(window.findViewWithTag(InvisibleButtonsPick.CATCHER), middleOf(dot));
+            assertNull(window.findViewWithTag(InvisibleButtonsPick.CATCHER));
+            assertNull(window.findViewWithTag(InvisibleButtonsPick.CARD));
+            assertEquals(List.of("Call", "Video call"), InvisibleButtons.seen());
+
+            // The switch going off takes it all away, a card left open included.
+            dot.performClick();
+            tap(window.findViewWithTag(InvisibleButtonsPick.CATCHER), middleOf(video));
+            assertNotNull(window.findViewWithTag(InvisibleButtonsPick.CARD));
+            Settings.preferences.edit().putBoolean(InvisibleButtonsPick.KEY, false).commit();
+            InvisibleButtons.look(window, true);
+            assertNull(window.findViewWithTag(InvisibleButtonsPick.DOT));
+            assertNull(window.findViewWithTag(InvisibleButtonsPick.CARD));
+            assertEquals("the levels picked stay", 0.5f, call.getAlpha(), 0.001f);
+            assertTrue(Settings.hookErrors.isEmpty());
+        }
+    }
+
+    @Config(sdk = 36)
+    @Test public void aMenuTallEnoughGetsTheRoundButtonAndAShortOneDoesnt() {
+        Settings.preferences.edit().putBoolean(InvisibleButtonsPick.KEY, true).commit();
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            chat(activity, button(activity, "Call", 48));
+            Dialog menu = new Dialog(activity);
+            LinearLayout card = new LinearLayout(activity);
+            card.addView(button(activity, "React", 48));
+            menu.setContentView(card);
+            menu.show();
+            shadowOf(Looper.getMainLooper()).idle();
+            InvisibleButtons.findMenus();
+            View window = menu.getWindow().getDecorView();
+
+            layWindow(window, 100);
+            InvisibleButtons.look(window, true);
+            assertNull("it would sit over the menu's buttons", window.findViewWithTag(InvisibleButtonsPick.DOT));
+            layWindow(window, 400);
+            InvisibleButtons.look(window, true);
+            assertNotNull(window.findViewWithTag(InvisibleButtonsPick.DOT));
+            menu.dismiss();
+            shadowOf(Looper.getMainLooper()).idle();
+        }
+    }
+
+    @Test public void pickingOnScreenIsASwitchUnderInvisibleButtonsAndOffByDefault() {
+        assertEquals(InvisibleButtons.KEY, Settings.SUB_SWITCHES.get(InvisibleButtonsPick.KEY));
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Switch pick = page.get().getWindow().getDecorView().findViewWithTag(InvisibleButtonsPick.KEY);
+            assertNotNull(pick);
+            assertFalse(pick.isChecked());
+            pick.performClick();
+            assertTrue(Settings.preferences.getBoolean(InvisibleButtonsPick.KEY, false));
         }
     }
 

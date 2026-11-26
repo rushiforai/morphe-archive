@@ -23,10 +23,10 @@ private const val RC_STATE = "LX/TiW;"
 private const val RC_LIST = "LX/Ja9;"
 private const val RC_LABEL = "LX/2IW;->A0J(LX/5Qh;I)Ljava/lang/String;"
 private const val RC_ADD = "$RC_HOST->A08(${RC_LIST}Ljava/lang/Object;Ljava/lang/String;I)V"
-private const val RC_RESET_PIN = 0x7f141794
-private const val RC_CREATE_PIN = 0x7f14178d
-private const val RC_MORE_OPTIONS = 0x7f14175e
-private const val RC_GENERATE = 0x7f14178f
+private const val RC_RESET_PIN = 0x7f1417a5
+private const val RC_CREATE_PIN = 0x7f14179e
+private const val RC_MORE_OPTIONS = 0x7f14176f
+private const val RC_GENERATE = 0x7f1417a0
 private const val RC_GENERATE_CODE = 0x2a
 private const val RC_HOOK_SIZE = 8
 
@@ -152,11 +152,11 @@ class RecoveryCodeRowTest {
 
     @Test fun armv7sNumbersPickTheCodeRowAndNotCreatePin() {
         // On armv7 the number the other builds use for this row belongs to "Create PIN".
-        val method = rcMethod(rcBody(createPin = RC_GENERATE, generate = 0x7f141791, generateCode = 0x95))
+        val method = rcMethod(rcBody(createPin = RC_GENERATE, generate = 0x7f1417a2, generateCode = 0x95))
         val at = firstAt(method.rcCode(), RC_MORE_OPTIONS)
         hook(method)
         val code = method.rcCode()
-        assertEquals(0x7f141791, code[at + 3].rcLiteral())
+        assertEquals(0x7f1417a2, code[at + 3].rcLiteral())
         assertEquals(0x95, code[at + 6].rcLiteral())
     }
 

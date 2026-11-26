@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
- * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-25.
  * Written by lavinhoque33, 2026-11-20.
  */
 
@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import app.morphe.extension.shared.patches.glassmenus.GlassMenusPatch;
 import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
@@ -169,6 +170,36 @@ public class OverlayVideoQualityTest {
         assertFalse(list.getChildAt(1).createAccessibilityNodeInfo().isChecked());
         assertSame(hd, VideoQualityPatch.getEffectiveQuality());
         dialog.dismiss();
+    }
+
+    @Test
+    @Config(shadows = PatchedGlassMenus.class)
+    public void onlyOverlayPickerPassesItsInnerPanelToGlassBeforeShow() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        PatchedGlassMenus.included = true;
+        PatchedGlassMenus.panel = null;
+        VideoUtils.showOverlayVideoQualityDialog(activity);
+
+        Dialog dialog = ShadowDialog.getLatestDialog();
+        assertNotNull(dialog);
+        assertSame(dialog, PatchedGlassMenus.dialog);
+        assertFalse(PatchedGlassMenus.wasShowing);
+        ListView list = dialog.findViewById(android.R.id.list);
+        assertSame(list.getParent(), PatchedGlassMenus.panel);
+        assertEquals(3, list.getCount());
+        list.performItemClick(null, 2, list.getItemIdAtPosition(2));
+        assertEquals(List.of(sd), nativeSelections);
+        assertFalse(dialog.isShowing());
+
+        PatchedGlassMenus.panel = null;
+        VideoUtils.showCustomVideoQualityFlyoutMenu(activity);
+        assertNull(PatchedGlassMenus.panel);
+        ShadowDialog.getLatestDialog().dismiss();
+
+        PatchedGlassMenus.included = false;
+        VideoUtils.showOverlayVideoQualityDialog(activity);
+        assertNull(PatchedGlassMenus.panel);
+        ShadowDialog.getLatestDialog().dismiss();
     }
 
     @Test
@@ -409,6 +440,26 @@ public class OverlayVideoQualityTest {
             autoCalls++;
             usedAdvancedPolicyDuringAuto = VideoQualityPatch.useAdvancedVideoQualitySetting("first-video");
             if (dispatchAuto) VideoQualityPatch.onAutomaticQualityDispatched();
+        }
+    }
+
+    @Implements(value = GlassMenusPatch.class, isInAndroidSdk = false)
+    public static class PatchedGlassMenus {
+        private static boolean included;
+        private static Dialog dialog;
+        private static View panel;
+        private static boolean wasShowing;
+
+        @Implementation
+        protected static boolean isPatchIncluded() {
+            return included;
+        }
+
+        @Implementation
+        protected static void onOverlayVideoQualityDialog(Dialog receiver, View mainLayout, Context context) {
+            dialog = receiver;
+            panel = mainLayout;
+            wasShowing = receiver.isShowing();
         }
     }
 

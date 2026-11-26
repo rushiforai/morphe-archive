@@ -27,7 +27,7 @@ final class PlaybackCategory {
     private PlaybackCategory() { }
 
     static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
-        if (build.contains(PatchFamily.HDR_BOOST) || build.contains(PatchFamily.TAP_TO_PLAY)
+        if (build.contains(PatchFamily.HDR_BOOST) || build.contains(PatchFamily.HDR_PHOTOS) || build.contains(PatchFamily.TAP_TO_PLAY)
                 || build.contains(PatchFamily.RESUME_LONG_VIDEOS) || build.contains(PatchFamily.REEL_TAP_AND_VOLUME)
                 || build.contains(PatchFamily.REEL_SOUND)
                 || build.contains(PatchFamily.PLAYBACK_QUALITY) || build.contains(PatchFamily.DATA_SAVER)
@@ -72,6 +72,12 @@ final class PlaybackCategory {
                         L10n.t("Picture in picture for reels"),
                         L10n.t("Leaving Instagram while a reel plays shrinks it into a small window over your other "
                                 + "apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.")));
+                playback.addPreference(toggle(context, Settings.REELS_PIP_PLAY_BUTTON,
+                        L10n.t("Pause button in the reels window"),
+                        L10n.t("Instagram's small window for reels gets a button to pause the reel and play it again.")));
+                playback.addPreference(toggle(context, Settings.REELS_PIP_SKIP_BUTTONS,
+                        L10n.t("Previous and next in the reels window"),
+                        L10n.t("Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.")));
                 playback.addPreference(toggle(context, Settings.STORIES_PICTURE_IN_PICTURE,
                         L10n.t("Picture in picture for stories"),
                         L10n.t("Leaving Instagram while a story plays shrinks it into a small window over your other "
@@ -111,6 +117,11 @@ final class PlaybackCategory {
                 playback.addPreference(toggle(context, Settings.TURN_OFF_HDR_BOOSTS, L10n.t("Turn off HDR brightness boosts"),
                         L10n.t("HDR photos and reels stop brightening the screen above everything else. They show "
                                 + "at the same brightness as the rest of Instagram.")));
+            }
+            if (build.contains(PatchFamily.HDR_PHOTOS)) {
+                playback.addPreference(toggle(context, Settings.KEEP_HDR_ON_PHOTO_UPLOADS, L10n.t("Keep HDR on photo uploads"),
+                        L10n.t("Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, "
+                                + "so it can still show in HDR. Turn it off if a photo you post looks wrong.")));
             }
         }
     }

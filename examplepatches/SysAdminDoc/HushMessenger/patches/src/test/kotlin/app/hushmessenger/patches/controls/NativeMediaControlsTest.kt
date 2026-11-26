@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.MethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -24,20 +25,17 @@ import java.security.MessageDigest
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import kotlin.test.*
 
-/** Emoji drawer flag reads in 587, one in each of its three drawer hooks. 586 had seven. */
+/** Emoji drawer flag reads in 587 and 588, one in each of their three drawer hooks. 586 had seven. */
 private const val EMOJI_DRAWER_READS = 3
 
 /**
- * The AI sticker cell under each 587 build's naming: arm64 347415354's, armv7's (its own Generate label), family B's
- * (arm64's Generate label with a render an instruction shorter and a register wider), and 347415302's (the main shape
- * as GEt). Discovery reads these names off the DEX, so the rows only tell the fixtures what to build and the tests what
- * to expect back.
+ * The AI sticker cell under each 588 build family's naming: the arm64 builds' LtJ, and the armv7 builds' GaL (its own
+ * Generate label, and a render two instructions shorter). Discovery reads these names off the DEX, so the rows only tell
+ * the fixtures what to build and the tests what to expect back.
  */
 internal val aiCells = listOf(
-    AiCell("LX/GEu;", "LX/1GR;", "LX/27r;", "LX/1F6;"),
-    AiCell("LX/GHY;", "LX/1Gr;", "LX/28H;", "LX/1FW;", menu = GENERATE_MENU_LABEL_ARMV7),
-    AiCell("LX/GEX;", "LX/1GR;", "LX/27r;", "LX/1F6;", size = AI_CELL_SIZE_SHORT, registers = AI_CELL_REGISTERS_WIDE),
-    AiCell("LX/GEt;", "LX/1GR;", "LX/27r;", "LX/1F6;"),
+    AiCell("LX/LtJ;", "LX/1NX;", "LX/2Gk;", "LX/1Jx;"),
+    AiCell("LX/GaL;", "LX/1Nw;", "LX/2H9;", "LX/1KM;", size = AI_CELL_SIZE_ARMV7, menu = GENERATE_MENU_LABEL_ARMV7),
 )
 
 /**
@@ -116,6 +114,25 @@ internal fun screenshotViewerFixture(
                 invoke-static {}, LX/Lifecycle;->inflate()V
                 const/4 v0, 0x0
             """.trimIndent() + "\n" + List(quickSize - quickSite - 4) { "nop" }.joinToString("\n") + "\nreturn-object v0"
+        }
+        // 588's secure-window helper, which its Quicksnap viewer hands the dialog's window and yes.
+        id.endsWith("(${QUICKSNAP_SECURE_PARAMS.joinToString("")})V") -> {
+            registers = 7
+            body = """
+                invoke-static {v5}, LX/Checks;->notNull(Ljava/lang/Object;)V
+                if-eqz v4, :done
+                invoke-static {}, LX/Flags;->allowed()Z
+                move-result v0
+                if-nez v0, :done
+                const/16 v0, 0x2000
+                if-eqz v6, :clear
+                invoke-virtual {v4, v0}, Landroid/view/Window;->addFlags(I)V
+                :done
+                return-void
+                :clear
+                invoke-virtual {v4, v0}, Landroid/view/Window;->clearFlags(I)V
+                return-void
+            """.trimIndent()
         }
         else -> {
             registers = 5
@@ -353,14 +370,14 @@ class NativeMediaControlsTest {
         assertFailsWith<PatchException> { screenshotViewerFixture(resume, resumeTail = 24).screenshotViewerSites() }
         val mask = screenshotViewerFixture(resume).apply { replaceInstruction(9, "const/16 v1, 0x80") }
         assertFailsWith<PatchException> { mask.screenshotViewerSites() }
-        // 587 names it A1L, armv7 included, and A1M in its other arm64 builds.
+        // 588 names it A1N in its arm64 builds and A1L in its armv7 ones.
         for (name in listOf(EPHEMERAL_DIALOG, EPHEMERAL_DIALOG_FAMILY_B)) {
             val dialog = screenshotViewerFixture("$EPHEMERAL_VIEWER->$name(Landroid/os/Bundle;)Landroid/app/Dialog;")
             assertEquals(listOf(9), dialog.screenshotViewerSites(), name)
             assertEquals(listOf(9), CompatMirror.screenshotViewerSites(dialog), name)
         }
-        // 586's A1K, 585's A1J and A1H, 584's A1O and A1I, 583's A1F and 582's A1D overrides, same body, are refused.
-        for (old in listOf("A1K", "A1J", "A1H", "A1O", "A1I", "A1F", "A1D")) {
+        // 587's A1M, 586's A1K, 585's A1J and A1H, 584's A1O and A1I, 583's A1F and 582's A1D overrides, same body, are refused.
+        for (old in listOf("A1M", "A1K", "A1J", "A1H", "A1O", "A1I", "A1F", "A1D")) {
             val override = screenshotViewerFixture("$EPHEMERAL_VIEWER->$old(Landroid/os/Bundle;)Landroid/app/Dialog;")
             assertFailsWith<PatchException>(old) { override.screenshotViewerSites() }
             assertEquals(emptyList(), CompatMirror.screenshotViewerSites(override), old)
@@ -432,54 +449,54 @@ class NativeMediaControlsTest {
             assertEquals(listOf(cell), aiStickerCells, cell.type)
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, sourceCount = cell.sources - 1)).isEmpty())
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, sourceCount = cell.sources + 1)).isEmpty())
-            // An older release's label for the same row (586's, 585's, 584's and 582's), or one of 586's or 585's Generate
-            // menu labels.
-            for (old in listOf(0x7f14055d, 0x7f140560, 0x7f140559, 0x7f14051c))
+            // An older release's label for the same row (587's, 586's, 585's, 584's and 582's), or one of 587's, 586's or
+            // 585's Generate menu labels.
+            for (old in listOf(0x7f140566, 0x7f14055d, 0x7f140560, 0x7f140559, 0x7f14051c))
                 assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, label = old)).isEmpty(), old.toString(16))
-            for (old in listOf(0x7f141c4e, 0x7f141c50, 0x7f141c2d, 0x7f141c2f))
+            for (old in listOf(0x7f141c62, 0x7f141c64, 0x7f141c4e, 0x7f141c50, 0x7f141c2d, 0x7f141c2f))
                 assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = old)).isEmpty(), old.toString(16))
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menuSources = cell.menuSources - 1)).isEmpty())
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menuSources = cell.menuSources + 1)).isEmpty())
             // "Generate custom stickers" in the menu label's place: the custom sticker cell isn't the AI menu.
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = 0x7f14128f)).isEmpty())
-            // Each build family pairs its Generate label with its own render: family B's render with armv7's label is no
-            // build's, and neither is a render an instruction or a register off.
-            assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, size = AI_CELL_SIZE_SHORT, registers = AI_CELL_REGISTERS_WIDE,
-                menu = GENERATE_MENU_LABEL_ARMV7)).isEmpty())
+            // Each build family pairs its Generate label with its own render: arm64's render with armv7's label is no
+            // build's, nor is armv7's render with arm64's label (587's arm64 shape), nor a render an instruction or a
+            // register off.
+            assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, size = AI_CELL_SIZE, menu = GENERATE_MENU_LABEL_ARMV7)).isEmpty())
+            assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, size = AI_CELL_SIZE_ARMV7, menu = GENERATE_MENU_LABEL)).isEmpty())
             for (size in listOf(cell.size - 1, cell.size + 1))
                 assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, size = size)).isEmpty(), "${cell.type} $size")
             for (registers in listOf(cell.registers - 1, cell.registers + 1))
                 assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, registers = registers)).isEmpty(), "${cell.type} $registers")
         }
-        // 587's cell offers its AI label from four renders and its Generate menu label from one, in every build. The armv7
-        // Generate label sits two resources on. Family B's render runs an instruction shorter in a frame a register wider.
-        val shapes = listOf(listOf(GENERATE_AI_LABEL, 4, 105, GENERATE_MENU_LABEL, 1, 24), listOf(GENERATE_AI_LABEL, 4, 105, GENERATE_MENU_LABEL_ARMV7, 1, 24),
-            listOf(GENERATE_AI_LABEL, 4, 104, GENERATE_MENU_LABEL, 1, 25))
+        // 588's cell offers its AI label from four renders and its Generate menu label from one, in every build. The armv7
+        // Generate label sits two resources on, and armv7's render runs two instructions shorter in the same frame.
+        val shapes = listOf(listOf(GENERATE_AI_LABEL, 4, 107, GENERATE_MENU_LABEL, 1, 24), listOf(GENERATE_AI_LABEL, 4, 105, GENERATE_MENU_LABEL_ARMV7, 1, 24))
         assertEquals(shapes, aiCellShapes.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources, it.registers) })
         assertEquals(shapes, aiCells.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources, it.registers) }.distinct())
     }
 
-    @Test fun familyBsCellIsFoundByItsShapeUnderItsOwnNames() {
-        // 347415285's cell: GEX under the abstract 1GR, arm64's Generate label, a 104-instruction render in 25 registers.
-        val familyB = aiCells.single { it.type == "LX/GEX;" }
-        val fixture = aiStickerCellFixture(familyB.render)
-        assertEquals(listOf(familyB.render), findAiStickerCells(fixture).map { it.hookId() })
-        assertEquals(listOf(familyB), aiStickerCells)
-        // The cell and the grid around it both come out of the mirrored discovery under family B's names.
+    @Test fun armv7sCellIsFoundByItsShapeUnderItsOwnNames() {
+        // 347617497's cell: GaL under the abstract 1Nw, armv7's Generate label, a 105-instruction render in 24 registers.
+        val armv7 = aiCells.single { it.type == "LX/GaL;" }
+        val fixture = aiStickerCellFixture(armv7.render)
+        assertEquals(listOf(armv7.render), findAiStickerCells(fixture).map { it.hookId() })
+        assertEquals(listOf(armv7), aiStickerCells)
+        // The cell and the grid around it both come out of the mirrored discovery under armv7's names.
         val base = SYNTHETIC_PROFILE
-        activeProfile = ControlProfile(base.hooks + ("ai_sticker_cell" to setOf(familyB.render)), base.pluginSentinel, base.preferenceGetter,
+        activeProfile = ControlProfile(base.hooks + ("ai_sticker_cell" to setOf(armv7.render)), base.pluginSentinel, base.preferenceGetter,
             base.peopleKey, base.peopleFlagCheck, base.subtabsSupplier, base.browserPreferenceKey, base.browserPreferenceIndex,
             base.bubbleCapabilityGetter, base.bubbleRolloutGetter, base.nativeBubbleRoutes, base.nativeCommunityInbox)
-        validateControls(mirroredControls(aiStickerCellFixture(familyB.render, grid = true)), setOf("ai_sticker_cell", "ai_sticker_grid"))
+        validateControls(mirroredControls(aiStickerCellFixture(armv7.render, grid = true)), setOf("ai_sticker_cell", "ai_sticker_grid"))
         val method = findAiStickerCells(fixture).single() as MutableMethod
         method.injectAiStickerCell()
         val after = method.implementation!!.instructions.toList()
-        assertEquals("LX/GEX;->A00:I", (after[1] as ReferenceInstruction).reference.toString())
+        assertEquals("LX/GaL;->A00:I", (after[1] as ReferenceInstruction).reference.toString())
         assertEquals(GENERATE_AI_LABEL, (after[2] as NarrowLiteralInstruction).narrowLiteral)
-        assertEquals(GENERATE_MENU_LABEL, (after[4] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(GENERATE_MENU_LABEL_ARMV7, (after[4] as NarrowLiteralInstruction).narrowLiteral)
         // The base has to be the abstract Litho component the render overrides; anything else is some other cell.
         for (change in listOf("concrete", "concrete_render", "no_render", "scope", "parent")) {
-            val broken = aiStickerCellFixture(familyB.render, baseChange = change)
+            val broken = aiStickerCellFixture(armv7.render, baseChange = change)
             assertTrue(findAiStickerCells(broken).isEmpty(), change)
             assertFailsWith<PatchException>(change) { validateControls(mirroredControls(broken), setOf("ai_sticker_cell")) }
         }
@@ -500,6 +517,52 @@ class NativeMediaControlsTest {
             superclass = "LX/1N9;", size = 105)
         assertTrue(findAiStickerCells(cell).isEmpty())
         assertFailsWith<PatchException> { validateControls(mirroredControls(cell), setOf("ai_sticker_cell")) }
+    }
+
+    @Test fun a588QuicksnapViewerThatHandsItsWindowToASecureHelperHooksTheHelper() {
+        // The arm64 profile pins the helper under this name, and the patch only proves a viewer its profile names.
+        activeProfile = BASE_PROFILE
+        val helperId = "LX/Rik;->A00(${QUICKSNAP_SECURE_PARAMS.joinToString("")})V"
+        assertTrue(helperId in BASE_PROFILE.hooks.getValue("screenshot_viewers"))
+        val quick = "$QUICKSNAP_VIEWER->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"
+        // As 588 has it: a missing dialog's tail hands the helper a null window, which the helper checks itself.
+        fun viewer(window: String = "Landroid/app/Dialog;->getWindow()Landroid/view/Window;", yes: String = "const/4 v4, 0x1", extra: String = "",
+                   missing: String = "const/4 v1, 0x0") =
+            fixtureMethod(quick, """
+                invoke-virtual {v8}, LX/Fragment;->getDialog()Landroid/app/Dialog;
+                move-result-object v0
+                if-eqz v0, :no_dialog
+                invoke-virtual {v0}, $window
+                move-result-object v1
+                :asked
+                iget-object v2, v8, LX/Fragment;->session:Lcom/facebook/auth/usersession/FbUserSession;
+                iget-object v3, v8, LX/Fragment;->secure:LX/Rik;
+                $yes
+                invoke-virtual {v3, v1, v2, v4}, $helperId
+                $extra
+                const/4 v0, 0x0
+                return-object v0
+                :no_dialog
+                $missing
+                goto :asked
+            """.trimIndent(), registers = 12)
+        fun found(viewer: Method, helper: Method = screenshotViewerFixture(helperId)) =
+            mirroredControls(listOf(fixtureClass(QUICKSNAP_VIEWER, listOf(viewer)), fixtureClass("LX/Rik;", listOf(helper))))
+                .getValue("screenshot_viewers").map { it.hookId() }
+        assertEquals(listOf(helperId), found(viewer()))
+        val helper = screenshotViewerFixture(helperId)
+        assertEquals(listOf(7), helper.screenshotViewerSites())
+        assertEquals(listOf(7), CompatMirror.screenshotViewerSites(helper))
+        // The viewer asks with another window, a no, or twice; the helper changes its mask or loses its clear.
+        val refused = mapOf(
+            "the activity's window" to found(viewer(window = "Landroid/app/Activity;->getWindow()Landroid/view/Window;")),
+            "the fragment for a missing window" to found(viewer(missing = "move-object v1, v8")),
+            "no instead of yes" to found(viewer(yes = "const/4 v4, 0x0")),
+            "asked twice" to found(viewer(extra = "invoke-virtual {v3, v1, v2, v4}, $helperId")),
+            "another mask" to found(viewer(), screenshotViewerFixture(helperId).apply { replaceInstruction(5, "const/16 v0, 0x80") }),
+            "no clear" to found(viewer(), screenshotViewerFixture(helperId).apply { replaceInstruction(9, "nop") }),
+        )
+        for ((case, hooks) in refused) assertEquals(emptyList(), hooks, case)
     }
 
     @Test fun paymentWindowsCleanupAndWrongProfileDialogNeverBecomeViewerHooks() {
@@ -709,7 +772,7 @@ class NativeMediaControlsTest {
             validateControls(discovered, setOf("ai_sticker_cell", "screenshot_viewers", EMOJI_DRAWER, ANALYTICS_UPLOADS, MESSAGE_LOG))
             // The emoji drawer rides on the same discovery: every flag read takes the helper and nothing else moves.
             val drawerReads = discovered.getValue(EMOJI_DRAWER).sumOf { assertEmojiDrawerInjected(it, "$code ${it.hookId()}") }
-            // 586's family B asked one shared getter for all of them. Every 587 build, family B included, reads in each hook.
+            // 586's family B asked one shared getter for all of them. Every 587 and 588 build, armv7 included, reads in each hook.
             assertEquals(EMOJI_DRAWER_READS, drawerReads, code)
             // So do the analytics uploads: each entry point keeps every original instruction after the switch's guard.
             for (native in discovered.getValue(ANALYTICS_UPLOADS)) {

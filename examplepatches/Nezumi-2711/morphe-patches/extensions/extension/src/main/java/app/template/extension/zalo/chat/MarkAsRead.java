@@ -5,7 +5,6 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -14,6 +13,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.shared.ZaloEnv;
 
 /**
@@ -60,7 +60,7 @@ public final class MarkAsRead {
             if (button.getParent() != null) ((ViewGroup) button.getParent()).removeView(button);
             container.addView(button, Math.max(0, container.indexOfChild(drawer)));
         } catch (Exception | LinkageError error) {
-            Log.w(TAG, "Unable to attach mark as read button", error);
+            NezumiLog.w(TAG, "Unable to attach mark as read button", error);
         }
     }
 
@@ -93,7 +93,7 @@ public final class MarkAsRead {
             button.setTag(VIEW_TAG);
             return button;
         } catch (ReflectiveOperationException | RuntimeException error) {
-            Log.w(TAG, "Unable to create mark as read button", error);
+            NezumiLog.w(TAG, "Unable to create mark as read button", error);
             return null;
         }
     }
@@ -115,7 +115,7 @@ public final class MarkAsRead {
             Thread worker = new Thread(() -> run(appContext, convId, group, snapshot), "nezumi-mark-read");
             worker.start();
         } catch (Exception | LinkageError error) {
-            Log.w(TAG, "Mark as read click failed", error);
+            NezumiLog.w(TAG, "Mark as read click failed", error);
         }
     }
 
@@ -125,12 +125,12 @@ public final class MarkAsRead {
             sendSeen(convId, group, messages);
             ok = true;
         } catch (Exception | LinkageError error) {
-            Log.w(TAG, "Unable to send seen ACK", error);
+            NezumiLog.w(TAG, "Unable to send seen ACK", error);
         }
         try {
             clearLocalUnread(convId);
         } catch (Exception | LinkageError error) {
-            Log.w(TAG, "Unable to clear local unread state", error);
+            NezumiLog.w(TAG, "Unable to clear local unread state", error);
         }
         if (ok) {
             boolean vietnamese = ZaloEnv.isVietnamese(context);
@@ -161,7 +161,9 @@ public final class MarkAsRead {
         try {
             Object store = Class.forName("y8g").getMethod("a").invoke(null);
             tracked = store.getClass().getMethod("z", String.class).invoke(store, convId);
-        } catch (ReflectiveOperationException | RuntimeException ignored) { }
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.swallowedOnce(TAG, "tracked conversation lookup unavailable (y8g)", failure);
+        }
         if (tracked != null && !isValid(tracked)) tracked = null;
 
         Object latest = null;

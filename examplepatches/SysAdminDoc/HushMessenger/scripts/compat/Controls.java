@@ -130,6 +130,7 @@ final class Controls {
         found.get("tab_bar_overlay").addAll(tabBarBuilders(classes, false));
         found.get("tab_bar_scroll_away").addAll(tabBarScrollAway(classes));
         found.get("tab_swipe").addAll(tabSwipe(classes));
+        found.get("floating_pill").addAll(floatingPill(classes));
         found.get("avatar_shape").addAll(avatarShape(classes));
         found.get("story_ring").addAll(storyRing(classes));
         found.get("quiet_call_ring").addAll(quietCallRing(classes));
@@ -184,8 +185,14 @@ final class Controls {
             boolean candidate = (EPHEMERAL_VIEWER.equals(cls.getType()) && (EPHEMERAL_DIALOGS.contains(method.getName()) || "onResume".equals(method.getName()))) ||
                 (QUICKSNAP_VIEWER.equals(cls.getType()) && "onCreateView".equals(method.getName()));
             if (!candidate) continue;
-            if (screenshotViewerSites(method).isEmpty()) changedViewer = true;
-            else found.get("screenshot_viewers").add(method);
+            // 588's Quicksnap viewer hands its window to a helper, whose addFlags is the site.
+            String helperId = QUICKSNAP_VIEWER.equals(cls.getType()) ? quicksnapSecureHelper(method) : null;
+            Method helper = null;
+            if (helperId != null) for (var owner : classes) if (owner.getType().equals(helperId.substring(0, helperId.indexOf("->"))))
+                for (var m : owner.getMethods()) if (hookId(m).equals(helperId)) helper = m;
+            var viewer = helperId != null ? helper : method;
+            if (viewer == null || screenshotViewerSites(viewer).isEmpty()) changedViewer = true;
+            else found.get("screenshot_viewers").add(viewer);
         }
         if (changedViewer) found.get("screenshot_viewers").clear();
         var jewelCandidates = new ArrayList<Map.Entry<Method, Set<String>>>();
@@ -776,6 +783,9 @@ final class Controls {
         found.get("profile_menu_items").addAll(profileMenus);
         found.get("profile_menu_call").addAll(profileMenuCalls(classes, profileMenus, stringTables));
         found.get("refresh_rate").addAll(refreshRate(classes));
+        found.get("story_row_size").addAll(refreshRate(classes));
+        found.get("mark_read_locally").addAll(markReadLocally(classes));
+        found.get("unread_badge").addAll(unreadBadge(classes));
         return found;
     }
 }

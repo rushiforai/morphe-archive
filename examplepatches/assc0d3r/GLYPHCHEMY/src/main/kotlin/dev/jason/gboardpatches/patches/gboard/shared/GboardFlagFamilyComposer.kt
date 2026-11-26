@@ -311,20 +311,33 @@ private data class GboardFlagFamilyTransformationPlan(
                 flagNameScratch = FLAG_NAME_SCRATCH_REGISTER.takeIf { needsFlagName },
             )
 
-            if (GboardVersionBindings.targetVersion == "18.6.3") {
+            val contract = gboardFlagStockContract()
+            contract.snapshotField?.let { snapshotField ->
                 val snapshots = instructions.filter { instruction ->
                     val load = instruction as? TwoRegisterInstruction
                     val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
                     instruction.opcode.name.normalized() == "IGET_OBJECT" &&
-                        load?.registerA == 0 && load.registerB == receiverRegister &&
-                        field?.definingClass == "Lodo;" && field.name == "f" && field.type == "Lody;"
+                        load?.registerA == FLAG_NAME_SCRATCH_REGISTER &&
+                        load?.registerB == receiverRegister &&
+                        field?.definingClass == method.definingClass &&
+                        field.name == snapshotField &&
+                        field.type == contract.holderType
                 }
-                check(snapshots.size == 1) { "18.5.4 flag snapshot carrier drift" }
+                check(snapshots.size == 1) {
+                    "Flag getter ${method.definingClass} must load its cached " +
+                        "${contract.holderType} exactly once through v$FLAG_NAME_SCRATCH_REGISTER; " +
+                        "found ${snapshots.size} such loads for targetVersion " +
+                        GboardVersionBindings.targetVersion
+                }
             }
 
             val resultMaterializationIndex = instructions.indices.singleOrNull { index ->
-                instructions[index].isFormal1803ResultMaterialization(receiverRegister)
-            } ?: error("Could not resolve exact 18.0.3 nxw#g result materialization")
+                instructions[index].isFlagValueMaterialization(receiverRegister, contract)
+            } ?: error(
+                "Could not find the stock flag value load ${contract.holderType}->" +
+                    "${contract.holderField}:Ljava/lang/Object; into v$receiverRegister for " +
+                    "targetVersion ${GboardVersionBindings.targetVersion}; the getter's shape changed",
+            )
             check(resultMaterializationIndex < returnIndices.single()) {
                 "18.0.3 flag result materialization must precede RETURN_OBJECT"
             }
@@ -535,21 +548,60 @@ private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
     return true
 }
 
+/**
+ * The stock body a Gboard flag getter must have before the family hook can rewrite it: exactly one
+ * snapshot load that caches the holder instance, then that holder's Object value field copied into
+ * the return register. Every release renames these classes, so the contract is stated per version
+ * instead of being derived from the bindings: the names are the thing this gate exists to check.
+ */
+private data class GboardFlagStockContract(
+    /** Field on the flag definition caching the holder, e.g. `Lodo;->f:Lody;`. Null when not checked. */
+    val snapshotField: String?,
+    /** Value field on the holder, e.g. `Lody;->a:Ljava/lang/Object;`. */
+    val holderField: String,
+    /** Descriptor of the holder class, e.g. `Lody;`. */
+    val holderType: String,
+)
+
+private val GBOARD_FLAG_STOCK_CONTRACTS = listOf(
+    "18.0.3" to GboardFlagStockContract(snapshotField = null, holderField = "c", holderType = "Lnrg;"),
+    "18.6.3" to GboardFlagStockContract(snapshotField = "f", holderField = "a", holderType = "Lody;"),
+    // 18.8.0 keeps the getter shape but renames it to Ladfs; and its holder to Ladgf;; audited in
+    // tools/bindings/audits/frosted-and-flag-store-18.8.0.kt.
+    "18.8.0" to GboardFlagStockContract(snapshotField = "f", holderField = "a", holderType = "Ladgf;"),
+)
+
+/** Longest prefix match so a projection can carry a full build id such as 18.8.0.1022711984. */
+private fun gboardFlagStockContract(
+    version: String = GboardVersionBindings.targetVersion,
+): GboardFlagStockContract =
+    GBOARD_FLAG_STOCK_CONTRACTS
+        .filter { (known, _) -> version == known || version.startsWith(known + ".") }
+        .maxByOrNull { (known, _) -> known.length }
+        ?.second
+        ?: error(
+            "No Gboard flag-store contract for targetVersion '$version'. The family hook rewrites a " +
+                "getter only when its stock body loads a cached holder and copies that holder's Object " +
+                "value field into the return register; without the release's class names the rewrite " +
+                "cannot be verified, so it is refused instead of guessing. Supported: " +
+                GBOARD_FLAG_STOCK_CONTRACTS.joinToString { it.first } +
+                ". To add this build, dump the getter " +
+                "(tools/bindings/MethodDump.java <apk> '<flagClass;>' g) and add the holder class, its " +
+                "value field and the flag definition's snapshot field to GBOARD_FLAG_STOCK_CONTRACTS.",
+        )
+
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .isFormal1803ResultMaterialization(receiverRegister: Int): Boolean {
+    .isFlagValueMaterialization(
+        receiverRegister: Int,
+        contract: GboardFlagStockContract,
+    ): Boolean {
     val load = this as? TwoRegisterInstruction ?: return false
     val field = (load as? ReferenceInstruction)?.reference as? FieldReference ?: return false
     return opcode.name.normalized() == "IGET_OBJECT" &&
         load.registerA == receiverRegister &&
         load.registerB == FLAG_NAME_SCRATCH_REGISTER &&
-        field.definingClass == when (GboardVersionBindings.targetVersion) {
-            "18.0.3" -> "Lnrg;"
-            "18.6.3" -> "Lody;"
-            else -> error("Unsupported Gboard flag stock contract for ${GboardVersionBindings.targetVersion}")
-        } && field.name == when (GboardVersionBindings.targetVersion) {
-            "18.6.3" -> "a"
-            else -> "c"
-        } &&
+        field.definingClass == contract.holderType &&
+        field.name == contract.holderField &&
         field.type == "Ljava/lang/Object;"
 }
 

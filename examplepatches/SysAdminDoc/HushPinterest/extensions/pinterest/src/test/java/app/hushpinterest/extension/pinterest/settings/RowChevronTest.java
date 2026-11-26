@@ -78,7 +78,7 @@ public class RowChevronTest {
             "Export settings", "Import settings", "Pick a download folder", "Download history", "Your likes and comments",
             "Export diagnostic report", "Source code and issues", "Licenses", "Release notes", "Update instructions",
             "Setup and backup guide", "Muted words", "Pinterest's own AI setting", "Save button color",
-            "Pick a save sound", "Board name position", "Pick pin menu rows"));
+            "Pick a save sound", "Font file", "Board name position", "Pick pin menu rows", "Hide seen pins for"));
 
     /** Built by the first show(), after a test has set the text size it wants. */
     private ActivityController<Activity> controller;

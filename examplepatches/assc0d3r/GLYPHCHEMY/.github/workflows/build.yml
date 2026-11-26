@@ -60,3 +60,36 @@ jobs:
             exit 1
           fi
           echo "Inventory matches the bundle: $(jq '.patches | length' patches-list.json) patches"
+
+      # BindingAudit resolves every target in GboardVersionBindings.kt against a real Gboard build, so
+      # a binding that no longer exists there fails here instead of the next time someone re-derives
+      # by hand. The APK cannot live in this repository (it is Google's proprietary build and *.apk is
+      # ignored), so its URL and checksum come from repository variables. Until both are set - and on
+      # every pull request from a fork, which sees no variables - the gate warns and skips rather than
+      # failing builds it cannot judge.
+      - name: Verify the bindings resolve against the target Gboard build
+        env:
+          GBOARD_APK_URL: ${{ vars.GBOARD_APK_URL }}
+          GBOARD_APK_SHA256: ${{ vars.GBOARD_APK_SHA256 }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GBOARD_APK_URL:-}" || -z "${GBOARD_APK_SHA256:-}" ]]; then
+            echo "::warning::GBOARD_APK_URL and GBOARD_APK_SHA256 are not set, so the bindings audit was skipped."
+            exit 0
+          fi
+
+          APK="build/gboard-target.apk"
+          curl -fSL --retry 3 --retry-delay 5 -o "${APK}" "${GBOARD_APK_URL}"
+          # The pinned checksum is what makes a plain URL safe to keep in a variable: if the file
+          # behind it is replaced, the audit stops instead of passing against a different build.
+          EXPECTED="$(printf '%s' "${GBOARD_APK_SHA256}" | tr 'A-F' 'a-f')"
+          ACTUAL="$(sha256sum "${APK}" | cut -d' ' -f1)"
+          if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
+            echo "::error::Downloaded APK is sha256 ${ACTUAL}, not the pinned ${EXPECTED}."
+            exit 1
+          fi
+
+          java -cp "libs/morphe-cli.jar" tools/bindings/BindingAudit.java \
+            src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/generated/GboardVersionBindings.kt \
+            "${APK}" \
+            --known-missing tools/bindings/unresolved-baseline.txt

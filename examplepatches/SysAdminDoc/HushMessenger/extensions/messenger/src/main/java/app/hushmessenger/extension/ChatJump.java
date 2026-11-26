@@ -1140,6 +1140,7 @@ public final class ChatJump {
             status = ui.text("", 15, ui.text, false);
             bar.addView(status, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
             cancel = ui.button(new SettingsText(context).get("chat_jump_cancel"));
+            InvisibleButtons.own(cancel, cancel.getText());
             cancel.setOnClickListener(tapped -> jump.stop(Outcome.CANCELLED));
             bar.addView(cancel);
             update();

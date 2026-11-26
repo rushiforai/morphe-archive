@@ -65,10 +65,16 @@ import app.hushgram.extension.shared.ui.Dim;
 
 /**
  * The viewing history's own page (#228): a tab for each kind, a search box and every row kept,
- * newest first. Tapping a row opens it again in Instagram: a post or a reel by its id, anything
- * else by the person who posted it, since a story is gone in a day and has no link of its own.
+ * newest first. Tapping a row shows it big in {@link ViewingHistoryViewer}, where a swipe goes on
+ * through the rest and Back comes back here (#865). Its Open, like a long press's, opens the row
+ * again in Instagram: a post or a reel by its id, anything else by the person who posted it, since
+ * a story is gone in a day and has no link of its own.
  * The button by Clear shows the rows as a grid of big pictures instead, and the page opens the way
  * it was left (#773).
+ *
+ * <p>Back from what Open showed comes back here (#865), through {@link ViewingHistoryReturn}: the
+ * page opens again on its tab and search with the row where it was, big again if it was, and closing
+ * it then brings back the settings it sat over, on their page.
  */
 @SuppressWarnings("deprecation") // Preference is what the settings page builds on.
 final class ViewingHistoryPage {
@@ -93,8 +99,16 @@ final class ViewingHistoryPage {
     private final Drawable nothingMatches;
     /** The settings row the page opened from, which the settings lock goes by. */
     private final Preference origin;
+    /** The row shown big, while it's open. */
+    @Nullable ViewingHistoryViewer viewer;
     private List<ViewingHistory.Row> all = Collections.emptyList();
     private Kind kind;
+    /** The settings page this page brings back as it closes, when it came back after Open, or null. */
+    @Nullable private String backTo;
+    /** Where Open left the page, for the first read after it comes back. */
+    @Nullable private ViewingHistoryReturn.Spot restoring;
+    /** Open is closing the page for Instagram's screen, so nothing comes back yet. */
+    private boolean leaving;
 
     private ViewingHistoryPage(Context context, Preference row) {
         origin = row;
@@ -175,7 +189,7 @@ final class ViewingHistoryPage {
         list.setClipToPadding(false);
         rows = new Rows(context, palette);
         list.setAdapter(rows);
-        list.setOnItemClickListener((parent, view, position, id) -> open(context, rows.get(position)));
+        list.setOnItemClickListener((parent, view, position, id) -> view(position));
         list.setOnItemLongClickListener((parent, view, position, id) -> {
             options(view, rows.get(position));
             return true;
@@ -192,7 +206,7 @@ final class ViewingHistoryPage {
         grid.setSelector(new ColorDrawable(Color.TRANSPARENT));
         tiles = new Tiles(context, palette, tileSize(context));
         grid.setAdapter(tiles);
-        grid.setOnItemClickListener((parent, view, position, id) -> open(context, tiles.get(position)));
+        grid.setOnItemClickListener((parent, view, position, id) -> view(position));
         grid.setOnItemLongClickListener((parent, view, position, id) -> {
             options(view, tiles.get(position));
             return true;
@@ -225,6 +239,13 @@ final class ViewingHistoryPage {
             }
         });
 
+        dialog.setOnDismissListener(gone -> {
+            String settings = backTo;
+            if (leaving || settings == null) return;
+            Activity activity = SettingsScreenRow.activityOf(dialog.getContext());
+            if (activity != null) SettingsEntry.openOn(activity, settings);
+        });
+
         SettingsDialog.keepOffTheBars(root);
         FocusRest.on(root);
         dialog.setContentView(root);
@@ -241,10 +262,28 @@ final class ViewingHistoryPage {
 
     /** Opens the page over the settings, from the viewing history's row. */
     static ViewingHistoryPage open(Context context, Preference row) {
+        ViewingHistoryReturn.disarm();
         ViewingHistoryPage page = new ViewingHistoryPage(context, row);
         page.pick(null);
         page.read();
         page.dialog.show();
+        return page;
+    }
+
+    /**
+     * Opens the page over [activity] again as Open left it [where], after Back on what Open showed
+     * (#865). The row is looked for again once the rows are read, since seeing it may have moved it.
+     */
+    static ViewingHistoryPage reopen(Activity activity, ViewingHistoryReturn.Spot where) {
+        ViewingHistoryReturn.disarm();
+        ViewingHistoryPage page = new ViewingHistoryPage(activity, new HushgramPreferenceFragment.Row(activity));
+        page.backTo = where.settingsPage;
+        page.restoring = where;
+        page.pick(where.tab);
+        page.search.setText(where.search);
+        page.search.setSelection(page.search.length());
+        page.dialog.show();
+        page.read();
         return page;
     }
 
@@ -256,11 +295,31 @@ final class ViewingHistoryPage {
             Utils.runOnMainThread(() -> {
                 all = read;
                 show();
+                restore();
             });
         })) {
             all = ViewingHistory.entries(application);
             show();
+            restore();
         }
+    }
+
+    /** After the first read of a page that came back after Open: its row on screen, big if it was. */
+    private void restore() {
+        ViewingHistoryReturn.Spot where = restoring;
+        restoring = null;
+        if (where == null) return;
+        List<ViewingHistory.Row> shown = matching(all, kind, String.valueOf(search.getText()));
+        if (shown.isEmpty()) return;
+        int at = -1;
+        for (int i = 0; i < shown.size() && at < 0; i++) {
+            ViewingHistory.Row row = shown.get(i);
+            if (row.kind == where.rowKind && row.id.equals(where.rowId)) at = i;
+        }
+        // Gone from the list since: the row in its place.
+        if (at < 0) at = Math.max(0, Math.min(where.position, shown.size() - 1));
+        reveal(at);
+        if (where.big) view(at);
     }
 
     private void pick(@Nullable Kind wanted) {
@@ -384,7 +443,7 @@ final class ViewingHistoryPage {
                 Utils.showToastShort(L10n.t("Copied"));
                 return true;
             case OPEN_PROFILE:
-                go(context, profileLink(row));
+                go(context, profileLink(row), row);
                 return true;
             case OPEN:
                 open(context, row);
@@ -434,22 +493,58 @@ final class ViewingHistoryPage {
     }
 
     private void open(Context context, ViewingHistory.Row row) {
-        go(context, link(row));
+        go(context, link(row), row);
     }
 
-    private void go(Context context, @Nullable Uri link) {
+    /** Shows the row at [position] of the list or grid big, with the rest it lists a swipe away (#865). */
+    void view(int position) {
+        List<ViewingHistory.Row> shown = matching(all, kind, String.valueOf(search.getText()));
+        if (position < 0 || position >= shown.size()) return;
+        viewer = ViewingHistoryViewer.show(this, dialog.getContext(), palette, shown, position);
+    }
+
+    /** Puts the row at [position] on screen, the one the viewer showed last as it closed. */
+    void reveal(int position) {
+        viewer = null;
+        if (position < 0 || position >= rows.getCount()) return;
+        list.setSelection(position);
+        grid.setSelection(position);
+    }
+
+    /**
+     * Opens [link], [row]'s, in Instagram, closing this page and the settings, and answers whether
+     * it did. Back from what it shows comes back here as the page is now (#865).
+     */
+    boolean go(Context context, @Nullable Uri link, ViewingHistory.Row row) {
         try {
             if (link == null) throw new ActivityNotFoundException();
             // This app's own package, so a copy installed next to Instagram opens itself.
             context.startActivity(new Intent(Intent.ACTION_VIEW, link).setPackage(context.getPackageName()));
-            // The link opens on the screen under this page, and settings opened moments ago would
-            // follow it to the front, so both make way.
             Activity activity = SettingsScreenRow.activityOf(context);
-            if (activity != null) SettingsEntry.closeForLink(activity);
+            if (activity != null) {
+                ViewingHistoryReturn.Spot where = spotOf(row);
+                // The link opens on the screen under this page, and settings opened moments ago would
+                // follow it to the front, so both make way.
+                SettingsEntry.closeForLink(activity);
+                ViewingHistoryReturn.arm(activity, where);
+            }
+            leaving = true;
             dialog.dismiss();
+            return true;
         } catch (ActivityNotFoundException | SecurityException failure) {
             Utils.showToastShort(L10n.t("Couldn't open that one."));
+            return false;
         }
+    }
+
+    /** The page as it is now, with [row] the one Open was tapped on. */
+    private ViewingHistoryReturn.Spot spotOf(ViewingHistory.Row row) {
+        String query = String.valueOf(search.getText());
+        ViewingHistoryViewer big = viewer;
+        int position = big != null ? big.position() : matching(all, kind, query).indexOf(row);
+        // A page that came back after Open goes back to the settings it came back to.
+        String settings = backTo != null ? backTo : HushgramPreferenceFragment.pageHolding(origin);
+        return new ViewingHistoryReturn.Spot(settings, kind, query, row.kind, row.id, Math.max(0, position), big != null);
     }
 
     private static String tabLabel(Context context, @Nullable Kind kind) {
@@ -489,7 +584,7 @@ final class ViewingHistoryPage {
         return mark;
     }
 
-    private static ImageButton iconButton(Context context, ScreenColors palette, String icon, String label, View.OnClickListener tap) {
+    static ImageButton iconButton(Context context, ScreenColors palette, String icon, String label, View.OnClickListener tap) {
         ImageButton button = new ImageButton(context);
         paintIcon(button, palette, icon, label);
         button.setPadding(Dim.dp(12), Dim.dp(12), Dim.dp(12), Dim.dp(12));
@@ -588,6 +683,35 @@ final class ViewingHistoryPage {
             if (bitmap == null) return;
             Utils.runOnMainThread(() -> {
                 if (key.equals(view.getTag())) fill(view, bitmap);
+            });
+        });
+    }
+
+    /**
+     * Shows [row]'s picture whole in [view], read at [size] pixels, for the viewer (#865): its kind's
+     * icon while it's read or fetched off the main thread, then the picture fitted inside the view.
+     */
+    static void showWhole(Context context, ScreenColors palette, ImageView view, ViewingHistory.Row row, int size) {
+        String key = key(row, size);
+        view.setTag(key);
+        view.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        Bitmap cached = PICTURES.get(key);
+        if (cached != null) {
+            view.setPadding(0, 0, 0, 0);
+            view.setImageBitmap(cached);
+            return;
+        }
+        int inset = Dim.dp(96);
+        view.setPadding(inset, inset, inset, inset);
+        view.setImageDrawable(SettingsIcons.icon(context, kindIcon(row.kind), palette.summary));
+        Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+        Utils.runOnBackgroundThread(() -> {
+            Bitmap bitmap = load(application, row, size);
+            if (bitmap == null) return;
+            Utils.runOnMainThread(() -> {
+                if (!key.equals(view.getTag())) return;
+                view.setPadding(0, 0, 0, 0);
+                view.setImageBitmap(bitmap);
             });
         });
     }

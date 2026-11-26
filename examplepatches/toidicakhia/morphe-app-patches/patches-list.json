@@ -1,75 +1,7 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.7.2",
+  "version": "1.8.0",
   "patches": [
-    {
-      "name": "Auto claim Benefits tasks",
-      "description": "Presses the Benefits/Gold-center controls and shows what it clicked: the daily video chain, claimable rewards, the watch-video task and the check-in pill. Share, save, game and purchase tasks are skipped, as are disabled controls. A control that does nothing is retried later, a task that never completes is left after three tries, and the check-in page closes itself when done. Pair it with \"Auto reward ads\".",
-      "default": false,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.29.0",
-              "versionCodes": {
-                "ARM64_V8A": 710,
-                "ARMEABI_V7A": 710,
-                "X86_64": 710,
-                "X86": 710
-              },
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Auto reward ads",
-      "description": "Closes a rewarded video as soon as the reward is granted, plus the native ad that follows, so completion stays server-valid and the Benefits page gets its callback. Each network is closed through its own close/skip control first, then BACK, then finish; splash ads are closed after their countdown, an ad no task asked for (interstitial, app-open) after a few seconds, and a rewarded ad that never reports a reward after 75s.",
-      "default": true,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.29.0",
-              "versionCodes": {
-                "ARM64_V8A": 710,
-                "ARMEABI_V7A": 710,
-                "X86_64": 710,
-                "X86": 710
-              },
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
     {
       "name": "Block Product Ad Banners",
       "description": "Points the product-ad API endpoint at a non-existent path so in-app ad banners are not loaded. Best effort: ads embedded in content responses are not affected.",
@@ -97,40 +29,6 @@
               },
               "isExperimental": false,
               "minSdk": 32,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Block ad redirects",
-      "description": "Rewrites the Play Store, market: and intent: URLs inside the ad SDKs and stops the hybrid WebView client from handing a page off to the store or a browser, so an auto-opening or mis-tapped ad cannot leave TeraBox and stall the automation.",
-      "default": true,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.29.0",
-              "versionCodes": {
-                "ARM64_V8A": 710,
-                "ARMEABI_V7A": 710,
-                "X86_64": 710,
-                "X86": 710
-              },
-              "isExperimental": false,
-              "minSdk": 23,
               "description": null
             }
           ]
@@ -535,40 +433,6 @@
       "options": []
     },
     {
-      "name": "Spoof signature",
-      "description": "Reports the stock certificate and skips Play Integrity so Google login and TeraBox's anti-cheat accept the re-signed APK. Not for sets that already spoof it.",
-      "default": false,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.29.0",
-              "versionCodes": {
-                "ARM64_V8A": 710,
-                "ARMEABI_V7A": 710,
-                "X86_64": 710,
-                "X86": 710
-              },
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Spoofer server",
       "description": "Sends Locket's API traffic (feed, profile, AI frames, captions) to a self-hosted spoofer server instead of api.locketcamera.com. Enter the server address; the app keeps using the server's own HTTPS certificate, so no DNS profile or CA install is needed. Enable the second option to route RevenueCat and Firebase Remote Config through the same server as well. Not selected by default.",
       "default": false,
@@ -748,6 +612,38 @@
               },
               "isExperimental": false,
               "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro",
+      "description": "Unlocks Pro: unlimited SSL proxying entries, filters, pinning, block/map/rewrite and breakpoint rules, the advanced body editor, Compose entries, Live Update and the widget. Also bypasses the PairIP license check so the repacked app starts.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.proxyman.proxymanandroid",
+          "name": "Proxyman",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#4F46E5",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.33.0",
+              "versionCodes": {
+                "ARM64_V8A": 70,
+                "ARMEABI_V7A": 70,
+                "X86_64": 70,
+                "X86": 70
+              },
+              "isExperimental": false,
+              "minSdk": 32,
               "description": null
             }
           ]

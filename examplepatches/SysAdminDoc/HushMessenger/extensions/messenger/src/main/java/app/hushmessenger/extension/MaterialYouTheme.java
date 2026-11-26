@@ -71,10 +71,11 @@ public final class MaterialYouTheme {
 
     /**
      * Whether a bar Hush puts inside a chat should be light: Messenger's own theme once it has answered, and Hush's
-     * Light theme switch before that or without the Material You patch.
+     * Light theme switch (or the phone's dark mode, when the settings follow it) before that or without the Material You
+     * patch.
      */
     static boolean chatIsLight() {
-        return answered ? !DARK.get() : Settings.preferences.getBoolean("light", false);
+        return answered ? !DARK.get() : SettingsTheme.light(Settings.appContext);
     }
 
     /**
@@ -246,10 +247,20 @@ public final class MaterialYouTheme {
     }
 
     /**
+     * Messenger's deemphasized primary button blue in its dark and light schemes, the floating tab bar's selected tab
+     * among others (#220). Too dark and too pale for the floors below, so the tab's icon took the accent while the
+     * highlight around it stayed Messenger's navy.
+     */
+    private static final int DEEMPHASIZED_BLUE_DARK = 0xFF001C3D;
+    private static final int DEEMPHASIZED_BLUE_LIGHT = 0xFFEBF5FF;
+
+    /**
      * One of Messenger's blues: HSV hue from 200 to 225 degrees, saturation of at least a quarter
-     * and value of at least 0.3. Worked in integers, since the Mig hook runs on every layout pass.
+     * and value of at least 0.3, or the deemphasized button blue. Worked in integers, since the Mig hook runs on every
+     * layout pass.
      */
     static boolean isMessengerBlue(int color) {
+        if (color == DEEMPHASIZED_BLUE_DARK || color == DEEMPHASIZED_BLUE_LIGHT) return true;
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
         int b = color & 0xFF;

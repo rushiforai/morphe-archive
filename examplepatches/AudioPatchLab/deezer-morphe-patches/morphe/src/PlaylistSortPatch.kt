@@ -7,15 +7,15 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
-private const val PLAYLIST_SOURCE = "LIllIllIllIll;->IlIllIIIlIIIllIl:LIllIllIllIll;"
-private const val ON_DEMAND_POLICY = "LIllIlllIIlllI;->IllIlIlIIlIllIll(LIllIllIllIll;Ljava/lang/String;)Z"
+private const val PLAYLIST_SOURCE = "LlIIlIllIIlIlI;->IIIlIIIllIlII:LlIIlIllIIlIlI;"
+private const val ON_DEMAND_POLICY = "LIIllIIlllIIllll;->lIIIIIlllllIIIII(LlIIlIllIIlIlI;Ljava/lang/String;)Z"
 
 internal val playlistSortPatch = patch {
     compatibleWith(deezerCompatibility)
 
     execute {
-        val menu = mutableClassDefBy("LIIIIIllllIllllI;").methods.single {
-            it.name == "IIlIlIlIlIllllll" && it.parameterTypes == listOf("Ljava/lang/Object;", "Ljava/lang/Object;")
+        val menu = mutableClassDefBy("LIIllIllIIlIIll;").methods.single {
+            it.name == "lIIlIIlIlllllII" && it.parameterTypes == listOf("Ljava/lang/Object;", "Ljava/lang/Object;")
         }
         val instructions = checkNotNull(menu.implementation).instructions
         val source = instructions.indices.single { index ->

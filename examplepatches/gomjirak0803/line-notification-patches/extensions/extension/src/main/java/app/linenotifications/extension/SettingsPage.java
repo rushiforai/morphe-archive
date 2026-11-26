@@ -271,6 +271,7 @@ final class SettingsPage extends Dialog {
                 "Add chats via “Hide notifications completely” in the chat menu. Turn a switch off to unhide."));
         try {
             String account = NativeLine.account();
+            Settings.reconcileAllPendingHides(account);
             String prefix = Settings.mutePrefix(account);
             ArrayList<Map.Entry<String, ?>> entries = new ArrayList<>();
             for (Map.Entry<String, ?> entry : Settings.prefs().getAll().entrySet()) {
@@ -292,7 +293,7 @@ final class SettingsPage extends Dialog {
                 toggle(name, hideLabel, true, true, value -> {
                     try {
                         if (!account.equals(NativeLine.account())) return false;
-                        ChatNotifications.change(getContext(), chat,
+                        ChatNotifications.change(getContext(), account, chat,
                                 Settings.quiet(account, chat) ? ChatNotifications.QUIET : ChatNotifications.NORMAL,
                                 null, success -> { if (isShowing()) showMuted(); });
                         return false;

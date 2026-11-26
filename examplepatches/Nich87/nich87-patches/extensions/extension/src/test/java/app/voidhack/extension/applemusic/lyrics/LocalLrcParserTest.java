@@ -147,4 +147,28 @@ public final class LocalLrcParserTest {
         assertTrue(ttml.ttml.contains("itunes:key=\"L2\">Verse line</p>"));
         assertTrue(ttml.ttml.contains("itunes:key=\"L3\">Chorus</p>"));
     }
+
+    @Test
+    public void preparesPlainPastedJapaneseLyricsWithoutTimestamps() {
+        String pasted = "夜空に光る星を見上げて\r\n"
+                + "静かな風が頬をなでる\r\n"
+                + "\r\n"
+                + "明日もきっと歩けるから\r\n";
+
+        LocalLrcParser.LrcMetadata meta = LocalLrcParser.parseMetadata(pasted);
+        assertFalse(meta.hasSyncedTimestamps);
+        assertFalse(meta.hasAnyTag());
+
+        LrclibParser.PreparedRecord prep = LocalLrcParser.prepareLocalLrc(pasted, 210, true, false);
+        assertEquals(LrclibModels.LyricsSource.LOCAL_PLAIN, prep.sourceType);
+        assertNotNull(prep.parsed);
+        assertEquals(3, prep.parsed.lines.size());
+
+        LrclibParser.TtmlResult ttml = LrclibParser.renderPrepared(prep, 0, "ja", null);
+        assertEquals(LrclibModels.LyricsSource.LOCAL_PLAIN, ttml.sourceType);
+        assertNotNull(ttml.ttml);
+        assertTrue(ttml.ttml.contains("itunes:timing=\"None\""));
+        assertTrue(ttml.ttml.contains("夜空に光る星を見上げて"));
+        assertTrue(ttml.ttml.contains("明日もきっと歩けるから"));
+    }
 }

@@ -16,24 +16,37 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 /**
  * Messenger's own chat preview: press and hold a chat and it opens a peek at the conversation with the chat's menu
  * under it, instead of the menu alone. The chat list's long-press handler builds it, but only when Meta's server says
- * so, and falls back to the plain menu otherwise. The preview's thread view is built not to mark the chat read.
+ * so, and falls back to the plain menu otherwise. Some accounts also get the plain menu until a chat has opened since
+ * Messenger started. The preview's thread view is built not to mark the chat read.
  */
 internal const val CHAT_PREVIEW = "chat_preview"
 
 internal const val CHAT_PREVIEW_FRAGMENT = "Lcom/facebook/messaging/threadlist/threaditemmenu/preview/InboxThreadPreviewDialogFragment;"
 
-/** Meta's server flag for the preview, as 587 numbers it (586 read 0x1010535000040de). */
-internal const val CHAT_PREVIEW_FLAG = 0x1010536000042fdL
+/** Meta's server flag for the preview, as 588 numbers it (587 read 0x1010536000042fd). */
+internal const val CHAT_PREVIEW_FLAG = 0x10105370000448dL
 
-/** The second flag the long-press handler asks for end-to-end encrypted chats, as 587 numbers it (586 read 0x101055b0000432f). */
-internal const val CHAT_PREVIEW_ENCRYPTED_FLAG = 0x101055e00004588L
+/** The second flag the long-press handler asks for end-to-end encrypted chats, as 588 numbers it (587 read 0x101055e00004588). */
+internal const val CHAT_PREVIEW_ENCRYPTED_FLAG = 0x10105610000473bL
+
+/**
+ * The two flags that hold the preview back while Messenger is cold, as 588 numbers them: until a chat has opened or a
+ * preview has drawn since Messenger started, either one gives a long press the plain menu. Turning the switch on
+ * means a restart, so on an account with either flag on the first press always landed there.
+ */
+internal val CHAT_PREVIEW_COLD_FLAGS = setOf(0x2101053700044490L, 0x2101053700084493L)
 
 internal const val CHAT_PREVIEW_HELPER = "$SETTINGS->chatPreview(Z)Z"
+
+internal const val CHAT_PREVIEW_COLD_HELPER = "$SETTINGS->chatPreviewCold(I)Z"
 
 private val CHAT_PREVIEW_FLAGS = setOf(CHAT_PREVIEW_FLAG, CHAT_PREVIEW_ENCRYPTED_FLAG)
 
 /** One flag read: which flag, the move-result that takes the answer and the register it fills. */
-internal class ChatPreviewSite(val flag: Long, val result: Int, val register: Int)
+internal class ChatPreviewSite(val flag: Long, val result: Int, val register: Int) {
+    /** A preview flag's no can turn into a yes, a cold-start flag's yes into a no. */
+    val helper get() = if (flag in CHAT_PREVIEW_COLD_FLAGS) CHAT_PREVIEW_COLD_HELPER else CHAT_PREVIEW_HELPER
+}
 
 private fun Method.buildsChatPreview() = implementation?.instructions?.any {
     it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == CHAT_PREVIEW_FRAGMENT
@@ -47,14 +60,17 @@ private fun Method.readsChatPreviewFlag() = implementation?.instructions?.any {
  * Each read loads its flag into a register pair, passes the pair as the last two arguments of a boolean (…J) check,
  * a static one or the config interface's right after a cast to it, and moves the answer into a register. Nothing may
  * jump into that sequence, so the answer the switch sees is the flag's. 586 branches on it at once, 587 sometimes a few
- * instructions later or with if-nez. The preview flag is read once; any other shape refuses the switch.
+ * instructions later or with if-nez. The cold-start flags are read the same way. The preview flag is read once; any
+ * other shape refuses the switch.
  */
 internal fun Method.chatPreviewSites(): List<ChatPreviewSite> {
     fun refuse(): Nothing = throw PatchException("Messenger controls: the chat preview check in ${hookId()} no longer matches the tested build")
     val code = implementation?.instructions?.toList() ?: refuse()
     val targets = jumpTargets()
     val sites = code.indices.filter { at ->
-        code[at].opcode == Opcode.CONST_WIDE && (code[at] as WideLiteralInstruction).wideLiteral in CHAT_PREVIEW_FLAGS
+        code[at].opcode == Opcode.CONST_WIDE && (code[at] as WideLiteralInstruction).wideLiteral.let {
+            it in CHAT_PREVIEW_FLAGS || it in CHAT_PREVIEW_COLD_FLAGS
+        }
     }.map { at ->
         val pair = (code[at] as OneRegisterInstruction).registerA
         val cast = code.getOrNull(at + 1)?.takeIf { it.opcode == Opcode.CHECK_CAST }
@@ -106,12 +122,13 @@ internal fun MutableMethod.validateChatPreview() {
 }
 
 /**
- * Each answer passes through the extension, which can only turn a no into a yes. The rest of the handler still runs
- * as Messenger wrote it, so a chat it can't preview still gets the plain menu. Later reads go first.
+ * Each answer passes through the extension, which can only turn a preview flag's no into a yes and a cold-start
+ * flag's yes into a no. The rest of the handler still runs as Messenger wrote it, so a chat it can't preview still
+ * gets the plain menu. Later reads go first.
  */
 internal fun MutableMethod.injectChatPreview() {
     for (site in chatPreviewSites().asReversed()) addInstructions(site.result + 1, """
-        invoke-static/range {v${site.register} .. v${site.register}}, $CHAT_PREVIEW_HELPER
+        invoke-static/range {v${site.register} .. v${site.register}}, ${site.helper}
         move-result v${site.register}
     """.trimIndent())
 }

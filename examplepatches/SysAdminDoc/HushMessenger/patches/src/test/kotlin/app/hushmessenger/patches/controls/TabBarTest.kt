@@ -57,7 +57,7 @@ move-result v0
 if-nez v0, :built
 invoke-static {}, LX/2wm;->A05()LX/4vN;
 move-result-object v8
-const-wide v0, 0x0101055600014560L
+const-wide v0, 0x010105590001470eL
 move-object v9, v8
 check-cast v9, $CONFIG
 invoke-interface {v9, v0, v1}, $CONFIG->B1S(J)Z
@@ -95,7 +95,7 @@ throw v0
 :ready
 invoke-static {}, LX/2wm;->A05()LX/4vN;
 move-result-object v2
-const-wide v0, 0x0101039000033352L
+const-wide v0, 0x01010390000333f8L
 invoke-static {v2, v0, v1}, LX/17k;->A1X(Ljava/lang/Object;J)Z
 move-result v0
 return v0"""
@@ -115,7 +115,7 @@ const/4 v4, 0x0
 const/4 v10, 0x0
 invoke-static {}, LX/2wm;->A05()LX/4vN;
 move-result-object v8
-const-wide v2, 0x0101055600014560L
+const-wide v2, 0x010105590001470eL
 move-object v9, v8
 check-cast v9, $CONFIG
 invoke-interface {v9, v2, v3}, $CONFIG->B3T(J)Z
@@ -147,7 +147,7 @@ goto :frame"""
 /** The Chats page as 587 writes it: the flag read through a cast to the config interface. */
 private const val CHATS_587_BODY = """invoke-static {}, LX/2wm;->A05()LX/4vN;
 move-result-object v2
-const-wide v0, 0x0101039000033352L
+const-wide v0, 0x01010390000333f8L
 check-cast v2, $CONFIG
 invoke-interface {v2, v0, v1}, $CONFIG->B3T(J)Z
 move-result v0
@@ -167,7 +167,7 @@ iget-boolean v0, v3, $CHATS_PAGE->A01:Z
 if-nez v0, :done
 invoke-static {}, LX/2wm;->A05()LX/4vN;
 move-result-object v2
-const-wide v0, 0x0101039000003351L
+const-wide v0, 0x01010390000033f7L
 check-cast v2, $CONFIG
 invoke-interface {v2, v0, v1}, $CONFIG->B3T(J)Z
 move-result v2
@@ -378,16 +378,13 @@ class TabBarTest {
     @Test fun eachFamilyMapsItsOwnBuilderAndChatsPage() {
         fun ids(profile: ControlProfile) = listOf(FLOATING_TAB_BAR, TAB_BAR_OVERLAY, TAB_BAR_SCROLL_AWAY).map { profile.hooks.getValue(it) }
         val view = "->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"
-        // Family B keeps arm64's tab fragment and only renames the Chats page's answers and the frame's checks.
-        val a = "LX/1er;$view"
-        val c = "LX/1fH;$view"
+        val a = "LX/1jY;$view"
+        val c = "LX/1jx;$view"
         val scroll = "(Landroid/view/View;Landroid/view/View;II)Z"
-        assertEquals(listOf(setOf(a), setOf(a), setOf("LX/1p9;->EWo$scroll", "LX/1tj;->DUs()Z", "LX/1tj;->FGC()Z",
-            "LX/4d2;->A03(Landroid/view/View;LX/4d2;I)Z")), ids(PROFILE_347415354))
-        assertEquals(listOf(setOf(c), setOf(c), setOf("LX/1pZ;->EXA$scroll", "LX/1u9;->DVG()Z", "LX/1u9;->FGl()Z",
-            "LX/4dY;->A03(Landroid/view/View;LX/4dY;I)Z")), ids(PROFILE_347415262))
-        assertEquals(listOf(setOf(a), setOf(a), setOf("LX/1p9;->EWr$scroll", "LX/1tj;->DV4()Z", "LX/1tj;->FGF()Z",
-            "LX/4cN;->A03(Landroid/view/View;LX/4cN;I)Z")), ids(PROFILE_347415280))
+        assertEquals(listOf(setOf(a), setOf(a), setOf("LX/1v3;->F7N$scroll", "LX/21c;->E4a()Z", "LX/21c;->FrQ()Z",
+            "LX/4el;->A03(Landroid/view/View;LX/4el;I)Z")), ids(PROFILE_347617503))
+        assertEquals(listOf(setOf(c), setOf(c), setOf("LX/1vS;->F7V$scroll", "LX/221;->E4l()Z", "LX/221;->Frl()Z",
+            "LX/4i2;->A03(Landroid/view/View;LX/4i2;I)Z")), ids(PROFILE_347617497))
     }
 
     // A check before the pill's flag in the overlay's own shape, even on a register of its own, isn't the overlay.
@@ -484,12 +481,12 @@ class TabBarTest {
         fun body(vararg swaps: Pair<String, String>) = tabBarFixture(builder(edited(BUILDER_BODY, *swaps)))
         val floatingOnly = mapOf(
             "the pill's gate flipped" to body("if-eqz v0, :built" to "if-nez v0, :built"),
-            "something else between the flag and its read" to body("const-wide v0, 0x0101055600014560L\n" to "const-wide v0, 0x0101055600014560L\nconst/4 v2, 0x0\n"),
+            "something else between the flag and its read" to body("const-wide v0, 0x010105590001470eL\n" to "const-wide v0, 0x010105590001470eL\nconst/4 v2, 0x0\n"),
             "a move over the flag before its read" to body("move-object v9, v8\n" to "move-object v1, v8\n"),
             "the flag read through another interface" to body("invoke-interface {v9, v0, v1}, $CONFIG->B1S(J)Z" to "invoke-interface {v9, v0, v1}, LX/4vN;->B1S(J)Z"),
             "the flag read as something other than a yes or no" to body("$CONFIG->B1S(J)Z\nmove-result v0\nif-eqz v0, :built" to
                 "$CONFIG->BMX(J)J\nmove-result-wide v0\nif-eqz v0, :built"),
-            "the pill's flag loaded twice" to body("if-eqz v0, :built\n" to "if-eqz v0, :built\nconst-wide v0, 0x0101055600014560L\n"),
+            "the pill's flag loaded twice" to body("if-eqz v0, :built\n" to "if-eqz v0, :built\nconst-wide v0, 0x010105590001470eL\n"),
             "a branch onto the pill's gate" to body("const/4 v10, 0x0\n" to "const/4 v10, 0x0\nif-nez v7, :gate\n",
                 "move-result v0\nif-eqz v0, :built" to "move-result v0\n:gate\nif-eqz v0, :built"),
         )
@@ -504,7 +501,7 @@ class TabBarTest {
                 "move-object v10, v4\ngoto :built" to "move-object v10, v4\ngoto :gate"),
         )
         val both = mapOf(
-            "another flag" to body("0x0101055600014560L" to "0x0101055600084563L"),
+            "another flag" to body("0x010105590001470eL" to "0x0101055600084563L"),
             "a static builder" to tabBarFixture(builder(flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)),
             "a builder without the boolean" to tabBarFixture(builder(id = "$BUILDER->A01(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)$FRAME")),
             "a builder that hands back no frame" to tabBarFixture(builder(edited(BUILDER_BODY, "return-object v1" to "return-void"), id = "$BUILDER->A01${BUILDER_PARAMETERS}V")),
@@ -533,7 +530,7 @@ class TabBarTest {
         fun body(vararg swaps: Pair<String, String>) = tabBarFixture(page = chatsPage(edited(CHATS_BODY, *swaps)))
         val read = "invoke-static {v2, v0, v1}, LX/17k;->A1X(Ljava/lang/Object;J)Z"
         val cases = mapOf(
-            "another page's flag" to body("0x0101039000033352L" to "0x0101039000033353L"),
+            "another page's flag" to body("0x01010390000333f8L" to "0x0101039000033353L"),
             "the flag read through an interface" to body(read to "invoke-interface {v2, v0, v1}, $CONFIG->B1S(J)Z"),
             "the flag read with something else" to body(read to "invoke-static {v2, v0, v1}, LX/17k;->A1X(Ljava/lang/String;J)Z"),
             "something between the answer and the return" to body("move-result v0\nreturn v0" to "move-result v0\nconst/4 v0, 0x1\nreturn v0"),
@@ -621,7 +618,7 @@ class TabBarTest {
             Triple("the Chats page as the overlay", TAB_BAR_OVERLAY, chatsPage()),
             Triple("a builder with its overlay check chained", TAB_BAR_OVERLAY, builder(edited(BUILDER_BODY, "if-nez v10, :overlay" to "if-nez v0, :overlay"))),
             Triple("the builder as the Chats page", TAB_BAR_SCROLL_AWAY, builder()),
-            Triple("a page reading another flag", TAB_BAR_SCROLL_AWAY, chatsPage(edited(CHATS_BODY, "0x0101039000033352L" to "0x0101039000033353L"))),
+            Triple("a page reading another flag", TAB_BAR_SCROLL_AWAY, chatsPage(edited(CHATS_BODY, "0x01010390000333f8L" to "0x0101039000033353L"))),
             Triple("a slide answer with an early yes", TAB_BAR_SCROLL_AWAY, chatsSlide(edited(SLIDE_BODY, "const/4 v2, 0x0" to "const/4 v2, 0x1"))),
             Triple("a frame check with its if-eqz flipped", TAB_BAR_SCROLL_AWAY,
                 slideStart(edited(SLIDE_START_BODY, "move-result v0\nif-eqz v0, :done" to "move-result v0\nif-nez v0, :done"))),

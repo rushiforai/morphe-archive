@@ -1,7 +1,5 @@
 package dev.jason.gboardpatches.patches.gboard.features.longpressquickactions
 
-import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
-
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -81,9 +79,7 @@ internal fun MutableMethod.applyLongPressQuickActionsPointerOwnerDelegate(): Mut
         return this
     }
     check(implementation.registerCount == POINTER_OWNER_STOCK_REGISTER_COUNT) {
-        "Unexpected register count in " +
-            "${GboardVersionBindings.pointerOwner.reference}: " +
-            implementation.registerCount
+        "Unexpected register count in $definingClass->$name: ${implementation.registerCount}"
     }
 
     val expanded = expandLongPressPointerOwnerRegisters()

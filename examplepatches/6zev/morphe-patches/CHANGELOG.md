@@ -1,3 +1,9 @@
+## [1.7.2](https://github.com/6zev/morphe-patches/compare/v1.7.1...v1.7.2) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **build:** do not query runPatch properties during configuration ([c659ea6](https://github.com/6zev/morphe-patches/commit/c659ea69e086adf02b599d1f22e7f11bfade53cd))
+
 ## [1.7.1](https://github.com/6zev/morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-16)
 
 ### 🐛 Bug Fixes

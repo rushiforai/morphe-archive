@@ -206,10 +206,14 @@ class NativeBubblesTest {
     private val shortcutKey = "Lfixture/Key;->id(${thread})Ljava/lang/String;"
     private val attach = "Lfixture/Attach;->attach(Landroid/graphics/Bitmap;Lfixture/Notification;${BUBBLE_SESSION}${container}Lfixture/Summary;Lfixture/Trace;Lfixture/Push;Z)V"
 
+    /** 588's finder: it builds the container and hands it through a helper that pushes the shortcut and returns it. */
+    private val find = "Lfixture/Finder;->find()$container"
+    private val pushed = "Lfixture/Finder;->push($container)$container"
+
     private fun routes(longLived: Int = 1, gate: String = SYNTHETIC_PROFILE.hooks.getValue("bubble_mode").single(),
                        shortcutIdApi: Boolean = true, alternate: Boolean = false,
                        changed: String? = null, from: String = "", to: String = "",
-                       holder: Boolean = false): List<com.android.tools.smali.dexlib2.iface.ClassDef> {
+                       holder: Boolean = false, pushHelper: Boolean = false): List<com.android.tools.smali.dexlib2.iface.ClassDef> {
         fun method(id: String, body: String, registers: Int = 8, static: Boolean = false): MutableMethod {
             val code = body.trimIndent()
             if (id == changed) assertTrue(from in code, "The rejection fixture must change an existing instruction")
@@ -280,8 +284,21 @@ class NativeBubblesTest {
             move-result-object v0
             return-void
         """, 10))),
-        fixtureClass("Lfixture/Conversation;", listOf(method("Lfixture/Conversation;->notify()V", """
+        *if (pushHelper) arrayOf(fixtureClass("Lfixture/Finder;", listOf(method(find, """
             $call
+            move-result-object v1
+            invoke-direct {p0, v1}, $pushed
+            move-result-object v0
+            return-object v0
+        """), method(pushed, """
+            const/4 v1, 0x0
+            if-eqz p1, :failed
+            return-object p1
+            :failed
+            return-object v1
+        """, 4)))) else emptyArray(),
+        fixtureClass("Lfixture/Conversation;", listOf(method("Lfixture/Conversation;->notify()V", """
+            ${if (pushHelper) "invoke-virtual {v0}, $find" else call}
             move-result-object v2
             iget-object v1, v2, $container->info:$shortcut
             invoke-virtual {v0, v1}, Landroid/content/pm/ShortcutManager;->pushDynamicShortcut($shortcut)V
@@ -386,6 +403,16 @@ class NativeBubblesTest {
             from = "iget-object v0, p1, $holderType->info:$shortcut", to = "iget-object v0, p1, $holderType->other:$shortcut"), gate))
         // The container returned isn't the one built round the holder.
         assertNull(mirroredBubbleRoutes(routes(holder = true, changed = create, from = "return-object v3", to = "return-object v2"), gate))
+    }
+
+    @Test fun a588PushHelperThatHandsBackItsContainerKeepsTheConnectedRoute() {
+        val gate = SYNTHETIC_PROFILE.hooks.getValue("bubble_mode").single()
+        assertNotNull(mirroredBubbleRoutes(routes(pushHelper = true), gate))
+        // The helper answers with something other than the container it was given, or nothing at all.
+        assertNull(mirroredBubbleRoutes(routes(pushHelper = true, changed = pushed, from = "const/4 v1, 0x0", to = "new-instance v1, $container"), gate))
+        assertNull(mirroredBubbleRoutes(routes(pushHelper = true, changed = pushed, from = "return-object p1", to = "return-object v1"), gate))
+        // The finder hands the helper a container it didn't get from the shortcut builder.
+        assertNull(mirroredBubbleRoutes(routes(pushHelper = true, changed = find, from = "invoke-direct {p0, v1}", to = "invoke-direct {p0, v2}"), gate))
     }
 
     @Test fun verifiedShortcutOverloadsShareTheReturnedContainerContract() {

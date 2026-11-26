@@ -7,19 +7,19 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
-private const val QUALITY_OFFER = "LIlIlIlIIIlIlIIIl;"
+private const val QUALITY_OFFER = "LIlIlIIlIllIllllI;"
 
 internal val audioQualityOffersPatch = patch {
     compatibleWith(deezerCompatibility)
 
     execute {
-        val picker = mutableClassDefBy("LIlIlIlIIIlIlIIl;").methods.single {
-            it.name == "IIIIIllIlIIllll" && it.returnType == "LlIlIllllIlIIII;"
+        val picker = mutableClassDefBy("LllIlllllIllIllI;").methods.single {
+            it.name == "IllIIIlllIIlIlll" && it.returnType == "LIIIlIlIIllIIlIl;"
         }
         val instructions = checkNotNull(picker.implementation).instructions
 
         // The picker builds permitted qualities first, then appends two campaign rows.
-        for (offer in listOf("IlIllIIIlIIIllIl", "lIlIIlIIlIlIllI")) {
+        for (offer in listOf("IIIlIIIllIlII", "IllIlIlIlllIIlI")) {
             val load = instructions.indices.single { index ->
                 val instruction = instructions[index]
                 instruction.opcode == Opcode.SGET_OBJECT && (instruction as ReferenceInstruction).reference.toString() ==

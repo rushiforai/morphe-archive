@@ -30,7 +30,6 @@ private const val RECYCLER_VIEW_PREFIX = "Landroidx/recyclerview/widget/Recycler
 private const val LAYOUT_MANAGER = "Landroidx/recyclerview/widget/LinearLayoutManager;"
 private const val SONG_PTR = "Lcom/apple/android/music/ttml/javanative/model/SongInfo\$SongInfoPtr;"
 private const val SONG_NATIVE = "Lcom/apple/android/music/ttml/javanative/model/SongInfo\$SongInfoNative;"
-private const val LYRICS_VM = "Lcom/apple/android/music/player/viewmodel/PlayerLyricsViewModel;"
 private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
 private const val VIEW = "Landroid/view/View;"
 private const val LINKED_LIST = "Ljava/util/LinkedList;"

@@ -18,6 +18,7 @@ import kotlin.jvm.functions.Function1;
 public final class SeeThroughStatusBarPatch {
 
     private static volatile long appBarColor = 0L;
+    private static volatile BodyDraw bodyDraw = null;
     private static volatile boolean sideLayout;
     private static volatile int cachedStatusBarPx = 0;
     private static volatile WeakReference<Activity> currentActivity = null;
@@ -42,22 +43,27 @@ public final class SeeThroughStatusBarPatch {
                 }
             };
 
-    private static final Function1<Object, Object> BODY_DRAW =
-            new Function1<Object, Object>() {
-                @Override
-                public Object invoke(Object scope) {
-                    try {
-                        drawBody(scope);
-                    } catch (Throwable ignored) {
-                    } finally {
-                        try {
-                            GlassNavPatch.drawContent(scope);
-                        } catch (Throwable ignored) {
-                        }
-                    }
-                    return null;
+    private static final class BodyDraw implements Function1<Object, Object> {
+        final long color;
+
+        BodyDraw(long color) {
+            this.color = color;
+        }
+
+        @Override
+        public Object invoke(Object scope) {
+            try {
+                drawBody(scope, color);
+            } catch (Throwable ignored) {
+            } finally {
+                try {
+                    GlassNavPatch.drawContent(scope);
+                } catch (Throwable ignored) {
                 }
-            };
+            }
+            return null;
+        }
+    }
 
     private SeeThroughStatusBarPatch() {}
 
@@ -83,7 +89,19 @@ public final class SeeThroughStatusBarPatch {
 
     public static Object appBarBody(Object modifier) {
         try {
-            return (on() && appBarColor != 0L) ? drawWithContent(modifier, BODY_DRAW) : modifier;
+            if (!on()) {
+                return modifier;
+            }
+            long color = appBarColor;
+            if (color == 0L) {
+                return modifier;
+            }
+            BodyDraw draw = bodyDraw;
+            if (draw == null || draw.color != color) {
+                draw = new BodyDraw(color);
+                bodyDraw = draw;
+            }
+            return drawWithContent(modifier, draw);
         } catch (Throwable ignored) {
             return modifier;
         }
@@ -302,8 +320,7 @@ public final class SeeThroughStatusBarPatch {
         }
     }
 
-    private static void drawBody(Object scope) {
-        long color = appBarColor;
+    private static void drawBody(Object scope, long color) {
         if (color == 0L) {
             return;
         }

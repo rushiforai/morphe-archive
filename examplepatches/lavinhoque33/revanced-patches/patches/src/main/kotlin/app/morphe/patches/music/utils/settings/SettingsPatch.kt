@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-21.
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -54,6 +54,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.music.layout.hide.settingsmenu.SettingsHeadersOnCreatePreferencesFingerprint
+import app.morphe.patches.music.layout.theme.MUSIC_LIGHT_THEME_CLASS_DESCRIPTOR
 import app.morphe.patches.music.layout.visual.applyVisualPreferenceIcons
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.music.utils.extension.Constants.EXTENSION_PATH
@@ -205,13 +206,21 @@ private val settingsBytecodePatch = bytecodePatch(
 
         // endregion
 
-        // apply the current theme of the settings page
+        // Music stays dark unless the scoped Light resources were selected at startup.
         findMethodOrThrow(EXTENSION_THEME_UTILS_CLASS_DESCRIPTOR) {
             name == "setThemeColor"
-        }.addInstruction(
-            0,
-            "invoke-static {}, $EXTENSION_THEME_UTILS_CLASS_DESCRIPTOR->updateDarkModeStatus()V"
-        )
+        }.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static {}, $MUSIC_LIGHT_THEME_CLASS_DESCRIPTOR->applySharedTheme()Z
+                    move-result v0
+                    if-eqz v0, :dark
+                    return-void
+                """,
+                ExternalLabel("dark", getInstruction(0)),
+            )
+        }
 
         injectOnCreateMethodCall(
             EXTENSION_INITIALIZATION_CLASS_DESCRIPTOR,

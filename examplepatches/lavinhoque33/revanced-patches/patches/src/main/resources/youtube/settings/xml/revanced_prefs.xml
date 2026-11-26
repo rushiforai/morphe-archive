@@ -59,6 +59,82 @@
                 android:dependency="morphe_glass_menus" />
         </PreferenceScreen>SETTINGS: GLASS_MENUS -->
 
+        <!-- SETTINGS: GHOST_PLAY
+        <PreferenceScreen
+            android:key="morphe_ghost_play_screen"
+            android:title="@string/morphe_ghost_play_screen_title"
+            android:summary="@string/morphe_ghost_play_screen_summary"
+            android:orderingFromXml="true">
+            <SwitchPreference
+                android:key="morphe_ghost_play_enabled"
+                android:title="@string/morphe_ghost_play_enabled_title"
+                android:summary="@string/morphe_ghost_play_enabled_summary" />
+            <SwitchPreference
+                android:key="morphe_ghost_play_mode_active"
+                android:title="@string/morphe_ghost_play_mode_active_title"
+                android:summary="@string/morphe_ghost_play_mode_active_summary" />
+            <SwitchPreference
+                android:key="morphe_ghost_play_persist_mode"
+                android:title="@string/morphe_ghost_play_persist_mode_title"
+                android:summary="@string/morphe_ghost_play_persist_mode_summary" />
+            <PreferenceCategory
+                android:title="@string/morphe_ghost_play_cat_buttons_title"
+                android:layout="@layout/revanced_settings_preferences_category">
+                <SwitchPreference
+                    android:key="morphe_ghost_play_toolbar_button"
+                    android:title="@string/morphe_ghost_play_toolbar_button_title"
+                    android:summary="@string/morphe_ghost_play_toolbar_button_summary" />
+                <SwitchPreference
+                    android:key="morphe_ghost_play_flyout_button"
+                    android:title="@string/morphe_ghost_play_flyout_button_title"
+                    android:summary="@string/morphe_ghost_play_flyout_button_summary" />
+            </PreferenceCategory>
+            <PreferenceCategory
+                android:title="@string/morphe_ghost_play_cat_rules_title"
+                android:layout="@layout/revanced_settings_preferences_category">
+                <app.morphe.extension.youtube.settings.preference.GhostChannelsPreference
+                    android:key="morphe_ghost_play_manage_channels"
+                    android:title="@string/morphe_ghost_play_manage_channels_title"
+                    android:summary="@string/morphe_ghost_play_manage_channels_summary"
+                    android:dependency="morphe_ghost_play_enabled" />
+                <SwitchPreference
+                    android:key="morphe_ghost_play_auto_shorts"
+                    android:title="@string/morphe_ghost_play_auto_shorts_title"
+                    android:summary="@string/morphe_ghost_play_auto_shorts_summary" />
+                <SwitchPreference
+                    android:key="morphe_ghost_play_auto_search"
+                    android:title="@string/morphe_ghost_play_auto_search_title"
+                    android:summary="@string/morphe_ghost_play_auto_search_summary" />
+            </PreferenceCategory>
+            <PreferenceCategory
+                android:title="@string/morphe_ghost_play_cat_history_title"
+                android:layout="@layout/revanced_settings_preferences_category">
+                <SwitchPreference
+                    android:key="morphe_ghost_play_local_history"
+                    android:title="@string/morphe_ghost_play_local_history_title"
+                    android:summary="@string/morphe_ghost_play_local_history_summary" />
+                <app.morphe.extension.youtube.settings.preference.GhostHistoryPreference
+                    android:key="morphe_ghost_play_view_history"
+                    android:title="@string/morphe_ghost_play_view_history_title"
+                    android:summary="@string/morphe_ghost_play_view_history_summary"
+                    android:dependency="morphe_ghost_play_enabled" />
+                <app.morphe.extension.youtube.settings.preference.GhostHistoryLimitPreference
+                    android:key="morphe_ghost_play_history_limit"
+                    android:title="@string/morphe_ghost_play_history_limit_title"
+                    android:summary="@string/morphe_ghost_play_history_limit_summary"
+                    android:entries="@array/morphe_ghost_play_history_limit_entries"
+                    android:entryValues="@array/morphe_ghost_play_history_limit_entry_values" />
+            </PreferenceCategory>
+            <PreferenceCategory
+                android:title="@string/morphe_ghost_play_cat_advanced_title"
+                android:layout="@layout/revanced_settings_preferences_category">
+                <SwitchPreference
+                    android:key="morphe_ghost_play_anonymize_requests"
+                    android:title="@string/morphe_ghost_play_anonymize_requests_title"
+                    android:summary="@string/morphe_ghost_play_anonymize_requests_summary" />
+            </PreferenceCategory>
+        </PreferenceScreen>SETTINGS: GHOST_PLAY -->
+
         <!-- SETTINGS: HIDE_LAYOUT_COMPONENTS
         <PreferenceScreen android:title="@string/revanced_preference_screen_account_menu_title" android:key="revanced_preference_screen_account_menu" android:summary="@string/revanced_preference_screen_account_menu_summary">
             <SwitchPreference android:title="@string/revanced_hide_account_menu_title" android:key="revanced_hide_account_menu" android:summary="@string/revanced_hide_account_menu_summary" />
@@ -159,6 +235,12 @@
 
             <!-- SETTINGS: REORDER_NAVIGATION_BAR
             <app.morphe.extension.youtube.settings.preference.NavigationBarOrderPreference android:title="@string/revanced_navigation_bar_order_title" android:key="revanced_navigation_bar_order" android:summary="@string/revanced_navigation_bar_order_summary" />SETTINGS: REORDER_NAVIGATION_BAR -->
+
+            <!-- SETTINGS: ACCOUNT_SWITCHER_SHORTCUT
+            <SwitchPreference
+                android:key="morphe_you_button_account_switcher"
+                android:title="@string/morphe_you_button_account_switcher_title"
+                android:summary="@string/morphe_you_button_account_switcher_summary" />SETTINGS: ACCOUNT_SWITCHER_SHORTCUT -->
 
             <!-- SETTINGS: HIDE_NAVIGATION_COMPONENTS
             <SwitchPreference android:title="@string/revanced_enable_narrow_navigation_buttons_title" android:key="revanced_enable_narrow_navigation_buttons" android:summaryOn="@string/revanced_enable_narrow_navigation_buttons_summary_on" android:summaryOff="@string/revanced_enable_narrow_navigation_buttons_summary_off" />SETTINGS: HIDE_NAVIGATION_COMPONENTS -->
@@ -736,6 +818,12 @@
             <SwitchPreference android:title="@string/revanced_overlay_button_video_quality_resolution_title"
                 android:key="revanced_overlay_button_video_quality_resolution"
                 android:summary="@string/revanced_overlay_button_video_quality_resolution_summary" />SETTINGS: OVERLAY_VIDEO_QUALITY_BUTTON -->
+
+            <!-- SETTINGS: GHOST_PLAY_PLAYER_BUTTON
+            <SwitchPreference
+                android:key="morphe_ghost_play_player_button"
+                android:title="@string/morphe_ghost_play_player_button_title"
+                android:summary="@string/morphe_ghost_play_player_button_summary" />SETTINGS: GHOST_PLAY_PLAYER_BUTTON -->
 
             <!-- SETTINGS: FULLSCREEN_VIDEO_SCALE
             <SwitchPreference android:title="@string/morphe_fullscreen_video_scale_button_title" android:key="morphe_fullscreen_video_scale_button" android:summary="@string/morphe_fullscreen_video_scale_button_summary" />

@@ -174,8 +174,8 @@ class NativeChecks(unittest.TestCase):
             apk_file(stock, compression=ZIP_STORED)
             candidate = checker.Apk(
                 "com.facebook.orca",
-                347415354,
-                "587.0.0.54.96",
+                347617503,
+                "588.1.0.66.98",
                 frozenset(),
                 frozenset(),
             )
@@ -215,7 +215,7 @@ class NativeChecks(unittest.TestCase):
                 checker.check_native(args, candidate, 36, ["adb"])
             with patch.dict(
                 checker.STOCK_SHA256,
-                {347415354: hashlib.sha256(stock.read_bytes()).hexdigest()},
+                {347617503: hashlib.sha256(stock.read_bytes()).hexdigest()},
             ):
                 with (
                     patch.object(

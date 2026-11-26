@@ -40,7 +40,7 @@ import com.android.tools.smali.dexlib2.util.ReferenceUtil
  *   CF insert at k's control-flow label, so branches to k run the new code as well
  * Labels used by new code: K j = anchor instruction j (j == size: the instruction after the anchor),
  *   T j = target of the anchor's branch instruction j, NEXT p = first instruction after the anchor rendering as p.
- * Snippet placeholder {Ak} = register A of anchor instruction k.
+ * Snippet placeholders {Ak} / {Bk} = register A / B of anchor instruction k.
  */
 
 internal data class Op(val type: String, val k: Int, val smali: String)
@@ -189,6 +189,7 @@ private fun applyOps(m: MutableMethod, i0: Int, site: Site) {
     val w = (0 until n).map { all[i0 + it] }.toMutableList()
     val after = all.getOrNull(i0 + n)
     val regs = (0 until n).associateWith { k -> runCatching { regName(m, registerA(w[k])) }.getOrNull() }
+    val regsB = (0 until n).associateWith { k -> (w[k] as? TwoRegisterInstruction)?.let { regName(m, it.registerB) } }
 
     fun target(spec: Pair<String, String>): Instruction = when (spec.first) {
         "K" -> spec.second.toInt().let { j -> if (j < n) w[j] else after ?: throw PatchException("no instruction after anchor") }
@@ -204,6 +205,7 @@ private fun applyOps(m: MutableMethod, i0: Int, site: Site) {
     fun fill(s: String): String {
         var t = s
         for ((k, r) in regs) if (r != null) t = t.replace("{A$k}", r)
+        for ((k, r) in regsB) if (r != null) t = t.replace("{B$k}", r)
         // a snippet ending in a label needs an instruction to carry it
         if (t.trimEnd().lines().last().trim().startsWith(":")) t += "\nnop"
         return t

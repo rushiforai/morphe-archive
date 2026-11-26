@@ -1,23 +1,22 @@
 package app.noam.extension.chesscom.stockfish;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * Looks for sf-bridge on the network this phone is on, so its address does not have to be read off
@@ -26,6 +25,10 @@ import java.util.concurrent.Future;
  * Every address of the phone's own subnet is tried on the bridge's port. A host that answers is asked
  * to say hello the way sf-bridge does before anything else ("sf-bridge 1 cores 12"); anything else
  * listening on that port is passed over, since only a bridge can answer that.
+ *
+ * The sweep is non-blocking: every address of a batch is connecting at the same time in one thread,
+ * so a whole /24 costs one timeout instead of one timeout per handful of addresses. A network where
+ * nothing answers is the slow case, and that is the case a scan is usually run in.
  */
 public final class BridgeDiscovery {
     /** One device that answered the way sf-bridge does. */
@@ -63,10 +66,16 @@ public final class BridgeDiscovery {
         }
     }
 
-    /** A host that is off takes the full timeout, so it stays short: 48 of them at once, still fast. */
-    private static final int CONNECT_TIMEOUT_MS = 350;
-    private static final int GREETING_TIMEOUT_MS = 900;
-    private static final int WORKERS = 48;
+    /** A host that is off takes the full timeout, so it stays short: the whole batch waits once. */
+    private static final int CONNECT_TIMEOUT_MS = 300;
+    private static final int GREETING_TIMEOUT_MS = 600;
+    /**
+     * One thread holds the batch, so the file descriptors are the limit, not the threads: 512 open
+     * channels stay well inside what Android gives an app, and a /22 takes two batches.
+     */
+    private static final int MAX_IN_FLIGHT = 512;
+    /** A bridge greets with one short line; anything longer on that port is not a bridge. */
+    private static final int GREETING_LIMIT = 256;
     /** A /22 is 1,022 addresses to try; a wider network is looked at a /24 at a time. */
     private static final int MAX_SUBNET_ADDRESSES = 1_024;
     /** A phone has its Wi-Fi and, at most, one VPN: two subnets is already more than it needs. */
@@ -78,60 +87,147 @@ public final class BridgeDiscovery {
 
     /** Every sf-bridge that answers on [port] in the phone's own subnet, nearest address first. */
     public static Result find(int port) {
-        List<InetAddress> targets = addresses();
-        final List<Device> found = Collections.synchronizedList(new ArrayList<Device>());
-        if (targets.isEmpty()) return new Result(new ArrayList<Device>(), 0);
-
-        int workers = Math.min(WORKERS, Math.max(4, targets.size()));
-        ExecutorService pool = Executors.newFixedThreadPool(workers);
-        try {
-            List<Future<?>> tasks = new ArrayList<Future<?>>(targets.size());
-            for (final InetAddress address : targets) {
-                tasks.add(pool.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        Device device = probe(address, port);
-                        if (device != null) found.add(device);
-                    }
-                }));
-            }
-            for (Future<?> task : tasks) {
-                try {
-                    task.get();
-                } catch (Exception ignored) {
-                    // One address that could not be tried is not the sweep's problem.
-                }
-            }
-        } finally {
-            pool.shutdownNow();
-        }
-
-        List<Device> devices = new ArrayList<Device>(found);
-        Collections.sort(devices, (first, second) -> Integer.compare(first.order, second.order));
-        return new Result(devices, targets.size());
+        return scan(addresses(), port);
     }
 
-    /** Asks one address: does a bridge answer there, and how many cores does it have? */
-    private static Device probe(InetAddress address, int port) {
-        Socket socket = new Socket();
+    /** One sweep over [targets]. Kept apart from the interfaces so it can be tried on its own. */
+    static Result scan(List<InetAddress> targets, int port) {
+        List<Device> found = new ArrayList<Device>();
+        for (int from = 0; from < targets.size(); from += MAX_IN_FLIGHT) {
+            sweep(targets.subList(from, Math.min(targets.size(), from + MAX_IN_FLIGHT)), port, found);
+        }
+        Collections.sort(found, (first, second) -> Integer.compare(first.order, second.order));
+        return new Result(found, targets.size());
+    }
+
+    /** What one address is doing in the sweep: connecting, then waiting for the greeting. */
+    private static final class Probe {
+        final InetAddress address;
+        final ByteBuffer greeting = ByteBuffer.allocate(GREETING_LIMIT);
+        long deadline;
+
+        Probe(InetAddress address) {
+            this.address = address;
+        }
+    }
+
+    /** Tries every address of [batch] at once and adds the bridges that greet. */
+    private static void sweep(List<InetAddress> batch, int port, List<Device> found) {
+        Selector selector = null;
+        // The selector keeps cancelled keys until its next select, so the sweep counts its own.
+        int live = 0;
         try {
-            socket.connect(new InetSocketAddress(address, port), CONNECT_TIMEOUT_MS);
-            socket.setSoTimeout(GREETING_TIMEOUT_MS);
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-            String greeting = reader.readLine();
-            if (greeting == null || !greeting.startsWith("sf-bridge")) return null;
-            return new Device(address.getHostAddress(), port, NetEngine.coresIn(greeting),
-                (int) order(address));
-        } catch (IOException e) {
-            // Nothing there, or something that is not a bridge: both mean "keep looking".
-            return null;
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException ignored) {
-                // Closed anyway.
+            selector = Selector.open();
+            long connectDeadline = System.currentTimeMillis() + CONNECT_TIMEOUT_MS;
+            for (InetAddress address : batch) {
+                SocketChannel channel;
+                try {
+                    channel = SocketChannel.open();
+                } catch (IOException e) {
+                    // Out of file descriptors: the rest of this batch is simply not tried.
+                    break;
+                }
+                Probe probe = new Probe(address);
+                probe.deadline = connectDeadline;
+                SelectionKey key = null;
+                try {
+                    channel.configureBlocking(false);
+                    channel.socket().setTcpNoDelay(true);
+                    key = channel.register(selector, SelectionKey.OP_CONNECT, probe);
+                    live++;
+                    channel.connect(new InetSocketAddress(address, port));
+                } catch (IOException | RuntimeException e) {
+                    if (key != null) {
+                        if (close(key)) live--;
+                    } else {
+                        closeQuietly(channel);
+                    }
+                }
             }
+            while (live > 0) {
+                long now = System.currentTimeMillis();
+                long wait = Long.MAX_VALUE;
+                for (SelectionKey key : new ArrayList<SelectionKey>(selector.keys())) {
+                    Probe probe = (Probe) key.attachment();
+                    if (probe == null) continue;
+                    if (now >= probe.deadline) {
+                        if (close(key)) live--;
+                    } else {
+                        wait = Math.min(wait, probe.deadline - now);
+                    }
+                }
+                if (live == 0) break;
+                selector.select(wait == Long.MAX_VALUE ? 1 : wait);
+                for (SelectionKey key : new ArrayList<SelectionKey>(selector.selectedKeys())) {
+                    selector.selectedKeys().remove(key);
+                    try {
+                        if (key.isValid() && key.isConnectable()) {
+                            SocketChannel channel = (SocketChannel) key.channel();
+                            if (channel.finishConnect()) {
+                                Probe probe = (Probe) key.attachment();
+                                probe.deadline = System.currentTimeMillis() + GREETING_TIMEOUT_MS;
+                                key.interestOps(SelectionKey.OP_READ);
+                            } else if (close(key)) {
+                                live--;
+                            }
+                        }
+                        if (key.isValid() && key.isReadable() && read(key, port, found)) live--;
+                    } catch (IOException | CancelledKeyException e) {
+                        // Refused, reset, gone: all of them mean "keep looking".
+                        if (close(key)) live--;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            // A selector that cannot open is a sweep that cannot run: report what was found.
+        } finally {
+            if (selector != null) {
+                for (SelectionKey key : new ArrayList<SelectionKey>(selector.keys())) close(key);
+                try {
+                    selector.close();
+                } catch (IOException ignored) {
+                    // Closed anyway.
+                }
+            }
+        }
+    }
+
+    /**
+     * Reads one line from an address that accepted the connection, and keeps it if it is a bridge.
+     * Returns whether the address is finished with, so the sweep can count it out.
+     */
+    private static boolean read(SelectionKey key, int port, List<Device> found) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+        Probe probe = (Probe) key.attachment();
+        if (channel.read(probe.greeting) < 0) return close(key);
+        String text = new String(probe.greeting.array(), 0, probe.greeting.position(), StandardCharsets.UTF_8);
+        int end = text.indexOf('\n');
+        if (end < 0) {
+            // One more read may bring the newline; a full buffer with none is not a greeting.
+            return !probe.greeting.hasRemaining() && close(key);
+        }
+        String greeting = text.substring(0, end).trim();
+        if (greeting.startsWith("sf-bridge")) {
+            found.add(new Device(probe.address.getHostAddress(), port, NetEngine.coresIn(greeting),
+                (int) order(probe.address)));
+        }
+        return close(key);
+    }
+
+    /** Closes one probe, or answers false when it was closed already. */
+    private static boolean close(SelectionKey key) {
+        if (key.attachment() == null) return false;
+        key.attach(null);
+        key.cancel();
+        closeQuietly((SocketChannel) key.channel());
+        return true;
+    }
+
+    private static void closeQuietly(SocketChannel channel) {
+        try {
+            channel.close();
+        } catch (IOException ignored) {
+            // Closed anyway.
         }
     }
 

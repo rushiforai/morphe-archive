@@ -196,6 +196,16 @@ public final class ProfileHistory {
     /** By id, the account changed or seen last at the end. */
     private static final LinkedHashMap<String, Account> ACCOUNTS = new LinkedHashMap<>(16, 0.75f, true);
     private static File loadedFrom;
+    /** Whether this process has looked for pictures no entry keeps any more (#683). */
+    private static boolean swept;
+    /** Whether the last {@link #load} read the list without a failure, so the sweep can trust it. */
+    private static boolean readCleanly;
+    /** How old a fetch's work file is before the sweep takes it for one a crash left behind. */
+    static final long STALE_PART_MS = 60 * 60 * 1000L;
+    /** How much the kept pictures may take up before the copies of profiles seen longest ago go (#683). */
+    static final long MAX_PICTURE_BYTES = 100L * 1024 * 1024;
+    /** {@link #MAX_PICTURE_BYTES}; tests lower it. */
+    static long pictureCap = MAX_PICTURE_BYTES;
 
     private ProfileHistory() {
     }
@@ -266,8 +276,14 @@ public final class ProfileHistory {
         Entry shown = null;
         Entry replaced = null;
         boolean first;
+        List<Entry> dropped = new ArrayList<>();
         synchronized (LOCK) {
             load(application);
+            if (!swept) {
+                swept = true;
+                // A list that didn't read says nothing about which copies are still kept.
+                if (readCleanly) sweepPictures(application);
+            }
             Account account = ACCOUNTS.get(id);
             first = account == null;
             if (first) {
@@ -278,17 +294,17 @@ public final class ProfileHistory {
             // A bio or a picture seen for the first time on a later visit, say after one reached from a
             // post that came with neither, is kept but never told as a change: there's nothing older.
             boolean hadBio = account.latest(Field.BIO) != null, hadPicture = account.latest(Field.PICTURE) != null;
-            if (add(account, Field.USERNAME, username, "", now)) {
+            if (add(account, Field.USERNAME, username, "", now, dropped)) {
                 added = true;
                 changed.add(Field.USERNAME);
             }
-            if (bio != null && add(account, Field.BIO, bio, "", now)) {
+            if (bio != null && add(account, Field.BIO, bio, "", now, dropped)) {
                 added = true;
                 if (hadBio) changed.add(Field.BIO);
             }
             if (!picture.isEmpty()) {
                 Entry had = account.latest(Field.PICTURE);
-                if (add(account, Field.PICTURE, picture, url, now)) {
+                if (add(account, Field.PICTURE, picture, url, now, dropped)) {
                     added = true;
                     if (hadPicture) {
                         changed.add(Field.PICTURE);
@@ -298,6 +314,7 @@ public final class ProfileHistory {
                 shown = account.latest(Field.PICTURE);
             }
             if (added) {
+                forgetDropped(application, account, dropped);
                 while (ACCOUNTS.size() > MAX_ACCOUNTS) {
                     String oldest = ACCOUNTS.keySet().iterator().next();
                     forgetPictures(application, ACCOUNTS.remove(oldest));
@@ -403,6 +420,7 @@ public final class ProfileHistory {
                 Account account = ACCOUNTS.get(id);
                 if (account == null || !account.entries.contains(entry)) return false;
                 Files.move(part.toPath(), kept.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                capPictures(application, id);
                 return true;
             }
         } catch (IOException | RuntimeException failure) {
@@ -413,16 +431,92 @@ public final class ProfileHistory {
         }
     }
 
-    /** Adds [value] as [account]'s newest [field] unless it's already that. Answers whether it was added. */
-    private static boolean add(Account account, Field field, String value, String url, long now) {
+    /**
+     * Adds [value] as [account]'s newest [field] unless it's already that, putting the oldest past
+     * {@link #MAX_PER_FIELD} in [dropped]. Answers whether it was added.
+     */
+    private static boolean add(Account account, Field field, String value, String url, long now, List<Entry> dropped) {
         Entry latest = account.latest(field);
         if (latest != null && latest.value.equals(value)) return false;
         account.entries.add(new Entry(now, field, value, url));
         int kept = 0;
         for (int at = account.entries.size() - 1; at >= 0; at--) {
-            if (account.entries.get(at).field == field && ++kept > MAX_PER_FIELD) account.entries.remove(at);
+            if (account.entries.get(at).field == field && ++kept > MAX_PER_FIELD) dropped.add(account.entries.remove(at));
         }
         return true;
+    }
+
+    /**
+     * Deletes the kept copies of the pictures in [dropped], the entries [account] no longer lists,
+     * unless an entry it still lists is the same picture, which shares the file (#683).
+     */
+    private static void forgetDropped(Context application, Account account, List<Entry> dropped) {
+        for (Entry entry : dropped) {
+            if (entry.field != Field.PICTURE) continue;
+            boolean shared = false;
+            for (Entry still : account.entries) {
+                if (still.field == Field.PICTURE && still.value.equals(entry.value)) shared = true;
+            }
+            File kept = pictureFile(application, account.id, entry);
+            if (!shared && kept.exists() && !kept.delete()) Logger.printDebug(() -> "A profile history picture stayed: " + kept);
+        }
+    }
+
+    /**
+     * Deletes kept copies, the profile seen longest ago first and its oldest picture first, until the
+     * pictures folder is within {@link #pictureCap} (#683). Every entry stays listed, and a profile
+     * opened again has the picture it shows now copied anew. [keep]'s copies stay. Call it under the
+     * lock; it reads the accounts in order without touching that order.
+     */
+    private static void capPictures(Context application, String keep) {
+        File[] files = pictures(application).listFiles();
+        if (files == null) return;
+        long total = 0;
+        for (File file : files) total += file.length();
+        if (total <= pictureCap) return;
+        int deleted = 0;
+        for (Account account : ACCOUNTS.values()) {
+            if (total <= pictureCap) break;
+            if (account.id.equals(keep)) continue;
+            for (Entry entry : account.entries) {
+                if (total <= pictureCap) break;
+                if (entry.field != Field.PICTURE) continue;
+                File kept = pictureFile(application, account.id, entry);
+                long size = kept.length();
+                if (size > 0 && kept.delete()) {
+                    total -= size;
+                    deleted++;
+                }
+            }
+        }
+        int count = deleted;
+        Logger.printDebug(() -> "Profile history: deleted " + count + " pictures to stay within the size cap");
+    }
+
+    /**
+     * Deletes the copies in the pictures folder that no listed entry keeps, which earlier builds left
+     * behind as entries fell past {@link #MAX_PER_FIELD} (#683), and fetch work files older than
+     * {@link #STALE_PART_MS} that a crash left. Holds {@link #LOCK}, so no copy is moved in meanwhile.
+     */
+    private static void sweepPictures(Context application) {
+        File[] files = pictures(application).listFiles();
+        if (files == null || files.length == 0) return;
+        Set<String> keep = new HashSet<>();
+        for (Account account : ACCOUNTS.values()) {
+            for (Entry entry : account.entries) {
+                if (entry.field == Field.PICTURE) keep.add(pictureFile(application, account.id, entry).getName());
+            }
+        }
+        long now = System.currentTimeMillis();
+        int deleted = 0;
+        for (File file : files) {
+            String name = file.getName();
+            boolean orphan = name.endsWith(".jpg") ? !keep.contains(name)
+                    : name.endsWith(".part") && now - file.lastModified() > STALE_PART_MS;
+            if (orphan && file.isFile() && file.delete()) deleted++;
+        }
+        int count = deleted;
+        if (count > 0) Logger.printDebug(() -> "Profile history: deleted " + count + " pictures no entry keeps");
     }
 
     /** The toast for what changed: the old username first, since that's what's no longer shown. */
@@ -625,6 +719,7 @@ public final class ProfileHistory {
         if (file.equals(loadedFrom)) return;
         loadedFrom = file;
         ACCOUNTS.clear();
+        readCleanly = true;
         try {
             if (!file.isFile()) return;
             JSONArray accounts = new JSONArray(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
@@ -651,6 +746,7 @@ public final class ProfileHistory {
                 if (!read.isEmpty()) ACCOUNTS.put(id, new Account(id, read));
             }
         } catch (IOException | JSONException | RuntimeException failure) {
+            readCleanly = false;
             HookStatus.threw(FAMILY, "profile history read", failure);
         }
     }
@@ -690,6 +786,8 @@ public final class ProfileHistory {
         synchronized (LOCK) {
             ACCOUNTS.clear();
             loadedFrom = null;
+            swept = false;
+            pictureCap = MAX_PICTURE_BYTES;
         }
         UPGRADES.clear();
         reads = PATCHED;

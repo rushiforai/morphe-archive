@@ -3,7 +3,7 @@
 
 ![version](https://img.shields.io/badge/version-26.44.6-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-3-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APKM-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Profile%20menu%20%C2%B7%20Settings-6e7681?style=for-the-badge&labelColor=0d1117)
 
-[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.truecaller`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.4.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.4.0)
+[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.truecaller`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.5.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.5.0)
 
 **🎯 Supported versions:** `26.43.5` · `26.44.6`
 <!-- HEADER_END -->

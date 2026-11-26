@@ -21,6 +21,7 @@ import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.SwitchListPreference;
+import app.morphe.extension.tiktok.playback.PlaybackQuality;
 import app.morphe.extension.tiktok.speed.HoldSpeedHud;
 import app.morphe.extension.tiktok.speed.PlaybackSpeedPatch;
 import java.util.ArrayList;
@@ -180,6 +181,10 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This "
                             + "keeps clear screen on from room to room until you turn it off.",
                     Settings.KEEP_LIVE_CLEAR_SCREEN));
+            addPreference(new TogglePreference(context, "Hide LIVE chat",
+                    "Hides the chat messages that scroll over a LIVE's video. The comment box and "
+                            + "the room's buttons stay.",
+                    Settings.HIDE_LIVE_CHAT));
             addPreference(new TogglePreference(context, "Offer full screen in more LIVEs",
                     "TikTok shows its full screen button only in LIVEs streamed from a computer or "
                             + "a shared screen. This shows it in every other LIVE with a wide video.",
@@ -233,7 +238,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     .withNote("Stream only saves the room's own video, as before. Screen records what your "
                             + "phone shows while you watch, with the sound the app plays when TikTok has the "
                             + "microphone permission. Android asks you to allow screen recording each time, and "
-                            + "shows its own notice while it records."));
+                            + "shows its own notice while it records. A screen recording looks as sharp as the "
+                            + "quality you're watching. Hold the Record button in a LIVE to change it."));
             addPreference(new TogglePreference(context, "Auto tap in LIVE rooms",
                     "Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady "
                             + "pace, and tap it again to stop. It also stops when you leave or swipe to "
@@ -247,8 +253,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     new String[]{"Smallest", "Small", "Normal"},
                     new String[]{"32", "40", "48"}));
             addPreference(new TogglePreference(context, "LIVE buttons in the long-press menu",
-                    "Takes the Record and Auto tap buttons off the video and puts them in the menu you "
-                            + "get by holding the middle of a LIVE.",
+                    "Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts "
+                            + "them in the menu you get by holding the middle of a LIVE.",
                     Settings.LIVE_BUTTONS_IN_MENU));
             addPreference(new TogglePreference(context, "LIVE name alerts",
                     "Tells you when your name comes up in a LIVE, in the chat or said out loud in a room "
@@ -585,11 +591,13 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new ChoicePreference(context, "On mobile data", Settings.PLAYBACK_QUALITY_METERED,
                     new String[]{"No limit", "Highest", "Lowest", "1080p", "720p", "540p", "480p", "360p"},
                     new String[]{"off", "highest", "lowest", "1080", "720", "540", "480", "360"}));
-            String[] limits = {"off", "1", "2", "4", "8", "16"};
+            String[] limits = PlaybackQuality.BITRATE_LIMITS;
             String[] limitLabels = new String[limits.length];
             limitLabels[0] = "No limit";
+            // 1.5 Mb/s (#533) reads with the decimal mark of the language the settings show.
+            java.text.NumberFormat rate = java.text.NumberFormat.getNumberInstance(L10n.shownLocale(context));
             for (int i = 1; i < limits.length; i++) {
-                limitLabels[i] = L10n.f(context, "%1$s Mb/s", limits[i]);
+                limitLabels[i] = L10n.f(context, "%1$s Mb/s", rate.format(new java.math.BigDecimal(limits[i])));
             }
             addPreference(new ChoicePreference(context, "Video bitrate limit",
                     Settings.PLAYBACK_BITRATE_LIMIT, limitLabels, limits)

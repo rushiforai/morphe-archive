@@ -49,6 +49,11 @@ final class DialogChoices extends BaseAdapter {
         View row = source.getView(position, recycled, parent);
         if (row instanceof CheckedTextView) {
             CheckedTextView choice = (CheckedTextView) row;
+            // The list measures a row before it's attached, when an inherited direction can't resolve,
+            // and TextView leaves out a start drawable it hasn't placed yet: Material's radio and
+            // checkbox. The row then lays out taller and narrower than it was measured, and the last
+            // one is cut off. With the list's own direction the row resolves before it's measured.
+            choice.setLayoutDirection(parent.getLayoutDirection());
             float density = row.getResources().getDisplayMetrics().density;
             choice.setEnabled(source.isEnabled(position));
             choice.setTextColor(ScreenColors.dimmedWhenDisabled(colors.title));

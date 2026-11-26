@@ -3,13 +3,14 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2269
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-24.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.music.patches.lyrics.ui;
 
 import android.graphics.Color;
 
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
@@ -23,7 +24,7 @@ final class LyricsColors {
     private static final int FALLBACK_SECONDARY_ALPHA = 0x66;
 
     /** Dimmed until the word is sung. */
-    static final float UNSUNG_ALPHA = 0.35f;
+    static final float UNSUNG_ALPHA = MusicLightTheme.isEnabled() ? 0.76f : 0.35f;
 
     /** Smaller than the lyric it reads, so at the same weight the two would read as one line. */
     static final float ACTIVE_READING_ALPHA = 0.8f;
@@ -52,6 +53,10 @@ final class LyricsColors {
     }
 
     private static int inactiveTranslationAlpha(int secondaryColor) {
+        if (MusicLightTheme.isEnabled()) {
+            return Math.round(UNSUNG_ALPHA * 255f);
+        }
+
         final int secondaryAlpha = Color.alpha(secondaryColor);
         if (secondaryAlpha < ACTIVE_TRANSLATION_ALPHA) {
             return secondaryAlpha;

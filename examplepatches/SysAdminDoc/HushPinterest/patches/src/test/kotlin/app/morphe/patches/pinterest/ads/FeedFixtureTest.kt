@@ -75,7 +75,7 @@ class FeedFixtureTest {
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
             for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds", "interstitialAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping", "closeupShopping",
-                    "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins", "feedSavedSearch", "feedSavedRelated", "feedHomeSuggestions",
+                    "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins", "feedSavedSearch", "feedSavedRelated", "feedSeenPins", "feedHomeSuggestions",
                     "feedbackFlyout")) assertFlag(context, flag)
             // #6: Shop the look under a pin is a closeup module of its own, and Hide shopping folds it.
             val shopTheLook = classes.filter { it.isShopTheLookModule() }
@@ -106,6 +106,21 @@ class FeedFixtureTest {
             assertEquals(build.name, 1, context.mutable(homeFields.request).calls().count { it.name == "homeFields" })
             val homePage = context.homePageOrNull()!!
             assertEquals(build.name, 1, context.mutable(homePage.callback).calls().count { it.name == "homePage" })
+            // #52: each pin cell's impression start hands the cell over first thing, once even when asked
+            // again, and the stub reads the pin through that cell's own getter.
+            val cells = context.seenCellsOrNull("Filter feed")!!
+            context.installSeenCells(cells)
+            assertTrue(build.name, cells.starts.isNotEmpty())
+            assertEquals(build.name, cells.starts.map { it.definingClass }, cells.pins.map { it.definingClass })
+            for (start in cells.starts) {
+                val body = context.mutable(start).implementation!!.instructions.toList()
+                assertEquals("${build.name}: ${start.definingClass} impression start", SEEN_PINS_HOOK,
+                    (body[0] as ReferenceInstruction).reference.toString())
+                assertEquals(build.name, 1, context.mutable(start).calls().count { it.name == "shown" })
+            }
+            val pinOf = context.mutableClassDefBy("$EXTENSION_PACKAGE/ads/SeenPins;").methods.single { it.name == "pinOf" }
+            val reads = pinOf.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+            assertEquals(build.name, cells.pins.flatMap { listOf(it.definingClass, it.definingClass, it.toString()) }, reads)
             // #34: every read of search's and More to explore's field lists hands the list through the
             // hook right where it's kept, each search page goes through it first, and so does each item
             // More to explore's filter judges. Asking again adds no second hook.
@@ -320,8 +335,11 @@ class FeedFixtureTest {
                 val asksElsewhere = classDef.methods.any { method -> method.implementation?.instructions?.any {
                     ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name in elsewhereSets } == true }
                 val elsewhere = fieldSets || asksElsewhere || classDef.type == ELSEWHERE_RELATED_FILTER
+                // #52: the pin grid cells, each with a pin getter and an impression start.
+                val pinCell = classDef.methods.any { it.name == "getPin" && it.returnType.startsWith("Lcom/pinterest/api/model/") } &&
+                    classDef.methods.any { it.name == "markImpressionStart" }
                 if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds || home || interstitial || elsewhere ||
-                    classDef.isShopTheLookModule()) {
+                    pinCell || classDef.isShopTheLookModule()) {
                     wanted[classDef.type] = ImmutableClassDef.of(classDef)
                 }
             }

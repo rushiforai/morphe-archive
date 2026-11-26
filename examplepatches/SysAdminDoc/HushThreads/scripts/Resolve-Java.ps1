@@ -73,8 +73,10 @@ function Resolve-Java {
         $candidates.Add($candidate)
     }
     # Ahead of JAVA_HOME on purpose: a JAVA_HOME held at an old JDK for another build must not
-    # turn a machine whose PATH java is new enough into a failing one.
-    $candidates.Add('java')
+    # turn a machine whose PATH java is new enough into a failing one. Taken as its full path, so
+    # a caller can find the JDK around it (a bare "java" has no folder to split off).
+    $onPath = Get-Command -Name 'java' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($onPath) { $candidates.Add($onPath.Source) }
     foreach ($root in @($env:JAVA_HOME, $env:JDK_HOME)) {
         if (-not $root) { continue }
         foreach ($leaf in @('bin/java.exe', 'bin/java')) {

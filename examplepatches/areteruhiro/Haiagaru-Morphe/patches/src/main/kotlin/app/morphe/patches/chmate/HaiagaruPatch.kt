@@ -56,6 +56,40 @@ private fun BytecodePatchContext.patchToolbarIcons(version: String) {
         else -> return
     }
     val owner = mutableClassDefBy(type)
+    // Replace resource lookups only in native toolbar consumers. Keep the original
+    // receiver/ID registers and return type; unrelated labels retain native text.
+    var labels=0
+    val labelClasses=ArrayList<ClassDef>()
+    classDefForEach { labelClasses.add(it) }
+    labelClasses.filter { cls ->
+        !cls.type.startsWith("Lapp/morphe/") && cls.methods.any { candidate ->
+            candidate.implementation?.instructions?.any {
+                val field=(it as? ReferenceInstruction)?.reference as? FieldReference
+                field?.definingClass==type || field?.definingClass=="Ljp/syoboi/a2chMate/feature/toolbar/ToolbarButtonSpec;"
+            }==true
+        }
+    }.forEach { cls ->
+        val mutable=mutableClassDefBy(cls.type)
+        mutable.methods.forEach { consumer ->
+            consumer.implementation?.instructions?.withIndex()?.toList()?.asReversed()?.forEach { (index, insn) ->
+                val ref=(insn as? ReferenceInstruction)?.reference as? MethodReference
+                if(ref!=null && ref.definingClass in setOf("Landroid/content/Context;","Landroid/app/Activity;","Landroid/view/ContextThemeWrapper;") && ref.parameterTypes==listOf("I") &&
+                    ((ref.name=="getString"&&ref.returnType=="Ljava/lang/String;") || (ref.name=="getText"&&ref.returnType=="Ljava/lang/CharSequence;"))) {
+                    val registers=when(insn) {
+                        is FiveRegisterInstruction -> "{v${insn.registerC}, v${insn.registerD}}"
+                        is RegisterRangeInstruction -> "{v${insn.startRegister} .. v${insn.startRegister+1}}"
+                        else -> throw PatchException("Unexpected toolbar label invocation: $version")
+                    }
+                    val opcode=if(insn is RegisterRangeInstruction) "invoke-static/range" else "invoke-static"
+                    val hook=if(ref.name=="getString") "toolbarText" else "toolbarCharSequence"
+                    consumer.replaceInstruction(index,"$opcode $registers, Lapp/morphe/extension/chmate/DirectBoardShortcut;->$hook(Landroid/content/Context;I)${ref.returnType}")
+                    labels++
+                }
+            }
+        }
+    }
+    check(labels>0){"Native toolbar label lookup not found: $version"}
+    println("Direct board toolbar labels: $version -> $labels resource lookups")
     // Visibility belongs entirely to ChMate's per-toolbar checkboxes.
     // Only customize drawables; never rewrite selected flags or gate the renderer.
     val method = owner.methods.single {
@@ -515,7 +549,19 @@ private fun BytecodePatchContext.patchNgBoardScopes() {
             || it.returnType == "V" && p.size == 3 && p[1] == "Ljava/lang/String;" && p[2] == "J"
     }
     check(filters.size == 2) { "Native NG board filters changed: ${filters.size}" }
-    filters.forEach { method ->
+    val specializedTypes = when(packageMetadata.versionName) {
+        "0.8.10.191 dev" -> listOf("Lo/r8lambdab8zj3aWh7dmYCGMRRDTAgO5g;", "Lo/r8lambdarSoc8KevuC0YIlSNnAduN2EkpUg;")
+        "0.8.10.226 dev" -> listOf("Lo/enBmc;", "Lo/writeToParcel;")
+        "0.8.10.242 dev" -> listOf("Lo/getIsFullyRolledOut;", "Lo/isSuccess;")
+        else -> emptyList()
+    }
+    val specialized = specializedTypes.map { type ->
+        mutableClassDefBy(type).methods.single {
+            val p=it.parameterTypes.map(CharSequence::toString)
+            it.returnType=="V" && p.size==3 && p[1]=="Ljava/lang/String;" && p[2]=="J"
+        }
+    }
+    (filters + specialized).forEach { method ->
         val instructions = method.implementation!!.instructions.toList()
         val anchors = instructions.indices.filter { index ->
             val call = instructions[index] as? FiveRegisterInstruction ?: return@filter false
@@ -2042,6 +2088,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         }
         patchXPostPreviewBindings()
         patchDirectBodySelection(packageMetadata.versionName)
+        patchSelectionMenuPriority()
         patchTabletThreadHeaderAdSpace(packageMetadata.versionName)
         patchStringReplacement()
         patchShortThreadTopAlignment(packageMetadata.versionName)
@@ -5484,6 +5531,16 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_response_select" to "選択（レス複数選択）",
             "haiagaru_thread_tab_groups" to "グループ化",
             "haiagaru_response_notes" to "メモ",
+            "haiagaru_board_url_picker" to "板・スレ",
+            "haiagaru_direct_board" to "登録板へ直接移動",
+            "haiagaru_direct_board_2" to "登録板へ直接移動 2",
+            "haiagaru_direct_board_3" to "登録板へ直接移動 3",
+            "haiagaru_direct_board_4" to "登録板へ直接移動 4",
+            "haiagaru_direct_board_5" to "登録板へ直接移動 5",
+            "haiagaru_direct_board_6" to "登録板へ直接移動 6",
+            "haiagaru_direct_board_7" to "登録板へ直接移動 7",
+            "haiagaru_direct_board_8" to "登録板へ直接移動 8",
+
             "haiagaru_gigafile_upload" to "GigaFile（ギガファイル）便でファイルをアップロード",
             "haiagaru_refresh_open_tabs" to "開いているスレ・板を一括更新",
         )) {
@@ -5502,6 +5559,8 @@ val haiagaruPatch = resourcePatch(
             val iconPath = when (name) {
                 "haiagaru_gigafile_upload" -> "M6,2h8l5,5v15H6zM8,4v16h9V9h-5V4zM14,5v2h2zM9,12h7v2H9zM9,16h7v2H9z"
                 "haiagaru_thread_tab_groups" -> "M3,3h8v8H3zM13,3h8v8h-8zM3,13h8v8H3zM13,13h8v8h-8z"
+                "haiagaru_board_url_picker" -> "M3,3h18v18H3zM5,5v14h14V5zM7,7h10v2H7zM7,11h10v2H7zM7,15h6v2H7z"
+                "haiagaru_direct_board", "haiagaru_direct_board_2", "haiagaru_direct_board_3", "haiagaru_direct_board_4", "haiagaru_direct_board_5", "haiagaru_direct_board_6", "haiagaru_direct_board_7", "haiagaru_direct_board_8" -> "M3,3h10v2H5v14h14v-8h2v10H3zM14,3h7v7h-2V6.4l-8.3,8.3 -1.4,-1.4L17.6,5H14z"
                 "haiagaru_response_notes" -> "M4,3h12l4,4v14H4zM6,5v14h12V8h-4V5zM8,10h8v2H8zM8,14h8v2H8z"
                 "haiagaru_response_select" ->
                     "M19,3H5a2,2 0,0 0,-2 2v14a2,2 0,0 0,2 2h14a2,2 0,0 0,2 -2V5a2,2 0,0 0,-2 -2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.58L19,8z"
@@ -5882,6 +5941,12 @@ val haiagaruPatch = resourcePatch(
                 setAndroidAttribute("name", "app.morphe.extension.chmate.ExternalVideoPlaybackActivity")
                 setAndroidAttribute("exported", "false")
                 setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.StorageMediaActivity")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+                setAndroidAttribute("windowSoftInputMode", "adjustResize")
             })
             application.appendChild(document.createElement("activity").apply {
                 setAndroidAttribute("name", "app.morphe.extension.chmate.ResponseNotesActivity")

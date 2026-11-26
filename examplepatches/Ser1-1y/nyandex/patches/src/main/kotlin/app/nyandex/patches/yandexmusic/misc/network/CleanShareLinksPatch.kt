@@ -13,12 +13,13 @@ import app.morphe.patcher.patch.classDefByStrings
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.nyandex.patches.yandexmusic.shared.Constants.COMPATIBILITY_YANDEX_MUSIC
+import app.nyandex.patches.yandexmusic.util.hasStringConstant
+import app.nyandex.patches.yandexmusic.util.stringValue
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import java.util.logging.Logger
 
 private val logger = Logger.getLogger("YandexMusicCleanShareLinks")
@@ -53,13 +54,14 @@ val cleanShareLinksPatch = patch(
 private fun hookShareLinkBuilder() {
     val builder = classDefByStrings("copy_link").singleOrNull { classDef ->
         classDef.methods.any { method ->
-            method.hasString("copy_link") && method.hasString("ref_id") && method.hasString("invite_id")
+            method.hasStringConstant("copy_link") && method.hasStringConstant("ref_id") &&
+                method.hasStringConstant("invite_id")
         }
     } ?: throw PatchException("Share link builder was not found")
 
     val method = mutableClassDefBy(builder.type).methods.singleOrNull { method ->
         AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == STRING &&
-            method.hasString("copy_link") && method.hasString("ref_id")
+            method.hasStringConstant("copy_link") && method.hasStringConstant("ref_id")
     } ?: throw PatchException("Share link builder method was not found in ${builder.type}")
 
     val instructions = method.implementation!!.instructions.toList()
@@ -86,9 +88,3 @@ private fun hookShareLinkBuilder() {
     )
     logger.info("Share links from ${builder.type}.${method.name} are cleaned (register v$register)")
 }
-
-private fun com.android.tools.smali.dexlib2.iface.Method.hasString(value: String): Boolean =
-    implementation?.instructions?.any { it.stringValue() == value } == true
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.stringValue(): String? =
-    ((this as? ReferenceInstruction)?.reference as? StringReference)?.string

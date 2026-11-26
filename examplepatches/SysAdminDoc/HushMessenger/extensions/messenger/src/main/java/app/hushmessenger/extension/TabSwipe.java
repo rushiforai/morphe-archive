@@ -43,7 +43,7 @@ public final class TabSwipe {
     /** The same work against a route given to it, which is how a test drives it without a patched stub. */
     static View wrap(View root, Object home, String route) {
         try {
-            if (root == null || home == null || root.getParent() != null || !Settings.tabSwipe()) return root;
+            if (root == null || home == null || root.getParent() != null || !(Settings.tabSwipe() || TabSlide.on())) return root;
             // The extension alone, or a patch that didn't prove the route, leaves the home screen stock.
             if (route == null || route.isEmpty()) return root;
             Route target = Route.of(route, home.getClass());
@@ -62,7 +62,10 @@ public final class TabSwipe {
         }
     }
 
-    /** The frame around the home screen. Every touch goes straight through until a drag is clearly sideways. */
+    /**
+     * The frame around the home screen. Every touch goes straight through until a drag is clearly sideways. One that
+     * starts on the tab bar with Slide along the tab bar on slides along it instead ([TabSlide]).
+     */
     static final class SwipeFrame extends FrameLayout {
         private final Route route;
         private final Object home;
@@ -70,6 +73,9 @@ public final class TabSwipe {
         private float downX;
         private float downY;
         private boolean taken;
+        /** The bar the finger went down on, with Slide along the tab bar on, or null. */
+        private TabSlide.Bar bar;
+        private boolean sliding;
 
         SwipeFrame(Context context, Route route, Object home) {
             super(context);
@@ -86,6 +92,16 @@ public final class TabSwipe {
                     downX = event.getX();
                     downY = event.getY();
                     taken = false;
+                    endSlide();
+                    bar = TabSlide.on() ? barAt(Math.round(event.getRawX()), Math.round(event.getRawY())) : null;
+                } else if (action == MotionEvent.ACTION_MOVE && !taken && event.getPointerCount() == 1 && bar != null) {
+                    float sideways = Math.abs(event.getX() - downX);
+                    // Nothing on the bar scrolls, so a slop is enough to tell a slide from a tap.
+                    if (TabSlide.on() && sideways >= slop && sideways > Math.abs(event.getY() - downY)) {
+                        taken = sliding = true;
+                        bar.slideTo(event.getRawX());
+                        Settings.activeAt.put(TabSlide.KEY, System.currentTimeMillis());
+                    }
                 } else if (action == MotionEvent.ACTION_MOVE && !taken && event.getPointerCount() == 1
                         && Settings.enabled(KEY)) {
                     float sideways = Math.abs(event.getX() - downX);
@@ -94,14 +110,16 @@ public final class TabSwipe {
                     taken = sideways >= (long) slop * TAKE_SLOPS && sideways > Math.abs(event.getY() - downY) * SIDEWAYS;
                 }
             } catch (Throwable error) {
-                Settings.hookFailedPrivately(KEY, "Can't read the swipe", error);
+                Settings.hookFailedPrivately(sliding || bar != null ? TabSlide.KEY : KEY, "Can't read the swipe", error);
                 taken = false;
+                endSlide();
             }
             return taken || super.onInterceptTouchEvent(event);
         }
 
         @Override
         public boolean onTouchEvent(MotionEvent event) {
+            if (sliding) return slide(event);
             if (!taken) return super.onTouchEvent(event);
             int action = event.getActionMasked();
             if (action == MotionEvent.ACTION_UP) {
@@ -113,6 +131,46 @@ public final class TabSwipe {
                 taken = false;
             }
             return true;
+        }
+
+        /** A slide along the bar: the highlight follows the finger, and letting go opens the tab under it. */
+        private boolean slide(MotionEvent event) {
+            int action = event.getActionMasked();
+            try {
+                if (action == MotionEvent.ACTION_MOVE) {
+                    bar.slideTo(event.getRawX());
+                } else if (action == MotionEvent.ACTION_UP) {
+                    Object tab = bar.tabs.get(bar.indexAt(event.getRawX()));
+                    endSlide();
+                    if (route.current(home) != tab) route.select(home, tab);
+                } else if (action == MotionEvent.ACTION_CANCEL) {
+                    endSlide();
+                }
+            } catch (Throwable error) {
+                Settings.hookFailedPrivately(TabSlide.KEY, "Can't change the tab", error);
+                endSlide();
+            }
+            return true;
+        }
+
+        /** The bar under the point on screen, matched to the tabs the home screen has. */
+        private TabSlide.Bar barAt(int x, int y) throws Throwable {
+            List<?> all = route.tabs(home);
+            if (all == null || all.isEmpty()) return null;
+            List<Object> every = new ArrayList<Object>(all);
+            return TabSlide.barAt(this, x, y, Settings.visibleTabs(new ArrayList<Object>(all)), every);
+        }
+
+        private void endSlide() {
+            if (bar != null) bar.end();
+            bar = null;
+            if (sliding) taken = false;
+            sliding = false;
+        }
+
+        /** The slide's bar while a finger slides along it, or null. Tests read it. */
+        TabSlide.Bar sliding() {
+            return sliding ? bar : null;
         }
 
         /** One tab along the bar, or nothing at either end. */

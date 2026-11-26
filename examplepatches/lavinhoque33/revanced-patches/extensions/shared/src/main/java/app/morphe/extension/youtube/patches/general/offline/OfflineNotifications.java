@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
@@ -72,6 +73,12 @@ final class OfflineNotifications {
         return PendingIntent.getService(context, requestCode, intent, FLAGS);
     }
 
+    private static PendingIntent downloadIntent(Context context, String action, int taskId) {
+        Intent intent = new Intent(action).setClassName(context, OfflineServiceHooks.KEEP_ALIVE_SERVICE)
+                .putExtra(OfflineServiceHooks.EXTRA_DOWNLOAD_ID, taskId);
+        return PendingIntent.getService(context, taskId, intent, FLAGS);
+    }
+
     private static PendingIntent activityIntent(Context context, Intent intent, int requestCode) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         return PendingIntent.getActivity(context, requestCode, intent, FLAGS);
@@ -93,24 +100,26 @@ final class OfflineNotifications {
         }
 
         int percent = task.getPercent();
-        String text = task.subtitleStatus != null ? task.subtitleStatus : switch (task.getState()) {
-            case MERGING -> str("revanced_offline_download_merging");
-            case SAVING -> str("revanced_offline_download_saving");
-            case QUEUED -> str("revanced_offline_download_queued");
-            default -> percent < 0
-                    ? str("revanced_offline_download_starting")
-                    : str("revanced_offline_download_progress", percent);
-        };
+        OfflineDownloader.State phase = task.getState();
+        String text = task.subtitleStatus != null ? task.subtitleStatus : task.statusText(phase, percent);
         final OfflineDownloader.Batch batch = task.batch;
         if (batch != null) text = task.index + "/" + batch.total + " · " + text;
         if (queued > 0) text = text + " · " + str("revanced_offline_download_queued_count", queued);
 
         builder.setContentTitle(task.title)
                 .setContentText(text)
-                .setProgress(100, Math.max(0, percent), percent < 0 || task.getState() != OfflineDownloader.State.DOWNLOADING)
-                .addAction(action(context, android.R.drawable.ic_menu_close_clear_cancel, str("revanced_offline_cancel"),
-                        serviceIntent(context, OfflineServiceHooks.KEEP_ALIVE_SERVICE,
-                                OfflineServiceHooks.ACTION_DOWNLOAD_CANCEL, task.key, task.key.hashCode())));
+                .setProgress(100, Math.max(0, percent), !phase.canPause()
+                        || phase == OfflineDownloader.State.DOWNLOADING && percent < 0);
+        if (phase.canPause()) {
+            boolean resume = phase.isPaused();
+            builder.addAction(action(context,
+                    resume ? android.R.drawable.ic_media_play : android.R.drawable.ic_media_pause,
+                    str(resume ? "revanced_offline_download_resume" : "revanced_offline_download_pause"),
+                    downloadIntent(context, resume ? OfflineServiceHooks.ACTION_DOWNLOAD_RESUME
+                            : OfflineServiceHooks.ACTION_DOWNLOAD_PAUSE, task.id)));
+        }
+        builder.addAction(action(context, android.R.drawable.ic_menu_close_clear_cancel, str("revanced_offline_cancel"),
+                downloadIntent(context, OfflineServiceHooks.ACTION_DOWNLOAD_CANCEL, task.id)));
         if (batch != null) {
             if (!batch.title.isEmpty()) builder.setSubText(batch.title);
             builder.addAction(action(context, android.R.drawable.ic_menu_close_clear_cancel,

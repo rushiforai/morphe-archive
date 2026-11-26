@@ -12,12 +12,15 @@ private fun featurePatch(name: String, description: String, vararg components: P
 @Suppress("unused")
 val onDemandPlaybackPatch = featurePatch(
     "Choose tracks on demand",
-    "Select tracks in albums, playlists, artist pages, profiles, and Deezer recommendations. Play albums in order and shuffle playlists from their header.",
+    "Select tracks in search, albums, playlists, artist pages, profiles, and Deezer recommendations. Restore the last queue and keep the current track playing when starting its mix.",
     collectionTrackSelectionPatch,
     artistTrackSelectionPatch,
     profileTrackSelectionPatch,
     libraryFavoriteTrackSelectionPatch,
     recentlyPlayedPatch,
+    searchTrackSelectionPatch,
+    playbackRestorePatch,
+    mixContinuityPatch,
     smartTrackListSelectionPatch,
     collectionButtonsPatch,
 )
@@ -58,9 +61,10 @@ val blockAdsPatch = featurePatch(
 @Suppress("unused")
 val hidePremiumOffersPatch = featurePatch(
     "Hide Premium offers",
-    "Hides offer pop-ups, the Premium tab and upgrade buttons, and locked audio quality options.",
+    "Hides offer pop-ups, the Premium tab, upgrade buttons, and audio quality upgrade prompts.",
     studentOfferPatch,
     premiumTabPatch,
     downloadedMusicOfferPatch,
     audioQualityOffersPatch,
+    startupOffersPatch,
 )

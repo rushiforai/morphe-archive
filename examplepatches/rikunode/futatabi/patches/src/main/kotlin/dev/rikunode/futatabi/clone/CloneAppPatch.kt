@@ -9,7 +9,7 @@
  *
  * This file is part of the Morphe project and is licensed under
  * the GNU General Public License version 3 (GPLv3), with the Additional
- * Terms under Section 7 described in the LICENSE file.
+ * Terms under Section 7 stated in this file-specific notice below.
  *
  * https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -54,7 +54,7 @@ val cloneAppPatch = resourcePatch(
             name = "futatter",
             packageName = ORIGINAL,
             apkFileType = ApkFileType.APK,
-            targets = listOf(AppTarget(version = "3.1.1", versionCode = 65)),
+            targets = listOf(AppTarget(version = "3.1.1", versionCodes = mapOf(app.morphe.patcher.patch.SupportedAbi.ARM64_V8A to 65))),
         )
     )
 

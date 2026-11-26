@@ -34,15 +34,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Self-contained Android UI; does not modify Futatter's existing Flutter screens. */
-public final class FutatabiHomeActivity extends Activity {
+public class FutatabiHomeActivity extends Activity {
     private static final String STORE = "futatabi_extension_private";
     private static final int CHOOSE_IMAGE = 12;
     private static final int MEBUKI_LOGIN = 13;
+    private static final int AIMOGE_LOGIN = 14;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private LinearLayout root;
     private EditText bodyField, deleteKeyField;
     private TextView notice, count;
     private String threadId = "";
+    private String selectedReplyNumber = "";
     private final List<Uri> attached = new ArrayList<>();
 
     private static final class Response {
@@ -54,8 +56,31 @@ public final class FutatabiHomeActivity extends Activity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         setTitle("futatabi");
+        if (directReply()) {
+            String board = getIntent().getStringExtra("board");
+            String id = getIntent().getStringExtra("virtualId");
+            if (id != null && id.matches("[0-9]{13}")) {
+                if ("aimoge".equals(board)) {
+                    String uuid = new BridgeIndex(this).threadUuid(id);
+                    if (uuid != null) {
+                        try { compose(UUID.fromString(uuid).toString()); return; }
+                        catch (IllegalArgumentException ignored) { }
+                    }
+                } else if ("animanch".equals(board) &&
+                        getSharedPreferences("futatabi_animanch_private", MODE_PRIVATE)
+                                .getString("board." + id, null) != null) {
+                    composeAnimanch(id);
+                    return;
+                }
+            }
+            startPage("投稿先を確認できませんでした");
+            action("スレに戻る", this::finish);
+            return;
+        }
         home();
     }
+    private boolean directReply() { return this instanceof ThreadReplyActivity; }
+
     @Override protected void onDestroy() {
         io.shutdownNow();
         super.onDestroy();
@@ -129,30 +154,33 @@ public final class FutatabiHomeActivity extends Activity {
     }
 
     private Response invoke(String method, String path, JSONObject payload) throws Exception {
-        URL url = new URL("http://127.0.0.1:18765" + path);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(2500);
-        conn.setReadTimeout(25000);
-        conn.setRequestMethod(method);
-        conn.setInstanceFollowRedirects(false);
-        String token = getSharedPreferences(STORE, MODE_PRIVATE).getString("local_token", "");
-        conn.setRequestProperty("X-Futatabi-Token", token);
-        if (payload != null) {
-            byte[] bytes = payload.toString().getBytes(StandardCharsets.UTF_8);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
-            conn.setFixedLengthStreamingMode(bytes.length);
-            try (OutputStream out = conn.getOutputStream()) { out.write(bytes); }
-        }
-        try {
-            int code = conn.getResponseCode();
-            InputStream stream = code < 400 ? conn.getInputStream() : conn.getErrorStream();
-            if (stream == null) return new Response(code, "");
-            try (InputStream in = stream) {
-                byte[] content = AimogeWriteClient.bounded(in, 2_000_000);
-                return new Response(code, new String(content, StandardCharsets.UTF_8));
+        // Use the same verified socket for the request; no reconnect or redirect may
+        // send the local token or body to another process occupying the port.
+        try (java.net.Socket socket = BridgeServer.connectVerified()) {
+            String token = getSharedPreferences(STORE, MODE_PRIVATE).getString("local_token", "");
+            if (!token.matches("[A-Za-z0-9_-]+")) throw new java.io.IOException("Invalid local token");
+            byte[] bytes = payload == null ? new byte[0] : payload.toString().getBytes(StandardCharsets.UTF_8);
+            String headers = method + " " + path + " HTTP/1.1\r\nHost: 127.0.0.1:18765\r\n" +
+                    "X-Futatabi-Token: " + token + "\r\nConnection: close\r\n" +
+                    (payload == null ? "" : "Content-Type: application/json\r\nContent-Length: " + bytes.length + "\r\n") + "\r\n";
+            OutputStream out = socket.getOutputStream();
+            out.write(headers.getBytes(StandardCharsets.US_ASCII));
+            out.write(bytes);
+            out.flush();
+            InputStream in = new java.io.BufferedInputStream(socket.getInputStream());
+            String first = BridgeServer.readLine(in, 2048);
+            if (first == null || !first.matches("HTTP/1\\.1 [0-9]{3} .+")) throw new java.io.IOException("Invalid bridge response");
+            int code = Integer.parseInt(first.substring(9, 12));
+            boolean ended = false;
+            for (int i = 0; i < 50; i++) {
+                String line = BridgeServer.readLine(in, 8192);
+                if (line == null) throw new java.io.IOException("Incomplete bridge headers");
+                if (line.isEmpty()) { ended = true; break; }
             }
-        } finally { conn.disconnect(); }
+            if (!ended) throw new java.io.IOException("Too many bridge headers");
+            byte[] content = AimogeWriteClient.bounded(in, 2_000_000);
+            return new Response(code, new String(content, StandardCharsets.UTF_8));
+        }
     }
 
     private void home() {
@@ -166,7 +194,7 @@ public final class FutatabiHomeActivity extends Activity {
             try {
                 JSONObject state = new JSONObject(result.body);
                 boolean loggedIn = state.optBoolean("aimoge");
-                updateNotice("あいもげ：" + (loggedIn ? "ログイン中" : "未ログイン") + "\nめぶき：" + state.optString("mebukiSessionState", "UNVERIFIED"));
+                updateNotice("あいもげ：" + (loggedIn ? "ログイン中" : "未ログイン") + "\nめぶきちゃんねる：" + state.optString("mebukiSessionState", "UNVERIFIED"));
             } catch (Exception ex) { updateNotice("状態を確認できませんでした"); }
         });
         addText("あいもげ");
@@ -179,31 +207,64 @@ public final class FutatabiHomeActivity extends Activity {
         addText("あにまん（ログイン画面なし／PHPセッションを保持）");
         action("あにまん：新規スレ", () -> composeAnimanch(""));
         action("あにまん：スレ一覧から返信", () -> threadPicker("animanch"));
-        addText("めぶき：おためしカタログは5分遅延。新規スレ・添付は未対応。");
-        action("めぶき：X／Discordログイン（本人操作）", () ->
+        addText("めぶきちゃんねる：おためしカタログは5分遅延。新規スレ・添付は未対応。");
+        action("めぶきちゃんねる：X／Discordログイン（本人操作）", () ->
                 startActivityForResult(new Intent(this, MebukiLoginActivity.class), MEBUKI_LOGIN));
-        action("めぶき：一覧からレス投稿", () -> threadPicker("mebuki"));
+        action("めぶきちゃんねる：本文を読む", this::mebukiReaderPicker);
+        action("めぶきちゃんねる：一覧からレス投稿", () -> threadPicker("mebuki"));
+        action("\u3081\u3076\u304d\uff1a\u6295\u7a3f\u8a3a\u65ad",this::mebukiPostDiagnostic);
+    }
+
+    private void mebukiPostDiagnostic() {
+        startPage("\u3081\u3076\u304d\uff1a\u6700\u5f8c\u306e\u6295\u7a3f\u8a3a\u65ad");
+        addText("\u5fdc\u7b54\u306e\u7a2e\u985e\u3068\u7167\u5408\u7d50\u679c\u306e\u307f\u3002Cookie\u5024\u30fb\u672c\u6587\u30fbID\u306f\u4fdd\u5b58\u3057\u307e\u305b\u3093\u3002");
+        addText(MebukiPostDiagnostic.report(this));
+        action("\u66f4\u65b0",this::mebukiPostDiagnostic);
+        action("\u30db\u30fc\u30e0\u3078",this::home);
     }
 
     private void login() {
         remote("あいもげの認証URLを作成", "POST", "/ext/login/aimoge/start",
                 new JSONObject(), result -> {
                     if (result.status != 200) {
-                        updateNotice("ログイン開始失敗 HTTP " + result.status + ": " + result.body);
+                        updateNotice("ログイン開始失敗 HTTP " + result.status + ": " + PostPresentation.error(result.body));
                         return;
                     }
                     try {
                         String url = new JSONObject(result.body).getString("authorizationUrl");
-                        if (!url.startsWith("https://")) throw new IllegalArgumentException("Invalid auth URL");
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                        updateNotice("ブラウザの承認後、この画面に戻ってください。");
+                        if (AimogeLoginFlow.page(url) != AimogeLoginFlow.Page.OFFICIAL)
+                            throw new IllegalArgumentException("Invalid auth URL");
+                        Intent login = new Intent(this, AimogeLoginActivity.class);
+                        login.putExtra(AimogeLoginActivity.AUTH_URL, url);
+                        startActivityForResult(login, AIMOGE_LOGIN);
                     } catch (Exception ex) { updateNotice("認証URLを開けませんでした"); }
                 });
     }
 
+    private void mebukiReaderPicker() {
+        startPage("めぶきちゃんねる • 本文を読む");
+        action("戻る", this::home);
+        final LinearLayout page = root;
+        remote("カタログを取得", "GET", "/ext/threads?board=mebuki", null, result -> {
+            if (root != page) return;
+            if (result.status != 200) { updateNotice("HTTP "+result.status); return; }
+            try {
+                JSONArray threads = new JSONObject(result.body).getJSONArray("threads");
+                updateNotice("おためしカタログでスレを選ぶ（本文は認証付き取得）");
+                for(int i=0;i<threads.length();i++) {
+                    JSONObject entry=threads.getJSONObject(i);
+                    String id=entry.getString("id");
+                    if(!id.matches("[0-9]{13}")) continue;
+                    action(PostPresentation.excerpt(entry.optString("title"))+" ("+entry.optInt("replies")+")", () ->
+                            startActivity(new Intent(this,MebukiReaderActivity.class).putExtra(MebukiReaderActivity.ID,id)));
+                }
+            } catch(Exception ignored) { updateNotice("一覧を解析できません"); }
+        });
+    }
+
     private void threadPicker(String board) {
         startPage(("animanch".equals(board) ? "あにまん" :
-                "mebuki".equals(board) ? "めぶき（おためし／遅延）" : "あいもげ") + " • 返信するスレを選ぶ");
+                "mebuki".equals(board) ? "めぶきちゃんねる（おためし／遅延）" : "あいもげ") + " • 返信するスレを選ぶ");
         action("戻る", this::home);
         remote("スレ一覧を取得", "GET", "/ext/threads?board=" + board, null, result -> {
             if (result.status != 200) { updateNotice("取得失敗 HTTP " + result.status); return; }
@@ -227,11 +288,80 @@ public final class FutatabiHomeActivity extends Activity {
         });
     }
 
+    private void replySelector(String board, String id) {
+        selectedReplyNumber = "";
+        if (id.isEmpty()) return;
+        final LinearLayout page = root;
+        TextView title = addText("\u8fd4\u4fe1\u5148\u30b9\u30ec\u3092\u53d6\u5f97\u4e2d...");
+        TextView target = addText("\u30b9\u30ec\u5168\u4f53\u3078\u8fd4\u4fe1");
+        final JSONArray[] options = {null};
+        Button choose = action("\u8fd4\u4fe1\u5148\u306e\u30ec\u30b9\u3092\u9078\u3076", () -> {
+            JSONArray items = options[0];
+            if (items == null) return;
+            String[] labels = new String[items.length()+1];
+            labels[0] = "\u30b9\u30ec\u5168\u4f53\u3078\u8fd4\u4fe1";
+            for (int i=0; i<items.length(); i++) {
+                JSONObject item = items.optJSONObject(i);
+                labels[i+1] = ("aimoge".equals(board) ? "No." + item.optString("number") + " / " : "")
+                        + "\u30ec\u30b9 " + item.optInt("seq") + "\n" + item.optString("excerpt");
+            }
+            new android.app.AlertDialog.Builder(this).setTitle("\u8fd4\u4fe1\u5148\u3092\u9078\u629e")
+                    .setItems(labels, (dialog, index) -> {
+                        selectedReplyNumber = index == 0 ? "" : items.optJSONObject(index-1).optString("number");
+                        target.setText(index == 0 ? labels[index] : labels[index] + "\n"
+                                + PostPresentation.quote(board, selectedReplyNumber, "").trim());
+                    }).setNegativeButton("\u30ad\u30e3\u30f3\u30bb\u30eb", null).show();
+        });
+        choose.setEnabled(false);
+        remote("\u8fd4\u4fe1\u5148\u3092\u53d6\u5f97", "GET", "/ext/reply-targets?board=" + board + "&id=" + id, null, result -> {
+            if (root != page) return;
+            if (result.status != 200) {
+                title.setText("\u30b9\u30ec\u60c5\u5831\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f");
+                updateNotice("HTTP " + result.status + " " + PostPresentation.error(result.body));
+                return;
+            }
+            try {
+                JSONObject data = new JSONObject(result.body);
+                String name = data.optString("title");
+                title.setText("\u8fd4\u4fe1\u5148\u30b9\u30ec: " + (name.isEmpty() ? "\u672c\u6587\u306a\u3057" : name));
+                options[0] = data.getJSONArray("targets");
+                choose.setEnabled(options[0].length() > 0);
+                updateNotice("");
+            } catch (Exception ex) { updateNotice("\u8fd4\u4fe1\u5148\u30c7\u30fc\u30bf\u89e3\u6790\u5931\u6557"); }
+        });
+    }
+
+    private void showPostSuccess(String board, String raw, String expectedThread) {
+        String message;
+        try {
+            message = PostPresentation.completion(board, raw, expectedThread);
+            if (message == null) {
+                startPage("\u6295\u7a3f\u53d7\u7406");
+                addText("\u6295\u7a3f\u306f\u53d7\u7406\u3055\u308c\u307e\u3057\u305f\u304c\u3001\u516c\u958b\u8868\u793a\u306f\u672a\u78ba\u8a8d\u3067\u3059\u3002");
+                action("\u623b\u308b", directReply() ? this::finish : this::home);
+                return;
+            }
+        } catch (Exception ex) {
+            startPage("\u6295\u7a3f\u5fdc\u7b54\u3092\u53d7\u4fe1");
+            addText("\u7d50\u679c\u3092\u89e3\u6790\u3067\u304d\u307e\u305b\u3093\u3002\u518d\u9001\u305b\u305a\u30b9\u30ec\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+            action("\u623b\u308b", directReply() ? this::finish : this::home);
+            return;
+        }
+        if (directReply()) {
+            android.widget.Toast.makeText(this, message + "\u3002\u30b9\u30ec\u3092\u66f4\u65b0\u3057\u3066\u304f\u3060\u3055\u3044", android.widget.Toast.LENGTH_LONG).show();
+            finish();
+        } else {
+            startPage(message);
+            action("\u30db\u30fc\u30e0\u3078", this::home);
+        }
+    }
+
     private void compose(String replyTo) {
         threadId = replyTo;
         attached.clear();
         startPage(replyTo.isEmpty() ? "あいもげ • 新規スレ" : "あいもげ • レス投稿");
-        action("戻る", replyTo.isEmpty() ? this::home : () -> threadPicker("aimoge"));
+        replySelector("aimoge", replyTo);
+        action("戻る", directReply() ? this::finish : replyTo.isEmpty() ? this::home : () -> threadPicker("aimoge"));
         addText("本文（最大4,000字）");
         bodyField = input("本文", "", true);
         count = addText("0 / 4000");
@@ -254,14 +384,18 @@ public final class FutatabiHomeActivity extends Activity {
             startActivityForResult(pick, CHOOSE_IMAGE);
         });
         action("投稿内容を送信", () -> {
-            String text = bodyField.getText().toString();
-            if (text.isEmpty() || text.codePointCount(0, text.length()) > 4000) {
+            String text = PostPresentation.quote("aimoge", selectedReplyNumber, bodyField.getText().toString());
+            if (bodyField.getText().length() == 0 || text.codePointCount(0, text.length()) > 4000) {
                 updateNotice("本文を1〜4,000字で入力してください");
                 return;
             }
             final String deleteKey = deleteKeyField.getText().toString();
             if (deleteKey.isEmpty() || deleteKey.length() > 64) {
                 updateNotice("削除キーは1〜64文字で入力してください");
+                return;
+            }
+            if (replyTo.isEmpty() && attached.isEmpty()) {
+                updateNotice("新規スレには画像が1枚必要です");
                 return;
             }
             final List<Uri> picks = new ArrayList<>(attached);
@@ -294,10 +428,8 @@ public final class FutatabiHomeActivity extends Activity {
                     runOnUiThread(() -> {
                         if (isFinishing() || isDestroyed()) return;
                         if (result.status == 201) {
-                            startPage("投稿成功");
-                            addText(result.body);
-                            action("ホームへ", this::home);
-                        } else updateNotice("投稿失敗 HTTP " + result.status + ": " + result.body);
+                            showPostSuccess("aimoge", result.body, replyTo);
+                        } else updateNotice("投稿失敗 HTTP " + result.status + ": " + PostPresentation.error(result.body));
                     });
                 } catch (Exception ex) {
                     runOnUiThread(() -> updateNotice("投稿準備失敗: " + ex.getMessage()));
@@ -310,7 +442,7 @@ public final class FutatabiHomeActivity extends Activity {
 
     @Override protected void onActivityResult(int code, int result, Intent data) {
         super.onActivityResult(code, result, data);
-        if (code == MEBUKI_LOGIN) {
+        if (code == MEBUKI_LOGIN || code == AIMOGE_LOGIN) {
             home(); // Revalidate the saved session when the owner returns.
             return;
         }
@@ -321,7 +453,7 @@ public final class FutatabiHomeActivity extends Activity {
     }
 
     private void composeMebuki(String replyTo) {
-        startPage("めぶき • レス投稿（契約検収前）");
+        startPage("めぶきちゃんねる • レス投稿（契約検収前）");
         action("戻る", () -> threadPicker("mebuki"));
         addText("おためしカタログのスレです。実サイト側での返信可否は本人検収待ち。");
         final EditText content = input("本文（最大5,000文字／100行）", "", true);
@@ -348,11 +480,14 @@ public final class FutatabiHomeActivity extends Activity {
                 body.put("showUsername", username.isChecked());
                 body.put("showThreadOwner", threadOwner.isChecked());
             } catch (Exception ex) { updateNotice("入力内容を作成できませんでした"); return; }
-            remote("めぶきへレス投稿", "POST", "/ext/mebuki/reply", body, result -> {
-                if (result.status == 202) {
-                    startPage("送信応答を受信・成功未確定");
-                    addText("サーバーから応答がありましたが、投稿成功の正式な判定は未検証です。");
-                    action("ホームへ", this::home);
+            remote("めぶきちゃんねるへレス投稿", "POST", "/ext/mebuki/reply", body, result -> {
+                if (result.status == 201) {
+                    startPage("\u6295\u7a3f\u3092\u78ba\u8a8d\u3057\u307e\u3057\u305f");
+                    action("\u30db\u30fc\u30e0\u3078", this::home);
+                } else if (result.status == 202) {
+                    startPage("\u6295\u7a3f\u7d50\u679c\u672a\u78ba\u5b9a");
+                    addText("\u518d\u6295\u7a3f\u305b\u305a\u30b9\u30ec\u3092\u66f4\u65b0\u3057\u3066\u6295\u7a3f\u7d50\u679c\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+                    action("\u30db\u30fc\u30e0\u3078", this::home);
                 } else updateNotice("レス送信できませんでした HTTP " + result.status);
             });
         });
@@ -361,7 +496,8 @@ public final class FutatabiHomeActivity extends Activity {
     private void composeAnimanch(String replyTo) {
         attached.clear();
         startPage(replyTo.isEmpty() ? "あにまん • 新規スレ" : "あにまん • レス投稿");
-        action("戻る", replyTo.isEmpty() ? this::home : () -> threadPicker("animanch"));
+        replySelector("animanch", replyTo);
+        action("戻る", directReply() ? this::finish : replyTo.isEmpty() ? this::home : () -> threadPicker("animanch"));
         final EditText title = replyTo.isEmpty() ? input("スレタイトル", "", false) : null;
         final EditText category = replyTo.isEmpty() ? input("カテゴリID（掲示板のカテゴリ番号）", "", false) : null;
         final EditText name = input("名前（省略可）", "", false);
@@ -374,8 +510,8 @@ public final class FutatabiHomeActivity extends Activity {
             startActivityForResult(picker, CHOOSE_IMAGE);
         });
         action("あにまんへ送信", () -> {
-            String text = body.getText().toString();
-            if (text.isEmpty() || text.length() > 1000) {
+            String text = PostPresentation.quote("animanch", selectedReplyNumber, body.getText().toString());
+            if (body.getText().length() == 0 || text.length() > 1000) {
                 updateNotice("本文は1〜1,000字で入力してください");
                 return;
             }
@@ -418,10 +554,8 @@ public final class FutatabiHomeActivity extends Activity {
                     runOnUiThread(() -> {
                         if (isFinishing() || isDestroyed()) return;
                         if (result.status == 201) {
-                            startPage("あにまん • 投稿完了");
-                            addText(result.body);
-                            action("ホームへ", this::home);
-                        } else updateNotice("投稿失敗 HTTP " + result.status + ": " + result.body);
+                            showPostSuccess("animanch", result.body, replyTo);
+                        } else updateNotice("投稿失敗 HTTP " + result.status + ": " + PostPresentation.error(result.body));
                     });
                 } catch (Exception ex) {
                     runOnUiThread(() -> updateNotice("送信準備失敗: " + ex.getMessage()));

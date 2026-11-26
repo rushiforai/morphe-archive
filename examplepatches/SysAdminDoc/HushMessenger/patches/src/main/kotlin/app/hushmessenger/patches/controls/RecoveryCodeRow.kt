@@ -31,10 +31,10 @@ internal const val RECOVERY_CODE_ROW_CALL = "$SETTINGS->recoveryCodeRow()Z"
 private const val RECOVERY_ROW_STRING = "Ljava/lang/String;"
 
 /**
- * The else titles of the page's two picked rows, "Create PIN" and "Generate 40-character code", in 587's string pack. The
+ * The else titles of the page's two picked rows, "Create PIN" and "Generate 40-character code", in 588's string pack. The
  * armv7 pack numbers both two higher, which gives its "Generate" row the number the other builds use for "Create PIN".
  */
-private val RECOVERY_ROW_TITLES = setOf(0x7f14178d to 0x7f14178f, 0x7f14178f to 0x7f141791)
+private val RECOVERY_ROW_TITLES = setOf(0x7f14179e to 0x7f1417a0, 0x7f1417a0 to 0x7f1417a2)
 
 /** One side of a picked row: its title, its row code, the lookup that reads the title and the registers that lookup uses. */
 private class RecoveryArm(val title: Int, val rowCode: Int, val label: String, val owner: Int, val text: Int)

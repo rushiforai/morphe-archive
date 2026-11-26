@@ -1,7 +1,7 @@
 # OpenBot custom font
 
 Morphe patch for the Android package `run.openbot.mobile`. Supported APKs are
-listed in `patches/OpenBotFontPatch.kt`; adapter identities are in
+listed in `patches/OpenBotCompatibility.kt`; adapter identities are in
 `resources/openbot/adapters/*.properties`. Unknown bundle hashes stop patching.
 
 ## Behavior
@@ -64,9 +64,13 @@ The adapter for a supported release ships in
 `openbot/resources/openbot/adapters/`, and the patch checks it against the version,
 the original bundle SHA-256 and the adapter checksums recorded in the matching
 `.properties` file. An adapter is rebuilt from the official Android release tag
-that matches the original APK. That build needs the app's own source checkout and
-a separate export toolchain, so it happens outside this repository. Generated DOM
-assets ship inside the adapter because their filenames depend on the source build.
+that matches the original APK with `node openbot/build-bundle.cjs <source> <apk>`.
+That build needs the app's own source checkout and a separate export toolchain, so
+it happens outside this repository. After renaming a checkout to a new version,
+move `apps/mobile/.expo/metro-cache` aside first: Metro stores absolute file paths
+there and the export otherwise fails on imports from the old folder name.
+Generated DOM assets ship inside the adapter because their filenames depend on the
+source build.
 
 Apply the patch with Morphe Manager by importing the built
 `patches/build/libs/patches-<version>.mpp`, selecting the supported original APK,

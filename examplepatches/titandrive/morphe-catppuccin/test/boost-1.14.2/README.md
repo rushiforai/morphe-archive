@@ -1,6 +1,6 @@
 # Boost 1.14.x checks
 
-The isolated identity supports 1.14.2 and 1.14.3. Build with
+The isolated identity supports 1.14.2, 1.14.3 and 1.14.4. Build with
 `CATPPUCCIN_BOOST_TEST=1` and apply **Boost isolated test identity** alongside
 **Catppuccin theme**. Use original APKs; 1.14.3 was checked with Patcheddit
 2.1.0-dev.5. The test app has separate storage and account registration.
@@ -26,3 +26,10 @@ For 1.14.3, ThemeUtils moved from `k83` to `n83`, the drawer from `xj0` to
 View)`; verify its full signature before injecting. Account-pattern loading
 uses `ha1` instead of `ia1`. Upstream canonical bindings are bundled in the
 Patcheddit MPP at `boost/bindings.json`.
+
+
+Boost 1.14.4 uses ThemeUtils `w83`, preferences `xs2`, drawer `xj0`,
+DownloadMediaActivity `di0`, MediaBaseActivity `lq1`, and Utils `al3`.
+Its text-panel helper is `Q(Context, View)`, account-pattern loader is `ma1`,
+and author badge fields are `X/W/Y/Z/a0` for me/OP/friend/mod/admin.
+Check combined patching with Patcheddit 2.5.1 stable and 2.6.0-dev.4.

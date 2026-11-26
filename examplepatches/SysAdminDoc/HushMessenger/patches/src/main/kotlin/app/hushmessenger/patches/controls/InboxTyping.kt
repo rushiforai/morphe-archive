@@ -21,8 +21,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  */
 internal const val INBOX_TYPING = "inbox_typing"
 
-/** The flag all four read, as 587 numbers it. */
-internal const val INBOX_TYPING_FLAG = 0x010100eb0000136fL
+/** The flag all four read, as 588 numbers it (587 read 0x010100eb0000136f). */
+internal const val INBOX_TYPING_FLAG = 0x010100eb000013b5L
 
 private const val INBOX_TYPING_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
 

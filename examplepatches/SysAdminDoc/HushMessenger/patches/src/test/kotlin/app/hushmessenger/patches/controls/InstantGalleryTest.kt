@@ -149,7 +149,7 @@ class InstantGalleryTest {
         assertEquals(listOf(SYNTHETIC_INSTANT_CAPTURE), found(fixture()).map { it.hookId() })
         validateControls(mirroredControls(fixture()), setOf(INSTANT_GALLERY))
         assertEquals(setOf(SYNTHETIC_INSTANT_CAPTURE), SYNTHETIC_PROFILE.hooks.getValue(INSTANT_GALLERY))
-        assertEquals(setOf("LX/VKB;->EKR(LX/2rP;)V"), BASE_PROFILE.hooks.getValue(INSTANT_GALLERY))
+        assertEquals(setOf("LX/S4K;->Eut(LX/2Wr;)V"), BASE_PROFILE.hooks.getValue(INSTANT_GALLERY))
         assertEquals(listOf(InstantFrameRead(8, 5), InstantFrameRead(13, 0)), capture().validateInstantGallery())
     }
 

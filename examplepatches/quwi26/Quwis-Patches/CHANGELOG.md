@@ -1,3 +1,37 @@
+# [1.16.1](https://github.com/quwi26/Quwis-Patches/compare/v1.16.0...v1.16.1) (2026-11-25)
+
+### Performance Improvements
+
+* **Patching:** the patches find the classes they change faster. Several fingerprints now name the class they look for directly, so the patcher no longer scans every class of the app for each of them. The installed app is unchanged, only the patching step is quicker
+
+# [1.16.0](https://github.com/quwi26/Quwis-Patches/compare/v1.15.2...v1.16.0) (2026-11-25)
+
+### Features
+
+* **Chess.com:** chess.com 4.10.29 is a normal supported version now, next to 4.10.28. The experimental app versions switch is no longer needed for it
+
+# [1.15.2](https://github.com/quwi26/Quwis-Patches/compare/v1.15.1...v1.15.2) (2026-11-25)
+
+### Performance Improvements
+
+* **Find the computer on the network:** the sweep now opens every address of the network at once instead of 48 at a time, so a /24 is looked at in about a third of a second instead of two, and a phone that also has a VPN interface no longer waits fifteen seconds for the second subnet. Every address is still tried and only a host that greets the way sf-bridge does is offered
+
+# [1.15.1](https://github.com/quwi26/Quwis-Patches/compare/v1.15.0...v1.15.1) (2026-11-25)
+
+### Bug Fixes
+
+* **Chess.com 4.10.29:** Hide Premium-only content hides the More screen's Try Premium banner again. 4.10.29 moved the banner provider to a new package and renamed the Flow it returns, so the banner stayed visible
+
+# [1.15.0](https://github.com/quwi26/Quwis-Patches/compare/v1.14.2...v1.15.0) (2026-11-25)
+
+### New Features
+
+* **Chess.com:** chess.com 4.10.29 is supported as an experimental version, next to 4.10.28 and 4.10.27. Turn on **Experimental app versions** for the source in Morphe to pick it
+
+### Bug Fixes
+
+* **Chess.com 4.10.29:** Hide Premium-only content, Lichess Puzzles and Time controls under a minute follow the classes 4.10.29 renamed. The Home toolbar state and its paywall icon, the Puzzles hub state and path stats, the puzzle score's path result wrapper and the time selector moved, and the patches still find the older builds' shapes
+
 # [1.14.2](https://github.com/quwi26/Quwis-Patches/compare/v1.14.1...v1.14.2) (2026-11-24)
 
 ### Bug Fixes

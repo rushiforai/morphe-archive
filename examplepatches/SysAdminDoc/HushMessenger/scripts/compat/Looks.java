@@ -55,11 +55,11 @@ import static compat.Drawer.*;
 /** Looks: the tab bar, avatar shape and story rings. */
 final class Looks {
 
-    // 587's numbering (586 read 0x0101055400014313 and 0x0101039400033264).
-    static final long FLOATING_TAB_BAR_FLAG = 0x0101055600014560L;
-    static final long CHATS_SCROLL_AWAY_FLAG = 0x0101039000033352L;
+    // 588's numbering (587 read 0x0101055600014560, 0x0101039000033352 and 0x0101039000003351).
+    static final long FLOATING_TAB_BAR_FLAG = 0x010105590001470eL;
+    static final long CHATS_SCROLL_AWAY_FLAG = 0x01010390000333f8L;
     // The Chats page's slide answer, which the bar's frame asks before a scroll may move the bar at all.
-    static final long CHATS_SLIDE_FLAG = 0x0101039000003351L;
+    static final long CHATS_SLIDE_FLAG = 0x01010390000033f7L;
     static final String FUNCTION0 = "Lkotlin/jvm/functions/Function0;";
     static final List<String> TAB_BAR_BUILDER_PARAMETERS =
         List.of("Landroid/content/Context;", "Lcom/facebook/auth/usersession/FbUserSession;", "Z");
@@ -430,6 +430,94 @@ final class Looks {
             found = builder;
         }
         return found == null ? List.of() : List.of(found);
+    }
+
+    static final String FLOATING_PILL_LOG = "Selected tab %d is outside the %d tabs";
+    /** The pill's paints with the argument that holds each color, as SeeThroughTabBar.kt's PILL_PAINTS. */
+    static final String[] PILL_PAINTS = {
+        "Landroid/graphics/drawable/GradientDrawable;->setColor(I)V",
+        "Landroid/graphics/drawable/GradientDrawable;->setStroke(II)V",
+        "->setOutlineAmbientShadowColor(I)V",
+        "->setOutlineSpotShadowColor(I)V",
+    };
+    static final int[] PILL_ARGUMENTS = {1, 2, 1, 1};
+
+    static boolean paints(Instruction i, String paint) {
+        if (i.getOpcode() != Opcode.INVOKE_VIRTUAL && i.getOpcode() != Opcode.INVOKE_VIRTUAL_RANGE) return false;
+        if (!(((ReferenceInstruction) i).getReference() instanceof MethodReference called)) return false;
+        String id = called.getDefiningClass() + "->" + called.getName() + "(" + String.join("", called.getParameterTypes()) + ")" + called.getReturnType();
+        return paint.startsWith("->") ? id.endsWith(paint) : id.equals(paint);
+    }
+
+    static int argumentRegister(Instruction i, int argument) {
+        if (i instanceof RegisterRangeInstruction range) return range.getStartRegister() + argument;
+        if (i instanceof FiveRegisterInstruction five) {
+            return switch (argument) {
+                case 0 -> five.getRegisterC(); case 1 -> five.getRegisterD(); case 2 -> five.getRegisterE();
+                case 3 -> five.getRegisterF(); default -> five.getRegisterG();
+            };
+        }
+        return -1;
+    }
+
+    /** Where the pill's colors are read back, ascending, or null. Mirrors pillReads in SeeThroughTabBar.kt. */
+    static List<Integer> pillReads(Method method) {
+        var code = instructions(method);
+        if (code.isEmpty()) return null;
+        var targets = mediaTargets(method);
+        var reads = new TreeSet<Integer>();
+        for (int p = 0; p < PILL_PAINTS.length; p++) {
+            int call = -1;
+            for (int k = 0; k < code.size(); k++) if (paints(code.get(k), PILL_PAINTS[p])) { call = k; break; }
+            if (call < 0) return null;
+            int register = argumentRegister(code.get(call), PILL_ARGUMENTS[p]);
+            if (register < 0 || register > 255) return null;
+            int read = -1;
+            for (int k = call - 1; k >= 0; k--) if (writesRegister(code.get(k), register)) { read = k; break; }
+            if (read < 0) return null;
+            var load = code.get(read);
+            if (load.getOpcode() != Opcode.IGET || !"I".equals(((FieldReference) ((ReferenceInstruction) load).getReference()).getType())) return null;
+            for (int k = read + 1; k <= call; k++) if (targets.contains(k)) return null;
+            reads.add(read);
+        }
+        return new ArrayList<>(reads);
+    }
+
+    static boolean logsPillRange(Method method) {
+        for (var i : instructions(method)) {
+            if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s
+                    && FLOATING_PILL_LOG.equals(s.getString())) return true;
+        }
+        return false;
+    }
+
+    static String pillKey(MethodReference m) {
+        return m.getDefiningClass() + "->" + m.getName() + "(" + String.join("", m.getParameterTypes()) + ")" + m.getReturnType();
+    }
+
+    /**
+     * floating_pill: of the methods that log the out of range tab and the methods they call, the one with the paint's
+     * shape. Mirrors findFloatingPill in SeeThroughTabBar.kt.
+     */
+    static List<Method> floatingPill(List<ClassDef> classes) {
+        var logs = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) if (logsPillRange(method)) logs.add(method);
+        var called = new HashSet<String>();
+        var owners = new HashSet<String>();
+        for (var log : logs) for (var i : instructions(log)) {
+            if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference m) {
+                called.add(pillKey(m));
+                owners.add(m.getDefiningClass());
+            }
+        }
+        var candidates = new LinkedHashSet<Method>(logs);
+        for (var cls : classes) {
+            if (!owners.contains(cls.getType())) continue;
+            for (var method : cls.getMethods()) if (called.contains(pillKey(method))) candidates.add(method);
+        }
+        var found = new ArrayList<Method>();
+        for (var method : candidates) if (pillReads(method) != null) found.add(method);
+        return found.size() == 1 ? found : List.of();
     }
 
     /** The register holding parameter n, counting this as 0 on an instance method. */

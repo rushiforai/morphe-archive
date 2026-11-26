@@ -182,12 +182,17 @@ final class Menus {
             int a = register(code.get(i));
             if (code.get(i).getOpcode().setsRegister() && a >= first && a <= first + 2) return null;
         }
-        // The handler sits in a field of its own type (586 kept it in an Object field and cast it after the read).
+        // The handler sits in a field of its own type, or (588's merged taps) in an Object field cast straight after the read.
         for (int i = start; i < code.size(); i++) {
             var f = menuField(code.get(i));
             if (f == null || code.get(i).getOpcode() != Opcode.IGET_OBJECT || !f.getDefiningClass().equals(method.getDefiningClass())) continue;
-            if (!f.getType().startsWith("L") || "Ljava/lang/Object;".equals(f.getType())) return null;
-            return new String[] {f.toString(), f.getType()};
+            String type = f.getType();
+            if ("Ljava/lang/Object;".equals(type)) {
+                if (i + 1 >= code.size() || code.get(i + 1).getOpcode() != Opcode.CHECK_CAST || register(code.get(i + 1)) != register(code.get(i))) return null;
+                type = ref(code.get(i + 1));
+            }
+            if (type == null || !type.startsWith("L") || "Ljava/lang/Object;".equals(type)) return null;
+            return new String[] {f.toString(), type};
         }
         return null;
     }
@@ -547,6 +552,9 @@ final class Menus {
     static final String ACTIONS_LIST = "Lcom/google/common/collect/ImmutableList;";
     static final String ACTIONS_LIST_BUILDER = "Lcom/google/common/collect/ImmutableList$Builder;";
     static final Set<Opcode> ACTIONS_MOVES = EnumSet.of(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16);
+    /** Where a straight path ends: nothing falls through past these. */
+    static final Set<Opcode> ACTIONS_PATH_ENDS = EnumSet.of(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32, Opcode.RETURN, Opcode.RETURN_VOID,
+        Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.THROW);
 
     static Integer actionMoveSource(Instruction i) {
         return ACTIONS_MOVES.contains(i.getOpcode()) ? ((TwoRegisterInstruction) i).getRegisterB() : null;
@@ -602,19 +610,24 @@ final class Menus {
         int held = parameterRegister(m, 1);
         for (var i : code) if (writes(i, held)) return false;
         // The sent flag: held.row().call(), the row getter declared on the held message's own type (586 cast and read a field).
+        // 588 asks for the row once and asks it for the flag further down the straight path, before the register is reused.
         var sent = new HashSet<List<String>>();
-        for (int j = 0; j + 3 < code.size(); j++) {
+        for (int j = 0; j + 1 < code.size(); j++) {
             if (code.get(j).getOpcode() != Opcode.INVOKE_INTERFACE) continue;
             var row = menuCall(code.get(j));
-            var call = menuCall(code.get(j + 2));
             var args = callArgs(code.get(j));
             if (row == null || !row.getDefiningClass().equals(p.get(0)) || !row.getParameterTypes().isEmpty() || !row.getReturnType().startsWith("L")) continue;
             if (args.size() != 1 || !actionHoldsHeld(code, args.get(0), j, held, 2) || code.get(j + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT) continue;
-            if (code.get(j + 2).getOpcode() != Opcode.INVOKE_INTERFACE || call == null || !call.getDefiningClass().equals(row.getReturnType())) continue;
-            if (!"Z".equals(call.getReturnType()) || !call.getParameterTypes().isEmpty() ||
-                !callArgs(code.get(j + 2)).equals(List.of(register(code.get(j + 1)))) ||
-                code.get(j + 3).getOpcode() != Opcode.MOVE_RESULT) continue;
-            sent.add(List.of(ref(code.get(j)), ref(code.get(j + 2))));
+            int model = register(code.get(j + 1));
+            for (int k = j + 2; k + 1 < code.size(); k++) {
+                var call = menuCall(code.get(k));
+                if (code.get(k).getOpcode() == Opcode.INVOKE_INTERFACE && callArgs(code.get(k)).equals(List.of(model)) && call != null &&
+                    call.getDefiningClass().equals(row.getReturnType()) && "Z".equals(call.getReturnType()) && call.getParameterTypes().isEmpty()) {
+                    if (code.get(k + 1).getOpcode() == Opcode.MOVE_RESULT) sent.add(List.of(ref(code.get(j)), ref(code.get(k))));
+                    break;
+                }
+                if (writes(code.get(k), model) || ACTIONS_PATH_ENDS.contains(code.get(k).getOpcode())) break;
+            }
         }
         return sent.size() == 1;
     }
@@ -815,21 +828,23 @@ final class Menus {
     }
 
     /**
-     * Where ReadReceipts.kt's REPLY_READ_SHAPE puts the pieces: composer copy, account copy, the thread's null default,
-     * the null path's copy, the dispatch, the composer copy's register, how far before the dispatch v12 is staged, the
-     * frame size and the register the dispatch's first String comes to v15 from.
+     * Where ReadReceipts.kt's REPLY_READ_SHAPE puts the pieces: the event copy and its register, the composer copy and its
+     * register, the account copy and its register, the thread's null default and its register, the thread's register,
+     * the null path's copy, the dispatch, the dispatch's first register, how far before the dispatch the composer is
+     * staged, the register the dispatch's first String comes from, and the frame size.
      */
-    static final int[] REPLY_READ_SHAPE = {10, 20, 26, 71, 238, 20, 4, 36, 18};
+    static final int[] REPLY_READ_SHAPE = {4, 5, 10, 26, 20, 4, 27, 18, 2, 158, 347, 12, 5, 23, 42};
 
-    /** Each shape by its body size: 398 instructions on every 587 build. */
-    static final Map<Integer, int[]> REPLY_READ_SHAPES = Map.of(398, REPLY_READ_SHAPE);
+    /** Each shape by its body size: 540 instructions on 588. */
+    static final Map<Integer, int[]> REPLY_READ_SHAPES = Map.of(540, REPLY_READ_SHAPE);
 
     /**
-     * reply_read injects at fixed indices, so ReadReceipts.kt's validateReplyRead pins the method's shape. The same
-     * outline is checked here, so a changed body shows up as unresolved instead of passing until patch time: 587's 36
-     * registers and 398 instructions, the typed ThreadKey getter on p7's type two after the null default with its
-     * result in v12, v12 taking v10 four before the dispatch, and the five-argument dispatch on p4's type that starts
-     * with the FbUserSession and ends with two Strings. The dataflow proof stays in the patch.
+     * reply_read injects at a fixed index, so ReadReceipts.kt's validateReplyRead pins the method's shape. The same
+     * outline is checked here, so a changed body shows up as unresolved instead of passing until patch time: the frame,
+     * the copies out of p11, p4 and p0, the typed ThreadKey getter on p7's type two after the null default, the null
+     * path's copy into the thread's register, the composer and account staged into the dispatch's first two registers,
+     * and the five-argument dispatch on p4's type that starts with the FbUserSession and ends with two Strings. The
+     * dataflow proof stays in the patch.
      */
     static boolean replyReadShape(Method method) {
         var impl = method.getImplementation();
@@ -837,40 +852,40 @@ final class Menus {
         var code = new ArrayList<Instruction>();
         impl.getInstructions().forEach(code::add);
         int[] shape = REPLY_READ_SHAPES.get(code.size());
-        if (shape == null || impl.getRegisterCount() != shape[7]) return false;
-        int composer = shape[0], session = shape[1], n = shape[2], absent = shape[3], d = shape[4], cr = shape[5], s = d - shape[6];
+        if (shape == null || impl.getRegisterCount() != shape[14]) return false;
+        int event = shape[0], eventReg = shape[1], composer = shape[2], composerReg = shape[3], session = shape[4], account = shape[5];
+        int n = shape[6], nullReg = shape[7], thread = shape[8], absent = shape[9], d = shape[10], first = shape[11], staged = d - shape[12];
+        if (thread > 15 || account > 15 || thread == account) return false;
         var params = method.getParameterTypes();
+        int[] p = new int[params.size()];
+        int next = impl.getRegisterCount() - params.stream().mapToInt(t -> t.charAt(0) == 'J' || t.charAt(0) == 'D' ? 2 : 1).sum();
+        for (int at = 0; at < p.length; at++) { p[at] = next; next += params.get(at).charAt(0) == 'J' || params.get(at).charAt(0) == 'D' ? 2 : 1; }
         if (code.get(n + 2).getOpcode() != Opcode.INVOKE_INTERFACE_RANGE || !(code.get(n + 2) instanceof ReferenceInstruction g) ||
                 !(g.getReference() instanceof MethodReference getter) || !params.get(7).toString().equals(getter.getDefiningClass()) ||
                 !getter.getParameterTypes().isEmpty() || !"Lcom/facebook/messaging/model/threadkey/ThreadKey;".equals(getter.getReturnType()))
             return false;
-        if (code.get(n + 3).getOpcode() != Opcode.MOVE_RESULT_OBJECT || ((OneRegisterInstruction) code.get(n + 3)).getRegisterA() != 12) return false;
-        if (code.get(s).getOpcode() != Opcode.MOVE_OBJECT || ((TwoRegisterInstruction) code.get(s)).getRegisterA() != 12 ||
-                ((TwoRegisterInstruction) code.get(s)).getRegisterB() != 10) return false;
+        var getterArgs = (RegisterRangeInstruction) code.get(n + 2);
+        if (getterArgs.getStartRegister() != p[7] || getterArgs.getRegisterCount() != 1) return false;
+        if (code.get(n + 3).getOpcode() != Opcode.MOVE_RESULT_OBJECT || register(code.get(n + 3)) != thread) return false;
+        if (!copies(code.get(event), eventReg, p[11]) || !copies(code.get(composer), composerReg, p[4]) || !copies(code.get(session), account, p[0]) ||
+            !copies(code.get(absent), thread, nullReg) || !copies(code.get(staged), first, composerReg) || !copies(code.get(staged + 1), first + 1, account))
+            return false;
+        int stringMoves = 0;
+        for (int at = staged + 2; at < d; at++) if (copies(code.get(at), first + 4, shape[13])) stringMoves++;
+        if (stringMoves != 1) return false;
+        var zero = code.get(n).getOpcode();
+        if (zero != Opcode.CONST_4 && zero != Opcode.CONST_16 || register(code.get(n)) != nullReg ||
+            ((NarrowLiteralInstruction) code.get(n)).getNarrowLiteral() != 0 || code.get(n + 1).getOpcode() != Opcode.IF_EQZ ||
+            register(code.get(n + 1)) != p[7] || !jumpsTo(code, n + 1, absent)) return false;
         if (code.get(d).getOpcode() != Opcode.INVOKE_INTERFACE_RANGE || !(code.get(d) instanceof ReferenceInstruction di) ||
                 !(di.getReference() instanceof MethodReference dispatch) || !params.get(4).toString().equals(dispatch.getDefiningClass()) ||
                 !"V".equals(dispatch.getReturnType())) return false;
         var types = dispatch.getParameterTypes();
         if (types.size() != 5 || !"Lcom/facebook/auth/usersession/FbUserSession;".contentEquals(types.get(0)) ||
             !"Ljava/lang/String;".contentEquals(types.get(3)) || !"Ljava/lang/String;".contentEquals(types.get(4)) ||
-            ((RegisterRangeInstruction) code.get(d)).getStartRegister() != 11 || ((RegisterRangeInstruction) code.get(d)).getRegisterCount() != 6)
+            ((RegisterRangeInstruction) code.get(d)).getStartRegister() != first || ((RegisterRangeInstruction) code.get(d)).getRegisterCount() != 6)
             return false;
-        // The registers and branches validateReplyRead proves its dataflow on.
-        int[] p = new int[params.size()];
-        int next = impl.getRegisterCount() - params.stream().mapToInt(t -> t.charAt(0) == 'J' || t.charAt(0) == 'D' ? 2 : 1).sum();
-        for (int at = 0; at < p.length; at++) { p[at] = next; next += params.get(at).charAt(0) == 'J' || params.get(at).charAt(0) == 'D' ? 2 : 1; }
-        var getterArgs = (RegisterRangeInstruction) code.get(n + 2);
-        if (getterArgs.getStartRegister() != p[7] || getterArgs.getRegisterCount() != 1) return false;
-        if (!moves(code.get(4), Opcode.MOVE_OBJECT_FROM16, 7, p[11]) || !moves(code.get(composer), Opcode.MOVE_OBJECT_FROM16, cr, p[4]) ||
-            !moves(code.get(session), Opcode.MOVE_OBJECT_FROM16, 10, p[0]) || !moves(code.get(s - 1), Opcode.MOVE_OBJECT_FROM16, 11, cr) ||
-            !moves(code.get(absent), Opcode.MOVE_OBJECT, 12, 5)) return false;
-        int stringMoves = 0, from = shape[8];
-        var stringMove = from < 16 ? Opcode.MOVE_OBJECT : Opcode.MOVE_OBJECT_FROM16;
-        for (int at = s + 1; at < d; at++) if (moves(code.get(at), stringMove, 15, from)) stringMoves++;
-        if (stringMoves != 1) return false;
-        if (code.get(n).getOpcode() != Opcode.CONST_4 || ((OneRegisterInstruction) code.get(n)).getRegisterA() != 5 ||
-            ((NarrowLiteralInstruction) code.get(n)).getNarrowLiteral() != 0 || code.get(n + 1).getOpcode() != Opcode.IF_EQZ ||
-            ((OneRegisterInstruction) code.get(n + 1)).getRegisterA() != p[7] || !jumpsTo(code, n + 1, absent)) return false;
+        // The branches validateReplyRead proves its dataflow on.
         int[] address = new int[code.size() + 1];
         var index = new HashMap<Integer, Integer>();
         for (int at = 0; at < code.size(); at++) { index.put(address[at], at); address[at + 1] = address[at] + code.get(at).getCodeUnits(); }
@@ -885,18 +900,21 @@ final class Menus {
         }
         for (var block : impl.getTryBlocks()) {
             for (var handler : block.getExceptionHandlers()) targets.add(index.get(handler.getHandlerCodeAddress()));
-            // Code inserted at the dispatch would land inside a try that covers the seam.
-            for (int at = s - 3; at <= d + 1; at++)
+            // Code inserted after the dispatch would land inside a try that covers the seam.
+            for (int at = staged - 3; at <= d + 1; at++)
                 if (address[at] >= block.getStartCodeAddress() && address[at] < block.getStartCodeAddress() + block.getCodeUnitCount()) return false;
         }
-        for (int at = s; at <= d + 1; at++) if (targets.contains(at)) return false;
+        // Messenger's own branches may land on the composer's staging, never past it.
+        for (int at = staged + 1; at <= d + 1; at++) if (targets.contains(at)) return false;
         for (int at : new int[] {n, n + 1, n + 2, n + 3}) if (targets.contains(at)) return false;
         return true;
     }
 
-    static boolean moves(Instruction instruction, Opcode opcode, int to, int from) {
-        return instruction.getOpcode() == opcode && instruction instanceof TwoRegisterInstruction move &&
-            move.getRegisterA() == to && move.getRegisterB() == from;
+    /** A copy of one object register into another, at whatever width the two registers need. */
+    static boolean copies(Instruction instruction, int to, int from) {
+        var op = instruction.getOpcode();
+        return (op == Opcode.MOVE_OBJECT || op == Opcode.MOVE_OBJECT_FROM16 || op == Opcode.MOVE_OBJECT_16) &&
+            instruction instanceof TwoRegisterInstruction move && move.getRegisterA() == to && move.getRegisterB() == from;
     }
 
     /**
@@ -938,7 +956,8 @@ final class Menus {
             var strings = new HashSet<String>();
             for (var i : method.getImplementation().getInstructions())
                 if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr) strings.add(sr.getString());
-            if (entry && strings.contains("ad_id") && strings.contains("page_id") ||
+            // 588 moves page_id into a static helper and names the impression's client token in the event instead.
+            if (entry && strings.contains("ad_id") && (strings.contains("page_id") || strings.contains("ad_impression_client_token")) ||
                 visibility && strings.contains("inbox2_vr") && strings.contains("InboxCustomizedImpressionTracker")) events.add(method);
         }
         return events;
@@ -1103,7 +1122,7 @@ final class Menus {
         return selection.size() == 1 ? selection : List.of();
     }
 
-    static final long PINNED_CHAT_LIMIT_CONFIG = 0x82059500020f8fL;
+    static final long PINNED_CHAT_LIMIT_CONFIG = 0x82058c00020f73L;
 
     /**
      * pinned_chats: every method that reads the pinned chat limit's config id, which 586 reads in place. Each one

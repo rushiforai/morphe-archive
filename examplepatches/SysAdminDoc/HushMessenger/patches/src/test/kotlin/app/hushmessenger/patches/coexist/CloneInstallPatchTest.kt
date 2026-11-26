@@ -665,26 +665,20 @@ class CloneInstallPatchTest {
 
     @Test fun eachBuildFamilyHasItsOwnPinnedSites() {
         val families = MessengerTarget.VERSION_CODES.map { expectedCloneSitesFor(it.toString()) }.toSet()
-        assertEquals(4, families.size)
+        assertEquals(2, families.size)
         assertTrue(families.all { it.size == 7 && it.count { id -> '@' in id } == 5 })
-        assertEquals(setOf("LX/OfE;-><init>()V", "LX/4Dn;->A00(Ljava/lang/String;)Z",
-            "LX/3Ao;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
-            "LX/8U5;->A04(Landroid/os/Bundle;)LX/9Lz;@226", "LX/8U5;->A04(Landroid/os/Bundle;)LX/9Lz;@321",
-            "LX/JOV;->onClick(Landroid/view/View;)V@71", "LX/JOi;->onClick(Landroid/view/View;)V@169"), expectedCloneSitesFor("347415280"))
-        assertEquals(expectedCloneSitesFor("347415280"), expectedCloneSitesFor("347415285"))
-        assertEquals(setOf("LX/RtJ;-><init>()V", "LX/4ER;->A00(Ljava/lang/String;)Z",
-            "LX/3Ap;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
-            "LX/8TJ;->A04(Landroid/os/Bundle;)LX/9Lc;@226", "LX/8TJ;->A04(Landroid/os/Bundle;)LX/9Lc;@319",
-            "LX/JeJ;->onClick(Landroid/view/View;)V@71", "LX/JeW;->onClick(Landroid/view/View;)V@169"), expectedCloneSitesFor("347415354"))
-        // The main build's code under other class names: only the backup lookup and the two click classes are renamed.
-        assertEquals(expectedCloneSitesFor("347415354").map { it.replace("RtJ", "RtH").replace("JeJ", "JeI").replace("JeW", "JeV") }.toSet(),
-            expectedCloneSitesFor("347415302"))
-        assertEquals(expectedCloneSitesFor("347415302"), expectedCloneSitesFor("347415355"))
-        assertEquals(setOf("LX/Oam;-><init>()V", "LX/4Eu;->A00(Ljava/lang/String;)Z",
-            "LX/3BB;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
-            "LX/8Uf;->A05(Landroid/os/Bundle;)LX/9Mz;@185", "LX/8Uf;->A05(Landroid/os/Bundle;)LX/9Mz;@282",
-            "LX/Jal;->onClick(Landroid/view/View;)V@71", "LX/Jaz;->onClick(Landroid/view/View;)V@169"), expectedCloneSitesFor("347415262"))
-        assertFailsWith<PatchException> { expectedCloneSitesFor("347015062") }
+        assertEquals(setOf("LX/Ukb;-><init>()V", "LX/4VT;->A00(Ljava/lang/String;)Z",
+            "LX/59I;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/60J;->A04(Landroid/os/Bundle;)LX/6YQ;@230", "LX/60J;->A04(Landroid/os/Bundle;)LX/6YQ;@326",
+            "LX/KAf;->onClick(Landroid/view/View;)V@201", "LX/KAw;->onClick(Landroid/view/View;)V@101"), expectedCloneSitesFor("347617503"))
+        assertEquals(expectedCloneSitesFor("347617503"), expectedCloneSitesFor("347617590"))
+        assertEquals(setOf("LX/MF6;-><init>()V", "LX/4Yk;->A00(Ljava/lang/String;)Z",
+            "LX/5CZ;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/63a;->A05(Landroid/os/Bundle;)LX/6bK;@189", "LX/63a;->A05(Landroid/os/Bundle;)LX/6bK;@285",
+            "LX/K0T;->onClick(Landroid/view/View;)V@69", "LX/K0k;->onClick(Landroid/view/View;)V@197"), expectedCloneSitesFor("347617497"))
+        assertEquals(expectedCloneSitesFor("347617497"), expectedCloneSitesFor("347617583"))
+        // 587's builds and an older release's are refused.
+        assertFailsWith<PatchException> { expectedCloneSitesFor("347415354") }
         assertFailsWith<PatchException> { expectedCloneSitesFor("346611999") }
     }
 
@@ -756,7 +750,7 @@ class CloneInstallPatchTest {
             val classes: List<ClassDef> = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
             val expected = expectedCloneSitesFor(code)
             val pools = ownNamePoolKeys(classes)
-            // Every 587 build's two inbox clicks take Messenger's name from one string pool key (586's family B used constants).
+            // Every 588 build's two inbox clicks take Messenger's name from one string pool key (586's family B used constants).
             assertEquals(1, pools.size, code)
             assertEquals(expected, findCloneSites(classes, pools), code)
             families += expected

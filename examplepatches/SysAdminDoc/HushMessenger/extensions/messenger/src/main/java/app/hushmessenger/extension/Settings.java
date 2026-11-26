@@ -270,6 +270,21 @@ public final class Settings {
     }
 
     /**
+     * 588's @ list renders ask a server flag before they build the imagine yourself row, and skip the row on no. They
+     * ask this with that answer (non-zero for yes) first, so with the switch on the row isn't built, as for an account
+     * without the feature.
+     */
+    public static boolean metaAiRowShown(int shown) {
+        if (shown == 0) return false;
+        try {
+            return !hideMetaAi();
+        } catch (RuntimeException error) {
+            hookFailed("meta_ai", "Can't hide Meta AI in @ suggestions", error);
+            return true;
+        }
+    }
+
+    /**
      * The inbox search bar, and the search screen it opens, read "Ask Meta AI or search" when Messenger's Meta AI search
      * check is true. With the switch on the check reads false, the answer accounts without Meta AI in search get, so both
      * boxes show the plain hint.
@@ -507,6 +522,8 @@ public final class Settings {
         owners.put(FloatingMenu.KEY, MenuBlur.KEY);
         owners.put(Settings.HIDE_DELIVERED, "hide_read_receipts");
         owners.put(ChatJump.PAGES, ChatJump.KEY);
+        owners.put(InvisibleButtonsPick.KEY, InvisibleButtons.KEY);
+        owners.put(TabSlide.KEY, TabSwipe.KEY);
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
     }
 
@@ -773,8 +790,8 @@ public final class Settings {
 
     static final String DWELL_TRACKING = "dwell_tracking";
     /**
-     * Messenger's own yes or no on filing an attention report, and on copying its timestamps onto the journey log,
-     * answered no while the switch is on. The session's own bookkeeping and map cleanup run either way, and a failure
+     * Messenger's own yes or no on filing an attention report (and, on a build that still makes one, on copying its
+     * timestamps onto the journey log), answered no while the switch is on. The session's own bookkeeping and map cleanup run either way, and a failure
      * here hands back the answer Messenger gave.
      */
     public static boolean dwellLogged(boolean would) {
@@ -862,6 +879,13 @@ public final class Settings {
      * keep Meta's answer.
      */
     public static boolean chatPreview(boolean stock) { return enabled("chat_preview") || stock; }
+
+    /**
+     * Asked with Meta's answer, non-zero for yes, wherever the chat list asks one of the two flags that hold the
+     * preview back until a chat has opened since Messenger started. False lets the first long press after a restart
+     * open the preview too. Off, Pause and safe mode keep Meta's answer.
+     */
+    public static boolean chatPreviewCold(int stock) { return !enabled("chat_preview") && stock != 0; }
 
     /**
      * Asked with Meta's answer wherever one of the chat list's four typing plugins reads its flag: the inbox loader,
@@ -1839,35 +1863,88 @@ public final class Settings {
         if (chat == null) return;
         try {
             if (!enabled(LOCAL_READ_KEY)) return;
-            String key = String.valueOf(chat);
-            if (key.isEmpty()) return;
-            long now = System.currentTimeMillis();
-            ConcurrentHashMap<String, Long> marks = localReadMarks();
-            Long already = marks.get(key);
-            if (already != null && already >= now) return;
-            marks.put(key, now);
-            synchronized (LOCAL_READ_LOCK) {
-                List<Map.Entry<String, Long>> entries = new ArrayList<>(marks.entrySet());
-                // Newest first, and the chat just read ahead of the ones marked in the same millisecond.
-                Collections.sort(entries, (first, second) -> {
-                    if (first.getKey().equals(second.getKey())) return 0;
-                    if (key.equals(first.getKey())) return -1;
-                    if (key.equals(second.getKey())) return 1;
-                    return Long.compare(second.getValue(), first.getValue());
-                });
-                Set<String> kept = new HashSet<>();
-                for (Map.Entry<String, Long> entry : entries) {
-                    if (kept.size() >= LOCAL_READ_CHATS_MAX || now - entry.getValue() > LOCAL_READ_TTL) {
-                        marks.remove(entry.getKey(), entry.getValue());
-                        continue;
-                    }
-                    kept.add(entry.getKey() + ":" + entry.getValue());
-                }
-                SharedPreferences prefs = preferences;
-                if (prefs != null) prefs.edit().putStringSet(LOCAL_READ_CHATS, kept).apply();
-            }
+            rememberChatRead(chat);
         } catch (RuntimeException error) {
             hookFailed(LOCAL_READ_KEY, "Can't keep a chat read on this phone", error);
+        }
+    }
+
+    /** Keeps the chat as read here from this moment on. False for a chat with no key to keep it under. */
+    private static boolean rememberChatRead(Object chat) {
+        String key = String.valueOf(chat);
+        if (key.isEmpty()) return false;
+        long now = System.currentTimeMillis();
+        ConcurrentHashMap<String, Long> marks = localReadMarks();
+        Long already = marks.get(key);
+        if (already != null && already >= now) return true;
+        marks.put(key, now);
+        storeLocalReads(marks, key, now);
+        return true;
+    }
+
+    /** Saves the marks, newest first with the chat just read ahead of its ties, and drops the ones past the cap or too old. */
+    private static void storeLocalReads(ConcurrentHashMap<String, Long> marks, String latest, long now) {
+        synchronized (LOCAL_READ_LOCK) {
+            List<Map.Entry<String, Long>> entries = new ArrayList<>(marks.entrySet());
+            Collections.sort(entries, (first, second) -> {
+                if (first.getKey().equals(second.getKey())) return 0;
+                if (first.getKey().equals(latest)) return -1;
+                if (second.getKey().equals(latest)) return 1;
+                return Long.compare(second.getValue(), first.getValue());
+            });
+            Set<String> kept = new HashSet<>();
+            for (Map.Entry<String, Long> entry : entries) {
+                if (kept.size() >= LOCAL_READ_CHATS_MAX || now - entry.getValue() > LOCAL_READ_TTL) {
+                    marks.remove(entry.getKey(), entry.getValue());
+                    continue;
+                }
+                kept.add(entry.getKey() + ":" + entry.getValue());
+            }
+            SharedPreferences prefs = preferences;
+            if (prefs != null) prefs.edit().putStringSet(LOCAL_READ_CHATS, kept).apply();
+        }
+    }
+
+    /**
+     * Mark as read stays on this phone. Messenger's own Mark as read asks right before it tells Messenger, which is
+     * also what shows the other person Seen. With the switch on the chat is read here from this moment, and a yes
+     * holds Messenger's call back, so nobody is told.
+     */
+    static final String LOCAL_MARK_KEY = "mark_read_locally";
+
+    public static boolean markedReadHere(Object chat) {
+        try {
+            if (chat == null || !enabled(LOCAL_MARK_KEY)) return false;
+            markChanging(String.valueOf(chat));
+            if (!rememberChatRead(chat)) return false;
+            // Messenger's own data didn't change, so its chat list wouldn't draw the row again by itself.
+            ChatHiding.refreshLists();
+            return true;
+        } catch (RuntimeException error) {
+            hookFailed(LOCAL_MARK_KEY, "Can't mark a chat read on this phone only", error);
+            return false;
+        }
+    }
+
+    /**
+     * Messenger's own Mark as unread, on its way out. A chat read on this phone stops counting as read here, or the
+     * chat list would go on showing it read whatever Messenger did.
+     */
+    public static void markedUnreadHere(Object chat) {
+        try {
+            if (chat == null) return;
+            ConcurrentHashMap<String, Long> marks = localReadMarks();
+            String key = String.valueOf(chat);
+            if (!marks.containsKey(key)) return;
+            markChanging(key);
+            marks.remove(key);
+            storeLocalReads(marks, "", System.currentTimeMillis());
+            // Messenger already had this chat unread, so its own call changes nothing and the row wouldn't redraw.
+            ChatHiding.refreshLists();
+            // Nor would the badge count it again on its own.
+            UnreadBadge.drop(key);
+        } catch (RuntimeException error) {
+            hookFailed(LOCAL_READ_KEY, "Can't turn a chat read on this phone back to unread", error);
         }
     }
 
@@ -1875,15 +1952,121 @@ public final class Settings {
      * The chat list's unread check, asked for the bold row, the "n new messages" line and the Chats badge alike. A
      * chat read on this phone answers read until a message newer than that moment lands in it.
      */
-    public static boolean chatReadLocally(Object chat, long newestMessage) {
+    static boolean chatReadLocally(Object chat, Object summary, long newestMessage) {
         try {
-            if (chat == null || !enabled(LOCAL_READ_KEY)) return false;
-            Long marked = localReadMarks().get(String.valueOf(chat));
-            return marked != null && marked >= newestMessage;
+            if (chat == null || !readHereOn()) return false;
+            String key = String.valueOf(chat);
+            Boolean before = summary == null ? null : answeredBeforeTheMark(key, summary);
+            if (before != null) return before;
+            Long marked = localReadMarks().get(key);
+            boolean read = marked != null && marked >= newestMessage;
+            if (summary != null) noteAsked(key, summary, read);
+            return read;
         } catch (RuntimeException error) {
             hookFailed(LOCAL_READ_KEY, "Can't tell whether a chat was read on this phone", error);
             return false;
         }
+    }
+
+    static boolean chatReadLocally(Object chat, long newestMessage) {
+        return chatReadLocally(chat, null, newestMessage);
+    }
+
+    /** Whether either switch that keeps chats read on this phone is on. Off, Pause and safe mode answer no. */
+    static boolean readHereOn() {
+        return enabled(LOCAL_READ_KEY) || enabled(LOCAL_MARK_KEY);
+    }
+
+    /**
+     * The unread check's own comparison, handed over with Messenger's answer: below zero for unread. A chat read on
+     * this phone answers read (zero) until something newer lands in it, and every other chat keeps Messenger's
+     * answer. A chat Messenger still counts unread but this phone read is noted for the badge (#222), which takes it
+     * off Messenger's total.
+     */
+    public static int chatReadHere(Object chat, Object summary, long newestMessage, int stock) {
+        boolean read = chatReadLocally(chat, summary, newestMessage);
+        if (chat != null) {
+            try {
+                String key = String.valueOf(chat);
+                Long marked = readHereOn() ? localReadMarks().get(key) : null;
+                UnreadBadge.note(key, newestMessage, stock < 0 && marked != null && marked >= newestMessage);
+            } catch (RuntimeException error) {
+                hookFailed(LOCAL_READ_KEY, "Can't count a chat read on this phone off the badge", error);
+            }
+        }
+        return read ? 0 : stock;
+    }
+
+    /**
+     * Messenger keeps a row as drawn when the row it reads back compares equal to the one on screen, and that
+     * comparison asks the unread check about both rows' summaries. Right after Mark as read or Mark as unread here
+     * both would answer the same, so the row would never redraw. For a moment a summary asked about before the change
+     * keeps the answer it got then, which makes the row read back differ from the one on screen.
+     */
+    static final long LOCAL_MARK_SETTLE_MILLIS = 5000L;
+    private static final int ASKED_PER_CHAT = 4;
+    /** The last few summaries asked about per chat, newest first, each with the answer it got. */
+    private static final ConcurrentHashMap<String, Asked[]> askedLately = new ConcurrentHashMap<>();
+    /** Per chat whose mark just changed: what its summaries got before the change, until the moment is up. */
+    private static final ConcurrentHashMap<String, Settling> settling = new ConcurrentHashMap<>();
+
+    private static final class Asked {
+        final WeakReference<Object> summary;
+        final boolean read;
+
+        Asked(Object summary, boolean read) {
+            this.summary = new WeakReference<>(summary);
+            this.read = read;
+        }
+    }
+
+    private static final class Settling {
+        final Asked[] asked;
+        final long until;
+
+        Settling(Asked[] asked, long until) {
+            this.asked = asked;
+            this.until = until;
+        }
+    }
+
+    private static void noteAsked(String key, Object summary, boolean read) {
+        Asked[] seen = askedLately.get(key);
+        if (seen != null && seen.length > 0 && seen[0].summary.get() == summary && seen[0].read == read) return;
+        List<Asked> next = new ArrayList<>(ASKED_PER_CHAT);
+        next.add(new Asked(summary, read));
+        if (seen != null) {
+            for (Asked old : seen) {
+                Object kept = old.summary.get();
+                if (next.size() < ASKED_PER_CHAT && kept != null && kept != summary) next.add(old);
+            }
+        }
+        askedLately.put(key, next.toArray(new Asked[0]));
+    }
+
+    private static Boolean answeredBeforeTheMark(String key, Object summary) {
+        Settling held = settling.get(key);
+        if (held == null) return null;
+        if (SystemClock.uptimeMillis() > held.until) {
+            settling.remove(key, held);
+            return null;
+        }
+        for (Asked asked : held.asked) {
+            if (asked.summary.get() == summary) return asked.read;
+        }
+        return null;
+    }
+
+    /** Call right before the chat's mark changes, while what the list was told is still what it was told. */
+    private static void markChanging(String key) {
+        Asked[] seen = askedLately.remove(key);
+        if (seen == null) settling.remove(key);
+        else settling.put(key, new Settling(seen, SystemClock.uptimeMillis() + LOCAL_MARK_SETTLE_MILLIS));
+    }
+
+    static void resetLocalMarksForTests() {
+        askedLately.clear();
+        settling.clear();
     }
 
     /** Record the account and thread only after the native composer dispatch returns. */

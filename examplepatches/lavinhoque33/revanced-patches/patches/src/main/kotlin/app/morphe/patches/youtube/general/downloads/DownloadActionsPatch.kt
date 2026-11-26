@@ -53,20 +53,16 @@
 package app.morphe.patches.youtube.general.downloads
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
-import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getReference
-import app.morphe.patches.shared.litho.addLithoFilter
-import app.morphe.patches.shared.litho.lithoFilterPatch
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -76,7 +72,6 @@ import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.patches.shared.misc.portableexport.portableExportResources
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
-import app.morphe.patches.youtube.utils.bottomsheet.bottomSheetFlyoutMenuPatch
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_PATH
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.HOOK_DOWNLOAD_ACTIONS
@@ -91,7 +86,6 @@ import app.morphe.patches.youtube.utils.toolbar.toolBarHookPatch
 import app.morphe.patches.youtube.video.information.hookPlayWhenReady
 import app.morphe.patches.youtube.video.information.videoInformationPatch
 import app.morphe.util.Utils.printWarn
-import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMethodOrThrow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.fingerprint.methodOrThrow
@@ -106,19 +100,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "$GENERAL_PATH/DownloadActionsPatch;"
-
-private const val EXTENSION_FLYOUT_MENU_VIDEO_ID_INTERFACE =
-    $$"Lapp/morphe/extension/youtube/patches/general/DownloadActionsPatch$FlyoutMenuVideoIdInterface;"
-
-private const val EXTENSION_PROTOCOL_BUFFER_INTERFACE =
-    $$"Lapp/morphe/extension/youtube/patches/general/DownloadActionsPatch$ProtocolBufferFieldInterface;"
-
-private const val EXTENSION_FLYOUT_UTILS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils;"
 
 private const val EXTENSION_OFFLINE_SERVICE_HOOKS =
     "$GENERAL_PATH/offline/OfflineServiceHooks;"
@@ -200,16 +185,13 @@ val downloadActionsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_YOUTUBE)
 
     dependsOn(
-        lithoFilterPatch,
         portableExportResources,
         sharedResourceIdPatch,
         versionCheckPatch,
         // modified by lavinhoque33, 2026-10-10: Downloads button in the You tab.
         fixProtoLibraryPatch,
         toolBarHookPatch,
-        // Keep the bottom sheet 3-dots menu that the custom flyout items
-        // (Save to Watch later, download) are added to.
-        bottomSheetFlyoutMenuPatch,
+        videoFlyoutMenuHookPatch,
         // The offline player and the main player pause each other through the shared player
         // state; this also brings the PlayerType and VideoState hooks.
         videoInformationPatch,
@@ -217,9 +199,6 @@ val downloadActionsPatch = bytecodePatch(
     )
 
     execute {
-        // Track the top-level player menu even when Hide player flyout menu is excluded.
-        addLithoFilter("Lapp/morphe/extension/youtube/patches/components/PlayerFlyoutMenuFilter;")
-
         fun addDownloadActionsSettings(youTabButtonHooked: Boolean) {
             try {
                 val settings = mutableListOf(
@@ -258,109 +237,6 @@ val downloadActionsPatch = bytecodePatch(
         }
 
         // region patch Play next in queue flyout action
-
-        FlyoutBufferClassFingerprint.let {
-            val bufferField = it.classDef.fields.first { field -> field.type == "[B" }
-
-            mutableClassDefBy(it.classDef.type).apply {
-                interfaces.add(EXTENSION_PROTOCOL_BUFFER_INTERFACE)
-                methods.add(
-                    ImmutableMethod(
-                        type,
-                        "patch_getBuffer",
-                        emptyList(),
-                        "[B",
-                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
-                        null,
-                        null,
-                        MutableMethodImplementation(2),
-                    ).toMutable().apply {
-                        addInstructions(
-                            0,
-                            """
-                                iget-object v0, p0, $bufferField
-                                return-object v0
-                            """,
-                        )
-                    },
-                )
-            }
-        }
-
-        fun addFlyoutVideoIdInterface(messageType: String) {
-            // The video ID is the only String field initialized to an empty value.
-            val videoIdStringField = Fingerprint(
-                definingClass = messageType,
-                name = "<init>",
-                filters = listOf(
-                    string(""),
-                    fieldAccess(
-                        opcode = Opcode.IPUT_OBJECT,
-                        definingClass = "this",
-                        type = "Ljava/lang/String;",
-                        location = MatchAfterWithin(2),
-                    ),
-                ),
-            ).instructionMatches.last().instruction.getReference<FieldReference>()!!
-
-            mutableClassDefBy(messageType).apply {
-                interfaces.add(EXTENSION_FLYOUT_MENU_VIDEO_ID_INTERFACE)
-                methods.add(
-                    ImmutableMethod(
-                        type,
-                        "patch_getVideoId",
-                        emptyList(),
-                        "Ljava/lang/String;",
-                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
-                        null,
-                        null,
-                        MutableMethodImplementation(2),
-                    ).toMutable().apply {
-                        addInstructions(
-                            0,
-                            """
-                                iget-object v0, p0, $videoIdStringField
-                                return-object v0
-                            """,
-                        )
-                    },
-                )
-            }
-        }
-
-        // Full watch history does not use Litho.
-        FlyoutMenuItemMessageFingerprint.let { fingerprint ->
-            val match = fingerprint.matchOrNull()
-            if (match != null) {
-                val messageType = fingerprint.instructionMatches[1]
-                    .instruction.getReference<TypeReference>()!!.type
-                addFlyoutVideoIdInterface(messageType)
-            }
-        }
-
-        // Playlists in the "You" tab use a separate generated message on 20.21+.
-        SingularGeneratedExtensionFingerprint.let { fingerprint ->
-            val match = fingerprint.matchOrNull()
-            if (match != null) {
-                val messageType = fingerprint.instructionMatches[1]
-                    .fieldReference.type
-                addFlyoutVideoIdInterface(messageType)
-            }
-        }
-
-        FeedFlyoutBufferObjectFingerprint.method.addInstruction(
-            0,
-            "invoke-static/range {p2 .. p2}, $EXTENSION_CLASS_DESCRIPTOR->extractFlyoutVideoId(Ljava/util/Map;)V",
-        )
-
-        FullHistoryFlyoutBufferObjectFingerprint.let {
-            val index = it.instructionMatches[2].index
-            val register = it.method.getInstruction<OneRegisterInstruction>(index).registerA
-            it.method.addInstruction(
-                index + 1,
-                "invoke-static {v$register}, $EXTENSION_CLASS_DESCRIPTOR->extractFlyoutVideoId(Ljava/lang/Object;)V",
-            )
-        }
 
         FeedFlyoutButtonsInitializerFingerprint.let {
             it.method.apply {
@@ -432,38 +308,6 @@ val downloadActionsPatch = bytecodePatch(
                     nop
                 """,
             )
-        }
-
-        val feedBottomSheetFlyoutFingerprint =
-            if (is_21_04_or_greater) ModernFeedBottomSheetFlyoutFingerprint
-            else FeedBottomSheetFlyoutFingerprint
-
-        feedBottomSheetFlyoutFingerprint.method.apply {
-            findInstructionIndicesReversedOrThrow(Opcode.RETURN_OBJECT).forEach { index ->
-                val register = getInstruction<OneRegisterInstruction>(index).registerA
-                addInstruction(
-                    index,
-                    "invoke-static {v$register}, $EXTENSION_CLASS_DESCRIPTOR->setQueueBottomSheetFlyout(Landroid/app/Dialog;)V",
-                )
-            }
-        }
-
-        FeedPopupWindowFlyoutFingerprint.matchAll(2..4).forEach {
-            it.method.apply {
-                // Other popup hooks can already have inserted instructions before the dismissal listener.
-                val instructionIndex = indexOfFirstInstructionOrThrow {
-                    val reference = getReference<MethodReference>()
-                    reference != null && reference.definingClass == "Landroid/widget/PopupWindow;" &&
-                        reference.name == "setOnDismissListener"
-                }
-                val instructionRegister = getInstruction<FiveRegisterInstruction>(instructionIndex).registerC
-
-                addInstruction(
-                    instructionIndex,
-                    "invoke-static { v$instructionRegister }, $EXTENSION_FLYOUT_UTILS_CLASS_DESCRIPTOR->" +
-                            "setPopupWindowFlyout(Landroid/widget/PopupWindow;)V",
-                )
-            }
         }
 
         // endregion

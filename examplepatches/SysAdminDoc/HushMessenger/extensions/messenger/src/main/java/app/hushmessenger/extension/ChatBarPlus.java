@@ -32,15 +32,20 @@ import java.util.WeakHashMap;
  * beside the message box, and each one gets a row in the menu + opens. A row taps the real button, which is only hidden,
  * so everything Messenger does from it stays as it was.
  *
- * Messenger's bar keeps + inside a frame of its own and the other buttons directly in the bar, which tells them apart in
- * every language. The rows take the name and the look of the button they stand for. The menu is a pop-up window Messenger
- * fills from a list of its own, so the rows go in below that list and the window grows upward by their height, keeping its
- * bottom edge on the chat bar. Needs Android 10, the first version that lists an app's windows.
+ * Messenger keeps + in a bar of its own at the start of the chat bar, inside a frame, and fills a second bar in the same
+ * row with the camera, gallery and microphone buttons, so the two class names tell them apart in every language. The +
+ * bar's other buttons (the arrow that brings the row back while typing, the bin for a voice clip) belong to Messenger's
+ * states and stay where they are.
+ *
+ * The rows take the name and the look of the button they stand for. The menu is a pop-up window Messenger fills from a
+ * list of its own, so the rows go in below that list and the window grows upward by their height, keeping its bottom edge
+ * on the chat bar. Needs Android 10, the first version that lists an app's windows.
  */
 public final class ChatBarPlus {
     static final String KEY = "chat_bar_plus";
     static final String ROWS = "chat_bar_plus_rows";
     private static final String BAR = "ComposerBarLeftPrimaryButtonsView";
+    private static final String ACTIONS = "ComposerActionBar";
     private static final String BUTTON = "ComposerActionButton";
     /** How far the menu's bottom edge may sit from the chat bar and still be the menu + opened. */
     private static final int NEAR_BAR_DP = 16;
@@ -100,7 +105,10 @@ public final class ChatBarPlus {
             ViewTreeObserver.OnWindowFocusChangeListener {
         private final View root;
         private final List<Moved> moved = new ArrayList<>();
+        /** The + bar, which also places the menu. */
         private ViewGroup bar;
+        /** The bar beside it holding the camera, gallery and microphone. */
+        private ViewGroup actions;
 
         Chat(View root) {
             this.root = root;
@@ -135,18 +143,21 @@ public final class ChatBarPlus {
                     giveBack();
                     return;
                 }
-                ViewGroup found = bar != null && bar.isAttachedToWindow() ? bar : barIn(root);
-                if (found != bar) giveBack();
+                ViewGroup found = bar != null && bar.isAttachedToWindow() ? bar : named(root, BAR);
+                ViewGroup beside = found == null ? null : actionsBeside(found);
+                if (found != bar || beside != actions) giveBack();
                 bar = found;
-                if (bar == null || !holdsPlus(bar)) {
+                actions = beside;
+                if (actions == null || !holdsPlus(bar)) {
                     giveBack();
                     return;
                 }
+                List<View> buttons = new ArrayList<>();
+                buttonsIn(actions, buttons);
                 boolean any = false;
-                for (int i = 0; i < bar.getChildCount(); i++) {
-                    View child = bar.getChildAt(i);
+                for (View child : buttons) {
                     // A button with no name could get no row, so it stays where it can be reached.
-                    if (!isButton(child) || child.getVisibility() != View.VISIBLE || InvisibleButtons.nameOf(child) == null) continue;
+                    if (child.getVisibility() != View.VISIBLE || InvisibleButtons.nameOf(child) == null) continue;
                     if (!isMoved(child)) moved.add(new Moved(child, iconOf(child)));
                     child.setVisibility(View.GONE);
                     any = true;
@@ -384,7 +395,7 @@ public final class ChatBarPlus {
         return BUTTON.equals(view.getClass().getSimpleName());
     }
 
-    /** + sits in a frame of its own inside the bar, where the other buttons are the bar's own children. */
+    /** + sits in a frame of its own inside its bar, beside the buttons that bar shows only in some of Messenger's states. */
     private static boolean holdsPlus(ViewGroup bar) {
         for (int i = 0; i < bar.getChildCount(); i++) {
             View child = bar.getChildAt(i);
@@ -395,12 +406,35 @@ public final class ChatBarPlus {
         return false;
     }
 
-    private static ViewGroup barIn(View view) {
+    /** The camera, gallery and microphone bar in the + bar's own row, so another composer in the chat is left alone. */
+    private static ViewGroup actionsBeside(ViewGroup bar) {
+        ViewParent row = bar.getParent();
+        if (!(row instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) row;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child == bar) continue;
+            ViewGroup found = named(child, ACTIONS);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /** The buttons under [group] in order, wherever Messenger's stubs put them, and nothing inside a button. */
+    private static void buttonsIn(ViewGroup group, List<View> found) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (isButton(child)) found.add(child);
+            else if (child instanceof ViewGroup && !ChatJump.isList(child.getClass())) buttonsIn((ViewGroup) child, found);
+        }
+    }
+
+    private static ViewGroup named(View view, String name) {
         if (!(view instanceof ViewGroup) || ChatJump.isList(view.getClass())) return null;
         ViewGroup group = (ViewGroup) view;
-        if (BAR.equals(group.getClass().getSimpleName())) return group;
+        if (name.equals(group.getClass().getSimpleName())) return group;
         for (int i = 0; i < group.getChildCount(); i++) {
-            ViewGroup found = barIn(group.getChildAt(i));
+            ViewGroup found = named(group.getChildAt(i), name);
             if (found != null) return found;
         }
         return null;

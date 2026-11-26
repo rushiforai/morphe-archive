@@ -140,6 +140,7 @@ source,target
 1 unwatched offline video left,1 unwatched offline video left
 1 video left,1 video left
 "1, from Background play in the long-press menu","1, from Background play in the long-press menu"
+2 GB reached. Recording goes on in a new video.,2 GB reached. Recording goes on in a new video.
 2 taps a second,2 taps a second
 "2, from Keep playing in the background","2, from Keep playing in the background"
 4 taps a second,4 taps a second
@@ -218,6 +219,7 @@ Activity,Activity
 Activity center,Activity center
 Activity center (PIA),Activity center (PIA)
 Add,Add
+"Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound.","Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound."
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.,Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.
 Add a button beside the block control that turns the feed's sound off and on.,Add a button beside the block control that turns the feed's sound off and on.
 Add a button beside the block control to send feedback about the current video.,Add a button beside the block control to send feedback about the current video.
@@ -379,6 +381,7 @@ Block motion sensors,Block motion sensors
 Block new bottom tabs,Block new bottom tabs
 Block new feed tabs,Block new feed tabs
 Block popups,Block popups
+Block sound,Block sound
 Block suggested video notifications,Block suggested video notifications
 Block the advertising ID,Block the advertising ID
 "Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.","Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts."
@@ -922,6 +925,8 @@ Hide CAPTCHA popups,Hide CAPTCHA popups
 Hide CAPTCHA popups in Hushfeed skips these,Hide CAPTCHA popups in Hushfeed skips these
 Hide Check your sources warnings,Hide Check your sources warnings
 Hide Footnotes,Hide Footnotes
+"Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens.","Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens."
+Hide LIVE chat,Hide LIVE chat
 Hide LIVE replays,Hide LIVE replays
 Hide LIVE videos,Hide LIVE videos
 Hide LIVE videos from the feed.,Hide LIVE videos from the feed.
@@ -967,6 +972,7 @@ Hide every direct message conversation. Leaves the Inbox empty apart from whatev
 "Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.","Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen."
 "Hide floating promotion badges, coins, and timer banners on the feed.","Hide floating promotion badges, coins, and timer banners on the feed."
 Hide floating promotions,Hide floating promotions
+Hide from the host next time,Hide from the host next time
 Hide gaming LIVEs,Hide gaming LIVEs
 Hide inserted cards,Hide inserted cards
 Hide like counts on comments,Hide like counts on comments
@@ -1008,6 +1014,7 @@ Hide search suggestions above comments,Hide search suggestions above comments
 Hide share actions,Hide share actions
 Hide sharing apps,Hide sharing apps
 Hide shopping LIVEs,Hide shopping LIVEs
+Hide sound page buttons,Hide sound page buttons
 Hide spam comments,Hide spam comments
 Hide speed messages,Hide speed messages
 Hide sponsored LIVEs,Hide sponsored LIVEs
@@ -1148,6 +1155,7 @@ Hide your account warning,Hide your account warning
 "Hides the X at the top of the comments, and the buttons next to it move over to fill the gap. Use Back or swipe down to close comments.","Hides the X at the top of the comments, and the buttons next to it move over to fill the gap. Use Back or swipe down to close comments."
 Hides the button that stretches the comments over the whole screen. Turn on Open the comments at full height to have them open that way.,Hides the button that stretches the comments over the whole screen. Turn on Open the comments at full height to have them open that way.
 Hides the button that turns the people you picked into a new group chat. Send separately stays.,Hides the button that turns the people you picked into a new group chat. Send separately stays.
+Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.,Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.
 "Hides the comment count, the sort, translate and close buttons and the suggestions above them. Use Back or swipe down to close comments.","Hides the comment count, the sort, translate and close buttons and the suggestions above them. Use Back or swipe down to close comments."
 Hiding,Hiding
 Highest,Highest
@@ -1400,6 +1408,7 @@ Lock the feed,Lock the feed
 Lock the feed at set times,Lock the feed at set times
 Lock the hold speed with a pull down,Lock the hold speed with a pull down
 Lock today's budget,Lock today's budget
+Locked,Locked
 Locked all week,Locked all week
 "Locked now, until %1$s","Locked now, until %1$s"
 Log diagnostics,Log diagnostics
@@ -2215,6 +2224,7 @@ Shorter,Shorter
 Shortest first,Shortest first
 Show,Show
 Show @username beside a video instead of the display name the creator chose.,Show @username beside a video instead of the display name the creator chose.
+Show Block sound on sound pages,Show Block sound on sound pages
 Show See translation,Show See translation
 "Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this.","Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this."
 "Show TikTok's button for recording a spoken comment, on accounts that don't have it yet. It hasn't been tried on a real account, so it may not work.","Show TikTok's button for recording a spoken comment, on accounts that don't have it yet. It hasn't been tried on a real account, so it may not work."
@@ -2472,7 +2482,7 @@ Story position,Story position
 Story saved to %1$s,Story saved to %1$s
 Streak,Streak
 Stream only,Stream only
-"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.","Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records."
+"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it.","Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it."
 Stretch the video to the screen,Stretch the video to the screen
 Strong blur,Strong blur
 Structured value observed,Structured value observed
@@ -2502,7 +2512,7 @@ Take the rings off the creator's picture in the feed's right column. Needs Remov
 Takes TikTok's AI Cast button off the camera's side toolbar. Open the camera again to see the change.,Takes TikTok's AI Cast button off the camera's side toolbar. Open the camera again to see the change.
 Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.,Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.
 "Takes out the small bar above the progress bar that says a friend reposted the video, or asks you to repost it.","Takes out the small bar above the progress bar that says a friend reposted the video, or asks you to repost it."
-Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.
+Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.,Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.
 "Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.","Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place."
 Tall,Tall
 Taller,Taller
@@ -2598,7 +2608,7 @@ The comment button also opens a video's comments with its caption at the top. Th
 The cover couldn't be saved. Try again.,The cover couldn't be saved. Try again.
 The diagnostic report couldn't be saved yet. Try again in a moment.,The diagnostic report couldn't be saved yet. Try again in a moment.
 The diagnostic report couldn't be saved. Try again.,The diagnostic report couldn't be saved. Try again.
-"The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.","The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send."
+"The end of the random window. If it's earlier than When to send, the window runs past midnight.","The end of the random window. If it's earlier than When to send, the window runs past midnight."
 The export wasn't saved. Try again.,The export wasn't saved. Try again.
 The feed capture is still being saved,The feed capture is still being saved
 The feed doesn't end. This is a fine time to leave it.,The feed doesn't end. This is a fine time to leave it.
@@ -2851,6 +2861,7 @@ Unavailable saved videos,Unavailable saved videos
 Unavailable saved videos cleared,Unavailable saved videos cleared
 Unavailable since %1$s,Unavailable since %1$s
 Unblock,Unblock
+Unblock sound,Unblock sound
 Unblock this commenter,Unblock this commenter
 Unblocked %1$s,Unblocked %1$s
 "Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.","Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back."

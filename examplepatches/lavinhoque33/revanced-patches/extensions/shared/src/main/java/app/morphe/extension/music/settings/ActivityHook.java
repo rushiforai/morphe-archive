@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -57,6 +57,7 @@ import androidx.annotation.NonNull;
 
 import java.lang.ref.WeakReference;
 
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.settings.preference.ReVancedPreferenceFragment;
 import app.morphe.extension.music.settings.preference.YouTubeMusicPreferenceFragment;
 import app.morphe.extension.music.settings.search.YouTubeMusicSearchViewController;
@@ -211,7 +212,9 @@ public class ActivityHook {
         }
 
         private int getSettingsBackgroundColor() {
-            return ResourceUtils.getColor("yt_black_pure");
+            return MusicLightTheme.isEnabled()
+                    ? MusicLightTheme.SURFACE
+                    : ResourceUtils.getColor("yt_black_pure");
         }
     }
 

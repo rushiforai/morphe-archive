@@ -748,6 +748,38 @@ Takes pins you've saved out of your home feed. Your boards still show them.	Meng
 # context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes pins the person has already saved out of search results and out of the "More to explore" pins Pinterest shows under a pin they open. "More to explore" is Pinterest's own name for that section, so use the app's translation of it. The title is also the name of that part of the patch in the build report.
 Hide saved pins in search and More to explore	Sembunyikan pin tersimpan di pencarian dan "Lainnya untuk dijelajahi"
 Takes pins you've saved out of search results and the More to explore pins under a pin you open. Your boards still show them.	Menghapus pin yang sudah Anda simpan dari hasil pencarian dan dari "Lainnya untuk dijelajahi" di bawah pin yang Anda buka. Papan Anda tetap menampilkannya.
+# context: a Feed switch from the Filter feed patch (#52). Pins that came on screen on the Home feed, whether the person opened them or only scrolled past them, stay out of the Home feed after that. The title is also the name of that part of the patch in the build report.
+Hide pins you've already seen	Sembunyikan pin yang sudah dilihat
+Takes pins you've scrolled past or opened on Home out of your home feed from then on. Boards still show them. The change shows the next time Home loads.	Sejak saat itu, menghapus pin yang sudah Anda gulir lewat atau buka di Beranda dari beranda Anda. Papan tetap menampilkannya. Perubahan terlihat saat Beranda dimuat berikutnya.
+# context: a Feed switch under Hide pins you've already seen (#52). With it on, search results also leave out pins the person has seen, and pins that come on screen in search results count as seen too.
+Hide seen pins in search	Sembunyikan pin yang sudah dilihat di pencarian
+Search results leave out pins you've already seen, and pins you scroll past in search count as seen too.	Hasil pencarian tidak menampilkan pin yang sudah Anda lihat, dan pin yang Anda gulir lewat di pencarian juga dihitung sudah dilihat.
+# context: a Feed row under Hide pins you've already seen (#52). Tapping it opens a list of how long a seen pin stays hidden: A day, A week, A month or Forever. The row's text is the chosen length, then this sentence.
+Hide seen pins for	Sembunyikan pin yang sudah dilihat selama
+Forever. A pin you've seen stays out until you forget it.	Selamanya. Pin yang sudah Anda lihat tetap disembunyikan sampai Anda melupakannya.
+# context: %s is one of A day, A week or A month, as chosen in Hide seen pins for.
+%s. After that, a pin you've seen can show up again.	%s. Setelah itu, pin yang sudah Anda lihat bisa muncul lagi.
+# context: the choices in Hide seen pins for: how long a pin the person has seen stays hidden. Each is also the start of the row's text.
+A day	Sehari
+A week	Seminggu
+A month	Sebulan
+Forever	Selamanya
+# context: a Feed row under Hide pins you've already seen (#52). A tap forgets every pin the person has seen, so they can show again; the next tap brings them back. It acts at once and opens nothing.
+Forget pins you've seen	Lupakan pin yang sudah dilihat
+# context: toast after a second tap on Forget pins you've seen puts back the pins the first tap forgot
+Brought back one pin you've seen.	Satu pin yang sudah dilihat dikembalikan.
+Brought back %d pins you've seen.	%d pin yang sudah dilihat dikembalikan.
+# context: Forget pins you've seen, when no seen pin has been noted yet: its row text, and its toast when tapped then
+No pins remembered yet.	Belum ada pin yang diingat.
+# context: toast after a tap on Forget pins you've seen
+Forgot one pin you've seen.	Satu pin yang sudah dilihat dilupakan.
+Forgot %d pins you've seen.	%d pin yang sudah dilihat dilupakan.
+# context: Forget pins you've seen's row text right after a tap forgot them; another tap puts them back
+Forgot one pin. Tap again to bring it back.	Satu pin dilupakan. Ketuk lagi untuk mengembalikannya.
+Forgot %d pins. Tap again to bring them back.	%d pin dilupakan. Ketuk lagi untuk mengembalikannya.
+# context: Forget pins you've seen's row text: how many seen pins are noted, which a tap forgets
+Remembers one pin you've seen. Tap to forget it, so it can show again.	Mengingat satu pin yang sudah Anda lihat. Ketuk untuk melupakannya agar bisa muncul lagi.
+Remembers %d pins you've seen. Tap to forget them, so they can show again.	Mengingat %d pin yang sudah Anda lihat. Ketuk untuk melupakannya agar bisa muncul lagi.
 # context: toast when Download pin can't save a streamed video on the current network
 Your download settings block this network. Try again on Wi-Fi.	Setelan unduhan Anda memblokir jaringan ini. Coba lagi melalui Wi-Fi.
 # context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes Pinterest's own suggestion rows off the Home feed ("More ideas for your board" and "Inspired by your interests") and the "See more like this?" bubble Pinterest shows on a pin. The title is also the name of that part of the patch in the build report.

@@ -841,3 +841,6 @@ Ljp/syoboi/a2chMate/ui/threadlist/ThreadListViewModel$r8lambda7IJBVrN0sHyidCAZuf
 
 [HiddenNgNewArrivalCountPatch:1]
 Ljp/syoboi/a2chMate/ui/reslist/ResListFragmentViewModel;
+
+[SelectionMenuPriority]
+Lo/zzbhr$read;

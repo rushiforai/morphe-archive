@@ -211,7 +211,7 @@ public class SettingsL10nTest {
     @Test
     public void inEveryShippedLanguageNothingOnTheScreenStaysEnglish() throws Exception {
         String[][] languages = {{"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"}, {"ko", "ko"},
-                {"pt-rBR", "pt-rbr"}, {"tr", "tr"}, {"zh-rTW", "zh-rtw"}};
+                {"pt-rBR", "pt-rbr"}, {"ru", "ru"}, {"tr", "tr"}, {"zh-rTW", "zh-rtw"}};
         for (String[] language : languages) {
             RuntimeEnvironment.setQualifiers("+" + language[0]);
             Map<String, String> table = TranslationsForTests.of(language[1]);
@@ -295,7 +295,7 @@ public class SettingsL10nTest {
         String other = "%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, "
                 + "patch again and leave out the patch in brackets after it.";
         String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"},
-                {"ko", "ko"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}, {"zh-rTW", "zh-rtw"}};
+                {"ko", "ko"}, {"pt-rBR", "pt-rbr"}, {"ru", "ru"}, {"tr", "tr"}, {"zh-rTW", "zh-rtw"}};
         for (String[] language : languages) {
             RuntimeEnvironment.setQualifiers("+" + language[0]);
             Map<String, String> table = language[1] == null ? null : TranslationsForTests.of(language[1]);
@@ -345,7 +345,7 @@ public class SettingsL10nTest {
                 + ").", "Remove the advertising ID"));
 
         List<String> repeats = new ArrayList<>();
-        for (String language : new String[]{"en", "de", "es", "in-rID", "it", "ko", "pt-rBR", "tr", "zh-rTW"}) {
+        for (String language : new String[]{"en", "de", "es", "in-rID", "it", "ko", "pt-rBR", "ru", "tr", "zh-rTW"}) {
             RuntimeEnvironment.setQualifiers("+" + language);
             for (PatchFamily family : PatchFamily.values()) {
                 if (family.staysWhilePaused == null) continue;

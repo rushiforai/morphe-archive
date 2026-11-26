@@ -432,6 +432,57 @@ class RamblerEnhancementsPatchTest {
         assertEquals(com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC_RANGE, first.opcode)
     }
 
+    @Test
+    fun voiceLifecycleStatsHooksInjectZeroArgStaticCallsAtEntry() {
+        fun stubMethod(name: String, params: List<String>) =
+            app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                    "Lfhv;",
+                    name,
+                    params.map {
+                        com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                            it,
+                            emptySet(),
+                            null,
+                        )
+                    },
+                    "V",
+                    com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                    emptySet(),
+                    emptySet(),
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                        9,
+                        listOf(
+                            com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x(
+                                com.android.tools.smali.dexlib2.Opcode.RETURN_VOID,
+                            ),
+                        ),
+                        emptyList(),
+                        emptyList(),
+                    ),
+                ),
+            )
+
+        val onStart = stubMethod("f", listOf("Lyvx;"))
+        val onStop = stubMethod("fH", emptyList())
+        installVoiceLifecycleStatsHooks(VoiceLifecycleTargets(onStart, onStop))
+
+        val startFirst = onStart.implementation!!.instructions.first() as
+            com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+        val stopFirst = onStop.implementation!!.instructions.first() as
+            com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+        assertEquals(com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC, startFirst.opcode)
+        assertEquals(com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC, stopFirst.opcode)
+        assertEquals(
+            "onVoiceStart",
+            (startFirst.reference as com.android.tools.smali.dexlib2.iface.reference.MethodReference).name,
+        )
+        assertEquals(
+            "onListeningStop",
+            (stopFirst.reference as com.android.tools.smali.dexlib2.iface.reference.MethodReference).name,
+        )
+    }
+
     private fun parseXml(xml: String) = DocumentBuilderFactory.newInstance().apply {
         isNamespaceAware = true
     }.newDocumentBuilder().parse(InputSource(StringReader(xml)))

@@ -134,33 +134,55 @@ class LocalReadTest {
                 .changedTo("iget-wide v1, v7, $THREAD_SUMMARY->A0C:J", ":late\niget-wide v1, v7, $THREAD_SUMMARY->A0C:J"),
             "the newest message overwritten" to UNREAD_BODY
                 .changedTo("iget-wide v1, v7, $THREAD_SUMMARY->A0C:J", "const-wide/16 v3, 0x1\niget-wide v1, v7, $THREAD_SUMMARY->A0C:J"),
+            // The chat's key goes in the watermark's pair, so the watermark can't be wanted after the comparison.
+            "the watermark read after the comparison" to UNREAD_BODY.changedTo("if-gez v0, :read\nreturn v6", "if-gez v0, :read\nmove-wide v3, v1\nreturn v6"),
+            "the answer sharing the watermark's pair" to UNREAD_BODY.changedTo("cmp-long v0, v1, v3\nif-gez v0, :read", "cmp-long v2, v1, v3\nif-gez v2, :read"),
+            // The summary goes to the extension straight out of its parameter register.
+            "the summary register reused" to UNREAD_BODY.changedTo(":read\nreturn v5", ":read\nconst/4 v7, 0x0\nreturn v5"),
         )
         for ((case, body) in cases) assertFailsWith<PatchException>(case) { unread(body).validateLocalRead() }
     }
 
-    @Test fun theChatAndItsNewestMessageGoToTheExtensionBeforeTheComparison() {
+    @Test fun messengersAnswerGoesToTheExtensionRightAfterTheComparison() {
         val method = unread()
         val before = method.implementation!!.instructions.toList()
         val comparison = before.indices.last { before[it].opcode == Opcode.CMP_LONG }
-        val answer = (before[comparison] as ThreeRegisterInstruction).registerA
-        val newest = (before[comparison] as ThreeRegisterInstruction).registerC
+        val compare = before[comparison] as ThreeRegisterInstruction
+        val answer = compare.registerA
+        val watermark = compare.registerB
+        val newest = compare.registerC
         injectControl(LOCAL_READ, mapOf(LOCAL_READ to listOf(method)))
         val code = method.implementation!!.instructions.toList()
-        assertEquals(before.size + 6, code.size)
-        val key = code[comparison] as TwoRegisterInstruction
+        // The stock comparison runs first, for every chat.
+        assertTrue(code[comparison] === before[comparison])
+        val key = code[comparison + 1] as TwoRegisterInstruction
         assertEquals(Opcode.IGET_OBJECT, key.opcode)
         assertEquals("$THREAD_SUMMARY->A0e:$THREAD_KEY_TYPE", (key as ReferenceInstruction).reference.toString())
-        assertEquals(answer, key.registerA)
-        val call = code[comparison + 1] as ReferenceInstruction
+        assertEquals(watermark, key.registerA, "the chat's key takes the watermark's register, done with by now")
+        val call = code[comparison + 2] as ReferenceInstruction
         assertEquals(Opcode.INVOKE_STATIC, (call as com.android.tools.smali.dexlib2.iface.instruction.Instruction).opcode)
         assertEquals(READ_LOCALLY_HELPER, call.reference.toString())
-        assertEquals(Opcode.MOVE_RESULT, code[comparison + 2].opcode)
-        assertEquals(answer, (code[comparison + 2] as OneRegisterInstruction).registerA)
-        assertEquals(Opcode.IF_EQZ, code[comparison + 3].opcode)
-        assertEquals(Opcode.RETURN, code[comparison + 5].opcode)
-        // The stock comparison still runs for a chat the extension doesn't claim, with its own registers untouched.
-        val kept = code[comparison + 6] as ThreeRegisterInstruction
-        assertEquals(Opcode.CMP_LONG, kept.opcode)
-        assertEquals(newest, kept.registerC)
+        // #222: the summary goes along so a row drawn before a mark keeps its answer, and Messenger's answer so the
+        // extension knows which chats it still counts on the badge.
+        val passed = call as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+        val summary = method.implementation!!.registerCount - 1
+        assertEquals(listOf(watermark, summary, newest, newest + 1, answer),
+            listOf(passed.registerC, passed.registerD, passed.registerE, passed.registerF, passed.registerG))
+        assertEquals(Opcode.MOVE_RESULT, code[comparison + 3].opcode)
+        assertEquals(answer, (code[comparison + 3] as OneRegisterInstruction).registerA)
+        // Messenger's own branch reads what comes back, and nothing stock moves or changes.
+        assertEquals(Opcode.IF_GEZ, code[comparison + 4].opcode)
+        assertEquals(answer, (code[comparison + 4] as OneRegisterInstruction).registerA)
+        assertStockKept(before, code.take(comparison + 1) + code.drop(comparison + 4), "fixture")
+    }
+
+    /** #222: Mark as read stays on this phone asks for the same hook, and it has to go in once however many patches do. */
+    @Test fun aSecondPatchFindsTheHookAlreadyIn() {
+        val method = unread()
+        injectControl(LOCAL_READ, mapOf(LOCAL_READ to listOf(method)))
+        val once = method.implementation!!.instructions.toList()
+        assertTrue(method.localReadHooked())
+        injectControl(MARK_READ_LOCALLY, mapOf(LOCAL_READ to listOf(method)))
+        assertEquals(once, method.implementation!!.instructions.toList())
     }
 }

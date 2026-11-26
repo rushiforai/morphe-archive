@@ -34,10 +34,12 @@ public class YouTubeActivityHook extends BaseActivityHook {
      * <p>This is intentionally exposed as a field. Referencing it from an extension icon's
      * static initializer also guarantees that this hook class is initialized before the icon
      * selection is made.
+     *
+     * The old settings layout must not affect the player: its overlay fade uses the bold-icon
+     * fullscreen button even when that button is moved offscreen.
      */
     public static final boolean USE_BOLD_ICONS = IS_20_31_OR_GREATER
             && !Settings.SETTINGS_DISABLE_BOLD_ICONS.get()
-            && !Settings.RESTORE_OLD_SETTINGS_MENUS.get()
             && !isSpoofingToLessThan("20.31.00");
 
     private static int currentThemeValueOrdinal = -1; // Must initially be a non-valid enum ordinal value.
@@ -175,9 +177,8 @@ public class YouTubeActivityHook extends BaseActivityHook {
      * Returns whether flyout rows created by the extension should use the bold drawables.
      * <p>
      * On 21.12 and later YouTube's own flyout menu always shows bold icons, because the bold-icons
-     * feature flag hook only runs on older versions. The 'Disable bold icons' and
-     * 'Restore old YouTube settings screen' switches must not make the extension rows thinner than
-     * the stock rows next to them there.
+     * feature flag hook only runs on older versions. The 'Disable bold icons' switch must not
+     * make the extension rows thinner than the stock rows next to them there.
      *
      * @return whether the extension flyout buttons should use the bold resources.
      */

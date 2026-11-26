@@ -90,10 +90,10 @@ internal fun MutableMethod.injectCarMessages() {
 /**
  * The message notification builds its car extender only when a server flag says so, right before it logs
  * add_android_auto_extension. Accounts with the flag off never get a car bundle, so the extender's hook above never runs
- * for them and Android Auto shows nothing (#75 again on 586). The flag is as 587 numbers it (586 read 0x0081027700011858).
+ * for them and Android Auto shows nothing (#75 again on 586). The flag is as 588 numbers it (587 read 0x0081027600011849).
  */
 internal const val CAR_EXTENSION_GATE = "car_extension_gate"
-internal const val CAR_EXTENSION_FLAG = 0x0081027600011849L
+internal const val CAR_EXTENSION_FLAG = 0x0081026b0001184aL
 internal const val CAR_EXTENSION_STEP = "add_android_auto_extension"
 internal const val CAR_EXTENSION_CALL = "Lapp/hushmessenger/extension/CarMessages;->carExtension(Z)Z"
 

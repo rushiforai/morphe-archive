@@ -1,3 +1,38 @@
+## [0.3.8](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.7...v0.3.8) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* hold OpenBot to the three-version support scope
+
+
+## [0.3.7](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.6...v0.3.7) (2026-11-26)
+
+### 🚀 Updated App Support
+
+* support Orca 0.0.71 and Notesnook 3.4.17
+
+
+## [0.3.6](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.5...v0.3.6) (2026-11-26)
+
+### ✨ New Features
+
+* apply custom fonts to Chinese text in Brave and Titanium
+
+
+## [0.3.5](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.4...v0.3.5) (2026-11-26)
+
+### 🚀 Updated App Support
+
+* support Bare 2.0.9, Titanium 158.0.8127.92
+
+
+## [0.3.4](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.3...v0.3.4) (2026-11-25)
+
+### 🚀 Updated App Support
+
+* support OpenBot 1.4.13
+
+
 ## [0.3.3](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.2...v0.3.3) (2026-11-24)
 
 ### 🚀 Updated App Support

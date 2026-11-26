@@ -108,7 +108,7 @@ public final class ImgurThumbnailLoader implements AutoCloseable {
         }
         try (Response response = call.execute()) {
             if (!response.isSuccessful() || response.body() == null) throw new IOException("No preview");
-            int limit = 3 * 1024 * 1024;
+            int limit = (int)MobileMediaPolicy.fileLimit(3 * 1024 * 1024);
             if (response.body().contentLength() > limit) throw new IOException("Preview too large");
             try (InputStream input = response.body().byteStream(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
                 byte[] buffer = new byte[8192]; int count;
@@ -119,6 +119,7 @@ public final class ImgurThumbnailLoader implements AutoCloseable {
                 bytes = output.toByteArray();
             }
         } finally { synchronized (callsLock) { calls.remove(call); } }
+        AppTrafficUsage.recordFeatureBytes(Haiagaru.applicationContextForExtension(),"imgur_previews",bytes.length);
         BitmapFactory.Options bounds = new BitmapFactory.Options(); bounds.inJustDecodeBounds = true;
         BitmapFactory.decodeByteArray(bytes, 0, bytes.length, bounds);
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0 || bounds.outWidth > 8192 || bounds.outHeight > 8192)

@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-16
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -89,6 +89,7 @@ import app.morphe.patches.shared.layout.branding.applyCustomBranding
 import app.morphe.patches.shared.layout.branding.customBrandingIconOptionDescription
 import app.morphe.patches.shared.layout.branding.installDynamicRvxSettingsIcon
 import app.morphe.patches.shared.layout.branding.prepareMountedBranding
+import app.morphe.patches.shared.layout.branding.reseamBrandingIcon
 import app.morphe.patches.shared.mainactivity.injectOnCreateMethodCall
 import app.morphe.patches.shared.misc.settings.SETTINGS_NAME_PREFERENCE_KEY
 import app.morphe.util.REGISTER_TEMPLATE_REPLACEMENT
@@ -115,8 +116,8 @@ private val availableIcon = listOf(
     BrandingIcon("mmt_pink", "MMT Pink", true),
     BrandingIcon("mmt_turquoise", "MMT Turquoise", true),
     BrandingIcon("mmt_yellow", "MMT Yellow", true),
-    BrandingIcon("reseam", "Reseam", true, launcherOnly = true),
-    BrandingIcon("revanced", "ReVanced", true, launcherOnly = true),
+    reseamBrandingIcon,
+    BrandingIcon("revanced", "ReVanced", true, usesOfficialSplash = true),
     BrandingIcon("revancify_blue", "Revancify Blue", true),
     BrandingIcon("revancify_red", "Revancify Red", true),
     BrandingIcon("vanced_black", "Vanced Black", true),

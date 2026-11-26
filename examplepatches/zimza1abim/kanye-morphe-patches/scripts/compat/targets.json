@@ -101,7 +101,7 @@
     "apkAsset": "^OpenBot-[0-9.]+\\.apk$",
     "sha256Asset": null,
     "locator": null,
-    "versionsFile": null,
+    "versionsFile": "openbot/patches/OpenBotCompatibility.kt",
     "adapterPath": "openbot/resources/openbot/adapters/{version}.bundle",
     "patches": [
       "OpenBot custom font"

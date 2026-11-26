@@ -197,4 +197,78 @@ public class ProblemReportTest {
             + "under high: 050_messaging 3, 900_chathead_active 2, placeholder_calls 2, 2 not listed",
             ProblemReport.notificationsLine(true, "stock", true, true, channels));
     }
+
+    private static final List<String[]> CONTROLS = List.of(
+        new String[] {"meta_ai", "Hide Meta AI"},
+        new String[] {"chat_bar_plus", "Chat bar buttons in the + menu"},
+        new String[] {"blur", "Blur behind menus"},
+        new String[] {"stories", "Hide stories"},
+        new String[] {"quiet_calls", "Quiet incoming calls"});
+
+    /**
+     * #241: a report with Chat bar buttons in the + menu on said nothing about whether the switch ever did anything. The
+     * report marks a control that's on and still waiting, the way its settings row does, and lists a control whose hook
+     * failed after its last use, on or off, with the failure's class and place only.
+     */
+    @Test public void aControlThatNeverRanIsMarkedAndAFailedOneIsListed() {
+        java.util.Set<String> on = java.util.Set.of("meta_ai", "chat_bar_plus", "blur", "quiet_calls");
+        java.util.Map<String, Long> used = java.util.Map.of("meta_ai", 5_000L, "blur", 9_000L, "stories", 2_000L);
+        java.util.Map<String, String> failures = java.util.Map.of(
+            "blur", "java.lang.IllegalStateException at MenuBlur.inChat:88|8000",
+            "stories", "java.lang.NullPointerException at Stories.hide:12|3000",
+            "quiet_calls", "not a record");
+        List<String> titles = ProblemReport.titlesOn(CONTROLS, on::contains, key -> used.getOrDefault(key, 0L), failures);
+        // Blur failed before its last use, so it works again, as its row says. Quiet calls' record has no time.
+        assertEquals(List.of("Hide Meta AI", "Chat bar buttons in the + menu (not used yet)", "Blur behind menus",
+            "Quiet incoming calls (not used yet)"), titles);
+        List<String> errors = ProblemReport.errors(CONTROLS, key -> used.getOrDefault(key, 0L), failures);
+        // Hide stories is off but failed after its last use.
+        assertEquals(List.of("Hide stories (java.lang.NullPointerException at Stories.hide:12)"), errors);
+
+        ProblemReport.Facts facts = new ProblemReport.Facts("0.31.0", "588.1.0.66.98", 2147483647L,
+            "588.1.0.66.98 (347617499, base mapping)", "samsung", "SM-A356E", "17", 37, false, false, titles, "NOT_USED", "", "", errors);
+        String body = ProblemReport.body(facts);
+        assertTrue(body, body.contains("Phone: samsung SM-A356E, Android 17 (SDK 37)\n"
+            + "Errors: Hide stories (java.lang.NullPointerException at Stories.hide:12)\n"
+            + "Controls on: Hide Meta AI, Chat bar buttons in the + menu (not used yet), Blur behind menus, Quiet incoming calls (not used yet)\n\n"));
+
+        // A failure that is still the control's last word stays listed while it's waiting: the error wins over "not used".
+        java.util.Map<String, String> waitingFailure = java.util.Map.of("chat_bar_plus", "java.lang.IllegalStateException at ChatBarPlus.look:141|100");
+        assertEquals(List.of("Chat bar buttons in the + menu"),
+            ProblemReport.titlesOn(CONTROLS, "chat_bar_plus"::equals, key -> 0L, waitingFailure));
+        assertEquals(List.of("Chat bar buttons in the + menu (java.lang.IllegalStateException at ChatBarPlus.look:141)"),
+            ProblemReport.errors(CONTROLS, key -> 0L, waitingFailure));
+        assertFalse(ProblemReport.body(facts(List.of())).contains("Errors:"));
+    }
+
+    @Test public void theErrorsLineNamesFiveAndCountsTheRestAndKeepsToOneLine() {
+        List<String> errors = new ArrayList<>();
+        for (int i = 0; i < 7; i++) errors.add("Control " + i + " (java.lang.RuntimeException at X.y:" + i + ")");
+        errors.add("Sneaky\nWhat happened: fake (java.lang.Error at Z.z:1)");
+        ProblemReport.Facts facts = new ProblemReport.Facts("0.31.0", "588.1.0.66.98", 1, "known", "maker", "model", "17", 37,
+            false, false, List.of(), "NOT_USED", "", "", errors);
+        String body = ProblemReport.body(facts);
+        assertTrue(body, body.contains("\nErrors: Control 0 (java.lang.RuntimeException at X.y:0), Control 1 (java.lang.RuntimeException at X.y:1), "
+            + "Control 2 (java.lang.RuntimeException at X.y:2), Control 3 (java.lang.RuntimeException at X.y:3), "
+            + "Control 4 (java.lang.RuntimeException at X.y:4), and 3 more\nControls on: none\n"));
+        assertEquals("Sneaky What happened: fake (java.lang.Error at Z.z:1)", facts.errors.get(7));
+        assertEquals(ProblemReport.MAX_ERROR, new ProblemReport.Facts("0.31.0", "588.1.0.66.98", 1, "known", "maker", "model", "17", 37,
+            false, false, List.of(), "NOT_USED", "", "", List.of("e".repeat(1000))).errors.get(0).length());
+    }
+
+    /** The control titles come off the end to fit the address; the errors line never does. */
+    @Test public void aLongControlsListShortensButTheErrorsStay() throws Exception {
+        List<String> on = new ArrayList<>();
+        for (int i = 0; i < 200; i++) on.add("A long control title, number " + i + NOT_USED_SUFFIX);
+        List<String> errors = List.of("Chat bar buttons in the + menu (java.lang.IllegalStateException at ChatBarPlus.look:141)");
+        ProblemReport.Facts facts = new ProblemReport.Facts("0.31.0", "588.1.0.66.98", 1, "known", "maker", "model", "17", 37,
+            false, false, on, "NOT_USED", "", "", errors);
+        String url = ProblemReport.issueUrl(facts);
+        assertTrue(url.length() <= ProblemReport.MAX_LENGTH);
+        String body = decoded(url);
+        assertTrue(body, body.contains("\nErrors: Chat bar buttons in the + menu (java.lang.IllegalStateException at ChatBarPlus.look:141)\nControls on: "));
+        assertTrue(body, body.contains(" more\n\nWhat happened:"));
+    }
+
+    private static final String NOT_USED_SUFFIX = ProblemReport.NOT_USED;
 }

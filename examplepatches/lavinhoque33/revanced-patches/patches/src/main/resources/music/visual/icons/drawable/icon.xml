@@ -13,6 +13,6 @@
         <path
             android:name="path"
             android:pathData=""
-            android:fillColor="@android:color/white" />
+            android:fillColor="@color/ytm_text_color_primary" />
     </group>
 </vector>

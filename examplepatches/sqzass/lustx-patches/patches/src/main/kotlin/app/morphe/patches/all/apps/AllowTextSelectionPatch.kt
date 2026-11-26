@@ -58,8 +58,6 @@ val allowTextSelectionPatch =
                 "setLongClickable", // View / TextView
             )
                 .forEach { name ->
-                    // definingClass = null: match by name+signature on any receiver type
-                    // (TextView, EditText, View...).
                     methodCall(name = name, parameters = listOf("Z"), returnType = "V")
                         .matchAllMethodIndicesForEach(requireMatches = false) { index ->
                             val regs =

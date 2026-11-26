@@ -19,13 +19,12 @@ def main() -> None:
     version = metadata["version"]
     x_versions = "、".join(metadata.get("x_supported_versions", []))
     lines = [
-        f"X (NewX) パッチと Twitch パッチ、LINE パッチ、KakaoTalk パッチを1つの `.mpp` にまとめた"
+        f"X (NewX) パッチと Twitch パッチ、KakaoTalk パッチを1つの `.mpp` にまとめた"
         f"日本語化バンドル `patches-{version}.mpp` をリリースします。",
         "",
         "## 収録パッチ",
         "",
         "本家（crimera/piko の NewX、ryykitty/twitch-patched、"
-        "andrewliang25/morphe-patches の LINE パッチ、"
         "AmpleReVanced/revanced-patches の KakaoTalk パッチ）のパッチを、"
         "翻訳済みソースのコピーからそのまま収録しています。"
         "Morphe のパッチ一覧では機能ごとに選択できます。",
@@ -34,8 +33,6 @@ def main() -> None:
         f"（対応 X バージョン: {x_versions}）",
         f"- Twitch: パッチ {summary.get('twitch_patch_count')} 件"
         "（対応 Twitch バージョン: 31.8.0 安定版 / 31.9.0_BETA 実験的対応）",
-        f"- LINE: パッチ {summary.get('line_patch_count')} 件"
-        "（対応 LINE バージョン: 26.14.0 / 26.15.1 / 26.16.0）",
         f"- KakaoTalk: パッチ {summary.get('kakao_patch_count')} 件"
         "（対応 KakaoTalk バージョン: 26.9.0）",
         "",
@@ -86,18 +83,30 @@ def main() -> None:
             "本家に修正が入れば、日次同期で取り込んで新しい版を出します。",
             "",
         ]
+    if version == "1.8.0":
+        lines += [
+            "## v1.8.0 の変更（LINE パッチの収録を終了しました）",
+            "",
+            "- **LINE パッチ（全39件）の収録を終了しました。** 本家"
+            " andrewliang25/morphe-patches が v4.0.0 で設定画面"
+            "「Andrew's Patch Setting」の公式日本語訳を提供し始めたため、"
+            "日本語化を目的とした収録の役割を終えたことによるものです。",
+            "- LINE のパッチが必要な方は、本家 andrewliang25/morphe-patches を"
+            " Morphe のパッチソースとして直接追加してください"
+            "（設定画面は公式の日本語表示になります）。",
+            "- X、Twitch、KakaoTalk のパッチに変更はありません。",
+            "",
+        ]
     lines += [
         "## 日本語化",
         "",
         f"- Piko 設定 UI の日本語訳 {summary.get('ja_overlay_strings')} 件"
         "（X 側ソースコピー内の日本語リソース）",
-        "- パッチの説明（Morphe の一覧）は4アプリとも日本語。"
+        "- パッチの説明（Morphe の一覧）は3アプリとも日本語。"
         "パッチ名は本家の英語名のままです（パッチャーが名前順に実行する"
         "ため、実行順序を本家と一致させる恒久ルール）。"
         "設定キーやブランド名、内部エラー・ログも英語のまま",
         "- Twitch 側はパッチの説明とパッチ設定 UI などをソース直接翻訳",
-        "- LINE 側はパッチの説明と Andrew's Patch Setting の設定 UI を"
-        "ソース直接翻訳",
         f"- KakaoTalk 側はパッチの説明と、設定 UI の文字列リソース"
         f"（addresources 全{summary.get('ja_kakao_strings')}件）を日本語化",
         "",
@@ -106,8 +115,6 @@ def main() -> None:
         f"- Piko (crimera/piko x-lite) ベース: {metadata.get('piko_commit')}",
         f"- Twitch (ryykitty/twitch-patched) ベース: "
         f"v{metadata.get('twitch_base_version')}",
-        f"- LINE (andrewliang25/morphe-patches) ベース: "
-        f"v{metadata.get('line_base_version')}",
     ]
     if metadata.get('kakao_base_version'):
         lines.append(

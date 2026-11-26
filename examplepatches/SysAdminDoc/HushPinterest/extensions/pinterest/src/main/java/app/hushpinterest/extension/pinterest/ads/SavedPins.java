@@ -33,6 +33,9 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  * {@link #searchPage} takes saved pins out of each search page and {@link #dropRelated} tells More to
  * explore's own filter to drop them.
  *
+ * <p>Home's page hook and search's page hook carry Hide pins you've already seen too ({@link SeenPins}),
+ * each on its own switch, after the saved pins have gone.
+ *
  * <p>Never add {@code pinned_to_profile} to that list, even though the pin model has it: Home comes up
  * empty with "Oops, something went wrong!" when its request names it. A quick save only sets that field,
  * so {@link SavedRecord} is what knows about those pins.
@@ -95,12 +98,24 @@ public final class SavedPins {
         return fields.substring(0, open) + PINNED_TO_BOARD + "," + fields.substring(open);
     }
 
-    /** Called with each page of Home as it arrives, before anything reads it. Never throws. */
+    /**
+     * Called with each page of Home as it arrives, before anything reads it. Takes out saved pins, then
+     * the pins Hide pins you've already seen remembers, each while its switch is on. Never throws.
+     */
     public static void homePage(Object page) {
         try {
-            if (!Utils.settingsReady() || !PatchFamily.Capability.FEED_SAVED_PINS.installed()) return;
+            if (!Utils.settingsReady()) return;
+            boolean saved = PatchFamily.Capability.FEED_SAVED_PINS.installed();
+            boolean seen = PatchFamily.Capability.FEED_SEEN_PINS.installed();
+            if (!saved && !seen) return;
             HookStatus.invoked(FamilyNames.FILTER_FEED);
-            if (page != null && active()) prune(pageItems(page));
+            if (page == null) return;
+            boolean hideSaved = saved && active();
+            boolean hideSeen = seen && SeenPins.active();
+            if (!hideSaved && !hideSeen) return;
+            List<?> items = pageItems(page);
+            if (hideSaved) prune(items);
+            if (hideSeen) SeenPins.homePage(items);
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.FILTER_FEED, "home page", t);
         }
@@ -151,18 +166,21 @@ public final class SavedPins {
 
     /**
      * Called with each page of search results before the results list takes it. Hands back a copy
-     * without the saved pins, or the same page when none were in it, so a page Pinterest can't change
-     * is never changed. Never throws.
+     * without the saved pins, and without seen ones while Hide seen pins in search is on, or the same
+     * page when none were in it, so a page Pinterest can't change is never changed. Never throws.
      */
     public static List<?> searchPage(List<?> items) {
         try {
             if (items == null || items.isEmpty() || !Utils.settingsReady()
                     || !PatchFamily.Capability.FEED_SAVED_SEARCH.installed()) return items;
             HookStatus.invoked(FamilyNames.FILTER_FEED);
-            if (!elsewhereActive()) return items;
-            List<Object> kept = new ArrayList<>(items);
-            prune(kept);
-            return kept.size() == items.size() ? items : kept;
+            List<?> page = items;
+            if (elsewhereActive()) {
+                List<Object> kept = new ArrayList<>(items);
+                prune(kept);
+                if (kept.size() != items.size()) page = kept;
+            }
+            return SeenPins.searchPage(page);
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.FILTER_FEED, "search page", t);
             return items;

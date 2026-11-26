@@ -9,8 +9,8 @@ or combined with other sources.
 </p>
 
 <p align="center">
-  <a href="https://github.com/assc0d3r/ART-GLIDGE-CUSTOMIZATION/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/assc0d3r/ART-GLIDGE-CUSTOMIZATION?display_name=tag&label=Release&style=for-the-badge"></a>
-  <a href="https://morphe.software/add-source?github=assc0d3r/ART-GLIDGE-CUSTOMIZATION"><img alt="Add to Morphe" src="https://img.shields.io/badge/Morphe-Add%20Source-00A8FF?style=for-the-badge"></a>
+  <a href="https://github.com/assc0d3r/GLYPHCHEMY/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/assc0d3r/GLYPHCHEMY?display_name=tag&label=Release&style=for-the-badge"></a>
+  <a href="https://morphe.software/add-source?github=assc0d3r/GLYPHCHEMY"><img alt="Add to Morphe" src="https://img.shields.io/badge/Morphe-Add%20Source-00A8FF?style=for-the-badge"></a>
   <img alt="Gboard" src="https://img.shields.io/badge/Target-Gboard-4285F4?style=for-the-badge">
   <img alt="License" src="https://img.shields.io/badge/License-GPLv3-green?style=for-the-badge">
 </p>
@@ -31,6 +31,7 @@ on — a different package name, a blacked-out keyboard, an offline-only build, 
 | Gboard version | Coverage |
 | :--- | :--- |
 | `18.6.3.1002251336-release-arm64-v8a` | Every patch in the bundle |
+| `18.8.0.1022711984-beta-arm64-v8a` | Frosted Glass, Smart bar case swipe and Punctuation spacing; experimental: the abotmaker Rambler Waveform Animation and Productivity Tools ports |
 | `18.5.4.993608717-release-arm64-v8a` | The newer typing, gesture, theme and field patches |
 | `18.0.3.954559732-release-arm64-v8a`, `18.0.3` | The three original patches: Glide Trail Customization, Backspace Repeat Haptic Feedback and Enter Key Tasker Event |
 
@@ -574,7 +575,7 @@ only enable it if that is what you want.
 1. Open **Morphe** on your phone and go to **Settings → Sources**.
 2. Tap **Add Source** and enter:
    ```
-   https://github.com/assc0d3r/ART-GLIDGE-CUSTOMIZATION
+   https://github.com/assc0d3r/GLYPHCHEMY
    ```
    Or tap the **Add to Morphe** badge at the top from your Android browser.
 3. Open the **Patcher** tab, select **Gboard** `18.6.3.1002251336-release-arm64-v8a`, pick the patches you want and
@@ -610,8 +611,8 @@ signed with Google's key, so it cannot replace an installed stock Gboard in plac
 ## 🛠️ Building locally
 
 ```bash
-git clone https://github.com/assc0d3r/ART-GLIDGE-CUSTOMIZATION.git
-cd ART-GLIDGE-CUSTOMIZATION
+git clone https://github.com/assc0d3r/GLYPHCHEMY.git
+cd GLYPHCHEMY
 
 # Compile the patches and package the release bundle (.mpp)
 ./build.sh

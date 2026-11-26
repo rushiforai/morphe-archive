@@ -25,9 +25,16 @@ Java.perform(()=>{
    check(!native.protectedFile(page(false),token).booleanValue(),'public file has no password');
    check(native.protectedFile(page(true),token).booleanValue(),'protected file requires password');
    check(native.protectedFile(page(false),'some-other-file')===null,'unrelated download controls rejected');
+   const currentPage="<button onclick=\"download(0, '1202-file_id_fixture', false, false);\">Download</button>";
+   check(String(native.firstFileToken(currentPage))==='1202-file_id_fixture','current share page file id parsed separately from share id');
+   check(!native.protectedFile(currentPage,'1202-file_id_fixture').booleanValue(),'current public share button password flag parsed');
    check(String(native.directUrl(url,''))==='https://117.gigafile.nu/download.php?file='+token,'same-origin download URL');
    check(native.directUrl(url,'a?b')===null,'invalid password rejected');
    check(native.directUrl(url.replace('117.gigafile.nu','117.gigafile.nu.example.org'),'')===null,'lookalike host rejected');
+   check(String(native.downloadName('attachment; filename="download.php"','application/octet-stream','sample.zip',url))==='sample.zip','server PHP endpoint filename replaced by visible original filename');
+   check(String(native.downloadName('attachment; filename="download.php"','application/octet-stream','sample',url))==='sample','original filename without extension does not inherit .php');
+   check(String(native.downloadName('attachment; filename="source.php"','application/octet-stream','source.php',url))==='source.php','real PHP file extension is preserved');
+   check(String(native.downloadName('attachment; filename="sample.zip"','application/zip','sample.zip',url))==='sample.zip','valid response filename is preserved');
    const multipart=String(transfer.multipartHeader('boundary','fixture','fixture.txt',0,1,7));
    check(multipart.includes('name="lifetime"\r\n\r\n7')&&multipart.includes('name="file"; filename="blob"'),'upload request sends lifetime and file part');
    const host=String(transfer.$new().uploadHost());

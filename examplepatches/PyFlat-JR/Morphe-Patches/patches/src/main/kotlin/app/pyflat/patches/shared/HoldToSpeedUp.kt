@@ -1,13 +1,13 @@
 package app.pyflat.patches.shared
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.floatSliderOption
 import app.morphe.patcher.patch.intSliderOption
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -18,7 +18,7 @@ import org.w3c.dom.Element
 private const val VIBRATE_PERMISSION = "android.permission.VIBRATE"
 
 // Needed for the haptic feedback, not every app declares it.
-private val vibratePermissionPatch = resourcePatch {
+private val vibratePermissionPatch = patch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val manifest = document.getElementsByTagName("manifest").item(0) as Element
@@ -43,8 +43,8 @@ private val vibratePermissionPatch = resourcePatch {
 internal fun holdToSpeedUpPatch(
     compatibility: Compatibility,
     extensionClass: String,
-    hook: BytecodePatchContext.() -> Unit,
-) = bytecodePatch(
+    hook: () -> Unit,
+) = patch(
     name = "Hold to speed up",
     description = "Adds a YouTube-like gesture: hold the video to temporarily play it faster.",
 ) {

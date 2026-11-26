@@ -19,8 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val EMOJI_DRAWER = "emoji_drawer"
 
-/** Meta's server flag for the redesigned emoji drawer as 587 numbers it (586 read 36320416708509435). Meta renumbers it with each release. */
-internal const val EMOJI_DRAWER_FLAG = 36320360873934571L
+/** Meta's server flag for the redesigned emoji drawer as 588 numbers it (587 read 36320360873934571). Meta renumbers it with each release. */
+internal const val EMOJI_DRAWER_FLAG = 36320322219228945L
 
 /** The drawer renderer throws this when the redesign can't draw. It's what ties the flag to the emoji drawer. */
 internal const val EMOJI_DRAWER_ANCHOR = "Cannot render redesigned drawer with search icon "

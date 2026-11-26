@@ -24,7 +24,7 @@ internal const val SYNTHETIC_DWELL_REPORT = "LX/S5K;->A02(LX/S5K;Ljava/lang/Stri
 private val DWELL_STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
 /**
- * The session's end-of-session method cut to its shape: the live-session check, then the report under the gate that
+ * The session's end-of-session method cut to its shape as 587 wrote it: the live-session check, then the report under the gate that
  * asks whether it's sampled, then the journey copy under its own gate. The outer check comes before the report is
  * named, so the switch has to pass it over and take the next gate.
  */
@@ -44,6 +44,21 @@ private val DWELL_BODY = """
     if-eqz v0, :done
     const-string v1, "$DWELL_JOURNEY"
     invoke-static {v1}, LX/S68;->A0A(Ljava/lang/String;)V
+    :done
+    return-void
+""".trimIndent()
+
+/** 588's shape: the same report with no journey copy after it, so the report's gate is the only one. */
+private val DWELL_BODY_588 = """
+    invoke-static {}, LX/S5K;->A03()Z
+    move-result v0
+    if-eqz v0, :done
+    const-string v1, "$DWELL_EVENT"
+    invoke-static {v1}, LX/0IG;->A01(Ljava/lang/String;)Z
+    move-result v0
+    if-eqz v0, :done
+    const-string v1, "$DWELL_TIMESTAMPS"
+    invoke-static {v1}, LX/0IG;->Db2(Ljava/lang/String;)V
     :done
     return-void
 """.trimIndent()
@@ -74,7 +89,7 @@ class DwellTrackingTest {
     }
 
     @Test fun everyProfileHooksTheReport() {
-        assertEquals(setOf("LX/S5K;->A02(LX/S5K;Ljava/lang/String;J)V"), BASE_PROFILE.hooks.getValue(DWELL_TRACKING))
+        assertEquals(setOf("LX/ekt;->A02(LX/ekt;Ljava/lang/String;J)V"), BASE_PROFILE.hooks.getValue(DWELL_TRACKING))
         assertEquals(setOf(SYNTHETIC_DWELL_REPORT), SYNTHETIC_PROFILE.hooks.getValue(DWELL_TRACKING))
         for ((code, profile) in controlProfiles) {
             assertEquals(1, profile.hooks.getValue(DWELL_TRACKING).size, code.toString())
@@ -116,6 +131,29 @@ class DwellTrackingTest {
         assertEquals(before, code.take(6) + code.subList(8, 13) + code.drop(15))
     }
 
+    @Test fun a588ReportWithNoJourneyCopyGatesTheReportAlone() {
+        val method = dwellReport(body = DWELL_BODY_588)
+        assertEquals(setOf(SYNTHETIC_DWELL_REPORT), found(dwellTrackingFixture(report = method)))
+        val before = method.code()
+        assertEquals(listOf(DwellGate(6, 0)), method.validateDwellTracking())
+        injectControl(DWELL_TRACKING, mapOf(DWELL_TRACKING to listOf(method)))
+        val code = method.code()
+        assertEquals(DWELL_HELPER, code[6].ref())
+        assertEquals(Opcode.MOVE_RESULT, code[7].opcode)
+        assertEquals(0, (code[7] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ, code[8].opcode)
+        assertEquals(1, code.count { (it as? ReferenceInstruction)?.reference?.toString() == DWELL_HELPER })
+        // The live-session check keeps Messenger's answer, and the gate still skips the whole report.
+        assertEquals(Opcode.IF_EQZ, code[2].opcode)
+        assertEquals(Opcode.RETURN_VOID, code[code.branchTarget(8)].opcode)
+        assertEquals(before, code.take(6) + code.drop(8))
+        // A gate that doesn't skip the report is still refused with no copy behind it.
+        val loose = dwellReport(body = DWELL_BODY_588.replace("if-eqz v0, :done\nconst-string v1, \"$DWELL_TIMESTAMPS\"",
+            "if-eqz v0, :next\n:next\nconst-string v1, \"$DWELL_TIMESTAMPS\""))
+        val refused = assertFailsWith<PatchException> { injectControl(DWELL_TRACKING, mapOf(DWELL_TRACKING to listOf(loose))) }
+        assertTrue(refused.message!!.contains("the report's gate doesn't skip the report"), refused.message)
+    }
+
     @Test fun aChangedReportRefusesBeforeAnyEdit() {
         // Each key is the reason the patch has to give, so a mutation that stops applying can't pass on another's refusal.
         val bodies = mapOf(
@@ -146,7 +184,7 @@ class DwellTrackingTest {
         }
     }
 
-    @Test fun everySupportedBuildDropsTheReportAndItsJourneyCopy() {
+    @Test fun everySupportedBuildDropsTheReport() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
@@ -160,18 +198,19 @@ class DwellTrackingTest {
             validateControls(mapOf(DWELL_TRACKING to reports), setOf(DWELL_TRACKING))
             val method = MutableMethod(reports.single())
             val before = method.code()
-            val (report, copy) = method.validateDwellTracking()
+            val gates = method.validateDwellTracking()
             injectControl(DWELL_TRACKING, mapOf(DWELL_TRACKING to listOf(method)))
             val after = method.code()
-            val second = copy.branch + 2
-            for ((at, gate) in listOf(report.branch to report, second to copy)) {
+            // Each gate moved along by the two instructions every earlier gate took.
+            val hooks = gates.mapIndexed { index, gate -> gate.branch + 2 * index }
+            for ((at, gate) in hooks.zip(gates)) {
                 assertEquals(DWELL_HELPER, after[at].ref(), "$code@$at")
                 assertEquals(Opcode.MOVE_RESULT, after[at + 1].opcode, "$code@$at")
                 assertEquals(gate.answer, (after[at + 1] as OneRegisterInstruction).registerA, "$code@$at")
                 assertEquals(Opcode.IF_EQZ, after[at + 2].opcode, "$code@$at")
             }
-            assertEquals(before.map { it.opcode },
-                (after.take(report.branch) + after.subList(report.branch + 2, second) + after.drop(second + 2)).map { it.opcode }, code)
+            val added = hooks.flatMap { listOf(it, it + 1) }.toSet()
+            assertEquals(before.map { it.opcode }, after.filterIndexed { i, _ -> i !in added }.map { it.opcode }, code)
         }
     }
 }

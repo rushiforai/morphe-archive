@@ -38,3 +38,18 @@ Oversized paragraphs, duplicate text/cache collisions, malformed provider JSON, 
 - Ruling: no auto name-learning calls or background scheduler; these are outside the approved minimal scope.
 - 1.1.0: User requested prompt configuration modeled on DeepSeek Translate. Added editable global system_prompt, six compatible placeholders, shared editable genre prompt table with custom picker IDs; retained existing book instructions/glossary keys. Rendered prompt is included in cache identity for both live reader and batch. JSON contract remains fixed outside user template. Added two regression tests (13 total).
 - 1.1.1: User reported successful batch with no reader change. Root cause: official APK class i4j.g() normalizes languages through xda.c() -> Locale.getLanguage() and rejects source language equal to target; initialization disables reader translation for such a book. Added gate regression test (red on old declaration, green after target change) and local diagnostic action. 15 tests pass. Prompt/cache signature unchanged to retain paid batch results from 1.1.0. Device verification outstanding.
+
+## Update 1.2.0
+User authorized same-call local name learning, superseding earlier no-learning scope. Indexed paragraphs and bounded two-half retries address screenshot count error. 24 mock tests pass; no paid API/device validation.
+
+## Update 1.2.1
+Confirmed APK i8f inlines loads from entry only; dgg returns raw imported text. Recursive mock hid nested memory.js failure. Reproduced ReferenceError with native-shaped one-pass imports, merged memory into common, 26 tests pass. APK ct6 hashes catalog path for ID: publish fixed raw URL extensions/convert-editor.zip permanently. Migration from versioned/local ZIP IDs may require one-time reconfiguration; no destructive uninstall or automatic DB migration. Prompt/cache version unchanged from 1.2.0.
+
+## Update 1.2.2
+User requested repair of soft-wrapped sentence fragments, e.g. tu vi / từ nguyên anh trung kỳ. Existing ID contract forbade merging, so normalize conservative short/lowercase continuations before assigning IDs, preserve explicit boundaries, append mandatory line rule even with custom prompt, flatten intra-paragraph generated wraps. 30 mock tests pass. Preserve permanent catalog ZIP URL. Prompt identity changes, documented re-edit cost and no cross-call joining.
+
+## Update 1.2.3
+Repeated screenshot proves one-level half repair can still fail; raw provider response unavailable. Read user chapter URL: 153 normalized paragraphs. Cache only explicit unique valid partial IDs, request missing IDs, keep two-extra-call bound, reduce default group to20 and offer single-paragraph text-envelope compatibility. Counts/build-only diagnostics. Preserve existing semantic cache signature and permanent download URL. 35 mock tests and actual-chapter mocked-drop-ID replay pass; no paid API or on-device reproduction.
+
+## Update 1.3.0
+User explicitly requested entire-chapter editing with AI-managed line repair after web results were better. Supersedes paragraph ID/cache/retry design. Send normalized full source once, preserve raw source line context, return JSON text with arbitrary paragraph count, keep AI line layout, disable native splitting (max_length/max_line=0; dv6.q checked). New edited_chapters cache namespace, no automatic retries, 65536 output-token cap, 180s timeout. Keep API config/memory/style/range/target qaa and permanent ZIP path. Replaced obsolete paragraph algorithm tests with 21 whole-chapter tests plus actual APK core bridge smoke. Old per-paragraph cache not reused; re-edit fees documented. No paid API/device quality verification.

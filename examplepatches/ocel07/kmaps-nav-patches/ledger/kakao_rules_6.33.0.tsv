@@ -1,0 +1,174 @@
+# KakaoMap ledger rules for 6.33.0 (2026-11-25): 6.32.0 rules with stable keys for R8-flattened classes (syn:R8, <lib:artifact>).
+# R8 flattens obfuscated classes into the default package since 6.x; keys still use source file names.
+kind	class	desc	detail	n	verdict	ref	reason
+TIMER	src:NaviActivity.kt	(Ljava/lang/Object;)Ljava/lang/Object;	Handler;->postDelayed	*	OK		화면 처리 지연 2~30 s(종료 안내·재시도). 위치 주기 무관
+LOCREQ	src:FusedLocationManager.kt	(<OnLocationListener.kt>)V	LocationRequest;->create	*	OK		카카오맵 일반 지도 화면 위치(Fused 1000/500 ms). 내비 경로 아님
+LOCREQ	src:FusedLocationManager.kt	(<OnLocationListener.kt>)V	LocationRequest;->setInterval	*	OK		카카오맵 일반 지도 화면 위치(Fused 1000/500 ms). 내비 경로 아님
+LOCREQ	src:FusedLocationManager.kt	(<OnLocationListener.kt>)V	LocationRequest;->setFastestInterval	*	OK		카카오맵 일반 지도 화면 위치(Fused 1000/500 ms). 내비 경로 아님
+LOCREQ	src:FusedLocationManager.kt	(<OnLocationListener.kt>)V	LocationRequest;->setPriority	*	OK		카카오맵 일반 지도 화면 위치(Fused 1000/500 ms). 내비 경로 아님
+LOCREQ	src:LegacyLocationManager.kt	(Ljava/lang/String;)V	LocationManager;->requestLocationUpdates	*	OK		카카오맵 일반 지도 화면 위치(gps 500 ms). 내비 경로 아님
+COUNTER	src:KNRouteActor.kt	(Ljava/lang/Object;)Ljava/lang/Object;	I+1	*	OUT	G-18	경로선 렌더러 정점·색 배열 인덱스
+COUNTER	src:KNCircularArray.kt	(I)V	I+1	*	OUT	A24	지도 타일 캐시
+COUNTER	src:KNCircularArray.kt	(I<WorkSeal.kt>Ljava/lang/String;)Z	I+1	*	OUT	A24	지도 타일 캐시
+COUNTER	src:KNGPSUploader.kt	(<KNGPSData.kt>Landroid/location/Location;)V	I+1	*	INACTIVE	A13	서버 gpslog=true일 때만 원시 fix 업로드. 켜지면 1 Hz 게이트 필요
+COUNTER	src:KNLTEPositioning.kt	(<KNLTEPositioning.kt>Lorg/json/JSONObject;)V	I+1	*	OK	A15	응답 실패 카운터, LTE 셀 스캔 1 s Timer (레거시 경로 전용)
+COUNTER	src:KNLTEUploader.kt	(Ljava/util/List;)V	I+1	*	OK	A16	업로드 묶음 인덱스
+TIMER	src:KNLTESignalDetector.kt	(<KNLTESignalDetector.kt>)V	Timer;->schedule	*	OK	A15	셀 신호 스캔 Timer
+COUNTER	src:KNFusedLocationManager.kt	(<KNFusedLocationManager.kt>Ljava/lang/Exception;)V	I+1	*	OK	A10	설정 해제 재시도 횟수
+LOCREQ	src:KNFusedLocationManager.kt	()V	LocationRequest;->create	*	INACTIVE	A10	레거시 경로 Fused 1000/500 ms (positioning_opt 1·2일 때만)
+LOCREQ	src:KNFusedLocationManager.kt	()V	LocationRequest;->setInterval	*	INACTIVE	A10	레거시 경로 Fused 1000/500 ms (positioning_opt 1·2일 때만)
+LOCREQ	src:KNFusedLocationManager.kt	()V	LocationRequest;->setFastestInterval	*	INACTIVE	A10	레거시 경로 Fused 1000/500 ms (positioning_opt 1·2일 때만)
+LOCREQ	src:KNFusedLocationManager.kt	()V	LocationRequest;->setPriority	*	INACTIVE	A10	레거시 경로 Fused 1000/500 ms (positioning_opt 1·2일 때만)
+LOCREQ	src:KNLegacyLocationManagerN.kt	()V	LocationManager;->requestLocationUpdates	*	INACTIVE	A9	레거시 경로 gps 1000 ms (positioning_opt 1·2일 때만)
+WINDOW	src:KNCourseAnalyzer.kt	()V	size le 2	*	OK	M-06	점 3개 이상 확인, 창은 70 m 거리 기준
+COUNTER	src:KNTrip.kt	(<KNPOI.kt>I)V	I+1	*	OK		경로 요청 1회 루프 인덱스, 경유지 변경 횟수(이벤트)
+COUNTER	src:KNTrip.kt	(<KNPOI.kt><KNLocation.kt>)V	I+1	*	OK		경로 요청 1회 루프 인덱스, 경유지 변경 횟수(이벤트)
+COUNTER	src:KNTrip.kt	()V	I+1	*	OK		경로 요청 1회 루프 인덱스, 경유지 변경 횟수(이벤트)
+COUNTER	src:KNTrip.kt	(I)V	I+1	*	OK		경로 요청 1회 루프 인덱스, 경유지 변경 횟수(이벤트)
+COUNTER	src:KNTrip.kt	(Ljava/util/List;)V	I+1	*	OK		경로 요청 1회 루프 인덱스, 경유지 변경 횟수(이벤트)
+FLOOR	src:KMLocationSimManager.kt	(<KMLocationSimManager.kt>JJ)Ljava/util/List;	floor	*	INACTIVE		위치 SDK 시뮬레이션 재생
+COUNTER	src:KNGPSManager.kt	()V	I+1	*	INACTIVE		경로 시뮬레이션·파일 재생 전용 타이머/카운터 (A21)
+TIMER	src:KNGPSManager.kt	()V	Timer;->schedule	*	INACTIVE		경로 시뮬레이션·파일 재생 전용 타이머/카운터 (A21)
+TIMER	src:KNGPSManager.kt	(<Functions.kt>)V	Timer;->schedule	*	INACTIVE	A4	레거시 경로 100 ms 틱(최신 fix 하나만 넘김)
+TIMER	src:KNGPSManager.kt	(Z)V	Timer;->schedule	*	INACTIVE		경로 시뮬레이션·파일 재생 전용 타이머/카운터 (A21)
+TIMER	src:KNGPSManager.kt	(<KNGPSData.kt>)V	Timer;->schedule	*	INACTIVE	A0	레거시 경로 업샘플러(0.5 s 외삽). 레거시는 1000 ms 요청이라 1 Hz만 들어옴. 레거시+고주기면 패치 필요
+TIMER	src:KNGPSManager.kt	(<KNMapMatching.kt>)V	Timer;->schedule	*	INACTIVE		경로 시뮬레이션·파일 재생 전용 타이머/카운터 (A21)
+ONE_SEC	src:KNKATEC.kt	(D)D	1.0	*	OK		좌표 변환 수식 상수 1.0
+TIMER	src:KNConnection.kt	(<KNError.kt>)V	Timer;->schedule	*	OK		외부 연결 위치 송신 Timer(시간 간격)·60 s 로그 Timer·로그 묶음 회차
+TIMER	src:KNConnection.kt	(<KNConnection.kt>)V	Timer;->schedule	*	OK		외부 연결 위치 송신 Timer(시간 간격)·60 s 로그 Timer·로그 묶음 회차
+TIMER	src:KNCitsData_Emergency.kt	(J<Functions.kt>)V	Timer;->schedule	*	OK		CITS 긴급정보 만료 Timer
+WINDOW	src:KNNetworkLinkMatching.kt	(<KNGPSData.kt>)<KNNetworkLinkMatching.kt>	size ge 3	*	OK		메시 링크 목록 순회 인덱스(오탐)
+WINDOW	src:KNGuidance.kt	(Z)V	size ge 2	*	OK	G-14	고속도로 시설·요금소 목록 크기 제한(표본 창 아님)
+WINDOW	src:KNGuidance.kt	(Z)V	size lt 3	*	OK	G-14	고속도로 시설·요금소 목록 크기 제한(표본 창 아님)
+WINDOW	src:KNGuidance.kt	(Z)V	size lt 2	*	OK	G-14	고속도로 시설·요금소 목록 크기 제한(표본 창 아님)
+WINDOW	src:KNGuidance.kt	(Z)V	size ge 3	*	OK	G-14	고속도로 시설·요금소 목록 크기 제한(표본 창 아님)
+COUNTER	src:KNSafetyContainer.kt	(<KNGPSData.kt>)V	I+1	*	OK	G-02	6.32: 구간단속 관찰자(KNSectionCameraObserver, 안전운행)의 카메라 확정/해제 3틱 상태기계. 유효 틱마다 셈, 엔진 2 Hz 틱 그대로면 1.5 s 불변. 틱이 바뀌면 경과시간 가중 패치(G-20)
+COUNTER	src:KNSafetyContainer.kt	(<KNGPSData.kt>)V	I-1	*	OK	G-02	6.32: 구간단속 관찰자(KNSectionCameraObserver, 안전운행)의 카메라 확정/해제 3틱 상태기계. 유효 틱마다 셈, 엔진 2 Hz 틱 그대로면 1.5 s 불변. 틱이 바뀌면 경과시간 가중 패치(G-20)
+TIMER	src:KNMapControlManager.kt	(Ljava/lang/Runnable;J)V	Handler;->postDelayed	*	OUT		지도 UI 지연 실행·KPI 로깅 Timer
+TIMER	src:KNMapControlManager.kt	(Ljava/lang/String;ZJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V	Timer;->schedule	*	OUT		지도 UI 지연 실행·KPI 로깅 Timer
+WINDOW	src:InOutCheckerV2.kt	()V	size lt 5	*	INACTIVE	A26	실내/실외 판정 개수 조건(서버 indoor 기능일 때만). 켜지면 gps 분기 1 Hz 게이트 필요
+WINDOW	src:LocationsBuffer.kt	()F	size lt 3	*	INACTIVE	A26	실내 판정용 버퍼 건강도(마지막 3개)
+WINDOW	src:LocationsBuffer.kt	()Z	size lt 3	*	INACTIVE	A26	실내 판정용 버퍼 건강도(마지막 3개)
+# out of scope: UI / renderer / DB / transport files of KNSDK
+*	src:KNAnalytixLogManager.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNBatchingAssistant2.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNBatchingAssistant3.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNBatchingManager.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNByteReader.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentBottomMenuView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentBottomView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentInfoView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentMapAroundPinListView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentMapView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentPopupInfoParkingView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentRouteInfoView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentSignView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNComponentTrafficLightView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNConcurrentArrayList.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNDBOpenHelper.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNDBTransactionExecutor.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNDBWriteWorkQueManager.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNGestureDetector.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNHIdeTimerView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNLockThreadPool.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapAbsRenderer.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapCircle.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapDownloadManager.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapImage.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapImageView.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapLoader2.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapMeshTrafficParser.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapRenderer2.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapRenderer3.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapSegmentPolyline.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapSizeManager2.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNMapSizeManagerClone.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNParkingOccupyInfoManager.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNPolyTriangulation.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNPolygonForTriangulation.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNRealmLoader.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNRequestManager.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNRotateGestureListener.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNSQLiteLoader.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNTCP.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+*	src:KNTextFadeAnimator.kt	*	*	*	OUT		KNSDK UI·렌더러·DB·통신(위치 주기 무관)
+# libraries
+*	src:RealmList.java	*	*	*	OUT		Realm DB 라이브러리
+*	src:RealmMapEntrySet.java	*	*	*	OUT		Realm DB 라이브러리
+*	src:SetValueOperator.java	*	*	*	OUT		Realm DB 라이브러리
+*	src:AppManager.java	*	*	*	OUT		androidx.car.app (Android Auto)
+*	lib:com.google.android.gms:play-services-location	*	*	*	OUT		Play 서비스 위치 라이브러리(LocationRequest 등)
+# patch sites (export_patches_morphe.py --app kakao)
+PATCH	*	*	*	*	PATCHED	@patch_id	패치 지점
+# 6.32.0 A_location
+COUNTER	src:KNGPSData.kt	(Z)V	I+1	1	PATCHED	K2	speed/angle trust 카운터(heb.v/u), isOrigin일 때만 +1 → K2 1 Hz 게이트로 스톡과 같은 10 s
+COUNTER	src:KNGPSData.kt	(Z)V	I+1	2	PATCHED	K2	speed/angle trust 카운터(heb.v/u), isOrigin일 때만 +1 → K2 1 Hz 게이트로 스톡과 같은 10 s
+COUNTER	src:KNGPSData.kt	(Z)V	I+1	3	OK	A2	hdop 10칸 링 인덱스(heb.w), 평균 heb.y 미사용
+COUNTER	src:LogRepository.kt	(<SensorData.kt>)V	I+1	*	INACTIVE	A39	샌드박스 전용 센서 로그 묶음 카운터
+COUNTER	src:StepBackBlockChecker.kt	(<LocationSDKModel.kt>)<LocationSDKModel.kt>	I+1	*	INACTIVE	A28	IndoorRepository(실내 provider) 전용
+COUNTER	src:TimerRepository.kt	(Ljava/lang/Object;)Ljava/lang/Object;	I+1	*	OK	A36	interval 500 ms 틱 카운트(120틱=60 s), GNSS 주기 무관
+LOCREQ	syn:R8	(Ljava/lang/Object;)Ljava/lang/Object;	LocationRequest$a;-><init>	*	OUT	A41	카카오맵 ping 기능 1회 위치 요청(R8 합성 클래스)
+LOCREQ	syn:R8	(Ljava/lang/Object;)Ljava/lang/Object;	LocationRequest$a;->build	*	OUT	A41	카카오맵 ping 기능 1회 위치 요청(R8 합성 클래스)
+LOCREQ	syn:R8	(Ljava/lang/Object;)Ljava/lang/Object;	LocationRequest$a;->setMaxUpdates	*	OUT	A41	카카오맵 ping 기능 1회 위치 요청(R8 합성 클래스)
+LOCREQ	syn:R8	(Ljava/lang/Object;)Ljava/lang/Object;	LocationRequest$a;->setMinUpdateIntervalMillis	*	OUT	A41	카카오맵 ping 기능 1회 위치 요청(R8 합성 클래스)
+LOCREQ	syn:R8	(Ljava/lang/Object;)Ljava/lang/Object;	<lib:com.google.android.gms:play-services-location>->requestLocationUpdates	*	OUT	A41	카카오맵 ping 기능 1회 위치 요청(R8 합성 클래스)
+LOCREQ	src:FlpDataSource.kt	()I	LocationRequest;->getPriority	*	OK	A29	FLP Builder(1000 ms) priority 102, gps가 흐르면 fyp 우선순위 검사로 무시
+LOCREQ	src:FlpDataSource.kt	()J	LocationRequest;->getIntervalMillis	*	OK	A29	FLP Builder(1000 ms) priority 102, gps가 흐르면 fyp 우선순위 검사로 무시
+LOCREQ	src:FlpDataSource.kt	()J	LocationRequest;->getMaxUpdateDelayMillis	*	OK	A29	FLP Builder(1000 ms) priority 102, gps가 흐르면 fyp 우선순위 검사로 무시
+LOCREQ	src:FlpDataSource.kt	()Z	LocationRequest$a;-><init>	*	OK	A29	FLP Builder(1000 ms) priority 102, gps가 흐르면 fyp 우선순위 검사로 무시
+LOCREQ	src:FlpDataSource.kt	()Z	LocationRequest$a;->build	*	OK	A29	FLP Builder(1000 ms) priority 102, gps가 흐르면 fyp 우선순위 검사로 무시
+LOCREQ	src:FlpDataSource.kt	()Z	LocationRequest$a;->setMaxUpdateDelayMillis	*	OK	A29	FLP Builder(1000 ms) priority 102, gps가 흐르면 fyp 우선순위 검사로 무시
+LOCREQ	src:FlpDataSource.kt	()Z	LocationRequest$a;->setPriority	*	OK	A29	FLP Builder(1000 ms) priority 102, gps가 흐르면 fyp 우선순위 검사로 무시
+LOCREQ	src:FlpDataSource.kt	()Z	<lib:com.google.android.gms:play-services-location>->requestLocationUpdates	*	OK	A29	FLP Builder(1000 ms) priority 102, gps가 흐르면 fyp 우선순위 검사로 무시
+LOCREQ	src:GpsDataSource.kt	()Z	LocationManager;->requestLocationUpdates	*	OK	A29	KM SDK gps 요청 0 ms/0 m: 모든 fix를 칼만 측정으로(의도된 10 Hz 입력), KNSDK 출력은 500 ms 틱 1개
+LOCREQ	src:KNFusedLocationManager.kt	(Ljava/lang/Object;)Ljava/lang/Object;	<lib:com.google.android.gms:play-services-location>->requestLocationUpdates	*	INACTIVE	A10	레거시 경로(positioning_opt 1/2) 전용 fused 1000/500 ms
+TIMER	src:KNLTEPositioning.kt	(Ljava/lang/String;Ljava/lang/String;<KNDriveGuidance.kt>)V	Timer;->schedule	*	OK	A15	LTE 셀 신호 스캔 1 s Timer, 레거시 경로 전용
+TIMER	src:MotionActivityRepository.kt	()<Flowable.java>	Timer;->schedule	*	OK	A38	활동인식 sendPeriod 초 단위 Timer, GNSS 무관(서버 기본 off)
+TIMER	src:RapidChangeRepository.kt	()<Flowable.java>	Timer;->schedule	*	INACTIVE	A38	KNSDK가 useRapidChangedEvent=false로 시작, IMU 전용
+WINDOW	src:InOutCheckerV2.kt	(<LocationSDKModel.kt>)Z	size ge 4	*	INACTIVE	A26	실내 판정 개수 조건. gps 개수는 정초 fix(getGpsOnlyOnTime)로 1 Hz화됨, 결과는 서버 indoor 기능일 때만 출력에 사용
+WINDOW	src:InOutCheckerV2.kt	(<LocationSDKModel.kt>)Z	size lt 2	*	INACTIVE	A26	실내 판정 개수 조건. gps 개수는 정초 fix(getGpsOnlyOnTime)로 1 Hz화됨, 결과는 서버 indoor 기능일 때만 출력에 사용
+WINDOW	src:InOutCheckerV2.kt	(<LocationSDKModel.kt>)Z	size lt 3	*	INACTIVE	A26	실내 판정 개수 조건. gps 개수는 정초 fix(getGpsOnlyOnTime)로 1 Hz화됨, 결과는 서버 indoor 기능일 때만 출력에 사용
+WINDOW	src:InOutCheckerV2.kt	(<LocationSDKModel.kt>)Z	size lt 4	*	INACTIVE	A26	실내 판정 개수 조건. gps 개수는 정초 fix(getGpsOnlyOnTime)로 1 Hz화됨, 결과는 서버 indoor 기능일 때만 출력에 사용
+WINDOW	src:InOutCheckerV2.kt	(<LocationSDKModel.kt><LocationSDKModel.kt>)V	size lt 2	*	INACTIVE	A26	실내 판정 개수 조건. gps 개수는 정초 fix(getGpsOnlyOnTime)로 1 Hz화됨, 결과는 서버 indoor 기능일 때만 출력에 사용
+WINDOW	src:InOutCheckerV2.kt	(<LocationSDKModel.kt><LocationSDKModel.kt>)V	size lt 4	*	INACTIVE	A26	실내 판정 개수 조건. gps 개수는 정초 fix(getGpsOnlyOnTime)로 1 Hz화됨, 결과는 서버 indoor 기능일 때만 출력에 사용
+WINDOW	src:KMLocationManager.kt	(Z)V	size ne 2	*	OK		driveId 문자열 split 토큰 수 비교(오탐)
+WINDOW	src:MovementStatusRepository.kt	()Z	size lt 2	*	OK	A37	60 s마다 1점, 20점 창 거리 비교(시간 게이트)
+WINDOW	src:OpenSkyChecker.kt	(<LocationSDKModel.kt>)V	size le 4	*	OK	A25	4칸 버퍼는 채우기만 하고 미사용, openSky는 GnssStatus 사용 위성 수 기반
+*	src:LocationService.kt	*	*	*	OUT	A41	카카오맵 지도 앱 포그라운드 위치 서비스(3000 ms), 내비 경로 아님
+*	src:FusedLocationManager.kt	*	*	*	OUT	A41	카카오맵 지도 LocationDelegate용 fused 요청, 내비 경로 아님
+*	src:RideInfo.kt	*	*	*	OUT		마이페이지 이동 기록 문자열 파싱(UI 모델)
+# 6.32.0 B_matching
+WINDOW	src:KNNetworkLinkTree.kt	(<KNNetworkLinkTreeNode.kt>)V	size lt 2	*	OK	M-22	연속 노드 2개 비교용 경로 길이 확인, 지나온 링크 창은 링크 길이 합 100 m(M-22)
+WINDOW	src:KNNetworkLinkTreeNode.kt	(Ljava/util/List;)Ljava/util/List;	size ge 2	*	OK	M-22	링크의 다음 링크(분기) 수, 그래프 구조(M-22)
+WINDOW	src:KNNetworkLinkTreeNode.kt	(Ljava/util/List;)Ljava/util/List;	size ne 9	*	OK	M-22	계산한 자식 수와 리스트 크기 비교, 그래프 구조(M-22)
+*	src:RouteNodes.kt	*	*	*	OUT		마이페이지 저장 경로 경유지 모델(UI), 내비 엔진 무관
+# 6.32.0 C_guidance
+*	src:KNPolyLineMaker.kt	*	*	*	OUT	G-18	지도 렌더러(knmaprenderer) 경로선 정점·색 배열 인덱스와 목록 크기. 위치 주기 무관
+*	src:KNRouteActor.kt	*	*	*	OUT	G-18	지도 렌더러(knmaprenderer) 경로선 정점·색 배열 인덱스와 목록 크기. 위치 주기 무관
+*	src:KNMapPolyline.kt	*	*	*	OUT	G-18	지도 렌더러(knmaprenderer) 경로선 정점·색 배열 인덱스와 목록 크기. 위치 주기 무관
+*	src:KNRouteHandlerManager.kt	*	*	*	OUT	G-18	렌더러 경로선 버퍼 관리(재그리기 5/20 ms 핸들러, 경로 목록 루프). 위치 주기 무관
+*	src:KNMapControlManager.kt	*	*	*	OUT		지도 렌더러 제어(프레임 갱신 지연·카메라 애니메이션 핸들러). 엔진 틱(2 Hz) 그대로라 갱신 빈도 불변
+*	src:KNAnimateCamera.kt	*	*	*	OUT		지도 카메라 애니메이션 단계 핸들러(지속시간 기준). 위치 주기 무관
+*	src:KNMapPoiOverlapSolver2.kt	*	*	*	OUT		지도 POI 라벨 겹침 해소·페이드 애니메이션. 위치 주기 무관
+*	src:KNBaseMapView.kt	*	*	*	OUT		지도 SurfaceView 재그리기 지연(2.88 s). 위치 주기 무관
+*	src:KNAnalyticsByPerformance.kt	*	*	*	OUT		성능·배터리 분석 10 s 핸들러, 60회 묶음 전송. 위치 주기 무관
+*	src:KNDriveLaneCodeView.kt	*	*	*	OUT		차로 안내 UI(차로 수 8·4 제한). 위치 주기 무관
+*	src:KNDriveHipassLaneCodeView.kt	*	*	*	OUT		하이패스 차로 UI(차로 수 8 제한). 위치 주기 무관
+*	src:KNCustomToastView.kt	*	*	*	OUT		토스트 UI 2 s 표시 지연. 위치 주기 무관
+*	src:SearchBar.kt	*	*	*	OUT		카카오맵 앱 UI(검색·바로가기·테마 편집·마이페이지 이동 기록 모델). 내비 엔진 아님
+*	src:ShortcutSearchFragment.kt	*	*	*	OUT		카카오맵 앱 UI(검색·바로가기·테마 편집·마이페이지 이동 기록 모델). 내비 엔진 아님
+*	src:SearchFragment.kt	*	*	*	OUT		카카오맵 앱 UI(검색·바로가기·테마 편집·마이페이지 이동 기록 모델). 내비 엔진 아님
+*	src:ThemeEditorUiState.kt	*	*	*	OUT		카카오맵 앱 UI(검색·바로가기·테마 편집·마이페이지 이동 기록 모델). 내비 엔진 아님
+WINDOW	src:KNConnection.kt	()V	size le 1800	*	OK		외부 연결(안전운행·로그) 위치 로그 링버퍼 1800개. isOrigin fix만 쌓음 → K2로 origin ≈1 Hz 유지되면 30분 창 그대로
+TIMER	src:KNConnection.kt	(<KNError.kt><KNConnection.kt>)V	Timer;->schedule	*	OK		연결 인증 실패 시 30 s 재시도 Timer(벽시계)
+TIMER	src:KNConnection.kt	()V	Timer;->schedule	*	OK		TCP 끊김 시 60 s 재연결 Timer(벽시계)
+TIMER	src:KNDriveGuidance.kt	()V	Timer;->schedule	*	OK	G-06	교통 재탐색 확인: 매칭 Trusted 아니면 30 s 뒤 재시도 Timer(벽시계)
+TIMER	src:KNDriveGuidance.kt	(<KNDriveGuidance.kt>)V	Timer;->schedule	*	OK	G-06	ETA 갱신 Timer, 주기 = 서버 설정 D초(벽시계)
+TIMER	src:KNDriveGuidance.kt	(<KNDriveGuidance.kt>I)V	Timer;->schedule	*	OK	G-06	autoReRoute 동적 재탐색 Timer i초(기본 300 s, 벽시계)
+TIMER	src:KNDriveGuidance.kt	(Ljava/lang/Object;)Ljava/lang/Object;	Timer;->schedule	*	OK	G-05	과속 경고음 2 s 주기 Timer(경로/안전운행 두 콜백)
+TIMER	src:KNSimulGuidance.kt	()V	Timer;->schedule	*	INACTIVE		모의주행 500 ms Timer(실제 GPS 아님)
+TIMER	src:KNSimulGuidance.kt	(<KNSimulGuidance.kt>J)V	Timer;->schedule	*	INACTIVE		모의주행 음성 지연 재생 Timer(실제 GPS 아님)
+FLOOR	src:KNBaseSDK.kt	(Ljava/lang/String;Ljava/lang/String;I<LocationSDKModel.kt><LocationSDKModel.kt>)V	floor	*	OK		KM SDK 콜백 정수값×0.1을 소수 셋째 자리로 내림(설정값 변환). 시간·거리 의미 없음
+TIMER	src:KNBaseSDK.kt	(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;<KNSDKDef.kt><Functions.kt>)V	Timer;->schedule	*	OK		SDK 초기화 대기 1 s 폴링 Timer(벽시계)
+WINDOW	src:KNRoute.kt	(Ljava/util/List;<KNGeometry.kt><KNGeometry.kt>)V	size ge 5	*	OK		경로 수신 시 링크 목록 파싱(1회). 표본 창 아님
+TIMER	src:NaviActivity.kt	(ILandroid/view/KeyEvent;)Z	Handler;->postDelayed	*	OK		키 롱프레스 5 s UI 지연. 위치 주기 무관

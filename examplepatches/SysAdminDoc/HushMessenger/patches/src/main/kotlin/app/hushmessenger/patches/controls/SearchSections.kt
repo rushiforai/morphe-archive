@@ -47,7 +47,8 @@ private const val SEARCH_MAP = "Lcom/google/common/collect/ImmutableMap;"
 
 private val RESULT_PARAMETERS = listOf(IMMUTABLE_LIST, SEARCH_INTEGER, "I")
 
-private fun sectionParameters(type: String) = listOf(type, IMMUTABLE_LIST, SEARCH_MAP, SEARCH_INTEGER, "Ljava/lang/String;", "Z")
+/** 588's section constructor takes a second Integer after 587's one. */
+private fun sectionParameters(type: String) = listOf(type, IMMUTABLE_LIST, SEARCH_MAP, SEARCH_INTEGER, SEARCH_INTEGER, "Ljava/lang/String;", "Z")
 
 private val LAUNCHER_PARAMETERS = { types: List<String> ->
     types.size == 4 && types[0] == "Landroid/content/Context;" && types[2] == FB_USER_SESSION && types[3] == THREAD_VIEW_PARAMS
@@ -90,7 +91,7 @@ internal fun Method.searchSectionsList(): Int? {
 internal fun Method.searchItemsSite(sectionType: String? = null): Pair<Int, Int>? {
     if (name != "<init>" || AccessFlags.STATIC.isSet(accessFlags) || returnType != "V") return null
     val types = types()
-    if (types.size != 6 || (sectionType != null && types[0] != sectionType) || types != sectionParameters(types[0])) return null
+    if (types.size != 7 || (sectionType != null && types[0] != sectionType) || types != sectionParameters(types[0])) return null
     if (implementation == null || 0 in jumpTargets()) return null
     val type = argumentRegister(0) ?: return null
     val list = argumentRegister(1) ?: return null

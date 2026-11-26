@@ -17,11 +17,21 @@ final class AimogeWriteClient {
     AimogeWriteClient() { this("https://api.nijiurachan.net"); }
     AimogeWriteClient(String baseUrl) { base = baseUrl; }
 
+    // DNS failure before the request body was written: the same PKCE exchange
+    // can be retried by reloading the callback after connectivity recovers.
+    static final class DnsUnavailableException extends java.io.IOException {
+        DnsUnavailableException() { super("DNS unavailable for api.nijiurachan.net"); }
+    }
+
     static final class Result {
         final int status;
         final String text;
         Result(int code, String data) { status = code; text = data; }
         JSONObject json() throws Exception { return new JSONObject(text); }
+    }
+
+    Result get(String path) throws Exception {
+        return request("GET", path, null, null, null);
     }
 
     Result post(String path, JSONObject body, String credential) throws Exception {
@@ -54,7 +64,12 @@ final class AimogeWriteClient {
             conn.setFixedLengthStreamingMode(data.length);
         }
         try {
-            if (data != null) try (OutputStream out = conn.getOutputStream()) { out.write(data); }
+            if (data != null) {
+                OutputStream stream;
+                try { stream = conn.getOutputStream(); }
+                catch (java.net.UnknownHostException ex) { throw new DnsUnavailableException(); }
+                try (OutputStream out = stream) { out.write(data); }
+            }
             int status = conn.getResponseCode();
             if (status >= 300 && status < 400) throw new IllegalStateException("Unexpected redirect");
             try (InputStream in = status < 400 ? conn.getInputStream() : conn.getErrorStream()) {
@@ -98,6 +113,11 @@ final class AimogeWriteClient {
         } finally { conn.disconnect(); }
     }
 
+    static String attachmentName(String mime) {
+        String ext = mime.substring("image/".length());
+        return "attachment." + ("jpeg".equals(ext) ? "jpg" : ext);
+    }
+
     static String sha256(byte[] data) throws Exception {
         byte[] digest = MessageDigest.getInstance("SHA-256").digest(data);
         StringBuilder hex = new StringBuilder();
@@ -114,7 +134,7 @@ final class AimogeWriteClient {
         payload.put("sha256", sha256(data));
         payload.put("mime", mime);
         payload.put("sizeBytes", data.length);
-        if (name != null && !name.isEmpty()) payload.put("fileName", name.substring(0, Math.min(255, name.length())));
+        payload.put("fileName", attachmentName(mime));
         Result result = post("/attachments/presign", payload, credential);
         if (result.status != 200) throw new IllegalStateException("Presign HTTP " + result.status + ": " + result.text);
         JSONObject reply = result.json();

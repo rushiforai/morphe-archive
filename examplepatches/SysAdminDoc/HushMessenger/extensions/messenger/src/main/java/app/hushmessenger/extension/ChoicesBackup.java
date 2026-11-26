@@ -379,7 +379,8 @@ final class ChoicesBackup {
             catch (RuntimeException | OutOfMemoryError failure) {
                 android.util.Log.e("HushMessenger", "Can't restore the choices' files: " + failure.getClass().getName());
                 result = new ChoiceFiles.Result();
-                for (String name : files.keySet()) if (!ChoiceFiles.FONT_NAME.equals(name)) result.damaged++;
+                for (String name : files.keySet())
+                    if (!ChoiceFiles.FONT_NAME.equals(name) && !ChoiceFiles.HEADER_FONT_NAME.equals(name)) result.damaged++;
             }
             ChoiceFiles.Result done = result;
             main.post(() -> {

@@ -4,12 +4,12 @@ Patches for **Mazii: Japanese Dictionary** (`com.mazii.dictionary`), version `6.
 
 ## Patches
 
-Every patch except **GmsCore support** is on by default. Morphe Manager groups them by category.
+Every patch is on by default. Morphe Manager groups them by category.
 
 | Category | Patch | Default | What it does |
 |---|---|---|---|
 | Feature | Disable Play license check | On | Stops Pairip's Google Play license check from blocking the patched app. |
-| Feature | GmsCore support | Off | Makes "Continue with Google" work through [microG RE](https://github.com/WSTxda/MicroG-RE) (GmsCore) instead of Google Play services. |
+| Feature | GmsCore support | On | Makes "Continue with Google" work through [microG RE](https://github.com/WSTxda/MicroG-RE) (GmsCore) instead of Google Play services. |
 | Premium | Premium unlock | On | Unlocks the client-side Premium checks and removes ads. |
 | Privacy | Disable analytics | On | Stops Firebase Analytics, Crashlytics, Performance and Sessions, and Facebook App Events. |
 | Theme | Themed icon | On | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |

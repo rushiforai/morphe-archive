@@ -147,3 +147,31 @@ The patcher's resource-table encoder again reported a fallback rebuild for
 1.4.11 adapter files were replaced by the 1.4.12 set; on-device checks for the
 new bundle are still open.
 
+## 1.4.13 adapter rebuild
+
+Recorded on 2026-11-26 (Asia/Seoul).
+
+- Official release: `android-v1.4.13`, package `run.openbot.mobile`.
+- Original APK SHA-256:
+  `fad8b858db5c91e47fa1a36e7627294ba3a8208b2f7bd56ffaa9e36500bcd943`.
+- Original embedded Hermes SHA-256:
+  `0e6d8470c9144b1581c863b857c5439073394f6867287595d936b996648ccf9c`.
+- Patched Hermes SHA-256:
+  `c10ec41605f4ae9386198e40a13f642fa26cdab8fad124464fe27d72eccba44e`.
+- Original and patched Hermes bytecode version: **99**.
+- Exact adapter and asset checksums are in `resources/openbot/adapters/1.4.13.properties`.
+
+| Check | Result |
+| --- | --- |
+| Source transform (`prepare-source.cjs`) | All four anchors still present in 1.4.13; 4 transformation tests passed |
+| Font parser/import regression checks | 32 passed |
+| Preview/request policy checks | 18 passed |
+| Official APK patch application | `PATCH OpenBot custom font: OK` |
+| Rewritten DEX verification | `SMOKE_OK`; 4 DEX files, zero new verification issues |
+| Original APK verification baseline | 5 pre-existing WebRTC/JNI optional-class issues; the same five remain |
+| Patched assets | `assets/index.android.bundle` matches the recorded `patchedSha256`; all seven DOM pages carry the font stylesheet link |
+
+The 1.4.12 adapter files were replaced by the 1.4.13 set, and the resource-table
+encoder again fell back to a full rebuild for `res/raw/keep.xml` (`tools:keep`)
+before completing. On-device checks for the new bundle are still open.
+

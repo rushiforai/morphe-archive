@@ -50,6 +50,7 @@ object Constants {
 
     const val INPOST_4_23_1 = "4.23.1"
     const val INPOST_4_24_0 = "4.24.0"
+    const val INPOST_4_25_0 = "4.25.0"
 
     val COMPATIBILITY_INPOST = Compatibility(
         name = "InPost Mobile",
@@ -59,6 +60,7 @@ object Constants {
         targets = listOf(
             AppTarget(version = INPOST_4_23_1, versionCode = 42301000),
             AppTarget(version = INPOST_4_24_0, versionCode = 42400002),
+            AppTarget(version = INPOST_4_25_0, versionCode = 42500001),
         ),
     )
 
@@ -110,6 +112,8 @@ object Constants {
     )
 
     const val METEO_ICM_4_2_8 = "4.2.8"
+    const val METEO_ICM_4_2_10 = "4.2.10"
+    const val METEO_ICM_4_2_13 = "4.2.13"
 
     /** Flutter app, split bundle (base + arm64 + language + density). The ad glue classes keep R8 names, see the patches. */
     val COMPATIBILITY_METEO_ICM = Compatibility(
@@ -117,7 +121,11 @@ object Constants {
         packageName = "pl.janpogocki.icm.pogoda",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x145097,
-        targets = listOf(AppTarget(version = METEO_ICM_4_2_8, versionCode = 160)),
+        targets = listOf(
+            AppTarget(version = METEO_ICM_4_2_8, versionCode = 160),
+            AppTarget(version = METEO_ICM_4_2_10, versionCode = 162),
+            AppTarget(version = METEO_ICM_4_2_13, versionCode = 165),
+        ),
     )
 
     const val VULCAN_26_08_00 = "26.08.00 (G)"

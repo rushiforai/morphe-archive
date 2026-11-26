@@ -663,6 +663,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_profile_notes", FALSE);
 
     /**
+     * The Send a gift button on other people's profiles, left out of the profile's Bloks layout the
+     * same way ({@link app.morphe.extension.facebook.profile.ProfileNotes}, #576). Starts off. Read
+     * each time Facebook lays the profile out, so a change shows the next time a profile opens.
+     */
+    public static final BooleanSetting HIDE_PROFILE_GIFTS =
+            new BooleanSetting("hushfacebook_hide_profile_gifts", FALSE);
+
+    /**
      * Friends, followers and following counts of your own profile that you type yourself, shown on this
      * phone only ({@link app.morphe.extension.facebook.profile.LocalProfileCounts}, #280). Starts off.
      * Read each time Facebook lays the profile out, so a change shows the next time a profile opens.
@@ -1141,6 +1149,24 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_reel_audio_line", FALSE);
 
     /**
+     * The "AI content" or "AI info" label Facebook puts on a reel made with AI isn't drawn, beside the
+     * sound line, under the caption or in the reel's info rows
+     * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#filterAiLabel}, #574).
+     * Off by default. A change shows from the next reel.
+     */
+    public static final BooleanSetting HIDE_REEL_AI_LABEL =
+            new BooleanSetting("hushfacebook_hide_reel_ai_label", FALSE);
+
+    /**
+     * A reel caption's runs of hashtags aren't drawn: the ones ending it, on lines of their own or two
+     * or more in a row. A hashtag that is a word of a sentence stays
+     * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#captionText}, #594). Off by default.
+     * A change shows from the next reel.
+     */
+    public static final BooleanSetting HIDE_REEL_HASHTAGS =
+            new BooleanSetting("hushfacebook_hide_reel_hashtags", FALSE);
+
+    /**
      * The "This is taking a while. Try checking your network connection." message a video shows
      * when it's slow to load isn't shown
      * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#hideSlowConnectionMessage}, #222).
@@ -1186,6 +1212,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting PLAY_FEED_REELS_WHOLE =
             new BooleanSetting("hushfacebook_play_feed_reels_whole", FALSE);
+
+    /**
+     * A reel posted in the feed plays in a frame of its own shape instead of the wider one Facebook
+     * cuts it to ({@link app.morphe.extension.facebook.reels.FeedReelShape}, #581), no taller than
+     * the screen has room for. Off by default. A change shows on reels the feed draws after it.
+     */
+    public static final BooleanSetting UNCROPPED_FEED_REELS =
+            new BooleanSetting("hushfacebook_uncropped_feed_reels", FALSE);
 
     /**
      * A video tapped in the feed opens in the full-screen player on its own, with no reels to swipe
@@ -1684,6 +1718,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_COMMENT_EMOJI_ROW =
             new BooleanSetting("hushfacebook_hide_comment_emoji_row", FALSE);
+
+    /**
+     * Comments open with the keyboard closed, even where Facebook would open it for the first
+     * comment (#594, {@link app.morphe.extension.facebook.comments.CommentSheetOptions#keyboardOnFirstLoad}).
+     * A tap on the comment box still opens it. Off by default. A change shows the next time comments open.
+     */
+    public static final BooleanSetting KEEP_COMMENT_KEYBOARD_CLOSED =
+            new BooleanSetting("hushfacebook_keep_comment_keyboard_closed", FALSE);
 
     /**
      * The comment box comes without the thin line along its top (#344,
@@ -3128,6 +3170,16 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting MARKETPLACE_PHOTO_SAVE =
             new BooleanSetting("hushfacebook_marketplace_photo_save", FALSE);
+
+    /**
+     * A PDF, document or other file downloaded from a post goes to the phone's public Downloads
+     * folder, where a file manager can open it ({@link app.morphe.extension.facebook.download.FileDownloads},
+     * #590). Off, it stays in DownloadManager's private cache as Facebook leaves it. Starts on, as
+     * the report asked: a file nobody can find helps nobody. The key never spells "downloads":
+     * SettingsBackupTest plants that word in a value no settings file may carry.
+     */
+    public static final BooleanSetting SAVE_FILES_TO_DOWNLOADS =
+            new BooleanSetting("hushfacebook_save_files_to_download_folder", TRUE);
 
     /**
      * Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of

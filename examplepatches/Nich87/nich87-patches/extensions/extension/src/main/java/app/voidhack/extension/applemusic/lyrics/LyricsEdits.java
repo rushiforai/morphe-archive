@@ -31,6 +31,7 @@ final class LyricsEdits {
         final String originalReading;
         final String editedReading;
         final String currentReading;
+        final boolean timingChanged;
 
         StoredLineEdit(
                 int index,
@@ -40,6 +41,18 @@ final class LyricsEdits {
                 String originalReading,
                 String editedReading,
                 String currentReading) {
+            this(index, startMs, originalText, editedText, originalReading, editedReading, currentReading, false);
+        }
+
+        StoredLineEdit(
+                int index,
+                long startMs,
+                String originalText,
+                String editedText,
+                String originalReading,
+                String editedReading,
+                String currentReading,
+                boolean timingChanged) {
             this.index = index;
             this.startMs = startMs;
             this.originalText = originalText == null ? "" : originalText;
@@ -47,6 +60,7 @@ final class LyricsEdits {
             this.originalReading = originalReading == null ? "" : originalReading;
             this.editedReading = editedReading == null ? "" : editedReading;
             this.currentReading = currentReading == null ? "" : currentReading;
+            this.timingChanged = timingChanged;
         }
 
         String displayCurrentText() {
@@ -76,6 +90,8 @@ final class LyricsEdits {
         final String trackTitle;
         final String artistName;
         final int editedLineCount;
+        final int interludeCount;
+        final boolean isFullDocumentEdit;
         final long updatedAt;
         final List<StoredLineEdit> lines;
 
@@ -87,11 +103,26 @@ final class LyricsEdits {
                 int editedLineCount,
                 long updatedAt,
                 List<StoredLineEdit> lines) {
+            this(documentKey, trackKey, trackTitle, artistName, editedLineCount, 0, false, updatedAt, lines);
+        }
+
+        DocumentRecord(
+                String documentKey,
+                String trackKey,
+                String trackTitle,
+                String artistName,
+                int editedLineCount,
+                int interludeCount,
+                boolean isFullDocumentEdit,
+                long updatedAt,
+                List<StoredLineEdit> lines) {
             this.documentKey = documentKey == null ? "" : documentKey;
             this.trackKey = trackKey == null ? "" : trackKey;
             this.trackTitle = trackTitle == null ? "" : trackTitle;
             this.artistName = artistName == null ? "" : artistName;
             this.editedLineCount = editedLineCount;
+            this.interludeCount = interludeCount;
+            this.isFullDocumentEdit = isFullDocumentEdit;
             this.updatedAt = updatedAt;
             this.lines = lines == null ? Collections.emptyList() : lines;
         }
@@ -123,13 +154,37 @@ final class LyricsEdits {
         digest.update(value.getBytes(StandardCharsets.UTF_8));
     }
 
+    static boolean hasAnyEdits(Context context, String documentKey) {
+        if (context == null || documentKey == null || documentKey.isEmpty()) return false;
+        String value = prefs(context).getString(documentKey, null);
+        return value != null && !value.trim().isEmpty();
+    }
+
+    static LyricsEditTtml.DocumentEdit loadDocument(Context context, String documentKey) {
+        if (context == null || documentKey == null || documentKey.isEmpty()) return null;
+        String value = prefs(context).getString(documentKey, null);
+        if (value == null || value.isEmpty()) return null;
+        try {
+            JSONObject stored = new JSONObject(value);
+            if (stored.optInt("v", 1) == LyricsEditTtml.DocumentEdit.VERSION) {
+                return LyricsEditTtml.DocumentEdit.fromJson(stored);
+            }
+        } catch (JSONException e) {
+            Log.w(TAG, "Could not read v2 lyric document edit", e);
+        }
+        return null;
+    }
+
     static Map<Integer, LyricsEditTtml.Edit> load(Context context, String documentKey) {
-        if (documentKey == null) return Collections.emptyMap();
+        if (context == null || documentKey == null) return Collections.emptyMap();
         String value = prefs(context).getString(documentKey, null);
         if (value == null) return Collections.emptyMap();
         Map<Integer, LyricsEditTtml.Edit> result = new HashMap<>();
         try {
             JSONObject stored = new JSONObject(value);
+            if (stored.optInt("v", 1) == LyricsEditTtml.DocumentEdit.VERSION) {
+                return Collections.emptyMap();
+            }
             for (Iterator<String> keys = stored.keys(); keys.hasNext();) {
                 String key = keys.next();
                 JSONObject row = stored.optJSONObject(key);
@@ -142,6 +197,61 @@ final class LyricsEdits {
             Log.w(TAG, "Could not read lyric line edits", e);
         }
         return result;
+    }
+
+    static synchronized boolean saveDocument(
+            Context context,
+            String documentKey,
+            LyricsEditTtml.DocumentEdit edit,
+            String trackKey,
+            String trackTitle,
+            String artistName,
+            List<LyricsEditTtml.EditedLine> summary) {
+        if (context == null || documentKey == null || documentKey.isEmpty()) return false;
+        if (edit == null || edit.lines.isEmpty()) {
+            return clearDocument(context, documentKey);
+        }
+        try {
+            JSONObject payload = edit.toJson();
+            SharedPreferences preferences = prefs(context);
+            SharedPreferences meta = metaPrefs(context);
+            JSONObject prevMeta = parseJsonQuietly(meta.getString(documentKey, null));
+
+            JSONObject nextMeta = new JSONObject();
+            nextMeta.put("v", LyricsEditTtml.DocumentEdit.VERSION);
+            nextMeta.put("trackKey", firstNonEmpty(trackKey, prevMeta.optString("trackKey", "")));
+            nextMeta.put("trackTitle", firstNonEmpty(trackTitle, prevMeta.optString("trackTitle", "")));
+            nextMeta.put("artistName", firstNonEmpty(artistName, prevMeta.optString("artistName", "")));
+            nextMeta.put("updatedAt", System.currentTimeMillis());
+            nextMeta.put("interludeCount", LyricsEditTtml.extractInterludeRanges(edit).size());
+
+            JSONObject linesMeta = new JSONObject();
+            if (summary != null) {
+                for (LyricsEditTtml.EditedLine line : summary) {
+                    JSONObject lm = new JSONObject();
+                    if (!line.originalText.isEmpty()) lm.put("origText", line.originalText);
+                    if (!line.currentText.isEmpty()) lm.put("currText", line.currentText);
+                    if (!line.originalReading.isEmpty()) lm.put("origReading", line.originalReading);
+                    if (!line.currentReading.isEmpty()) lm.put("currReading", line.currentReading);
+                    if (line.startMs >= 0L) lm.put("startMs", line.startMs);
+                    if (line.timingChanged) lm.put("timingChanged", true);
+                    if (line.textChanged) lm.put("textChanged", true);
+                    if (line.readingChanged) lm.put("readingChanged", true);
+                    linesMeta.put(Integer.toString(line.index), lm);
+                }
+            }
+            nextMeta.put("lines", linesMeta);
+            nextMeta.put("editedCount", summary != null ? summary.size() : edit.lines.size());
+
+            boolean ok = preferences.edit().putString(documentKey, payload.toString()).commit();
+            if (ok) {
+                meta.edit().putString(documentKey, nextMeta.toString()).apply();
+            }
+            return ok;
+        } catch (JSONException e) {
+            Log.w(TAG, "Could not save lyric document edits", e);
+            return false;
+        }
     }
 
     static synchronized boolean save(Context context, String documentKey, int index, String text, String reading) {
@@ -166,6 +276,9 @@ final class LyricsEdits {
         LyricsEditTtml.Edit edit = new LyricsEditTtml.Edit(text, reading);
         try {
             JSONObject stored = new JSONObject(preferences.getString(documentKey, "{}"));
+            if (stored.optInt("v", 1) == LyricsEditTtml.DocumentEdit.VERSION) {
+                return false;
+            }
             String key = Integer.toString(index);
             if (edit.text == null && edit.reading == null) {
                 stored.remove(key);
@@ -255,6 +368,8 @@ final class LyricsEdits {
 
         try {
             JSONObject nextMeta = new JSONObject();
+            if (prevMeta.has("v")) nextMeta.put("v", prevMeta.optInt("v", 1));
+            if (prevMeta.has("interludeCount")) nextMeta.put("interludeCount", prevMeta.optInt("interludeCount", 0));
             nextMeta.put("trackKey", firstNonEmpty(trackKey, prevTrackKey));
             nextMeta.put("trackTitle", firstNonEmpty(trackTitle, prevTitle));
             nextMeta.put("artistName", firstNonEmpty(artistName, prevArtist));
@@ -267,16 +382,20 @@ final class LyricsEdits {
                 JSONObject prevLine = nextLines.optJSONObject(key);
                 JSONObject lineMeta = new JSONObject();
                 String origT = firstNonEmpty(line.originalText, prevLine != null ? prevLine.optString("origText", "") : "");
+                String currT = firstNonEmpty(line.currentText, prevLine != null ? prevLine.optString("currText", "") : "");
                 String origR = firstNonEmpty(line.originalReading, prevLine != null ? prevLine.optString("origReading", "") : "");
                 String currR = firstNonEmpty(line.currentReading, prevLine != null ? prevLine.optString("currReading", "") : "");
                 long ms = line.startMs >= 0L ? line.startMs : (prevLine != null ? prevLine.optLong("startMs", -1L) : -1L);
                 if (!origT.isEmpty()) lineMeta.put("origText", origT);
+                if (!currT.isEmpty()) lineMeta.put("currText", currT);
                 if (!origR.isEmpty()) lineMeta.put("origReading", origR);
                 if (!currR.isEmpty()) lineMeta.put("currReading", currR);
                 if (ms >= 0L) lineMeta.put("startMs", ms);
+                if (line.timingChanged) lineMeta.put("timingChanged", true);
                 nextLines.put(key, lineMeta);
             }
             nextMeta.put("lines", nextLines);
+            nextMeta.put("editedCount", editedLines.size());
             meta.edit().putString(documentKey, nextMeta.toString()).apply();
         } catch (JSONException ignored) {
         }
@@ -335,6 +454,54 @@ final class LyricsEdits {
         if (rawJson == null || rawJson.isEmpty()) return null;
         try {
             JSONObject obj = new JSONObject(rawJson);
+            if (obj.optInt("v", 1) == LyricsEditTtml.DocumentEdit.VERSION) {
+                LyricsEditTtml.DocumentEdit docEdit = LyricsEditTtml.DocumentEdit.fromJson(obj);
+                if (docEdit == null) return null;
+                int interludeCount = LyricsEditTtml.extractInterludeRanges(docEdit).size();
+                JSONObject metaLines = metaObj != null ? metaObj.optJSONObject("lines") : null;
+                List<StoredLineEdit> lines = new ArrayList<>();
+                if (metaLines != null) {
+                    for (Iterator<String> it = metaLines.keys(); it.hasNext();) {
+                        String k = it.next();
+                        int idx;
+                        try {
+                            idx = Integer.parseInt(k);
+                        } catch (NumberFormatException ignored) {
+                            continue;
+                        }
+                        JSONObject ml = metaLines.optJSONObject(k);
+                        if (ml == null) continue;
+                        lines.add(new StoredLineEdit(
+                                idx,
+                                ml.optLong("startMs", -1L),
+                                ml.optString("origText", ""),
+                                ml.optString("currText", ""),
+                                ml.optString("origReading", ""),
+                                ml.optBoolean("readingChanged", false) ? ml.optString("currReading", "") : "",
+                                ml.optString("currReading", ""),
+                                ml.optBoolean("timingChanged", false)));
+                    }
+                    Collections.sort(lines, new Comparator<StoredLineEdit>() {
+                        @Override
+                        public int compare(StoredLineEdit a, StoredLineEdit b) {
+                            return Integer.compare(a.index, b.index);
+                        }
+                    });
+                }
+                int count = Math.max(lines.size(), metaObj != null ? metaObj.optInt("editedCount", 0) : 0);
+                if (count == 0) count = docEdit.lines.size();
+                return new DocumentRecord(
+                        docKey,
+                        metaObj != null ? metaObj.optString("trackKey", "") : "",
+                        metaObj != null ? metaObj.optString("trackTitle", "") : "",
+                        metaObj != null ? metaObj.optString("artistName", "") : "",
+                        count,
+                        interludeCount,
+                        true,
+                        metaObj != null ? metaObj.optLong("updatedAt", 0L) : 0L,
+                        lines);
+            }
+
             JSONObject metaLines = metaObj != null ? metaObj.optJSONObject("lines") : null;
             List<StoredLineEdit> lines = new ArrayList<>();
             for (Iterator<String> it = obj.keys(); it.hasNext();) {
@@ -358,8 +525,7 @@ final class LyricsEdits {
                         editedText != null ? editedText : "",
                         ml != null ? ml.optString("origReading", "") : "",
                         editedReading != null ? editedReading : "",
-                        ml != null ? ml.optString("currReading", "") : ""
-                ));
+                        ml != null ? ml.optString("currReading", "") : ""));
             }
             if (lines.isEmpty()) return null;
             Collections.sort(lines, new Comparator<StoredLineEdit>() {
@@ -374,9 +540,10 @@ final class LyricsEdits {
                     metaObj != null ? metaObj.optString("trackTitle", "") : "",
                     metaObj != null ? metaObj.optString("artistName", "") : "",
                     lines.size(),
+                    0,
+                    false,
                     metaObj != null ? metaObj.optLong("updatedAt", 0L) : 0L,
-                    lines
-            );
+                    lines);
         } catch (JSONException e) {
             return null;
         }

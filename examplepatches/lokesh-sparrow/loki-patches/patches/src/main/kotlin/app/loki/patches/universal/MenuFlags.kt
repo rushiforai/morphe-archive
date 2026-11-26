@@ -5,6 +5,7 @@
 
 package app.loki.patches.universal
 
+import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -23,4 +24,11 @@ internal fun Document.addMenuFlag(name: String) {
         it.setAttribute("android:name", name)
         it.setAttribute("android:value", "true")
     })
+}
+
+/** A patch that only writes the manifest flag the Loki Patches screen reads to list another patch as applied. */
+internal fun menuFlagPatch(name: String) = resourcePatch {
+    execute {
+        document("AndroidManifest.xml").use { it.addMenuFlag(name) }
+    }
 }

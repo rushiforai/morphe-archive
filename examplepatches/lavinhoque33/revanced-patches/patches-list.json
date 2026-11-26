@@ -1,5 +1,5 @@
 {
-  "version": "v1.51.0",
+  "version": "v1.52.0",
   "patches": [
     {
       "name": "Add to queue",
@@ -2585,6 +2585,7 @@
         "BytecodePatch",
         "ResourcePatch",
         "ResourcePatch",
+        "ResourcePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch"
@@ -2608,6 +2609,7 @@
         "ResourcePatch",
         "ResourcePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",

@@ -20,49 +20,43 @@ class ControlProfileTest {
     }
 
     @Test fun eachBuildListsTheSameControlsWithTheSameNumberOfHooks() {
-        // The other arm64 builds' Redex pass merged two analytics upload Runnables into one class, but left the Google Play
-        // upload service's task route as its own method, so their analytics hooks come out at the same count.
         for (profile in controlProfiles.values) {
             assertEquals(BASE_PROFILE.hooks.keys, profile.hooks.keys)
             for (key in BASE_PROFILE.hooks.keys) {
                 assertEquals(BASE_PROFILE.hooks.getValue(key).size, profile.hooks.getValue(key).size, key)
             }
-            assertEquals(ExpectedTotals.HOOKS_587, profile.hooks.values.sumOf { it.size })
+            assertEquals(ExpectedTotals.HOOKS_588, profile.hooks.values.sumOf { it.size })
         }
-        assertEquals(1, PROFILE_347415280.hooks.getValue(ANALYTICS_UPLOADS).count { it.endsWith("->run()V") })
         assertEquals(3, BASE_PROFILE.hooks.getValue(EMOJI_DRAWER).size)
     }
 
     @Test fun theVersionCodePicksTheProfile() {
         assertEquals(MessengerTarget.VERSION_CODES.toSet(), controlProfiles.keys)
-        assertSame(PROFILE_347415354, BASE_PROFILE)
-        for (code in listOf("347415354", "347215348", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
+        assertSame(PROFILE_347617503, BASE_PROFILE)
+        // 587's main build is no longer supported, so it gets the base profile, whose exact hooks then refuse it.
+        for (code in listOf("347617503", "347617590", "347415354", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
         // The armv7 builds are the same release under other Redex names, so they get their own profile, never the base one.
-        for (code in listOf("347415262", "347415295", "347415348")) assertSame(PROFILE_347415262, controlProfileFor(code))
-        // So do the four arm64 builds from another Redex pass, which share one.
-        for (code in listOf("347415280", "347415281", "347415284", "347415285")) assertSame(PROFILE_347415280, controlProfileFor(code))
-        // And the two that carry the main build's code under other class names.
-        for (code in listOf("347415302", "347415355")) assertSame(PROFILE_347415302, controlProfileFor(code))
-        assertEquals(4, controlProfiles.values.distinct().size)
+        for (code in listOf("347617497", "347617513", "347617566", "347617583")) assertSame(PROFILE_347617497, controlProfileFor(code))
+        assertEquals(2, controlProfiles.values.distinct().size)
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
-        assertSame(BASE_PROFILE, controlProfileFor("347415354", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("347617503", profiles))
     }
 
     @Test fun aSecondVersionNameUsesItsOwnBuildsProfile() {
-        val versions = MessengerTarget.VERSIONS + ("588.0.0.1.91" to listOf(348000001))
+        val versions = MessengerTarget.VERSIONS + ("589.0.0.1.91" to listOf(348000001))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
-        assertSame(BASE_PROFILE, controlProfileFor("347415354", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("347617503", profiles))
         val found = mapOf("ad_context_banner" to SYNTHETIC_PROFILE.hooks.getValue("ad_context_banner").map { id ->
             fixtureMethod(id, "const/4 v0, 0x0\nreturn v0")
         })
         activeProfile = controlProfileFor("348000001", profiles)
         validateControls(found, setOf("ad_context_banner"), versions)
-        activeProfile = controlProfileFor("347415354", profiles)
+        activeProfile = controlProfileFor("347617503", profiles)
         val failure = assertFailsWith<PatchException> { validateControls(found, setOf("ad_context_banner"), versions) }
         assertContains(failure.message.orEmpty(),
-            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 588.0.0.1.91 APK (version code 348000001).")
+            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 589.0.0.1.91 APK (version code 348000001).")
     }
 
     @Test fun validationFollowsTheActiveBuild() {
@@ -95,12 +89,12 @@ class ControlProfileTest {
 
     private val builder = "Lcom/google/common/collect/ImmutableList${'$'}Builder;"
     private val addAll = "$builder->addAll(Ljava/lang/Iterable;)$builder"
-    private val build = "LX/32c;->A00($builder)Lcom/google/common/collect/ImmutableList;"
+    private val build = "$builder->build()Lcom/google/common/collect/ImmutableList;"
     private val copy = "LX/35T;->A01(${builder}Ljava/lang/Iterable;)Lcom/google/common/collect/ImmutableList;"
 
     // Shaped like 587's BaseXappComposerConfigurationFactory.A0R, where one static call takes the fresh builder and the
-    // local list, adds it all and builds, and the method returns the built list, as 583 did. [addAllCopy] is 584 to
-    // 586's form instead: the builder's addAll, then a static build.
+    // local list, adds it all and builds, and the method returns the built list, as 583 did. [addAllCopy] is 588's
+    // A0Y instead: the builder's own addAll, then its build.
     private fun inlineTabs(
         extraCopy: Boolean = false,
         branchIntoCopy: Boolean = false,
@@ -120,7 +114,7 @@ class ControlProfileTest {
             move-result-object v2
             :copy
             ${when {
-                addAllCopy -> "invoke-virtual {v2, v12}, $addAll\ninvoke-static {v2}, $build"
+                addAllCopy -> "invoke-virtual {v2, v12}, $addAll\ninvoke-virtual {v2}, $build"
                 rangeCopy -> "move-object/from16 v3, v12\ninvoke-static/range {v2 .. v3}, $copy"
                 apart -> "const/4 v4, 0x0\ninvoke-static {v2, v12}, $copy"
                 otherBuilder -> "invoke-static {v12, v2}, $copy"
@@ -162,8 +156,16 @@ class ControlProfileTest {
         assertFailsWith<PatchException> { inlineTabs(catchIntoCopy = true).injectKeyboardTabsInline() }
     }
 
-    @Test fun a586TabListCopiedThroughAddAllIsRefused() {
-        assertFailsWith<PatchException> { inlineTabs(addAllCopy = true).injectKeyboardTabsInline() }
+    @Test fun a588TabListAddedThroughTheBuildersAddAllIsFilteredJustBeforeIt() {
+        val method = inlineTabs(addAllCopy = true)
+        val addAt = method.implementation!!.instructions.indexOfFirst {
+            (it as? ReferenceInstruction)?.reference.toString() == addAll
+        }
+        method.injectKeyboardTabsInline()
+        val call = method.getInstruction(addAt)
+        assertEquals("$SETTINGS->removeAvatarTabs(Ljava/lang/Iterable;)V", (call as ReferenceInstruction).reference.toString())
+        assertEquals(12, (call as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction).startRegister)
+        assertEquals(addAll, (method.getInstruction(addAt + 1) as ReferenceInstruction).reference.toString())
     }
 
     @Test fun compatReportTakesTheTabListOnlyWhereThePatchCanFilterIt() {
@@ -175,10 +177,11 @@ class ControlProfileTest {
             return patch to CompatMirror.controls(classes).containsKey("avatar_tabs")
         }
         assertEquals(true to true, takenBy(inlineTabs()))
+        assertEquals(true to true, takenBy(inlineTabs(addAllCopy = true)))
         for ((name, refused) in mapOf(
             "two copies" to inlineTabs(extraCopy = true), "a branch into the copy" to inlineTabs(branchIntoCopy = true),
             "a switch case into the copy" to inlineTabs(switchIntoCopy = true), "a catch into the copy" to inlineTabs(catchIntoCopy = true),
-            "586's addAll" to inlineTabs(addAllCopy = true), "the range form" to inlineTabs(rangeCopy = true),
+            "the range form" to inlineTabs(rangeCopy = true),
             "a copy apart from its builder" to inlineTabs(apart = true), "the builder in the list's place" to inlineTabs(otherBuilder = true),
         )) assertEquals(false to false, takenBy(refused), name)
     }

@@ -76,35 +76,61 @@ public final class FakeLineEnv {
 
     public static volatile String activeAccount = "u_acc_1";
     public static volatile boolean previewsAllowed = true;
+    public static volatile boolean throwOnPreviewsAllowed = false;
+    public static volatile boolean throwOnMessageQuery = false;
     public static volatile boolean nextNativeMuteSuccess = true;
     public static volatile boolean deferNativeMuteCallback = false;
     public static volatile Runnable onAvatarLoad = null;
+    public static volatile Runnable onPreviewsAllowedCheck = null;
+    public static volatile Runnable onMutedCheck = null;
     public static final Map<String, ChatRow> CHATS = new HashMap<String, ChatRow>();
     public static final List<MessageRow> MESSAGES = new ArrayList<MessageRow>();
     public static final Map<String, ContactRow> CONTACTS = new HashMap<String, ContactRow>();
     public static final List<NativeMuteCall> NATIVE_MUTE_CALLS = new ArrayList<NativeMuteCall>();
+    public static final List<String> QUERIES = new ArrayList<String>();
     public static int chatListRefreshCount = 0;
     private static long nextRowId = 1L;
     private static kotlin.coroutines.Continuation pendingContinuation;
     private static String pendingMuteChat;
     private static boolean pendingMuteDesired;
+    private static java.util.concurrent.CountDownLatch deferredMuteInstalled;
 
     private FakeLineEnv() {}
 
     public static synchronized void reset() {
         activeAccount = "u_acc_1";
         previewsAllowed = true;
+        throwOnPreviewsAllowed = false;
+        throwOnMessageQuery = false;
         nextNativeMuteSuccess = true;
         deferNativeMuteCallback = false;
         onAvatarLoad = null;
+        onPreviewsAllowedCheck = null;
+        onMutedCheck = null;
         CHATS.clear();
         MESSAGES.clear();
         CONTACTS.clear();
         NATIVE_MUTE_CALLS.clear();
+        QUERIES.clear();
         chatListRefreshCount = 0;
         nextRowId = 1L;
         pendingContinuation = null;
         pendingMuteChat = null;
+        deferredMuteInstalled = null;
+    }
+
+    public static synchronized java.util.concurrent.CountDownLatch prepareDeferredNativeMute() {
+        deferNativeMuteCallback = true;
+        deferredMuteInstalled = new java.util.concurrent.CountDownLatch(1);
+        return deferredMuteInstalled;
+    }
+
+    public static synchronized List<NativeMuteCall> getNativeMuteCallsSnapshot() {
+        return new ArrayList<NativeMuteCall>(NATIVE_MUTE_CALLS);
+    }
+
+    public static synchronized List<String> getQueriesSnapshot() {
+        return new ArrayList<String>(QUERIES);
     }
 
     public static synchronized void addMessage(String chatId, String serverId, long createdTime,
@@ -120,6 +146,9 @@ public final class FakeLineEnv {
             pendingContinuation = cont;
             pendingMuteChat = chatId;
             pendingMuteDesired = desiredEnabled;
+            if (deferredMuteInstalled != null) {
+                deferredMuteInstalled.countDown();
+            }
             return ct8.a.COROUTINE_SUSPENDED;
         }
         if (nextNativeMuteSuccess) {

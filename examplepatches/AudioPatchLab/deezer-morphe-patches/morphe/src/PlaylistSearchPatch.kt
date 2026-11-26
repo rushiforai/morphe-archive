@@ -12,9 +12,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
-private const val PLAYLIST_ACTIONS = "LIlIllIlIlIIIllI;"
-private const val ACTION = "LIIIIlIlllll;"
-private const val SEARCH_ACTION = "LlIIIlIIIlllllll;"
+private const val PLAYLIST_ACTIONS = "LIIIllllIllllIl;"
+private const val ACTION = "LIlIlIllIlIIl;"
+private const val SEARCH_ACTION = "LIIIlIIIlIIlIIIII;"
 private const val SEARCH_LABEL = 0x7f1407a4
 private const val ADD_SEARCH = "morpheAddPlaylistSearch"
 
@@ -45,17 +45,17 @@ private fun addPlaylistSearch(): MutableMethod {
             const/4 v2, 0x0
             const/4 v3, 0x1
             invoke-static {p0, v2, v0, v3, v1}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
-            new-instance v2, LIIlIlIIIIlIllIIl;
+            new-instance v2, LIlllIlIIIlllIlIl;
             const v3, $SEARCH_LABEL
             const/16 v4, 0xe
             const/4 v5, 0x0
-            invoke-direct {v2, v3, v4, v5, v5}, LIIlIlIIIIlIllIIl;-><init>(IILjava/lang/Integer;Ljava/util/List;)V
-            new-instance v3, LIIllIlIllIlIllll;
-            invoke-direct {v3, v5, v2}, LIIllIlIllIlIllll;-><init>(LIlIIIlIlIIllIII;LIlIIIlIlIIllIII;)V
-            new-instance v2, LIIIllIllIIIllll;
-            invoke-direct {v2, v3}, LIIIllIllIIIllll;-><init>(LIIllIlIllIlIllll;)V
+            invoke-direct {v2, v3, v4, v5, v5}, LIlllIlIIIlllIlIl;-><init>(IILjava/lang/Integer;Ljava/util/List;)V
+            new-instance v3, LIlllIIlIIIlIIIII;
+            invoke-direct {v3, v5, v2}, LIlllIIlIIIlIIIII;-><init>(LIlIlIIlllIllIllI;LIlIlIIlllIllIllI;)V
+            new-instance v2, LlllIIIlIllIIIlI;
+            invoke-direct {v2, v3}, LlllIIIlIllIIIlI;-><init>(LIlllIIlIIIlIIIII;)V
             new-instance v3, $SEARCH_ACTION
-            invoke-direct {v3, v2}, $SEARCH_ACTION-><init>(LIIIllIllIIIllll;)V
+            invoke-direct {v3, v2}, $SEARCH_ACTION-><init>(LlllIIIlIllIIIlI;)V
             aput-object v3, v0, v5
             return-object v0
             :keep_actions
@@ -70,17 +70,17 @@ internal val playlistSearchPatch = patch {
 
     execute {
         check(mutableClassDefBy(PLAYLIST_ACTIONS).methods.add(addPlaylistSearch()))
-        val header = mutableClassDefBy("LllIIIllIIIIIII;").methods.single {
+        val header = mutableClassDefBy("LIlllIlIIIllIIll;").methods.single {
             it.name == "invoke" && it.parameterTypes == List(3) { "Ljava/lang/Object;" }
         }
         val instructions = checkNotNull(header.implementation).instructions
         val listActions = instructions.indices.single { index ->
             instructions[index].opcode == Opcode.INVOKE_STATIC &&
                 (instructions[index] as ReferenceInstruction).reference.toString() ==
-                "LllIlIlIIlIIIIlI;->IIIlIIlIIIllIII([Ljava/lang/Object;)LIlIIlllIlIlllllI;" &&
+                "LlIIllIIlllIl;->lllIIllIIIlIlII([Ljava/lang/Object;)LIllIllIIIIllllll;" &&
                 (index - 8 until index).any { previous ->
                     (instructions.getOrNull(previous) as? ReferenceInstruction)?.reference.toString() ==
-                        "LIlIllIlIlIIIllI;->IIIIIllIlIIllll:$ACTION"
+                        "LIIIllllIllllIl;->IllIIIlllIIlIlll:$ACTION"
                 }
         }
         val call = instructions[listActions] as FiveRegisterInstruction

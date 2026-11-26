@@ -24,6 +24,10 @@ public final class SQLiteDatabase implements Closeable {
     public Cursor rawQuery(String sql, String[] args) {
         List<Object[]> rows = new ArrayList<Object[]>();
         synchronized (FakeLineEnv.class) {
+            FakeLineEnv.QUERIES.add(sql);
+            if (FakeLineEnv.throwOnMessageQuery && sql.contains("chat_history")) {
+                throw new RuntimeException("Simulated SQLite query failure");
+            }
             if (dbName.endsWith("contact")) {
                 String mid = args != null && args.length > 0 ? args[0] : "";
                 FakeLineEnv.ContactRow contact = FakeLineEnv.CONTACTS.get(mid);
@@ -42,6 +46,17 @@ public final class SQLiteDatabase implements Closeable {
                     if (chat.equals(m.chatId) && sid.equals(m.serverId)
                             && m.fromMid != null && !account.equals(m.fromMid)) {
                         rows.add(new Object[]{Integer.valueOf(1)});
+                        break;
+                    }
+                }
+                return new Cursor(rows);
+            }
+            if (sql.contains("SELECT parameter FROM chat_history")) {
+                String chat = args[0], sid = args[1], account = args[2];
+                for (FakeLineEnv.MessageRow m : FakeLineEnv.MESSAGES) {
+                    if (chat.equals(m.chatId) && sid.equals(m.serverId)
+                            && m.fromMid != null && !account.equals(m.fromMid)) {
+                        rows.add(new Object[]{m.parameter});
                         break;
                     }
                 }

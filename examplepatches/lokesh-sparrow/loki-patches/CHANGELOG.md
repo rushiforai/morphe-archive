@@ -1,3 +1,24 @@
+## 3.5.0 (2026-11-25)
+
+### New Features
+- **1DM:** 1DM joins the bundle - Remove ads (1DM), Remove 1DM+ promotions to hide the 1DM+ upgrade offers, and Rename to IDM+.
+- **ADM:** ADM joins the bundle - Remove ads (ADM) removes the ads and banners, including Google and AppBrain, the red Disable Ads menu item, and the Disable Ads and Telegram bars.
+- **LinkedIn:** The More page has a switch for each row, and the Loki Patches menu is reorganised with its own Feed filters and Navigation & panels pages.
+- **LinkedIn:** Expand posts opens long posts in full without the See more tap, off by default.
+- **LinkedIn:** Disable screenshot share sheet stops a screenshot from opening LinkedIn's share sheet.
+- **Tasker:** Tasker joins the bundle - Unlock Tasker unlocks every paid feature with no trial timer, even offline.
+- **TrackChecker:** TrackChecker joins the bundle - Remove ads (TrackChecker).
+- Patch status shows what is on right now in every app: a count, the filters On, Off and Not applied, and a line on what each patch does.
+
+### Fixes
+- **LinkedIn:** Remove gaps and dividers works on LinkedIn 4.1.1276.
+- **LinkedIn:** Hide games no longer hides rows on the More page, which could show "Something went wrong".
+
+### Updated App Support
+- **LinkedIn:** LinkedIn 4.1.1276 is supported, next to 4.1.1272.
+
+**53 patches for 10 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
 ## 3.4.0 (2026-11-20)
 
 ### New Features

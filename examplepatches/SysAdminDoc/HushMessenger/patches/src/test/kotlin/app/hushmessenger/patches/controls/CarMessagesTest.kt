@@ -80,7 +80,7 @@ private const val FLAG_HELPER = "LX/18A;->A1Z(Ljava/lang/Object;J)Z"
  */
 private val GATE_BODY = """
     iget-object v1, p0, $CAR_GATE_OWNER->A00:Ljava/lang/Object;
-    const-wide v2, 0x0081027600011849L
+    const-wide v2, 0x0081026b0001184aL
     invoke-static {v1, v2, v3}, $FLAG_HELPER
     move-result v1
     if-eqz v1, :no_car
@@ -94,7 +94,7 @@ private val GATE_BODY = """
 /** 586 cast the config and asked it directly instead of going through the static helper. */
 private val CAST_GATE_BODY = """
     iget-object v1, p0, $CAR_GATE_OWNER->A00:Ljava/lang/Object;
-    const-wide v2, 0x0081027600011849L
+    const-wide v2, 0x0081026b0001184aL
     check-cast v1, $CONFIG
     invoke-interface {v1, v2, v3}, $CONFIG->B1R(J)Z
     move-result v1
@@ -124,7 +124,7 @@ class CarMessagesTest {
         assertEquals(listOf(SYNTHETIC_CAR_EXTEND), found(carMessagesFixture()))
         validateControls(mirroredControls(carMessagesFixture()), setOf(CAR_MESSAGES))
         assertEquals(setOf(SYNTHETIC_CAR_EXTEND), SYNTHETIC_PROFILE.hooks.getValue(CAR_MESSAGES))
-        assertEquals(setOf("LX/0Qy;->Ajw(LX/0ME;)V"), BASE_PROFILE.hooks.getValue(CAR_MESSAGES))
+        assertEquals(setOf("LX/0Rg;->AoC(LX/0Mb;)V"), BASE_PROFILE.hooks.getValue(CAR_MESSAGES))
     }
 
     @Test fun lookalikesAreNotTheExtender() {
@@ -181,7 +181,7 @@ class CarMessagesTest {
         assertEquals(listOf(SYNTHETIC_CAR_GATE), foundGate(carMessagesFixture(gateMethod = gate(CAST_GATE_BODY))), "586's cast read")
         validateControls(mirroredControls(carMessagesFixture()), setOf(CAR_MESSAGES, CAR_EXTENSION_GATE))
         assertEquals(setOf(SYNTHETIC_CAR_GATE), SYNTHETIC_PROFILE.hooks.getValue(CAR_EXTENSION_GATE))
-        assertEquals(setOf("LX/9yQ;->A06(Landroid/graphics/Bitmap;LX/0ME;${FB_USER_SESSION}LX/D6N;Ljava/lang/String;I)V"),
+        assertEquals(setOf("LX/AXP;->A00(Landroid/graphics/Bitmap;)V"),
             BASE_PROFILE.hooks.getValue(CAR_EXTENSION_GATE))
     }
 
@@ -210,7 +210,7 @@ class CarMessagesTest {
 
     @Test fun lookalikeFlagChecksAreNotTheGate() {
         val cases = mapOf(
-            "another flag" to GATE_BODY.replace("0x0081027600011849L", "0x0081027700011859L"),
+            "another flag" to GATE_BODY.replace("0x0081026b0001184aL", "0x0081027700011859L"),
             "the id in other registers" to GATE_BODY.replace("invoke-static {v1, v2, v3}", "invoke-static {v1, v3, v4}"),
             "a helper of another signature" to GATE_BODY.replace(FLAG_HELPER, "LX/18A;->A1Z(LX/Other;J)Z"),
             "an instance helper" to GATE_BODY.replace("invoke-static {v1, v2, v3}", "invoke-virtual {v1, v2, v3}"),
@@ -254,7 +254,7 @@ class CarMessagesTest {
 
     @Test fun anUnusableGateRefusesTheSwitchBeforeAnyEdit() {
         val cases = mapOf(
-            "another flag" to gate(GATE_BODY.replace("0x0081027600011849L", "0x0081027700011859L")),
+            "another flag" to gate(GATE_BODY.replace("0x0081026b0001184aL", "0x0081027700011859L")),
             "the extender" to extend(),
         )
         for ((case, bad) in cases) {

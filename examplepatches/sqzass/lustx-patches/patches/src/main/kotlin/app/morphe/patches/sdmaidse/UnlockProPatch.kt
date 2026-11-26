@@ -56,7 +56,6 @@ val unlockProPatch = bytecodePatch(
             "SD Maid SE: UpgradeRepoFoss\$Info.<init>(Z, Instant, Type, Throwable) not found (version drift?)",
         )
 
-        // p0 = this, p1 = isPro.
         infoConstructor.addInstructions(
             0,
             "const/4 p1, 0x1",
@@ -75,8 +74,6 @@ val unlockProPatch = bytecodePatch(
         }
 
         isProMethods.forEach { method ->
-            // Static extension method: p0/p1 are incoming params.
-            // Overwrite p0 as scratch, then return immediately.
             method.addInstructions(
                 0,
                 """

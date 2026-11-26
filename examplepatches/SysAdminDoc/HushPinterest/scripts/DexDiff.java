@@ -277,7 +277,7 @@ public class DexDiff {
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 7), Map.entry("closeupModule", 4),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("pageImage", 1), Map.entry("originalRetry", 1), Map.entry("topicSuggestions", 2), Map.entry("inboxUpdates", 3), Map.entry("feedbackFlyout", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
-            Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("popupBanners", 1), Map.entry("relatedPins", 3), Map.entry("creatorName", 1), Map.entry("saveSound", 1), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("likeHistory", 2), Map.entry("commentHistory", 2), Map.entry("signInFailure", 3), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
+            Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("popupBanners", 1), Map.entry("relatedPins", 3), Map.entry("creatorName", 1), Map.entry("saveSound", 1), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("likeHistory", 2), Map.entry("commentHistory", 2), Map.entry("signInFailure", 3), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3), Map.entry("seenPins", 4),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1),
             Map.entry("closeupRemix", 2), Map.entry("closeupActionBar", 2), Map.entry("closeupVisitSite", 2), Map.entry("closeupSaveButton", 1), Map.entry("postedDate", 1),
             Map.entry("saveSheet", 1), Map.entry("suggestedBoard", 1), Map.entry("boardListHeight", 1), Map.entry("boardOrder", 2),
@@ -9207,11 +9207,7 @@ public class DexDiff {
          */
         void homePage(Contract c) {
             String feed = c.strings.get(2), home = c.strings.get(1);
-            List<Method> callbacks = new ArrayList<>();
-            for (ClassDef owner : clean.classes.values()) if (!owner.getType().startsWith(OWN))
-                for (Method m : owner.getMethods()) if (m.getName().equals("invoke") && m.getImplementation() != null && handsBack(m, feed)
-                        && instructions(m).stream().anyMatch(i -> reference(i) instanceof MethodReference call && call.getDefiningClass().startsWith(home)
-                        && call.getParameterTypes().stream().anyMatch(p -> p.toString().equals(feed)))) callbacks.add(m);
+            List<Method> callbacks = homeCallbacks(home, feed);
             if (callbacks.isEmpty() || homeRequests().isEmpty()) { capability(c.callee, false); return; }
             boolean asked = homeFields();
             Method after = actual(unique(callbacks, "Home's page callback"));
@@ -9235,6 +9231,64 @@ public class DexDiff {
                     List.of(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
                     Arrays.asList(feed, items.toString(), null, null));
             capability(c.callee, asked && hooked && read != null);
+        }
+
+        /** Home's page callbacks: an invoke that casts the page, hands it back and passes it to Home's own model first. */
+        List<Method> homeCallbacks(String home, String feed) {
+            List<Method> callbacks = new ArrayList<>();
+            for (ClassDef owner : clean.classes.values()) if (!owner.getType().startsWith(OWN))
+                for (Method m : owner.getMethods()) if (m.getName().equals("invoke") && m.getImplementation() != null && handsBack(m, feed)
+                        && instructions(m).stream().anyMatch(i -> reference(i) instanceof MethodReference call && call.getDefiningClass().startsWith(home)
+                        && call.getParameterTypes().stream().anyMatch(p -> p.toString().equals(feed)))) callbacks.add(m);
+            return callbacks;
+        }
+
+        /**
+         * Hide pins you've already seen (#52): every pin grid cell, a class declaring its own getPin()
+         * of a pin model and its own markImpressionStart() that isn't the Object bridge, hands itself to
+         * the extension first thing there, and the stub reads the pin through each cell's getter, by
+         * class name. It rides on Home's page hook, so a build without Home's callback and request, or
+         * without such a cell, claims nothing. A cell that isn't public is skipped, as the patch skips it.
+         */
+        void seenPins(Contract c) {
+            String hook = c.strings.get(0), pinOf = c.strings.get(1), home = c.strings.get(2), feed = c.strings.get(3);
+            TreeMap<String, Method[]> cells = new TreeMap<>();
+            for (ClassDef owner : clean.classes.values()) {
+                if (owner.getType().startsWith(OWN) || AccessFlags.INTERFACE.isSet(owner.getAccessFlags())) continue;
+                List<Method> pins = new ArrayList<>(), starts = new ArrayList<>();
+                for (Method m : owner.getMethods()) {
+                    if (m.getImplementation() == null || !m.getParameterTypes().isEmpty() || AccessFlags.STATIC.isSet(m.getAccessFlags())
+                            || AccessFlags.ABSTRACT.isSet(m.getAccessFlags())) continue;
+                    if (m.getName().equals("getPin") && m.getReturnType().startsWith("Lcom/pinterest/api/model/")) pins.add(m);
+                    if (m.getName().equals("markImpressionStart") && !m.getReturnType().equals("Ljava/lang/Object;")) starts.add(m);
+                }
+                if (pins.size() != 1 || starts.size() != 1) continue;
+                if (!AccessFlags.PUBLIC.isSet(owner.getAccessFlags()) || !AccessFlags.PUBLIC.isSet(pins.get(0).getAccessFlags())) continue;
+                cells.put(owner.getType(), new Method[]{pins.get(0), starts.get(0)});
+            }
+            if (cells.isEmpty() || homeCallbacks(home, feed).isEmpty() || homeRequests().isEmpty()) { capability(c.callee, false); return; }
+            boolean hooked = true;
+            List<Opcode> opcodes = new ArrayList<>();
+            List<String> references = new ArrayList<>();
+            for (Method[] cell : cells.values()) {
+                Method after = actual(cell[1]);
+                List<Integer> sites = calls(after, hook, 1);
+                if (after == null || sites.size() != 1) { hooked = false; continue; }
+                int at = sites.get(0);
+                if (at != 0 || !arguments(instructions(after).get(at)).equals(List.of(parameter(after, -1)))) {
+                    fail(hook + " isn't the first thing " + cell[1] + " does, with the cell");
+                    hooked = false;
+                    continue;
+                }
+                remove(after, at, at + 1);
+                opcodes.addAll(List.of(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL,
+                        Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT));
+                references.addAll(Arrays.asList(cell[0].getDefiningClass(), null, cell[0].getDefiningClass(), cell[0].toString(), null, null));
+            }
+            opcodes.addAll(List.of(Opcode.CONST_4, Opcode.RETURN_OBJECT));
+            references.addAll(Arrays.asList(null, null));
+            Method read = hooked ? stub(pinOf, opcodes, references) : null;
+            capability(c.callee, hooked && read != null);
         }
 
         static final String SEARCH_FIELD_SET = "SEARCH_PIN_FEED", RELATED_FIELD_SET = "RELATED_PIN_FIELDS",
@@ -9957,6 +10011,7 @@ public class DexDiff {
                     case "signInFailure": signInFailure(c); break;
                     case "saveAndDownload": saveAndDownload(c); break;
                     case "homePage": homePage(c); break;
+                    case "seenPins": seenPins(c); break;
                     case "firebaseCertificate": firebaseCertificate(c); break;
                     case "ownAuthorities": ownAuthorities(c); break;
                     case "reportedPackage": reportedPackage(c); break;

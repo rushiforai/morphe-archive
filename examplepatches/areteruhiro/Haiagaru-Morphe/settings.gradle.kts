@@ -7,6 +7,14 @@ pluginManagement {
         gradlePluginPortal()
         google()
         maven {
+            name = "MorphePatchesPlugin"
+            url = uri("https://maven.pkg.github.com/MorpheApp/morphe-patches-gradle-plugin")
+            credentials {
+                username = providers.gradleProperty("gpr.user").getOrElse(System.getenv("GITHUB_ACTOR"))
+                password = providers.gradleProperty("gpr.key").getOrElse(System.getenv("GITHUB_TOKEN"))
+            }
+        }
+        maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/MorpheApp/registry")
             credentials {

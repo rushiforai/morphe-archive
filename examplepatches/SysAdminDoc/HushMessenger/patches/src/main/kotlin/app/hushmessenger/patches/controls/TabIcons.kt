@@ -78,8 +78,13 @@ private fun List<Instruction>.tabKey(site: Int): String? {
 /**
  * One tab's icon: where the holder is built, which register the drawable is in, which tab it draws, and the spare
  * register the tab's name is written into, which [validateTabIcons] fills in once it has proved one is free there.
+ * With [pair], [scratch] is the first of two spare registers side by side: the drawable is copied into it, the name
+ * goes in the next one, and the helper reads both as a range.
  */
-internal data class TabIconSite(val at: Int, val register: Int, val key: String, val scratch: Int = -1)
+internal data class TabIconSite(val at: Int, val register: Int, val key: String, val scratch: Int = -1, val pair: Boolean = false) {
+    /** How many instructions the hook puts in front of the site. */
+    val size get() = if (pair) 4 else 3
+}
 
 /**
  * Every place the builder wraps a tab's drawable in the icon holder. Both of the holder's factories take the drawable
@@ -103,7 +108,8 @@ internal fun Method.tabIconSites(): List<TabIconSite> {
  * holds a drawable before the call and a drawable after it, which is what keeps a site inside one of Messenger's own
  * try blocks safe to patch: the catch sees the register exactly as it would have. The tab's name needs a register of
  * its own, so each site takes one the method no longer reads, proved dead down every path out of the call, the
- * exceptional ones too.
+ * exceptional ones too. When every register the narrow call can reach is still read, as at 588's Close Friends tab,
+ * the site takes two dead registers side by side anywhere in the frame and calls the helper as a range.
  */
 internal fun MutableMethod.validateTabIcons(): List<TabIconSite> {
     if (!isTabRenderInfo()) iconsChanged("builder ${hookId()}")
@@ -132,8 +138,12 @@ internal fun MutableMethod.validateTabIcons(): List<TabIconSite> {
         // A jump onto the call would reach the holder with the drawable the extension never saw.
         if (site.at in targets) iconsChanged("a jump lands on ${site.key}'s icon")
         val scratch = (0..minOf(15, frame - 1)).firstOrNull { it != site.register && flow.deadAt(site.at, it) }
-            ?: iconsChanged("${site.key}'s icon has no register to spare")
-        site.copy(scratch = scratch)
+        if (scratch != null) return@map site.copy(scratch = scratch)
+        // The copy and the name are written with eight-bit destinations, so the pair has to start below 255.
+        val pair = (0..minOf(254, frame - 2)).firstOrNull {
+            it != site.register && it + 1 != site.register && flow.deadAt(site.at, it) && flow.deadAt(site.at, it + 1)
+        } ?: iconsChanged("${site.key}'s icon has no register to spare")
+        site.copy(scratch = pair, pair = true)
     }
 }
 
@@ -144,13 +154,16 @@ internal fun MutableMethod.validateTabIcons(): List<TabIconSite> {
  */
 internal fun MutableMethod.injectTabIcons() {
     for (site in validateTabIcons().sortedByDescending { it.at }) {
-        addInstructions(
-            site.at,
-            """
-                const-string v${site.scratch}, "${site.key}"
-                invoke-static {v${site.register}, v${site.scratch}}, $PICK_TAB_ICON
-                move-result-object v${site.register}
-            """.trimIndent(),
-        )
+        val smali = if (site.pair) """
+            move-object/from16 v${site.scratch}, v${site.register}
+            const-string v${site.scratch + 1}, "${site.key}"
+            invoke-static/range {v${site.scratch} .. v${site.scratch + 1}}, $PICK_TAB_ICON
+            move-result-object v${site.register}
+        """ else """
+            const-string v${site.scratch}, "${site.key}"
+            invoke-static {v${site.register}, v${site.scratch}}, $PICK_TAB_ICON
+            move-result-object v${site.register}
+        """
+        addInstructions(site.at, smali.trimIndent())
     }
 }

@@ -12,7 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-private const val BLUR_EXTENSION_CLASS = "Lapp/bin0culars/extension/reddit/GlassBlur;"
+internal const val BLUR_EXTENSION_CLASS = "Lapp/bin0culars/extension/reddit/GlassBlur;"
 
 private data class CanvasCall(
     val ref: MethodReference,
@@ -174,4 +174,5 @@ internal fun hookGlassBlur(drawWithContentRef: MethodReference) {
     fillCanvasBridges(scopeType, drawContextRef, canvasCall, nativeField, drawWithContentRef)
     hookNavContentBox()
     hookMainActivity()
+    hookBarSlide()
 }

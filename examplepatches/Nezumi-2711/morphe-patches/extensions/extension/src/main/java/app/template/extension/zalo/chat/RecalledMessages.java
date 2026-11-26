@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -32,7 +33,7 @@ public final class RecalledMessages {
         boolean incoming = account != null && !account.isEmpty()
             && senderId != null && !senderId.isEmpty() && !account.equals(senderId);
         boolean keep = enabled && incoming;
-        android.util.Log.i("NezumiRecall", "event=" + eventType + " enabled=" + enabled
+        NezumiLog.i("NezumiRecall", "event=" + eventType + " enabled=" + enabled
             + " incoming=" + incoming + " kept=" + keep);
         return keep;
     }
@@ -61,7 +62,8 @@ public final class RecalledMessages {
                 keys.add(recallDigest(new org.json.JSONArray().put(ownerId).put("global").put(globalId).toString()));
             }
             return keys;
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.swallowedOnce("NezumiRecall", "recall keys unavailable", failure);
             return keys;
         }
     }
@@ -93,13 +95,13 @@ public final class RecalledMessages {
         for (View row : rows) {
             row.post(() -> refreshRecallRow(row));
         }
-        android.util.Log.i("NezumiRecall", "target marked");
+        NezumiLog.i("NezumiRecall", "target marked");
     }
 
     public static boolean isIncomingRecall(Object message) {
         Context context = ZaloEnv.appContext();
         if (context == null || message == null) {
-            android.util.Log.i("NezumiRecall", "lookup miss no-context-or-message");
+            NezumiLog.i("NezumiRecall", "lookup miss no-context-or-message");
             return false;
         }
         try {
@@ -107,11 +109,11 @@ public final class RecalledMessages {
             synchronized (RECALL_LOCK) {
                 boolean hit = !keys.isEmpty() && loadRecallAccount(context) != null
                     && keys.stream().anyMatch(recalledMessages::contains);
-                android.util.Log.i("NezumiRecall", "lookup " + (hit ? "hit" : "miss"));
+                NezumiLog.d("NezumiRecall", "lookup " + (hit ? "hit" : "miss"));
                 return hit;
             }
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            android.util.Log.i("NezumiRecall", "lookup miss reflection");
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.swallowedOnce("NezumiRecall", "recall lookup reflection failed", failure);
             return false;
         }
     }
@@ -119,17 +121,18 @@ public final class RecalledMessages {
     public static boolean hasRecallLabel(Object row) {
         try {
             return row != null && isIncomingRecall(row.getClass().getMethod("getMessage").invoke(row));
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.swallowedOnce("NezumiRecall", "recall label check failed", failure);
             return false;
         }
     }
 
     public static String formatRecallTime(View row, String original) {
         if (!hasRecallLabel(row)) {
-            android.util.Log.i("NezumiRecall", "footer miss");
+            NezumiLog.i("NezumiRecall", "footer miss");
             return original;
         }
-        android.util.Log.i("NezumiRecall", "footer hit");
+        NezumiLog.i("NezumiRecall", "footer hit");
         String label = recalledLabel(row.getContext());
         return original == null || original.isEmpty() ? label : original + " - " + label;
     }
@@ -139,7 +142,7 @@ public final class RecalledMessages {
         synchronized (RECALL_LOCK) {
             RECALL_ROWS.put(row, Boolean.TRUE);
         }
-        android.util.Log.i("NezumiRecall", "row tracked");
+        NezumiLog.i("NezumiRecall", "row tracked");
     }
 
     private static void refreshRecallRow(View row) {
@@ -163,8 +166,8 @@ public final class RecalledMessages {
             // p2 rebinds and requests layout on its own.
             row.requestLayout();
             row.invalidate();
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            android.util.Log.w("NezumiRecall", "row refresh unavailable");
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.w("NezumiRecall", "row refresh unavailable", failure);
         }
     }
 

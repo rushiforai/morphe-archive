@@ -1,0 +1,73 @@
+/*
+ * Copyright (C) 2026 hxreborn
+ * SPDX-License-Identifier: GPL-3.0-only
+ *
+ * Ported from hxreborn/morphe-patches (protonvpn/misc/restrictions/FreeUserCheck.kt).
+ */
+
+package app.morphe.patches.protonvpn.shared.restrictions
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionFilter
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.Match
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.instructionsOrNull
+import app.morphe.patcher.opcode
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.util.getReference
+import app.morphe.patches.protonvpn.shared.anchors.isFreeUserCall
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+
+internal fun freeUserCheckFingerprint(
+    definingClass: String? = null,
+    name: String? = null,
+    accessFlags: List<AccessFlags>? = null,
+    returnType: String? = null,
+    parameters: List<String>? = null,
+    strings: List<String>? = null,
+    vararg followingFilters: InstructionFilter,
+) = Fingerprint(
+    definingClass = definingClass,
+    name = name,
+    accessFlags = accessFlags,
+    returnType = returnType,
+    parameters = parameters,
+    strings = strings,
+    filters = listOf(
+        isFreeUserCall(),
+        opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
+    ) + followingFilters,
+)
+
+private fun Match.clearFreeUserResult() {
+    val freeUserResult = instructionMatches[1]
+    val register = freeUserResult.getInstruction<OneRegisterInstruction>().registerA
+    method.addInstruction(freeUserResult.index + 1, "const/16 v$register, 0x0")
+}
+
+internal fun clearFreeUserCheck(check: Fingerprint) = check.match().clearFreeUserResult()
+
+internal fun clearFreeUserChecks(check: Fingerprint) = check.matchAll().forEach { it.clearFreeUserResult() }
+
+internal fun clearFreeUserCheckInLambdaOf(owner: Fingerprint) {
+    val instantiatedTypes = owner.originalClassDef.methods
+        .flatMap { it.instructionsOrNull ?: emptyList() }
+        .filter { it.opcode == Opcode.NEW_INSTANCE }
+        .mapNotNull { it.getReference<TypeReference>()?.type }
+        .toSet()
+    val check = instantiatedTypes.mapNotNull { type ->
+        val classDef = classDefByOrNull(type) ?: return@mapNotNull null
+        freeUserCheckFingerprint(definingClass = type, name = "invokeSuspend")
+            .takeIf { it.matchOrNull(classDef) != null }
+    }.singleOrNull() ?: throw PatchException(
+        "Expected one invokeSuspend free-user check in a class instantiated by " +
+            "${owner.originalClassDef.type}",
+    )
+    clearFreeUserCheck(check)
+}

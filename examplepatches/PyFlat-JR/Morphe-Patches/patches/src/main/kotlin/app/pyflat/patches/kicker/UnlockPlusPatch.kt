@@ -1,7 +1,7 @@
 package app.pyflat.patches.kicker
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.pyflat.util.injectEnumReturnByString
 
 internal object GetPlusAboStateFingerprint : Fingerprint(
@@ -10,11 +10,11 @@ internal object GetPlusAboStateFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val unlockPlusPatch = bytecodePatch(
+val unlockPlusPatch = patch(
     name = "Unlock Plus",
     description = "Unlocks the Plus subscription.",
 ) {
-    compatibleWith("com.netbiscuits.kicker")
+    compatibleWith(COMPATIBILITY_KICKER)
     execute {
         injectEnumReturnByString(GetPlusAboStateFingerprint.method, "PLUS")
     }

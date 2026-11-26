@@ -128,9 +128,9 @@ class QuietCallsTest {
     @Test fun eachProfileHooksItsOwnDecisionAndPoster() {
         assertEquals(setOf(SYNTHETIC_RING_DECISION), SYNTHETIC_PROFILE.hooks.getValue(QUIET_CALL_RING))
         assertEquals(setOf(SYNTHETIC_CALL_POSTER), SYNTHETIC_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
-        assertEquals(setOf("LX/B7o;->run()V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_RING))
-        assertEquals(setOf("$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;LX/BRO;LX/CU3;LX/B9H;" +
-            "${RTC_NOTIFICATION_SERVICE}LX/Mqn;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
+        assertEquals(setOf("LX/BcW;->run()V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_RING))
+        assertEquals(setOf("$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;LX/Bwg;LX/D1J;LX/Bdu;" +
+            "${RTC_NOTIFICATION_SERVICE}LX/NSb;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
     }
 
     // The switch says the phone stays quiet. A decision that skips the ringtone some other way could ring anyway, and a

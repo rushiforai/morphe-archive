@@ -46,9 +46,18 @@ public final class Settings {
     static final String HIDE_GAMES = "hide_games";
     static final String HIDE_NEW_POSTS_PILL = "hide_new_posts_pill";
     static final String HIDE_TRANSLATION = "hide_translation";
+    static final String HIDE_POST_FOLLOW = "hide_post_follow";
+    static final String HIDE_DEGREE = "hide_degree";
+    static final String EXACT_POST_TIME = "exact_post_time";
+    static final String NEWEST_COMMENTS = "newest_comments";
+    /** Words and phrases, one per line: posts whose text has one are hidden. */
+    static final String MUTED_WORDS = "muted_words";
+    /** Names of people and pages, one per line: their posts are hidden. */
+    static final String MUTED_AUTHORS = "muted_authors";
     static final String OPEN_LINKS_DIRECTLY = "open_links_directly";
     static final String HIDE_SPONSORED_MESSAGES = "hide_sponsored_messages";
     static final String GHOST_MODE = "ghost_mode";
+    static final String MARK_READ_AFTER_REPLY = "mark_read_after_reply";
     static final String BLOCK_TRACKING = "block_tracking";
     static final String ANONYMOUS_PROFILE_VIEWING = "anonymous_profile_viewing";
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
@@ -71,6 +80,9 @@ public final class Settings {
     static final String NO_SCREENSHOT_SHARE = "no_screenshot_share";
     static final String SHOW_TOP_BAR_POST = "show_top_bar_post";
     static final String SHOW_TOP_BAR_MESSAGING = "show_top_bar_messaging";
+    static final String FEED_SORT_BUTTON = "feed_sort_button";
+    /** The app's own answer on showing the feed sort button, which the switch follows until the user changes it. */
+    static final String FEED_SORT_STOCK = "feed_sort_button_stock";
     /** HomeTabInfo constants of the tabs after Home, in the order the user sorted them; empty for LinkedIn's order. */
     static final String TAB_ORDER = "tab_order";
     /** The optional tabs (Post, Video, News) LinkedIn last offered, each followed by a comma (NavigationBar). */
@@ -273,6 +285,12 @@ public final class Settings {
         return Features.has(SHOW_TOP_BAR_POST);
     }
 
+    /** Called by the patched app: whether the home top bar gets the feed sort button, {@code stock} being the app's own answer. */
+    public static boolean showFeedSortButton(boolean stock) {
+        set(FEED_SORT_STOCK, stock);
+        return get(FEED_SORT_BUTTON, stock);
+    }
+
     static boolean hideTopBarPost() {
         return isTopBarButtonsIncluded() && !get(SHOW_TOP_BAR_POST, true);
     }
@@ -470,6 +488,11 @@ public final class Settings {
         return Features.on(GHOST_MODE);
     }
 
+    /** Part of Ghost mode: a chat you reply to is marked as read. */
+    static boolean markReadAfterReply() {
+        return Features.on(MARK_READ_AFTER_REPLY);
+    }
+
     static boolean openLinksDirectly() {
         return Features.on(OPEN_LINKS_DIRECTLY);
     }
@@ -514,6 +537,30 @@ public final class Settings {
 
     static boolean hideTranslation() {
         return Features.on(HIDE_TRANSLATION);
+    }
+
+    static boolean hidePostFollow() {
+        return Features.on(HIDE_POST_FOLLOW);
+    }
+
+    static boolean hideDegree() {
+        return Features.on(HIDE_DEGREE);
+    }
+
+    static boolean exactPostTime() {
+        return Features.on(EXACT_POST_TIME);
+    }
+
+    static boolean newestComments() {
+        return Features.on(NEWEST_COMMENTS);
+    }
+
+    /**
+     * A muted list as typed ({@link #MUTED_WORDS} or {@link #MUTED_AUTHORS}), or an empty string; only with Feed
+     * filters patched in.
+     */
+    static String muted(String key) {
+        return isFeedFiltersIncluded() ? getString(key, "") : "";
     }
 
     static boolean hideAds() {

@@ -452,6 +452,7 @@ public final class Haiagaru {
         initializeApplicationContext(application);
         syncHissiMenuEntry(application);
         FoldLayout.install(application);
+        AppTrafficUsage.start(application);
         NativeRestore191.initialize(application);
         EmojiFontFallback.initialize(application);
     }
@@ -471,6 +472,7 @@ public final class Haiagaru {
                         @Override public void onActivityStarted(Activity activity) { }
                         @Override public void onActivityResumed(Activity activity) {
                             resumedActivity = new WeakReference<>(activity);
+                            AppTrafficUsage.sampleSoon(activity);
                             MediaUploadHosts.resumed(activity);
                             View decor=activity.getWindow().peekDecorView();
                             if(decor!=null&&shouldHideAds())hideRememberedAdViews(decor);
@@ -500,6 +502,8 @@ public final class Haiagaru {
     public static Object addEdgeArchiveToolbarChoice(Object toolbarModel) {
         Object result=addToolbarChoice(toolbarModel, EDDI_ARCHIVE_TOOLBAR_ID, "haiagaru_edge_archive");
         result=addToolbarChoice(result,ResponseNotes.MENU,"haiagaru_response_notes");
+        result=addToolbarChoice(result,BoardUrlPicker.ACTION,"haiagaru_board_url_picker");
+        for(int slot=0;slot<DirectBoardShortcut.COUNT;slot++) result=addToolbarChoice(result,DirectBoardShortcut.ACTION+slot,DirectBoardShortcut.resource(slot));
         return addToolbarChoice(result,OpenTabsRefresh.ACTION,"haiagaru_refresh_open_tabs");
     }
 
@@ -527,6 +531,8 @@ public final class Haiagaru {
         Object result = addToolbarChoice(toolbarModel, QuickFilterToolbar.ID, "haiagaru_quick_filter");
         result=addToolbarChoice(result,OpenTabsRefresh.ACTION,"haiagaru_refresh_open_tabs");
         result=addToolbarChoice(result,ResponseNotes.MENU,"haiagaru_response_notes");
+        result=addToolbarChoice(result,BoardUrlPicker.ACTION,"haiagaru_board_url_picker");
+        for(int slot=0;slot<DirectBoardShortcut.COUNT;slot++) result=addToolbarChoice(result,DirectBoardShortcut.ACTION+slot,DirectBoardShortcut.resource(slot));
         try {
             String version = applicationContext.getPackageManager().getPackageInfo(applicationContext.getPackageName(), 0).versionName;
             if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version)
@@ -677,6 +683,8 @@ public final class Haiagaru {
     public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
         if ((itemId == 2 || itemId == StockChmatePosting.ACTION)
                 && BackgroundPostingUi.blockEditorWhileSending(toolbarActivity(fragment), itemId == 2 ? fragment : null)) return true;
+        if(itemId==BoardUrlPicker.ACTION){BoardUrlPicker.show(toolbarActivity(fragment));return true;}
+        if(DirectBoardShortcut.handles(itemId)){DirectBoardShortcut.open(toolbarActivity(fragment),itemId-DirectBoardShortcut.ACTION);return true;}
         if(itemId==ResponseNotes.MENU){ResponseNotes.open(toolbarActivity(fragment),null);return true;}
         if(MultiResponseNg.click(fragment,itemId))return true;
         if(HomeThreadOrder.click(fragment,itemId))return true;
@@ -3538,6 +3546,8 @@ public final class Haiagaru {
     private static LinearLayout settingsGENERAL(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
+        StorageUsage.addButton(layout,activity);
+        AppTrafficUsage.addSettings(layout,activity);
         LinearLayout basics=SettingsSection.add(layout,text("基本設定・言語", "Basics and language"),text("言語、広告、設定リンク、初期設定", "Language, ads, setting links and defaults"),true);
         LinearLayout sites=SettingsSection.add(layout,text("外部掲示板・板一覧", "External boards and board list"),text("使うサイトと板一覧の分類", "Sites to use and board grouping"),true);
         LinearLayout tabs=SettingsSection.add(layout,text("追加画面のタブ設定", "Tool screen tabs"),text("タブの追加先、自動表示する画面、手動追加", "Target pane, automatic screens and manual tabs"),true);
@@ -3549,6 +3559,8 @@ public final class Haiagaru {
         addedFeatures.setOnClickListener(view -> UpdateHistory.show(activity));
         layout.addView(addedFeatures);
         ThreadWatch.addSettingsButton(layout, activity);
+        BoardUrlPicker.addSettings(layout,activity);
+        DirectBoardShortcut.addSettings(layout,activity);
         SharedPreferences preferences = preferences(activity);
         SharedPreferences chMatePreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         String chMateVersion = "";
@@ -3727,6 +3739,11 @@ public final class Haiagaru {
             View decor = activity.getWindow().getDecorView();
             decor.requestLayout(); decor.invalidate();
         });
+        Switch selectionPriority=addSwitch(behavior,activity,"テキスト選択メニューを優先する",preferences.getBoolean(SelectionMenuPriority.KEY,false));
+        new LiveSettings(preferences,()->{}).toggle(selectionPriority,SelectionMenuPriority.KEY);
+        TextView selectionPriorityHelp=new TextView(activity);
+        selectionPriorityHelp.setText("文字選択中のコピー・全選択などを優先し、NGワード・Web検索・取得済みのスレから検索・共有を︙内へ移します。項目自体は削除しません。次に文字選択メニューを開いた時から適用します。初期はOFFです。端末のAndroidやキーボードによって標準項目の配置は変わります。");
+        behavior.addView(selectionPriorityHelp);
         Switch directCopyMode=addSwitch(behavior,activity,"レス本文の長押しコピー",preferences.getBoolean(DirectCopyGesture.KEY,false));
         directCopyMode.setTag(SettingLinkEntry.KEY_TAG,DirectCopyGesture.KEY);
         live.toggle(directCopyMode,DirectCopyGesture.KEY);
@@ -3879,9 +3896,10 @@ public final class Haiagaru {
         live.number(autoReloadInterval,"autoReloadInterval",10,1800);
         live.choice(threadTitleSpacing,"threadTitleSpacingPercent",i->100+i*5);
         LinearLayout titleMenu=SettingsSection.add(layout,"スレタイトル長押しの追加項目","表示する項目を選択",true);
-        String[] titleKeys={ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH};
-        String[] titleLabels={"「更新対象に含む」を表示","「このスレの新着通知」を表示","「エッヂの閲覧認証」を表示"};
+        String[] titleKeys={ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH,ThreadTitleActions.SHOW_REPORTER};
+        String[] titleLabels={"「更新対象に含む」を表示","「このスレの新着通知」を表示","「エッヂの閲覧認証」を表示","「記者IDをコピー」を表示"};
         for(int i=0;i<titleKeys.length;i++)live.toggle(addSwitch(titleMenu,activity,titleLabels[i],preferences.getBoolean(titleKeys[i],true)),titleKeys[i]);
+        live.toggle(addSwitch(titleMenu,activity,"エッヂのスレタイトル＋URLコピーに記者IDを含める",preferences.getBoolean(EdgeReporterOptions.COPY_SUFFIX,true)),EdgeReporterOptions.COPY_SUFFIX);
         live.toggle(addSwitch(filters,activity,
                 "コピー・選択をHaiagaruポップアップで表示する",
                 ResponseMultiSelection.useHaiagaruCopyPopup(activity)),ResponseMultiSelection.COPY_POPUP);
@@ -4514,20 +4532,32 @@ public final class Haiagaru {
                 FeatureSwitches.enabled("videoLandscapeImmersive", false));
         new LiveSettings(FeatureSwitches.prefs(activity), () -> {}).toggle(videoLandscapeImmersive, "videoLandscapeImmersive");
 
+        StorageUsage.addButton(layout,activity);
+        TextView fetchHelp=new TextView(activity);fetchHelp.setText("自動取得は機能ごとに選べます。初期値はWi-Fi時のみです。取得しない／Wi-Fi未接続ではURLを残し、手動で開けます。ChMate標準の自動取得は別の設定です。動画・GIFサムネイルも本体取得により使用中の通信量が増える場合があります。");layout.addView(fetchHelp);
+        EditText previewFileLimit = addTextField(layout,activity,
+                "追加プレビュー1ファイルの取得上限（MB、0は既存上限、1〜1024）",
+                Integer.toString(preferences.getInt("previewFileLimitMb",0)));
+        previewFileLimit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        new LiveSettings(preferences,()->{}).number(previewFileLimit,"previewFileLimitMb",0,1024);
+        TextView fileLimitHelp=new TextView(activity);
+        fileLimitHelp.setText("一覧画像・Webカード画像・Imgurプレビュー・動画サムネイル取得に適用します。既存の安全上限より大きくはなりません。容量が判明していれば取得前、未判明なら受信中に停止します（通信ヘッダーなどは上限に含みません）。ChMate標準の画像取得や手動保存、VPNライブラリ内の通信は対象外です。モバイル通信以外にも適用します。");
+        layout.addView(fileLimitHelp);
         Spinner mediaAutoFetch = addSpinner(layout, activity,
-                text("動画リンクから自動で読み込むもの", "What to load from video links"),
+                text("動画リンクから自動で読み込むもの（使用中の通信量が増えます）", "What to load from video links"),
                 new String[]{text("画像のみ（サムネイル）", "Thumbnail only"),
                         text("画像＋動画", "Thumbnail and video"),
-                        text("動画のみ", "Video only"), text("取得しない", "Do not retrieve")},
-                mediaAutoFetchMode());
+                        text("動画のみ", "Video only"), text("取得しない", "Do not retrieve"),
+                        "Wi-Fi時のみ自動で取得（画像＋動画）", "Wi-Fi時のみ自動で取得（動画のみ）"},
+                MobileMediaPolicy.videoConfigured());
         Spinner imageAutoFetch = addSpinner(layout, activity,
-                text("画像リンクの画像を自動で読み込む", "Automatically load images from image links"),
-                new String[]{text("画像を取得", "Retrieve images"), text("取得しない", "Do not retrieve")},
-                mediaImageFetchEnabled() ? 0 : 1);
+                text("画像リンクの画像を自動で読み込む（使用中の通信量が増えます）", "Automatically load images from image links"),
+                new String[]{"画像を取得", "取得しない", "Wi-Fi時のみ自動で取得"},
+                MobileMediaPolicy.configured(MobileMediaPolicy.IMAGE));
         Spinner gifAutoFetch = addSpinner(layout, activity,
-                text("GIFリンクから自動で読み込むもの", "What to load from GIF links"),
+                text("GIFリンクから自動で読み込むもの（使用中の通信量が増えます）", "What to load from GIF links"),
                 new String[]{text("画像＋GIF", "Thumbnail and GIF"), text("画像のみ（サムネイル）", "Thumbnail only"),
-                        text("GIFのみ", "GIF only"), text("取得しない", "Do not retrieve")}, gifAutoFetchMode());
+                        text("GIFのみ", "GIF only"), text("取得しない", "Do not retrieve"),
+                        "Wi-Fi時のみ自動で取得（画像＋GIF）", "Wi-Fi時のみ自動で取得（GIFのみ）"}, MobileMediaPolicy.gifConfigured());
         TextView gifFetchHelp = new TextView(activity);
         gifFetchHelp.setText(text(".gif のリンクが対象です。画像は静止サムネイル、GIFは本体です。サムネイル生成にもGIFの取得が必要です（最大8MB）。GIFのみは自動再生を意味しません。実体がMP4のアニメーションは動画の設定に従います。",
                 "Applies to .gif links. Images are still thumbnails; GIF means the original file, not autoplay. Creating a thumbnail also downloads the GIF (up to 8MB). MP4 animations use video settings."));
@@ -4567,7 +4597,7 @@ public final class Haiagaru {
             preferences.edit().putInt(GifAutoFetchPolicy.KEY,gifAutoFetch.getSelectedItemPosition()).apply();
             GifAutoFetch.changed();
         });
-        live.choice(imageAutoFetch,()->preferences.edit().putBoolean("urlImageFetchEnabled",imageAutoFetch.getSelectedItemPosition()==0).apply());
+        live.choice(imageAutoFetch,MobileMediaPolicy.IMAGE);
         live.number(videoThumbnailMaxMb,"videoThumbnailMaxMb",1,1024);
         live.number(videoThumbnailTimeoutSeconds,"videoThumbnailTimeoutSeconds",1,600);
         live.toggle(videoPreviewFour,"videoPreviewFour");live.number(videoPreviewCount,"videoPreviewCount",1,64);
@@ -4588,8 +4618,10 @@ public final class Haiagaru {
         LinearLayout sites=SettingsSection.add(layout,text("Webサイトのリンクカード", "Website link cards"),text("表示、サムネイル、取得件数とキャッシュ", "Display, thumbnails, limits and cache"),true);
         LinearLayout x=SettingsSection.add(layout,text("X／Twitterのカード", "X/Twitter cards"),text("本文、折りたたみ、表示形式と操作", "Text, collapse, presentation and actions"),true);
         SharedPreferences preferences = preferences(activity);
+        Spinner fetchWEB=addSpinner(sites,activity,"Webカードの自動取得",new String[]{"取得する","取得しない","Wi-Fi時のみ自動で取得"},MobileMediaPolicy.configured(MobileMediaPolicy.WEB));
+        new LiveSettings(preferences,()->{}).choice(fetchWEB,MobileMediaPolicy.WEB);
         Switch siteCards = addSwitch(sites, activity,
-                text("Webサイトのリンクカードを表示（追加通信あり）", "Show website link cards (network access)"), siteCardsEnabled());
+                text("Webサイトのリンクカードを表示（使用中の通信量が増えます）", "Show website link cards (network access)"), preferences.getBoolean("siteCardsEnabled",false));
         Button excludedCards=new Button(activity);
         excludedCards.setText(text("リンクカードから除外するURLを追加・編集", "Add / edit URLs excluded from link cards"));
         excludedCards.setOnClickListener(v->showSiteCardExclusions(activity));sites.addView(excludedCards);
@@ -4647,9 +4679,11 @@ public final class Haiagaru {
             View decor = activity.getWindow().getDecorView();
             decor.requestLayout(); decor.invalidate();
         });
+        Spinner fetchX=addSpinner(x,activity,"Xカードの自動取得",new String[]{"取得する","取得しない","Wi-Fi時のみ自動で取得"},MobileMediaPolicy.configured(MobileMediaPolicy.X));
+        new LiveSettings(preferences,()->{}).choice(fetchX,MobileMediaPolicy.X);
         Switch xPostPreview = addSwitch(x, activity,
                 text("X／Twitterの投稿内容をレス内に表示（追加通信あり）", "Show X/Twitter post text in responses (network access)"),
-                xPostPreviewEnabled());
+                preferences.getBoolean("xPostPreviewEnabled",false));
         SettingsSection xDetails=SettingsSection.add(x,text("Xカードの詳細", "X card details"),text("本文の表示とリンク操作", "Text presentation and link actions"),true);
         xDetails.available=xPostPreview::isChecked;xDetails.unavailableMessage="Xの投稿内容の表示をオンにすると変更できます。";
         Button xWarningMode = new Button(activity);
@@ -4805,12 +4839,12 @@ public final class Haiagaru {
         posterIdChainDescription.setTextSize(13);
         layout.addView(posterIdChainDescription, rowParams(activity));
         Switch threadScopedNg = addSwitch(layout, activity,
-                text("レスからNG登録するときに対象範囲を選べるようにする", "Offer a thread-only scope when registering NG from a response"),
+                text("NG登録時に「このスレのみを対象にする」を表示", "Offer a thread-only scope when registering NG from a response"),
                 ThreadScopedNg.enabled(activity));
         live.toggle(threadScopedNg, ThreadScopedNg.ENABLED);
         TextView threadScopedNgHelp = new TextView(activity);
         threadScopedNgHelp.setText(text(
-                "ONで、レスからID・NGName・NGワードを追加するときに「このスレのみ」を選べます。OFFではChMate標準の登録処理をそのまま使います。おすすめプリセットではOFFです。",
+                "ONで、ID・NGName・NGワード・ワッチョイ上下4桁の登録時に「このスレのみを対象にする」を表示します。OFFではID・名前・ワードは確認を挟まず標準登録へ進み、ワッチョイ登録画面でもこのチェックを隠します。既存のスレ限定NGと、この板のみの設定は保持します。おすすめプリセットではOFFです。",
                 "When on, response-based ID, NGName and NG word registration offers a thread-only choice. When off, ChMate's native registration runs unchanged. The recommended preset turns this off."));
         threadScopedNgHelp.setTextSize(13);
         layout.addView(threadScopedNgHelp, rowParams(activity));
@@ -5742,7 +5776,7 @@ public final class Haiagaru {
         return editText;
     }
 
-    private static Spinner addSpinner(
+    static Spinner addSpinner(
             LinearLayout layout,
             Context context,
             String title,
@@ -5834,7 +5868,7 @@ public final class Haiagaru {
     }
 
     static boolean siteCardsEnabled() {
-        SharedPreferences prefs = preferencesOrNull();return prefs != null && prefs.getBoolean("siteCardsEnabled", false);
+        SharedPreferences prefs = preferencesOrNull();return MobileMediaPolicy.allowed(MobileMediaPolicy.WEB) && prefs != null && prefs.getBoolean("siteCardsEnabled", false);
     }
     static int siteCardMaxPerResponse() {
         SharedPreferences prefs = preferencesOrNull();
@@ -5977,15 +6011,10 @@ public final class Haiagaru {
     }
 
     public static int mediaAutoFetchMode() {
-        SharedPreferences prefs = preferencesOrNull();
-        int oldMode = prefs == null ? 2 : prefs.getInt("mediaAutoFetchMode", 2);
-        int mode = prefs == null ? 1 : prefs.getInt("urlVideoFetchMode", oldMode == 3 ? 3 : oldMode == 0 ? 0 : 1);
-        return mode >= 0 && mode <= 3 ? mode : 1;
+        return MobileMediaPolicy.videoMode(MobileMediaPolicy.videoConfigured(),MobileMediaPolicy.wifi());
     }
-
     public static int gifAutoFetchMode() {
-        SharedPreferences prefs = preferencesOrNull();
-        return GifAutoFetchPolicy.mode(prefs == null ? -1 : prefs.getInt(GifAutoFetchPolicy.KEY, -1), mediaImageFetchEnabled());
+        return MobileMediaPolicy.gifMode(MobileMediaPolicy.gifConfigured(),MobileMediaPolicy.wifi(),mediaImageFetchEnabled());
     }
 
     public static int autoReloadIntervalSeconds() {
@@ -6017,12 +6046,7 @@ public final class Haiagaru {
         } catch (Exception ignored) { return false; }
     }
 
-    public static boolean mediaImageFetchEnabled() {
-        SharedPreferences prefs = preferencesOrNull();
-        if (prefs == null) return true;
-        int oldMode = prefs.getInt("mediaAutoFetchMode", 2);
-        return prefs.getBoolean("urlImageFetchEnabled", oldMode != 1 && oldMode != 3);
-    }
+    public static boolean mediaImageFetchEnabled() {return MobileMediaPolicy.allowed(MobileMediaPolicy.IMAGE);}
 
     private static int boundedMediaSetting(String raw, int fallback, int maximum) {
         try {
@@ -6075,7 +6099,7 @@ public final class Haiagaru {
 
     public static boolean xPostPreviewEnabled() {
         SharedPreferences prefs = preferencesOrNull();
-        return prefs != null && prefs.getBoolean("xPostPreviewEnabled", false);
+        return MobileMediaPolicy.allowed(MobileMediaPolicy.X) && prefs != null && prefs.getBoolean("xPostPreviewEnabled", false);
     }
 
     public static int xPostWarningThresholdMode() {

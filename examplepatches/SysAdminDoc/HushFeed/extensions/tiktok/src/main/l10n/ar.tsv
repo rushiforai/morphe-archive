@@ -345,6 +345,8 @@ Block new bottom tabs	حظر التبويبات السفلية الجديدة
 Block this commenter	حظر هذا المعلق
 Block this creator	حظر هذا الصانع
 Block this sound	حظر هذا الصوت
+Block sound	حظر الصوت
+Unblock sound	إلغاء حظر الصوت
 Blocked	محظور
 Blocked %1$s	تم حظر %1$s
 Blocked %1$s. Unblock	تم حظر %1$s. إلغاء الحظر
@@ -682,6 +684,7 @@ Hide the tab names above the feed	أخف أسماء التبويبات أعلى 
 The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.	يختفي اسما أتابعه ولك فوق الخلاصة. يظل التمرير بين الخلاصات وزر البحث كما هما.
 Hide floating promotion badges, coins, and timer banners on the feed.	أخف شارات الترويج العائمة والعملات ولافتات المؤقت في الخلاصة.
 Hide floating promotions	إخفاء العروض الترويجية العائمة
+Hide from the host next time	الاختفاء عن المضيف في المرة القادمة
 Hide inserted cards	إخفاء البطاقات المدرجة
 Hide message requests	إخفاء طلبات الرسائل
 Hide message streaks	إخفاء سلاسل الرسائل
@@ -1174,6 +1177,10 @@ Show the search entry inside TikTok's LIVE drawer, where available. This doesn't
 Show a video preview thumbnail while dragging the progress bar.	أظهر صورة مصغرة للفيديو أثناء سحب شريط التقدم.
 Show the block button on videos	إظهار زر الحظر على الفيديوهات
 Show the block sound button	إظهار زر حظر الصوت
+Show Block sound on sound pages	إظهار حظر الصوت في صفحات الأصوات
+Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound.	يضيف زر حظر الصوت أسفل حفظ في صفحة الصوت، وهي الصفحة التي تفتحها الأسطوانة الدوّارة في الفيديو. يتخطى كل فيديو يستخدم هذا الصوت.
+Hide sound page buttons	إخفاء أزرار صفحة الصوت
+Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens.	إخفاء Jam Sound و«استخدام الصوت» أسفل صفحة الصوت، وهي الصفحة التي تفتحها الأسطوانة الدوّارة في الفيديو.
 Show failures on screen	إظهار الأخطاء على الشاشة
 Show gates	إظهار البوابات
 Show last report	عرض آخر تقرير
@@ -2070,6 +2077,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	أبق شاشة نظيفة في LIVE التالي
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	يعود LIVE الذي تنتقل إليه بالتمرير مع ظهور المحادثة والهدايا والأزرار. هذا يحافظ على الشاشة نظيفة من غرفة إلى غرفة حتى توقفه.
+# context: LIVE settings row under Keep clear screen in the next LIVE; hides the list of viewers' messages over a LIVE stream (#525)
+Hide LIVE chat	إخفاء دردشة LIVE
+# context: summary of Hide LIVE chat; the comment box is where you type a comment, the room's buttons are gifts, share and the rest (#525)
+Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.	يخفي رسائل الدردشة التي تمر فوق فيديو LIVE. يبقى مربع التعليق وأزرار الغرفة.
 # context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
 Offer full screen in more LIVEs	عرض ملء الشاشة في المزيد من بث LIVE
 # context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
@@ -2524,6 +2535,7 @@ LIVE recording saved to %1$s	تم حفظ تسجيل LIVE في %1$s
 LIVE ended or dropped. Recording saved to %1$s	انتهى الـ LIVE أو انقطع. تم حفظ التسجيل في %1$s
 Storage almost full. Recording saved to %1$s	مساحة التخزين شبه ممتلئة. تم حفظ التسجيل في %1$s
 Size limit reached. Recording saved to %1$s	تم بلوغ حد الحجم. تم حفظ التسجيل في %1$s
+2 GB reached. Recording goes on in a new video.	تم بلوغ 2 GB. يستمر التسجيل في فيديو جديد.
 TikTok closed. What was recorded is saved to %1$s	تم إغلاق TikTok. تم حفظ ما تم تسجيله في %1$s
 Recording stopped early. Saved to %1$s	توقف التسجيل مبكرا. تم الحفظ في %1$s
 This LIVE's stream can't be saved	لا يمكن حفظ بث هذا LIVE
@@ -2659,7 +2671,7 @@ Blur the part of the video that sits behind the glass pill on the main feed, so 
 LIVE recording source	مصدر تسجيل LIVE
 Stream only	البث فقط
 Screen	الشاشة
-Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.	خيار البث فقط يحفظ فيديو الغرفة نفسه، كما في السابق. خيار الشاشة يسجل ما يعرضه هاتفك أثناء المشاهدة، مع الصوت الذي يشغله التطبيق عندما يملك TikTok إذن الميكروفون. يطلب Android منك السماح بتسجيل الشاشة في كل مرة، ويعرض إشعارًا خاصًا به أثناء التسجيل.
+Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it.	خيار البث فقط يحفظ فيديو الغرفة نفسه، كما في السابق. خيار الشاشة يسجل ما يعرضه هاتفك أثناء المشاهدة، مع الصوت الذي يشغله التطبيق عندما يملك TikTok إذن الميكروفون. يطلب Android منك السماح بتسجيل الشاشة في كل مرة، ويعرض إشعارًا خاصًا به أثناء التسجيل. يكون تسجيل الشاشة بنفس وضوح الجودة التي تشاهدها. اضغط مطولًا على زر تسجيل في LIVE لتغييره.
 Recording this LIVE's screen	جار تسجيل شاشة هذا LIVE
 Tap Stop or leave the room to save it.	انقر على إيقاف أو غادر الغرفة لحفظه.
 Screen recording wasn't allowed	لم يُسمح بتسجيل الشاشة
@@ -3351,6 +3363,7 @@ Save episodes	حفظ الحلقات
 Pick episodes to save	اختر الحلقات المراد حفظها
 Episode %1$s	الحلقة %1$s
 Preview only	معاينة فقط
+Locked	مقفلة
 Loading episodes	جار تحميل الحلقات
 Couldn't load the episodes. Try again.	تعذر تحميل الحلقات. حاول مرة أخرى.
 Pick at least one episode	اختر حلقة واحدة على الأقل
@@ -3381,7 +3394,7 @@ Writes TikTok's date by the creator's name with the month's name, like Oct 12. D
 Fade the name, date and caption	إخفاء الاسم والتاريخ والوصف تدريجيا
 Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	يعرض اسم صانع المحتوى والتاريخ والوصف وسطر الموسيقى فوق الفيديو بهذا المستوى، مع بقائها قابلة للنقر. عند 100 تتبع إخفاء عناصر التحكم في الفيديو تدريجيا. وعند 0 تُخفى.
 LIVE buttons in the long-press menu	أزرار LIVE في قائمة الضغط المطول
-Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	يزيل زري تسجيل والنقر التلقائي من الفيديو ويضعهما في القائمة التي تظهر عند الضغط مطولا على وسط LIVE.
+Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.	يزيل زري تسجيل والنقر التلقائي وعين وضع الشبح من الفيديو ويضعها في القائمة التي تظهر عند الضغط مطولا على وسط LIVE.
 Auto tap started	بدأ النقر التلقائي
 Hide stories from accounts you don't follow	إخفاء القصص من حسابات لا تتابعها
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	تختفي القصص من الحسابات التي لا تتابعها من شريط القصص. تبقى القصص من الحسابات التي تتابعها.
@@ -3491,7 +3504,7 @@ With the switch above on, landscape and square videos are cropped to cover the s
 Random time each day	وقت عشوائي كل يوم
 Sends at a different time each day, somewhere between When to send and Latest time.	يرسل في وقت مختلف كل يوم، في وقت ما بين وقت الإرسال وآخر وقت.
 Latest time	آخر وقت
-The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	نهاية النافذة العشوائية، في نفس يوم وقت الإرسال. إذا لم يكن لاحقًا، تُرسل الرسالة في وقت الإرسال.
+The end of the random window. If it's earlier than When to send, the window runs past midnight.	نهاية النافذة العشوائية. إذا كانت أبكر من وقت الإرسال، تمتد النافذة إلى ما بعد منتصف الليل.
 # context: Jump to a date on Favorites grids (#508): the Favorites tab holds the videos you saved with the bookmark icon
 Jump to a date on Favorites grids	الانتقال إلى تاريخ في شبكات المفضلات
 Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.	يضيف زرًا إلى الزاوية العلوية لشبكة المفضلات يبدأ عرض فيديوهاتك المحفوظة من سنة أو شهر تختاره، بحيث يتم تحميل المحفوظات القديمة دون التمرير عبر الأحدث. اختر أحدث المحفوظات هناك للعودة.

@@ -1,0 +1,9 @@
+- name: Download kveld9 bundle (mirror)
+        run: |
+          set -euo pipefail
+          mkdir -p bundles
+          KVELD9_URL=$(curl --fail --show-error --silent --location \
+            "https://git.kvkdns.org/kveld9/kveld-morphe-patches/raw/branch/main/patches-bundle.json" |
+            jq -er '.download_url')
+          curl --fail --show-error --location -o bundles/kveld9.mpp "$KVELD9_URL"
+          echo "kveld9 ready: $(du -h bundles/kveld9.mpp | cut -f1)"

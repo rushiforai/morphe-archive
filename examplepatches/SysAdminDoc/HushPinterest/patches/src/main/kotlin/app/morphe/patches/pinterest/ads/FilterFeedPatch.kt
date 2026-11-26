@@ -26,7 +26,8 @@ private const val PATCH = "Filter feed"
  * description. The fields are read by JSON name at run time; a GIF is an image to Pinterest and stays.
  * Saved pins go from Home on two hooks of their own ([installHomeFields], [installHomePage]), and from
  * search and More to explore on a switch and hooks of their own ([installSavedElsewhere]), never on the
- * list hook, which boards go through too.
+ * list hook, which boards go through too. Pins you've already seen leave Home's and search's pages on
+ * those same page hooks, noted by a hook in each pin cell's impression start ([installSeenCells]).
  * Home suggestions are rows of Pinterest's own on the same list hook, plus the pin's "See more like
  * this?" bubble on a hook of its own ([installFeedbackFlyout]).
  */
@@ -35,7 +36,8 @@ val filterFeedPatch = bytecodePatch(
     name = PATCH,
     description = "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your " +
         "home feed, search, related pins and other people's boards, pins you've already saved out of your home feed, search and More " +
-        "to explore, and Pinterest's suggestion rows out of your home feed. Starts off. Set it up in HushPinterest " +
+        "to explore, pins you've already seen out of your home feed and search, and Pinterest's suggestion rows out " +
+        "of your home feed. Starts off. Set it up in HushPinterest " +
         "settings > Feed.",
 ) {
     category("Feed")
@@ -49,6 +51,7 @@ val filterFeedPatch = bytecodePatch(
         requireStatusMethod("feedSavedPins")
         requireStatusMethod("feedSavedSearch")
         requireStatusMethod("feedSavedRelated")
+        requireStatusMethod("feedSeenPins")
         requireStatusMethod("feedHomeSuggestions")
         requireStatusMethod("feedbackFlyout")
         if (feedListHoldersHooked == 0) throw PatchException("$PATCH: no list holder was hooked")
@@ -58,6 +61,14 @@ val filterFeedPatch = bytecodePatch(
             installHomeFields(homeFields)
             installHomePage(homePage)
             enableCapability("feedSavedPins")
+            // #52: a pin a page brought counts as seen once its cell comes on screen.
+            val cells = seenCellsOrNull(PATCH)
+            if (cells != null) {
+                installSeenCells(cells)
+                enableCapability("feedSeenPins")
+            } else {
+                patchLog.warning("$PATCH: no pin cell says when it comes on screen, so seen pins stay")
+            }
         }
         val elsewhere = savedElsewhere()
         installSavedElsewhere(elsewhere, PATCH)

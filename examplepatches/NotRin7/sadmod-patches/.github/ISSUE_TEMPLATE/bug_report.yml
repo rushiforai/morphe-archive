@@ -1,0 +1,32 @@
+name: "Bug report"
+description: Report a reproducible bug in the patch bundle or patched client UI.
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search existing issues at https://github.com/NotRin7/sadmod-patches/issues?q=is%3Aissue before opening a new report.
+        Do NOT upload APKs or post links to external APK download sites.
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: Describe the issue, your Android/Morphe version, and clear steps to reproduce it.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Patcher or logcat output
+      description: Paste relevant Morphe logs or `logcat` stack traces here.
+      render: shell
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I have checked existing issues and this is not a duplicate.
+          required: true
+        - label: I confirm this issue does not include copyrighted APK files, proprietary keys, or links to external APK download sites.
+          required: true

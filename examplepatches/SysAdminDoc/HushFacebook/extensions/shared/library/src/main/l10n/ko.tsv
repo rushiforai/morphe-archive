@@ -572,6 +572,8 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	�
 Hide profile notes	프로필 노트 숨기기
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	프로필 사진 위의 노트 말풍선을 숨겨요. 다음에 프로필을 열 때부터 적용돼요.
+Hide the gift button on profiles	프로필의 선물 버튼 숨기기
+Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	다른 사람 프로필에서 선물 보내기 버튼을 없애요. 다음에 프로필을 열 때부터 적용돼요.
 # context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
 Save button under posts	게시물 아래 저장 버튼
 # context: summary of that switch; Like, Comment and Share are the buttons under a post
@@ -3167,8 +3169,8 @@ Adds Facebook chats to Android's share menu. A photo or video you share there is
 Share to Facebook chats is off.	Facebook 채팅으로 공유가 꺼져 있어요.
 Nothing in it to send.	보낼 내용이 없어요.
 Couldn't save it to your gallery.	갤러리에 저장하지 못했어요.
-Copied and saved. Pick a chat.	복사하고 저장했어요. 채팅을 고르세요.
-In your gallery now. Pick a chat.	갤러리에 저장했어요. 채팅을 고르세요.
+Copied and saved. Paste and attach in a chat.	복사하고 저장했어요. 채팅에서 붙여넣고 첨부하세요.
+Saved to your gallery. Attach it in a chat.	갤러리에 저장했어요. 채팅에서 첨부하세요.
 Copied. Pick a chat and paste it.	복사했어요. 채팅을 골라 붙여넣으세요.
 Open your chats to pick one.	채팅을 열어 하나를 고르세요.
 Post date after the caption	캡션 뒤에 게시 날짜 표시
@@ -3185,3 +3187,17 @@ Open a chat, then come back here to give it a color of its own.	채팅을 연 �
 %1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	마지막으로 연 채팅인 %1$s은(는) 위의 채팅 배경을 따라요. 따로 정하려면 색상 코드를 입력하세요.
 %1$s, the last chat you opened, is %2$s.	마지막으로 연 채팅인 %1$s의 색상: %2$s.
 Type one color code, or two for a fade from top to bottom.	색상 코드를 하나 입력하거나, 위에서 아래로 이어지게 하려면 두 개를 입력하세요.
+Hide the AI content label on reels	릴스의 AI 콘텐츠 라벨 숨기기
+Takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. A change shows from the next reel.	Facebook이 AI로 만들었다고 표시한 릴스에서 "AI 콘텐츠" 또는 "AI 정보" 라벨을 없애요. 변경 사항은 다음 릴스부터 적용돼요.
+The %1$s row will be set to %2$s.	%1$s 항목이 %2$s(으)로 설정돼요.
+The %1$s row will go back to its default.	%1$s 항목이 기본값으로 돌아가요.
+Save files to Downloads	파일을 다운로드 폴더에 저장
+A PDF, document or other file you download from a post goes to your phone's Downloads folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.	게시물에서 다운로드한 PDF, 문서 등의 파일이 휴대폰의 다운로드 폴더에 저장되어 파일 관리자로 열 수 있어요. 끄면 Facebook이 파일 관리자가 접근할 수 없는 곳에 보관해요.
+Hide hashtags in reel captions	릴스 설명의 해시태그 숨기기
+Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	릴스 설명에서 끝에 몰려 있는 태그 같은 해시태그를 없애요. 문장의 일부인 해시태그는 그대로 둬요. 변경 사항은 다음 릴스부터 적용돼요.
+Keep the keyboard closed when comments open	댓글을 열 때 키보드 닫아 두기
+Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	아직 댓글이 없는 게시물에서도 키보드가 올라오지 않고 댓글이 열려요. 글을 쓰고 싶을 때 댓글 입력란을 누르세요.
+Settings language	설정 언어
+Same as Facebook	Facebook과 같게
+Show feed reels uncropped	피드 릴스를 자르지 않고 보기
+Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	피드의 릴스가 Facebook 틀에 맞춰 잘리지 않고 원래 비율로 영상 전체를 보여줘요. 변경 후 표시되는 릴스부터 적용돼요.

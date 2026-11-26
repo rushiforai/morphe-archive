@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
@@ -15,10 +16,15 @@ package app.morphe.extension.youtube.patches.general.offline;
 
 import static app.morphe.extension.shared.utils.StringRef.str;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Notification;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
+import android.os.Build;
 import android.text.format.Formatter;
 
 import androidx.annotation.NonNull;
@@ -35,6 +41,7 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -56,11 +63,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.music.patches.downloads.AudioTagger;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.general.offline.OfflineDownloadTransfer.Endpoint;
+import app.morphe.extension.youtube.patches.general.offline.OfflineDownloadTransfer.ExpiredUrl;
+import app.morphe.extension.youtube.patches.general.offline.OfflineTransferControl.PermanentFailure;
 
 /**
  * Built-in downloader: format picker, chunked parallel download of the DASH (and for the 1080p
@@ -69,7 +80,17 @@ import app.morphe.extension.shared.utils.Utils;
  * queue. The process is kept alive by the hooked {@code OfflineKeepAliveService}.
  */
 public final class OfflineDownloader {
-    enum State {QUEUED, DOWNLOADING, MERGING, SAVING}
+    enum State {
+        QUEUED, DOWNLOADING, PAUSING, PAUSED, WAITING, MERGING, SAVING;
+
+        boolean canPause() {
+            return this == DOWNLOADING || this == PAUSING || this == PAUSED || this == WAITING;
+        }
+
+        boolean isPaused() {
+            return this == PAUSING || this == PAUSED;
+        }
+    }
 
     private static final Pattern VIDEO_ID = Pattern.compile("[A-Za-z0-9_-]{11}");
     private static final String THUMBNAIL_URL = "https://i.ytimg.com/vi/%s/hqdefault.jpg";
@@ -79,13 +100,13 @@ public final class OfflineDownloader {
     private static final int PARALLEL_CONNECTIONS = 6;
     private static final int CHUNK_ATTEMPTS = 3;
     private static final int BUFFER_SIZE = 64 * 1024;
-    private static final int CONNECT_TIMEOUT_MS = 15_000;
-    private static final int READ_TIMEOUT_MS = 30_000;
     private static final double REQUIRED_SPACE_FACTOR = 2.2;
     private static final long NOTIFICATION_INTERVAL_MS = 1000;
+    private static final AtomicInteger NEXT_TASK_ID = new AtomicInteger();
 
     /** A download in the queue or in progress. */
     static final class Task {
+        final int id = NEXT_TASK_ID.incrementAndGet();
         /** {@link OfflineVideo#keyOf}: a video and the audio-only download of it are separate tasks. */
         final String key;
         final String videoId;
@@ -99,12 +120,10 @@ public final class OfflineDownloader {
         /** Set once by {@link #run}, so a playlist summary counts every task exactly once. */
         volatile boolean succeeded;
         volatile boolean failed;
-        final AtomicBoolean counted = new AtomicBoolean();
         final AtomicLong done = new AtomicLong();
-        // Abort blocking reads and retain displayed progress across client restarts.
-        final Set<HttpURLConnection> connections = ConcurrentHashMap.newKeySet();
+        final OfflineTransferControl transfer = new OfflineTransferControl(
+                this::transferChanged, CHUNK_ATTEMPTS, 1000);
         final AtomicInteger percent = new AtomicInteger(-1);
-        volatile boolean transferStopped;
         volatile long total;
         volatile State state = State.QUEUED;
         @Nullable
@@ -150,7 +169,17 @@ public final class OfflineDownloader {
         }
 
         State getState() {
-            return state;
+            State phase = state;
+            if (phase != State.DOWNLOADING) return phase;
+
+            State actual = switch (transfer.state()) {
+                case RUNNING -> State.DOWNLOADING;
+                case PAUSING -> State.PAUSING;
+                case PAUSED -> State.PAUSED;
+                case WAITING -> State.WAITING;
+            };
+            // The transfer can seal while the status is being read.
+            return state == State.DOWNLOADING ? actual : state;
         }
 
         void preparingTranslatedSubtitles() {
@@ -164,6 +193,32 @@ public final class OfflineDownloader {
             if (totalBytes <= 0) return percent.get();
             int current = (int) Math.min(100, done.get() * 100 / totalBytes);
             return percent.accumulateAndGet(current, Math::max);
+        }
+
+        void addProgress(int count) {
+            done.addAndGet(count);
+            notifyChanged(false);
+        }
+
+        private void transferChanged() {
+            OfflineTransferControl.State phase = transfer.state();
+            long received = done.get();
+            Logger.printInfo(() -> "Download " + key + " " + phase + " at " + received + " written bytes");
+            notifyChanged(true);
+        }
+
+        String statusText(State phase, int progress) {
+            return switch (phase) {
+                case QUEUED -> str("revanced_offline_download_queued");
+                case PAUSING -> str("revanced_offline_download_pausing");
+                case PAUSED -> str("revanced_offline_download_paused");
+                case WAITING -> str("revanced_offline_download_waiting");
+                case MERGING -> str("revanced_offline_download_merging");
+                case SAVING -> str("revanced_offline_download_saving");
+                case DOWNLOADING -> progress < 0
+                        ? str("revanced_offline_download_starting")
+                        : str("revanced_offline_download_progress", progress);
+            };
         }
     }
 
@@ -223,7 +278,7 @@ public final class OfflineDownloader {
     private record Part(OfflineFormats.Stream stream, File file) {
     }
 
-    private static final Map<String, Task> tasks = new LinkedHashMap<>();
+    private static final Map<Integer, Task> tasks = new LinkedHashMap<>();
     private static final Set<String> resolving = ConcurrentHashMap.newKeySet();
     private static final Set<String> resolvingPlaylists = ConcurrentHashMap.newKeySet();
     private static final CopyOnWriteArrayList<Runnable> listeners = new CopyOnWriteArrayList<>();
@@ -252,14 +307,9 @@ public final class OfflineDownloader {
             Utils.showToastShort(str("revanced_offline_download_unavailable"));
             return;
         }
-        synchronized (tasks) {
-            // The video and its audio-only download are separate tasks, so the picker opens while one of them runs.
-            boolean bothQueued = tasks.containsKey(OfflineVideo.keyOf(videoId, false))
-                    && tasks.containsKey(OfflineVideo.keyOf(videoId, true));
-            if (bothQueued || resolving.contains(videoId)) {
-                Utils.showToastShort(str("revanced_offline_already_downloading"));
-                return;
-            }
+        if (resolving.contains(videoId)) {
+            Utils.showToastShort(str("revanced_offline_already_downloading"));
+            return;
         }
         Activity activity = Utils.getActivity();
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
@@ -478,12 +528,12 @@ public final class OfflineDownloader {
             int queued = 0;
             synchronized (tasks) {
                 // A video already being downloaded on its own keeps its task.
-                pending.removeIf(item -> tasks.containsKey(item.key()));
+                pending.removeIf(item -> containsDownload(item.key()));
                 if (!pending.isEmpty()) {
                     Batch batch = new Batch(playlistTitle, pending.size(), alreadyDownloaded, subtitles, sponsor);
                     for (OfflinePlaylistSelection.Item item : pending) {
                         Task task = new Task(item, ++queued, batch);
-                        tasks.put(task.key, task);
+                        tasks.put(task.id, task);
                         task.future = queue.submit(() -> run(task));
                     }
                 }
@@ -551,11 +601,7 @@ public final class OfflineDownloader {
                                 OfflineSponsorBlock.Selection sponsor) {
         Task task = new Task(resolved, stream, sponsor);
         synchronized (tasks) {
-            if (tasks.containsKey(task.key)) {
-                Utils.showToastShort(str("revanced_offline_already_downloading"));
-                return;
-            }
-            tasks.put(task.key, task);
+            tasks.put(task.id, task);
             task.future = queue.submit(() -> run(task));
         }
         Logger.printInfo(() -> "Queued " + task.key + " at " + task.qualityLabel + " " + stream.codec()
@@ -580,27 +626,42 @@ public final class OfflineDownloader {
         }
     }
 
+    /** Caller holds the queue lock. Playlists still coalesce a video already in the queue. */
+    private static boolean containsDownload(String key) {
+        for (Task task : tasks.values()) {
+            if (task.key.equals(key)) return true;
+        }
+        return false;
+    }
+
     static List<Task> getTasks() {
         synchronized (tasks) {
             return new ArrayList<>(tasks.values());
         }
     }
 
-    /** @param key {@link Task#key}. */
-    static void cancel(String key) {
+    static void setPaused(int id, boolean paused) {
         Task task;
         synchronized (tasks) {
-            task = tasks.get(key);
+            task = tasks.get(id);
+        }
+        if (task != null && task.getState().canPause()) task.transfer.setPaused(paused);
+    }
+
+    static void cancel(int id) {
+        Task task;
+        synchronized (tasks) {
+            task = tasks.get(id);
         }
         if (task == null) return;
-        Logger.printInfo(() -> "Cancelling download " + key);
+        Logger.printInfo(() -> "Cancelling download " + task.key);
+        boolean queued;
         synchronized (task) {
             task.cancelled = true;
-            task.notifyAll();
+            queued = task.state == State.QUEUED;
         }
-        // Cancellation must unblock socket reads, not wait for their timeout.
-        stopTransfer(task);
-        if (task.state == State.QUEUED) {
+        task.transfer.cancel();
+        if (queued) {
             Future<?> future = task.future;
             if (future != null) future.cancel(false);
             finish(task);
@@ -610,7 +671,7 @@ public final class OfflineDownloader {
     static void cancelAll(boolean timedOut) {
         for (Task task : getTasks()) {
             task.timedOut = timedOut;
-            cancel(task.key);
+            cancel(task.id);
         }
     }
 
@@ -653,15 +714,14 @@ public final class OfflineDownloader {
     }
 
     private static void finish(Task task) {
-        boolean empty;
+        boolean removed;
         synchronized (tasks) {
-            tasks.remove(task.key);
-            empty = tasks.isEmpty();
+            removed = tasks.remove(task.id) != null;
         }
-        // A task can finish twice when it is cancelled while it starts. Count it once.
+        if (!removed) return;
         final Batch batch = task.batch;
         final boolean batchDone;
-        if (batch != null && task.counted.compareAndSet(false, true)) {
+        if (batch != null) {
             if (task.succeeded) batch.succeeded.incrementAndGet();
             else if (task.failed) batch.failed.incrementAndGet();
             else batch.cancelled.incrementAndGet();
@@ -671,7 +731,7 @@ public final class OfflineDownloader {
             batchDone = false;
         }
         Utils.runOnMainThread(() -> {
-            if (empty) OfflineServiceHooks.stopDownloadForeground();
+            if (!hasWork()) OfflineServiceHooks.stopDownloadForeground();
             else OfflineServiceHooks.updateDownloadNotification();
             if (batchDone) {
                 final String summary = batch.summary();
@@ -697,18 +757,42 @@ public final class OfflineDownloader {
     }
 
     private static void run(Task task) {
-        if (task.cancelled) return;
-        final Context context = Utils.getContext();
-        final File work = workDirectory(context);
-        final File[] files = {new File(work, task.key + ".video"), new File(work, task.key + ".audio")};
-        try {
+        synchronized (task) {
+            if (task.cancelled) return;
             task.state = State.DOWNLOADING;
+        }
+        final Context context = Utils.getContext();
+        File scratch = null;
+        File[] files = null;
+        final List<HlsParts> hls = new ArrayList<>(1);
+        Runnable stopObserving = null;
+        try {
+            stopObserving = observeNetwork(context, task.transfer);
             notifyChanged(true);
-            OfflineSponsorBlock.Result sponsorResult = task.sponsor.include()
-                    ? task.batch == null ? task.sponsor.result() : OfflineSponsorBlock.fetch(task.videoId) : null;
-            if (task.resolved == null) chooseBatchStream(task);
+            // A queued duplicate still runs if its predecessor failed or was cancelled. If the first
+            // copy was published, don't orphan it by replacing its single library entry.
+            if (task.batch == null) {
+                OfflineVideo saved = OfflineIndex.get(task.key);
+                if (saved != null && OfflineMediaStore.exists(context, saved.contentUri)) {
+                    Utils.showToastShort(str("revanced_offline_already_downloaded"));
+                    return;
+                }
+            }
+            checkCancelled(task);
+            scratch = Files.createTempDirectory(workDirectory(context).toPath(), "task-").toFile();
+            files = new File[]{new File(scratch, "video"), new File(scratch, "audio")};
 
-            downloadWithFallback(task, work, files);
+            OfflineSponsorBlock.Result sponsorResult = task.sponsor.include()
+                    ? task.batch == null ? task.sponsor.result()
+                            : task.transfer.execute(attempt -> OfflineSponsorBlock.fetch(task.videoId))
+                    : null;
+
+            if (task.resolved == null) chooseBatchStream(task);
+            downloadWithFallback(task, scratch, files, hls);
+
+            task.transfer.seal(() -> task.state = task.stream.isAudioOnly() ? State.SAVING : State.MERGING);
+            notifyChanged(true);
+            for (HlsParts part : hls) joinFiles(task, part.pieces(), part.file());
             saveDownload(context, task, files, sponsorResult, OfflineThumbnails::fetchOriginal);
 
             task.succeeded = true;
@@ -720,8 +804,99 @@ public final class OfflineDownloader {
         } catch (Throwable ex) {
             reportFailure(context, task, ex);
         } finally {
-            for (File file : files) deleteQuietly(file);
+            if (stopObserving != null) stopObserving.run();
+            for (HlsParts part : hls) part.delete();
+            if (files != null) for (File file : files) deleteQuietly(file);
+            if (scratch != null) deleteQuietly(scratch);
             finish(task);
+        }
+    }
+
+    @Nullable
+    @SuppressLint("MissingPermission") // YouTube declares ACCESS_NETWORK_STATE.
+    private static Runnable observeNetwork(Context context, OfflineTransferControl transfer) {
+        ConnectivityManager manager = context.getSystemService(ConnectivityManager.class);
+        if (manager == null) return null;
+
+        DownloadNetwork callback = new DownloadNetwork(transfer);
+        try {
+            manager.registerDefaultNetworkCallback(callback);
+        } catch (RuntimeException failure) {
+            Logger.printInfo(() -> "Could not observe download connectivity", failure);
+            return null;
+        }
+        transfer.onNetworkFailure(() -> callback.recheck(false));
+        callback.recheck(true);
+        return () -> {
+            try {
+                manager.unregisterNetworkCallback(callback);
+            } catch (RuntimeException failure) {
+                Logger.printException(() -> "Could not stop observing download connectivity", failure);
+            }
+        };
+    }
+
+    private static final class DownloadNetwork extends ConnectivityManager.NetworkCallback {
+        private final OfflineTransferControl transfer;
+        @Nullable private Network current;
+        private boolean validated;
+        private boolean blocked;
+        private boolean knowBlocked;
+        private long revision;
+
+        DownloadNetwork(OfflineTransferControl transfer) {
+            this.transfer = transfer;
+        }
+
+        @Override
+        public synchronized void onAvailable(Network network) {
+            current = network;
+            validated = false;
+            blocked = false;
+            knowBlocked = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q;
+            revision++;
+            // Capabilities (and, on Android 10+, the blocked bit) follow this callback in order.
+        }
+
+        @Override
+        public synchronized void onCapabilitiesChanged(Network network, NetworkCapabilities capabilities) {
+            if (!network.equals(current)) return;
+            validated = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+            revision++;
+            if (knowBlocked || !validated) transfer.setOnline(validated && !blocked);
+        }
+
+        @Override
+        public synchronized void onBlockedStatusChanged(Network network, boolean blocked) {
+            if (!network.equals(current)) return;
+            this.blocked = blocked;
+            knowBlocked = true;
+            revision++;
+            transfer.setOnline(validated && !blocked);
+        }
+
+        @Override
+        public synchronized void onLost(Network network) {
+            if (!network.equals(current)) return;
+            current = null;
+            blocked = false;
+            revision++;
+            transfer.setOnline(false);
+        }
+
+        /** Initial/failed-request check, never invoked on the ConnectivityManager callback path. */
+        void recheck(boolean initial) {
+            final long sample;
+            synchronized (this) {
+                if (blocked || initial && revision != 0) return;
+                sample = ++revision;
+            }
+            boolean reachable = Utils.isInternetReachable();
+            synchronized (this) {
+                // An ordered callback or a newer sample supersedes a synchronous read already in flight.
+                if (sample == revision && !reachable) transfer.networkUnreachable();
+            }
         }
     }
 
@@ -739,7 +914,7 @@ public final class OfflineDownloader {
         task.failed = true;
         if (task.batch != null) return;
 
-        String reason = ex instanceof ForbiddenException
+        String reason = ex instanceof ForbiddenException || ex instanceof ExpiredUrl
                 ? str("revanced_offline_error_forbidden")
                 : ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
         OfflineNotifications.showDownloadFailed(context, task.key, task.title, reason);
@@ -750,9 +925,14 @@ public final class OfflineDownloader {
     private static void chooseBatchStream(Task task) throws IOException {
         boolean withCaptions = !task.item.audioOnly()
                 && task.batch.subtitleCounts.shouldResolve(!task.batch.subtitles.tracks().isEmpty());
-        OfflineFormats.Resolved resolved = OfflineFormats.resolve(task.videoId, 0, false, withCaptions);
+        OfflineFormats.Resolved resolved = task.transfer.execute(attempt -> {
+            OfflineFormats.Resolved formats = OfflineFormats.resolve(task.videoId, 0, false, withCaptions);
+            if (formats == null) {
+                throw OfflineDownloadTransfer.unavailableMetadata(attempt, str("revanced_offline_no_formats"));
+            }
+            return formats;
+        });
         checkCancelled(task);
-        if (resolved == null) throw new IOException(str("revanced_offline_no_formats"));
         task.batch.subtitleCounts.metadataResolved(resolved.captions().rateLimited);
 
         OfflineFormats.Stream video = task.item.audioOnly() ? selectAudio(resolved)
@@ -772,30 +952,38 @@ public final class OfflineDownloader {
         notifyChanged(true);
     }
 
-    /**
-     * Downloads the streams of the task. When the urls of a client are refused (HTTP 403), starts
-     * over with the next client, so the files never mix pieces of different clients.
-     */
-    private static void downloadWithFallback(Task task, File work, File[] files) throws IOException {
+    /** Before the first byte only, the existing client fallback may select a different encode. */
+    private static void downloadWithFallback(Task task, File work, File[] files, List<HlsParts> hls)
+            throws IOException {
         while (true) {
             try {
-                downloadParts(task, parts(task, files), work);
+                downloadParts(task, parts(task, files), work, hls);
                 return;
-            } catch (ForbiddenException ex) {
+            } catch (ExpiredUrl ex) {
+                if (task.done.get() != 0) throw ex;
+                for (HlsParts part : hls) part.delete();
+                hls.clear();
+
                 final OfflineFormats.Stream stream = task.stream;
                 final int next = task.resolved.clientIndex() + 1;
-                final OfflineFormats.Resolved other = next < OfflineFormats.clientCount()
-                        ? OfflineFormats.resolve(task.videoId, next, stream.premium() && stream.hls(),
-                                !task.subtitles.tracks().isEmpty()
-                                        && (task.batch == null || !task.batch.subtitleCounts.rateLimited))
-                        : null;
-                if (other != null && task.batch != null) {
+                if (next >= OfflineFormats.clientCount()) throw ex;
+                final OfflineFormats.Resolved other = task.transfer.execute(attempt -> {
+                    OfflineFormats.Resolved formats = OfflineFormats.resolve(task.videoId, next,
+                            stream.premium() && stream.hls(), !task.subtitles.tracks().isEmpty()
+                                    && (task.batch == null || !task.batch.subtitleCounts.rateLimited));
+                    if (formats == null) {
+                        throw OfflineDownloadTransfer.unavailableMetadata(attempt,
+                                "Could not resolve another download client");
+                    }
+                    return formats;
+                });
+                if (task.batch != null) {
                     task.batch.subtitleCounts.metadataResolved(other.captions().rateLimited);
                 }
-                final OfflineFormats.Stream match = other == null ? null : other.find(stream.key());
+                final OfflineFormats.Stream match = other.find(stream.key());
                 if (match == null) throw ex;
 
-                Logger.printInfo(() -> "HTTP 403 for " + task.key + ", retrying with client #" + other.clientIndex());
+                Logger.printInfo(() -> "URL refused for " + task.key + ", retrying with client #" + other.clientIndex());
                 task.resolved = other;
                 task.stream = match;
             }
@@ -811,37 +999,33 @@ public final class OfflineDownloader {
     }
 
     /** HLS streams are downloaded first, segment by segment; then all DASH streams share the workers. */
-    private static void downloadParts(Task task, List<Part> parts, File work) throws IOException {
+    private static void downloadParts(Task task, List<Part> parts, File work, List<HlsParts> hls) throws IOException {
         checkCancelled(task);
-        task.transferStopped = false;
         final OfflineFormats.Resolved resolved = task.resolved;
         final long[] lengths = new long[parts.size()];
-        for (int i = 0; i < parts.size(); i++) {
-            deleteQuietly(parts.get(i).file());
-            lengths[i] = streamLength(task, parts.get(i).stream(), resolved.userAgent());
+        List<DownloadSource> dashSources = new ArrayList<>(parts.size());
+        Part hlsPart = null;
+        for (int index = 0; index < parts.size(); index++) {
+            Part part = parts.get(index);
+            deleteQuietly(part.file());
+            if (part.stream().hls()) {
+                hlsPart = part;
+                // Approximation: HLS segments are cut from this source file.
+                lengths[index] = part.stream().contentLength();
+            } else {
+                DownloadSource source = new DownloadSource(task, part, resolved);
+                lengths[index] = source.transfer.length();
+                dashSources.add(source);
+            }
         }
         reserveSpace(task, lengths, work);
         logParts(task, parts, lengths);
 
-        List<DownloadSource> dashSources = new ArrayList<>(parts.size());
-        for (int i = 0; i < parts.size(); i++) {
-            Part part = parts.get(i);
-            if (part.stream().hls()) downloadHls(task, part, resolved.hlsUserAgent());
-            else dashSources.add(new DownloadSource(part.stream().url(), lengths[i], part.file()));
-        }
-        if (!dashSources.isEmpty()) {
-            downloadRanges(task, dashSources.toArray(new DownloadSource[0]), resolved.userAgent());
-        }
+        if (hlsPart != null) downloadHls(task, hlsPart, resolved.hlsUserAgent(), hls);
+        if (!dashSources.isEmpty()) downloadRanges(task, dashSources.toArray(new DownloadSource[0]));
 
         task.total = task.done.get(); // Unknown-length streams now have an exact total.
         notifyChanged(true);
-    }
-
-    /** For HLS the size of the file the segments are cut from, which is close enough for the progress bar. */
-    private static long streamLength(Task task, OfflineFormats.Stream stream, @Nullable String userAgent)
-            throws IOException {
-        if (stream.contentLength() > 0 || stream.hls()) return stream.contentLength();
-        return probeLength(task, stream.url(), userAgent);
     }
 
     private static void reserveSpace(Task task, long[] lengths, File work) throws IOException {
@@ -873,29 +1057,31 @@ public final class OfflineDownloader {
     }
 
     // Share workers across both streams and reuse complete bounded responses.
-    private static void downloadRanges(Task task, DownloadSource[] sources, @Nullable String userAgent)
-            throws IOException {
+    private static void downloadRanges(Task task, DownloadSource[] sources) throws IOException {
         RangeQueue ranges = new RangeQueue(sources);
         long requests = 0;
         for (DownloadSource source : sources) {
-            requests += source.length <= 0 ? 1 : (source.length + CHUNK_SIZE - 1) / CHUNK_SIZE;
+            if (source.length > 0) {
+                try (RandomAccessFile output = new RandomAccessFile(source.file, "rw")) {
+                    output.setLength(source.length);
+                }
+            }
+            requests += source.length <= 0 ? 1 : (source.length - 1) / CHUNK_SIZE + 1;
         }
+        IntConsumer progress = task::addProgress;
         runWorkers(task, (int) Math.min(PARALLEL_CONNECTIONS, requests), () -> {
             byte[] buffer = new byte[BUFFER_SIZE];
             RandomAccessFile[] outputs = new RandomAccessFile[sources.length];
             try {
                 DownloadRange range;
                 while ((range = ranges.take()) != null) {
-                    checkTransfer(task);
+                    checkCancelled(task);
                     int index = range.sourceIndex;
                     DownloadSource source = sources[index];
-                    if (source.length <= 0) {
-                        downloadWhole(task, source, userAgent, buffer);
-                    } else {
-                        RandomAccessFile output = outputs[index];
-                        if (output == null) outputs[index] = output = new RandomAccessFile(source.file, "rw");
-                        downloadChunk(task, source.url, range.start, range.end, output, userAgent, buffer);
-                    }
+                    RandomAccessFile output = outputs[index];
+                    if (output == null) outputs[index] = output = new RandomAccessFile(source.file, "rw");
+                    OfflineDownloadTransfer.copy(task.transfer, source.transfer, range.start, range.end,
+                            output, range.start, buffer, progress);
                 }
                 return null;
             } finally {
@@ -906,27 +1092,38 @@ public final class OfflineDownloader {
         });
     }
 
-    /** Segments are downloaded in parallel into one file each, then joined in playlist order. */
-    private static void downloadHls(Task task, Part part, @Nullable String userAgent) throws IOException {
-        final List<OfflineHls.Segment> segments =
-                OfflineHls.fetchMediaPlaylist(part.stream().url(), userAgent).segments();
-        final File[] pieces = new File[segments.size()];
-        for (int i = 0; i < pieces.length; i++) pieces[i] = new File(part.file().getPath() + ".hls" + i);
-
-        AtomicInteger next = new AtomicInteger();
-        try {
-            runWorkers(task, Math.min(PARALLEL_CONNECTIONS, segments.size()), () -> {
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int index;
-                while ((index = next.getAndIncrement()) < segments.size()) {
-                    downloadSegment(task, segments.get(index), pieces[index], userAgent, buffer);
-                }
-                return null;
-            });
-            joinFiles(pieces, part.file());
-        } finally {
+    private record HlsParts(File file, File[] pieces) {
+        void delete() {
             for (File piece : pieces) deleteQuietly(piece);
         }
+    }
+
+    /** Segments stay separate until all transfers finish; no interrupted job has to join them twice. */
+    private static void downloadHls(Task task, Part part, @Nullable String userAgent, List<HlsParts> hls)
+            throws IOException {
+        HlsSource rendition = new HlsSource(task, part.stream(), userAgent);
+        final List<OfflineHls.Segment> segments = rendition.segments;
+        final File[] pieces = new File[segments.size()];
+        for (int i = 0; i < pieces.length; i++) pieces[i] = new File(part.file().getPath() + ".hls" + i);
+        hls.add(new HlsParts(part.file(), pieces));
+
+        AtomicInteger next = new AtomicInteger();
+        IntConsumer progress = task::addProgress;
+        runWorkers(task, Math.min(PARALLEL_CONNECTIONS, segments.size()), () -> {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int index;
+            while ((index = next.getAndIncrement()) < segments.size()) {
+                checkCancelled(task);
+                OfflineHls.Segment segment = segments.get(index);
+                OfflineDownloadTransfer.Source source = rendition.source(index);
+                long start = segment.offset();
+                long end = segment.length() < 0 ? -1 : start + segment.length() - 1;
+                try (RandomAccessFile output = new RandomAccessFile(pieces[index], "rw")) {
+                    OfflineDownloadTransfer.copy(task.transfer, source, start, end, output, 0, buffer, progress);
+                }
+            }
+            return null;
+        });
     }
 
     /**
@@ -934,9 +1131,10 @@ public final class OfflineDownloader {
      * stops the others. No worker is still running when this returns or throws.
      */
     private static void runWorkers(Task task, int workers, Callable<Void> worker) throws IOException {
-        task.transferStopped = false;
+        checkCancelled(task);
         ExecutorService pool = Executors.newFixedThreadPool(workers);
         ExecutorCompletionService<Void> completed = new ExecutorCompletionService<>(pool);
+        boolean finished = false;
         try {
             for (int i = 0; i < workers; i++) completed.submit(worker);
             for (int i = 0; i < workers; i++) {
@@ -952,10 +1150,15 @@ public final class OfflineDownloader {
                     throw new IOException("Interrupted", ex);
                 }
             }
-            checkTransfer(task);
+            checkCancelled(task);
+            finished = true;
         } finally {
-            stopTransfer(task);
-            pool.shutdownNow();
+            if (finished) {
+                pool.shutdown();
+            } else {
+                pool.shutdownNow();
+                task.transfer.abortRequests();
+            }
             // No worker may still write when fallback truncates files or cancellation deletes them.
             boolean interrupted = false;
             while (!pool.isTerminated()) {
@@ -970,22 +1173,121 @@ public final class OfflineDownloader {
     }
 
     private static final class DownloadSource {
-        final String url;
+        final OfflineDownloadTransfer.Source transfer;
+        private volatile Endpoint endpoint;
         final long length;
         final File file;
         long next;
         boolean claimed;
 
-        DownloadSource(String url, long length, File file) throws IOException {
-            this.url = url;
-            this.length = length;
-            this.file = file;
-            if (length > 0) {
-                try (RandomAccessFile output = new RandomAccessFile(file, "rw")) {
-                    output.setLength(length);
+        DownloadSource(Task task, Part part, OfflineFormats.Resolved resolved) throws IOException {
+            OfflineFormats.Stream original = part.stream();
+            endpoint = new Endpoint(original.url(), resolved.userAgent());
+            file = part.file();
+            long known = original.contentLength() > 0 ? original.contentLength() : -1;
+            transfer = new OfflineDownloadTransfer.Source(() -> endpoint,
+                    rejected -> refresh(task, original, resolved.clientIndex(), rejected), known);
+            length = known > 0 ? known : OfflineDownloadTransfer.probeLength(task.transfer, transfer);
+        }
+
+        private synchronized void refresh(Task task, OfflineFormats.Stream original, int client, Endpoint rejected)
+                throws IOException {
+            if (endpoint != rejected) return;
+            OfflineFormats.Stream fresh = refreshMetadata(task, rejected, attempt ->
+                    OfflineFormats.refreshDash(task.videoId, client, original, attempt));
+            if (fresh == null || fresh.contentLength() > 0 && transfer.length() > 0
+                    && fresh.contentLength() != transfer.length()) {
+                throw changedRepresentation(task, rejected);
+            }
+            endpoint = new Endpoint(fresh.url(), rejected.userAgent());
+            Logger.printInfo(() -> "Refreshed download URL for " + task.key + " (itag " + original.itag() + ")");
+        }
+    }
+
+    private static final class HlsSource {
+        private final Task task;
+        private final OfflineFormats.Stream original;
+        final List<OfflineHls.Segment> segments;
+        private volatile Endpoint[] endpoints;
+
+        HlsSource(Task task, OfflineFormats.Stream original, @Nullable String userAgent) throws IOException {
+            this.task = task;
+            this.original = original;
+
+            Endpoint playlist = new Endpoint(original.url(), userAgent);
+            List<OfflineHls.Segment> initial;
+            try {
+                initial = OfflineHls.fetchMediaPlaylist(task.transfer, playlist).segments();
+            } catch (ExpiredUrl ex) {
+                OfflineHls.Premium fresh = refreshPlaylist(ex.endpoint);
+                initial = fresh.playlist().segments();
+                userAgent = fresh.userAgent();
+            }
+            segments = initial;
+            endpoints = segmentEndpoints(segments, userAgent);
+        }
+
+        OfflineDownloadTransfer.Source source(int index) {
+            return new OfflineDownloadTransfer.Source(() -> endpoints[index], rejected -> refresh(index, rejected), -1);
+        }
+
+        private OfflineHls.Premium refreshPlaylist(Endpoint rejected) throws IOException {
+            OfflineHls.Premium fresh = refreshMetadata(task, rejected, attempt -> {
+                OfflineHls.Premium resolved = OfflineHls.fetchPremium(
+                        task.videoId, OfflineFormats.requestHeaders(), attempt);
+                if (resolved == null) {
+                    throw OfflineDownloadTransfer.unavailableMetadata(attempt, "Could not refresh HLS download metadata");
+                }
+                return resolved;
+            });
+            if (fresh.stream().itag() != original.itag() || !fresh.stream().mimeType().equals(original.mimeType())) {
+                throw changedRepresentation(task, rejected);
+            }
+            return fresh;
+        }
+
+        private synchronized void refresh(int index, Endpoint rejected) throws IOException {
+            if (endpoints[index] != rejected) return;
+            OfflineHls.Premium playlist = refreshPlaylist(rejected);
+            List<OfflineHls.Segment> fresh = playlist.playlist().segments();
+            if (segments.size() != fresh.size()) throw changedRepresentation(task, rejected);
+            for (int piece = 0; piece < segments.size(); piece++) {
+                OfflineHls.Segment before = segments.get(piece);
+                OfflineHls.Segment after = fresh.get(piece);
+                if (before.offset() != after.offset() || before.length() != after.length()
+                        || !OfflineHlsIdentity.same(before.url(), after.url(), before.length() > 0)) {
+                    throw changedRepresentation(task, rejected);
                 }
             }
+            endpoints = segmentEndpoints(fresh, playlist.userAgent());
+            Logger.printInfo(() -> "Refreshed HLS download URLs for " + task.key);
         }
+
+        private static Endpoint[] segmentEndpoints(List<OfflineHls.Segment> segments, @Nullable String userAgent) {
+            Endpoint[] endpoints = new Endpoint[segments.size()];
+            for (int index = 0; index < endpoints.length; index++) {
+                endpoints[index] = new Endpoint(segments.get(index).url(), userAgent);
+            }
+            return endpoints;
+        }
+    }
+
+    private static <T> T refreshMetadata(Task task, Endpoint rejected, OfflineTransferControl.Operation<T> operation)
+            throws IOException {
+        try {
+            return task.transfer.execute(operation);
+        } catch (IOException failure) {
+            if (task.done.get() != 0) throw failure;
+
+            ExpiredUrl refused = new ExpiredUrl(403, rejected);
+            refused.addSuppressed(failure);
+            throw refused;
+        }
+    }
+
+    private static PermanentFailure changedRepresentation(Task task, Endpoint rejected) {
+        return task.done.get() == 0 ? new ExpiredUrl(403, rejected)
+                : new PermanentFailure("Cannot verify the same bytes after refreshing the download URL");
     }
 
     private record DownloadRange(int sourceIndex, long start, long end) {
@@ -1023,222 +1325,23 @@ public final class OfflineDownloader {
         }
     }
 
-    private static void downloadChunk(Task task, String url, long start, long end, RandomAccessFile output,
-                                      @Nullable String userAgent, byte[] buffer) throws IOException {
-        long position = start;
-        for (int attempt = 1; ; attempt++) {
-            checkTransfer(task);
-            HttpURLConnection connection = openTransfer(task, url, position, end, userAgent);
-            boolean reusable = false;
-            try {
-                int code = connection.getResponseCode();
-                if (code == HttpURLConnection.HTTP_FORBIDDEN) throw new ForbiddenException();
-                if (code != HttpURLConnection.HTTP_PARTIAL) {
-                    throw new IOException("Range request returned HTTP " + code);
-                }
-                String expectedRange = "bytes " + position + "-" + end + "/";
-                String actualRange = connection.getHeaderField("Content-Range");
-                if (actualRange == null || !actualRange.startsWith(expectedRange)) {
-                    throw new IOException("Unexpected Content-Range: " + actualRange);
-                }
-                try (InputStream input = connection.getInputStream()) {
-                    output.seek(position);
-                    while (position <= end) {
-                        int read = readBuffer(task, input, buffer,
-                                (int) Math.min(buffer.length, end - position + 1));
-                        if (read == 0) throw new IOException("Incomplete range " + position + "-" + end);
-                        output.write(buffer, 0, read);
-                        position += read;
-                        task.done.addAndGet(read);
-                        notifyChanged(false);
-                    }
-                    // Consume EOF before closing so Android can return the socket to its keep-alive pool.
-                    if (input.read() != -1) throw new IOException("Oversized range response");
-                    reusable = true;
-                }
-                return;
-            } catch (ForbiddenException | CancellationException ex) {
-                throw ex;
-            } catch (IOException ex) {
-                checkTransfer(task);
-                if (attempt >= CHUNK_ATTEMPTS || position > end) throw ex;
-                final int failedAttempt = attempt;
-                Logger.printInfo(() -> "Chunk " + start + "-" + end + " failed (attempt " + failedAttempt + "), resuming", ex);
-                waitBeforeRetry(attempt);
-            } finally {
-                releaseTransfer(task, connection, reusable);
-            }
-        }
-    }
-
-    /** Fallback for streams whose size the server does not reveal. */
-    private static void downloadWhole(Task task, DownloadSource source, @Nullable String userAgent,
-                                      byte[] buffer) throws IOException {
-        HttpURLConnection connection = openTransfer(task, source.url, -1, -1, userAgent);
-        boolean reusable = false;
-        try {
-            int code = connection.getResponseCode();
-            if (code == HttpURLConnection.HTTP_FORBIDDEN) throw new ForbiddenException();
-            if (code != HttpURLConnection.HTTP_OK) throw new IOException("HTTP " + code);
-            try (InputStream input = connection.getInputStream();
-                 OutputStream output = new FileOutputStream(source.file)) {
-                int read;
-                while ((read = readBuffer(task, input, buffer, buffer.length)) != 0) {
-                    output.write(buffer, 0, read);
-                    task.done.addAndGet(read);
-                    notifyChanged(false);
-                }
-                reusable = true;
-            }
-        } finally {
-            releaseTransfer(task, connection, reusable);
-        }
-    }
-
-    /** One HLS segment into its own file. A failed attempt starts the segment over. */
-    private static void downloadSegment(Task task, OfflineHls.Segment segment, File file,
-                                        @Nullable String userAgent, byte[] buffer) throws IOException {
-        final boolean ranged = segment.length() >= 0;
-        final long start = ranged ? segment.offset() : -1;
-        final long end = ranged ? segment.offset() + segment.length() - 1 : -1;
-        final int expectedCode = ranged ? HttpURLConnection.HTTP_PARTIAL : HttpURLConnection.HTTP_OK;
-        for (int attempt = 1; ; attempt++) {
-            checkTransfer(task);
-            HttpURLConnection connection = openTransfer(task, segment.url(), start, end, userAgent);
-            boolean reusable = false;
-            long written = 0;
-            try {
-                int code = connection.getResponseCode();
-                if (code == HttpURLConnection.HTTP_FORBIDDEN) throw new ForbiddenException();
-                if (code != expectedCode) throw new IOException("HLS segment returned HTTP " + code);
-
-                try (InputStream input = connection.getInputStream();
-                     OutputStream output = new FileOutputStream(file)) {
-                    int read;
-                    while ((read = readBuffer(task, input, buffer, buffer.length)) != 0) {
-                        output.write(buffer, 0, read);
-                        written += read;
-                        task.done.addAndGet(read);
-                        notifyChanged(false);
-                    }
-                }
-                if (ranged && written != segment.length()) throw new IOException("Incomplete HLS segment");
-                reusable = true;
-                return;
-            } catch (ForbiddenException | CancellationException ex) {
-                throw ex;
-            } catch (IOException ex) {
-                task.done.addAndGet(-written);
-                checkTransfer(task);
-                if (attempt >= CHUNK_ATTEMPTS) throw ex;
-                final int failedAttempt = attempt;
-                Logger.printInfo(() -> "HLS segment failed (attempt " + failedAttempt + "), retrying", ex);
-                waitBeforeRetry(attempt);
-            } finally {
-                releaseTransfer(task, connection, reusable);
-            }
-        }
-    }
-
-    private static void waitBeforeRetry(int attempt) throws IOException {
-        try {
-            //noinspection BusyWait
-            Thread.sleep(1000L * attempt);
-        } catch (InterruptedException interrupted) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Interrupted", interrupted);
-        }
-    }
-
     /** Appends the pieces to {@code destination} in order, deleting each once it is copied. */
-    private static void joinFiles(File[] pieces, File destination) throws IOException {
+    private static void joinFiles(Task task, File[] pieces, File destination) throws IOException {
         try (FileChannel output = new FileOutputStream(destination).getChannel()) {
             for (File piece : pieces) {
                 try (FileChannel input = new FileInputStream(piece).getChannel()) {
                     long size = input.size();
                     long position = 0;
-                    while (position < size) position += input.transferTo(position, size - position, output);
+                    while (position < size) {
+                        checkCancelled(task);
+                        long copied = input.transferTo(position, Math.min(CHUNK_SIZE, size - position), output);
+                        if (copied <= 0) throw new IOException("Could not assemble HLS download");
+                        position += copied;
+                    }
                 }
                 deleteQuietly(piece);
             }
         }
-    }
-
-    // Coalesce Android's small socket reads into one cache write without copying.
-    private static int readBuffer(Task task, InputStream input, byte[] buffer, int length) throws IOException {
-        int filled = 0;
-        while (filled < length) {
-            checkTransfer(task);
-            int read = input.read(buffer, filled, length - filled);
-            if (read < 0) break;
-            filled += read;
-        }
-        return filled;
-    }
-
-    private static long probeLength(Task task, String url, @Nullable String userAgent) throws IOException {
-        HttpURLConnection connection = openTransfer(task, url, 0, 0, userAgent);
-        try {
-            int code = connection.getResponseCode();
-            if (code == HttpURLConnection.HTTP_FORBIDDEN) throw new ForbiddenException();
-            String range = connection.getHeaderField("Content-Range");
-            if (code == HttpURLConnection.HTTP_PARTIAL && range != null) {
-                int slash = range.lastIndexOf('/');
-                if (slash >= 0) {
-                    try {
-                        return Long.parseLong(range.substring(slash + 1).trim());
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
-            }
-            return -1;
-        } finally {
-            releaseTransfer(task, connection, false);
-        }
-    }
-
-    private static HttpURLConnection openTransfer(Task task, String url, long start, long end,
-                                                   @Nullable String userAgent) throws IOException {
-        HttpURLConnection connection = open(url, start, end, userAgent);
-        synchronized (task.connections) {
-            try {
-                checkTransfer(task);
-                task.connections.add(connection);
-            } catch (CancellationException ex) {
-                connection.disconnect();
-                throw ex;
-            }
-        }
-        return connection;
-    }
-
-    private static void releaseTransfer(Task task, HttpURLConnection connection, boolean reusable) {
-        if (!reusable) connection.disconnect();
-        task.connections.remove(connection);
-    }
-
-    private static void stopTransfer(Task task) {
-        synchronized (task.connections) {
-            task.transferStopped = true;
-            for (HttpURLConnection connection : task.connections) connection.disconnect();
-        }
-    }
-
-    private static void checkTransfer(Task task) {
-        checkCancelled(task);
-        if (task.transferStopped || Thread.currentThread().isInterrupted()) throw new CancellationException();
-    }
-
-    private static HttpURLConnection open(String url, long start, long end, @Nullable String userAgent) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        connection.setReadTimeout(READ_TIMEOUT_MS);
-        connection.setInstanceFollowRedirects(true);
-        connection.setRequestProperty("Accept", "*/*");
-        connection.setRequestProperty("Accept-Encoding", "identity");
-        if (userAgent != null) connection.setRequestProperty("User-Agent", userAgent);
-        if (start >= 0) connection.setRequestProperty("Range", "bytes=" + start + "-" + end);
-        return connection;
     }
 
     private static void checkCancelled(Task task) {
@@ -1408,7 +1511,12 @@ public final class OfflineDownloader {
             if (url == null || url.isEmpty()) continue;
             HttpURLConnection connection = null;
             try {
-                connection = open(url, -1, -1, null);
+                connection = (HttpURLConnection) new URL(url).openConnection();
+                connection.setConnectTimeout(15_000);
+                connection.setReadTimeout(30_000);
+                connection.setInstanceFollowRedirects(true);
+                connection.setRequestProperty("Accept", "*/*");
+                connection.setRequestProperty("Accept-Encoding", "identity");
                 if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) continue;
                 try (InputStream input = connection.getInputStream();
                      OutputStream output = new FileOutputStream(destination)) {

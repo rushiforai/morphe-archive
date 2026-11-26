@@ -50,11 +50,63 @@ public class ViewingHistorySettingsTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     @After public void restore() {
+        ViewingHistoryReturn.disarm();
         PatchFamily.inBuildForTests = null;
         Settings.VIEWING_HISTORY.resetToDefault();
         Settings.VIEWING_HISTORY_GRID.resetToDefault();
+        Settings.VIEWING_HISTORY_DAYS.resetToDefault();
+        Settings.CATEGORY_PAGES.resetToDefault();
+        Settings.CATEGORY_OWN_PAGE.resetToDefault();
         Context context = RuntimeEnvironment.getApplication();
         ViewingHistory.clear(context);
+    }
+
+    /**
+     * Keep history for (#228): under the switch and waiting for it, the newest 500 to start, 3, 7, 15 or
+     * 30 days, or Custom, which asks for a number of days and saves it. It goes in a settings file.
+     */
+    @Test public void keepHistoryForOffersDaysOrANumberAndWaitsForTheSwitch() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.VIEWING_HISTORY_DAYS.key));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(controller);
+            HushgramPreferenceFragment.HistoryDaysRow days =
+                    (HushgramPreferenceFragment.HistoryDaysRow) page.findPreference(Settings.VIEWING_HISTORY_DAYS.key);
+            assertNotNull(days);
+            assertEquals("Keep history for", String.valueOf(days.getTitle()));
+            assertEquals("Viewing history",
+                    String.valueOf(StoryTimeSettingsTest.sectionOf(page.getPreferenceScreen(), days).getTitle()));
+            assertFalse("it waits for the switch", days.isEnabled());
+            java.util.List<String> entries = new java.util.ArrayList<>();
+            for (CharSequence entry : days.getEntries()) entries.add(entry.toString());
+            assertEquals(Arrays.asList("Newest 500", "3 days", "7 days", "15 days", "30 days", "Custom"), entries);
+            assertEquals("0", days.getValue());
+            assertEquals("The newest 500 stay, however old they are.", String.valueOf(days.getSummary()));
+
+            ((SwitchPreference) page.findPreference(Settings.VIEWING_HISTORY.key)).setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(days.isEnabled());
+            assertTrue("a list entry saves its days", days.getOnPreferenceChangeListener().onPreferenceChange(days, "7"));
+            assertFalse("Custom itself is never saved",
+                    days.getOnPreferenceChangeListener().onPreferenceChange(days, HushgramPreferenceFragment.HistoryDaysRow.CUSTOM));
+            android.app.AlertDialog ask = (android.app.AlertDialog) org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+            assertNotNull("Custom asks for a number", ask);
+            assertTrue(ask.isShowing());
+            ((android.widget.EditText) ask.findViewById(android.R.id.edit)).setText("12");
+            ask.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertEquals(12, (int) Settings.VIEWING_HISTORY_DAYS.get());
+            assertEquals("12", days.getValue());
+            assertEquals("a number the list doesn't have marks Custom", 5, days.findIndexOfValue("12"));
+            assertEquals(2, days.findIndexOfValue("7"));
+            assertEquals("Anything seen more than 12 days ago goes. At most 2000 stay.", String.valueOf(days.getSummary()));
+        }
+        assertEquals(0, HushgramPreferenceFragment.HistoryDaysRow.customDays("0"));
+        assertEquals(0, HushgramPreferenceFragment.HistoryDaysRow.customDays(""));
+        assertEquals(0, HushgramPreferenceFragment.HistoryDaysRow.customDays("abc"));
+        assertEquals(1, HushgramPreferenceFragment.HistoryDaysRow.customDays(" 1 "));
+        assertEquals(365, HushgramPreferenceFragment.HistoryDaysRow.customDays("999"));
+        assertEquals("1 day", HushgramPreferenceFragment.historyDaysLabel(1));
     }
 
     @Test public void theSwitchStartsOffBelongsToTheDownloadPatchAndIsBackedUp() {
@@ -157,14 +209,479 @@ public class ViewingHistorySettingsTest {
             new android.app.DialogFragment().show(fragments, SettingsEntry.DIALOG_TAG);
             fragments.executePendingTransactions();
             page.list.performItemClick(null, 0, 0);
+            assertNull("a tap shows the row big first (#865)",
+                    org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedActivity());
+            ViewingHistoryViewer viewer = page.viewer;
+            assertNotNull(viewer);
+            viewer.open.performClick();
             android.content.Intent opened = org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
             assertEquals("https://www.instagram.com/p/B/", String.valueOf(opened.getData()));
+            assertFalse("the viewer goes with the page", viewer.dialog.isShowing());
             assertEquals("its own package, so a copy next to Instagram opens itself", context.getPackageName(), opened.getPackage());
             assertFalse("the post opens under the page, so the page gets out of its way", page.dialog.isShowing());
             fragments.executePendingTransactions();
             assertNull("and the settings do too, or they'd follow the post to the front",
                     fragments.findFragmentByTag(SettingsEntry.DIALOG_TAG));
         }
+    }
+
+    /**
+     * The reporter's swipe (#865): a tap shows the row big, a swipe sideways or an arrow key goes to
+     * the next or the one before as the page lists them, the ends stay put, and Back comes back to
+     * the page instead of leaving for Instagram's Home.
+     */
+    @Test public void aTapShowsTheRowBigAndASwipeGoesThroughTheRest() throws Exception {
+        long now = System.currentTimeMillis();
+        Context context = RuntimeEnvironment.getApplication();
+        ViewingHistory.clear(context);
+        ViewingHistoryRows.add(context, Kind.PROFILE, "zed", "zed", now - 4_000L);
+        ViewingHistoryRows.add(context, Kind.STORY, "3_3", "bob", now - 3_000L);
+        ViewingHistoryRows.add(context, Kind.REEL, "2_2", "amy", now - 2_000L);
+        ViewingHistoryRows.add(context, Kind.POST, "1_1", "amy", now - 1_000L);
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment settings = DownloadSettingsTest.pageIn(controller);
+            Preference row = settings.findPreference(HushgramPreferenceFragment.VIEWING_HISTORY_ROW);
+            ViewingHistoryPage page = ViewingHistoryPage.open(controller.get(), row);
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            page.list.performItemClick(null, 1, 1);
+            ViewingHistoryViewer viewer = page.viewer;
+            assertNotNull("a tap shows the row big", viewer);
+            assertTrue(viewer.dialog.isShowing());
+            assertTrue("over the page, which stays", page.dialog.isShowing());
+            assertEquals("@amy", String.valueOf(viewer.who.getText()));
+            assertEquals("2 of 4", String.valueOf(viewer.place.getText()));
+            assertEquals(android.view.View.VISIBLE, viewer.open.getVisibility());
+            assertEquals(android.view.View.VISIBLE, viewer.profile.getVisibility());
+
+            swipe(viewer, -300, 0);
+            assertEquals("a swipe to the left goes to the next", "3 of 4", String.valueOf(viewer.place.getText()));
+            assertEquals("@bob", String.valueOf(viewer.who.getText()));
+            assertEquals("a story's tap already goes to its person", android.view.View.GONE, viewer.profile.getVisibility());
+            swipe(viewer, 300, 0);
+            assertEquals("and to the right back", "2 of 4", String.valueOf(viewer.place.getText()));
+            swipe(viewer, 4, 2);
+            swipe(viewer, -200, 400);
+            assertEquals("a tap or a drag up or down stays", "2 of 4", String.valueOf(viewer.place.getText()));
+
+            key(viewer, android.view.KeyEvent.KEYCODE_DPAD_RIGHT);
+            key(viewer, android.view.KeyEvent.KEYCODE_DPAD_RIGHT);
+            assertEquals("the arrow keys go too", "4 of 4", String.valueOf(viewer.place.getText()));
+            swipe(viewer, -300, 0);
+            assertEquals("the last stays the last", "4 of 4", String.valueOf(viewer.place.getText()));
+            assertEquals("@zed", String.valueOf(viewer.who.getText()));
+            key(viewer, android.view.KeyEvent.KEYCODE_DPAD_LEFT);
+            assertEquals("3 of 4", String.valueOf(viewer.place.getText()));
+
+            assertEquals("mirrored right to left", -1, ViewingHistoryViewer.stepOf(-300, 0, 600, true));
+            assertEquals(1, ViewingHistoryViewer.stepOf(300, 0, 600, true));
+            assertEquals("a short slide on a wide picture stays", 0, ViewingHistoryViewer.stepOf(-90, 0, 1080, false));
+
+            viewer.dialog.onBackPressed();
+            ShadowLooper.idleMainLooper();
+            assertFalse("Back closes the big row", viewer.dialog.isShowing());
+            assertTrue("and the page is still there", page.dialog.isShowing());
+            assertNull(page.viewer);
+            assertNull("nothing opened in Instagram",
+                    org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedActivity());
+
+            page.tabs[1].performClick();
+            page.list.performItemClick(null, 0, 0);
+            assertEquals("the swipe keeps to the tab", "1 of 1", String.valueOf(page.viewer.place.getText()));
+            page.viewer.profile.performClick();
+            android.content.Intent opened = org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
+            assertEquals("https://www.instagram.com/amy/", String.valueOf(opened.getData()));
+            assertFalse(page.dialog.isShowing());
+        }
+    }
+
+    /**
+     * Back from what Open showed (#865): Instagram shows the post on Home or opens a profile, with no
+     * screen of its own to go back to, so its Back went on to Home and the list was gone. The next
+     * Back on Instagram's screen opens the page again instead, on the same tab and search with the row
+     * big again, and a page that sat over the settings brings them back on its page as it closes.
+     * Spent once: the Back after that is Instagram's.
+     */
+    @Test public void backFromWhatOpenShowedComesBackToTheHistory() throws Exception {
+        fourRowsAndAReel();
+        // Sections that open in place, so the settings are on a page of their own to come back to.
+        Settings.CATEGORY_PAGES.save(true);
+        Settings.CATEGORY_OWN_PAGE.save(false);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            android.app.FragmentManager fragments = activity.getFragmentManager();
+            SettingsDialog shown = SettingsDialog.onPage(null);
+            shown.show(fragments, SettingsEntry.DIALOG_TAG);
+            fragments.executePendingTransactions();
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            HushgramPreferenceFragment settings = (HushgramPreferenceFragment)
+                    shown.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
+            Preference section = categoryRow(settings, "Viewing history");
+            assertTrue(section.getOnPreferenceClickListener().onPreferenceClick(section));
+            ShadowLooper.idleMainLooper();
+            String settingsPage = settings.currentPage();
+            assertEquals("the history's own section is open", section.getKey(), settingsPage);
+            Preference row = settings.findPreference(HushgramPreferenceFragment.VIEWING_HISTORY_ROW);
+            ViewingHistoryPage page = ViewingHistoryPage.open(row.getContext(), row);
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            page.tabs[2].performClick();
+            page.search.setText("amy");
+            page.list.performItemClick(null, 1, 1);
+            assertEquals("2 of 2", String.valueOf(page.viewer.place.getText()));
+            page.viewer.open.performClick();
+            assertEquals("https://www.instagram.com/reel/C/", String.valueOf(
+                    org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity().getData()));
+            fragments.executePendingTransactions();
+            assertNull("the settings made way for the post", fragments.findFragmentByTag(SettingsEntry.DIALOG_TAG));
+            assertTrue("nothing of HushGram's is left over the post", showing().isEmpty());
+
+            assertTrue("Back on Instagram's screen was Instagram's", pressBack(activity));
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            assertFalse("Back left Instagram's screen", activity.isFinishing());
+            assertNull("nothing opened in Instagram",
+                    org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedActivity());
+            java.util.List<android.app.Dialog> back = showing();
+            assertEquals("the page and the row big on it", 2, back.size());
+            android.app.Dialog big = back.get(1);
+            assertTrue(textsIn(big).toString(), textsIn(big).containsAll(Arrays.asList("@amy", "2 of 2")));
+
+            big.onBackPressed();
+            ShadowLooper.idleMainLooper();
+            java.util.List<android.app.Dialog> list = showing();
+            assertEquals("Back from the row big is the page", 1, list.size());
+            android.app.Dialog again = list.get(0);
+            assertEquals("its search as it was", "amy", searchIn(again));
+            assertTrue("its tab as it was", selectedIn(again).contains("Reels"));
+            assertFalse(selectedIn(again).contains("All"));
+
+            again.onBackPressed();
+            ShadowLooper.idleMainLooper();
+            fragments.executePendingTransactions();
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            android.app.Fragment reopened = fragments.findFragmentByTag(SettingsEntry.DIALOG_TAG);
+            assertTrue("Back from the page is the settings it sat over", reopened instanceof SettingsDialog);
+            assertEquals(settingsPage, ((SettingsDialog) reopened).startPage());
+            HushgramPreferenceFragment settingsAgain = (HushgramPreferenceFragment) ((SettingsDialog) reopened)
+                    .getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
+            assertEquals("on the page they were on", settingsPage, settingsAgain.currentPage());
+            ((SettingsDialog) reopened).dismissAllowingStateLoss();
+            fragments.executePendingTransactions();
+            ShadowLooper.idleMainLooper();
+
+            pressBack(activity);
+            ShadowLooper.idleMainLooper();
+            assertTrue("the way back is spent once", showing().isEmpty());
+            assertTrue("and Back is Instagram's again", activity.isFinishing());
+        } finally {
+            SettingsEntry.onClosedByUser();
+        }
+    }
+
+    /**
+     * A link Instagram shows on a screen of its own, as it does a reel (#865): Back there is that
+     * screen's, and the history comes back as it closes. The screen that only hands a link on, and
+     * closes as it does, isn't the link's. A page opened away from the settings brings nothing back.
+     */
+    @Test public void aLinkOnItsOwnScreenKeepsItsBackAndTheHistoryComesBackAsItCloses() throws Exception {
+        fourRowsAndAReel();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            ViewingHistoryPage page = ViewingHistoryPage.open(activity, new HushgramPreferenceFragment.Row(activity));
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            page.search.setText("bob");
+            ViewingHistory.Row story = ViewingHistoryPage.matching(
+                    ViewingHistory.entries(RuntimeEnvironment.getApplication()), null, "bob").get(0);
+            assertTrue("a long press's Open", page.pick(ViewingHistoryPage.OPEN, story));
+            assertEquals("https://www.instagram.com/bob/", String.valueOf(
+                    org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity().getData()));
+            assertTrue(showing().isEmpty());
+
+            controller.pause();
+            try (ActivityController<UrlHandlerLauncherActivity> handler =
+                         Robolectric.buildActivity(UrlHandlerLauncherActivity.class).setup()) {
+                handler.get().finish();
+                handler.pause();
+                controller.resume();
+                handler.stop().destroy();
+            }
+            ShadowLooper.idleMainLooper();
+            assertTrue("the screen that hands the link on isn't the link's", showing().isEmpty());
+
+            controller.pause();
+            try (ActivityController<Activity> link = Robolectric.buildActivity(Activity.class).setup()) {
+                ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
+                assertTrue(pressBack(link.get()));
+                assertTrue("Back on the link's own screen is its own", link.get().isFinishing());
+                ShadowLooper.idleMainLooper();
+                assertTrue(showing().isEmpty());
+                link.pause();
+                controller.resume();
+                ShadowLooper.idleMainLooper();
+                link.stop().destroy();
+            }
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            java.util.List<android.app.Dialog> back = showing();
+            assertEquals("the history is back as the link's screen closes, the row not big", 1, back.size());
+            assertEquals("bob", searchIn(back.get(0)));
+
+            back.get(0).onBackPressed();
+            ShadowLooper.idleMainLooper();
+            activity.getFragmentManager().executePendingTransactions();
+            assertNull("no settings were under it", activity.getFragmentManager().findFragmentByTag(SettingsEntry.DIALOG_TAG));
+            pressBack(activity);
+            assertTrue("spent once", activity.isFinishing());
+        } finally {
+            SettingsEntry.onClosedByUser();
+        }
+    }
+
+    /**
+     * A reel's link on Instagram 457 goes through two screens that only hand it on and lands on
+     * ClipsUrlHandlerActivity, the reel's own screen, which has UrlHandler in its name too (#865).
+     * Which screen is the link's goes by how long it stayed up, not by its name: Back on the reel's
+     * screen is its own, and the history comes back as it closes, with the reel big again.
+     */
+    @Test public void aReelsScreenNamedLikeAHandOnStillBringsTheHistoryBack() throws Exception {
+        fourRowsAndAReel();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            ViewingHistoryPage page = ViewingHistoryPage.open(activity, new HushgramPreferenceFragment.Row(activity));
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            page.tabs[2].performClick();
+            page.list.performItemClick(null, 0, 0);
+            page.viewer.open.performClick();
+            assertTrue(String.valueOf(org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication())
+                    .getNextStartedActivity().getData()).startsWith("https://www.instagram.com/reel/"));
+            assertTrue(showing().isEmpty());
+
+            controller.pause();
+            // The first hands it on as it starts and never shows.
+            ActivityController<UrlHandlerLauncherActivity> launcher =
+                    Robolectric.buildActivity(UrlHandlerLauncherActivity.class).create();
+            launcher.get().finish();
+            launcher.destroy();
+            // The next shows for a moment, hands it on, and closes behind the reel's screen.
+            try (ActivityController<UrlHandlerActivity> handler = Robolectric.buildActivity(UrlHandlerActivity.class).setup()) {
+                ShadowLooper.idleMainLooper(30, java.util.concurrent.TimeUnit.MILLISECONDS);
+                handler.pause();
+                try (ActivityController<ClipsUrlHandlerActivity> reel =
+                             Robolectric.buildActivity(ClipsUrlHandlerActivity.class).setup()) {
+                    handler.get().finish();
+                    handler.stop().destroy();
+                    ShadowLooper.idleMainLooper(3, java.util.concurrent.TimeUnit.SECONDS);
+                    assertTrue("nothing over the reel while it plays", showing().isEmpty());
+
+                    assertTrue(pressBack(reel.get()));
+                    assertTrue("Back on the reel's screen is its own", reel.get().isFinishing());
+                    ShadowLooper.idleMainLooper();
+                    assertTrue(showing().isEmpty());
+                    reel.pause();
+                    controller.resume();
+                    ShadowLooper.idleMainLooper();
+                    reel.stop().destroy();
+                }
+            }
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            java.util.List<android.app.Dialog> back = showing();
+            assertEquals("the history is back as the reel's screen closes, the reel big on it", 2, back.size());
+            assertTrue(textsIn(back.get(1)).toString(), textsIn(back.get(1)).contains("@amy"));
+            back.get(1).onBackPressed();
+            ShadowLooper.idleMainLooper();
+            assertTrue("on the Reels tab", selectedIn(showing().get(0)).contains("Reels"));
+        } finally {
+            SettingsEntry.onClosedByUser();
+        }
+    }
+
+    /**
+     * Screens that only hand a link on show nothing of their own, so the history doesn't come back
+     * as they close, even when one is the last screen up before the link lands on the screen Open
+     * was tapped over, as a post's does (#865).
+     */
+    @Test public void aScreenThatOnlyHandsTheLinkOnBringsNothingBackAsItCloses() throws Exception {
+        fourRowsAndAReel();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            ViewingHistoryPage page = ViewingHistoryPage.open(activity, new HushgramPreferenceFragment.Row(activity));
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            page.list.performItemClick(null, 0, 0);
+            page.viewer.open.performClick();
+            assertTrue(showing().isEmpty());
+
+            controller.pause();
+            try (ActivityController<Activity> handler = Robolectric.buildActivity(Activity.class).setup()) {
+                ShadowLooper.idleMainLooper(40, java.util.concurrent.TimeUnit.MILLISECONDS);
+                handler.pause();
+                handler.get().finish();
+                controller.resume();
+                handler.stop().destroy();
+            }
+            ShadowLooper.idleMainLooper(3, java.util.concurrent.TimeUnit.SECONDS);
+            assertTrue("the post shows, with nothing over it", showing().isEmpty());
+
+            assertTrue(pressBack(activity));
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            assertEquals("Back on the post is still the way back", 2, showing().size());
+        } finally {
+            SettingsEntry.onClosedByUser();
+        }
+    }
+
+    /**
+     * Where Instagram takes Back through callbacks, from Android 16 on (#865), a callback over
+     * Instagram's own takes the Back after Open, and it's gone again once spent.
+     */
+    @Config(sdk = 37)
+    @Test public void backThroughCallbacksComesBackToTheHistoryToo() throws Exception {
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(org.robolectric.shadows.ShadowWindowOnBackInvokedDispatcher.class,
+                "setEnablePredictiveBack", org.robolectric.util.ReflectionHelpers.ClassParameter.from(boolean.class, true));
+        // Instagram's own manifest leaves Back to callbacks from its target on.
+        android.content.pm.ApplicationInfo app = RuntimeEnvironment.getApplication().getApplicationInfo();
+        app.targetSdkVersion = 37;
+        org.robolectric.util.ReflectionHelpers.callInstanceMethod(app, "setEnableOnBackInvokedCallback",
+                org.robolectric.util.ReflectionHelpers.ClassParameter.from(boolean.class, true));
+        fourRowsAndAReel();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            ViewingHistoryPage page = ViewingHistoryPage.open(activity, new HushgramPreferenceFragment.Row(activity));
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            page.list.performItemClick(null, 0, 0);
+            page.viewer.open.performClick();
+            assertTrue(showing().isEmpty());
+            Object top = topCallback(activity);
+            assertTrue("over Instagram's own: " + top, top instanceof ViewingHistoryReturn.BackCallback);
+            ((android.window.OnBackInvokedCallback) top).onBackInvoked();
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            assertEquals("the page and the row big on it", 2, showing().size());
+            assertFalse("spent once", topCallback(activity) instanceof ViewingHistoryReturn.BackCallback);
+        } finally {
+            org.robolectric.shadows.ShadowWindowOnBackInvokedDispatcher.reset();
+            SettingsEntry.onClosedByUser();
+        }
+    }
+
+    /** The screen Instagram hands a link through, by the name it has. */
+    public static final class UrlHandlerLauncherActivity extends Activity {
+    }
+
+    /** The next one a reel's link goes through on Instagram 457. */
+    public static final class UrlHandlerActivity extends Activity {
+    }
+
+    /** The reel's own screen on Instagram 457, named like the ones that hand the link on. */
+    public static final class ClipsUrlHandlerActivity extends Activity {
+    }
+
+    /** Four rows of each kind, newest last, and a newer reel from amy. */
+    private static void fourRowsAndAReel() {
+        long now = System.currentTimeMillis();
+        Context context = RuntimeEnvironment.getApplication();
+        ViewingHistory.clear(context);
+        ViewingHistoryRows.add(context, Kind.PROFILE, "zed", "zed", now - 4_000L);
+        ViewingHistoryRows.add(context, Kind.STORY, "3_3", "bob", now - 3_000L);
+        ViewingHistoryRows.add(context, Kind.REEL, "2_2", "amy", now - 2_000L);
+        ViewingHistoryRows.add(context, Kind.REEL, "5_5", "amy", now - 1_500L);
+        ViewingHistoryRows.add(context, Kind.POST, "1_1", "amy", now - 1_000L);
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
+    }
+
+    /** The callback a Back on [activity]'s window goes to now. */
+    private static Object topCallback(Activity activity) {
+        Object root = org.robolectric.util.ReflectionHelpers.callInstanceMethod(activity.getWindow().getDecorView(), "getViewRootImpl");
+        Object dispatcher = org.robolectric.util.ReflectionHelpers.callInstanceMethod(root, "getOnBackInvokedDispatcher");
+        return org.robolectric.util.ReflectionHelpers.callInstanceMethod(dispatcher, "getTopCallback");
+    }
+
+    private static Preference categoryRow(HushgramPreferenceFragment page, String title) {
+        android.preference.PreferenceScreen screen = page.getPreferenceScreen();
+        for (int i = 0; i < screen.getPreferenceCount(); i++) {
+            Preference item = screen.getPreference(i);
+            if (item.getKey() != null && item.getKey().startsWith(HushgramPreferenceFragment.CATEGORY_ROW_KEY)
+                    && title.contentEquals(item.getTitle())) return item;
+        }
+        throw new AssertionError("no row for " + title);
+    }
+
+    /** The dialogs on screen now, oldest first. */
+    private static java.util.List<android.app.Dialog> showing() {
+        java.util.List<android.app.Dialog> shown = new java.util.ArrayList<>();
+        for (android.app.Dialog dialog : org.robolectric.shadows.ShadowDialog.getShownDialogs()) {
+            if (dialog.isShowing()) shown.add(dialog);
+        }
+        return shown;
+    }
+
+    /** Back on the activity's own window, as a Back key comes to it. Whether both halves were taken. */
+    private static boolean pressBack(Activity activity) {
+        android.view.Window.Callback window = activity.getWindow().getCallback();
+        boolean down = window.dispatchKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_BACK));
+        boolean up = window.dispatchKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_BACK));
+        return down && up;
+    }
+
+    private static java.util.List<String> textsIn(android.app.Dialog dialog) {
+        java.util.List<String> texts = new java.util.ArrayList<>();
+        collectTexts(dialog.getWindow().getDecorView(), texts, false);
+        return texts;
+    }
+
+    private static java.util.List<String> selectedIn(android.app.Dialog dialog) {
+        java.util.List<String> texts = new java.util.ArrayList<>();
+        collectTexts(dialog.getWindow().getDecorView(), texts, true);
+        return texts;
+    }
+
+    private static void collectTexts(android.view.View view, java.util.List<String> texts, boolean selectedOnly) {
+        if (view instanceof android.widget.TextView && !(view instanceof android.widget.EditText)
+                && view.getVisibility() == android.view.View.VISIBLE && (!selectedOnly || view.isSelected())) {
+            texts.add(String.valueOf(((android.widget.TextView) view).getText()));
+        }
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) collectTexts(group.getChildAt(i), texts, selectedOnly);
+        }
+    }
+
+    private static String searchIn(android.app.Dialog dialog) {
+        java.util.ArrayDeque<android.view.View> views = new java.util.ArrayDeque<>();
+        views.add(dialog.getWindow().getDecorView());
+        while (!views.isEmpty()) {
+            android.view.View view = views.poll();
+            if (view instanceof android.widget.EditText) return String.valueOf(((android.widget.EditText) view).getText());
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) views.add(group.getChildAt(i));
+            }
+        }
+        return null;
+    }
+
+    private static void swipe(ViewingHistoryViewer viewer, float dx, float dy) {
+        long at = android.os.SystemClock.uptimeMillis();
+        android.view.MotionEvent down = android.view.MotionEvent.obtain(at, at, android.view.MotionEvent.ACTION_DOWN, 400, 400, 0);
+        android.view.MotionEvent up = android.view.MotionEvent.obtain(at, at + 120, android.view.MotionEvent.ACTION_UP, 400 + dx, 400 + dy, 0);
+        viewer.surface.dispatchTouchEvent(down);
+        viewer.surface.dispatchTouchEvent(up);
+        down.recycle();
+        up.recycle();
+    }
+
+    private static void key(ViewingHistoryViewer viewer, int code) {
+        viewer.dialog.dispatchKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, code));
+        viewer.dialog.dispatchKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, code));
     }
 
     /**
@@ -392,6 +909,7 @@ public class ViewingHistorySettingsTest {
 
             again.layout.performClick();
             again.grid.performItemClick(null, 0, 0);
+            again.viewer.open.performClick();
             android.content.Intent opened = org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
             assertEquals("a tap opens it, as a row's does", "https://www.instagram.com/p/BsOGulcndj-/", String.valueOf(opened.getData()));
         } finally {

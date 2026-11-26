@@ -29,9 +29,10 @@ final class HostPages {
         boolean truecaller = pkg.startsWith("com.truecaller");
         boolean docScanner = pkg.startsWith("com.cv.docscanner");
         boolean mx = pkg.startsWith("com.mxtech.videoplayer");
+        boolean tasker = pkg.startsWith("net.dinglisch.android.taskerm");
         boolean photos = pkg.startsWith("com.google.android.apps.photos");
 
-        if (on(context, "app.loki.menu.premium")) pages.add(premium(splitwise, truecaller, docScanner));
+        if (on(context, "app.loki.menu.premium")) pages.add(premium(splitwise, truecaller, docScanner, tasker));
         if (splitwise && on(context, "app.loki.menu.amoled")) pages.add(appearance(context));
         if (truecaller && on(context, "app.loki.menu.aftercall")) pages.add(calls(context));
         if (photos && on(context, "app.loki.menu.pixelspoof")) pages.add(backup(context));
@@ -48,7 +49,8 @@ final class HostPages {
         if (on(context, "app.loki.menu.clone")) pages.add(clone(context));
     }
 
-    private static SettingsActivity.Page premium(boolean splitwise, boolean truecaller, boolean docScanner) {
+    private static SettingsActivity.Page premium(boolean splitwise, boolean truecaller, boolean docScanner,
+                                                 boolean tasker) {
         SettingsActivity.Page page = new SettingsActivity.Page("Premium", IconDrawable.STAR);
         if (splitwise) {
             page.info("Splitwise Pro", () -> "Unlocked");
@@ -66,6 +68,11 @@ final class HostPages {
                     + "Truecaller's servers. Call Assistant and Family sharing stay off.");
         } else if (docScanner) {
             page.info("Full version", () -> "Activated");
+        } else if (tasker) {
+            page.info("Tasker licence", () -> "Unlocked");
+            page.info("Included", () -> "No trial limit and no purchase prompt: the licence check reports Licensed, "
+                    + "and the saved licence status is Licensed too, so it stays that way offline and after a "
+                    + "restart. Plugins such as AutoApps have their own licences and are not covered.");
         } else {
             page.info("Premium", () -> "Unlocked");
         }
@@ -185,11 +192,12 @@ final class HostPages {
         }
         if (on(context, "app.loki.menu.proads")) page.info("Pro ads and upsells", () -> "Hidden");
         // An app's own Hide ads patch (Truecaller, Doc Scanner) or the universal one: either removes them.
-        page.info("Ads", () -> on(context, "app.loki.menu.hideads") || on(context, "app.loki.menu.ads")
-                ? "Removed" : "Left as they were");
-        page.info("Analytics and crash reporting", () -> on(context, "app.loki.menu.analytics")
-                ? "Turned off" : "Left as they were");
-        page.info("Advertising ID", () -> on(context, "app.loki.menu.adid") ? "Removed" : "Left as it was");
+        // Only what is applied is listed, as on LinkedIn; Patch status shows what is not applied.
+        if (on(context, "app.loki.menu.hideads") || on(context, "app.loki.menu.ads")) {
+            page.info("Ads", () -> "Removed");
+        }
+        if (on(context, "app.loki.menu.analytics")) page.info("Analytics and crash reporting", () -> "Turned off");
+        if (on(context, "app.loki.menu.adid")) page.info("Advertising ID", () -> "Removed");
         return page;
     }
 

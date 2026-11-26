@@ -10,14 +10,18 @@ internal object Constants {
     const val CHESSCOM_VERSION_41027 = "4.10.27-googleplay"
 
     // First build with the Go Premium rebrand and the rewritten Puzzles hub, with its own branches
-    // where those moved a class. Checked on a phone like 4.10.27.
+    // where those moved a class.
     const val CHESSCOM_VERSION_41028 = "4.10.28-googleplay"
+
+    // The current build: the 4.10.28 shapes, with the classes 4.10.29 renamed again.
+    const val CHESSCOM_VERSION_41029 = "4.10.29-googleplay"
 
     val COMPATIBILITY = Compatibility(
         packageName = CHESSCOM_PACKAGE,
         name = "Chess.com",
         appIconColor = 0x69923E,
         targets = listOf(
+            AppTarget(version = CHESSCOM_VERSION_41029),
             AppTarget(version = CHESSCOM_VERSION_41028),
             AppTarget(version = CHESSCOM_VERSION_41027),
         ),

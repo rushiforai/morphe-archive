@@ -7,12 +7,17 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.youtube.patches.components;
 
-import org.apache.commons.lang3.StringUtils;
+import androidx.annotation.Nullable;
+
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.WireFormat;
+
+import java.io.IOException;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ContextInterface;
@@ -22,6 +27,13 @@ import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.StringTrieSearch;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ComponentType;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.Element;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ElementModel;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ElementType;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.LockupModel;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.LockupViewModel;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.LockupViewModelHolder;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.EngagementPanel;
 import app.morphe.extension.youtube.shared.NavigationBar;
@@ -38,9 +50,16 @@ public final class ShortsShelfFilter extends LazyBufferFilter {
     private static final String CONVERSATION_CONTEXT_FEED_IDENTIFIER =
             "horizontalCollectionSwipeProtector=null";
     private static final String SHELF_HEADER_PATH = "shelf_header.";
+    private static final String LOCKUP_TEMPLATE = "lockup.eml";
+    private static final String ITEM_ROOT_SUFFIX = "|CellType|";
+    // Native full-width Shorts cards use the same template as ordinary videos.
+    // See MorpheApp/morphe-patches@49b828305ceb for the A/B layout and content type.
+    private static final int LOCKUP_CONTENT_TYPE_SHORT = 3;
+
     private final StringFilterGroup channelProfile;
     private final StringFilterGroup compactFeedVideoPath;
     private final ByteArrayFilterGroup compactFeedVideoBuffer;
+    private final StringFilterGroup standaloneShortCardPath;
     private final StringFilterGroup shelfHeaderIdentifier;
     private final StringFilterGroup shelfHeaderPath;
     private static final StringTrieSearch feedGroup = new StringTrieSearch();
@@ -105,12 +124,18 @@ public final class ShortsShelfFilter extends LazyBufferFilter {
                 SHELF_HEADER_PATH
         );
 
-        addPathCallbacks(compactFeedVideoPath, shelfHeaderPath);
+        standaloneShortCardPath = new StringFilterGroup(hideShortsShelf, LOCKUP_TEMPLATE);
+        addPathCallbacks(compactFeedVideoPath, shelfHeaderPath, standaloneShortCardPath);
     }
 
     @Override
     public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
+        // The legacy buffer can belong to another card; only inspect an exact serialized Element.
+        if (matchedGroup == standaloneShortCardPath) {
+            return false;
+        }
+
         boolean isHomeFeedOrRelatedVideo = feedGroup.matches(allValue)
                 || ((matchedGroup == shelfHeaderPath || matchedGroup == shelfHeaderIdentifier)
                 && !RootView.isBackButtonVisible()
@@ -122,6 +147,12 @@ public final class ShortsShelfFilter extends LazyBufferFilter {
     public boolean isFilteredLazy(Object contextSource, String identifier, String accessibility,
                                   String path, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
+        if (matchedGroup == standaloneShortCardPath) {
+            return contentIndex == 0 && isLockupItemRoot(path)
+                    && shouldHideShortsFeedItems(null)
+                    && isShortLockup(buffer.get());
+        }
+
         return isFiltered(contextSource instanceof ContextInterface contextInterface
                         ? contextInterface.isHomeFeedOrRelatedVideo()
                         : String.valueOf(contextSource).contains(CONVERSATION_CONTEXT_FEED_IDENTIFIER),
@@ -176,13 +207,64 @@ public final class ShortsShelfFilter extends LazyBufferFilter {
         return true;
     }
 
-    /** @param component Identifier or path of the component, for the debug log. */
-    private static boolean shouldHideShortsFeedItems(CharSequence component) {
-        final boolean playerActive = RootView.isPlayerActive();
-        final boolean descriptionActive = EngagementPanel.isDescription();
-        final boolean searchBarActive = RootView.isSearchBarActive();
-        final NavigationButton selectedNavButton = NavigationButton.getSelectedNavigationButton();
-        final String browseId = RootView.getBrowseId();
+    private static boolean isLockupItemRoot(String path) {
+        // Exactly template|hash|CellType|, not a child of this card or a lockup inside another item.
+        if (!path.endsWith(ITEM_ROOT_SUFFIX)) {
+            return false;
+        }
+
+        final int templateEnd = LOCKUP_TEMPLATE.length();
+        final char separator = path.charAt(templateEnd);
+        if (separator != '|' && separator != '-') {
+            return false;
+        }
+
+        final int hashStart = path.indexOf('|', templateEnd) + 1;
+        return hashStart > 0 && hashStart < path.length() - ITEM_ROOT_SUFFIX.length()
+                && path.indexOf('|', hashStart) == path.length() - ITEM_ROOT_SUFFIX.length();
+    }
+
+    private static boolean isShortLockup(byte[] bytes) {
+        // Walk only the card's own typed model. Skip images, commands and nested elements without copying them.
+        CodedInputStream input = CodedInputStream.newInstance(bytes);
+        try {
+            return enterMessage(input, Element.TYPE_FIELD_NUMBER)
+                    && enterMessage(input, ElementType.COMPONENTTYPE_FIELD_NUMBER)
+                    && enterMessage(input, ComponentType.MODEL_FIELD_NUMBER)
+                    && enterMessage(input, ElementModel.LOCKUPMODEL_FIELD_NUMBER)
+                    && enterMessage(input, LockupModel.VIEWMODEL_FIELD_NUMBER)
+                    && enterMessage(input, LockupViewModelHolder.LOCKUPVIEWMODEL_FIELD_NUMBER)
+                    && skipToField(input, LockupViewModel.CONTENTTYPE_FIELD_NUMBER, WireFormat.WIRETYPE_VARINT)
+                    && input.readInt32() == LOCKUP_CONTENT_TYPE_SHORT;
+        } catch (IOException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean enterMessage(CodedInputStream input, int fieldNumber) throws IOException {
+        if (!skipToField(input, fieldNumber, WireFormat.WIRETYPE_LENGTH_DELIMITED)) {
+            return false;
+        }
+
+        input.pushLimit(input.readRawVarint32());
+        return true;
+    }
+
+    private static boolean skipToField(CodedInputStream input, int fieldNumber, int wireType) throws IOException {
+        final int wantedTag = (fieldNumber << 3) | wireType;
+        for (int tag; (tag = input.readTag()) != 0; ) {
+            if (tag == wantedTag) {
+                return true;
+            }
+            if (!input.skipField(tag)) {
+                break;
+            }
+        }
+        return false;
+    }
+
+    /** @param component Identifier or path to log, or null to check the surface before classifying the item. */
+    private static boolean shouldHideShortsFeedItems(@Nullable CharSequence component) {
         final boolean hideHomeAndRelatedVideos = Settings.HIDE_SHORTS_SHELF_HOME_RELATED_VIDEOS.get();
         final boolean hideSearch = Settings.HIDE_SHORTS_SHELF_SEARCH.get();
         final boolean hideSubscriptions = Settings.HIDE_SHORTS_SHELF_SUBSCRIPTIONS.get();
@@ -202,14 +284,15 @@ public final class ShortsShelfFilter extends LazyBufferFilter {
         }
 
         // Must check player type first, as search bar can be active behind the player.
-        if (playerActive) {
-            return descriptionActive
-                    ? logDecision(component, hideVideoDescription, "player: description") // Player video description panel opened.
-                    : logDecision(component, hideHomeAndRelatedVideos, "player: home"); // For now, consider the under video results the same as the home feed.
+        if (RootView.isPlayerActive()) {
+            // Treat the results below a video the same as Home.
+            return EngagementPanel.isDescription()
+                    ? logDecision(component, hideVideoDescription, "player: description")
+                    : logDecision(component, hideHomeAndRelatedVideos, "player: home");
         }
 
         // Must check second, as search can be from any tab.
-        if (searchBarActive) {
+        if (RootView.isSearchBarActive()) {
             return logDecision(component, hideSearch, "search");
         }
 
@@ -218,15 +301,18 @@ public final class ShortsShelfFilter extends LazyBufferFilter {
             return logDecision(component, false, "others shown");
         }
 
+        final NavigationButton selectedNavButton = NavigationButton.getSelectedNavigationButton();
+        final String browseId = RootView.getBrowseId();
+
         // Unknown tab, treat the same as home.
         if (selectedNavButton == null) {
-            return logDecision(component, hideHomeAndRelatedVideos, "home: " + selectedNavButton + " browse: " + browseId);
+            return logHomeDecision(component, hideHomeAndRelatedVideos, null, browseId);
         }
 
         // Fixes a very rare bug in home.
         if (selectedNavButton == NavigationButton.HOME
-                && StringUtils.equalsAny(browseId, BROWSE_ID_LIBRARY, BROWSE_ID_NOTIFICATION_INBOX)) {
-            return logDecision(component, hideHomeAndRelatedVideos, "home: " + selectedNavButton + " browse: " + browseId);
+                && (BROWSE_ID_LIBRARY.equals(browseId) || BROWSE_ID_NOTIFICATION_INBOX.equals(browseId))) {
+            return logHomeDecision(component, hideHomeAndRelatedVideos, selectedNavButton, browseId);
         }
 
         switch (selectedNavButton) {
@@ -248,11 +334,16 @@ public final class ShortsShelfFilter extends LazyBufferFilter {
                         return logDecision(component, hideSubscriptions, "subscriptions");
                     }
                     default -> {
-                        return logDecision(component, hideHomeAndRelatedVideos, "home: " + selectedNavButton + " browse: " + browseId);
+                        return logHomeDecision(component, hideHomeAndRelatedVideos, selectedNavButton, browseId);
                     }
                 }
             }
         }
+    }
+
+    private static boolean logHomeDecision(@Nullable CharSequence component, boolean hide,
+                                           @Nullable NavigationButton button, String browseId) {
+        return component == null ? hide : logDecision(component, hide, "home: " + button + " browse: " + browseId);
     }
 
     /**
@@ -260,8 +351,8 @@ public final class ShortsShelfFilter extends LazyBufferFilter {
      *
      * @return The decision.
      */
-    private static boolean logDecision(CharSequence component, boolean hide, String reason) {
-        if (BaseSettings.DEBUG.get()) {
+    private static boolean logDecision(@Nullable CharSequence component, boolean hide, String reason) {
+        if (component != null && BaseSettings.DEBUG.get()) {
             String message = "Shorts " + (hide ? "hidden" : "shown") + " (" + reason + ") player: "
                     + PlayerType.getCurrent() + " search bar: " + NavigationBar.isSearchBarActive()
                     + " component: " + component;

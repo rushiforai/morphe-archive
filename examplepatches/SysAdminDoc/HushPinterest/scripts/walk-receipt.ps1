@@ -21,13 +21,14 @@ $WalkReceiptPhones = @('SM-S908U1', 'SM-S938B')
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
 $WalkReceiptCatalog = Join-Path (Split-Path -Parent $PSScriptRoot) 'patches-list.json'
 
-# The settings list's search box, read by its hint. It sits above the list, so scrolling never hides
-# it, and a page hides it, so it going away is how a page is told from the list. (The list's own
-# headings scroll off the top once a lower row has been reached.)
-$WalkSettingsHome = 'Search settings'
+# The settings list's title in the bar. The bar sits above the list, so scrolling never hides it,
+# and a page puts its own name there, so this going away is how a page is told from the list. (The
+# list's own headings scroll off the top once a lower row has been reached, and the search box shows
+# on every page since 2026-11-18.)
+$WalkSettingsHome = 'HushPinterest'
 # Raised whenever a case or a hook family is added, dropped or given different anchors, so a
 # receipt says which list it walked and publish refuses one walked against another.
-$WalkCaseListVersion = 3
+$WalkCaseListVersion = 4
 $WalkPinLink = 'pinterest://pin/1477812369124424/'
 $WalkSettingsPages = @('Feed', 'Privacy', 'Pin actions', 'Interface', 'Links', 'Notifications',
     "Pinterest's own settings", 'Updates', 'Pause, backup and diagnostics', 'About')
@@ -105,6 +106,21 @@ function Get-WalkHookFamilies {
         @{ Family = 'Hide topic suggestions'; Case = 'pin'; Page = 'Interface'; Switch = 'Hide topic suggestions'; Key = 'hushpinterest_hide_topic_suggestions' }
         @{ Family = 'Show posted date'; Case = 'pin'; Page = 'Interface'; Switch = 'Show posted date'; Key = 'hushpinterest_show_posted_date' }
         @{ Family = 'Hide Inbox updates'; Case = 'inbox'; Page = 'Notifications'; Switch = 'Hide Inbox updates'; Key = 'hushpinterest_hide_inbox_updates' }
+    )
+}
+
+function Get-WalkRouteSwitches {
+    <#
+    .SYNOPSIS
+        The switches that take away what a case is found or reached by: the pin's back arrow, one of
+        its marks, and the home feed's Notifications or Inbox button, the only way into the Inbox.
+        A phone set up with either on can't be walked as it is, so the walk turns each one it finds
+        on off for its run, and on again before it ends. Same fields as Get-WalkHookFamilies, and
+        Route set.
+    #>
+    @(
+        @{ Family = 'the pin''s back arrow'; Case = 'pin'; Page = 'Interface'; Switch = 'Hide back arrow on pins'; Key = 'hushpinterest_hide_closeup_back'; Route = $true }
+        @{ Family = 'the Inbox button'; Case = 'inbox'; Page = 'Interface'; Switch = 'Hide Notifications button'; Key = 'hushpinterest_hide_nav_notifications'; Route = $true }
     )
 }
 

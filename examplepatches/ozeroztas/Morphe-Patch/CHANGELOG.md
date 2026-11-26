@@ -1,3 +1,19 @@
+Morphe Patches 1.0.2
+
+See CHANGELOG.md for the complete list of changes.
+
+Morphe Patches 1.0.1
+
+See CHANGELOG.md for the complete list of changes.
+
+Morphe Patches 1.0.1
+
+See CHANGELOG.md for the complete list of changes.
+
+Morphe Patches 1.0.0
+
+See CHANGELOG.md for the complete list of changes.
+
 ## [2.3.0](https://github.com/MorpheApp/morphe-patches/compare/v2.2.0...v2.3.0) (2026-11-16)
 
 ### ✨ New Features

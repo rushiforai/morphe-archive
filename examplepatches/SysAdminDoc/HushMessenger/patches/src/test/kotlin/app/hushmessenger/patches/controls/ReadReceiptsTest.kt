@@ -34,21 +34,31 @@ private val FINAL = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 private val SEEN_BODY = "const-string v0, \"$CHAT_SEEN_JOB\"\nconst-string v1, \"$CHAT_SEEN_TRACE\"\nreturn-void"
 private const val DISPATCH = "LX/Dispatch;->send(${FB_USER_SESSION}LX/Enum;LX/Message;Ljava/lang/String;Ljava/lang/String;)V"
 
-/** Keep the native instruction positions while omitting unrelated composer logic. The default is 587's body. */
+/** A copy at the width its registers need, the way Messenger writes them. */
+private fun copy(to: Int, from: Int) = if (to < 16 && from < 16) "move-object v$to, v$from" else "move-object/from16 v$to, v$from"
+
+/**
+ * Keep the native instruction positions while omitting unrelated composer logic. The default is 588's body, where one
+ * of Messenger's own branches lands on the composer's staging and the thread is read again after the dispatch.
+ */
 private fun sendBody(changes: Map<Int, String> = emptyMap(), shape: ReplyReadShape = REPLY_READ_SHAPE, size: Int = shape.sizes.max()): String {
     val c = MutableList(size) { "nop" }
     val n = shape.nullThread
     val d = shape.dispatch
     val s = d - shape.stage
+    val first = shape.dispatchStart
     mapOf(
         1 to "const-string v0, \"AdapterSender\"", 2 to "const-string v0, \"meta_ai_invocation\"",
-        4 to "move-object/from16 v7, p11", shape.composer to "move-object/from16 v${shape.composerReg}, p4", shape.session to "move-object/from16 v10, p0",
-        n to "const/4 v5, 0x0", n + 1 to "if-eqz p7, :null_thread",
-        n + 2 to "invoke-interface/range {p7 .. p7}, LX/ThreadProvider;->thread()$THREAD_KEY_TYPE", n + 3 to "move-result-object v12",
+        shape.event to "move-object/from16 v${shape.eventReg}, p11", shape.composer to "move-object/from16 v${shape.composerReg}, p4",
+        shape.session to "move-object/from16 v${shape.sessionReg}, p0",
+        n to "const/16 v${shape.nullReg}, 0x0", n + 1 to "if-eqz p7, :null_thread",
+        n + 2 to "invoke-interface/range {p7 .. p7}, LX/ThreadProvider;->thread()$THREAD_KEY_TYPE", n + 3 to "move-result-object v${shape.threadReg}",
         n + 4 to ":thread_ready\nnop", n + 5 to "goto/16 :send_stage", shape.absent - 1 to "goto :thread_ready",
-        shape.absent to ":null_thread\nmove-object v12, v5", shape.absent + 1 to "goto :thread_ready",
-        s - 3 to ":send_stage\nnop", s - 1 to "move-object/from16 v11, v${shape.composerReg}", s to "move-object v12, v10", d - 2 to "move-object/from16 v15, v${shape.stringReg}",
-        d to "invoke-interface/range {v11 .. v16}, $DISPATCH", d + 1 to "const/4 v0, 0x0", d + 2 to "const/4 v1, 0x0", d + 33 to "return-void",
+        shape.absent to ":null_thread\n${copy(shape.threadReg, shape.nullReg)}", shape.absent + 1 to "goto :thread_ready",
+        s - 3 to ":send_stage\nnop", s - 1 to "if-eqz v0, :staging", s to ":staging\n${copy(first, shape.composerReg)}",
+        s + 1 to copy(first + 1, shape.sessionReg), d - 2 to copy(first + 4, shape.stringReg),
+        d to "invoke-interface/range {v$first .. v${first + 5}}, $DISPATCH", d + 1 to "if-eqz v${shape.threadReg}, :sent",
+        d + 2 to "invoke-static {v${shape.threadReg}}, LX/H;->use(Ljava/lang/Object;)V", d + 33 to ":sent\nreturn-void",
         size - 1 to "return-void",
     ).plus(changes).forEach { (i, value) -> c[i] = value }
     return c.joinToString("\n")
@@ -147,7 +157,6 @@ class ReadReceiptsTest {
     @Test fun replyIsRecordedOnlyAfterDispatchWithThePreservedThread() {
         val n = REPLY_READ_SHAPE.nullThread
         val d = REPLY_READ_SHAPE.dispatch
-        val s = d - REPLY_READ_SHAPE.stage
         val method = send()
         val before = method.code()
         assertEquals(Opcode.INVOKE_INTERFACE_RANGE, before[n + 2].opcode)
@@ -158,33 +167,35 @@ class ReadReceiptsTest {
         assertEquals(emptyList(), ((before[n + 2] as ReferenceInstruction).reference as MethodReference).parameterTypes)
         assertEquals(THREAD_KEY_TYPE, ((before[n + 2] as ReferenceInstruction).reference as MethodReference).returnType)
         assertEquals(Opcode.MOVE_RESULT_OBJECT, before[n + 3].opcode)
-        assertEquals(12, (before[n + 3] as OneRegisterInstruction).registerA)
+        assertEquals(2, (before[n + 3] as OneRegisterInstruction).registerA)
         assertEquals(d, method.validateReplyRead())
         method.injectReplyRead()
         val c = method.code()
-        assertEquals(Opcode.MOVE_OBJECT_16, c[s].opcode)
-        assertEquals(DISPATCH, (c[d + 1] as ReferenceInstruction).reference.toString())
-        assertEquals("$SETTINGS->noteMessageSent(Ljava/lang/Object;Ljava/lang/Object;)V", (c[d + 4] as ReferenceInstruction).reference.toString())
-        assertStockCode(before, c, setOf(s, d + 2, d + 3, d + 4), "send dispatcher")
+        assertEquals(DISPATCH, (c[d] as ReferenceInstruction).reference.toString())
+        val note = c[d + 1]
+        assertEquals("$SETTINGS->noteMessageSent(Ljava/lang/Object;Ljava/lang/Object;)V", (note as ReferenceInstruction).reference.toString())
+        // The account the dispatch was handed, then the chat it went to, both still in their own registers.
+        assertEquals(2, (note as FiveRegisterInstruction).registerCount)
+        assertEquals(listOf(4, 2), listOf(note.registerC, note.registerD))
+        assertStockCode(before, c, setOf(d + 1), "send dispatcher")
     }
 
     /**
-     * Messenger 582's dispatcher had one more parameter check, so the same seam sat four instructions later. 585's was as
-     * long as 586's but staged three sooner in a 35-register frame, with the composer in v19 and the String from v0, and
-     * its 32-bit builds ended four instructions sooner. No 586 32-bit build is known, so that size is refused too.
+     * 587's dispatcher was 398 instructions in a 36-register frame, and it staged the account over its thread (v12) just
+     * before the dispatch. Its body isn't patched, and neither is 588's body staged the way 587's was.
      */
-    @Test fun a582Or585DispatcherOrABodyOfAnotherSizeIsRefused() {
-        val shape582 = ReplyReadShape(sizes = setOf(402), composer = 13, session = 25, nullThread = 31, absent = 73, dispatch = 239)
-        val shape585 = ReplyReadShape(sizes = setOf(397), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 233,
-            composerReg = 19, stage = 4, registers = 35, stringReg = 0)
+    @Test fun a587DispatcherOrABodyOfAnotherSizeIsRefused() {
+        val shape587 = ReplyReadShape(sizes = setOf(398), registers = 36, event = 4, eventReg = 7, composer = 10, composerReg = 20, session = 20,
+            sessionReg = 10, nullThread = 26, nullReg = 5, threadReg = 12, absent = 71, dispatch = 238, dispatchStart = 11, stage = 5, stringReg = 18)
         val registers = REPLY_READ_SHAPE.registers
+        val d = REPLY_READ_SHAPE.dispatch
         for ((label, method) in listOf(
-            "582 send dispatcher" to send(shape = shape582),
-            "585 send dispatcher" to send(shape = shape585),
-            "585's frame size" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(), 35, STATIC),
+            "587 send dispatcher" to send(shape = shape587),
+            "587's frame size" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(), 36, STATIC),
             "one more instruction" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody() + "\nnop", registers, STATIC),
-            "585's 32-bit size" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(size = 393), registers, STATIC),
-            "the String from another register" to send(mapOf(REPLY_READ_SHAPE.dispatch - 2 to "move-object/from16 v15, v19")),
+            "587's size" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(size = 398), registers, STATIC),
+            "the account staged over the thread" to send(mapOf(d - 1 to "move-object v2, v4")),
+            "the String from another register" to send(mapOf(d - 2 to "move-object/from16 v16, v19")),
         )) {
             val before = method.code()
             assertFailsWith<PatchException>(label) { method.injectReplyRead() }
@@ -192,45 +203,27 @@ class ReadReceiptsTest {
         }
     }
 
-    /**
-     * 586's dispatcher held its inbox tag as a plain const-string where 587 reads it from the string pool, so its seam sat
-     * two sooner, and its family B read the thread's id String in one call, two sooner again. Neither body is patched,
-     * and 587's seam in a 586-sized body is refused too.
-     */
-    @Test fun a586DispatcherIsRefused() {
-        val shape586 = ReplyReadShape(sizes = setOf(397), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 236, composerReg = 20, stage = 4)
-        val shape586B = ReplyReadShape(sizes = setOf(395), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 234, composerReg = 20, stage = 4)
-        for ((label, bad) in listOf(
-            "586 send dispatcher" to send(shape = shape586),
-            "586 family B send dispatcher" to send(shape = shape586B),
-            "587's seam in a 586 body" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(size = 397), REPLY_READ_SHAPE.registers, STATIC),
-        )) {
-            val stock = bad.code()
-            assertFailsWith<PatchException>(label) { bad.injectReplyRead() }
-            assertStockCode(stock, bad.code(), emptySet(), label)
-        }
-    }
-
-    @Test fun changedIdentityFlowOrLiveScratchRefusesBothHooksBeforeAnyEdit() {
+    @Test fun changedIdentityFlowRefusesBothHooksBeforeAnyEdit() {
         val n = REPLY_READ_SHAPE.nullThread
         val d = REPLY_READ_SHAPE.dispatch
+        val before = d - REPLY_READ_SHAPE.stage - 2
         val mutations = mapOf(
-            "wrong account" to mapOf(REPLY_READ_SHAPE.session to "move-object/from16 v10, p1"),
+            "wrong account" to mapOf(REPLY_READ_SHAPE.session to "move-object/from16 v4, p1"),
             "changed provider" to mapOf(n + 2 to "invoke-interface/range {p7 .. p7}, LX/Other;->thread()$THREAD_KEY_TYPE"),
             "wrong thread type" to mapOf(n + 2 to "invoke-interface/range {p7 .. p7}, LX/ThreadProvider;->thread()Ljava/lang/Object;"),
-            "thread overwritten" to mapOf(d - REPLY_READ_SHAPE.stage - 2 to "move-object v12, v10"),
-            "branch into send" to mapOf(d - REPLY_READ_SHAPE.stage - 2 to "goto :bad_send", d to ":bad_send\ninvoke-interface/range {v11 .. v16}, $DISPATCH"),
-            "saved parameter still used" to mapOf(d + 11 to "invoke-virtual/range {p13 .. p13}, LX/H;->use()V"),
-            "scratch read on alternate path" to mapOf(d + 1 to "if-eqz v5, :scratch_use", d + 11 to ":scratch_use\ninvoke-static {v1}, LX/H;->use(Ljava/lang/Object;)V"),
+            "thread overwritten" to mapOf(before to "move-object v2, v4"),
+            "account overwritten after it was staged" to mapOf(d - 1 to "const/4 v4, 0x0"),
+            "branch into send" to mapOf(before to "goto :bad_send", d to ":bad_send\ninvoke-interface/range {v12 .. v17}, $DISPATCH"),
+            "branch past the staging" to mapOf(before to "if-eqz v0, :late", d - 1 to ":late\nnop"),
         )
         for ((case, changes) in mutations) {
             val good = seen()
             val bad = send(changes)
             val hooks = mirroredControls(readReceiptsFixture(good, bad)).mapValues { (_, methods) -> methods.map { it as MutableMethod } }
-            val before = listOf(good.code(), bad.code())
+            val stock = listOf(good.code(), bad.code())
             assertFailsWith<PatchException>(case) { injectControl(HIDE_READ_RECEIPTS, hooks) }
-            assertStockCode(before[0], good.code(), emptySet(), case)
-            assertStockCode(before[1], bad.code(), emptySet(), case)
+            assertStockCode(stock[0], good.code(), emptySet(), case)
+            assertStockCode(stock[1], bad.code(), emptySet(), case)
         }
     }
 
@@ -246,18 +239,7 @@ class ReadReceiptsTest {
         assertFailsWith<PatchException> { seen().validateChatSeen() }
     }
 
-    @Test fun aThrowingScratchWriteDoesNotHideItsCatchRead() {
-        val d = REPLY_READ_SHAPE.dispatch
-        val method = send(mapOf(3 to "const-string v1, \"original scratch\"", d + 2 to "nop", d + 4 to "new-instance v1, Ljava/lang/Object;",
-            300 to "move-exception v3", 301 to "invoke-static {v1}, LX/H;->use(Ljava/lang/Object;)V", 302 to "throw v3"))
-        method.implementation!!.apply { addCatch(newLabelForIndex(d + 4), newLabelForIndex(d + 5), newLabelForIndex(300)) }
-        val before = method.code()
-        val failure = assertFailsWith<PatchException> { method.injectReplyRead() }
-        assertTrue(failure.message!!.contains("identity flow"))
-        assertStockCode(before, method.code(), emptySet(), "catch read")
-    }
-
-    @Test fun theNewCallbackCannotExtendANativeTryOverClobberedRegisters() {
+    @Test fun theNewCallbackCannotExtendANativeTryOverTheDispatch() {
         val method = send(mapOf(300 to "move-exception v3", 301 to "invoke-static {v0}, LX/H;->use(Ljava/lang/String;)V", 302 to "throw v3"))
         val d = REPLY_READ_SHAPE.dispatch
         method.implementation!!.apply { addCatch(newLabelForIndex(d), newLabelForIndex(d + 1), newLabelForIndex(300)) }
@@ -362,7 +344,12 @@ class ReadReceiptsTest {
             val sendBefore = send.code()
             val d = send.validateReplyRead()
             send.injectReplyRead()
-            assertStockCode(sendBefore, send.code(), setOf(d - REPLY_READ_SHAPE.stage, d + 2, d + 3, d + 4), code)
+            // 588 keeps the account and the thread in their own registers past the dispatch, so the one call goes in after it.
+            val sent = send.code()
+            assertEquals("$SETTINGS->noteMessageSent(Ljava/lang/Object;Ljava/lang/Object;)V", (sent[d + 1] as ReferenceInstruction).reference.toString(), code)
+            assertEquals(listOf(REPLY_READ_SHAPE.sessionReg, REPLY_READ_SHAPE.threadReg),
+                listOf((sent[d + 1] as FiveRegisterInstruction).registerC, (sent[d + 1] as FiveRegisterInstruction).registerD), code)
+            assertStockCode(sendBefore, sent, setOf(d + 1), code)
             val delivered = MutableMethod(deliveries.single())
             val deliveredBefore = delivered.code()
             val at = delivered.validateDeliveryReceipt()

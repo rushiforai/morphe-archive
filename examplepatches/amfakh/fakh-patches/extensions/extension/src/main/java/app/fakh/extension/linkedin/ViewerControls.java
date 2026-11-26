@@ -71,6 +71,44 @@ final class ViewerControls implements ViewTreeObserver.OnPreDrawListener {
         }
     }
 
+    /**
+     * The top, in window coordinates, of the seek bar of the video on screen under a view, or NaN while none shows.
+     */
+    static float seekBarTop(View view) throws Exception {
+        if (view.getVisibility() != View.VISIBLE) return Float.NaN;
+        if (view.getClass().getName().endsWith("AndroidComposeView")) {
+            Object owner = view.getClass().getMethod("getSemanticsOwner").invoke(view);
+            return seekBarTop(owner.getClass().getMethod("getUnmergedRootSemanticsNode").invoke(owner), 0);
+        }
+        float top = Float.NaN;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount() && Float.isNaN(top); i++) top = seekBarTop(group.getChildAt(i));
+        }
+        return top;
+    }
+
+    /** The top of the first slider on screen in a semantics tree: the node that lets its progress be set. */
+    private static float seekBarTop(Object node, int depth) throws Exception {
+        if (depth > 60) return Float.NaN;
+        Object config = node.getClass().getMethod("getConfig").invoke(node);
+        Iterator<?> it = (Iterator<?>) config.getClass().getMethod("iterator").invoke(config);
+        while (it.hasNext()) {
+            Object key = ((Map.Entry<?, ?>) it.next()).getKey();
+            if (!"SetProgress".equals(key.getClass().getField("name").get(key))) continue;
+            // The bounds of a slider on a page that is off screen are clipped to nothing.
+            Object rect = node.getClass().getMethod("getBoundsInWindow").invoke(node);
+            float top = rect.getClass().getField("top").getFloat(rect);
+            if (rect.getClass().getField("bottom").getFloat(rect) > top) return top;
+        }
+        Method children = node.getClass().getMethod("getChildren$ui", boolean.class, boolean.class, boolean.class);
+        for (Object child : (List<?>) children.invoke(node, true, false, false)) {
+            float top = seekBarTop(child, depth + 1);
+            if (!Float.isNaN(top)) return top;
+        }
+        return Float.NaN;
+    }
+
     /** The height of the status bar, where no back button sits. */
     private int statusBar() {
         return content.getRootWindowInsets() == null ? 0 : content.getRootWindowInsets().getSystemWindowInsetTop();

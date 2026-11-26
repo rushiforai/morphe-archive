@@ -59,6 +59,68 @@ class AnonymousStoriesTest {
         assertTrue(code.none { it is ReferenceInstruction && reference(it).contains("markStorySeen") })
     }
 
+    /**
+     * 588's armv7 handler, cut down: a 19-register frame that zeroes v11, then copies p0 and the card into v0 and v1
+     * (with a field read between them) before the send, and its local update reads the copies.
+     */
+    private val armv7Body = """
+        const/4 v11, 0x0
+        move-object/from16 v0, p0
+        iget-object v3, v0, LX/HNV;->A00:Ljava/lang/Object;
+        move-object/from16 v1, p1
+        if-eqz v3, :local_seen
+        const-string v2, "$STORY_MARK_READ_TAG"
+        invoke-static {v3, v2}, LX/Erv;->A00(Ljava/lang/Object;Ljava/lang/String;)V
+        :local_seen
+        invoke-static {v1}, Lcom/google/common/collect/ImmutableList;->of(Ljava/lang/Object;)Lcom/google/common/collect/ImmutableList;
+        move-result-object v5
+        iget-object v2, v0, LX/HNV;->A05:LX/2W3;
+        invoke-virtual {v2, v1, v5, v11}, $STORY_READ_SET_ADD
+        return-void
+    """.trimIndent()
+
+    @Test fun anArmv7HandlerGetsItsGateOnceTheCopiesItsLocalUpdateReadsAreMade() {
+        val method = fixtureMethod(STORY_MARK_READ_HOOK, armv7Body, registers = 19)
+        val shape = method.validateStorySeen()
+        assertEquals(listOf(4, 7, 11), listOf(shape.gate, shape.cache, shape.zero))
+        assertEquals(setOf(1, 17), shape.cards)
+        assertEquals(STORY_READ_SET_ADD, method.storyReadSetAdd().toString())
+        val original = method.implementation!!.instructions.toList()
+        method.injectStorySeen()
+        val code = method.implementation!!.instructions.toList()
+        val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+        assertEquals(original.take(4), code.take(4))
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, code[4].opcode)
+        assertEquals(listOf(16, 3), (code[4] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        assertEquals(11, (code[5] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ, code[6].opcode)
+        assertEquals(11, (code[6] as OneRegisterInstruction).registerA)
+        assertEquals(addresses[9], addresses[6] + (code[6] as OffsetInstruction).codeOffset)
+        assertEquals(listOf(Opcode.CONST_4, 11), listOf(code[7].opcode, (code[7] as OneRegisterInstruction).registerA))
+        val localSeen = code.indexOfFirst { it.opcode == Opcode.INVOKE_STATIC && reference(it).contains("ImmutableList;->of(") }
+        assertEquals(addresses[localSeen], addresses[8] + (code[8] as OffsetInstruction).codeOffset)
+        assertEquals(original.drop(4), code.drop(9))
+    }
+
+    @Test fun anArmv7HandlerWhoseCopiesTheSendCouldSkipIsRejectedBeforeAnyEdit() {
+        val copy = "move-object/from16 v1, p1\n"
+        val cases = listOf(
+            // A call comes before the copy the local update reads, so the gate would have to let it through.
+            armv7Body.replace(copy, "invoke-static {v3}, LX/Erv;->A01(Ljava/lang/Object;)V\n$copy"),
+            // The copy is made only on the way through the send, so the jump past it leaves the card's register unset.
+            armv7Body.replace(copy, "").replace("\n:local_seen\n", "\n$copy:local_seen\n"),
+            // The send writes the zeroed register the local update reads, so it has two definitions there.
+            armv7Body.replace("const-string v2,", "const/4 v11, 0x1\nconst-string v2,"),
+        )
+        for (body in cases) {
+            assertTrue(body != armv7Body)
+            val method = fixtureMethod(STORY_MARK_READ_HOOK, body, registers = 19)
+            val before = method.implementation!!.instructions.toList()
+            assertFailsWith<PatchException> { method.injectStorySeen() }
+            assertEquals(before, method.implementation!!.instructions.toList())
+        }
+    }
+
     /** The gate sits at index 1, so a jump back there would run the send without asking it. */
     @Test fun aHandlerThatJumpsBackToItsStartIsRejectedBeforeAnyEdit() {
         val method = handler(STORY_MARK_READ_BODY.lf()
@@ -255,11 +317,20 @@ class AnonymousStoriesTest {
 
             val handler = MutableMethod(discovered.getValue("anonymous_stories").single { it.definingClass == handlerType })
             val readSet = byType.getValue(handler.storyReadSetAdd().definingClass).validateStoryReadSet(handler.storyReadSetAdd())
+            val gated = MutableMethod(handler)
+            val shape = gated.validateStorySeen()
+            val stock = gated.implementation!!.instructions.toList()
+            gated.injectStorySeen()
+            val patched = gated.implementation!!.instructions.toList()
+            assertEquals("$SETTINGS->holdStorySeen(Ljava/lang/Object;Ljava/lang/Object;I)Z", reference(patched[shape.gate]), code)
+            assertEquals(shape.zero, (patched[shape.gate + 1] as OneRegisterInstruction).registerA, code)
+            assertEquals(stock.take(shape.gate), patched.take(shape.gate), code)
+            assertEquals(stock.drop(shape.gate), patched.drop(shape.gate + 5), code)
             val viewerCreated = MutableMethod(byType.getValue(MONTAGE_VIEWER).storyViewerCreated())
             viewerCreated.injectStoryViewerCreated()
             assertEquals("$STORY_EYE->viewerCreated(Ljava/lang/Object;Landroid/view/View;)V",
                 reference(viewerCreated.implementation!!.instructions.first()), code)
-            // Every 587 build keeps the card's ID in A0K, the 280 family included.
+            // Every 588 build keeps the card's ID in A0K, the armv7 family included.
             assertEquals(readCardId, readSet.cardId, code)
             val ring = preview.validateStoryRing()
             assertEquals(STORY_PREVIEW_INIT, ring.constructor, code)
@@ -274,9 +345,9 @@ class AnonymousStoriesTest {
             assertEquals("$MONTAGE_BUCKET_PREVIEW->$STORY_RING_HELPER($MONTAGE_BUCKET_PREVIEW)V", reference(init[init.size - 2]), code)
             assertEquals(Opcode.RETURN_VOID, init.last().opcode, code)
         }
-        // Every supported build keeps the card in A06 and the flag in A0G.
+        // Every supported build keeps the card in A07 and the flag in A0H (587 had A06 and A0G).
         assertEquals(setOf(
-            "$MONTAGE_BUCKET_PREVIEW->A06:$MONTAGE_CARD $MONTAGE_BUCKET_PREVIEW->A0G:Z $MONTAGE_BUCKET_PREVIEW->A02:I",
+            "$MONTAGE_BUCKET_PREVIEW->A07:$MONTAGE_CARD $MONTAGE_BUCKET_PREVIEW->A0H:Z $MONTAGE_BUCKET_PREVIEW->A02:I",
         ), ringFields)
     }
 }

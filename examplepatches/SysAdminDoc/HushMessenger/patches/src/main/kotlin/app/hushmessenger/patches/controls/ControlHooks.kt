@@ -135,7 +135,7 @@ private fun sharedChecks(): List<WalkCheck> = listOf(
     callButtonShapes, summaryPillHandlers, homeHeaders, composerResults, cameraLaunches, chatCameraFactories,
     captureLaunchers, launcherStarts, cameraUriChecks, internalFileOpens, galleryItemsShapes, galleryHandlerShapes,
     inboundCopies, tempFolderChecks, configHolders, playoutSwitches, playoutWriters, recordHandovers, recentMediaDetectors,
-    attributionUploads, instantCaptures, pinLimitLoaders, sharedFlagReaders, aiMentionShapes, headerRenders, logBars,
+    attributionUploads, instantCaptures, pinLimitLoaders, sharedFlagReaders, aiMentionShapes, imagineYourselfReaders, headerRenders, logBars,
     ringMountClasses, roundingPrinterClasses, legacyRoundings, tileShapeFlags, messageDebugStrings,
     profileMenuBuilders, profileCallRows, recoveryCodeRows, noteLimitMethods,
     searchResultSources, searchSectionTypes, aiChatLaunchers,
@@ -165,6 +165,14 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
         val original = cls.fields.firstOrNull { it.name == "__redex_internal_original_name" }
             ?.initialValue.let { (it as? StringEncodedValue)?.value }
         for (method in cls.methods) scan.visit(cls, original, method)
+    }
+    scan.quicksnapHelper?.let { id ->
+        try {
+            found.getValue("screenshot_viewers").add(resolveQuicksnapSecureHelper(classes, id))
+        } catch (refusal: PatchException) {
+            scan.changedViewer = true
+            screenshotViewerRefusal = refusal.message
+        }
     }
     val searchFieldRender = scan.searchFieldRender
     val changedViewer = scan.changedViewer
@@ -268,6 +276,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(TAB_BAR_OVERLAY).addAll(findTabBarOverlay(classes))
     found.getValue(TAB_BAR_SCROLL_AWAY).addAll(findTabBarScrollAway(classes))
     found.getValue(TAB_SWIPE).addAll(findTabSwipe(classes))
+    found.getValue(FLOATING_PILL).addAll(findFloatingPill(classes))
     found.getValue(AVATAR_SHAPE).addAll(findAvatarShape(classes))
     found.getValue(STORY_RING).addAll(findStoryRing(classes))
     found.getValue(QUIET_CALL_RING).addAll(findQuietCallRing(classes))
@@ -314,6 +323,9 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(PASTE_PHOTO).addAll(findPastePhoto(classes))
     for ((hook, methods) in findCustomFont(classes)) found.getValue(hook).addAll(methods)
     found.getValue(REFRESH_RATE).addAll(findRefreshRate(classes))
+    found.getValue(STORY_ROW_SIZE).addAll(findStoryRowSize(classes))
+    found.getValue(MARK_READ_LOCALLY).addAll(findMarkReadLocally(classes))
+    found.getValue(UNREAD_BADGE).addAll(findUnreadBadge(classes))
     return found
 }
 
@@ -450,6 +462,7 @@ private class ControlScan(
 ) {
     var searchFieldRender: Method? = null
     var changedViewer = false
+    var quicksnapHelper: String? = null
     val drawerReaders = mutableListOf<Method>()
     val drawerAnchors = mutableListOf<Method>()
     val drawerInterfaces = mutableMapOf<String, List<String>>()
@@ -470,8 +483,13 @@ private class ControlScan(
         if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
             (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
             try {
-                method.screenshotViewerSites()
-                found.getValue("screenshot_viewers").add(method)
+                // 588's Quicksnap viewer hands its window to a helper, which is checked once every class is in.
+                val helper = if (cls.type == QUICKSNAP_VIEWER) method.quicksnapSecureHelper() else null
+                if (helper != null) quicksnapHelper = helper
+                else {
+                    method.screenshotViewerSites()
+                    found.getValue("screenshot_viewers").add(method)
+                }
             } catch (refusal: PatchException) {
                 // The reason would be lost behind the generic "hooks differ", so validateControls repeats it.
                 changedViewer = true
@@ -1065,8 +1083,8 @@ internal fun ClassDef.isCqlRowWrapper(): Boolean =
 internal fun ClassDef.hasMessageIdGetter(): Boolean = messageIdGetterName.isNotEmpty() &&
     methods.any { it.name == messageIdGetterName && it.returnType == "Ljava/lang/String;" && it.parameterTypes == listOf("I") }
 
-/** The Notifications tab's server flag ID as 587 numbers it (586 read 72344145666062935). Meta renumbers it with each release. */
-private const val PEOPLE_SERVER_FLAG = 72344137076128710L
+/** The Notifications tab's server flag ID as 588 numbers it (587 read 72344137076128710). Meta renumbers it with each release. */
+private const val PEOPLE_SERVER_FLAG = 72344141371096311L
 
 /**
  * Where the Notifications tab loads its server flag: the method's only constant with that value, at 17, after the
@@ -1323,15 +1341,17 @@ internal fun MutableMethod.injectMenuDrawerAdd() {
 }
 
 private const val IMMUTABLE_LIST_BUILDER = "Lcom/google/common/collect/ImmutableList\$Builder;"
+private const val KEYBOARD_TABS_ADD_ALL = "$IMMUTABLE_LIST_BUILDER->addAll(Ljava/lang/Iterable;)$IMMUTABLE_LIST_BUILDER"
 
 /**
  * The composer fills the keyboard's tab list inline and returns it: a local ArrayList of tab items goes into a fresh
- * ImmutableList.Builder through one static call that adds it all and builds, as 583 did (584 to 586 called addAll and
- * then a static build):
+ * ImmutableList.Builder through one static call that adds it all and builds, as 583 and 587 did, or (584 to 586, and
+ * 588 with a virtual build) through the builder's own addAll:
  *
  *     invoke-static {}, ImmutableList;->builder()
  *     move-result-object vB
  *     invoke-static {vB, vList}, <static (Builder, Iterable) -> ImmutableList>
+ *     (or invoke-virtual {vB, vList}, ImmutableList$Builder;->addAll(Iterable)ImmutableList$Builder)
  *
  * Returns the copy's index and list register.
  */
@@ -1340,8 +1360,9 @@ internal fun MutableMethod.validateKeyboardTabsInline(): Pair<Int, Int> {
     val code = implementation!!.instructions.toList()
     val copy = code.indices.filter { index ->
         val call = (code[index] as? ReferenceInstruction)?.reference as? DexMethodReference
-        code[index].opcode == Opcode.INVOKE_STATIC && call != null && call.returnType == IMMUTABLE_LIST &&
-            call.parameterTypes.map { it.toString() } == listOf(IMMUTABLE_LIST_BUILDER, "Ljava/lang/Iterable;")
+        call != null && ((code[index].opcode == Opcode.INVOKE_STATIC && call.returnType == IMMUTABLE_LIST &&
+            call.parameterTypes.map { it.toString() } == listOf(IMMUTABLE_LIST_BUILDER, "Ljava/lang/Iterable;")) ||
+            (code[index].opcode == Opcode.INVOKE_VIRTUAL && call.toString() == KEYBOARD_TABS_ADD_ALL))
     }.singleOrNull()
     // Code inserted before a jump target would be skipped by whatever jumps there.
     if (returnType != IMMUTABLE_LIST || copy == null || copy < 2 || copy in jumpTargets()) changed()
@@ -1728,49 +1749,80 @@ internal fun MutableMethod.injectDeltaUnsent() {
     """.trimIndent())
 }
 
-internal fun MutableMethod.validateStorySeen(): Int {
+/**
+ * Where the story mark-read handler's gate goes. Every build starts by zeroing a register its local seen update reads
+ * ([zero], v0 on arm64). 588's armv7 build then copies p0 and the card into low registers before the send, and its local
+ * update reads those copies, so the gate goes in after the last of them ([gate]). The jump from there to [cache] finds
+ * every register the update reads holding what the send would have left in it, and nothing before the gate calls out
+ * or branches, so the send is all the gate skips. [cards] are the registers that hold the card at [cache].
+ */
+internal class StorySeenShape(val gate: Int, val cache: Int, val zero: Int, val cards: Set<Int>)
+
+private val OBJECT_COPIES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+
+internal fun MutableMethod.validateStorySeen(): StorySeenShape {
     if (AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" || parameterTypes != listOf(MONTAGE_CARD, "Z")) {
         throw PatchException("Messenger controls: the story mark-read handler is ${hookId()}, expected (MontageCard, boolean) void")
     }
     val code = implementation!!.instructions.toList()
     val zero = code.firstOrNull()
-    if (zero?.opcode != Opcode.CONST_4 || (zero as OneRegisterInstruction).registerA != 0 ||
-        (zero as NarrowLiteralInstruction).narrowLiteral != 0) {
-        throw PatchException("Messenger controls: the story mark-read handler no longer starts by zeroing v0")
+    if (zero?.opcode != Opcode.CONST_4 || (zero as NarrowLiteralInstruction).narrowLiteral != 0) {
+        throw PatchException("Messenger controls: the story mark-read handler no longer starts by zeroing a register")
     }
-    val card = implementation!!.registerCount - 2
+    val zeroed = (zero as OneRegisterInstruction).registerA
+    val card = parameterRegister(1)
+    fun copiesCard(i: Int) = i >= 0 && code[i].opcode in OBJECT_COPIES && (code[i] as TwoRegisterInstruction).registerB == card
+    val copies = code.indices.filter(::copiesCard).map { (code[it] as TwoRegisterInstruction).registerA }.toSet()
     val cache = code.indexOfFirst { insn ->
         insn.opcode == Opcode.INVOKE_STATIC && (insn as ReferenceInstruction).reference.toString() == IMMUTABLE_LIST_OF &&
-            (insn as FiveRegisterInstruction).registerCount == 1 && insn.registerC == card
+            (insn as FiveRegisterInstruction).registerCount == 1 && insn.registerC in copies + card
     }
     val targets = jumpTargets()
     if (cache <= 1 || cache !in targets) {
         throw PatchException("Messenger controls: the story mark-read handler's local seen update isn't where the send ends")
     }
-    // The gate goes in at index 1, and a jump back there would send the seen state past it.
-    if (1 in targets) throw PatchException("Messenger controls: the story mark-read handler jumps back to its start")
-    val send = code.subList(1, cache)
+    // Every register the local update reads has one definition reaching it, a parameter's own or one the gate follows.
+    val flow = ReadFlow(this)
+    val reaching = (0 until implementation!!.registerCount).filter { !flow.deadAt(cache, it) }.associateWith { flow.definitionsAt(cache, it) }
+    if (reaching.values.any { it.size != 1 }) {
+        throw PatchException("Messenger controls: the story mark-read handler's local seen update reads what the send sets")
+    }
+    val gate = (reaching.values.map { it.single() } + 0).max() + 1
+    val cards = reaching.filter { (register, defs) -> if (register == card) defs == setOf(-1) else copiesCard(defs.single()) }.keys +
+        listOf(card).filter { flow.definitionsAt(cache, it) == setOf(-1) }
+    if ((code[cache] as FiveRegisterInstruction).registerC !in cards) {
+        throw PatchException("Messenger controls: the story mark-read handler's local seen update isn't handed the card")
+    }
+    // A jump back into the copies would send the seen state past the gate.
+    if ((1..gate).any { it in targets }) throw PatchException("Messenger controls: the story mark-read handler jumps back to its start")
+    val passed = (parameterRegister(0)..parameterRegister(2)).toSet() + zeroed
+    if (code.subList(1, gate).any { insn -> insn is OffsetInstruction || (insn as? ReferenceInstruction)?.reference is DexMethodReference ||
+            passed.any { insn.readWrites(it) } }) {
+        throw PatchException("Messenger controls: the story mark-read handler calls out before its send")
+    }
+    val send = code.subList(gate, cache)
     val exits = setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW)
     if (send.any { it.opcode in exits } ||
         send.none { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == STORY_MARK_READ_TAG }) {
         throw PatchException("Messenger controls: the story mark-read handler's send no longer matches the tested build")
     }
-    return cache
+    return StorySeenShape(gate, cache, zeroed, cards)
 }
 
 /**
  * The gate hands the handler, the card and its flag to the extension, which keeps them for the Mark as seen button
- * (#169) and says whether to skip the send. A tap replays this same handler, which the gate then lets through.
+ * (#169) and says whether to skip the send. A tap replays this same handler, which the gate then lets through. The
+ * answer goes in the zeroed register, which a no leaves at the 0 the rest of the handler expects, and a yes puts back.
  */
 internal fun MutableMethod.injectStorySeen() {
-    val cache = validateStorySeen()
-    addInstructionsWithLabels(1, """
+    val shape = validateStorySeen()
+    addInstructionsWithLabels(shape.gate, """
         invoke-static/range {p0 .. p2}, $SETTINGS->holdStorySeen(Ljava/lang/Object;Ljava/lang/Object;I)Z
-        move-result v0
-        if-eqz v0, :stock_behavior
-        const/4 v0, 0x0
+        move-result v${shape.zero}
+        if-eqz v${shape.zero}, :stock_behavior
+        const/4 v${shape.zero}, 0x0
         goto/16 :local_seen
-    """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(1)), ExternalLabel("local_seen", getInstruction(cache)))
+    """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(shape.gate)), ExternalLabel("local_seen", getInstruction(shape.cache)))
 }
 
 internal const val STORY_EYE = "Lapp/hushmessenger/extension/StoryEye;"
@@ -1808,15 +1860,18 @@ private fun Method.locals() = implementation!!.registerCount -
 
 /** The handler's local update ends by handing the card itself to the read set; nothing else there takes the card. */
 internal fun MutableMethod.storyReadSetAdd(): DexMethodReference {
-    val cache = validateStorySeen()
-    val card = implementation!!.registerCount - 2
-    val calls = implementation!!.instructions.drop(cache).filter { insn ->
-        val call = (insn as? ReferenceInstruction)?.reference as? DexMethodReference
-        insn.opcode == Opcode.INVOKE_VIRTUAL && call != null && call.returnType == "V" &&
+    val shape = validateStorySeen()
+    val code = implementation!!.instructions.toList()
+    val calls = (shape.cache until code.size).filter { i ->
+        val call = (code[i] as? ReferenceInstruction)?.reference as? DexMethodReference
+        code[i].opcode == Opcode.INVOKE_VIRTUAL && call != null && call.returnType == "V" &&
             call.parameterTypes.firstOrNull()?.toString() == MONTAGE_CARD
     }
-    val add = calls.singleOrNull() as? FiveRegisterInstruction
-    if (add == null || add.registerCount < 2 || add.registerD != card) {
+    val at = calls.singleOrNull()
+    val add = at?.let { code[it] } as? FiveRegisterInstruction
+    // The card's register still holds the card when the read set gets it.
+    if (at == null || add == null || add.registerCount < 2 || add.registerD !in shape.cards ||
+        code.subList(shape.cache, at).any { it.readWrites(add.registerD) }) {
         throw PatchException("Messenger controls: the story mark-read handler no longer hands the card to one read set")
     }
     return (add as ReferenceInstruction).reference as DexMethodReference

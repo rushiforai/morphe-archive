@@ -9,7 +9,7 @@
  * - COOLak (https://github.com/COOLak)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-23
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -58,10 +58,13 @@ import app.morphe.patcher.patch.PatchBuilder
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.booleanOption
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.hasResourceId
 import app.morphe.util.DEFAULT_PREFERENCE_ICON_SIZE_DP
 import app.morphe.util.STOCK_PREFERENCE_ICON_SIZE_DP
 import app.morphe.util.FilesCompat
 import app.morphe.util.ResourceGroup
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.copyResources
 import app.morphe.util.doRecursively
 import app.morphe.util.findElementByAttributeValueOrThrow
@@ -88,6 +91,8 @@ private const val GENERATED_RESOURCE_PREFIX = "morphe_"
 private const val CUSTOM_BRANDING_RESOURCE_PREFIX = "${GENERATED_RESOURCE_PREFIX}custom_branding_"
 private const val ORIGINAL_ICON_KEY = "original"
 private const val CUSTOM_ICON_KEY = "custom"
+private const val RESEAM_ICON_KEY = "reseam"
+private const val RESEAM_RESOURCE_ROOT = "shared/custombranding/$RESEAM_ICON_KEY"
 private const val CUSTOM_ICON_LABEL = "Custom"
 private const val SYSTEM_SPLASH_ALIAS_SUFFIX = "_system"
 private const val SYSTEM_SPLASH_THEME_SEPARATOR = "__"
@@ -166,10 +171,11 @@ internal data class BrandingIcon(
     val hasAdaptiveLayers: Boolean,
     val hasMonochromeLayers: Boolean = hasAdaptiveLayers,
     val hasLauncherResource: Boolean = hasAdaptiveLayers,
-    val launcherOnly: Boolean = false,
+    val usesOfficialSplash: Boolean = false,
 )
 
 private val originalBrandingIcon = BrandingIcon(ORIGINAL_ICON_KEY, "Stock", false)
+internal val reseamBrandingIcon = BrandingIcon(RESEAM_ICON_KEY, "Reseam", true, usesOfficialSplash = true)
 
 // Manager renders List<String> as editable text, but groups adjacent boolean options as switches.
 internal fun PatchBuilder<*>.addBrandingIconPackOptions(icons: List<BrandingIcon>): Map<String, Option<Boolean>> =
@@ -948,6 +954,11 @@ private fun ResourcePatchContext.copyAdaptiveLayers(
     config: CustomBrandingConfig,
     icon: BrandingIcon,
 ) {
+    if (icon.key == RESEAM_ICON_KEY) {
+        copyReseamAdaptiveLayers()
+        return
+    }
+
     val sourceDirectory = "${config.resourceRoot}/branding/${icon.key}/launcher"
 
     mipmapDirectories.forEach { density ->
@@ -990,8 +1001,46 @@ private fun ResourcePatchContext.copyAdaptiveLayers(
         )
     }
 
-    val adaptiveIconDirectory = get("res/mipmap-anydpi")
-    if (!adaptiveIconDirectory.exists()) adaptiveIconDirectory.mkdirs()
+    writeAdaptiveLauncher(icon, "mipmap", "mipmap-anydpi")
+}
+
+private fun ResourcePatchContext.copyReseamAdaptiveLayers() {
+    val launcherDirectory = "$RESEAM_RESOURCE_ROOT/launcher"
+    listOf(
+        "reseam_adaptive_background" to IconResource.ADAPTIVE_BACKGROUND,
+        "reseam_adaptive_foreground" to IconResource.ADAPTIVE_FOREGROUND,
+    ).forEach { (source, role) ->
+        copyBundledResource(launcherDirectory, "drawable/$source.xml", "drawable/${role.named(RESEAM_ICON_KEY)}.xml")
+    }
+
+    copyBundledResource(
+        "$RESEAM_RESOURCE_ROOT/monochrome",
+        "drawable/reseam_adaptive_monochrome.xml",
+        "drawable/${IconResource.ADAPTIVE_MONOCHROME.named(RESEAM_ICON_KEY)}.xml",
+    )
+    copyBundledResource(
+        "$RESEAM_RESOURCE_ROOT/notification",
+        "drawable/reseam_notification_icon.xml",
+        "drawable/${IconResource.NOTIFICATION.named(RESEAM_ICON_KEY)}.xml",
+    )
+
+    val launcherName = IconResource.LAUNCHER.named(RESEAM_ICON_KEY)
+    mipmapDirectories.forEach { density ->
+        copyBundledResource(
+            launcherDirectory,
+            "mipmap-$density/reseam_launcher.png",
+            "mipmap-$density/$launcherName.png",
+        )
+    }
+    writeAdaptiveLauncher(reseamBrandingIcon, "drawable", "mipmap-anydpi-v26")
+}
+
+private fun ResourcePatchContext.writeAdaptiveLauncher(
+    icon: BrandingIcon,
+    layerType: String,
+    resourceDirectory: String,
+) {
+    val adaptiveIconDirectory = get("res/$resourceDirectory").also(File::mkdirs)
     val monochromeLayer = if (icon.hasMonochromeLayers) {
         "                <monochrome android:drawable=\"@drawable/${
             IconResource.ADAPTIVE_MONOCHROME.named(icon.key)
@@ -1003,24 +1052,89 @@ private fun ResourcePatchContext.copyAdaptiveLayers(
     adaptiveIconDirectory.resolve("${IconResource.LAUNCHER.named(icon.key)}.xml").writeText(
         """<?xml version="1.0" encoding="utf-8"?>
             <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-                <background android:drawable="@mipmap/${IconResource.ADAPTIVE_BACKGROUND.named(icon.key)}" />
-                <foreground android:drawable="@mipmap/${IconResource.ADAPTIVE_FOREGROUND.named(icon.key)}" />
+                <background android:drawable="@$layerType/${IconResource.ADAPTIVE_BACKGROUND.named(icon.key)}" />
+                <foreground android:drawable="@$layerType/${IconResource.ADAPTIVE_FOREGROUND.named(icon.key)}" />
 $monochromeLayer            </adaptive-icon>
         """.trimIndent(),
     )
 }
+
+private fun ResourcePatchContext.copyReseamHeaders(config: CustomBrandingConfig) {
+    if (config.dynamicHeaderUsesThemes) {
+        copyReseamYouTubeHeaders(config)
+        return
+    }
+
+    val stockName = listOf("action_bar_logo_ringo2", "action_bar_logo").firstOrNull(::hasStockHeader)
+    if (stockName == null) {
+        printWarn("Reseam Music header: no stock wordmark resource found. Keeping the stock header.")
+        return
+    }
+
+    val targetName = IconResource.HEADER.named("${RESEAM_ICON_KEY}_action_bar_logo")
+    get("res/drawable/$targetName.xml").writeText(
+        """<?xml version="1.0" encoding="utf-8"?>
+            <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+                <item android:width="48dp" android:height="48dp" android:gravity="center_vertical"
+                    android:drawable="@drawable/${IconResource.ADAPTIVE_FOREGROUND.named(RESEAM_ICON_KEY)}" />
+                <item android:id="@+id/morphe_reseam_music_header_wordmark"
+                    android:left="42dp" android:gravity="left|center_vertical"
+                    android:drawable="@drawable/$stockName" />
+            </layer-list>
+        """.trimIndent(),
+    )
+}
+
+private fun ResourcePatchContext.copyReseamYouTubeHeaders(config: CustomBrandingConfig) {
+    val sourceDirectory = "${config.resourceRoot}/branding/$RESEAM_ICON_KEY/header"
+    for (layoutPrefix in listOf("", "ringo2_")) {
+        for (theme in listOf("light", "dark")) {
+            val template = "drawable/reseam_header_$layoutPrefix$theme.xml"
+            val sourceWordmark = "yt_${layoutPrefix}wordmark_header_$theme"
+            val header = inputStreamFromBundledResourceOrThrow(sourceDirectory, template)
+                .bufferedReader().use { it.readText() }
+                .replace(
+                    "@drawable/reseam_adaptive_foreground",
+                    "@drawable/${IconResource.ADAPTIVE_FOREGROUND.named(RESEAM_ICON_KEY)}",
+                )
+
+            for (premiumPrefix in listOf("", "premium_")) {
+                val stockName = "yt_$layoutPrefix${premiumPrefix}wordmark_header_$theme"
+                if (!hasStockHeader(stockName)) continue
+
+                val targetName = IconResource.HEADER.named("${RESEAM_ICON_KEY}_$stockName")
+                val artwork = if (premiumPrefix.isEmpty()) {
+                    header
+                } else {
+                    header.replace("@drawable/$sourceWordmark", "@drawable/$stockName")
+                        .replace("android:width=\"122dp\"", "android:width=\"129dp\"")
+                }
+                get("res/drawable/$targetName.xml").writeText(artwork)
+            }
+        }
+    }
+}
+
+private fun hasStockHeader(name: String): Boolean =
+    hasResourceId(ResourceType.DRAWABLE, name)
 
 /** Copies icon-specific header and splash resources to stable names consumed by the extension. */
 private fun ResourcePatchContext.copyDynamicBrandingResources(
     config: CustomBrandingConfig,
     icons: List<BrandingIcon>,
 ): Map<String, String> {
-    val artworkIcons = icons.filterNot(BrandingIcon::launcherOnly)
-    val dynamicHeaderIcons = artworkIcons.filter {
+    val artworkIcons = icons.filterNot(BrandingIcon::usesOfficialSplash)
+    val dynamicHeaderIcons = icons.filter {
         it.hasAdaptiveLayers && it.key != config.originalSettingsIconKey
     }
 
     dynamicHeaderIcons.forEach { icon ->
+        if (icon.key == RESEAM_ICON_KEY) {
+            copyReseamHeaders(config)
+            return@forEach
+        }
+        if (icon.usesOfficialSplash) return@forEach
+
         val brandingDirectory = "${config.resourceRoot}/branding/${icon.key}"
         config.dynamicHeaderResourceNames.forEach { resourceName ->
             drawableDirectories.forEach { directory ->
@@ -1072,8 +1186,8 @@ private fun ResourcePatchContext.copyDynamicBrandingResources(
 
     artworkIcons.forEach { copySplash(it.key, it.key) }
 
-    val launcherOnlyIcons = icons.filter(BrandingIcon::launcherOnly)
-    if (launcherOnlyIcons.isEmpty()) return emptyMap()
+    val officialSplashIcons = icons.filter(BrandingIcon::usesOfficialSplash)
+    if (officialSplashIcons.isEmpty()) return emptyMap()
 
     val defaultArtworkKey = config.originalSettingsIconKey
     val fallbackKey = if (artworkIcons.any { it.key == defaultArtworkKey }) {
@@ -1083,7 +1197,7 @@ private fun ResourcePatchContext.copyDynamicBrandingResources(
         "launcher_only_fallback".also { copySplash(defaultArtworkKey, it) }
     }
     val fallbackName = IconResource.SPLASH.named(fallbackKey)
-    val splashFallbacks = launcherOnlyIcons.associate { it.key to fallbackName }
+    val splashFallbacks = officialSplashIcons.associate { it.key to fallbackName }
     document("res/values/strings.xml").use { document ->
         splashFallbacks.forEach { (iconKey, drawableName) ->
             val resourceName = "${CUSTOM_BRANDING_RESOURCE_PREFIX}splash_fallback_$iconKey"
@@ -1386,8 +1500,13 @@ private fun ResourcePatchContext.copyRvxSettingsIcons(
     keepStock: Boolean,
 ) {
     fun copy(sourceIconKey: String, targetIconKey: String) {
-        val sourceDirectory = "${config.resourceRoot}/branding/$sourceIconKey/settings"
-        val sourceResource = "drawable/${config.settingsIconFileName}.xml"
+        val sourceDirectory = if (sourceIconKey == RESEAM_ICON_KEY) {
+            "$RESEAM_RESOURCE_ROOT/settings"
+        } else {
+            "${config.resourceRoot}/branding/$sourceIconKey/settings"
+        }
+        val sourceName = if (sourceIconKey == RESEAM_ICON_KEY) "reseam_settings_icon" else config.settingsIconFileName
+        val sourceResource = "drawable/$sourceName.xml"
         val targetResourceName = IconResource.RVX_SETTINGS.named(targetIconKey)
         val source = inputStreamFromBundledResource(sourceDirectory, sourceResource)
         if (source == null) {

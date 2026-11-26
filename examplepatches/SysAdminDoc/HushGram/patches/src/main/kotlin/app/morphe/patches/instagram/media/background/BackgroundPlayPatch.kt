@@ -118,8 +118,11 @@ internal val backgroundPlayServicePatch = resourcePatch {
  * Its second switch, Picture in picture for reels (#572), turns on the small window Instagram
  * already has for reels and keeps behind a server flag: see [allowReelsPip]. Leaving the Reels
  * viewer then shrinks the reel into a window that keeps playing, and the hold above steps aside
- * while Instagram is in that window. The third, Picture in picture for stories, makes a window
- * Instagram has none of for stories: see [keepStoriesInPip].
+ * while Instagram is in that window. Pause button in the reels window (#873) adds Pause and Play
+ * to that window's buttons: see [addReelsPipButtons]. Previous and next in the reels window gives
+ * it Instagram's own Previous and Next, which a server flag keeps off: see [addReelsPipSkips].
+ * Picture in picture for stories makes a window Instagram has none of for stories: see
+ * [keepStoriesInPip].
  */
 @Suppress("unused")
 val backgroundPlayPatch = bytecodePatch(
@@ -136,11 +139,15 @@ val backgroundPlayPatch = bytecodePatch(
         requireStatusMethod("backgroundPlay")
         val sites = findBackgroundPlaySites()
         val pip = findReelsPipChecks(PATCH)
+        val pipButtons = findReelsPipButtons(PATCH)
+        val pipSkips = findReelsPipSkips(PATCH)
         val stories = findStoriesPip(PATCH)
         val springs = findSpringActivate(PATCH)
         keepPlayingInBackground(sites)
         keepSpringsMoving(PATCH, springs)
         allowReelsPip(PATCH, pip)
+        addReelsPipButtons(PATCH, pipButtons)
+        addReelsPipSkips(PATCH, pipSkips)
         keepStoriesInPip(PATCH, stories)
         enableStatus("backgroundPlay")
     }

@@ -92,6 +92,22 @@ val glassNavigationPatch =
             )
             addBinocularsModsSetting(
                 BinocularsModsSetting(
+                    key = "glass_navigation_strength",
+                    section = NAVIGATION,
+                    parentKey = "glass_navigation",
+                    title = "Glass strength",
+                    summary = "How clearly the glass stands out from the page. " +
+                        "Balanced adds a thin outline and a soft shadow; Solid makes the glass more opaque too.",
+                    choices = listOf(
+                        BinocularsModsChoice("clear", "Clear"),
+                        BinocularsModsChoice("balanced", "Balanced"),
+                        BinocularsModsChoice("solid", "Solid"),
+                    ),
+                    defaultChoice = "balanced",
+                ),
+            )
+            addBinocularsModsSetting(
+                BinocularsModsSetting(
                     key = "glass_navigation_blur",
                     section = NAVIGATION,
                     parentKey = "glass_navigation",
@@ -148,6 +164,43 @@ val glassNavigationPatch =
                     ),
                 ),
             )
+            addBinocularsModsSetting(
+                BinocularsModsSetting(
+                    key = "glass_navigation_search",
+                    section = NAVIGATION,
+                    parentKey = "glass_navigation",
+                    title = "Search button",
+                    summary = "Moves search from the top of Home into a round glass button next to the bar. " +
+                        "The menu and avatar float as small glass circles over the feed. Phone only.",
+                    default = false,
+                ),
+            )
+            addBinocularsModsSetting(
+                BinocularsModsSetting(
+                    key = "glass_navigation_lift_dp",
+                    section = NAVIGATION,
+                    parentKey = "glass_navigation",
+                    title = "Bar position",
+                    summary = "Phone only. Lifts the bar up from the bottom edge of the screen.",
+                    slider = BinocularsModsSlider(
+                        min = 0,
+                        max = 32,
+                        step = 4,
+                        unit = "dp",
+                        default = 0,
+                    ),
+                ),
+            )
+            addBinocularsModsSetting(
+                BinocularsModsSetting(
+                    key = "glass_navigation_labels",
+                    section = NAVIGATION,
+                    parentKey = "glass_navigation",
+                    title = "Show labels",
+                    summary = "Turn off to show icons only. Lower Glass height for a slimmer bar.",
+                    default = true,
+                ),
+            )
 
             val bottomNavBarMethod = BottomNavBarFingerprint.method
             val bottomNavIndex = BottomNavBarFingerprint.instructionMatches.first().index
@@ -194,6 +247,12 @@ val glassNavigationPatch =
             hookBottomNavStrip(themeRefs)
 
             hookGlassBlur(drawBehindRef)
+
+            hookNavLabels()
+
+            hookNavPill()
+
+            hookGlassSearch()
         }
     }
 

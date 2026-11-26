@@ -155,6 +155,10 @@ internal enum class PatchList(
         "Feed view count",
         "Adds options to hide view counts or upload dates below feed videos and show view counts on thumbnails."
     ),
+    GHOST_PLAY(
+        "Ghost mode",
+        "Adds session and per-video controls to suppress supported YouTube watch-history signals."
+    ),
     FORCE_ANIMATIONS(
         "Force animations",
         "Adds an option to always turn on or off the app animations that YouTube can turn off, such as the player transitions."

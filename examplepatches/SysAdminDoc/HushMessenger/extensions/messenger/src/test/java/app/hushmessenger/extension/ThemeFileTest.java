@@ -267,6 +267,51 @@ public class ThemeFileTest {
         }
     }
 
+    /** #237: an accent picked in a light chat, or with Material You off, used to be saved and change nothing. */
+    @Test public void aPickedAccentTurnsOnWhatItNeedsToShowAndUndoTurnsThemBack() {
+        MaterialYouTheme.bind();
+        Settings.preferences.edit().remove(MaterialYouTheme.KEY).commit();
+        MaterialYouTheme.darkModeAnswer(false);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            CompoundButton materialYou = root.findViewWithTag(MaterialYouTheme.KEY);
+            CompoundButton lightAccent = root.findViewWithTag(MaterialYouTheme.LIGHT_KEY);
+            assertFalse(materialYou.isChecked());
+            assertFalse(lightAccent.isChecked());
+
+            root.findViewWithTag("theme_accent_E1306C").performClick();
+            assertEquals("Accent color saved and turned on", ShadowToast.getTextOfLatestToast());
+            assertTrue(Settings.preferences.getBoolean(MaterialYouTheme.KEY, false));
+            assertTrue(Settings.preferences.getBoolean(MaterialYouTheme.LIGHT_KEY, false));
+            assertTrue(materialYou.isChecked());
+            assertTrue(lightAccent.isChecked());
+            idle();
+            assertEquals(TonePalette.fromAccent(0xFFE1306C).sameLightness(TonePalette.ACCENT, 0xFF0084FF), MaterialYouTheme.light(0xFF0084FF));
+
+            // Undo puts the switches back as they were, unset, with the theme.
+            screen.get().undo();
+            assertNull(ThemeFile.saved());
+            assertFalse(Settings.preferences.contains(MaterialYouTheme.KEY));
+            assertFalse(Settings.preferences.contains(MaterialYouTheme.LIGHT_KEY));
+            assertFalse(lightAccent.isChecked());
+
+            // A pasted theme does the same.
+            copy(SUNSET);
+            root.findViewWithTag("theme_paste").performClick();
+            assertEquals("Theme saved and turned on", ShadowToast.getTextOfLatestToast());
+            assertTrue(Settings.preferences.getBoolean(MaterialYouTheme.LIGHT_KEY, false));
+
+            // In a dark chat with Material You on, a pick leaves Light mode accent alone and says only that it saved.
+            Settings.preferences.edit().remove(MaterialYouTheme.LIGHT_KEY).commit();
+            MaterialYouTheme.darkModeAnswer(true);
+            root.findViewWithTag("theme_accent_2E7D32").performClick();
+            assertEquals("Accent color saved", ShadowToast.getTextOfLatestToast());
+            assertFalse(Settings.preferences.contains(MaterialYouTheme.LIGHT_KEY));
+        } finally {
+            MaterialYouTheme.darkModeAnswer(true);
+        }
+    }
+
     /** #211: typed color codes save the theme, an empty field leaves that color to Messenger, and a wrong code saves nothing. */
     @Test public void settingsColorCodesSaveTheThemeAndRefuseAWrongCode() {
         MaterialYouTheme.bind();

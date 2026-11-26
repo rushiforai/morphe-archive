@@ -54,7 +54,7 @@ internal enum class PatchList(
     ),
     DARK_THEME(
         "Theme",
-        "Changes the app's dark theme to the values specified in patch options."
+        "Adds an in-app appearance selector with light and dark presets. Includes dark splash color options."
     ),
     DISABLE_CAIRO_SPLASH_ANIMATION(
         "Disable Cairo splash animation",

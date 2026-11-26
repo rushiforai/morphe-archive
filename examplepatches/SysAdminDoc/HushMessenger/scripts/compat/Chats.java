@@ -480,8 +480,9 @@ final class Chats {
     }
 
     static final String CHAT_PREVIEW_FRAGMENT = "Lcom/facebook/messaging/threadlist/threaditemmenu/preview/InboxThreadPreviewDialogFragment;";
-    static final long CHAT_PREVIEW_FLAG = 0x1010536000042fdL;
-    static final long CHAT_PREVIEW_ENCRYPTED_FLAG = 0x101055e00004588L;
+    static final long CHAT_PREVIEW_FLAG = 0x10105370000448dL;
+    static final long CHAT_PREVIEW_ENCRYPTED_FLAG = 0x10105610000473bL;
+    static final Set<Long> CHAT_PREVIEW_COLD_FLAGS = Set.of(0x2101053700044490L, 0x2101053700084493L);
 
     static boolean buildsChatPreview(Method method) {
         for (var i : instructions(method))
@@ -496,7 +497,7 @@ final class Chats {
     }
 
     /**
-     * One reader's flag reads have the tested shape: each const-wide of the preview or encrypted-chat flag goes, after
+     * One reader's flag reads have the tested shape: each const-wide of the preview, encrypted-chat or cold-start flags goes, after
      * an optional check-cast to the check's interface, into a boolean (…J) check taking the pair last, invoke-static or
      * (after the cast) invoke-interface on the cast register, then move-result, with nothing jumping into the read. The
      * preview flag is read exactly once. Returns the encrypted-chat reads, or -1 for any other shape.
@@ -508,7 +509,7 @@ final class Chats {
         for (int at = 0; at < code.size(); at++) {
             if (code.get(at).getOpcode() != Opcode.CONST_WIDE) continue;
             long flag = ((WideLiteralInstruction) code.get(at)).getWideLiteral();
-            if (flag != CHAT_PREVIEW_FLAG && flag != CHAT_PREVIEW_ENCRYPTED_FLAG) continue;
+            if (flag != CHAT_PREVIEW_FLAG && flag != CHAT_PREVIEW_ENCRYPTED_FLAG && !CHAT_PREVIEW_COLD_FLAGS.contains(flag)) continue;
             int pair = register(code.get(at));
             boolean cast = at + 1 < code.size() && code.get(at + 1).getOpcode() == Opcode.CHECK_CAST;
             int callAt = cast ? at + 2 : at + 1;
@@ -525,7 +526,7 @@ final class Chats {
                 code.get(callAt + 1).getOpcode() != Opcode.MOVE_RESULT)
                 return -1;
             for (int i = at + 1; i <= callAt + 1; i++) if (targets.contains(i)) return -1;
-            if (flag == CHAT_PREVIEW_FLAG) previews++; else encrypted++;
+            if (flag == CHAT_PREVIEW_FLAG) previews++; else if (flag == CHAT_PREVIEW_ENCRYPTED_FLAG) encrypted++;
         }
         return previews == 1 ? encrypted : -1;
     }
@@ -565,7 +566,7 @@ final class Chats {
         return encrypted > 0 ? found : List.of();
     }
 
-    static final long INBOX_TYPING_FLAG = 0x010100eb0000136fL;
+    static final long INBOX_TYPING_FLAG = 0x010100eb000013b5L;
     static final String INBOX_TYPING_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;";
 
     /** Where one method loads the inbox-typing flag. */
@@ -716,7 +717,7 @@ final class Chats {
     }
 
     static final String FB_FRAGMENT_ACTIVITY = "Lcom/facebook/base/activity/FbFragmentActivity;";
-    static final long LANDSCAPE_FLAG = 0x8105e800002b9eL;
+    static final long LANDSCAPE_FLAG = 0x8105df00002bb0L;
     static final String MEDIA_ORIENTATION_OPTION = "allowOrientationChanges";
 
     /**

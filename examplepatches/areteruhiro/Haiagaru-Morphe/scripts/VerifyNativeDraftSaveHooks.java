@@ -29,7 +29,7 @@ public final class VerifyNativeDraftSaveHooks {
       int count=0;boolean force=false,delegate=false;
       for(var i:wrapper.getImplementation().getInstructions()){
        count++;
-       if(i.getOpcode().name.equals("const/4")&&i instanceof NarrowLiteralInstruction n&&n.getNarrowLiteral()==1&&i instanceof OneRegisterInstruction r&&r.getRegisterA()==0)force=true;
+       if(i.getOpcode().name.equals("const/4")&&i instanceof NarrowLiteralInstruction n&&n.getNarrowLiteral()==0&&i instanceof OneRegisterInstruction r&&r.getRegisterA()==0)force=true;
        if(i instanceof ReferenceInstruction r&&r.getReference() instanceof MethodReference m&&writers.contains(m.toString())){
         if(!(i instanceof FiveRegisterInstruction regs)||regs.getRegisterCount()!=2||regs.getRegisterC()!=1||regs.getRegisterD()!=0)throw new AssertionError("Invalid owner/boolean registers");
         delegate=true;
@@ -42,6 +42,6 @@ public final class VerifyNativeDraftSaveHooks {
    }
   }
   if(checked!=1)throw new AssertionError("Expected one native posting editor");
-  System.out.println("PASS native draft persistence wrapper: exact onPause writer, force=true, owner/registers preserved");
+  System.out.println("PASS native draft persistence wrapper: exact onPause writer, force=false, owner/registers preserved");
  }
 }

@@ -285,6 +285,8 @@ Block new bottom tabs	Блокиране на новите раздели в д�
 Block this commenter	Блокирай този коментиращ
 Block this creator	Блокирай този създател
 Block this sound	Блокирай този звук
+Block sound	Блокирай звука
+Unblock sound	Отблокирай звука
 Blocked	Блокирано
 Blocked %1$s	Блокирано: %1$s
 Blocked %1$s. Unblock	Блокирано: %1$s. Отблокирай
@@ -606,6 +608,7 @@ Hide the tab names above the feed	Скриване на имената на ра
 The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.	Имената „Следвате“ и „За вас“ над лентата изчезват. Плъзгането между лентите и бутонът за търсене остават както са.
 Hide floating promotion badges, coins, and timer banners on the feed.	Скрива плаващите рекламни значки, монети и банери с таймер в лентата.
 Hide floating promotions	Скриване на плаващите промоции
+Hide from the host next time	Скрий се от водещия следващия път
 Hide inserted cards	Скриване на вмъкнатите карти
 Hide message requests	Скриване на заявките за съобщения
 Hide message streaks	Скриване на поредиците със съобщения
@@ -1074,6 +1077,10 @@ Show the search entry inside TikTok's LIVE drawer, where available. This doesn't
 Show a video preview thumbnail while dragging the progress bar.	Показва миниатюра за преглед на видеото, докато плъзгаш лентата за напредъка.
 Show the block button on videos	Показване на бутона за блокиране върху видеата
 Show the block sound button	Показване на бутона за блокиране на звука
+Show Block sound on sound pages	Показване на „Блокирай звука“ на страниците на звуците
+Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound.	Добавя бутон „Блокирай звука“ под „Запази“ на страницата на звука, която отваря въртящата се плоча на видеото. Пропуска всяко видео с този звук.
+Hide sound page buttons	Скриване на бутоните на страницата на звука
+Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens.	Скрива Jam Sound и Използване на звука в долната част на страницата на звука, която се отваря от въртящата се плоча във видеоклипа.
 Show failures on screen	Показване на грешките на екрана
 Show gates	Покажи гейтовете
 Show last report	Покажи последния отчет
@@ -1882,6 +1889,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	Запазване на „Чист екран“ в следващия LIVE
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	LIVE, до който стигнеш с плъзгане, се показва отново с чата, подаръците и бутоните. Това държи „Чист екран“ включен от стая в стая, докато не го изключиш.
+# context: LIVE settings row under Keep clear screen in the next LIVE; hides the list of viewers' messages over a LIVE stream (#525)
+Hide LIVE chat	Скриване на чата в LIVE
+# context: summary of Hide LIVE chat; the comment box is where you type a comment, the room's buttons are gifts, share and the rest (#525)
+Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.	Скрива съобщенията от чата, които се движат върху видеото на LIVE. Полето за коментар и бутоните на стаята остават.
 # context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
 Offer full screen in more LIVEs	Предлагане на цял екран в повече LIVE излъчвания
 # context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
@@ -2284,6 +2295,7 @@ LIVE recording saved to %1$s	Записът на LIVE е запазен в %1$s
 LIVE ended or dropped. Recording saved to %1$s	LIVE свърши или прекъсна. Записът е в %1$s
 Storage almost full. Recording saved to %1$s	Хранилището е почти пълно. Записът е запазен в %1$s
 Size limit reached. Recording saved to %1$s	Лимитът за размер е достигнат. Записът е в %1$s
+2 GB reached. Recording goes on in a new video.	Достигнати 2 GB. Записът продължава в ново видео.
 TikTok closed. What was recorded is saved to %1$s	TikTok се затвори. Записаното е в %1$s
 Recording stopped early. Saved to %1$s	Записът спря преждевременно. Запазен е в %1$s
 This LIVE's stream can't be saved	Потокът на този LIVE не може да се запази
@@ -2419,7 +2431,7 @@ Blur the part of the video that sits behind the glass pill on the main feed, so 
 LIVE recording source	Източник на LIVE записа
 Stream only	Само потока
 Screen	Екран
-Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.	„Само потока“ запазва само видеото на стаята, както досега. „Екран“ записва това, което показва телефонът ти, докато гледаш, заедно със звука от приложението, ако TikTok има разрешение за микрофона. Android всеки път пита дали разрешаваш записа на екрана и показва свое известие, докато записва.
+Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it.	„Само потока“ запазва само видеото на стаята, както досега. „Екран“ записва това, което показва телефонът ти, докато гледаш, заедно със звука от приложението, ако TikTok има разрешение за микрофона. Android всеки път пита дали разрешаваш записа на екрана и показва свое известие, докато записва. Записът на екрана е толкова ясен, колкото качеството, което гледаш. Задръж бутона „Запиши“ в LIVE, за да го смениш.
 Recording this LIVE's screen	Записва се екранът на този LIVE
 Tap Stop or leave the room to save it.	Докосни „Спри“ или излез от стаята, за да го запазиш.
 Screen recording wasn't allowed	Записът на екрана не беше разрешен
@@ -3083,6 +3095,7 @@ Save episodes	Запазване на епизоди
 Pick episodes to save	Избери епизоди за запазване
 Episode %1$s	Епизод %1$s
 Preview only	Само преглед
+Locked	Заключен
 Loading episodes	Зареждат се епизодите
 Couldn't load the episodes. Try again.	Епизодите не можаха да се заредят. Опитай пак.
 Pick at least one episode	Избери поне един епизод
@@ -3113,7 +3126,7 @@ Writes TikTok's date by the creator's name with the month's name, like Oct 12. D
 Fade the name, date and caption	Избледняване на името, датата и описанието
 Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	Показва името на създателя, датата, описанието и реда с музиката върху видеото с тази плътност, като те пак приемат докосвания. При 100 следват „Избледняване на контролите на видеото“. При 0 са скрити.
 LIVE buttons in the long-press menu	Бутоните за LIVE в менюто при дълго натискане
-Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	Премахва бутоните „Запис“ и „Автоматично докосване“ от видеото и ги слага в менюто, което се отваря, когато задържиш средата на LIVE.
+Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.	Премахва бутоните „Запис“ и „Автоматично докосване“ и окото на режим призрак от видеото и ги слага в менюто, което се отваря, когато задържиш средата на LIVE.
 Auto tap started	Автоматичното докосване започна
 Hide stories from accounts you don't follow	Скриване на историите от акаунти, които не следваш
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	Историите от акаунти, които не следваш, изчезват от реда с истории. Историите от акаунтите, които следваш, остават.
@@ -3223,7 +3236,7 @@ With the switch above on, landscape and square videos are cropped to cover the s
 Random time each day	Случаен час всеки ден
 Sends at a different time each day, somewhere between When to send and Latest time.	Изпраща в различен час всеки ден, някъде между „Кога да се изпрати“ и „Най-късен час“.
 Latest time	Най-късен час
-The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	Краят на случайния интервал, в същия ден като „Кога да се изпрати“. Ако не е по-късно, съобщението се изпраща в часа от „Кога да се изпрати“.
+The end of the random window. If it's earlier than When to send, the window runs past midnight.	Краят на случайния интервал. Ако е по-рано от „Кога да се изпрати“, интервалът продължава след полунощ.
 # context: Jump to a date on Favorites grids (#508): the Favorites tab holds the videos you saved with the bookmark icon
 Jump to a date on Favorites grids	Преминаване към дата в мрежите „Любими“
 Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.	Добавя бутон в горния ъгъл на мрежата „Любими“, който започва запазените ти видеа от година или месец по твой избор, така че по-старите се зареждат, без да превърташ през по-новите. Избери „Най-нови запазвания“ там, за да се върнеш.

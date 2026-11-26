@@ -6,13 +6,16 @@
 package app.fakh.patches.linkedin.feed
 
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
+import app.fakh.patches.linkedin.shared.Constants.EXACT_POST_TIME
 import app.fakh.patches.linkedin.shared.Constants.EXPAND_POSTS
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
 import app.fakh.patches.linkedin.shared.Constants.FOCUS_MODE
 import app.fakh.patches.linkedin.shared.Constants.HIDE_CELEBRATIONS
+import app.fakh.patches.linkedin.shared.Constants.HIDE_DEGREE
 import app.fakh.patches.linkedin.shared.Constants.HIDE_FEED_JOBS
 import app.fakh.patches.linkedin.shared.Constants.HIDE_GAMES
 import app.fakh.patches.linkedin.shared.Constants.HIDE_NEW_POSTS_PILL
+import app.fakh.patches.linkedin.shared.Constants.HIDE_POST_FOLLOW
 import app.fakh.patches.linkedin.shared.Constants.HIDE_PREMIUM
 import app.fakh.patches.linkedin.shared.Constants.HIDE_PROMOTED_JOBS
 import app.fakh.patches.linkedin.shared.Constants.HIDE_RECOMMENDATIONS
@@ -20,6 +23,7 @@ import app.fakh.patches.linkedin.shared.Constants.HIDE_REPOSTS
 import app.fakh.patches.linkedin.shared.Constants.HIDE_SUGGESTED
 import app.fakh.patches.linkedin.shared.Constants.HIDE_TRANSLATION
 import app.fakh.patches.linkedin.shared.Constants.HIDE_VIDEO_POSTS
+import app.fakh.patches.linkedin.shared.Constants.NEWEST_COMMENTS
 import app.fakh.patches.linkedin.shared.sduiComponentFilterPatch
 import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
@@ -72,14 +76,14 @@ val expandPostsPatch = patch(
 @Suppress("unused")
 val feedFiltersPatch = patch(
     name = "Feed filters",
-    description = "Adds feed filters to Fakh Patches, such as celebrations, job posts and video posts. All off by " +
-        "default.",
+    description = "Adds feed filters to Fakh Patches, such as muted words, celebrations, job posts and video posts. " +
+        "All off by default.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Feed")
     dependsOn(sduiComponentFilterPatch)
-    execute { register(FOCUS_MODE, HIDE_CELEBRATIONS, HIDE_FEED_JOBS, HIDE_REPOSTS, HIDE_VIDEO_POSTS, HIDE_RECOMMENDATIONS, HIDE_GAMES, HIDE_NEW_POSTS_PILL, HIDE_TRANSLATION) }
+    execute { register(FOCUS_MODE, HIDE_CELEBRATIONS, HIDE_FEED_JOBS, HIDE_REPOSTS, HIDE_VIDEO_POSTS, HIDE_RECOMMENDATIONS, HIDE_GAMES, HIDE_NEW_POSTS_PILL, HIDE_TRANSLATION, HIDE_POST_FOLLOW, HIDE_DEGREE, EXACT_POST_TIME, NEWEST_COMMENTS) }
 }
 
 /**

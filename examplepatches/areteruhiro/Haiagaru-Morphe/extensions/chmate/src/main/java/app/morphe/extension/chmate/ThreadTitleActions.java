@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
 
 /** Extends the native title dialog before its view is attached; native actions stay intact. */
 public final class ThreadTitleActions {
-    static final String SHOW_REFRESH="titleMenuShowRefresh",SHOW_WATCH="titleMenuShowWatch",SHOW_AUTH="titleMenuShowAuth";
+    static final String SHOW_REFRESH="titleMenuShowRefresh",SHOW_WATCH="titleMenuShowWatch",SHOW_AUTH="titleMenuShowAuth",SHOW_REPORTER="titleMenuShowReporterCopy";
     private static java.lang.ref.WeakReference<Object> pending=new java.lang.ref.WeakReference<>(null);
     public static View wrap(Object fragment,View original){
         if(original==null)return null;
@@ -125,7 +125,7 @@ public final class ThreadTitleActions {
             if(target!=null&&FeatureSwitches.enabled(SHOW_AUTH,true)&&ReadingAuth.eligible(target.url)){
                 labels.add("エッヂの閲覧認証");actions.add(()->ReadingAuth.open(a,target.url));
             }
-            if(menu.reporterId!=null){labels.add("記者IDをコピー");actions.add(()->copyReporterId(a,menu.reporterId));}
+            if(menu.reporterId!=null&&FeatureSwitches.enabled(SHOW_REPORTER,true)){labels.add("記者IDをコピー");actions.add(()->copyReporterId(a,menu.reporterId));}
             if(labels.isEmpty())return middle?twoNativeColumns(original):original;
             ClassLoader loader=fragment.getClass().getClassLoader();
             Class<?> row=loader.loadClass(middle?"o.getTtAdContainer$IconCompatParcelizer":"o.zzbbs$RemoteActionCompatParcelizer");
@@ -250,7 +250,7 @@ public final class ThreadTitleActions {
             entries.add(legacyItem(template,"このスレの新着通知",()->ThreadWatch.show(a,t)));
         if(t!=null&&FeatureSwitches.enabled(SHOW_AUTH,true)&&ReadingAuth.eligible(t.url))
             entries.add(legacyItem(template,"エッヂの閲覧認証",()->ReadingAuth.open(a,t.url)));
-        if(menu.reporterId!=null)
+        if(menu.reporterId!=null&&FeatureSwitches.enabled(SHOW_REPORTER,true))
             entries.add(legacyItem(template,"記者IDをコピー",()->copyReporterId(a,menu.reporterId)));
         int leftCount=visibleItems(left),rightCount=visibleItems(right);
         for(Button entry:entries){

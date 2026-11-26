@@ -752,3 +752,6 @@ Lo/m8a$5;
 Lo/r8lambdaGCnF6WpW_bFarRe7yCX2B6KzQ;
 [HiddenNgNewArrivalCountPatch:1]
 Lo/pa$15;
+
+[SelectionMenuPriority]
+Lo/r8lambda1VMNzQcdpAFQ0ukC0aRPi4Owdo$write;

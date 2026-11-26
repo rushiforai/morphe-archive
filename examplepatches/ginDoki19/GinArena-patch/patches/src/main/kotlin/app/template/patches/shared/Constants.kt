@@ -232,14 +232,14 @@ object Constants {
         signatures = setOf(ADGUARD_SIGNER_SHA256),
         targets = listOf(
             AppTarget(
-                version = "4.15.2",
-                versionCode = 42321001,
+                version = "4.16.0",
+                versionCode = 42420015,
                 minSdk = 28,
                 description = "Universal APK (arm64-v8a, armeabi-v7a, x86, x86_64), Android 9+"
             ),
             AppTarget(
-                version = "4.16.0",
-                versionCode = 42420015,
+                version = "4.16.1",
+                versionCode = 42421001,
                 minSdk = 28,
                 description = "Universal APK (arm64-v8a, armeabi-v7a, x86, x86_64), Android 9+"
             )

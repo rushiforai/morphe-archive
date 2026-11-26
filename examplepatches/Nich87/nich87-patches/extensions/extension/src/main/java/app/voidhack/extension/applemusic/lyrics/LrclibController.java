@@ -69,6 +69,7 @@ public final class LrclibController {
     private static volatile Context appContext;
     private static volatile WeakReference<Activity> settingsOwner = new WeakReference<>(null);
     private static volatile WeakReference<Object> activeLyricsViewModel = new WeakReference<>(null);
+    private static volatile WeakReference<Object> lastMediaBrowser = new WeakReference<>(null);
     private static volatile Object lastPlaybackItem;
     private static volatile LrclibModels.TrackQuery lastTrackQuery;
 
@@ -269,6 +270,15 @@ public final class LrclibController {
         Context ctx = appContext;
         if (ctx == null) return false;
 
+        if (!LyricsFeatures.lrclib()) {
+            if ((LyricsFeatures.pronunciation() || LyricsFeatures.editor())
+                    && !query.hasOfficialLyrics
+                    && loadCustomLyrics(ctx, viewModel, playbackItem, query)) {
+                return true;
+            }
+            return false;
+        }
+
         long gen = nextGeneration(viewModel);
         boolean lrclibEnabled = LrclibPrefs.isEnabled(ctx);
         boolean bypassLrclib = query.trackKey.equals(vmBypassOfficialTrack.remove(viewModel));
@@ -373,10 +383,12 @@ public final class LrclibController {
         if (query == null) return false;
 
         Context ctx = appContext;
-        if (ctx != null && songInfoPtr == null && loadCustomLyrics(ctx, viewModel, playbackItem, query)) {
+        if (ctx != null && songInfoPtr == null
+                && (LyricsFeatures.lrclib() || LyricsFeatures.pronunciation() || LyricsFeatures.editor())
+                && loadCustomLyrics(ctx, viewModel, playbackItem, query)) {
             return true;
         }
-        if (ctx == null || !LrclibPrefs.isEnabled(ctx)) {
+        if (!LyricsFeatures.lrclib() || ctx == null || !LrclibPrefs.isEnabled(ctx)) {
             recordOfficialState(query.trackKey, songInfoPtr);
             return false;
         }
@@ -505,10 +517,21 @@ public final class LrclibController {
                 && (lyricsId.startsWith(LRCLIB_LYRICS_ID_PREFIX) || lyricsId.startsWith(LOCAL_LYRICS_ID_PREFIX));
     }
 
+    static Object getMediaBrowser(Object fragment) {
+        Object browser = LrclibReflection.getMediaBrowser(fragment);
+        if (browser != null) {
+            lastMediaBrowser = new WeakReference<>(browser);
+            return browser;
+        }
+        return lastMediaBrowser.get();
+    }
+
     public static void onLyricsRendered(Object fragment, Object songInfoPtr) {
         if (fragment == null) return;
         LyricsLineEditor.bind(fragment, songInfoPtr);
         LyricsScrollSync.onLyricsRendered(fragment, songInfoPtr);
+        Object mb = LrclibReflection.getMediaBrowser(fragment);
+        if (mb != null) lastMediaBrowser = new WeakReference<>(mb);
         Activity act = LrclibReflection.getActivity(fragment);
         if (act != null) captureContext(act);
         Object vm = LrclibReflection.getLyricsViewModelFromFragment(fragment);
@@ -521,10 +544,12 @@ public final class LrclibController {
                 recordOfficialState(query.trackKey, songInfoPtr);
             }
         }
-        MAIN.post(() -> {
-            refreshPillForFragment(fragment);
-            refreshAllBadgesNow();
-        });
+        if (LyricsFeatures.lrclib()) {
+            MAIN.post(() -> {
+                refreshPillForFragment(fragment);
+                refreshAllBadgesNow();
+            });
+        }
     }
 
     public static boolean onEditTimedLyric(Object fragment, View anchor, Object nativeLine, Runnable share) {
@@ -648,12 +673,32 @@ public final class LrclibController {
     public static List<?> withSettings(List<?> items) {
         Activity act = settingsOwner.get();
         if (act == null || act.isFinishing()) return items;
+        boolean hasLrclib = LyricsFeatures.lrclib();
+        boolean hasPron = LyricsFeatures.pronunciation();
+        boolean hasEditor = LyricsFeatures.editor();
+        if (!hasLrclib && !hasPron && !hasEditor) return items;
         captureContext(act);
         try {
+            int enabledCount = (hasLrclib ? 1 : 0) + (hasPron ? 1 : 0) + (hasEditor ? 1 : 0);
+            String categoryKey;
+            String entryKey;
+            if (enabledCount > 1) {
+                categoryKey = "settings_category_lyrics";
+                entryKey = "settings_entry_lyrics";
+            } else if (hasLrclib) {
+                categoryKey = "settings_category";
+                entryKey = "settings_entry";
+            } else if (hasPron) {
+                categoryKey = "settings_category_pronunciation";
+                entryKey = "settings_entry_pronunciation";
+            } else {
+                categoryKey = "settings_category_editor";
+                entryKey = "settings_entry_editor";
+            }
             final WeakReference<Activity> ref = settingsOwner;
             Object category = LrclibReflection.createSettingsCategory(
-                    LrclibStrings.text(act, "settings_category"),
-                    LrclibStrings.text(act, "settings_entry"),
+                    LrclibStrings.text(act, categoryKey),
+                    LrclibStrings.text(act, entryKey),
                     () -> {
                         Activity current = ref.get();
                         if (current != null && !current.isFinishing()) {
@@ -665,7 +710,7 @@ public final class LrclibController {
             result.add(Math.min(1, result.size()), category);
             return result;
         } catch (Throwable t) {
-            Log.w(TAG, "Could not add LRCLIB settings category", t);
+            Log.w(TAG, "Could not add lyrics settings category", t);
             return items;
         }
     }
@@ -955,7 +1000,9 @@ public final class LrclibController {
         String documentKey = LyricsEdits.documentKey(
                 query.trackKey, lyricsId + ":" + prepared.sourceType, rawText);
         Map<Integer, LyricsEditTtml.Edit> edits = LyricsEdits.load(ctx, documentKey);
-        boolean generateInParser = LrclibPrefs.isRomanizationEnabled(ctx) && !LyricsLineEditor.hasTextEdits(edits);
+        boolean hasDocEdit = LyricsEdits.loadDocument(ctx, documentKey) != null;
+        boolean generateInParser = LrclibPrefs.isRomanizationEnabled(ctx)
+                && !hasDocEdit && !LyricsLineEditor.hasTextEdits(edits);
 
         LrclibParser.TtmlResult built = LrclibParser.renderPrepared(
                 prepared, offsetMs, sysLang, generateInParser ? LrclibRomanizer::create : null);
@@ -978,7 +1025,12 @@ public final class LrclibController {
         }
         final Object songInfoPtr = parsed;
         LyricsLineEditor.remember(songInfoPtr, sheet);
-        final LrclibModels.LyricsSource finalSource = built.sourceType;
+        LrclibModels.LyricsSource resolvedSource = built.sourceType;
+        if (resolvedSource == LrclibModels.LyricsSource.LOCAL_PLAIN
+                && LrclibReflection.getSongInfoTiming(songInfoPtr) == 1L) {
+            resolvedSource = LrclibModels.LyricsSource.LOCAL_LINE;
+        }
+        final LrclibModels.LyricsSource finalSource = resolvedSource;
         MAIN.post(() -> {
             if (!isCurrentGen(viewModel, gen)) return;
             setTrackState(query.trackKey, finalSource, -1L, false, safeName, fromFolder);
@@ -1128,7 +1180,9 @@ public final class LrclibController {
             String sourceLyrics = record.lyricsfile + "\u0000" + record.syncedLyrics + "\u0000" + record.plainLyrics;
             String documentKey = LyricsEdits.documentKey(query.trackKey, lyricsId + ":" + prepared.sourceType, sourceLyrics);
             Map<Integer, LyricsEditTtml.Edit> edits = LyricsEdits.load(ctx, documentKey);
-            boolean generateInParser = LrclibPrefs.isRomanizationEnabled(ctx) && !LyricsLineEditor.hasTextEdits(edits);
+            boolean hasDocEdit = LyricsEdits.loadDocument(ctx, documentKey) != null;
+            boolean generateInParser = LrclibPrefs.isRomanizationEnabled(ctx)
+                    && !hasDocEdit && !LyricsLineEditor.hasTextEdits(edits);
             LrclibParser.TtmlResult built = LrclibParser.renderPrepared(
                     prepared, offsetMs, sysLang, generateInParser ? LrclibRomanizer::create : null);
             if (built.ttml != null) {

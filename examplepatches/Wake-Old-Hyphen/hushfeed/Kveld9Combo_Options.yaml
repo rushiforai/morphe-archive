@@ -1,0 +1,190 @@
+# Kveld9Combo_Options.yaml — options for the COMBO workflow
+# Hushfeed + Nai64 sections identical to production.
+# kveld9 section uses v2.12.1 names/keys and matches your URV Manager screenshots exactly.
+
+hushfeed_disabled:
+  - "SIM spoof"
+  - "Region spoof"
+
+hushfeed_options:
+  - name: "Remove unused language packs"
+    options:
+      languagesToKeep: "en"
+
+patches:
+  - name: "Disable Root Checks"
+    enabled: true
+  - name: "Disable Telemetry"
+    enabled: true
+  - name: "Disable Firebase Auto-Init"
+    enabled: true
+  - name: "Disable Firebase Performance"
+    enabled: true
+  - name: "Disable Remote Config Fetch"
+    enabled: true
+  - name: "Limit Ad Tracking"
+    enabled: true
+  - name: "Disable Crash Reporters"
+    enabled: true
+  - name: "Remove Ad Services Entries"
+    enabled: true
+  - name: "Strip Exif Location"
+    enabled: true
+  - name: "Spoof Play Store Install Source"
+    enabled: true
+  - name: "Bypass VPN Detection"
+    enabled: true
+  - name: "Hide Roaming Status"
+    enabled: true
+
+  - name: "Fake Auto Time Zone"
+    enabled: true
+    options:
+      autoTimeZone: true
+  - name: "Spoof Time Zone"
+    enabled: true
+    options:
+      timeZoneId: "Europe/Amsterdam"
+  - name: "Spoof SIM Country"
+    enabled: true
+    options:
+      spoofSimCountryIso: "nl"
+  - name: "Spoof SIM Operator"
+    enabled: true
+    options:
+      spoofSimOperatorMccMnc: "20408"
+  - name: "Spoof SIM Operator Name"
+    enabled: true
+    options:
+      spoofSimOperatorName: "KPN"
+  - name: "Spoof SIM Serial Number"
+    enabled: true
+    options:
+      simSerial: "8931081234567890123"
+  - name: "Spoof Subscriber ID"
+    enabled: true
+    options:
+      subscriberId: "20408123456790"
+  - name: "Spoof Phone Number"
+    enabled: true
+    options:
+      phoneNumber: ""
+  - name: "Spoof Voice Mail"
+    enabled: true
+  - name: "Spoof Network Operator Name"
+    enabled: true
+    options:
+      networkOperatorName: "KPN"
+
+  - name: "Hide Personal Data"
+    enabled: true
+    options:
+      hideContactsData: true
+      hideCallLogData: true
+      hideSmsData: true
+      hideCalendarData: true
+      hidePhotosData: true
+  - name: "Hide Running Processes"
+    enabled: true
+  - name: "Hide Storage Volumes"
+    enabled: true
+  - name: "Hide USB Devices"
+    enabled: true
+  - name: "Hide Input Devices"
+    enabled: true
+  - name: "Hide Wallpaper"
+    enabled: true
+  - name: "Hide Hardware Address"
+    enabled: true
+
+  - name: "Spoof Locale"
+    enabled: false
+    note: "CRASHES Morphe smali compiler (GetterSpoofer foldLocaleGetDefault)"
+  - name: "Empty Clipboard Report"
+    enabled: false
+    note: "Hushfeed Device privacy guard owns clipboard"
+  - name: "Hide Clipboard"
+    enabled: false
+    note: "Hushfeed Device privacy guard owns clipboard"
+  - name: "Hide Clipboard Description"
+    enabled: false
+    note: "Hushfeed Device privacy guard owns clipboard"
+  - name: "Spoof Last Known Location"
+    enabled: false
+    note: "Hushfeed Location access governor owns location"
+  - name: "Spoof Fixed Location"
+    enabled: false
+    note: "Hushfeed Location access governor owns location"
+  - name: "Spoof CPU Architecture"
+    enabled: false
+    note: "High risk: breaks native video decoding"
+  - name: "Spoof Device Model"
+    enabled: false
+    note: "High risk: hardware spoofing triggers anti-fraud"
+  - name: "Spoof Build Fingerprint"
+    enabled: false
+    note: "High risk: hardware spoofing triggers anti-fraud"
+
+# ==========================================
+# KVELD9 v2.12.1 UNIVERSAL PATCHES (your screenshots, remapped to current names)
+# ==========================================
+kveld9_patches:
+  - name: "Clean App Packaging"
+    enabled: true
+
+  # VERIFY: confirm this exact name in the Configure-options log; if not found,
+  # the allowlist silently skips it.
+  - name: "Override certificate pinning"
+    enabled: true
+
+  # VERIFY: confirm this exact name in the log.
+  - name: "Remove Debug Info"
+    enabled: true
+
+  # Screenshot said "(Universal)"; v2.12.1 catalog shows plain "Remove Extra Languages".
+  - name: "Remove Extra Languages"
+    enabled: true
+    options:
+      locales: "en"
+
+  # VERIFY: confirm this exact name in the log.
+  - name: "Remove Unused Screen Sizes"
+    enabled: true
+    options:
+      dpis: "xxhdpi"
+      stripSmartwatch: true
+      stripTelevision: true
+      stripOtherFormFactors: true
+
+  - name: "Shrink PNG Images"
+    enabled: true
+
+  - name: "Shrink WebP Images"
+    enabled: true
+    options:
+      stripExif: true
+      stripXmp: true
+      stripIcc: false
+
+  - name: "Silence System Logs"
+    enabled: true
+    options:
+      logLevel: "all"
+
+  - name: "Spoof Reinstall IDs"
+    enabled: true
+    options:
+      appSetId: "00000000-0000-0000-0000-000000000000"
+      installId: "0000000000000000000000"
+      spoofScope: true
+
+  # v2.12.1: stripWakeLock was REMOVED from this patch (now a separate
+  # "Wake Locks Off (Universal)" patch). Your screenshot had it Disabled, so
+  # we simply omit it here.
+  - name: "Stop Background Sync (Universal)"
+    enabled: true
+    options:
+      stripBootPermission: true
+      disableBootReceivers: true
+      disableWorkManager: true      # per your screenshot; if the JobInfoSchedulerService
+                                    # crash returns, flip this to false

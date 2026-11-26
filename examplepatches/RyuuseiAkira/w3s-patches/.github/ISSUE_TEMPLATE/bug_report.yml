@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a bug or an issue.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: textarea
+    attributes:
+      label: Bug description
+      description: |
+        - Describe your bug in detail
+        - Include the W3Schools APK version and patches enabled
+        - Add steps to reproduce the bug if possible
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Error logs
+      description: Exceptions can be captured by running `adb logcat | grep AndroidRuntime` in a shell.
+      render: shell
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add device Android version, MicroG-RE version, and any additional context here.

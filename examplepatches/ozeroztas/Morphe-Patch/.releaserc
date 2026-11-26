@@ -8,33 +8,39 @@
   ],
   "plugins": [
     [
-        "@semantic-release/commit-analyzer", {
+      "@semantic-release/commit-analyzer",
+      {
         "releaseRules": [
-            { "breaking": true, "release": "major" },
-            { "type": "fix", "release": "patch" },
-            { "type": "feat", "release": "minor" },
-            { "type": "bump", "release": "patch" },
-            { "type": "perf", "release": "patch" },
-            { "type": "build", "scope": "Needs bump", "release": "patch" }
+          { "breaking": true, "release": "major" },
+          { "type": "fix", "release": "patch" },
+          { "type": "feat", "release": "minor" },
+          { "type": "bump", "release": "patch" },
+          { "type": "perf", "release": "patch" },
+          { "type": "build", "scope": "Needs bump", "release": "patch" }
         ]
-        }
+      }
     ],
     [
-        "@semantic-release/release-notes-generator", {
+      "@semantic-release/release-notes-generator",
+      {
         "preset": "conventionalcommits",
         "presetConfig": {
-            "types": [
-                { "type": "feat", "section": "✨ New Features", "hidden": false },
-                { "type": "perf", "section": "🔧 Improvements",  "hidden": false },
-                { "type": "fix", "section": "🐛 Bug Fixes", "hidden": false },
-                { "type": "bump", "section": "🚀 Updated App Support", "hidden": false },
-                { "type": "build", "hidden": true }
-            ]
+          "types": [
+            { "type": "feat", "section": "✨ New Features", "hidden": false },
+            { "type": "perf", "section": "🔧 Improvements", "hidden": false },
+            { "type": "fix", "section": "🐛 Bug Fixes", "hidden": false },
+            { "type": "bump", "section": "🚀 Updated App Support", "hidden": false },
+            { "type": "build", "hidden": true }
+          ]
+        },
+        "writerOpts": {
+          "mainTemplate": "{{#if version}}Morphe Patches {{version}}{{/if}}\n\nSee CHANGELOG.md for the complete list of changes."
         }
-        }
+      }
     ],
     [
-      "@MorpheApp/changelog", {
+      "@MorpheApp/changelog",
+      {
         "releaseJson": {
           "path": "patches-bundle.json",
           "downloadUrlTemplate": "https://github.com/${owner}/${repo}/releases/download/v${version}/patches-${version}.mpp",
@@ -47,9 +53,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./gradlew generatePatchesList \
-          && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json \
-          && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md"
+        "prepareCmd": "./gradlew generatePatchesList && jq '.version=\"\u0024{nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md"
       }
     ],
     [
@@ -62,7 +66,7 @@
           "patches-list.json",
           "README.md"
         ],
-        "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        "message": "chore: Release v${nextRelease.version} [skip ci]\\n\\n${nextRelease.notes}"
       }
     ],
     [
@@ -74,13 +78,6 @@
           }
         ],
         "successComment": false
-      }
-    ],
-    [
-      "@cleyrop-org/semantic-release-backmerge",
-      {
-        "backmergeBranches": [{"from": "main", "to": "dev"}],
-        "clearWorkspace": true
       }
     ]
   ]

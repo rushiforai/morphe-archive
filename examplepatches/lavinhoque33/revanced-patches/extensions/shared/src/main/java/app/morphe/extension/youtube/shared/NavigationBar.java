@@ -11,7 +11,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.youtube.shared;
@@ -472,6 +472,11 @@ public final class NavigationBar {
     /** Records the native order before the user's override, including the app's active layout. */
     public static void setServerNavigationButtonOrder(List<NavigationButton> buttons) {
         serverNavigationButtonOrder = List.copyOf(buttons);
+    }
+
+    /** Reports whether the current native pivot bar model includes the requested item. */
+    public static boolean hasServerNavigationButton(NavigationButton button) {
+        return serverNavigationButtonOrder.contains(button);
     }
 
     /**

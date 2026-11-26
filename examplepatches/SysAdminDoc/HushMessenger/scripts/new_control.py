@@ -31,7 +31,7 @@ TESTS_DIR = "patches/src/test/kotlin/app/hushmessenger/patches/controls"
 EXTENSION_DIR = "extensions/messenger/src/main/java/app/hushmessenger/extension"
 EXTENSION_TESTS = "extensions/messenger/src/test/java/app/hushmessenger/extension"
 L10N_DIR = "extensions/messenger/src/main/l10n"
-LOCALES = ("es", "th", "tr", "vi", "zh-TW")
+LOCALES = ("bg", "es", "it", "th", "tr", "vi", "zh-TW")
 STRING = r'"((?:[^"\\]|\\.)*)"'
 
 
@@ -427,8 +427,8 @@ class {camel}Test {{
         f"find{camel}, validate{camel} and inject{camel} in {CONTROLS_DIR}/{camel}.kt, and the extension behavior behind Settings.{lower}()",
         f"{lower} in {family}, the mirror the patch tests compare with find{camel} (and CompatReport.NEEDS_A_LOCAL if the inject takes a scratch register)",
         f"{lower}Fixture in {TESTS_DIR}/{camel}Test.kt with the stock method's shape, then the tests that refuse a changed shape",
-        f"java scripts/CompatReport.java --record-control {key} fixtures/587 to write the hook ids into the records and ControlProfiles.kt,"
-        f" then raise ExpectedTotals.HOOKS_587 by the hooks it found per build",
+        f"java scripts/CompatReport.java --record-control {key} fixtures/588 to write the hook ids into the records and ControlProfiles.kt,"
+        f" then raise ExpectedTotals.HOOKS_588 by the hooks it found per build",
         f"the {len(LOCALES)} translations left empty in {L10N_DIR}/{{{','.join(LOCALES)}}}.tsv",
         "a CHANGELOG bullet under ## Unreleased, then :patches:generatePatchCatalog in the same commit",
     ]

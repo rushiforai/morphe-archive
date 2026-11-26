@@ -3,11 +3,16 @@
  * https://github.com/MorpheApp/morphe-patches/pull/4148
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ *
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.youtube.patches;
 
 import android.app.Activity;
+import android.view.View;
+
+import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -45,13 +50,27 @@ public final class CommandRouterPatch {
      * @return If an activity is shown, and the command was run.
      */
     public static boolean executeCommand(byte[] command, Map<String, Object> context) {
+        return executeCommandInWindow(command, context, null);
+    }
+
+    /** Runs the command only in the activity that holds the sender view. */
+    public static boolean executeCommand(byte[] command, Map<String, Object> context, View sender) {
+        return executeCommandInWindow(command, context, sender.getRootView());
+    }
+
+    private static boolean executeCommandInWindow(byte[] command, Map<String, Object> context,
+                                                  @Nullable View senderRoot) {
         for (Map.Entry<Activity, WeakReference<CommandRouter>> entry : routers.entrySet()) {
             Activity activity = entry.getKey();
             CommandRouter router = entry.getValue().get();
             // Stopped behind another screen, such as the Morphe settings, or in the background,
             // where nobody would see the result of the command.
-            if (router == null || activity == null || activity.isFinishing()
-                    || !activity.getWindow().getDecorView().isShown()) {
+            if (router == null || activity == null || activity.isFinishing()) {
+                continue;
+            }
+
+            View decor = activity.getWindow().getDecorView();
+            if (!decor.isShown() || (senderRoot != null && decor != senderRoot)) {
                 continue;
             }
 

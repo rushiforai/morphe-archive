@@ -16,14 +16,43 @@ import app.morphe.patcher.patch.classDefByStrings
 import app.morphe.patcher.patch.getAllClassesWithStrings
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableAnnotation
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEncodedValue
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
+
+/** The string loaded by this instruction, if it loads one. */
+internal fun Instruction.stringValue(): String? =
+    ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+
+internal fun Instruction.methodReference(): MethodReference? =
+    (this as? ReferenceInstruction)?.reference as? MethodReference
+
+internal fun Method.instructionsList(): List<Instruction> =
+    implementation?.instructions?.toList() ?: emptyList()
+
+internal fun Method.hasStringConstant(value: String): Boolean =
+    implementation?.instructions?.any { it.stringValue() == value } == true
+
+internal fun ClassDef.hasStringConstant(value: String): Boolean = methods.any { it.hasStringConstant(value) }
+
+/** Whether two methods have the same name, parameter types and return type. */
+internal fun Method.hasSameSignature(other: Method): Boolean =
+    name == other.name && returnType == other.returnType &&
+        parameterTypes.map(Any::toString) == other.parameterTypes.map(Any::toString)
+
+/** The mutable copy of [method], a method of the class [type]. */
+internal fun mutableMethodOf(type: String, method: Method): MutableMethod =
+    mutableClassDefBy(type).methods.single { it.hasSameSignature(method) }
 
 /**
  * One literal that is replaced wherever it occurs in a string constant of the app.
@@ -254,10 +283,7 @@ internal fun replaceAnnotationStrings(
 }
 
 private fun findReplacement(value: String, replacements: Array<out StringReplacement>): String? {
-    // Exact matches first: "auth/games" must not win over "auth/games_lite".
-    replacements.firstOrNull { it.from == value }?.let { return it.to }
-
-    // Then the most specific partial match.
+    // The longest match wins, so "auth/games" does not take over "auth/games_lite".
     return replacements
         .filter { value.contains(it.from) }
         .maxByOrNull { it.from.length }

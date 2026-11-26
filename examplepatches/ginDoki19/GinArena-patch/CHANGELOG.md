@@ -1,3 +1,15 @@
+## [2.14.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.13.0...v2.14.0) (2026-11-25)
+
+### ✨ New Features
+
+* **adguard:** drop 4.15.2 support, add 4.16.1 ([4a2a16f](https://github.com/ginDoki19/GinArena-patch/commit/4a2a16fa2d17aa62582f03ec1587de960695f110))
+
+## [2.14.0-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.13.0...v2.14.0-dev.1) (2026-11-22)
+
+### ✨ New Features
+
+* **adguard:** drop 4.15.2 support, add 4.16.1 ([4a2a16f](https://github.com/ginDoki19/GinArena-patch/commit/4a2a16fa2d17aa62582f03ec1587de960695f110))
+
 ## [2.13.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.12.1...v2.13.0) (2026-11-21)
 
 ### 🐛 Bug Fixes

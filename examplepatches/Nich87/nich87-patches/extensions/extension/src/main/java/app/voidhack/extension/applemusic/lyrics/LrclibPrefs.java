@@ -75,7 +75,7 @@ final class LrclibPrefs {
     }
 
     static boolean isEnabled(Context context) {
-        return prefs(context).getBoolean(KEY_ENABLED, true);
+        return LyricsFeatures.lrclib() && prefs(context).getBoolean(KEY_ENABLED, true);
     }
 
     static void setEnabled(Context context, boolean value) {
@@ -100,7 +100,7 @@ final class LrclibPrefs {
     }
 
     static boolean isRomanizationEnabled(Context context) {
-        return prefs(context).getBoolean(KEY_ROMANIZATION, false);
+        return LyricsFeatures.pronunciation() && prefs(context).getBoolean(KEY_ROMANIZATION, true);
     }
 
     static void setRomanizationEnabled(Context context, boolean value) {

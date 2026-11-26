@@ -491,9 +491,7 @@ Info: The next queued video only starts while YouTube is on screen"</string>
     <string name="morphe_open_videos_fullscreen_title">Open videos in fullscreen mode</string>
     <string name="morphe_override_youtube_music_buttons_summary">Opens your preferred music app instead of the stock YouTube Music app</string>
     <string name="morphe_override_youtube_music_buttons_title">Override YouTube Music buttons</string>
-    <string name="morphe_pause_on_audio_interrupt_summary">
-        Pauses instead of lowering the volume when another app briefly takes audio focus
-    </string>
+    <string name="morphe_pause_on_audio_interrupt_summary">Pauses instead of lowering the volume when another app briefly takes audio focus</string>
     <string name="morphe_pause_on_audio_interrupt_title">Pause on audio interruptions</string>
     <string name="morphe_pip_button_flyout_name">Switch to Picture-in-Picture</string>
     <string name="morphe_pip_button_flyout_title">Show Picture-in-Picture menu</string>
@@ -583,8 +581,7 @@ To use this feature, turn off \'Spoof video streams\'"</string>
 Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_queue_override_flyout_menu_title">Override feed flyout queue button</string>
     <string name="morphe_queue_thumbnail_button_title">Show Add to queue on thumbnails</string>
-    <string name="morphe_queue_thumbnail_button_summary">Adds an upper-left queue button to supported thumbnails.
-        The button queues the selected video, or plays it if no video is open.</string>
+    <string name="morphe_queue_thumbnail_button_summary">Adds an upper-left queue button to supported thumbnails. The button queues the selected video, or plays it if no video is open.</string>
     <string name="morphe_queue_thumbnail_unavailable">No queue is available for this video.</string>
     <string name="morphe_reload_video_summary_off">Reload video button is hidden</string>
     <string name="morphe_reload_video_summary_on">Reload video button is shown</string>
@@ -597,8 +594,7 @@ Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_replace_music_with_youtube_summary_off">Shared links use music.youtube.com</string>
     <string name="morphe_replace_music_with_youtube_summary_on">Shared links use youtube.com</string>
     <string name="morphe_replace_music_with_youtube_title">Change share links to youtube.com</string>
-    <string name="morphe_restore_cast_play_queue_summary">Shows Play or Queue when you select another video
-        while casting, without leaving the receiver session</string>
+    <string name="morphe_restore_cast_play_queue_summary">Shows Play or Queue when you select another video while casting, without leaving the receiver session</string>
     <string name="morphe_restore_cast_play_queue_title">Restore Cast Play/Queue</string>
     <string name="morphe_restore_old_player_buttons_summary">Uses the older video player layout for custom overlay buttons</string>
     <string name="morphe_restore_old_player_buttons_title">Restore old player button style</string>
@@ -871,13 +867,9 @@ Tap here to open OpenRouter.ai"</string>
     <string name="morphe_playlist_wide_drag_handles_title">Widen playlist drag handles</string>
     <string name="morphe_playlist_wide_drag_handles_summary">Playlist drag handles are easier to grab</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Hide playlist removal snackbar</string>
-    <string name="morphe_playlist_hide_removal_snackbar_summary">
-        The confirmation is not shown after a video is removed from a playlist
-    </string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">The confirmation is not shown after a video is removed from a playlist</string>
     <string name="morphe_playlist_long_press_drag_title">Long press to reorder playlist videos</string>
-    <string name="morphe_playlist_long_press_drag_summary">
-        Touch and hold a video of your playlist to drag it to a new position
-    </string>
+    <string name="morphe_playlist_long_press_drag_summary">Touch and hold a video of your playlist to drag it to a new position</string>
     <string name="revanced_advanced_video_quality_menu_summary_off">Advanced video quality menu is not shown</string>
     <string name="revanced_advanced_video_quality_menu_summary_on">Advanced video quality menu is shown</string>
     <string name="revanced_advanced_video_quality_menu_title">Show advanced video quality menu</string>
@@ -1856,9 +1848,7 @@ Words with uppercase letters in the middle must be entered with the casing (ie: 
     <string name="revanced_hide_player_flyout_menu_ambient_mode_summary_on">Ambient mode menu is hidden</string>
     <string name="revanced_hide_player_flyout_menu_ambient_mode_title">Hide Ambient mode menu</string>
     <string name="morphe_hide_player_flyout_additional_settings_title">Hide \'Additional settings\' / More menu</string>
-    <string name="morphe_hide_player_flyout_additional_settings_summary">
-        Also hidden automatically when every option below is hidden
-    </string>
+    <string name="morphe_hide_player_flyout_additional_settings_summary">Also hidden automatically when every option below is hidden</string>
     <string name="revanced_hide_player_flyout_menu_audio_track_summary_off">Audio track menu is shown</string>
     <string name="revanced_hide_player_flyout_menu_audio_track_summary_on">Audio track menu is hidden</string>
     <string name="revanced_hide_player_flyout_menu_audio_track_title">Hide Audio track menu</string>
@@ -2649,6 +2639,9 @@ Audio is saved to %2$s"</string>
     <string name="revanced_offline_download_queued">Queued</string>
     <string name="revanced_offline_download_starting">Starting…</string>
     <string name="revanced_offline_download_progress">Downloading %d%%</string>
+    <string name="revanced_offline_download_pausing">Pausing…</string>
+    <string name="revanced_offline_download_paused">Paused</string>
+    <string name="revanced_offline_download_waiting">Waiting for connection…</string>
     <string name="revanced_offline_download_queued_count">%d queued</string>
     <string name="revanced_offline_download_merging">Merging video and audio…</string>
     <string name="revanced_offline_download_saving">Saving…</string>
@@ -2659,6 +2652,8 @@ Audio is saved to %2$s"</string>
     <string name="revanced_offline_error_space">Not enough free space, %s needed</string>
     <string name="revanced_offline_error_time_limit">Android\'s background download time limit was reached</string>
     <string name="revanced_offline_cancel">Cancel</string>
+    <string name="revanced_offline_download_pause">Pause download</string>
+    <string name="revanced_offline_download_resume">Resume download</string>
     <!-- modified by lavinhoque33, 2026-10-23: playlist download with a quality limit. -->
     <string name="revanced_offline_cancel_all">Cancel all</string>
     <string name="revanced_offline_cancel_all_message">Cancel %d queued and running downloads?</string>
@@ -3759,4 +3754,114 @@ Authorization is required to request translation with live voices for videos tha
     <string name="revanced_yandex_transcribe_subtitles_language_title">Yandex language</string>
     <string name="revanced_yandex_transcribe_subtitles_summary">Use Yandex transcription instead of Gemini. Yandex is faster and more reliable. No API key is required</string>
     <string name="revanced_yandex_transcribe_subtitles_title">Yandex transcription</string>
+    <string name="morphe_you_button_account_switcher_title">Account switcher shortcut</string>
+    <string name="morphe_you_button_account_switcher_summary">Long press the You tab to open YouTube’s account switcher</string>
+
+    <string name="morphe_ghost_play_screen_title">Ghost mode</string>
+    <string name="morphe_ghost_play_screen_summary">Block playback history updates while staying signed in</string>
+    <string name="morphe_ghost_play_cat_buttons_title">Buttons</string>
+    <string name="morphe_ghost_play_cat_rules_title">Automatic rules</string>
+    <string name="morphe_ghost_play_cat_history_title">Local history</string>
+    <string name="morphe_ghost_play_cat_advanced_title">Advanced privacy</string>
+    <string name="morphe_ghost_play_enabled_title">Enable Ghost mode</string>
+    <string name="morphe_ghost_play_enabled_summary">Make Ghost mode available. You stay signed in for other actions</string>
+    <string name="morphe_ghost_play_mode_active_title">Ghost mode active</string>
+    <string name="morphe_ghost_play_mode_active_summary">Use Ghost mode for videos you watch in this session</string>
+    <string name="morphe_ghost_play_persist_mode_title">Remember Ghost mode across restarts</string>
+    <string name="morphe_ghost_play_persist_mode_summary">Keep the session switch on when you reopen YouTube</string>
+    <string name="morphe_ghost_play_toolbar_button_title">Show Ghost mode in the toolbar</string>
+    <string name="morphe_ghost_play_toolbar_button_summary">Tap to toggle or hold for a timer. On channel pages, tap to toggle the channel rule</string>
+    <string name="morphe_ghost_play_flyout_button_title">Show in video menus</string>
+    <string name="morphe_ghost_play_flyout_button_summary">Add \"Play in Ghost mode\" to video menus and player settings</string>
+    <string name="morphe_ghost_play_player_button_title">Show Ghost mode button</string>
+    <string name="morphe_ghost_play_player_button_summary">Toggle Ghost mode from the player controls. Hold for a timer</string>
+    <string name="morphe_ghost_play_anonymize_requests_title">Remove account headers from playback requests</string>
+    <string name="morphe_ghost_play_anonymize_requests_summary">Remove account headers during Ghost playback. Content and features that require sign-in may stop working</string>
+    <string name="morphe_ghost_play_auto_shorts_title">Use Ghost mode for Shorts</string>
+    <string name="morphe_ghost_play_auto_shorts_summary">Automatically use Ghost mode when watching Shorts</string>
+    <string name="morphe_ghost_play_auto_search_title">Use Ghost mode for search results</string>
+    <string name="morphe_ghost_play_auto_search_summary">Automatically use Ghost mode for videos opened from search</string>
+    <string name="morphe_ghost_play_manage_channels_title">Auto-ghost channels</string>
+    <string name="morphe_ghost_play_manage_channels_summary">Choose channels whose videos always play in Ghost mode</string>
+    <string name="morphe_ghost_play_manage_channels_summary_count">%d channels configured — tap to search, inspect, or remove</string>
+    <string name="morphe_ghost_play_local_history_title">Keep local Ghost history</string>
+    <string name="morphe_ghost_play_local_history_summary">Save Ghost videos and playback positions on this device only</string>
+    <string name="morphe_ghost_play_history_limit_title">Local Ghost history limit</string>
+    <string name="morphe_ghost_play_history_limit_summary">Maximum number of saved videos. Older entries are removed first</string>
+    <string name="morphe_ghost_play_history_limit_summary_active">%1$s · %2$d videos saved (%3$s)</string>
+    <string name="morphe_ghost_play_history_limit_summary_empty">%1$s · No videos saved</string>
+    <string name="morphe_ghost_play_history_limit_100">100 videos</string>
+    <string name="morphe_ghost_play_history_limit_500">500 videos</string>
+    <string name="morphe_ghost_play_history_limit_2000">2,000 videos</string>
+    <string name="morphe_ghost_play_history_limit_unlimited">Unlimited</string>
+    <string name="morphe_ghost_play_view_history_title">Open local Ghost history</string>
+    <string name="morphe_ghost_play_view_history_summary">View, search, resume, or clear your on-device history</string>
+    <string name="morphe_ghost_play_view_history_summary_count">%1$d videos stored on device (%2$s) — tap to view or resume</string>
+    <string name="morphe_ghost_play_view_history_summary_empty">No videos recorded yet</string>
+
+    <string name="morphe_ghost_play_toolbar_timed_badge">%dm</string>
+    <string name="morphe_ghost_play_flyout_action">Play in Ghost mode</string>
+    <string name="morphe_ghost_play_video_active_toast">Ghost mode on for this video</string>
+    <string name="morphe_ghost_play_video_off_toast">Ghost mode off for this video</string>
+    <string name="morphe_ghost_play_session_on_toast">Ghost mode on</string>
+    <string name="morphe_ghost_play_session_off_toast">Ghost mode off</string>
+    <string name="morphe_ghost_play_timer_set_toast">Ghost mode on for %d minutes</string>
+    <string name="morphe_ghost_play_timer_cancelled_keep_on_toast">Timer cleared. Ghost mode stays on</string>
+    <string name="morphe_ghost_play_timer_invalid_toast">Enter a duration between 1 and 720 minutes</string>
+    <string name="morphe_ghost_play_dialog_title">Ghost mode</string>
+    <string name="morphe_ghost_play_state_on">On</string>
+    <string name="morphe_ghost_play_state_off">Off</string>
+    <string name="morphe_ghost_play_close">Close</string>
+    <string name="morphe_ghost_play_open_settings">All settings</string>
+    <string name="morphe_ghost_play_quick_power_hint">Tap to toggle Ghost mode</string>
+    <string name="morphe_ghost_play_quick_timer_title">Timed Ghost mode</string>
+    <string name="morphe_ghost_play_quick_timer_sub">Tap to choose a duration</string>
+    <string name="morphe_ghost_play_quick_timer_running">Timer active · %d min left</string>
+    <string name="morphe_ghost_play_quick_timer_running_sub">Ghost mode turns off when the timer ends</string>
+    <string name="morphe_ghost_play_quick_timer_change">Change time</string>
+    <string name="morphe_ghost_play_quick_timer_cancel_keep_on">Clear timer and keep Ghost mode on</string>
+    <string name="morphe_ghost_play_timer_minutes_chip">%dm</string>
+    <string name="morphe_ghost_play_timer_custom_hint">Custom duration (1–720 minutes)</string>
+    <string name="morphe_ghost_play_timer_custom_set">Set</string>
+    <string name="morphe_ghost_play_quick_channel_state_on">Ghost mode on for this channel</string>
+    <string name="morphe_ghost_play_quick_channel_state_off">Ghost mode off for this channel</string>
+    <string name="morphe_ghost_play_quick_channel_count">%d channels configured</string>
+    <string name="morphe_ghost_play_quick_channel_manage_btn">List (%d)</string>
+    <string name="morphe_ghost_play_channel_added_toast">Added \"%s\" to auto-ghost channels</string>
+    <string name="morphe_ghost_play_channel_removed_toast">Removed \"%s\" from auto-ghost channels</string>
+
+    <string name="morphe_ghost_play_history_title">Local Ghost history</string>
+    <string name="morphe_ghost_play_history_subtitle_size">Videos: %1$d (%2$s) · tap to resume in Ghost mode, hold to remove</string>
+    <string name="morphe_ghost_play_history_search_hint">Filter by video title or channel…</string>
+    <string name="morphe_ghost_play_history_no_match">No matching videos in local Ghost history</string>
+    <string name="morphe_ghost_play_history_empty">No local Ghost history yet</string>
+    <string name="morphe_ghost_play_history_clear_all">Clear all</string>
+    <string name="morphe_ghost_play_history_clear_confirm_title">Clear local Ghost history?</string>
+    <string name="morphe_ghost_play_history_clear_confirm_message">This permanently removes all saved Ghost history from this device.</string>
+    <string name="morphe_ghost_play_history_cleared_toast">Local Ghost history cleared</string>
+    <string name="morphe_ghost_play_history_item_removed_toast">Removed from local Ghost history</string>
+
+    <string name="morphe_ghost_play_channels_manager_title">Auto-ghost channels</string>
+    <string name="morphe_ghost_play_channels_enable_here">Use Ghost mode for this channel</string>
+    <string name="morphe_ghost_play_channels_disable_here">Stop using Ghost mode for this channel</string>
+    <string name="morphe_ghost_play_channels_tab_saved">Added (%d)</string>
+    <string name="morphe_ghost_play_channels_tab_search">Search &amp; add</string>
+    <string name="morphe_ghost_play_channels_filter_hint">Filter by name, @handle, or topic…</string>
+    <string name="morphe_ghost_play_channels_empty">No channels added. Use \"Search &amp; add\" to find channels by name, @handle, or URL.</string>
+    <string name="morphe_ghost_play_channels_filter_no_match">No added channels match your filter</string>
+    <string name="morphe_ghost_play_channels_add_current">Playing: %s</string>
+    <string name="morphe_ghost_play_channels_add_button">Add</string>
+    <string name="morphe_ghost_play_channels_added_badge">Added</string>
+    <string name="morphe_ghost_play_channels_delete_button">Remove</string>
+    <string name="morphe_ghost_play_channels_search_hint">Channel name, @handle, or URL…</string>
+    <string name="morphe_ghost_play_channels_search_button">Search</string>
+    <string name="morphe_ghost_play_channels_search_guide">Enter a channel name, @handle, or YouTube channel URL and tap Search</string>
+    <string name="morphe_ghost_play_channels_searching">Searching YouTube channels…</string>
+    <string name="morphe_ghost_play_channels_search_error">Search failed. Check your connection and try again.</string>
+    <string name="morphe_ghost_play_channels_search_no_results">No channels found</string>
+    <string name="morphe_ghost_play_channels_search_count">%d channels found — tap Add to enable auto-ghost</string>
+    <string name="morphe_ghost_play_channels_recent_videos">Recent videos</string>
+    <string name="morphe_ghost_play_channels_recent_video_item" translatable="false">• %s</string>
+    <string name="morphe_ghost_play_channels_loading_details">Loading recent videos…</string>
+    <string name="morphe_ghost_play_channels_no_recent_videos">No recent videos found. Tap to retry</string>
 </resources>

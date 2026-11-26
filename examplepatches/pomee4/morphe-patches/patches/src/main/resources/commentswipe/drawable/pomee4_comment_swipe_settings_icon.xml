@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Comment bubble with a sideways swipe arrow. Tinted by the settings row. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.5"
+        android:strokeLineJoin="round"
+        android:pathData="M4,3.5h12a1.5,1.5 0,0 1,1.5 1.5v8a1.5,1.5 0,0 1,-1.5 1.5h-7l-4,3v-3h-1a1.5,1.5 0,0 1,-1.5 -1.5v-8a1.5,1.5 0,0 1,1.5 -1.5z" />
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M6.5,9h7M11,6.5l2.5,2.5l-2.5,2.5" />
+</vector>

@@ -8,6 +8,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Modified by lavinhoque33, 2026-11-17
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.youtube.patches.utils;
@@ -59,6 +60,7 @@ import app.morphe.extension.youtube.patches.VideoDelayPatch;
 import app.morphe.extension.youtube.videoplayer.VideoDelayDialogButton;
 import app.morphe.extension.youtube.patches.components.PlayerFlyoutMenuFilter;
 import app.morphe.extension.youtube.patches.general.DownloadActionsPatch;
+import app.morphe.extension.youtube.patches.ghostplay.GhostPlayPatch;
 import app.morphe.extension.youtube.patches.shorts.CustomActionsPatch;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.VideoInformation;
@@ -322,6 +324,12 @@ public final class FlyoutUtils {
                     nextButtonIndex,
                     PlayerFlyoutMenuFilter.getTopFlyoutMenuVisible()
             );
+        }
+
+        if (GhostPlayPatch.isPatchIncluded()) {
+            boolean playerMenu = PlayerFlyoutMenuFilter.getTopFlyoutMenuVisible();
+            String ghostVideoId = playerMenu ? VideoInformation.getVideoId() : flyoutVideoId;
+            nextButtonIndex = GhostPlayPatch.addFlyoutButton(flyoutPanel, nextButtonIndex, ghostVideoId, playerMenu);
         }
 
         if (nextButtonIndex > 0) {

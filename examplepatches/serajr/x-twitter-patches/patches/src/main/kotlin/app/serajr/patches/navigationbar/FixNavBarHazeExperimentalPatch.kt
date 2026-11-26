@@ -189,10 +189,34 @@ private fun Method.isNativeBlurRecorder(): Boolean {
     }
 }
 
+// Fix 3-T1: identify the MainContent Box without its obfuscated class name.
+private fun Method.scaffoldDebugAnchor(): Pair<Int, Int>? {
+    if (name != "invoke" || returnType != "Ljava/lang/Object;" ||
+        parameterTypes.map { it.toString() } != listOf("Ljava/lang/Object;", "Ljava/lang/Object;") ||
+        AccessFlags.STATIC.isSet(accessFlags)) return null
+    val ins = implementation?.instructions?.toList() ?: return null
+    if (ins.none { it.opcode == Opcode.PACKED_SWITCH }) return null
+    val matches = ins.indices.filter { index ->
+        if (index + 2 >= ins.size || ins[index].opcode != Opcode.INVOKE_INTERFACE ||
+            refAt(index) != "Lkotlin/jvm/functions/Function3;->invoke(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;" ||
+            ins[index + 1].opcode != Opcode.INVOKE_VIRTUAL ||
+            refAt(index + 1) != "Landroidx/compose/runtime/o0;->u(Z)V" ||
+            ins[index + 2].opcode !in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)) return@filter false
+        val call = ins[index] as? FiveRegisterInstruction ?: return@filter false
+        val end = ins[index + 1] as? FiveRegisterInstruction ?: return@filter false
+        call.registerCount == 4 && end.registerCount == 2 && call.registerE == end.registerC &&
+            (0 until index).any { refAt(it) == "Landroidx/compose/foundation/layout/s;->c(Landroidx/compose/ui/d;Z)Landroidx/compose/ui/layout/c1;" } &&
+            (0 until index).any { refAt(it) == "Landroidx/compose/ui/a;->d(Landroidx/compose/runtime/Composer;Landroidx/compose/ui/Modifier;)Landroidx/compose/ui/Modifier;" }
+    }
+    if (matches.size != 1) return null
+    val index = matches.single()
+    return (index + 1) to (ins[index] as FiveRegisterInstruction).registerE
+}
+
 @Suppress("unused")
 val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
     name = "Fix Navigation Bar Haze (Experimental)",
-    description = "D3-K1A.11-T5 Global Overlay Fix 2: correct Scaffold MainContent slot, T4E-T4 runtime controls.",
+    description = "D3-K1A.11-T5 Global Overlay Fix 3-T1: structural Scaffold MainContent fingerprint and magenta geometry probe.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
@@ -206,8 +230,10 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
         var originalTabPush: Method? = null
         var tabAnchor = -1
         val blurRecorders = mutableListOf<Method>()
+        val scaffoldCandidates = mutableListOf<Method>()
 
         val requiredMethods = setOf(
+            "Landroidx/compose/foundation/p;->k(JLandroidx/compose/ui/Modifier;)Landroidx/compose/ui/Modifier;",
             "Landroidx/compose/foundation/layout/s;->a(Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V",
             HAZE_EFFECT_METHOD,
             "Lcom/x/compose/core/m0;->a(Landroidx/compose/runtime/Composer;)J",
@@ -257,6 +283,14 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
         val rootRouteTypes = mutableSetOf<String>()
 
         classDefForEach { classDef ->
+            val instanceFields = classDef.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }
+            if (classDef.interfaces.contains("Lkotlin/jvm/functions/Function2;") &&
+                instanceFields.map { it.type }.sorted() == listOf("B", "Ljava/lang/Object;", "Ljava/lang/Object;") &&
+                classDef.methods.any { it.name == "<init>" && it.parameterTypes.map { p -> p.toString() } ==
+                    listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "B") }) {
+                scaffoldCandidates.addAll(classDef.methods.filter { it.scaffoldDebugAnchor() != null })
+            }
+
             classDef.methods.forEach { method ->
                 if (ENABLE_RUNTIME_BLUR_CONTROL && method.isNativeBlurRecorder()) blurRecorders.add(method)
                 val descriptor = method.toString()
@@ -1161,44 +1195,22 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
             """
         )
 
-        // T5 Global Overlay Fix 2: inject into the actual Scaffold MainContent.
-        // v2 selector 0x1c delegates to private e(PaddingValues, Composer, Int).
-        // That method invokes the original Function4 content inside the
-        // Material3 MainContent Box; preserve the original call unchanged.
-        val globalContentOwner = "Landroidx/compose/foundation/text/v2;"
-        val globalContent = mutableClassDefBy(globalContentOwner).methods.single {
-            it.name == "e" && it.returnType == "Ljava/lang/Object;" &&
-                it.parameterTypes.map { p -> p.toString() } ==
-                listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;")
+        // Fix 3-T1: replace the Fix 2 injection with a pure geometry probe.
+        require(scaffoldCandidates.size == 1) {
+            "T5 Fix 3-T1: expected one structural Scaffold candidate, found ${scaffoldCandidates.size}"
         }
-        val globalImpl = globalContent.implementation
-            ?: error("T5 Fix 2: missing MainContent delegate")
-        val globalIns = globalImpl.instructions.toList()
-        val originalContentCall =
-            "Landroidx/compose/runtime/internal/g;->q(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
-        val globalAnchors = globalIns.indices.filter { index ->
-            if (globalContent.refAt(index) != originalContentCall ||
-                globalIns[index].opcode != Opcode.INVOKE_VIRTUAL_RANGE) return@filter false
-            val call = globalIns[index] as? RegisterRangeInstruction ?: return@filter false
-            call.startRegister == 1 && call.registerCount == 6 &&
-                index + 1 < globalIns.size &&
-                globalIns[index + 1].opcode in
-                setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+        val scaffoldOriginal = scaffoldCandidates.single()
+        val scaffold = mutableClassDefBy(scaffoldOriginal.definingClass).methods.single {
+            it.toString() == scaffoldOriginal.toString()
         }
-        require(globalImpl.registerCount == 11 && globalAnchors.size == 1 &&
-            globalIns.indices.any { globalContent.refAt(it) ==
-                "Lcom/x/ui/common/post/b;->e(Landroidx/compose/ui/Modifier;Ldev/chrisbanes/haze/a1;FI)Landroidx/compose/ui/Modifier;" }
-        ) { "T5 Fix 2: unexpected MainContent delegate layout" }
-        val overlayName = "serajrComposeFeedNavOverlay"
+        val (anchor, composerRegister) = requireNotNull(scaffold.scaffoldDebugAnchor())
+        val overlayName = "serajrComposeScaffoldNavDebugOverlay"
         require(mutableClass.methods.none { it.name == overlayName })
         addStaticMethod(
             name = overlayName,
-            parameters = listOf("Ldev/chrisbanes/haze/a1;", "Landroidx/compose/runtime/Composer;"),
-            returnType = "V", registers = 15, public = true,
+            parameters = listOf("Landroidx/compose/runtime/Composer;"),
+            returnType = "V", registers = 6, public = true,
             body = """
-                # No Feed, Bottom Bar or Root Context visibility reads.
-
-                # Preserve the validated geometry before applying Haze.
                 sget-object v0, $MODIFIER_SINGLETON
                 sget-object v1, $BOTTOM_CENTER
                 sget-object v4, $BOX_SCOPE_INSTANCE
@@ -1207,63 +1219,21 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 const/high16 v1, 0x3f800000
                 invoke-static {v0, v1}, $FILL_WIDTH
                 move-result-object v0
-                invoke-static {p1}, $NAV_INSETS_FACTORY
+                invoke-static {p0}, $NAV_INSETS_FACTORY
                 move-result-object v4
                 iget-object v4, v4, $NAV_INSETS_FIELD
+                const-wide v2, -0xff0100000000L
+                invoke-static {v2, v3, v0}, Landroidx/compose/foundation/p;->k(JLandroidx/compose/ui/Modifier;)Landroidx/compose/ui/Modifier;
+                move-result-object v0
                 invoke-static {v0, v4}, $INSETS_PADDING
                 move-result-object v0
-
-                # Stock theme background.
-                invoke-static {p1}, Lcom/x/compose/core/m0;->a(Landroidx/compose/runtime/Composer;)J
-                move-result-wide v2
-                
-                # Resolve the tint independently; use the cached runtime tint alpha.
-                move-wide v7, v2
-                invoke-static {v7, v8}, $NAV_EXTENSION->resolveTintColor(J)J
-                move-result-wide v7
-
-                invoke-static {}, $NAV_EXTENSION->getNavigationTintAlpha()F
-                move-result v5
-                invoke-static {v5, v7, v8}, Landroidx/compose/ui/graphics/z;->b(FJ)J
-                move-result-wide v7
-
-                # Resolve background independently from the tint.
-                invoke-static {v2, v3}, $NAV_EXTENSION->resolveBackgroundColor(J)J
-                move-result-wide v2
-
-                new-instance v4, Ldev/chrisbanes/haze/blur/g0;
-                invoke-direct {v4, v7, v8}, Ldev/chrisbanes/haze/blur/g0;-><init>(J)V
-
-                invoke-static {p1}, Lcom/x/compose/core/m0;->b(Landroidx/compose/runtime/Composer;)Z
-                move-result v5
-                move v6, v5
-                move-object v1, p0
-                invoke-static {}, $NAV_EXTENSION->getNavigationBlurRadius()F
-                move-result v5
-                invoke-static {}, $NAV_EXTENSION->getNavigationNoiseFactor()F
-                move-result v7
-                const/4 v8, 0x0
-                ${if (USE_PROGRESSIVE_HAZE) {
-                    """
-                        invoke-static {}, $GET_PROGRESSIVE
-                        move-result-object v9
-                    """.trimIndent()
-                } else {
-                    "const/4 v9, 0x0"
-                }}
-                move-object v10, p1
-                const/4 v11, 0x0
-                ${if (USE_PROGRESSIVE_HAZE) "const/16 v12, 0x40" else "const/16 v12, 0xc0"}
-                invoke-static/range {v0 .. v12}, $HAZE_EFFECT_METHOD
-                move-result-object v0
-
                 const/4 v1, 0x0
-                invoke-static {v0, p1, v1}, Landroidx/compose/foundation/layout/s;->a(Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
+                invoke-static {v0, p0, v1}, Landroidx/compose/foundation/layout/s;->a(Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
                 return-void
             """
         )
-        globalContent.addInstructions(globalAnchors.single() + 1,
-            "invoke-static {v2, v5}, ${MAIN_ACTIVITY}->${overlayName}(Ldev/chrisbanes/haze/a1;Landroidx/compose/runtime/Composer;)V")
+        scaffold.addInstructions(anchor,
+            "invoke-static/range {v$composerRegister .. v$composerRegister}, ${MAIN_ACTIVITY}->${overlayName}(Landroidx/compose/runtime/Composer;)V")
 
         // Validated Bottom Bar visibility publication.
 
@@ -1461,7 +1431,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 sput-boolean v0, $versionLoggedField
 
                 const-string v0, "$DIAG_TAG"
-                const-string v1, "D3-K1A.11-T10-B1-T4E-T3 ACTIVE"
+                const-string v1, "D3-K1A.11-T5 GLOBAL OVERLAY FIX 3-T1 ACTIVE"
 
                 invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 
@@ -1657,7 +1627,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
         // ------------------------------------------------------------
 
         val t10OverlayCandidates = mutableClass.methods.filter {
-            it.toString() == "${MAIN_ACTIVITY}->${overlayName}(Ldev/chrisbanes/haze/a1;Landroidx/compose/runtime/Composer;)V"
+            it.toString() == "${MAIN_ACTIVITY}->${overlayName}(Landroidx/compose/runtime/Composer;)V"
         }
 
         require(t10OverlayCandidates.size == 1) {

@@ -60,30 +60,37 @@ def main():
         print(result.stdout.strip(), flush=True)
         outcomes.append({"variant": label, "inputSha256": actual, "outputSha256": sha256(apk),
                          "staticContracts": result.stdout.strip(), "patching": True, "deviceTested": False})
-    # A separate selection catches accidental dependencies on More Chat Info, its
-    # resources, or quiet-mode service hooks. This APK is never signed/installed.
-    selection_apk = output / "line-arm64-read-only-validation-unsigned.apk"
-    selection_report = output / "arm64-read-only-validation.json"
-    selection_log = output / "arm64-read-only-validation.log"
-    command = [java, "-Xmx4g", "-jar", runtime, "patch", "--exclusive", "-p", bundle,
-               "-e", "Mark as read", "--unsigned", "--validate", "--bytecode-mode", "FULL",
-               "-r", selection_report, "-o", selection_apk, ROOT / "apk" / INPUTS[0][1]]
-    print("Patching arm64 with Mark as read only", flush=True)
-    with selection_log.open("w", encoding="utf-8") as stream:
-        subprocess.run([str(v) for v in command], cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, check=True)
-    result = json.loads(selection_report.read_text(encoding="utf-8"))
-    if not result.get("success") or result.get("failedPatches"):
-        raise SystemExit(f"Read-only selection failed; inspect {selection_log}")
-    result = subprocess.run([str(java), "-Xmx2g", "-cp", os.pathsep.join([str(tests), str(runtime), str(android)]),
-                             "ApkContractTest", str(selection_apk), "read-only"], capture_output=True, text=True)
-    if result.returncode:
-        print(result.stderr, flush=True)
-        result.check_returncode()
-    print(result.stdout.strip(), flush=True)
+    # Standalone patch selections catch accidental cross-patch dependencies on
+    # hooks, resources, or runtime flags. These APKs are never signed/installed.
+    selection_matrix = []
+    for mode, patch_name in (
+        ("read-only", "Mark as read"),
+        ("info-only", "More Chat Info"),
+        ("silent-only", "Not Too Much Silent"),
+    ):
+        selection_apk = output / f"line-arm64-{mode}-validation-unsigned.apk"
+        selection_report = output / f"arm64-{mode}-validation.json"
+        selection_log = output / f"arm64-{mode}-validation.log"
+        command = [java, "-Xmx4g", "-jar", runtime, "patch", "--exclusive", "-p", bundle,
+                   "-e", patch_name, "--unsigned", "--validate", "--bytecode-mode", "FULL",
+                   "-r", selection_report, "-o", selection_apk, ROOT / "apk" / INPUTS[0][1]]
+        print(f"Patching arm64 with {patch_name} only", flush=True)
+        with selection_log.open("w", encoding="utf-8") as stream:
+            subprocess.run([str(v) for v in command], cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, check=True)
+        result = json.loads(selection_report.read_text(encoding="utf-8"))
+        if not result.get("success") or result.get("failedPatches"):
+            raise SystemExit(f"{mode} selection failed; inspect {selection_log}")
+        result = subprocess.run([str(java), "-Xmx2g", "-cp", os.pathsep.join([str(tests), str(runtime), str(android)]),
+                                 "ApkContractTest", str(selection_apk), mode], capture_output=True, text=True)
+        if result.returncode:
+            print(result.stderr, flush=True)
+            result.check_returncode()
+        print(result.stdout.strip(), flush=True)
+        selection_matrix.append({"variant": "arm64", "selectedPatches": [patch_name],
+                                 "outputSha256": sha256(selection_apk), "staticContracts": result.stdout.strip(),
+                                 "patching": True, "deviceTested": False})
     summary = {"bundleSha256": sha256(bundle), "inputs": outcomes, "signed": False, "installed": False,
-               "selectionMatrix": [{"variant": "arm64", "selectedPatches": ["Mark as read"],
-                                    "outputSha256": sha256(selection_apk), "staticContracts": result.stdout.strip(),
-                                    "patching": True, "deviceTested": False}]}
+               "selectionMatrix": selection_matrix}
     (output / "validation-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print("Both APKMs passed. Outputs are unsigned local validation files, not installable releases.")
 

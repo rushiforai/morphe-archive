@@ -1,6 +1,7 @@
 package app.bin0culars.extension.reddit;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
@@ -15,15 +16,16 @@ import android.os.Build;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import app.bin0culars.extension.reddit.settings.BinocularsMods;
+import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import kotlin.jvm.functions.Function1;
 
 public final class GlassBlur {
 
     // Upstream Morphe found that a blur render effect redrawn every frame can crash the app on Android 12/13.
-    private static final int MIN_SDK = 34;
+    static final int MIN_SDK = 34;
     private static final float MAX_BLUR_DP = 32f;
-    private static final float EDGE_DP = 1f;
+    static final float EDGE_DP = 1f;
 
     private static final Path CLIP_PATH = new Path();
     private static final WeakHashMap<View, Boolean> DECOR_VIEWS = new WeakHashMap<>();
@@ -32,12 +34,23 @@ public final class GlassBlur {
     static ContentRecorder recording;
 
     private static float barLeft;
-    private static float barTop;
+    private static float barBaseTop;
+    static float barTop;
     private static float barW;
     private static float barH;
+    private static float barSlide;
 
     private static RenderNode blurNode;
+    private static float blurNodeRadius = -1f;
+    static RenderNode searchBlurNode;
+    private static float searchBlurNodeRadius = -1f;
+    private static RenderEffect cachedBlurEffect;
     private static float cachedBlurRadius = -1f;
+
+    private static WeakReference<GlassSearchButton> searchButtonRef;
+    private static float searchLeft;
+    private static float searchTop;
+    private static float searchSize;
 
     private static Paint edgePaint;
     private static LinearGradient edgeShader;
@@ -85,8 +98,10 @@ public final class GlassBlur {
         }
     }
 
-    private static final class ContentRecorder implements Function1<Object, Object> {
+    static final class ContentRecorder implements Function1<Object, Object> {
         final RenderNode node = new RenderNode("bin0culars_glass_content");
+        RecordingCanvas recCanvas;
+        boolean headerPending;
         boolean holdsBar;
         int width;
         int height;
@@ -122,6 +137,8 @@ public final class GlassBlur {
                 RecordingCanvas rec = node.beginRecording(w, h);
                 ContentRecorder previous = recording;
                 recording = this;
+                recCanvas = rec;
+                headerPending = false;
                 // Swap Compose's native canvas with the RenderNode's RecordingCanvas to capture content drawing.
                 setNativeCanvas(cc, rec);
                 try {
@@ -129,10 +146,17 @@ public final class GlassBlur {
                     GlassNavPatch.drawContent(scope);
                 } finally {
                     setNativeCanvas(cc, real);
+                    recCanvas = null;
                     node.endRecording();
                     recording = previous;
                 }
                 real.drawRenderNode(node);
+                if (headerPending) {
+                    real.save();
+                    real.concat(GlassHeaderBlur.headerMatrix);
+                    real.drawRenderNode(GlassHeaderBlur.headerNode);
+                    real.restore();
+                }
                 if (!holdsBar) {
                     current = this;
                     width = w;
@@ -148,6 +172,74 @@ public final class GlassBlur {
             }
             return null;
         }
+    }
+
+    static int liftPx() {
+        try {
+            if (!glassOn()) {
+                return 0;
+            }
+            int liftDp = BinocularsMods.getInt("glass_navigation_lift_dp");
+            if (liftDp <= 0) {
+                return 0;
+            }
+            return Math.round(liftDp * GlassNavPatch.getDensity());
+        } catch (Throwable ignored) {
+            return 0;
+        }
+    }
+
+    private static void updateBarSlide(float slide) {
+        barSlide = slide;
+        if (barW > 0f) {
+            barTop = barBaseTop + slide;
+        }
+    }
+
+    static boolean hasBarBounds() {
+        return barW > 0f;
+    }
+
+    static void setSearchButton(GlassSearchButton button) {
+        if (button != null && (searchButtonRef == null || searchButtonRef.get() != button)) {
+            searchButtonRef = new WeakReference<>(button);
+        }
+    }
+
+    private static boolean isSearchButtonVisible(View decorView) {
+        GlassSearchButton button = searchButtonRef != null ? searchButtonRef.get() : null;
+        return button != null
+                && button.isAttachedToWindow()
+                && button.isShown()
+                && button.getRootView() == decorView;
+    }
+
+    public static int adjustBarLift(int lift, float barHeight, float fraction) {
+        int full = Math.max(lift, Math.round(barHeight));
+        int maxLift = liftPx();
+        int extra = 0;
+        if (maxLift > 0) {
+            float f = fraction >= 1f ? 1f : (fraction > 0f ? fraction : 0f);
+            extra = Math.round(maxLift * f);
+        }
+        int adjusted = lift + extra;
+        updateBarSlide(full - adjusted);
+        GlassSearch.onBarSlide(barSlide + maxLift, fraction <= 0f || (full > 0 && adjusted <= 0));
+        return adjusted;
+    }
+
+    public static int adjustBarY(int y, int height) {
+        int maxLift = liftPx();
+        int extra = 0;
+        if (maxLift > 0) {
+            float raw = height > 0 ? 1f - (float) y / height : 1f;
+            float f = raw >= 1f ? 1f : (raw > 0f ? raw : 0f);
+            extra = Math.round(maxLift * f);
+        }
+        int out = y - extra;
+        updateBarSlide(out);
+        GlassSearch.onBarSlide(barSlide + maxLift, height > 0 && y >= height);
+        return out;
     }
 
     static void drawBar(Object scope, float left, float top, float cw, float ch, float radius) {
@@ -170,7 +262,8 @@ public final class GlassBlur {
             float bh = Float.intBitsToFloat((int) size);
 
             barLeft = left;
-            barTop = (current.height - bh) + top;
+            barBaseTop = (current.height - bh) + top;
+            barTop = barBaseTop + barSlide;
             barW = cw;
             barH = ch;
 
@@ -199,42 +292,79 @@ public final class GlassBlur {
         return c | 0xFF000000;
     }
 
+    private static RenderEffect blurEffect(float r) {
+        if (cachedBlurEffect == null || cachedBlurRadius != r) {
+            ColorMatrix boost = new ColorMatrix();
+            boost.setSaturation(1.4f);
+            cachedBlurEffect = RenderEffect.createChainEffect(
+                    RenderEffect.createBlurEffect(r, r, Shader.TileMode.CLAMP),
+                    RenderEffect.createColorFilterEffect(new ColorMatrixColorFilter(boost)));
+            cachedBlurRadius = r;
+        }
+        return cachedBlurEffect;
+    }
+
+    static float recordBlurInto(
+            RenderNode node, float appliedRadius, float left, float top, float bw, float bh) {
+        try {
+            if (current == null || node == null) {
+                return appliedRadius;
+            }
+            float r = blurRadiusPx();
+            if (r <= 0f) {
+                return appliedRadius;
+            }
+            int m = (int) Math.ceil(r);
+            int w = (int) Math.ceil(bw) + 2 * m;
+            int h = (int) Math.ceil(bh) + 2 * m;
+            if (w <= 0 || h <= 0) {
+                return appliedRadius;
+            }
+            node.setPosition(0, 0, w, h);
+            if (appliedRadius != r) {
+                node.setRenderEffect(blurEffect(r));
+                appliedRadius = r;
+            }
+            RecordingCanvas rec = node.beginRecording(w, h);
+            try {
+                rec.drawColor(pageArgb());
+                rec.translate(-(left - m), -(top - m));
+                rec.drawRenderNode(current.node);
+            } finally {
+                node.endRecording();
+            }
+            return appliedRadius;
+        } catch (Throwable ignored) {
+            return appliedRadius;
+        }
+    }
+
     private static void recordBlur() {
         try {
             if (current == null) {
                 return;
             }
-            float r = blurRadiusPx();
-            if (r <= 0f) {
-                return;
-            }
-            int m = (int) Math.ceil(r);
-            int w = (int) Math.ceil(barW) + 2 * m;
-            int h = (int) Math.ceil(barH) + 2 * m;
-            if (w <= 0 || h <= 0) {
-                return;
-            }
             if (blurNode == null) {
                 blurNode = new RenderNode("bin0culars_glass_blur");
             }
-            blurNode.setPosition(0, 0, w, h);
-            if (cachedBlurRadius != r) {
-                ColorMatrix boost = new ColorMatrix();
-                boost.setSaturation(1.4f);
-                RenderEffect effect = RenderEffect.createChainEffect(
-                        RenderEffect.createBlurEffect(r, r, Shader.TileMode.CLAMP),
-                        RenderEffect.createColorFilterEffect(new ColorMatrixColorFilter(boost)));
-                blurNode.setRenderEffect(effect);
-                cachedBlurRadius = r;
+            blurNodeRadius = recordBlurInto(blurNode, blurNodeRadius, barLeft, barTop, barW, barH);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    static void recordSearchBlur(float leftInContent, float topInContent, float size) {
+        try {
+            if (current == null || size <= 0f) {
+                return;
             }
-            RecordingCanvas rec = blurNode.beginRecording(w, h);
-            try {
-                rec.drawColor(pageArgb());
-                rec.translate(-(barLeft - m), -(barTop - m));
-                rec.drawRenderNode(current.node);
-            } finally {
-                blurNode.endRecording();
+            searchLeft = leftInContent;
+            searchTop = topInContent;
+            searchSize = size;
+            if (searchBlurNode == null) {
+                searchBlurNode = new RenderNode("bin0culars_glass_search_blur");
             }
+            searchBlurNodeRadius = recordBlurInto(
+                    searchBlurNode, searchBlurNodeRadius, leftInContent, topInContent, size, size);
         } catch (Throwable ignored) {
         }
     }
@@ -283,6 +413,7 @@ public final class GlassBlur {
             if (activity == null || activity.getWindow() == null) {
                 return;
             }
+            GlassSearch.onActivityResumed(activity);
             View decorView = activity.getWindow().peekDecorView();
             if (decorView == null) {
                 decorView = activity.getWindow().getDecorView();
@@ -290,13 +421,20 @@ public final class GlassBlur {
             if (decorView == null || DECOR_VIEWS.containsKey(decorView)) {
                 return;
             }
-            DECOR_VIEWS.put(decorView, Boolean.TRUE);
-            decorView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            final View targetDecorView = decorView;
+            DECOR_VIEWS.put(targetDecorView, Boolean.TRUE);
+            targetDecorView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                 @Override
                 public boolean onPreDraw() {
                     try {
-                        if (blurActive() && current != null && barW > 0) {
-                            recordBlur();
+                        if (blurActive() && current != null) {
+                            if (barW > 0f) {
+                                recordBlur();
+                            }
+                            if (isSearchButtonVisible(targetDecorView) && searchSize > 0f) {
+                                recordSearchBlur(searchLeft, barW > 0f ? barTop : searchTop, searchSize);
+                            }
+                            GlassHeaderBlur.reRecordSlots();
                         }
                     } catch (Throwable ignored) {
                     }
@@ -307,18 +445,18 @@ public final class GlassBlur {
         }
     }
 
-    private static Object composeCanvas(Object scope) {
+    static Object composeCanvas(Object scope) {
         return null;
     }
 
-    private static Canvas nativeCanvas(Object composeCanvas) {
+    static Canvas nativeCanvas(Object composeCanvas) {
         return null;
     }
 
-    private static void setNativeCanvas(Object composeCanvas, Canvas canvas) {}
+    static void setNativeCanvas(Object composeCanvas, Canvas canvas) {}
 
     @SuppressWarnings("rawtypes")
-    private static Object drawWithContent(Object modifier, Function1 block) {
+    static Object drawWithContent(Object modifier, Function1 block) {
         return modifier;
     }
 }

@@ -30,7 +30,9 @@ final class MebukiSession {
         try {
             HttpURLConnection c = connect("/api/auth/get-session", cookie);
             try {
-                if (c.getResponseCode() != 200) return State.UNVERIFIED;
+                int status=c.getResponseCode();
+                if (status == 401) return State.ANONYMOUS;
+                if (status != 200) return State.UNVERIFIED;
                 try (InputStream in = c.getInputStream()) {
                     String body = new String(AimogeWriteClient.bounded(in, 64_000),
                             StandardCharsets.UTF_8).trim();
@@ -46,17 +48,65 @@ final class MebukiSession {
         }
     }
 
+    /** Compare accounts without exposing or storing the account ID. */
+    static boolean sameAccount(String saved, String webView) {
+        if (!safeCookie(saved) || !safeCookie(webView)) return false;
+        String a = accountId(saved);
+        return a != null && (saved.equals(webView) || a.equals(accountId(webView)));
+    }
+
+    private static String accountId(String cookie) {
+        try {
+            HttpURLConnection c = connect("/api/auth/get-session", cookie);
+            try {
+                if (c.getResponseCode() != 200) return null;
+                try (InputStream in = c.getInputStream()) {
+                    JSONObject result = new JSONObject(new String(AimogeWriteClient.bounded(in,64_000),StandardCharsets.UTF_8));
+                    JSONObject user = result.optJSONObject("user");
+                    if (user == null || result.optJSONObject("session") == null) return null;
+                    String id = user.optString("id", "");
+                    return id.isEmpty() || id.length() > 256 ? null : id;
+                }
+            } finally { c.disconnect(); }
+        } catch (Exception ex) { return null; }
+    }
+
     private static HttpURLConnection connect(String path, String cookie) throws Exception {
         URL url = new URL(SITE + path);
         if (!"https".equals(url.getProtocol()) || !"mebuki.moe".equals(url.getHost()))
             throw new IllegalArgumentException("Unexpected host");
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
         c.setInstanceFollowRedirects(false);
+        c.setUseCaches(false);
         c.setConnectTimeout(7000);
         c.setReadTimeout(8000);
         c.setRequestProperty("Accept", "application/json");
         c.setRequestProperty("Cookie", cookie);
         return c;
+    }
+
+    /** Authenticated full read, only called from the in-process private reader. */
+    static MebukiThreadData readThread(String slug, String cookie) throws Exception {
+        if (slug == null || !slug.matches("[A-Za-z0-9_-]{8,24}"))
+            throw new IllegalArgumentException("Unknown Mebuki thread");
+        State state = verify(cookie);
+        if (state != State.AUTHENTICATED)
+            throw new ReadFailure(state.name());
+        HttpURLConnection c = connect("/api/thread/" + slug + "/messages?initial=1", cookie);
+        c.setRequestProperty("Accept", "text/x-script, text/plain, application/json");
+        try {
+            int status = c.getResponseCode();
+            if (status != 200) throw new ReadFailure("HTTP " + status);
+            try (InputStream in = c.getInputStream()) {
+                String body = new String(AimogeWriteClient.bounded(in, 2_000_000), StandardCharsets.UTF_8);
+                try { return MebukiThreadData.convert(body); }
+                catch (Exception ex) { throw new ReadFailure("UNSUPPORTED_THREAD_FORMAT"); }
+            }
+        } finally { c.disconnect(); }
+    }
+
+    static final class ReadFailure extends Exception {
+        ReadFailure(String reason) { super(reason); }
     }
 
     /**

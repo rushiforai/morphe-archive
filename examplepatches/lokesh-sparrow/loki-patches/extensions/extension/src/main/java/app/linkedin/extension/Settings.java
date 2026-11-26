@@ -54,9 +54,16 @@ public final class Settings {
     static final String HIDE_TAB_NETWORK = "hide_tab_network";
     static final String HIDE_TAB_JOBS = "hide_tab_jobs";
     static final String HIDE_TAB_MORE = "hide_tab_more";
+    static final String HIDE_MORE_GAMES = "hide_more_games";
+    static final String HIDE_MORE_DASHBOARD = "hide_more_dashboard";
+    static final String HIDE_MORE_GROUPS = "hide_more_groups";
+    static final String HIDE_MORE_EVENTS = "hide_more_events";
+    static final String HIDE_MORE_NEWSLETTERS = "hide_more_newsletters";
     static final String COPY_TEXT = "copy_text";
     static final String COPY_TEXT_LONG_SHEET = "copy_text_long_sheet";
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
+    static final String DISABLE_SCREENSHOT_SHEET = "disable_screenshot_sheet";
+    static final String EXPAND_POSTS = "expand_posts";
     static final String REMOVE_GAPS_AND_DIVIDERS = "remove_gaps_and_dividers";
     static final String MATERIAL_YOU = "material_you";
     static final String AMOLED_BLACK = "amoled_black";
@@ -123,6 +130,14 @@ public final class Settings {
     }
 
     public static boolean isDisableDoubleTapLikeIncluded() {
+        return false;
+    }
+
+    public static boolean isDisableScreenshotSheetIncluded() {
+        return false;
+    }
+
+    public static boolean isExpandPostsIncluded() {
         return false;
     }
 
@@ -215,6 +230,21 @@ public final class Settings {
         return includedAnd(isDisableDoubleTapLikeIncluded(), DISABLE_DOUBLE_TAP_LIKE, true);
     }
 
+    /** No share sheet when a post is screenshotted. */
+    static boolean disableScreenshotSheet() {
+        return includedAnd(isDisableScreenshotSheetIncluded(), DISABLE_SCREENSHOT_SHEET, true);
+    }
+
+    /** Posts open already expanded. Off by default: it is a taste, not a fix. */
+    static boolean expandPosts() {
+        return includedAnd(isExpandPostsIncluded(), EXPAND_POSTS, false);
+    }
+
+    /** One row of the More page, by its Loki key. Off by default: nothing disappears unless it is switched on. */
+    static boolean hideMoreRow(String key) {
+        return includedAnd(isHideTabsIncluded(), key, false);
+    }
+
     static boolean copyText() {
         return includedAnd(isCopyTextIncluded(), COPY_TEXT, true);
     }
@@ -288,7 +318,7 @@ public final class Settings {
     }
 
     static boolean hideGames() {
-        return includedAnd(isFeedFiltersIncluded(), HIDE_GAMES, false);
+        return includedAnd(isFeedFiltersIncluded(), HIDE_GAMES, true);
     }
 
     static boolean hideNewPostsPill() {

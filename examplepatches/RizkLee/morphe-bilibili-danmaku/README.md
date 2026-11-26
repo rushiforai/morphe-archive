@@ -5,7 +5,7 @@
 **在 YouTube Morphe 播放器里看哔哩哔哩弹幕。**<br>
 A standalone Morphe add-on that brings Bilibili danmaku to the YouTube player on Android.
 
-[开始安装](#从零开始安装) · [使用弹幕](#开启和使用弹幕) · [常见问题](#常见问题) · [下载 2.1.1 补丁（.mpp）](https://github.com/RizkLee/morphe-bilibili-danmaku/releases/download/v2.1.1/patches-2.1.1.mpp)
+[开始安装](#从零开始安装) · [使用弹幕](#开启和使用弹幕) · [常见问题](#常见问题) · [下载 2.2.0 补丁（.mpp）](https://github.com/RizkLee/morphe-bilibili-danmaku/releases/download/v2.2.0/patches-2.2.0.mpp)
 
 </div>
 
@@ -14,7 +14,7 @@ A standalone Morphe add-on that brings Bilibili danmaku to the YouTube player on
 ## 能做什么？
 
 - 在 YouTube 播放器的 Morphe 悬浮按钮栏中打开弹幕菜单，选择开启或关闭弹幕。
-- 按 YouTube 视频标题搜索并匹配 B 站视频；也可自行搜索，粘贴 B 站分享文本、链接或 BV/av/番剧编号，选择分 P 或剧集。
+- 按 YouTube 视频标题搜索并匹配 B 站视频（可在菜单「匹配」中关闭，关闭后不会把标题发送到 B 站）；也可自行搜索，粘贴 B 站分享文本、链接或 BV/av/番剧编号，选择分 P 或剧集。
 - 查看来源视频封面与标题，点击来源卡片打开对应 B 站视频；也支持导入本地 XML 弹幕文件。
 - 在播放器内调整字号、透明度、行距、滚动速度、显示区域、过滤规则，以及同步倍率和时间偏移，并实时预览样式。
 - 用自己的 B 站 App 扫码 / 授权登录（可选）；登录会按 B 站官方规则自动续期，凭证由手机的 Android Keystore 加密保存在本机。
@@ -56,7 +56,7 @@ https://cdn.jsdelivr.net/gh/RizkLee/morphe-bilibili-danmaku@main/patches-bundle.
 
 也可以尝试 [一键添加 GitHub 补丁源](https://morphe.software/add-source?github=RizkLee/morphe-bilibili-danmaku&app=com.google.android.youtube)，或手动输入 `https://github.com/RizkLee/morphe-bilibili-danmaku`。仓库曾名为 `RizkLee/morphe-patches`；已有旧 CDN 源的用户建议改用上面的新地址。保留官方 Morphe Patches 源；不要把本项目源和旧版的「Morphe Patches + Bilibili danmaku」整合包同时用于 YouTube，否则可能重复执行同一补丁。
 
-如果远程源下载失败，可从 [2.1.1 发布页](https://github.com/RizkLee/morphe-bilibili-danmaku/releases/tag/v2.1.1)下载 `patches-2.1.1.mpp`，再通过 **来源 → + → 本地（Local）** 选择它。本地导入不会自动更新，以后需要重新选择新文件。添加远程源的步骤可参考 [Morphe 官方说明](https://github.com/MorpheApp/morphe-manager/blob/main/docs/patch-sources.md)。
+如果远程源下载失败，可从 [2.2.0 发布页](https://github.com/RizkLee/morphe-bilibili-danmaku/releases/tag/v2.2.0)下载 `patches-2.2.0.mpp`，再通过 **来源 → + → 本地（Local）** 选择它。本地导入不会自动更新，以后需要重新选择新文件。添加远程源的步骤可参考 [Morphe 官方说明](https://github.com/MorpheApp/morphe-manager/blob/main/docs/patch-sources.md)。
 
 ### 第 3 步：准备原版 YouTube APK
 
@@ -92,7 +92,7 @@ https://cdn.jsdelivr.net/gh/RizkLee/morphe-bilibili-danmaku@main/patches-bundle.
    <img src="docs/guide/player-danmaku-button.png" alt="播放器底部的弹幕设置按钮，红框和箭头标出了它的位置" width="420">
 
 2. 在弹出的菜单里打开 **「显示弹幕」**。这个开关首次使用时默认关闭，之后会记住你的选择。
-3. 默认尝试按当前 YouTube 标题匹配 B 站来源。请检查菜单中的封面与标题；不准确时使用**搜索视频**或**粘贴链接**。支持粘贴分享原文，例如：
+3. 默认尝试按当前 YouTube 标题匹配 B 站来源。不希望标题被发送到 B 站搜索时（例如敏感视频），在菜单 **匹配 → 按标题自动匹配** 中关闭，之后只在手动搜索或粘贴链接时请求 B 站。请检查菜单中的封面与标题；不准确时使用**搜索视频**或**粘贴链接**。支持粘贴分享原文，例如：
 
    ```text
    【视频标题-哔哩哔哩】https://www.bilibili.com/bangumi/play/ep258000

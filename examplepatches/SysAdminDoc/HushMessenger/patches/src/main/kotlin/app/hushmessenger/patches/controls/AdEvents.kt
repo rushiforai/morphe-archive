@@ -32,9 +32,12 @@ internal const val REQ_CONTEXT_CLOSE = "Lcom/facebook/fury/context/ReqContext;->
 
 /**
  * The click-to-message event ("click_to_message_ad_app_switch_success") the ad deep link handler logs once a link from
- * an ad lands in Messenger. It fills in the ad's and the page's IDs and logs, nothing else.
+ * an ad lands in Messenger. It fills in the ad's and the page's IDs and logs, nothing else. 588 moves the page's ID into
+ * a static (event, long) helper and names the impression's client token in the event instead, so either one goes with
+ * the ad's ID.
  */
 internal const val AD_ENTRY_MARKS = "ad_id|page_id"
+internal const val AD_ENTRY_TOKEN = "ad_impression_client_token"
 
 private const val STRING = "Ljava/lang/String;"
 
@@ -46,7 +49,9 @@ internal fun Method.isAdEntryEvent(): Boolean {
     if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "V") return false
     val params = parameterTypes.map { it.toString() }
     if (params.size != 6 || params[1] != FB_USER_SESSION || params.drop(2) != List(4) { STRING }) return false
-    return stringLiterals().orEmpty().containsAll(AD_ENTRY_MARKS.split('|'))
+    val (ad, page) = AD_ENTRY_MARKS.split('|')
+    val literals = stringLiterals().orEmpty()
+    return ad in literals && (page in literals || AD_ENTRY_TOKEN in literals)
 }
 
 /** The tracker's non-static (rows, visible)V callback that names both the tracker and its event. */

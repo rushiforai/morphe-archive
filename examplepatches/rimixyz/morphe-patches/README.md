@@ -38,7 +38,7 @@ Click the button below to add this source directly in **Morphe Manager**, or pas
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.7.0](https://github.com/rimixyz/morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;24 patches total
+> **[v1.8.0](https://github.com/rimixyz/morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
 <details>
 <summary>📦 HabitNow&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -103,6 +103,63 @@ Click the button below to add this source directly in **Morphe Manager**, or pas
 | [Disable analytics and tracking](#disable-analytics-and-tracking) | Disables Firebase Analytics, AppsFlyer attribution, Sentry diagnostics, internal analytics tracking, and removes Advertising ID permissions. |  |
 | [Local backup and restore](#local-backup-and-restore) | Adds a Local Backup & Restore item to Settings to export/restore local .zip backups (with automatic rollback) and import official MyTherapy Archive CSV history. |  |
 | [Unlock Plus benefits](#unlock-plus-benefits) | Grants the local Plus state the app reads for ad-free access, extra calendar days and the PDF entry point. |  |
+
+</details>
+
+<details>
+<summary>📦 XRecorder&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**Package name:** `videoeditor.videorecorder.screenrecorder`
+
+**🎯 Supported versions:**
+
+| 2.5.6.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable ads](#disable-ads) | Blocks app-open ad load/show in XRecorder. SDK init is kept because the splash depends on it; ad-free comes from Unlock Pro's IProChecker. Server-side ad decisions are not affected. Known issue: the Edit tab closes in tests while loading the native video engine; core screen recording works with Pro unlocked. |  |
+| [Disable analytics and tracking](#disable-analytics-and-tracking) | Disables Firebase Analytics, Crashlytics and ad ID permissions in XRecorder. Does not change any server-side feature or account state. Known issue: the Edit tab closes in tests while loading the native video engine; core screen recording works with Pro unlocked. |  |
+| [Disable remote config](#disable-remote-config) | Freezes Firebase Remote Config overrides (AdCfg25, ServerDomain) in XRecorder. Server-side features and A/B flags are NOT emulated. Known issue: the Edit tab closes in tests while loading the native video engine; core screen recording works with Pro unlocked. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks the local Pro state of XRecorder (paywall, locks, ad-free). LOCAL ONLY: server-side AI, credits/quotas and subscription token validation are NOT unlocked. Known issue: the Edit tab closes in tests while loading the native video engine; core screen recording works with Pro unlocked. |  |
+
+</details>
+
+<details>
+<summary>📦 Auto Clicker&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.truedevelopersstudio.automatictap.autoclicker`
+
+**🎯 Supported versions:**
+
+| 2.3.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable ads and tracking](#disable-ads-and-tracking) | Blocks AdMob banner/interstitial ads and SDK initialization, disables Firebase Analytics and Crashlytics events, and removes advertising ID permissions. REQUIRES Accessibility: on Android 17, disable Advanced Protection or allow restricted settings (Apps > Auto Clicker > menu > Allow restricted settings), then enable the Auto Clicker service. |  |
+| [Unlock Pro](#unlock-pro) | Grants the local ad-free/premium state without a purchase. REQUIRES Accessibility: on Android 17, disable Advanced Protection or allow restricted settings (Apps > Auto Clicker > menu > Allow restricted settings), then enable the Auto Clicker service. |  |
+
+</details>
+
+<details>
+<summary>📦 Notisave&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Package name:** `com.tenqube.notisave`
+
+**🎯 Supported versions:**
+
+| 274.1.3.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable ads and tracking](#disable-ads-and-tracking) | Blocks ads, disables Blytics, Singular, Firebase Analytics and AppMetrica activation, and prevents Advertising ID lookups. |  |
+| [Translate to Brazilian Portuguese](#translate-to-brazilian-portuguese) | Adds Brazilian Portuguese translations for Notisave when the device language is Portuguese (Brazil). |  |
+| [Unlock premium](#unlock-premium) | Grants the local premium state the app reads for its paywall, VIP support, settings locks and ad-free UI. |  |
 
 </details>
 

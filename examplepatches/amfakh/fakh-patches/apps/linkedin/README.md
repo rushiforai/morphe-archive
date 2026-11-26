@@ -4,7 +4,7 @@ Patches for the LinkedIn app (`com.linkedin.android`, versions `4.1.1264`, `4.1.
 
 ## Patches
 
-Every patch is on by default except GmsCore support.
+Every patch is on by default.
 Morphe Manager groups them by category.
 
 | Category | Patch | Default | What it does |
@@ -16,19 +16,19 @@ Morphe Manager groups them by category.
 | Feature | More tab | On | Hides items of the More tab (Puzzle games, Groups, Events, Newsletters), or lists them at the bottom of the profile menu. Adds a Puzzle games shortcut to the LinkedIn app icon, with its own switch. |
 | Feature | Swipe between tabs | On | Swipe sideways to go to the next or previous tab of the navigation bar, with a slide animation. On My Network it first switches between Grow and Catch up. Does not act where something under the finger can scroll sideways. |
 | Feature | Always show navigation bar | On | Adds a switch in Fakh Patches, off by default, that keeps the navigation bar on screen while you scroll instead of sliding it away. |
-| Feature | Hide top bar buttons | On | Adds a Top bar buttons sheet in Fakh Patches to hide the Post and Messaging buttons of the top bar. |
-| Feature | Navigation bar | On | Adds switches in Fakh Patches to show or hide the More, Jobs, Network and Notifications tabs of the navigation bar (and Post, Video, News and Messaging, which can be added even when LinkedIn leaves them out), its notification badges and its tab labels. The tabs can be sorted in the same sheet (Home stays first). |
-| Feature | GmsCore support | Off | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |
+| Feature | Hide top bar buttons | On | Adds a Top bar buttons sheet in Fakh Patches to hide the Post and Messaging buttons of the top bar, and to show or hide the Feed sort button (Most relevant or Most recent), which LinkedIn only shows in the EU. |
+| Feature | Navigation bar | On | Adds switches in Fakh Patches to show or hide the More, Jobs, Network and Notifications tabs of the navigation bar (and Post, Video, News and Messaging, which can be added even when LinkedIn leaves them out; an added Video tab opens the server's video screen), its notification badges and its tab labels. The tabs can be sorted in the same sheet (Home stays first). |
+| Feature | GmsCore support | On | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |
 | Feed | Hide suggested posts | On | Removes "Suggested" posts from people outside your network. |
-| Feed | Feed filters | On | Adds filters you can turn on in Fakh Patches: engagement counts, celebrations, job cards, network activity (likes, comments, reposts), video posts, "Recommended for you", puzzle games, the "New posts" pill and "Show translation". All start off. |
+| Feed | Feed filters | On | Adds filters you can turn on in Fakh Patches: engagement counts, celebrations, job cards, network activity (likes, comments, reposts), video posts, "Recommended for you", puzzle games, the "New posts" pill, "Show translation", the Follow and Connect buttons on posts and comments, the connection degree (1st, 2nd, 3rd), the exact date and time of a post instead of its age, comments that open with the most recent first, and muted words and muted authors that hide posts by their text or by who wrote them. All start off. |
 | Feed | Disable double-tap like | On | Double tapping a post or photo no longer likes it. |
 | Feed | Expand posts | On | Adds a switch in Fakh Patches that shows posts expanded by default. Tapping the text collapses them. Starts off. |
 | Feed | Copy text | On | Adds Copy text to the ⋯ menu of posts and comments, with its own icon. Adds a switch in Fakh Patches. |
 | Feed | Disable screenshot share sheet | On | Stops the Share sheet from opening when you take a screenshot of a post. Adds a switch in Fakh Patches. |
 | Feed | Keep feed on reopen | On | Keeps your place in the feed when you come back to LinkedIn instead of reloading it. Pull down or tap "New posts" to load new posts. |
 | Feed | Tap to hide controls in viewers | On | Tap a video or document in full screen to hide its caption and buttons, like photos. |
-| Feed | Video tab | On | Shows the video's time above the seek bar and can go to the next video when one ends. Adds switches in Fakh Patches. |
-| Privacy | Messaging | On | Hides sponsored messages, and adds an optional ghost mode that sends no typing indicator and no automatic read receipts. |
+| Feed | Video tab | On | Shows the video's time above the seek bar, in the Video tab and the full screen video viewer, and can go to the next video of the tab when one ends. Adds switches in Fakh Patches. |
+| Privacy | Messaging | On | Hides sponsored messages, and adds an optional ghost mode that sends no typing indicator and no automatic read receipts, except in a chat you reply to. |
 | Privacy | Open links directly | On | Opens outside links without LinkedIn's warning page, including `lnkd.in` short links. |
 | Privacy | Sanitize share links | On | Strips tracking parameters from LinkedIn links you copy or share. |
 | Privacy | Disable analytics | On | Adds a switch, on by default, that stops most LinkedIn analytics events from being sent. |
@@ -41,7 +41,7 @@ Morphe Manager groups them by category.
 | Theme | Glass navigation bar | On | Draws the navigation bar as a floating, translucent capsule with a sliding selection pill, in the style of the glass navigation bar of [Morphe Patches](https://github.com/MorpheApp/morphe-patches). Slide a finger along the bar to switch tabs, with a haptic tick for each tab. The **Background blur** switch (off by default) blurs what's behind the bar and bends it at the edges on Android 12 and newer. The pill takes the wallpaper accent with Material You and stays neutral gray without it. |
 
 Settings are in **Fakh Patches** on LinkedIn's Settings screen (profile menu → Settings & Privacy), or long press
-the Home tab.
+the Home tab. Each category opens its own page; search looks through all of them.
 
 ## How the patches work
 
@@ -58,7 +58,13 @@ not resolved yet opens LinkedIn's warning page as usual, and is ready the next t
 links has its own switch in Fakh Patches.
 
 **Messaging** ghost mode only blocks the read receipts the chat screen sends by itself. Marking a
-chat as read or unread from the chat list still works.
+chat as read or unread from the chat list still works. With **Mark as read when you reply** on, the
+chat screen's next read receipt after your reply is sent.
+
+**Muted words** and **Muted authors** take one entry per line (or separated by commas) and match
+whole words in any case. Muted words looks at the text of a post and of the post it reposts, and
+Muted authors at the names of their authors. **Show exact post time** reads the time from the post's id, and keeps the age when
+no id fits it.
 
 ## Test on desktop
 

@@ -17,6 +17,14 @@ final class MebukiLoginFlow {
         return Page.OTHER;
     }
 
+    // Observe failures from the real page, without inspecting credentials,
+    // response bodies, URL queries or authorization state.
+    static boolean discordLoginPost(String scheme, String host, String path, String method) {
+        return "https".equalsIgnoreCase(scheme) && "discord.com".equalsIgnoreCase(host)
+                && "POST".equals(method) && path != null
+                && path.matches("/api/v[0-9]{1,2}/auth/(login|mfa/[a-z]+)");
+    }
+
     private static boolean domain(String host, String base) {
         return host.equals(base) || host.endsWith("." + base);
     }

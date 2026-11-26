@@ -15,8 +15,10 @@
 | `kakao_scope.txt` | 카카오맵 스캔 범위(소스 파일 이름 패턴, `module:` Kotlin 모듈, `pkg:` 패키지) |
 | `kakao_rules_5.17.8.tsv` | 카카오맵 5.17.8 규칙. 키가 **원래 소스 파일 이름**(아래 "카카오맵") |
 | `kakao_ledger_5.17.8.tsv` | 389행: PATCHED 6 · OK 87 · INACTIVE 38 · OUT 258 · 미분류 0 |
-| `kakao_rules_6.32.0.tsv` | 6.32.0 규칙(5.17.8 규칙 − STALE 62 + 6.32 재조사 판정). **다음 버전은 이 파일에서 시작** |
+| `kakao_rules_6.32.0.tsv` | 6.32.0 규칙(5.17.8 규칙 − STALE 62 + 6.32 재조사 판정) |
 | `kakao_ledger_6.32.0.tsv` | 464행: PATCHED 7 · OK 72 · INACTIVE 35 · OUT 350 · 미분류 0 |
+| `kakao_rules_6.33.0.tsv` | 6.33.0 규칙(6.32 규칙을 새 키 `syn:R8`·`<lib:…>`로 바꿈, 판정 변경 없음). **다음 버전은 이 파일에서 시작** |
+| `kakao_ledger_6.33.0.tsv` | 464행: PATCHED 7 · OK 72 · INACTIVE 35 · OUT 350 · 미분류 0 (6.32와 같은 코드, R8 줄 번호만 다름) |
 
 도구는 `../tools/`, 중간 산출물(후보 목록, smali 트리)은 저장소 밖에 둔다(앱 코드가 들어 있음).
 
@@ -28,6 +30,7 @@ KNSDK·KM 위치 SDK는 클래스·패키지 이름이 버전마다 바뀌고(`o
   6.32.0부터 R8이 난독화 클래스를 **기본 패키지로 평탄화**(`heb`, `ieb`)해서 패키지 단위가 무의미해졌다 → 기본 패키지 클래스는 클래스 단위로 보고,
   `module:<정규식>` 줄로 Kotlin 내부 멤버 이름 접미사(`$library_release` = KM 위치 SDK, `$app_knsdk_…Release` = KNSDK)가 나오는 클래스의 소스 파일 전체를 범위에 넣는다(새 파일 이름도 잡힘). 키는
   - class = `src:KNGPSData.kt` (라이브러리 내부는 `lib:<artifact>`, 버전 번호 제외)
+  - 기본 패키지로 평탄화된 클래스 중 소스 이름이 없는 것(6.33.0부터): R8 합성 클래스(`R8$$SyntheticClass`)는 `syn:R8`, 라이브러리 클래스(`lib@@ver`)는 `lib:<artifact>`·desc 안에서는 `<lib:artifact>`. 이 클래스들은 빌드마다 이름이 바뀌어서 이름 키로는 원장이 매번 흔들렸다
   - desc 안의 앱 타입 = `<KNGPSData.kt>`, TIMER/LOCREQ detail의 소유자도 같은 방식(`<Delay.kt>->delay`)
   - 난독화 클래스·메서드 이름은 정보 열(`method` = `om/b.a`)에만 남는다.
 - 내비 핵심 파일은 정확한 키 규칙(같은 키의 반복 n만 `*`), UI·렌더러·DB·통신 파일과 라이브러리는 파일 단위 와일드카드.

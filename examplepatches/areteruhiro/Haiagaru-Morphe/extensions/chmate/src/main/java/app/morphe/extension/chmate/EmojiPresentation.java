@@ -1,0 +1,16 @@
+package app.morphe.extension.chmate;
+
+/** Keep plain AA, kana and text symbols in their original font. */
+public final class EmojiPresentation {
+    public static boolean defaultEmojiPresentation(int c){
+        return c==0x231a||c==0x231b||c>=0x23e9&&c<=0x23ec||c==0x23f0||c==0x23f3
+            ||c==0x25fd||c==0x25fe||c==0x2614||c==0x2615||c>=0x2648&&c<=0x2653
+            ||c==0x267f||c==0x2693||c==0x26a1||c==0x26aa||c==0x26ab||c==0x26bd||c==0x26be
+            ||c==0x26c4||c==0x26c5||c==0x26ce||c==0x26d4||c==0x26ea||c==0x26f2||c==0x26f3
+            ||c==0x26f5||c==0x26fa||c==0x26fd||c==0x2705||c==0x270a||c==0x270b||c==0x2728
+            ||c==0x274c||c==0x274e||c>=0x2753&&c<=0x2755||c==0x2757||c>=0x2795&&c<=0x2797
+            ||c==0x27b0||c==0x27bf||c==0x2b1b||c==0x2b1c||c==0x2b50||c==0x2b55;
+    }
+    public static boolean forceFallback(int codePoint){return codePoint==0x1faf7||codePoint==0x1faf8||codePoint==0x1fabd;}
+    private EmojiPresentation(){}
+}

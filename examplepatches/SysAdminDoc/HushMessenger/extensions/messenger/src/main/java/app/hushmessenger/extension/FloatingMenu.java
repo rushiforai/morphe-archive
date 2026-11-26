@@ -154,7 +154,7 @@ final class FloatingMenu {
      * fully on screen. With no room under the message it goes over the emoji row instead, so it never covers the row.
      */
     static Rect place(Rect panel, Rect bubble, Rect frame, int width, int height, int gap, int edge) {
-        Rect anchor = under(panel, bubble);
+        Rect anchor = under(panel, bubble, frame, height, gap, edge);
         int top = anchor.bottom + gap;
         int left = anchor.centerX() > frame.centerX() ? anchor.right - width : anchor.left;
         left = Math.max(frame.left + edge, Math.min(left, frame.right - edge - width));
@@ -165,13 +165,17 @@ final class FloatingMenu {
     }
 
     /**
-     * What the card goes under: the pressed message, or just the emoji row when there's no message to go by. A message
-     * too tall for the row to sit over it has the row laid across it instead, so there the card goes under the row, on
-     * the message's side, rather than somewhere off the bottom of the screen.
+     * What the card goes under: the pressed message, or just the emoji row when there's no message to go by. Messenger
+     * lays the row across the top of a photo or video rather than over it, and that message still gets the card under it
+     * as long as the row, the message and the card fit on the screen together (#162: under the row, the card covered the
+     * photo). Only a message too tall for that has the card under the row, on the message's side, rather than somewhere
+     * off the bottom of the screen.
      */
-    private static Rect under(Rect panel, Rect bubble) {
+    private static Rect under(Rect panel, Rect bubble, Rect frame, int height, int gap, int edge) {
         if (bubble == null || bubble.isEmpty()) return panel;
         if (bubble.top >= panel.centerY()) return bubble;
+        int stack = bubble.bottom - Math.min(panel.top, bubble.top) + gap + height;
+        if (stack <= frame.height() - 2 * edge) return bubble;
         return new Rect(bubble.left, panel.top, bubble.right, panel.bottom);
     }
 
@@ -180,7 +184,7 @@ final class FloatingMenu {
      * far that the row leaves the top of the screen. 0 when it already fits.
      */
     static int rise(Rect panel, Rect bubble, Rect frame, int height, int gap, int edge) {
-        Rect anchor = under(panel, bubble);
+        Rect anchor = under(panel, bubble, frame, height, gap, edge);
         int missing = anchor.bottom + gap + height - (frame.bottom - edge);
         if (missing <= 0) return 0;
         int room = Math.min(panel.top, anchor.top) - (frame.top + edge);
@@ -221,6 +225,7 @@ final class FloatingMenu {
         TextView row = new TextView(context);
         row.setText(label);
         row.setTag(label);
+        InvisibleButtons.own(row, label);
         row.setTextSize(LABEL_SP);
         row.setTextColor(onSurface(light));
         row.setGravity(Gravity.CENTER_VERTICAL);

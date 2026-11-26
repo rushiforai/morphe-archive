@@ -159,6 +159,8 @@ public class LocalChatSearchTest {
         assertNull("nothing until the list is on screen", bar(activity));
         ((ViewGroup) activity.findViewById(android.R.id.content)).addView(list);
         assertNotNull(bar(activity));
+        android.widget.TextView open = (android.widget.TextView) ((ViewGroup) bar(activity)).getChildAt(0);
+        assertEquals("#191: listed in Invisible buttons by its words", open.getText().toString(), InvisibleButtons.nameOf(open));
         Intent screen = LocalChatSearch.screen(activity);
         assertEquals(LocalSearchActivity.class.getName(), screen.getComponent().getClassName());
         assertEquals("dinner", screen.getStringExtra(LocalSearchActivity.EXTRA_WORDS));

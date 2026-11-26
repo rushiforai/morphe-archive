@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Written by lavinhoque33, 2026-10-24.
  */
 
@@ -54,8 +55,8 @@ final class OfflineHls {
     private OfflineHls() {
     }
 
-    /** The Premium stream and the user agent its urls have to be requested with. */
-    record Premium(OfflineFormats.Stream stream, String userAgent) {
+    /** The selected rendition, its request user agent, and the VOD snapshot already read to size it. */
+    record Premium(OfflineFormats.Stream stream, String userAgent, MediaPlaylist playlist) {
     }
 
     /** A piece of a rendition. {@code length} is -1 for a whole resource, else a byte range. */
@@ -74,19 +75,27 @@ final class OfflineHls {
      * @return Null if no client lists it, which is the normal case for most videos.
      */
     @Nullable
-    static Premium fetchPremium(String videoId, Map<String, String> headers) {
+    static Premium fetchPremium(String videoId, Map<String, String> headers,
+                                @Nullable OfflineTransferControl.Attempt attempt) throws IOException {
         for (ClientType client : PREMIUM_CLIENTS) {
+            if (attempt != null) attempt.check();
             try {
                 String masterUrl = fetchMasterUrl(videoId, client, headers);
                 if (masterUrl == null) continue;
 
-                OfflineFormats.Stream stream = premiumRendition(fetchText(masterUrl, client.userAgent),
-                        masterUrl, client.userAgent);
+                Premium premium = premiumRendition(fetchText(masterUrl, client.userAgent, attempt),
+                        masterUrl, client.userAgent, attempt);
                 Logger.printInfo(() -> "HLS master of " + videoId + " from " + client.name() + ": "
-                        + (stream == null ? "no Premium stream" : "Premium itag " + stream.itag()));
+                        + (premium == null ? "no Premium stream" : "Premium itag " + premium.stream().itag()));
                 // The master playlists of these clients list the same renditions; asking again does not help.
-                return stream == null ? null : new Premium(stream, client.userAgent);
+                return premium;
             } catch (Exception ex) {
+                if (attempt != null) {
+                    attempt.check();
+                    if (ex instanceof IOException failure && OfflineTransferControl.isConnectivityFailure(failure)) {
+                        throw failure;
+                    }
+                }
                 Logger.printInfo(() -> "Could not read the HLS streams of " + videoId + " with " + client.name(), ex);
             }
         }
@@ -105,22 +114,22 @@ final class OfflineHls {
 
     /** @return The Premium VP9 rendition of the master playlist, or null if it has none this device can save. */
     @Nullable
-    private static OfflineFormats.Stream premiumRendition(String master, String masterUrl, String userAgent)
-            throws IOException {
+    private static Premium premiumRendition(String master, String masterUrl, String userAgent,
+                                           @Nullable OfflineTransferControl.Attempt attempt) throws IOException {
         String[] lines = master.split("\n");
         for (int i = 1; i < lines.length; i++) {
             String uri = lines[i].trim();
             String info = lines[i - 1].trim();
             if (uri.startsWith("#") || !info.startsWith("#EXT-X-STREAM-INF:")) continue;
             if (itagOf(uri) != PREMIUM_ITAG) continue;
-            return premiumStream(attributes(info), resolve(masterUrl, uri), userAgent);
+            return premiumStream(attributes(info), resolve(masterUrl, uri), userAgent, attempt);
         }
         return null;
     }
 
     @Nullable
-    private static OfflineFormats.Stream premiumStream(Map<String, String> attributes, String mediaUrl,
-                                                       String userAgent) throws IOException {
+    private static Premium premiumStream(Map<String, String> attributes, String mediaUrl, String userAgent,
+                                         @Nullable OfflineTransferControl.Attempt attempt) throws IOException {
         String codecs = attributes.getOrDefault("CODECS", "");
         if (!codecs.startsWith("vp09.00")) {
             // Only 8-bit VP9 goes the WebM way. Anything else would need another container path.
@@ -133,12 +142,15 @@ final class OfflineHls {
         final int fps = (int) Math.round(parseDouble(attributes.getOrDefault("FRAME-RATE", "30"), 30));
         final int bandwidth = (int) parseDouble(attributes.getOrDefault("BANDWIDTH", "0"), 0);
 
-        MediaPlaylist playlist = fetchMediaPlaylist(mediaUrl, userAgent);
+        MediaPlaylist playlist = attempt == null ? parseMediaPlaylist(fetchText(mediaUrl, userAgent, null), mediaUrl)
+                : fetchMediaPlaylist(attempt, new OfflineDownloadTransfer.Endpoint(mediaUrl, userAgent));
         final long length = playlist.segments().isEmpty() ? -1 : contentLengthOf(playlist.segments().get(0));
         final String videoCodec = codecs.split(",")[0];
-        return new OfflineFormats.Stream(mediaUrl, PREMIUM_ITAG, "video/mp4; codecs=\"" + videoCodec + "\"",
+        OfflineFormats.Stream stream = new OfflineFormats.Stream(
+                mediaUrl, PREMIUM_ITAG, "video/mp4; codecs=\"" + videoCodec + "\"",
                 length, labelHeight, fps, OfflineFormats.CODEC_VP9, bandwidth,
-                OfflineFormats.canDecodeVp9(size[0], size[1], fps), true, true);
+                OfflineFormats.canDecodeVp9(size[0], size[1], fps), true, true, -1, "");
+        return new Premium(stream, userAgent, playlist);
     }
 
     private static int itagOf(String url) {
@@ -156,8 +168,20 @@ final class OfflineHls {
 
     // region playlists
 
-    static MediaPlaylist fetchMediaPlaylist(String url, @Nullable String userAgent) throws IOException {
-        return parseMediaPlaylist(fetchText(url, userAgent), url);
+    static MediaPlaylist fetchMediaPlaylist(OfflineTransferControl control, OfflineDownloadTransfer.Endpoint endpoint)
+            throws IOException {
+        return control.execute(attempt -> fetchMediaPlaylist(attempt, endpoint));
+    }
+
+    private static MediaPlaylist fetchMediaPlaylist(OfflineTransferControl.Attempt attempt,
+                                                    OfflineDownloadTransfer.Endpoint endpoint) throws IOException {
+        return OfflineDownloadTransfer.request(
+                attempt, endpoint, -1, -1, null, response -> {
+                    int status = response.code();
+                    if (status != HttpURLConnection.HTTP_OK) throw OfflineDownloadTransfer.unexpectedStatus(status);
+                    String text = readText(response.body().byteStream(), attempt);
+                    return parseMediaPlaylist(text, response.request().url().toString());
+                });
     }
 
     /**
@@ -166,8 +190,9 @@ final class OfflineHls {
      */
     static MediaPlaylist parseMediaPlaylist(String text, String playlistUrl) throws IOException {
         List<Segment> segments = new ArrayList<>();
-        long[] range = null;
-        long nextOffset = 0;
+        String range = null;
+        Segment previous = null;
+        boolean endOfVod = false;
         for (String raw : text.split("\n")) {
             String line = raw.trim();
             if (line.isEmpty()) continue;
@@ -180,14 +205,22 @@ final class OfflineHls {
                 long[] mapRange = parseByteRange(attributes.get("BYTERANGE"), 0);
                 segments.add(segment(resolve(playlistUrl, attributes.get("URI")), mapRange));
             } else if (line.startsWith("#EXT-X-BYTERANGE:")) {
-                range = parseByteRange(line.substring("#EXT-X-BYTERANGE:".length()), nextOffset);
+                if (range != null) throw new IOException("HLS byte range without a segment");
+                range = line.substring("#EXT-X-BYTERANGE:".length());
+            } else if (line.equals("#EXT-X-ENDLIST")) {
+                endOfVod = true;
             } else if (!line.startsWith("#")) {
-                segments.add(segment(resolve(playlistUrl, line), range));
-                nextOffset = range == null ? 0 : range[0] + range[1];
+                String url = resolve(playlistUrl, line);
+                long nextOffset = previous != null && previous.length() > 0 && previous.url().equals(url)
+                        ? previous.offset() + previous.length() : -1;
+                previous = segment(url, parseByteRange(range, nextOffset));
+                segments.add(previous);
                 range = null;
             }
         }
         if (segments.isEmpty()) throw new IOException("HLS playlist without segments");
+        if (!endOfVod) throw new IOException("Incomplete or live HLS playlist");
+        if (range != null) throw new IOException("HLS byte range without a segment");
         return new MediaPlaylist(segments);
     }
 
@@ -200,9 +233,12 @@ final class OfflineHls {
     private static long[] parseByteRange(@Nullable String value, long defaultOffset) throws IOException {
         if (value == null || value.isEmpty()) return null;
         try {
-            String[] parts = value.split("@");
+            String[] parts = value.split("@", -1);
             long length = Long.parseLong(parts[0].trim());
             long offset = parts.length > 1 ? Long.parseLong(parts[1].trim()) : defaultOffset;
+            if (parts.length > 2 || length <= 0 || offset < 0 || offset > Long.MAX_VALUE - length) {
+                throw new NumberFormatException();
+            }
             return new long[]{offset, length};
         } catch (NumberFormatException ex) {
             throw new IOException("Invalid byte range " + value, ex);
@@ -244,7 +280,17 @@ final class OfflineHls {
         return new URL(new URL(base), reference).toString();
     }
 
-    private static String fetchText(String url, @Nullable String userAgent) throws IOException {
+    private static String fetchText(String url, @Nullable String userAgent,
+                                    @Nullable OfflineTransferControl.Attempt attempt) throws IOException {
+        if (attempt != null) {
+            return OfflineDownloadTransfer.request(attempt, new OfflineDownloadTransfer.Endpoint(url, userAgent),
+                    -1, -1, null, response -> {
+                        int status = response.code();
+                        if (status != HttpURLConnection.HTTP_OK) throw OfflineDownloadTransfer.unexpectedStatus(status);
+                        return readText(response.body().byteStream(), attempt);
+                    });
+        }
+
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         try {
             connection.setConnectTimeout(TIMEOUT_MS);
@@ -254,18 +300,22 @@ final class OfflineHls {
             if (code == HttpURLConnection.HTTP_FORBIDDEN) throw new OfflineDownloader.ForbiddenException();
             if (code != HttpURLConnection.HTTP_OK) throw new IOException("HLS playlist returned HTTP " + code);
             try (InputStream input = connection.getInputStream()) {
-                return readText(input);
+                return readText(input, null);
             }
         } finally {
             connection.disconnect();
         }
     }
 
-    private static String readText(InputStream input) throws IOException {
+    private static String readText(InputStream input, @Nullable OfflineTransferControl.Attempt attempt)
+            throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         byte[] buffer = new byte[16 * 1024];
         int read;
-        while ((read = input.read(buffer)) != -1) {
+        while (true) {
+            if (attempt != null) attempt.check();
+            read = input.read(buffer);
+            if (read == -1) break;
             bytes.write(buffer, 0, read);
             if (bytes.size() > MAX_PLAYLIST_BYTES) throw new IOException("HLS playlist too large");
         }

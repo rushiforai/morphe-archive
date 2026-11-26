@@ -54,6 +54,12 @@ public class Handler {
         }
     }
 
+    public static long nowMillisForTest() {
+        synchronized (QUEUE) {
+            return nowMillis;
+        }
+    }
+
     public static int pendingCountForTest() {
         synchronized (QUEUE) {
             return QUEUE.size();

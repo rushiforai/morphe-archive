@@ -49,6 +49,7 @@ public final class SettingsStatus {
     public static boolean feedSavedPins() { return false; }
     public static boolean feedSavedSearch() { return false; }
     public static boolean feedSavedRelated() { return false; }
+    public static boolean feedSeenPins() { return false; }
     public static boolean feedHomeSuggestions() { return false; }
     public static boolean feedbackFlyout() { return false; }
     public static boolean keepHomeFeed() { return false; }

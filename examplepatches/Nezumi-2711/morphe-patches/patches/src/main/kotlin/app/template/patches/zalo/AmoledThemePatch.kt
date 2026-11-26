@@ -1,13 +1,19 @@
 package app.template.patches.zalo
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -153,10 +159,42 @@ private object ZinstantBackgroundZarcelFingerprint : Fingerprint(
 
 private const val REMAP = "$AMOLED_THEME->zinstantBackground(I)I"
 
+private const val BUNDLE = "Landroid/os/Bundle;"
+
+/** 1:1 call screen: root `addView(call_backgroundTheme picture)`, followed by the video container. */
+private object ZmInCallOnCreateFingerprint : Fingerprint(
+    definingClass = "Lzm/voip/ui/incall/ZmInCallActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf(BUNDLE),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.SGET, name = "call_backgroundTheme", type = "I"),
+        methodCall(definingClass = "Landroid/view/ViewGroup;", name = "addView",
+            parameters = listOf("Landroid/view/View;"), location = MatchAfterWithin(25)),
+        fieldAccess(opcode = Opcode.SGET, name = "call_videoCallLayout", type = "I",
+            location = MatchAfterWithin(5)),
+    ),
+)
+
+/** Group call screen: root `setBackgroundResource(incall_actvitiy_background)` while it is still empty. */
+private object GroupCallOnCreateFingerprint : Fingerprint(
+    definingClass = "Lzm/voip/ui/incall/GroupCallActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf(BUNDLE),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.SGET, name = "call_main_frame", type = "I"),
+        fieldAccess(opcode = Opcode.SGET, name = "incall_actvitiy_background", type = "I",
+            location = MatchAfterWithin(3)),
+        methodCall(definingClass = "Landroid/view/View;", name = "setBackgroundResource",
+            location = MatchAfterImmediately()),
+    ),
+)
+
 @Suppress("unused")
 val amoledThemePatch = bytecodePatch(
     name = "AMOLED dark theme",
-    description = "Use true-black backgrounds in Zalo's dark mode, with slightly lifted popups, sheets and chat bubbles.",
+    description = "Use true-black backgrounds in Zalo's dark mode, with slightly lifted popups, sheets and chat bubbles, and a dimmed call screen.",
     default = false,
 ) {
     compatibleWith(amoledCompatibility)
@@ -192,6 +230,23 @@ val amoledThemePatch = bytecodePatch(
                 invoke-static {v$register}, $REMAP
                 move-result v$register
             """)
+        }
+
+        // Call screens: insert a dark scrim above the background layers, below video and controls.
+        ZmInCallOnCreateFingerprint.let {
+            val addView = it.instructionMatches[1]
+            val call = addView.getInstruction<FiveRegisterInstruction>()
+            check(call.registerC < 16 && call.registerD < 16) { "addView registers out of invoke range" }
+            it.method.addInstruction(addView.index + 1,
+                "invoke-static {v${call.registerC}, v${call.registerD}}, " +
+                    "$AMOLED_THEME->dimCallBackground(Landroid/view/ViewGroup;Landroid/view/View;)V")
+        }
+        GroupCallOnCreateFingerprint.let {
+            val setBackground = it.instructionMatches[2]
+            val root = setBackground.getInstruction<FiveRegisterInstruction>().registerC
+            check(root < 16) { "setBackgroundResource register out of invoke range" }
+            it.method.addInstruction(setBackground.index + 1,
+                "invoke-static {v$root}, $AMOLED_THEME->dimCallBackground(Landroid/view/ViewGroup;)V")
         }
     }
 }

@@ -254,15 +254,33 @@ public class ClipsAdsFilter {
                             }
                         } catch (Throwable ignored) {}
 
-                        // 2. Try List fields on differ (mReadOnlyList / f)
+                        // 2. Try mReadOnlyList / f first (avoid mListeners CopyOnWriteArrayList which also implements List)
+                        for (String name : new String[]{"mReadOnlyList", "f"}) {
+                            try {
+                                Field df = differ.getClass().getDeclaredField(name);
+                                if (df.getType() == List.class) {
+                                    df.setAccessible(true);
+                                    Object l = df.get(differ);
+                                    if (l instanceof List) {
+                                        return (List<?>) l;
+                                    }
+                                }
+                            } catch (Throwable ignored) {}
+                        }
+
+                        // 3. Fallback: pick the last non-null field declared strictly as java.util.List
+                        List<?> lastList = null;
                         for (Field df : differ.getClass().getDeclaredFields()) {
-                            if (List.class.isAssignableFrom(df.getType())) {
+                            if (df.getType() == List.class) {
                                 df.setAccessible(true);
                                 Object l = df.get(differ);
                                 if (l instanceof List) {
-                                    return (List<?>) l;
+                                    lastList = (List<?>) l;
                                 }
                             }
+                        }
+                        if (lastList != null) {
+                            return lastList;
                         }
                     }
                 }

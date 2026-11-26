@@ -3,6 +3,7 @@ package app.template.extension.zalo.navigation;
 import android.app.Activity;
 import android.content.Context;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -27,7 +28,8 @@ public final class DiscoveryTab {
             Object configuration = Class.forName("y5f").getMethod("h").invoke(null);
             configuration.getClass().getMethod("o").invoke(configuration);
             configuration.getClass().getMethod("q").invoke(configuration);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.swallowedOnce("NezumiDiscovery", "tab configuration refresh unavailable (y5f)", failure);
         }
     }
 }

@@ -428,6 +428,27 @@ class SaveVoiceMenuTest {
         assertEquals(emptySet(), found(saveVoiceMenuFixture() + second))
     }
 
+    @Test fun a588MergedTapNamesItsHandlerByTheCastAfterItsObjectField() {
+        val read = "iget-object v1, v3, $TAP_OWNER->A00:$HANDLER"
+        val body = changed(TAP_BODY, read, "iget-object v1, v3, $TAP_OWNER->A00:$OBJECT\ncheck-cast v1, $HANDLER")
+        val classes = saveVoiceMenuFixture(tapClass(tapMethod(body = body), handler = OBJECT))
+        val recipe = assertNotNull(resolveSaveVoiceMenu(classes))
+        assertEquals("$TAP_OWNER->A00:$OBJECT", recipe.tapHandler)
+        assertEquals(HANDLER, recipe.handler)
+        validateControls(mirroredControls(classes), setOf(SAVE_VOICE_MENU))
+
+        // The cast has to be of what was just read, and nothing may come between them.
+        val cases = mapOf(
+            "a cast of another register" to changed(body, "check-cast v1, $HANDLER", "check-cast v4, $HANDLER"),
+            "a cast one step later" to changed(body, "check-cast v1, $HANDLER", "const/4 v2, 0x0\ncheck-cast v1, $HANDLER"),
+        )
+        for ((case, changedBody) in cases) {
+            val refused = saveVoiceMenuFixture(tapClass(tapMethod(body = changedBody), handler = OBJECT))
+            assertEquals(emptySet(), found(refused), case)
+            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(refused), setOf(SAVE_VOICE_MENU)) }
+        }
+    }
+
     @Test fun aModelAskedForThroughARangeCallStillCounts() {
         val caster = casterClass(changed(CASTER_BODY, "invoke-interface {v10}, $MODEL_GETTER", "invoke-interface/range {v10 .. v10}, $MODEL_GETTER"))
         assertEquals(MODEL_GETTER, assertNotNull(resolveSaveVoiceMenu(saveVoiceMenuFixture(caster))).rowModel)

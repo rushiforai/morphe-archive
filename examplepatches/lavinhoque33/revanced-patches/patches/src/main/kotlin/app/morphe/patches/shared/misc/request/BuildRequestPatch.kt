@@ -2,6 +2,8 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  *
+ * Modified by lavinhoque33, 2026-11-25.
+ *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
@@ -16,6 +18,7 @@ import java.lang.ref.WeakReference
 
 private lateinit var buildRequestMethod: WeakReference<MutableMethod>
 private var builderIndex = -1
+private var firstHookIndex = -1
 private var urlRegister = -1
 private var mapRegister = -1
 private var bodyRegister = -1
@@ -29,6 +32,7 @@ internal val buildRequestPatch = bytecodePatch(
             it.method.apply {
                 val builderMatch = it.instructionMatches.first()
                 builderIndex = builderMatch.index
+                firstHookIndex = builderIndex
                 urlRegister = builderMatch.instruction.registersUsed[1]
                 bodyRegister = it.instructionMatches[1].instruction.registersUsed[0]
                 mapRegister = it.instructionMatches[2].instruction.registersUsed[0]
@@ -49,29 +53,16 @@ internal fun hookBuildRequest(
     descriptor: String,
     hookHeader: Boolean = false,
     includeBody: Boolean = false,
+    first: Boolean = false,
 ) {
-    buildRequestMethod.get()!!.apply {
-        if (hookHeader) {
-            addInstructions(
-                builderIndex,
-                """
-                    invoke-static { v$urlRegister, v$mapRegister }, $descriptor
-                    move-result-object v$mapRegister
-                """
-            )
-            builderIndex += 2
-        } else if (includeBody) {
-            addInstructions(
-                builderIndex++,
-                "invoke-static { v$urlRegister, v$mapRegister, v$bodyRegister }, $descriptor"
-            )
-        } else {
-            addInstructions(
-                builderIndex++,
-                "invoke-static { v$urlRegister, v$mapRegister }, $descriptor"
-            )
-        }
-    }
+    val index = if (first) firstHookIndex else builderIndex
+    val registers = if (includeBody) "v$urlRegister, v$mapRegister, v$bodyRegister" else "v$urlRegister, v$mapRegister"
+    val call = "invoke-static { $registers }, $descriptor"
+    buildRequestMethod.get()!!.addInstructions(
+        index,
+        if (hookHeader) "$call\nmove-result-object v$mapRegister" else call
+    )
+    builderIndex += if (hookHeader) 2 else 1
 }
 
 internal fun hookBuildRequestUrl(descriptor: String) {

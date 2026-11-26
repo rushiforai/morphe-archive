@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-24.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.shared.patches.glassmenus;
@@ -44,6 +44,10 @@ final class SolidColors {
 
     static int colorOf(@Nullable Drawable drawable) {
         return leafColor(leafOf(drawable));
+    }
+
+    static boolean isTransparent(@Nullable Drawable drawable) {
+        return drawable == null || drawable instanceof ColorDrawable color && Color.alpha(color.getColor()) == 0;
     }
 
     static int leafColor(@Nullable Drawable drawable) {

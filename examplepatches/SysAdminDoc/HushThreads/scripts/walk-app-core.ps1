@@ -5,8 +5,7 @@
     PARTIAL or FAIL.
 
 .DESCRIPTION
-    Dot-sourced by walk-app.ps1, which drives the device, and by test-walk-app.ps1, which feeds
-    these functions recorded dumps and logcat so the verdict rules hold without one.
+    Dot-sourced by walk-app.ps1, which drives the device.
 #>
 
 $WalkPackage = 'com.instagram.barcelona'

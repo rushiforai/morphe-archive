@@ -9,3 +9,5 @@
 # Trust user-added certificates adds a user trust anchor to Threads' network security config.
 
 xml/fb_network_security_config Trust user-added certificates
+# Custom launcher icon points the launcher icon's adaptive icon at the HushThreads artwork.
+mipmap/barcelona Custom launcher icon

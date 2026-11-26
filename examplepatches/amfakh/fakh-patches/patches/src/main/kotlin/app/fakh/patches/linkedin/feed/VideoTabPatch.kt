@@ -29,8 +29,8 @@ private object SetPlayWhenReadyFingerprint : Fingerprint(
 @Suppress("unused")
 val videoTabPatch = patch(
     name = "Video tab",
-    description = "Shows the video's time above the seek bar and can go to the next video when one ends. " +
-        "Adds switches in Fakh Patches.",
+    description = "Shows the video's time above the seek bar, in the Video tab and the full screen video viewer, " +
+        "and can go to the next video of the tab when one ends. Adds switches in Fakh Patches.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

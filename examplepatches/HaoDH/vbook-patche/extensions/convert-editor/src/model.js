@@ -1,6 +1,7 @@
+load('common.js');
 function execute() {
-    return Response.success([
-        {id:'deepseek-flash',name:'DeepSeek Flash',description:'Nhanh, mặc định; không suy luận dài.',isNetworkRequired:true},
-        {id:'deepseek-v4-pro',name:'DeepSeek V4 Pro',description:'Ưu tiên chất lượng; chi phí cao hơn Flash.',isNetworkRequired:true}
-    ]);
+    var list = [];
+    for (var i = 0; i < CE_MODELS.length; i++)
+        list.push({id:CE_MODELS[i].id, name:CE_MODELS[i].name, description:CE_MODELS[i].description, isNetworkRequired:true});
+    return Response.success(list);
 }

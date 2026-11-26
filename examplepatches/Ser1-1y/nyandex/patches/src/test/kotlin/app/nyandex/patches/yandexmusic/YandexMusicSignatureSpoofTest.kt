@@ -20,10 +20,7 @@ import app.nyandex.patches.yandexmusic.misc.network.removeTrackingHeadersPatch
 import app.nyandex.patches.yandexmusic.misc.signature.spoofAppSignaturePatch
 import app.nyandex.patches.yandexmusic.misc.signature.spoofFirebaseCertPatch
 import app.nyandex.patches.yandexmusic.misc.telemetry.disableTelemetryPatch
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.Opcodes
-import com.android.tools.smali.dexlib2.iface.DexFile
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
@@ -32,8 +29,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.nio.file.Files
-import java.util.zip.ZipFile
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -138,22 +133,5 @@ class YandexMusicSignatureSpoofTest {
             !signatureValue.isNullOrBlank() && signatureValue != "SIGNATURE_PLACEHOLDER",
             "SignatureSpoof certificate was not embedded",
         )
-    }
-
-    private fun loadDexFiles(apk: File): List<DexFile> {
-        val directory = Files.createTempDirectory("ym-spoof-dex").toFile()
-        ZipFile(apk).use { zip ->
-            zip.entries().asSequence()
-                .filter { it.name.matches(Regex("classes\\d*\\.dex")) }
-                .forEach { entry ->
-                    val dexFile = File(directory, entry.name)
-                    zip.getInputStream(entry).use { input ->
-                        dexFile.outputStream().use { output -> input.copyTo(output) }
-                    }
-                }
-        }
-        return directory.listFiles { file -> file.extension == "dex" }.orEmpty()
-            .sortedBy { it.name }
-            .map { DexFileFactory.loadDexFile(it, Opcodes.getDefault()) }
     }
 }

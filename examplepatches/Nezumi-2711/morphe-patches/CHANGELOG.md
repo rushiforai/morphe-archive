@@ -1,3 +1,11 @@
+## [1.8.0-dev.2](https://github.com/Nezumi-2711/morphe-patches/compare/v1.8.0-dev.1...v1.8.0-dev.2) (2026-11-25)
+
+### ✨ New Features
+
+* **zalo:** add bug log patch ([cb5e8a6](https://github.com/Nezumi-2711/morphe-patches/commit/cb5e8a66d1472f08a62a248cd65a538d1f172657))
+* **zalo:** dim call screen in AMOLED dark theme ([3f26ef7](https://github.com/Nezumi-2711/morphe-patches/commit/3f26ef7cfe0aa2c7e11e9120db171f4d0e9b4f4a)), closes [#51](https://github.com/Nezumi-2711/morphe-patches/issues/51)
+* **zalo:** open links in external browser ([f6526cb](https://github.com/Nezumi-2711/morphe-patches/commit/f6526cb497c53c38f095ede99f01ba582edaa1e1)), closes [#50](https://github.com/Nezumi-2711/morphe-patches/issues/50)
+
 ## [1.8.0-dev.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.7.0...v1.8.0-dev.1) (2026-11-24)
 
 ### ✨ New Features

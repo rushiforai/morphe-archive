@@ -27,7 +27,7 @@ import java.util.WeakHashMap;
 
 /**
  * Extras of the Video tab (a server driven pager of videos): the time of the video above the seek bar, and moving on
- * to the next video when one ends.
+ * to the next video when one ends. The time also shows in the full screen viewer a video of the feed opens in.
  * <p>
  * The video on screen is the one whose player was last told to play (SimpleMediaPlayer.setPlayWhenReady), since the
  * tab prepares the next videos ahead but plays only the visible one.
@@ -35,8 +35,9 @@ import java.util.WeakHashMap;
 @SuppressWarnings("unused")
 public final class VideoTab {
     static final String SCREEN = "com.linkedin.sdui.flagshipnav.media.VideoTab";
+    private static final String VIEWER_SCREEN = "com.linkedin.sdui.flagshipnav.media.VideoViewer";
     private static final String TIME_TAG = "fakh_video_tab_time";
-    private static final long POLL_MS = 250;
+    private static final long POLL_MS = 100;
 
     private static final Handler main = new Handler(Looper.getMainLooper());
     private static WeakReference<Object> playing = new WeakReference<>(null);
@@ -98,7 +99,7 @@ public final class VideoTab {
     static void onScreen(Activity activity, String screen, Object fragment) {
         // Every tab's screen resumes with the activity, the hidden ones too; those change nothing.
         if (hidden(fragment)) return;
-        if (!SCREEN.equals(screen) || !Settings.isVideoTabIncluded()) {
+        if (!(SCREEN.equals(screen) || VIEWER_SCREEN.equals(screen)) || !Settings.isVideoTabIncluded()) {
             hide(activity);
             return;
         }
@@ -170,18 +171,20 @@ public final class VideoTab {
         }
     }
 
-    private static void showTime(Activity activity, long now, long total) {
+    private static void showTime(Activity activity, long now, long total) throws Exception {
         ViewGroup content = activity.findViewById(android.R.id.content);
         TextView time = content == null ? null : content.findViewWithTag(TIME_TAG);
-        View tabs = content == null ? null : NavigationBar.child(content, "bb_slim_bottom_bar_item_container");
-        if (time == null || tabs == null || total <= 0) return;
-        time.setText(format(now) + " / " + format(total));
-        // The seek bar runs about 26dp above the row of tabs; the time sits right on top of it.
-        int[] tabsAt = new int[2];
+        if (time == null || total <= 0) return;
+        // The time follows the seek bar, so it shows and hides with it.
+        float seekBar = ViewerControls.seekBarTop(content);
+        if (Float.isNaN(seekBar)) {
+            time.setVisibility(View.INVISIBLE);
+            return;
+        }
         int[] contentAt = new int[2];
-        tabs.getLocationInWindow(tabsAt);
         content.getLocationInWindow(contentAt);
-        int bottom = content.getHeight() - (tabsAt[1] - contentAt[1]) + Downloads.dp(activity, 30);
+        int bottom = contentAt[1] + content.getHeight() - Math.round(seekBar);
+        time.setText(format(now) + " / " + format(total));
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) time.getLayoutParams();
         if (params.bottomMargin != bottom) {
             params.bottomMargin = bottom;

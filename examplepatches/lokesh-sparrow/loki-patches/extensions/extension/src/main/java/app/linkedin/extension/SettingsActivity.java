@@ -144,6 +144,9 @@ public class SettingsActivity extends Activity {
         final String title;
         final String icon;
         final List<Row> rows = new ArrayList<>();
+        /** Patch status only: the patches grouped for the collapsible view ({@code null} on every other page). */
+        List<String> applied;
+        List<String> notApplied;
 
         Page(String title, String icon) {
             this.title = title;
@@ -195,6 +198,8 @@ public class SettingsActivity extends Activity {
         if (linkedIn) {
             all.add(ads());
             all.add(feed());
+            all.add(feedFilters());
+            all.add(navigationPage());
             all.add(appearance());
             all.add(downloads());
             all.add(chat());
@@ -233,7 +238,7 @@ public class SettingsActivity extends Activity {
                     "Posts LinkedIn pushes from people you don't follow (\"Suggested\").");
         }
         if (Settings.isHidePremiumIncluded()) {
-            page.sw(Settings.HIDE_PREMIUM, true, "Hide Premium promotions",
+            page.sw(Settings.HIDE_PREMIUM, true, "Hide Premium upsells",
                     "Premium and AI upsell cards on the feed, profiles, Jobs and the Me panel.");
         }
         return page;
@@ -244,6 +249,10 @@ public class SettingsActivity extends Activity {
         if (Settings.isDisableDoubleTapLikeIncluded()) {
             page.sw(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Disable double-tap like",
                     "A double tap on a post or photo won't add a like.");
+        }
+        if (Settings.isExpandPostsIncluded()) {
+            page.sw(Settings.EXPAND_POSTS, false, "Expand posts",
+                    "Long posts open already expanded, with no \"...more\" to tap. Takes effect on posts loaded after you turn it on.");
         }
         if (Settings.isCopyTextIncluded()) {
             page.sw(Settings.COPY_TEXT, true, "Copy text",
@@ -259,15 +268,6 @@ public class SettingsActivity extends Activity {
             page.sw(Settings.SWIPE_FEEDS, true, "Swipe between feeds",
                     "Swipe left for Network and right for For you, when the tabs are on screen.");
         }
-        if (Settings.isHideTabsIncluded()) {
-            page.sw(Settings.HIDE_TAB_NETWORK, false, "Hide the My Network tab",
-                    "Takes My Network out of the bottom bar. Restart LinkedIn after changing it.");
-            page.sw(Settings.HIDE_TAB_JOBS, false, "Hide the Jobs tab",
-                    "Takes Jobs out of the bottom bar. Restart LinkedIn after changing it.");
-            page.sw(Settings.HIDE_TAB_MORE, true, "Hide the More tab",
-                    "Takes More out of the bottom bar, instead of a page that often shows \"Something went wrong\". "
-                            + "Restart LinkedIn after changing it.");
-        }
         if (Settings.isViewerTapToHideIncluded()) {
             page.sw(Settings.VIEWER_TAP_TO_HIDE, true, "Tap to hide in viewers",
                     "Tap a video or document in full screen to hide the caption and buttons, like photos.");
@@ -276,14 +276,13 @@ public class SettingsActivity extends Activity {
             page.sw(Settings.KEEP_FEED, true, "Keep feed on reopen",
                     "Stay where you were when you come back. Pull down or tap \"New posts\" for new posts.");
         }
-        if (Settings.isFeedFiltersIncluded()) {
-            feedFilters(page);
-        }
         return page;
     }
 
-    /** The filter switches, which all start off: each one takes ordinary content out of the feed. */
-    private void feedFilters(Page page) {
+    /** The filter switches, which all start off but Hide games: each one takes ordinary content out of the feed. */
+    private Page feedFiltersPage() {
+        Page page = new Page("Feed filters", IconDrawable.FUNNEL);
+        if (!Settings.isFeedFiltersIncluded()) return page;
         page.sw(Settings.FOCUS_MODE, false, "Focus mode", "Hide the number of likes, comments and reposts.")
                 .sw(Settings.HIDE_CELEBRATIONS, false, "Hide celebration posts",
                         "Updates such as work anniversaries and job changes.")
@@ -294,8 +293,6 @@ public class SettingsActivity extends Activity {
                 .sw(Settings.HIDE_RECOMMENDATIONS, false, "Hide \"Recommended for you\"",
                         "\"People and pages to follow\" suggestions in the feed.")
                 .sw(Settings.HIDE_VIDEO_POSTS, false, "Hide video posts", "Any post with a video in it.")
-                .sw(Settings.HIDE_GAMES, false, "Hide games",
-                        "LinkedIn's daily puzzle games in the Me panel, search and feed.")
                 .sw(Settings.HIDE_NEW_POSTS_PILL, false, "Hide the \"New posts\" pill",
                         "The button that pops up at the top of the feed when new posts arrive.")
                 .sw(Settings.HIDE_TRANSLATION, false, "Hide \"See translation\"",
@@ -303,12 +300,46 @@ public class SettingsActivity extends Activity {
                 .sw(Settings.HIDE_AI, false, "Hide AI suggestions",
                         "AI prompts, suggestions, and assistant cards. Experimental.")
                 .shown("Muted words", SettingsActivity::mutedWordsLine, this::editMutedWords, YES);
+        return page;
     }
 
     private static String mutedWordsLine() {
         String words = Settings.mutedWords().trim();
         if (words.isEmpty()) return I18n.tr("Posts with these words or phrases are hidden.");
         return words.replace("\n", ", ");
+    }
+
+    private Page feedFilters() {
+        return feedFiltersPage();
+    }
+
+    /** Bottom-bar tabs, the More page and the panels: where LinkedIn puts things, not what a post shows. */
+    private Page navigationPage() {
+        Page page = new Page("Navigation & panels", IconDrawable.PHONE_NAV);
+        if (Settings.isFeedFiltersIncluded()) {
+            page.sw(Settings.HIDE_GAMES, true, "Hide games everywhere",
+                    "LinkedIn's daily puzzle games in the Me panel, search and feed.");
+        }
+        if (Settings.isHideTabsIncluded()) {
+            page.sw(Settings.HIDE_TAB_NETWORK, false, "Hide the My Network tab",
+                    "Takes My Network out of the bottom bar. Restart LinkedIn after changing it.");
+            page.sw(Settings.HIDE_TAB_JOBS, false, "Hide the Jobs tab",
+                    "Takes Jobs out of the bottom bar. Restart LinkedIn after changing it.");
+            page.sw(Settings.HIDE_TAB_MORE, true, "Hide the More tab",
+                    "Takes More out of the bottom bar, instead of a page that often shows \"Something went wrong\". "
+                            + "Restart LinkedIn after changing it.");
+            page.sw(Settings.HIDE_MORE_GAMES, false, "More page: Puzzle games row",
+                    "Hides just this row. Only used when the More tab is shown. Restart LinkedIn after changing it.");
+            page.sw(Settings.HIDE_MORE_DASHBOARD, false, "More page: Dashboard row",
+                    "Hides just this row. Only used when the More tab is shown. Restart LinkedIn after changing it.");
+            page.sw(Settings.HIDE_MORE_GROUPS, false, "More page: Groups row",
+                    "Hides just this row. Only used when the More tab is shown. Restart LinkedIn after changing it.");
+            page.sw(Settings.HIDE_MORE_EVENTS, false, "More page: Events row",
+                    "Hides just this row. Only used when the More tab is shown. Restart LinkedIn after changing it.");
+            page.sw(Settings.HIDE_MORE_NEWSLETTERS, false, "More page: Newsletters row",
+                    "Hides just this row. Only used when the More tab is shown. Restart LinkedIn after changing it.");
+        }
+        return page;
     }
 
     private Page appearance() {
@@ -380,6 +411,10 @@ public class SettingsActivity extends Activity {
             page.sw(Settings.ANONYMOUS_PROFILE_VIEWING, false, "Anonymous profile viewing",
                     "Doesn't send the analytics events of profile pages, so your visits aren't listed in other people's viewers. Experimental.");
         }
+        if (Settings.isDisableScreenshotSheetIncluded()) {
+            page.sw(Settings.DISABLE_SCREENSHOT_SHEET, true, "Disable screenshot share sheet",
+                    "Taking a screenshot of a post no longer opens LinkedIn's share sheet.");
+        }
         if (Settings.isBlockTrackingIncluded()) {
             page.sw(Settings.BLOCK_TRACKING, false, "Block tracking",
                     "Stops most analytics from being sent. If something misbehaves, switch this off.");
@@ -391,14 +426,18 @@ public class SettingsActivity extends Activity {
 
     private Page patchStatus() {
         Page page = new Page("Patch status", IconDrawable.CHECKLIST);
+        page.applied = new ArrayList<>();
+        page.notApplied = new ArrayList<>();
         if (linkedIn) {
             for (Object[] patch : patches()) {
                 boolean applied = (Boolean) patch[1];
+                (applied ? page.applied : page.notApplied).add((String) patch[0]);
                 page.info((String) patch[0], () -> applied ? "Applied" : "Not applied");
             }
         } else {
             for (String[] patch : MenuInfo.patches(this)) {
                 boolean applied = "true".equals(patch[1]);
+                (applied ? page.applied : page.notApplied).add(patch[0]);
                 page.info(patch[0], () -> applied ? "Applied" : "Not applied");
             }
         }
@@ -582,6 +621,8 @@ public class SettingsActivity extends Activity {
                 entry("Hide Premium upsells", Settings.isHidePremiumIncluded()),
                 entry("Feed filters", Settings.isFeedFiltersIncluded()),
                 entry("Disable double-tap like", Settings.isDisableDoubleTapLikeIncluded()),
+                entry("Disable screenshot share sheet", Settings.isDisableScreenshotSheetIncluded()),
+                entry("Expand posts", Settings.isExpandPostsIncluded()),
                 entry("Copy text", Settings.isCopyTextIncluded()),
                 entry("Keep feed on reopen", Settings.isKeepFeedIncluded()),
                 entry("Post menu items", Settings.isPostMenuIncluded()),
@@ -783,9 +824,205 @@ public class SettingsActivity extends Activity {
             drawCredits();
         } else if (openPage == null) {
             drawPageList();
+        } else if (openPage.applied != null) {
+            drawStatus(openPage);
         } else {
             drawRows(openPage.rows, null);
         }
+    }
+
+    /** Patch status filter: 0 all, 1 on, 2 off, 3 not applied. */
+    private int statusFilter;
+
+    private static final int ON = 0;
+    private static final int ALWAYS = 1;
+    private static final int OFF = 2;
+    private static final int ABSENT = 3;
+    /** Purple for a patch that is in the app but switched off: apart from the teal of on and the grey of absent. */
+    private int offColor() {
+        return dark ? 0xFFC88AD6 : 0xFF7B1FA2;
+    }
+
+    /** A patch for Patch status: its state, and how many switches it has and how many of them are on. */
+    private static final class Status {
+        final String name;
+        final int state;
+        final int switches;
+        final int on;
+
+        Status(String name, int state, int switches, int on) {
+            this.name = name;
+            this.state = state;
+            this.switches = switches;
+            this.on = on;
+        }
+    }
+
+    /** Reads the live value of every switch that belongs to the patch. A patch with no switch is always on. */
+    private Status statusOf(String name, boolean applied) {
+        if (!applied) return new Status(name, ABSENT, 0, 0);
+        String[] keys = linkedIn ? PatchSwitches.linkedIn(name) : new String[0];
+        String title = linkedIn ? null : PatchSwitches.host(name);
+        int switches = 0;
+        int on = 0;
+        for (Page page : pages) {
+            for (Row row : page.rows) {
+                boolean mine;
+                if (row.toggle != null) {
+                    mine = title != null && title.equals(row.title);
+                } else {
+                    mine = row.pref != null && Arrays.asList(keys).contains(row.pref);
+                }
+                if (!mine) continue;
+                switches++;
+                if (row.toggle != null ? row.toggle.get() : Settings.get(row.pref, row.fallback)) on++;
+            }
+        }
+        if (switches == 0) return new Status(name, ALWAYS, 0, 0);
+        return new Status(name, on > 0 ? ON : OFF, switches, on);
+    }
+
+    /** Patch status: how many patches are on right now, filter chips, then a card per patch with what it does. */
+    private void drawStatus(Page page) {
+        List<Status> all = new ArrayList<>();
+        for (String name : page.applied) all.add(statusOf(name, true));
+        for (String name : page.notApplied) all.add(statusOf(name, false));
+        int total = all.size();
+        int[] count = new int[4];
+        for (Status status : all) count[status.state]++;
+        int running = count[ON] + count[ALWAYS];
+
+        LinearLayout summary = column();
+        summary.setPadding(dp(20), dp(16), dp(20), dp(18));
+        summary.setBackground(rounded(surface, 20));
+        LinearLayout figures = new LinearLayout(this);
+        figures.setOrientation(LinearLayout.HORIZONTAL);
+        figures.setGravity(Gravity.BOTTOM);
+        figures.addView(label(String.valueOf(running), 34, ink, true));
+        TextView of = label(f("of %1$s patches on", total), 15, inkMuted, false);
+        of.setPadding(dp(8), 0, 0, dp(5));
+        figures.addView(of);
+        summary.addView(figures);
+        StringBuilder rest = new StringBuilder();
+        if (count[OFF] > 0) rest.append(f("%1$s off", count[OFF]));
+        if (count[ABSENT] > 0) {
+            if (rest.length() > 0) rest.append("  \u00B7  ");
+            rest.append(f("%1$s not applied", count[ABSENT]));
+        }
+        if (rest.length() > 0) {
+            TextView line = label(rest.toString(), 14, inkMuted, false);
+            line.setPadding(0, dp(2), 0, 0);
+            summary.addView(line);
+        }
+        if (total > 0) {
+            LinearLayout bar = new LinearLayout(this);
+            bar.setOrientation(LinearLayout.HORIZONTAL);
+            GradientDrawable track = new GradientDrawable();
+            track.setCornerRadius(dp(6));
+            track.setColor((inkMuted & 0x00FFFFFF) | 0x40000000);
+            bar.setBackground(track);
+            bar.setClipToOutline(true);
+            View done = new View(this);
+            done.setBackgroundColor(accent);
+            bar.addView(done, new LinearLayout.LayoutParams(0, dp(12), (float) running));
+            View off = new View(this);
+            off.setBackgroundColor(offColor());
+            bar.addView(off, new LinearLayout.LayoutParams(0, dp(12), (float) count[OFF]));
+            bar.addView(new View(this), new LinearLayout.LayoutParams(0, dp(12), (float) count[ABSENT]));
+            LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, dp(12));
+            barParams.topMargin = dp(12);
+            summary.addView(bar, barParams);
+        }
+        LinearLayout.LayoutParams summaryParams = wide();
+        summaryParams.setMargins(dp(16), dp(8), dp(16), dp(4));
+        summary.setLayoutParams(summaryParams);
+        content.addView(summary);
+
+        LinearLayout chips = new LinearLayout(this);
+        chips.setOrientation(LinearLayout.HORIZONTAL);
+        chips.setPadding(dp(16), dp(10), dp(16), dp(6));
+        chips.addView(statusChip(tr("All") + " " + total, 0));
+        chips.addView(statusChip(tr("On") + " " + running, 1));
+        chips.addView(statusChip(tr("Off") + " " + count[OFF], 2));
+        chips.addView(statusChip(tr("Not applied") + " " + count[ABSENT], 3));
+        content.addView(chips);
+
+        boolean shown = false;
+        for (Status status : all) {
+            boolean keep = statusFilter == 0
+                    || (statusFilter == 1 && (status.state == ON || status.state == ALWAYS))
+                    || (statusFilter == 2 && status.state == OFF)
+                    || (statusFilter == 3 && status.state == ABSENT);
+            if (!keep) continue;
+            content.addView(statusCard(status));
+            shown = true;
+        }
+        if (!shown) {
+            TextView none = label(tr("Nothing here."), 15, inkMuted, false);
+            none.setPadding(dp(20), dp(16), dp(20), dp(16));
+            content.addView(none);
+        }
+        if ((statusFilter == 0 || statusFilter == 3) && count[ABSENT] > 0) {
+            TextView hint = label("To add the ones that are not applied, patch the app again in Morphe Manager "
+                    + "with them ticked.", 13, inkMuted, false);
+            hint.setPadding(dp(20), dp(6), dp(20), dp(16));
+            content.addView(hint);
+        }
+    }
+
+    private View statusChip(String text, int which) {
+        boolean on = statusFilter == which;
+        TextView chip = label(text, 14, on ? background : ink, false);
+        chip.setPadding(dp(12), dp(7), dp(12), dp(7));
+        GradientDrawable shape = new GradientDrawable();
+        shape.setCornerRadius(dp(40));
+        if (on) shape.setColor(accent);
+        else shape.setStroke(dp(1), divider);
+        chip.setBackground(shape);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.rightMargin = dp(6);
+        chip.setLayoutParams(params);
+        chip.setOnClickListener(v -> {
+            statusFilter = which;
+            refresh();
+        });
+        return chip;
+    }
+
+    private View statusCard(Status status) {
+        int tone = status.state == OFF ? offColor() : status.state == ABSENT ? inkMuted : accent;
+        String word = status.state == ON ? "On" : status.state == ALWAYS ? "Applied"
+                : status.state == OFF ? "Off" : "Not applied";
+        LinearLayout card = column();
+        card.setPadding(dp(16), dp(13), dp(16), dp(14));
+        card.setBackground(rounded(surface, 20));
+        LinearLayout top = new LinearLayout(this);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        top.addView(label(status.name, 16, status.state == ABSENT ? inkMuted : ink, true), weightOne());
+        TextView pill = label(tr(word), 12, tone, true);
+        pill.setPadding(dp(10), dp(3), dp(10), dp(3));
+        GradientDrawable shape = new GradientDrawable();
+        shape.setCornerRadius(dp(40));
+        shape.setColor((tone & 0x00FFFFFF) | (status.state == ALWAYS ? 0x1F000000 : 0x2E000000));
+        pill.setBackground(shape);
+        top.addView(pill);
+        card.addView(top);
+        String line = PatchBlurbs.of(status.name);
+        if (status.switches > 1) {
+            line = f("%1$s of %2$s switches on.", status.on, status.switches) + (line.isEmpty() ? "" : " " + line);
+        }
+        if (!line.isEmpty()) {
+            TextView blurb = label(line, 13, inkMuted, false);
+            blurb.setPadding(0, dp(4), 0, 0);
+            card.addView(blurb);
+        }
+        LinearLayout.LayoutParams params = wide();
+        params.setMargins(dp(16), dp(5), dp(16), dp(5));
+        card.setLayoutParams(params);
+        return card;
     }
 
     private void drawPageList() {

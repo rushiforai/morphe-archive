@@ -27,7 +27,7 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     FACEBOOK_PROFILE_HEADER to setOf(SYNTHETIC_PROFILE_HEADER),
     "ai_menu" to setOf("LX/HFe;->A00()Z", "LX/HFe;->A01()Z", "LX/Jiu;->A00()Z", "LX/Jiu;->A01()Z"),
     "ai_fab" to setOf("LX/6k8;->render(LX/2MZ;)LX/1GG;"),
-    "ai_sticker_cell" to setOf("LX/GEu;->render(LX/27r;)LX/1F6;"),
+    "ai_sticker_cell" to setOf("LX/LtJ;->render(LX/2Gk;)LX/1Jx;"),
     "ai_sticker_grid" to setOf("LX/CZ2;->render(LX/2ED;)LX/1IG;"),
     "subtabs" to setOf("LX/2UL;->run()V"),
     "typing" to setOf("LX/Ahp;->run()V"),
@@ -122,6 +122,7 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     TAB_BAR_OVERLAY to setOf(SYNTHETIC_TAB_BAR_BUILDER),
     TAB_BAR_SCROLL_AWAY to setOf(SYNTHETIC_CHATS_SCROLL_AWAY, SYNTHETIC_CHATS_SLIDE, SYNTHETIC_SLIDE_START, SYNTHETIC_SLIDE_GATE),
     TAB_SWIPE to setOf(SYNTHETIC_TAB_SWIPE),
+    FLOATING_PILL to setOf(SYNTHETIC_FLOATING_PILL),
     AVATAR_SHAPE to setOf(SYNTHETIC_VITO_ROUNDING, SYNTHETIC_LEGACY_ROUNDING, SYNTHETIC_TILE_SHAPE, SYNTHETIC_TILE_SETUP, SYNTHETIC_TILE_PLACEHOLDER),
     STORY_RING to setOf(SYNTHETIC_RING_MOUNT, SYNTHETIC_RING_DRAW),
     QUIET_CALL_RING to setOf(SYNTHETIC_RING_DECISION),
@@ -209,6 +210,7 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     INVISIBLE_BUTTONS to setOf(SYNTHETIC_CHAT_JUMP),
     IOS_BARS to setOf(SYNTHETIC_CHAT_JUMP),
     REFRESH_RATE to setOf(SYNTHETIC_REFRESH_RATE),
+    STORY_ROW_SIZE to setOf(SYNTHETIC_REFRESH_RATE),
     "chat_inbox" to setOf("LX/1fs;-><init>()V"),
     "chat_legacy" to setOf("LX/1hd;->onCreateAnimation(IZI)$ANIMATION"),
     "people" to setOf("LX/1pm;->A0C()Z", "LX/2Wl;->A04()Z"),
@@ -232,6 +234,8 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     TAB_NOTIFICATIONS to setOf("LX/1iN;->A08(LX/1iN;)Z"),
     "mark_read_action" to setOf("LX/KHu;->A0W()Z", "LX/MKS;->A0F()Z"),
     CHAT_BAR_PLUS to setOf(SYNTHETIC_CHAT_JUMP),
+    MARK_READ_LOCALLY to setOf(SYNTHETIC_MARK_READ_LOCALLY),
+    UNREAD_BADGE to setOf(SYNTHETIC_UNREAD_BADGE),
 )
 
 /**

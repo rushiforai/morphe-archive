@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 
-DEFAULT_PATCHER = os.path.join(os.path.dirname(os.getcwd()), "docscanner-work", "tools", "morphe.jar")
+DEFAULT_PATCHER = os.path.join(os.path.dirname(os.getcwd()), "Loki-Tools", "morphe.jar")
 
 
 def inputs(folder):

@@ -331,6 +331,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean hdrPhotos() {
+        return false;
+    }
+
     /** Rewritten by the Stop videos looping patch. */
     public static boolean stopLooping() {
         return false;
@@ -524,6 +528,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by Hide comments when the (i) on the row above a comment sheet's comments was found too. */
+    public static boolean commentAboutButton() {
+        return false;
+    }
+
     public static boolean commentEmojiRow() {
         return false;
     }
@@ -562,6 +571,11 @@ public final class SettingsStatus {
     }
 
     public static boolean menuItems() {
+        return false;
+    }
+
+    /** Rewritten by Three-dot menu items when both menus' Interested decisions were found too. */
+    public static boolean interestedEverywhere() {
         return false;
     }
 

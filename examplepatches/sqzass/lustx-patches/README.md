@@ -6,6 +6,47 @@
 
 A grab-bag of patches for apps I actually use... mostly. Most of it is universal patches that work across a bunch of apps, with a few app-specific ones thrown in.
 
+## Up Next
+
+Below will contain apps that I plan on trying to get patched. If empty, you can just assume there's nothing on my mind.
+
+### Moises
+
+- Unlock Premium
+
+### Telegram
+
+- basically what every other repo has added so far
+- Lustx custom themes (not so sure about this one)
+
+### SoundCloud
+
+- Unlock SoundCloud Go
+- Change Primary Color (default 2 AMOLED black)
+- Change Accent Color (swap out that SC orange)
+
+### Audiomack
+
+- Premium unlock (offline listening, no ads, hi-fi toggle)
+- Change Primary Color (default 2 AMOLED black)
+- Change Accent Color (swap out that orange)
+
+### Deezer
+
+- Force Premium Tier
+- Disable Upsell Screens
+
+### Discord
+
+#### huge shoutout to Venus, i will probably end up forking their work (if license allows). code will credit where due.
+
+still deciding. Asscord? Lustcord? Xcord? Luxcord?
+
+### MacroDroid
+
+- Unlock Premium
+- Restore Marketplace (most the time disables depending on build)
+
 ## Get started
 
 Add this repo as a patch source in Morphe Manager:
@@ -30,7 +71,7 @@ Note: anything you put in `apks/` gets processed and deleted once it's done. Not
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.30.0](https://github.com/sqzass/lustx-patches/releases/tag/v1.30.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
+> **[v1.32.1](https://github.com/sqzass/lustx-patches/releases/tag/v1.32.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;48 patches total
 <details>
 <summary>📦 PortDroid - Network Analysis&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -44,6 +85,46 @@ Note: anything you put in `apks/` gets processed and deleted once it's done. Not
 |----------|----------------|-----------|
 | [Bypass signature check](#bypass-signature-check) | Bypasses PortDroid's signature check so the re-signed app passes validation. |  |
 | [Unlock Pro](#unlock-pro) | Unlocks PortDroid Pro features (forces the pro gate and billing status). |  |
+
+</details>
+
+<details>
+<summary>📦 Proton VPN&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.21.57.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Change App Icon](#change-app-icon) | Custom PNG icons + labels for the spoofed Calculator / Notes / Weather slots. Real Proton logos are never touched. | • All three: icon<br>• All three: label<br>• Calculator icon (override)<br>• Calculator label (override)<br>• Notes icon (override)<br>• Notes label (override)<br>• Weather icon (override)<br>• Weather label (override)<br>• Flat fallback<br>• Restore in-app name |
+| [Disable Telemetry](#disable-telemetry) | Forces the observability feature flag off and short-circuits telemetry enqueue, upload, and the payments observability worker. |  |
+| [Hide Upgrade Promotions](#hide-upgrade-promotions) | Kills the upgrade dialog, plan congrats screen, and promo offer activity on launch. |  |
+| [Lustx Unlocks](#lustx-unlocks) | Unlocks premium features on free plans. Each feature can be toggled individually. | • Unlock LAN connections<br>• Unlock NetShield<br>• Unlock custom DNS<br>• Unlock split tunneling<br>• Unlock connection preferences<br>• Unlock profiles<br>• Unlock VPN Accelerator<br>• Unlock NAT type<br>• Filter excluded locations |
+| [Remove Server Change Delay](#remove-server-change-delay) | Removes the cooldown timer when switching between free servers. |  |
+| [Show Free Server Locations](#show-free-server-locations) | Shows free server locations in the Countries list and Search, and connects to them on free plans. Paid servers stay hidden and locked. |  |
+
+</details>
+
+<details>
+<summary>📦 Proton VPN&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.21.57.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Change App Icon](#change-app-icon) | Custom PNG icons + labels for the spoofed Calculator / Notes / Weather slots. Real Proton logos are never touched. | • All three: icon<br>• All three: label<br>• Calculator icon (override)<br>• Calculator label (override)<br>• Notes icon (override)<br>• Notes label (override)<br>• Weather icon (override)<br>• Weather label (override)<br>• Flat fallback<br>• Restore in-app name |
+| [Disable Telemetry](#disable-telemetry) | Forces the observability feature flag off and short-circuits telemetry enqueue, upload, and the payments observability worker. |  |
+| [Hide Upgrade Promotions](#hide-upgrade-promotions) | Kills the upgrade dialog, plan congrats screen, and promo offer activity on launch. |  |
+| [Lustx Unlocks](#lustx-unlocks) | Unlocks premium features on free plans. Each feature can be toggled individually. | • Unlock LAN connections<br>• Unlock NetShield<br>• Unlock custom DNS<br>• Unlock split tunneling<br>• Unlock connection preferences<br>• Unlock profiles<br>• Unlock VPN Accelerator<br>• Unlock NAT type<br>• Filter excluded locations |
+| [Remove Server Change Delay](#remove-server-change-delay) | Removes the cooldown timer when switching between free servers. |  |
+| [Show Free Server Locations](#show-free-server-locations) | Shows free server locations in the Countries list and Search, and connects to them on free plans. Paid servers stay hidden and locked. |  |
 
 </details>
 
@@ -106,21 +187,6 @@ Note: anything you put in `apks/` gets processed and deleted once it's done. Not
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Forces Super VPN VIP state, premium UserInfo state, disables promo banners, and suppresses crown/privacy/TV paywall triggers. |  |
-
-</details>
-
-<details>
-<summary>📦 MEGA&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 16.15.2(263201951)(c9da563417) |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Pro](#unlock-pro) | Unlocks all MEGA Pro features and removes ads. i'm actually not entirely sure it works - think it's jst cosmetic lol. | • Pro tier |
 
 </details>
 

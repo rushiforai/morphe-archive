@@ -572,6 +572,8 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	�
 Hide profile notes	ซ่อนโน้ตบนโปรไฟล์
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	ซ่อนบับเบิลโน้ตบนรูปโปรไฟล์ จะมีผลในครั้งถัดไปที่คุณเปิดโปรไฟล์
+Hide the gift button on profiles	ซ่อนปุ่มของขวัญในโปรไฟล์
+Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	นำปุ่มส่งของขวัญออกจากโปรไฟล์ของคนอื่น จะมีผลในครั้งถัดไปที่คุณเปิดโปรไฟล์
 # context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
 Save button under posts	ปุ่มบันทึกใต้โพสต์
 # context: summary of that switch; Like, Comment and Share are the buttons under a post
@@ -3167,8 +3169,8 @@ Adds Facebook chats to Android's share menu. A photo or video you share there is
 Share to Facebook chats is off.	แชร์ไปยังแชท Facebook ปิดอยู่
 Nothing in it to send.	ไม่มีอะไรให้ส่ง
 Couldn't save it to your gallery.	บันทึกลงแกลเลอรีไม่ได้
-Copied and saved. Pick a chat.	คัดลอกและบันทึกแล้ว เลือกแชท
-In your gallery now. Pick a chat.	อยู่ในแกลเลอรีแล้ว เลือกแชท
+Copied and saved. Paste and attach in a chat.	คัดลอกและบันทึกแล้ว วางและแนบในแชท
+Saved to your gallery. Attach it in a chat.	บันทึกลงแกลเลอรีแล้ว แนบในแชทได้เลย
 Copied. Pick a chat and paste it.	คัดลอกแล้ว เลือกแชทแล้ววาง
 Open your chats to pick one.	เปิดแชทเพื่อเลือกหนึ่งแชท
 Post date after the caption	วันที่โพสต์หลังคำบรรยาย
@@ -3185,3 +3187,17 @@ Open a chat, then come back here to give it a color of its own.	เปิดแ�
 %1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s ซึ่งเป็นแชทล่าสุดที่คุณเปิด ใช้พื้นหลังแชทด้านบน พิมพ์รหัสสีเพื่อตั้งสีเฉพาะให้
 %1$s, the last chat you opened, is %2$s.	%1$s ซึ่งเป็นแชทล่าสุดที่คุณเปิด เป็นสี %2$s
 Type one color code, or two for a fade from top to bottom.	พิมพ์รหัสสีหนึ่งรหัส หรือสองรหัสเพื่อไล่สีจากบนลงล่าง
+Hide the AI content label on reels	ซ่อนป้ายเนื้อหา AI บน Reels
+Takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. A change shows from the next reel.	นำป้าย "เนื้อหา AI" หรือ "ข้อมูล AI" ออกจาก Reels ที่ Facebook ระบุว่าสร้างด้วย AI การเปลี่ยนแปลงจะแสดงตั้งแต่ Reel ถัดไป
+The %1$s row will be set to %2$s.	แถว %1$s จะถูกตั้งค่าเป็น %2$s
+The %1$s row will go back to its default.	แถว %1$s จะกลับเป็นค่าเริ่มต้น
+Save files to Downloads	บันทึกไฟล์ลงในโฟลเดอร์ดาวน์โหลด
+A PDF, document or other file you download from a post goes to your phone's Downloads folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.	ไฟล์ PDF เอกสาร หรือไฟล์อื่นที่คุณดาวน์โหลดจากโพสต์จะไปอยู่ในโฟลเดอร์ดาวน์โหลดของโทรศัพท์ ซึ่งแอปจัดการไฟล์เปิดได้ หากปิด Facebook จะเก็บไฟล์ไว้ในที่ที่แอปจัดการไฟล์เข้าไม่ถึง
+Hide hashtags in reel captions	ซ่อนแฮชแท็กในคำบรรยาย Reels
+Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	นำแฮชแท็กออกจากคำบรรยาย Reels เช่น กลุ่มแท็กท้ายคำบรรยาย แฮชแท็กที่เป็นส่วนหนึ่งของประโยคยังอยู่ การเปลี่ยนแปลงจะแสดงตั้งแต่ Reel ถัดไป
+Keep the keyboard closed when comments open	ปิดแป้นพิมพ์ไว้เมื่อเปิดความคิดเห็น
+Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	ความคิดเห็นเปิดขึ้นโดยไม่มีแป้นพิมพ์เด้งขึ้นมา แม้ในโพสต์ที่ยังไม่มีความคิดเห็น แตะช่องแสดงความคิดเห็นเมื่อต้องการเขียน
+Settings language	ภาษาของการตั้งค่า
+Same as Facebook	เหมือนกับ Facebook
+Show feed reels uncropped	แสดง Reels ในฟีดแบบไม่ครอป
+Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Reels ในฟีดของคุณจะแสดงภาพเต็มตามสัดส่วนของตัวเอง แทนที่จะถูกครอปให้พอดีกับกรอบของ Facebook Reels ที่โหลดขึ้นมาหลังจากนี้จะเริ่มใช้การตั้งค่าดังกล่าว

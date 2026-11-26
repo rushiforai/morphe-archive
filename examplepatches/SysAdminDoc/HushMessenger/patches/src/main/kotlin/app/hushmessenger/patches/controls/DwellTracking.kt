@@ -23,7 +23,10 @@ internal const val DWELL_TRACKING = "dwell_tracking"
 internal const val DWELL_EVENT = "fb_ads_fine_grained_dwell"
 internal const val DWELL_TIMESTAMPS = "fine_grained_dwell_timestamps"
 
-/** The same timestamps again, copied onto the user journey log under its own gate right after the report. */
+/**
+ * The same timestamps again, copied onto the user journey log under its own gate right after the report. 588 dropped
+ * the copy, so a report without one is taken with its one gate.
+ */
 internal const val DWELL_JOURNEY = "ujl_internal_default_journey"
 
 internal const val DWELL_HELPER = "$SETTINGS->dwellLogged(Z)Z"
@@ -72,23 +75,28 @@ private fun Method.dwellGates(): List<DwellGate> {
 }
 
 /**
- * The two gates the switch answers for: the one right after the report's name is read, which asks whether this report
- * is being sampled at all, and the last one before the journey copy, which asks whether that copy is turned on. Both
- * skip straight past their block when the answer is no, so a no from here leaves the session's own bookkeeping, its
- * map cleanup and every other report exactly as Messenger wrote them.
+ * The gates the switch answers for: the one right after the report's name is read, which asks whether this report is
+ * being sampled at all, and, on a build that still copies the report onto the journey log, the last one before that
+ * copy, which asks whether it's turned on. Each skips straight past its block when the answer is no, so a no from here
+ * leaves the session's own bookkeeping, its map cleanup and every other report exactly as Messenger wrote them.
  */
 internal fun MutableMethod.validateDwellTracking(): List<DwellGate> {
     if (!isDwellReport()) dwellChanged("builder ${hookId()}")
     val code = dwellCode()
     val named = stringAt(DWELL_EVENT)
     val timestamps = stringAt(DWELL_TIMESTAMPS)
-    val journey = stringAt(DWELL_JOURNEY)
+    val copies = code.any { (it.dwellRef() as? StringReference)?.string == DWELL_JOURNEY }
+    val journey = if (copies) stringAt(DWELL_JOURNEY) else -1
     if (timestamps <= named) dwellChanged("the timestamps are read before the report is named")
-    if (journey <= timestamps) dwellChanged("the journey copy comes before the report")
+    if (copies && journey <= timestamps) dwellChanged("the journey copy comes before the report")
     val gates = dwellGates()
     val report = gates.firstOrNull { it.branch > named } ?: dwellChanged("the report's own gate")
     if (report.branch >= timestamps) dwellChanged("the report's gate sits inside its own block")
     if (code.branchTarget(report.branch) <= timestamps) dwellChanged("the report's gate doesn't skip the report")
+    if (!copies) {
+        if (report.answer > 15) dwellChanged("a gate's answer is out of reach")
+        return listOf(report)
+    }
     val copy = gates.lastOrNull { it.branch < journey } ?: dwellChanged("the journey copy's gate")
     if (copy.branch <= report.branch) dwellChanged("one gate answers for both blocks")
     if (code.branchTarget(copy.branch) <= journey) dwellChanged("the journey copy's gate doesn't skip the copy")

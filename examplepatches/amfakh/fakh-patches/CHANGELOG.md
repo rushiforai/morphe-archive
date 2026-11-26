@@ -1,3 +1,40 @@
+## [2.15.0](https://github.com/amfakh/fakh-patches/compare/v2.14.2...v2.15.0) (2026-11-26)
+
+### New Features
+
+* **LinkedIn:** add muted words and muted authors ([30a7750](https://github.com/amfakh/fakh-patches/commit/30a7750081b2ad263e40ed0cbd697a2787643e20))
+* **LinkedIn:** add Hide Follow and Connect and Hide connection degree ([c344f7d](https://github.com/amfakh/fakh-patches/commit/c344f7d4bcbdfddb3371fe4579679e23c308879d))
+* **LinkedIn:** add Show exact post time ([c344f7d](https://github.com/amfakh/fakh-patches/commit/c344f7d4bcbdfddb3371fe4579679e23c308879d))
+* **LinkedIn:** add Most recent comments first ([c344f7d](https://github.com/amfakh/fakh-patches/commit/c344f7d4bcbdfddb3371fe4579679e23c308879d))
+* **LinkedIn:** add Mark as read when you reply ([f3f8169](https://github.com/amfakh/fakh-patches/commit/f3f816977afa85bc8b67501d506cad958b6040b3))
+* **LinkedIn:** add the Feed sort button to Top bar buttons ([cc5ce92](https://github.com/amfakh/fakh-patches/commit/cc5ce92be16e6c6a8da57a1c0c990fcd807ba3c2))
+* **LinkedIn:** show the video time in the full screen viewer ([408bd3f](https://github.com/amfakh/fakh-patches/commit/408bd3fff410bfb9dd706d7f4a907a239eed428e))
+* **LinkedIn:** group Fakh Patches settings into category pages ([8241aba](https://github.com/amfakh/fakh-patches/commit/8241aba070f8a3f6c85c8e05c254ca29180d4743))
+
+### Bug Fixes
+
+* **LinkedIn:** play videos in an added Video tab ([9f2e4e1](https://github.com/amfakh/fakh-patches/commit/9f2e4e14c451ca5190d7d893364e29e4528ed95d))
+* BARDI Smart Home, CNN Indonesia and KOMPAS.com show their themed icon instead of the default one on more launchers ([eb0c9b7](https://github.com/amfakh/fakh-patches/commit/eb0c9b7a33a0f9ea03ca8dfe4f73c0e20c2a1b9a))
+
+## [2.14.2](https://github.com/amfakh/fakh-patches/compare/v2.14.1...v2.14.2) (2026-11-26)
+
+### Bug Fixes
+
+* GmsCore support is on by default ([6672205](https://github.com/amfakh/fakh-patches/commit/6672205b238d2d2a5437bfc17b2a6c6ba5463645))
+* **Muslim Pro:** show a toast when microG RE is missing ([6672205](https://github.com/amfakh/fakh-patches/commit/6672205b238d2d2a5437bfc17b2a6c6ba5463645))
+
+## [2.14.1](https://github.com/amfakh/fakh-patches/compare/v2.14.0...v2.14.1) (2026-11-26)
+
+### Updated App Support
+
+* **Windy:** add support for `51.4.4`, next to `51.3.2` ([7a710f6](https://github.com/amfakh/fakh-patches/commit/7a710f6526e1a93c7df5b0bc7974953078246fd2))
+
+## [2.14.0](https://github.com/amfakh/fakh-patches/compare/v2.13.0...v2.14.0) (2026-11-26)
+
+### New Features
+
+* **Windy:** add GmsCore support ([33a1a11](https://github.com/amfakh/fakh-patches/commit/33a1a11f1c0a8f1dfb4f741dbaf2dca13c90fb71)), closes [#12](https://github.com/amfakh/fakh-patches/issues/12)
+
 ## [2.13.0](https://github.com/amfakh/fakh-patches/compare/v2.12.1...v2.13.0) (2026-11-25)
 
 ### New Features

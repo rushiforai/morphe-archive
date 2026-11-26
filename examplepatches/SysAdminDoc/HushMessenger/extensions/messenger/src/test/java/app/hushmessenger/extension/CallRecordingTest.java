@@ -200,6 +200,7 @@ public class CallRecordingTest {
         open();
         callStarts();
         assertEquals("Record", pill().getText().toString());
+        assertEquals("#191: listed in Invisible buttons by its words", "Record", InvisibleButtons.nameOf(pill()));
         callEnds();
         assertNull(pill());
     }

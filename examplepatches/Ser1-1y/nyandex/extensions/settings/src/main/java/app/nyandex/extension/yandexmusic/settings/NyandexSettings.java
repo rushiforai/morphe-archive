@@ -34,16 +34,16 @@ public final class NyandexSettings {
     /** Choices for the number of lyrics kept on disk; 0 keeps none. Must contain the default. */
     static final int[] LYRICS_CACHE_LIMITS = {0, 500, 1000, 3000, 10000};
     static final int LYRICS_CACHE_LIMIT_DEFAULT = 3000;
+    static final int LYRICS_OFFSET_STEP_MS = 100;
+    static final int LYRICS_OFFSET_LIMIT_MS = 5000;
     static final String LYRICS_CLASS = "app.nyandex.extension.yandexmusic.lyrics.LrcLibLyrics";
 
-    /** Keys read by the haptics extension (HapticsHook): switch name, default. */
+    /** Keys read by the haptics extension (HapticsHook). */
     static final String HAPTICS_CLASS = "app.nyandex.extension.yandexmusic.haptics.HapticsHook";
     static final String HAPTICS_BUTTONS_KEY = "haptics_buttons";
     static final String HAPTICS_OTHER_TAPS_KEY = "haptics_other_taps";
     static final String HAPTICS_LONG_PRESS_KEY = "haptics_long_press";
     static final String HAPTICS_REFRESH_KEY = "haptics_refresh";
-    static final int LYRICS_OFFSET_STEP_MS = 100;
-    static final int LYRICS_OFFSET_LIMIT_MS = 5000;
 
     /**
      * Bottom bar tabs, by the name of the app's tab enum constant, in bar order.
@@ -64,7 +64,7 @@ public final class NyandexSettings {
     }
 
     /**
-     * Whether the "Hide bottom bar tabs" patch is applied. The patch replaces this method so it
+     * Whether the «Скрыть вкладки нижней панели» patch is applied. The patch replaces this method so it
      * returns true; the settings page shows the tab section only then.
      */
     public static boolean bottomTabsAvailable() {
@@ -95,7 +95,7 @@ public final class NyandexSettings {
     }
 
     /**
-     * Whether the "Hide promo and offers" patch is applied. The patch replaces this method so it
+     * Whether the «Скрыть рекламу и промо» patch is applied. The patch replaces this method so it
      * returns true; the settings page shows the promo section only then.
      */
     public static boolean promoAvailable() {
@@ -142,7 +142,7 @@ public final class NyandexSettings {
         if (preferences != null) preferences.edit().putBoolean(HIDDEN_TAB_PREFIX + tab, hidden).apply();
     }
 
-    /** Whether the "Haptic feedback" patch is applied (its extension class is in the app). */
+    /** Whether the «Тактильный отклик» patch is applied (its extension class is in the app). */
     static boolean hapticsAvailable() {
         try {
             Class.forName(HAPTICS_CLASS);
@@ -162,7 +162,7 @@ public final class NyandexSettings {
         if (preferences != null) preferences.edit().putBoolean(key, enabled).apply();
     }
 
-    /** The lyrics extension class, present only when the "LRCLIB lyrics" patch is applied. */
+    /** The lyrics extension class, present only when the «Тексты песен из LRCLIB» patch is applied. */
     static Class<?> lyricsClass() {
         try {
             return Class.forName(LYRICS_CLASS);

@@ -34,6 +34,20 @@ public class ChatPreviewTest {
         assertFalse("The next long press after switching off gets the plain menu", Settings.chatPreview(false));
     }
 
+    @Test public void aFreshStartHoldsThePreviewBackOnlyWhileTheSwitchIsOff() {
+        assertTrue("Meta's hold stays while the switch is off", Settings.chatPreviewCold(1));
+        assertFalse(Settings.chatPreviewCold(0));
+        assertEquals(0, Settings.lastActive("chat_preview"));
+
+        Settings.preferences.edit().putBoolean("chat_preview", true).commit();
+        assertFalse("The first long press after a restart opens the preview", Settings.chatPreviewCold(1));
+        assertFalse(Settings.chatPreviewCold(0));
+        assertTrue(Settings.lastActive("chat_preview") > 0);
+
+        Settings.preferences.edit().putBoolean("chat_preview", false).commit();
+        assertTrue(Settings.chatPreviewCold(1));
+    }
+
     @Test public void offPauseSafeModeAndAMissingControlKeepMetasAnswer() {
         for (String state : new String[] {"off", "paused", "safe", "missing"}) {
             Settings.initialize(RuntimeEnvironment.getApplication());
@@ -45,6 +59,8 @@ public class ChatPreviewTest {
             Settings.activeAt.clear();
             assertFalse(state, Settings.chatPreview(false));
             assertTrue(state, Settings.chatPreview(true));
+            assertTrue(state, Settings.chatPreviewCold(1));
+            assertFalse(state, Settings.chatPreviewCold(0));
             assertEquals(state, 0, Settings.lastActive("chat_preview"));
         }
     }

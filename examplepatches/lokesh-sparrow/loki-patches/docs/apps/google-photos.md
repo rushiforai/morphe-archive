@@ -3,7 +3,7 @@
 
 ![version](https://img.shields.io/badge/version-8.1.0.1023737660-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-4-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APKM%20%28Android%208%2B%29-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Account%20menu-6e7681?style=for-the-badge&labelColor=0d1117)
 
-[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.google.android.apps.photos`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.4.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.4.0)
+[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.google.android.apps.photos`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.5.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.5.0)
 
 **🎯 Supported versions:** `8.1.0.1023737660`
 <!-- HEADER_END -->

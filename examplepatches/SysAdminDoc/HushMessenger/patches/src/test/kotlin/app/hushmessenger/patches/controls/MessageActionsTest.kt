@@ -157,6 +157,26 @@ class MessageActionsTest {
         for (body in listOf(direct, twice)) assertEquals(setOf(ACTIONS_BAR), found(listOf(barClass(barMethod(body)), moreClass()), MESSAGE_ACTIONS))
     }
 
+    /** 588 asks for the row once and only asks it for the flag a few instructions on, along the same straight path. */
+    @Test fun a588RowAskedForItsFlagFurtherOnStillCounts() {
+        val ask = "move-result-object v3\ninvoke-interface {v3}, $SENT_CALL"
+        val later = changed(BAR_BODY, ask, "move-result-object v3\nconst/4 v4, 0x1\nif-eqz v4, :on\n:on\ninvoke-static {v3}, LX/Other;->use($ACTION_ROW)V\n" +
+            "invoke-interface {v3}, $SENT_CALL")
+        val classes = listOf(barClass(barMethod(later)), moreClass())
+        assertEquals(setOf(ACTIONS_BAR), found(classes, MESSAGE_ACTIONS))
+        validateControls(mirroredControls(classes), setOf(MESSAGE_ACTIONS))
+
+        val cases = mapOf(
+            "a row written over before its flag" to changed(BAR_BODY, ask, "move-result-object v3\nconst/4 v3, 0x0\ninvoke-interface {v3}, $SENT_CALL"),
+            "a flag asked past a jump" to changed(BAR_BODY, ask, "move-result-object v3\ngoto :ask\n:ask\ninvoke-interface {v3}, $SENT_CALL"),
+        )
+        for ((case, body) in cases) {
+            val refused = listOf(barClass(barMethod(body)), moreClass())
+            assertEquals(emptySet(), found(refused, MESSAGE_ACTIONS), case)
+            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(refused), setOf(MESSAGE_ACTIONS)) }
+        }
+    }
+
     @Test fun lookalikesAreNotTheActionBuilder() {
         val cases = mapOf(
             "no menuItems" to changed(BAR_BODY, "\"$MESSAGE_ACTIONS_MARK\"", "\"items\""),

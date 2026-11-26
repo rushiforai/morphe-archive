@@ -13,7 +13,7 @@
  * (inlined Cairo fragment flag).
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-21.
+ * Modified by lavinhoque33, 2026-11-25.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -47,10 +47,12 @@
 package app.morphe.patches.youtube.utils.settings
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.literal
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.literal
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -83,7 +85,6 @@ import app.morphe.patches.youtube.utils.fix.preference.fixPreferenceIconPatch
 import app.morphe.patches.youtube.utils.fix.splash.darkModeSplashScreenPatch
 import app.morphe.patches.youtube.utils.mainactivity.mainActivityResolvePatch
 import app.morphe.patches.youtube.utils.patch.PatchList.SETTINGS_FOR_YOUTUBE
-import app.morphe.patches.youtube.utils.playservice.is_19_28_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_31_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_12_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
@@ -112,8 +113,10 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -132,6 +135,123 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/youtube/settings/YouTubeActivityHook;"
 
 private lateinit var bytecodeContext: BytecodePatchContext
+private var legacySettingsMenusSupported = false
+
+private fun MutableMethod.overrideSettingsValue(index: Int, descriptor: String) {
+    val register = getInstruction<OneRegisterInstruction>(index).registerA
+
+    addInstructions(
+        index + 1,
+        """
+            invoke-static/range { v$register .. v$register }, $descriptor
+            move-result v$register
+        """
+    )
+}
+
+private fun Instruction.firstVirtualArgumentRegister() = when (opcode) {
+    Opcode.INVOKE_VIRTUAL -> (this as FiveRegisterInstruction).registerD
+    Opcode.INVOKE_VIRTUAL_RANGE -> (this as RegisterRangeInstruction).startRegister + 1
+    else -> -1
+}
+
+private fun MutableMethod.requireSettingsXmlArgument(index: Int) {
+    val register = getInstruction<OneRegisterInstruction>(index).registerA
+    val call = getInstruction(index + 1)
+    val reference = call.getReference<MethodReference>()
+
+    check(reference?.returnType == "V" && reference.parameterTypes == listOf("I") &&
+            call.firstVirtualArgumentRegister() == register) {
+        "Could not verify settings XML argument in $this"
+    }
+}
+
+context(_: BytecodePatchContext)
+private fun MutableMethod.cairoFlagResultIndices(): List<Int> {
+    val inlinedResults = implementation!!.instructions.withIndex().mapNotNull { (index, instruction) ->
+        if ((instruction as? WideLiteralInstruction)?.wideLiteral != CAIRO_FRAGMENT_FEATURE_FLAG) {
+            return@mapNotNull null
+        }
+
+        val resultIndex = indexOfFirstInstructionOrThrow(index, Opcode.MOVE_RESULT)
+        val call = getInstruction(resultIndex - 1)
+        val reference = call.getReference<MethodReference>()
+        val register = (instruction as OneRegisterInstruction).registerA
+
+        check(reference?.returnType == "Z" && reference.parameterTypes == listOf("J", "Z") &&
+                call.firstVirtualArgumentRegister() == register) {
+            "Could not verify inlined Cairo flag argument in $this"
+        }
+        resultIndex
+    }
+    if (inlinedResults.isNotEmpty()) return inlinedResults.distinct()
+
+    val configCall = cairoFragmentConfigFingerprint.methodCall()
+    val invokeIndex = indexOfFirstInstructionOrThrow {
+        opcode == Opcode.INVOKE_VIRTUAL && getReference<MethodReference>()?.toString() == configCall
+    }
+    val resultIndex = invokeIndex + 1
+    check(getInstruction(resultIndex).opcode == Opcode.MOVE_RESULT) { "Unexpected Cairo flag result in $this" }
+    return listOf(resultIndex)
+}
+
+context(_: BytecodePatchContext)
+private fun hookLegacySettingsMenu() {
+    val selector = "$GENERAL_CLASS_DESCRIPTOR->useLegacySettingsFragment(I)I"
+    check(settingsFragmentCairo > 0) { "Missing Cairo settings XML resource" }
+
+    if (settingsFragment < 0) {
+        // YouTube 21.39+ inflates Cairo unconditionally. Only substitute the XML at that call.
+        val inflation = Fingerprint(
+            name = "run",
+            returnType = "V",
+            filters = listOf(
+                methodCall(
+                    opcode = Opcode.INVOKE_VIRTUAL,
+                    definingClass = "Landroidx/preference/PreferenceGroup;",
+                    parameters = emptyList(),
+                    returnType = "V",
+                ),
+                literal(settingsFragmentCairo, location = MatchAfterImmediately()),
+                methodCall(
+                    opcode = Opcode.INVOKE_VIRTUAL,
+                    parameters = listOf("I"),
+                    returnType = "V",
+                    location = MatchAfterImmediately(),
+                ),
+            ),
+        ).matchAll().singleOrNull() ?: error("Could not identify the Cairo settings XML inflation call")
+
+        val xmlIndex = inflation.instructionMatches[1].index
+        inflation.method.apply {
+            requireSettingsXmlArgument(xmlIndex)
+            overrideSettingsValue(xmlIndex, selector)
+        }
+        return
+    }
+
+    val fragment = settingsFragmentSyntheticFingerprint.method
+    val legacyXmlIndex = fragment.indexOfFirstLiteralInstructionOrThrow(settingsFragment)
+    fragment.requireSettingsXmlArgument(legacyXmlIndex)
+
+    val primaryStyle = settingsFragmentStylePrimaryFingerprint
+    val sites = listOf(
+        fragment,
+        primaryStyle.method,
+        settingsFragmentStyleSecondaryFingerprint.match(primaryStyle.classDef).method,
+    ).map { method -> method to method.cairoFlagResultIndices() }
+
+    // Resolve every local call site before editing any of them. Never change the shared getter.
+    val disableCairo = "$EXTENSION_CLASS_DESCRIPTOR->disableCairoSettingsFragment(Z)Z"
+    sites.forEach { (method, indices) ->
+        val flagOverrides = indices.map { it to disableCairo }
+        val overrides = if (method === fragment) flagOverrides + (legacyXmlIndex to selector) else flagOverrides
+
+        overrides.sortedByDescending { (index, _) -> index }.forEach { (index, descriptor) ->
+            method.overrideSettingsValue(index, descriptor)
+        }
+    }
+}
 
 context(_: BytecodePatchContext)
 internal fun settingsFragmentReloadInstructions(register: Int): String {
@@ -160,107 +280,11 @@ internal val settingsBytecodePatch = bytecodePatch(
     execute {
         bytecodeContext = this
 
-        // region fix cairo fragment
-
-        if (is_21_41_or_greater) {
-            // Cairo is unconditional now. Keep the XML selector at its actual inflation site.
-            val legacySelector = "$GENERAL_CLASS_DESCRIPTOR->useLegacySettingsFragment(I)I"
-            Fingerprint(
-                returnType = "V",
-                filters = listOf(literal(settingsFragmentCairo)),
-            ).matchAll().forEach { match ->
-                val instruction = match.instructionMatches.single()
-                val register = instruction.getInstruction<OneRegisterInstruction>().registerA
-                match.method.addInstructions(
-                    instruction.index + 1,
-                    """
-                        invoke-static/range { v$register .. v$register }, $legacySelector
-                        move-result v$register
-                    """
-                )
-            }
-        } else if (is_19_28_or_greater) {
-            // YouTube 21.x+ inlines the Cairo flag check (const-wide + flag getter call)
-            // into its callers instead of calling a dedicated boolean getter.
-            fun MutableMethod.overrideInlinedCairoFragmentConfig(): Boolean {
-                val literalIndices = implementation!!.instructions.withIndex()
-                    .filter { (_, instruction) ->
-                        (instruction as? WideLiteralInstruction)?.wideLiteral == CAIRO_FRAGMENT_FEATURE_FLAG
-                    }
-                    .map { it.index }
-                // Insert from the bottom up so earlier indices stay valid.
-                literalIndices.asReversed().forEach { index ->
-                    insertLiteralOverride(
-                        index,
-                        "$EXTENSION_CLASS_DESCRIPTOR->disableCairoSettingsFragment(Z)Z"
-                    )
-                }
-                return literalIndices.isNotEmpty()
-            }
-
-            fun MutableMethod.disableCairoFragmentConfig() {
-                if (overrideInlinedCairoFragmentConfig()) return
-
-                val cairoFragmentConfigMethodCall = cairoFragmentConfigFingerprint
-                    .methodCall()
-                val insertIndex = indexOfFirstInstructionOrThrow {
-                    opcode == Opcode.INVOKE_VIRTUAL &&
-                            getReference<MethodReference>()?.toString() == cairoFragmentConfigMethodCall
-                } + 2
-                val insertRegister =
-                    getInstruction<OneRegisterInstruction>(insertIndex - 1).registerA
-                val invokeInstruction = if (insertRegister < 16) {
-                    "invoke-static { v$insertRegister }"
-                } else {
-                    "invoke-static/range { v$insertRegister .. v$insertRegister }"
-                }
-
-                addInstructions(
-                    insertIndex,
-                    """
-                        $invokeInstruction, $EXTENSION_CLASS_DESCRIPTOR->disableCairoSettingsFragment(Z)Z
-                        move-result v$insertRegister
-                    """
-                )
-            }
-
-            try {
-                arrayOf(
-                    // Load cairo fragment xml.
-                    settingsFragmentSyntheticFingerprint.method,
-                    // Set style to cairo preference.
-                    settingsFragmentStylePrimaryFingerprint.method,
-                    settingsFragmentStyleSecondaryFingerprint
-                        .match(settingsFragmentStylePrimaryFingerprint.classDef)
-                        .method,
-                ).forEach { method ->
-                    method.disableCairoFragmentConfig()
-                }
-            } catch (_: Exception) {
-                cairoFragmentConfigFingerprint.methodOrThrow().insertLiteralOverride(
-                    CAIRO_FRAGMENT_FEATURE_FLAG,
-                    "$EXTENSION_CLASS_DESCRIPTOR->disableCairoSettingsFragment(Z)Z"
-                )
-
-                printWarn("Failed to patch targeted Cairo settings fragment configs. Falling back to the global Cairo fragment config hook.")
-            }
-
-            runCatching {
-                settingsFragmentSyntheticFingerprint.method.apply {
-                    val index = indexOfFirstLiteralInstructionOrThrow(settingsFragment)
-                    val register = getInstruction<OneRegisterInstruction>(index).registerA
-
-                    addInstructions(
-                        index + 1, """
-                            invoke-static {v$register}, $GENERAL_CLASS_DESCRIPTOR->useLegacySettingsFragment(I)I
-                            move-result v$register
-                            """
-                    )
-                }
-            }.onFailure {
-                printWarn("Failed to hook legacy settings fragment. 'Restore old settings menu' may not restore the old settings XML.")
-            }
-        }
+        legacySettingsMenusSupported = runCatching {
+            hookLegacySettingsMenu()
+        }.onFailure {
+            printWarn("'Restore old settings menus' is unavailable: ${it.message}")
+        }.isSuccess
 
         if (is_20_31_or_greater && !is_21_12_or_greater) {
             boldIconsFeatureFlagMethodFingerprint.method.insertLiteralOverride(
@@ -588,8 +612,10 @@ val settingsPatch = resourcePatch(
             "PREFERENCE_SCREEN: GENERAL",
             "SETTINGS: THEME_SETTINGS",
             "PREFERENCE_CATEGORY: GENERAL_EXPERIMENTAL_FLAGS",
-            "SETTINGS: RESTORE_OLD_SETTINGS_MENUS",
         )
+        if (legacySettingsMenusSupported) {
+            generalExperimentalSettings += "SETTINGS: RESTORE_OLD_SETTINGS_MENUS"
+        }
         if (is_20_31_or_greater && !is_21_12_or_greater) {
             generalExperimentalSettings += "SETTINGS: DISABLE_BOLD_ICONS"
         }

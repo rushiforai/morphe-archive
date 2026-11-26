@@ -292,6 +292,8 @@ Block the advertising ID,屏蔽广告ID
 Block this commenter,屏蔽该评论者
 Block this creator,阻止该创作者
 Block this sound,阻止此声音
+Block sound,阻止声音
+Unblock sound,取消阻止声音
 Blocked,被阻止
 Blocked %1$s,已屏蔽 %1$s
 Blocked %1$s. Unblock,已阻止 %1$s。解锁
@@ -358,6 +360,8 @@ Clear preset,清除预设
 "Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.",清晰的屏幕隐藏了 LIVE 的聊天、礼物和按钮，因此只有流显示。 TikTok 仅将其放入某些房间的菜单中。这将其添加到其他内容中.
 Keep clear screen in the next LIVE,在下一个 LIVE 中保持清屏
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.",滑到下一个 LIVE 时，聊天、礼物和按钮会重新显示。此设置会让清屏在各个房间之间保持开启，直到你关闭它.
+Hide LIVE chat,隐藏 LIVE 聊天
+Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.,隐藏在 LIVE 画面上滚动的聊天消息。评论框和直播间的按钮会保留.
 Offer full screen in more LIVEs,在更多 LIVE 中提供全屏
 TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok 只在从电脑或共享屏幕直播的 LIVE 中显示全屏按钮。开启后，其他画面为横屏的 LIVE 也会显示它.
 Clear search,清除搜索
@@ -736,6 +740,7 @@ Hide every direct message conversation. Leaves the Inbox empty apart from whatev
 "Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.",隐藏带有地点徽章的信息流视频，即使它们不是付费广告。要保留视频并仅隐藏其徽章，请使用“信息流”屏幕中的“隐藏位置标签”.
 "Hide floating promotion badges, coins, and timer banners on the feed.",隐藏动态上的浮动促销徽章、硬币和计时器横幅.
 Hide floating promotions,隐藏浮动促销
+Hide from the host next time,下次对主播隐身
 Hide gaming LIVEs,隐藏游戏直播
 Hide inserted cards,隐藏插入的卡片
 Hide location labels,隐藏位置标签
@@ -1671,6 +1676,10 @@ Show search in LIVE,在 LIVE 中显示搜索
 Show the Not interested button,显示不感兴趣按钮
 Show the block button on videos,在视频上显示阻止按钮
 Show the block sound button,显示阻止声音按钮
+Show Block sound on sound pages,在声音页面显示阻止声音
+"Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound.",在声音页面（点视频上旋转的唱片打开的页面）的保存下方添加阻止声音按钮。会跳过所有使用该声音的视频.
+Hide sound page buttons,隐藏声音页面的按钮
+"Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens.",隐藏声音页面底部的 Jam Sound 和“使用声音”按钮，也就是点视频上旋转的唱片打开的页面.
 Show the country a commenter's account is set to after the comment's time. Comments from accounts TikTok sends no country for stay as they are.,显示评论者的账号在评论时间后设置的国家/地区。来自账号 TikTok 的评论不会按原样发送居住国家/地区.
 Show the country a video was posted from next to the creator's name.,在创作者姓名旁边显示视频发布的国家/地区.
 Show the country as a flag,将国家显示为国旗
@@ -2001,6 +2010,7 @@ The quality choice is still open,品质选择依然开放
 Couldn't read an interrupted change. Check your settings.,无法读取中断的更改。请检查你的设置.
 The recording couldn't be saved. Try again.,录音无法保存。再试一次.
 Size limit reached. Recording saved to %1$s,已达大小上限，录制已保存到 %1$s
+2 GB reached. Recording goes on in a new video.,已达 2 GB，录制将在新视频中继续.
 The report couldn't be saved. Try again.,无法保存报告。再试一次.
 The request timed out. The list may be incomplete.,请求超时。该列表可能不完整.
 The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.,收件箱顶部的一排故事头像出现了。故事仍然通过信息流和个人资料播放.
@@ -2367,7 +2377,7 @@ Blur the video behind the bar,模糊栏后面的视频
 LIVE recording source,LIVE 录制来源
 Stream only,仅直播流
 Screen,屏幕
-"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.",仅直播流会像以前一样保存直播间自己的视频。屏幕会录下手机观看时显示的内容，TikTok 有麦克风权限时还会带上应用播放的声音。安卓每次都会请你允许录屏，录制时也会显示它自己的提示.
+"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it.","仅直播流会像以前一样保存直播间自己的视频。屏幕会录下手机观看时显示的内容，TikTok 有麦克风权限时还会带上应用播放的声音。安卓每次都会请你允许录屏，录制时也会显示它自己的提示。录屏的清晰度与你正在观看的画质相同。在 LIVE 中长按记录按钮即可更改."
 Recording this LIVE's screen,正在录制此直播的屏幕
 Tap Stop or leave the room to save it.,点按停止或离开直播间即可保存.
 Screen recording wasn't allowed,未允许录屏
@@ -2923,6 +2933,7 @@ Save episodes,保存剧集
 Pick episodes to save,选择要保存的剧集
 Episode %1$s,第 %1$s 集
 Preview only,仅预览
+Locked,已锁定
 Loading episodes,正在加载剧集
 Couldn't load the episodes. Try again.,无法加载剧集。请重试.
 Pick at least one episode,请至少选择一集
@@ -2951,7 +2962,7 @@ Write the month as a word,用文字写月份
 "Fade the name, date and caption",淡化名称、日期和说明文字
 "Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.",以此级别在视频上显示创作者名称、日期、说明文字和音乐行，它们仍可点按。为 100 时跟随淡入淡出视频控件。为 0 时隐藏.
 LIVE buttons in the long-press menu,长按菜单中的 LIVE 按钮
-Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,将记录和自动点击按钮从视频上移到长按 LIVE 中间时出现的菜单中.
+Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.,将记录和自动点击按钮以及幽灵模式的眼睛从视频上移到长按 LIVE 中间时出现的菜单中.
 Auto tap started,自动点击已开始
 Hide stories from accounts you don't follow,隐藏你未关注账号的故事
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,你未关注账号的故事会离开故事托盘。你关注账号的故事会保留.
@@ -3049,7 +3060,7 @@ Fill wide videos too,宽视频也铺满
 Random time each day,每天随机时间
 "Sends at a different time each day, somewhere between When to send and Latest time.",每天在不同时间发送，介于何时发送和最晚时间之间.
 Latest time,最晚时间
-"The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.",随机时间段的结束时间，与何时发送在同一天。如果不晚于它，消息会在何时发送的时间发出.
+"The end of the random window. If it's earlier than When to send, the window runs past midnight.",随机时间段的结束时间。如果早于何时发送，时间段会跨过午夜.
 Jump to a date on Favorites grids,在“收藏”网格中跳到某个日期
 "Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.",在“收藏”网格的顶角添加一个按钮，让你收藏的视频从你选择的年份或月份开始，这样无需滑过较新的收藏就能加载较早的收藏。在那里选择“最新的收藏”即可返回.
 Newest saves,最新的收藏

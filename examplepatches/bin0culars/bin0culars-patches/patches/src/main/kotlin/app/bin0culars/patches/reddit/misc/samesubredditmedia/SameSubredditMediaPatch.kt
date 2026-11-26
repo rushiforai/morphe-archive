@@ -8,12 +8,18 @@ import app.bin0culars.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.classDefByOrNull
 import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_CLASS = "Lapp/bin0culars/extension/reddit/SameSubredditMediaPatch;"
 
@@ -155,14 +161,44 @@ val sameSubredditMediaPatch =
                 }
             }
 
-            val targetMethods = listOf(
-                RecommendedMediaRequestFingerprint.method,
-                RecommendedVideosRequestFingerprint.method,
+            val targetFingerprints = listOf(
+                RecommendedMediaRequestFingerprint,
+                RecommendedVideosRequestFingerprint,
             )
 
             val relabelSmali = relabelSmali(hasPodcast)
 
-            for (method in targetMethods) {
+            for (fingerprint in targetFingerprints) {
+                val method = fingerprint.method
+                val listingIndex = fingerprint.instructionMatches.last().index
+                val listingInstruction = method.getInstruction(listingIndex)
+                val rangeInstruction = listingInstruction as? RegisterRangeInstruction
+                    ?: throw PatchException("Listing constructor in ${method.name} is not a RegisterRangeInstruction")
+                val listingRef = (listingInstruction as? ReferenceInstruction)?.reference as? MethodReference
+                    ?: throw PatchException("Listing constructor in ${method.name} has no MethodReference")
+                val regs = listingInstruction.registersUsed
+                if (regs.size < 3 || regs[2] != regs[1] + 1) {
+                    throw PatchException("Unexpected Listing constructor registers in ${method.name}: $regs")
+                }
+                val postsRegister = regs[1]
+                val afterRegister = regs[2]
+                val firstRegister = rangeInstruction.startRegister
+                val lastRegister = firstRegister + rangeInstruction.registerCount - 1
+
+                // Replace in place so any branch label on the Listing constructor runs endIfNoneMatch first.
+                method.replaceInstruction(
+                    listingIndex,
+                    "invoke-static/range { v$postsRegister .. v$afterRegister }, " +
+                        "$EXTENSION_CLASS->endIfNoneMatch(Ljava/util/List;Ljava/lang/String;)Ljava/lang/String;",
+                )
+                method.addInstructions(
+                    listingIndex + 1,
+                    """
+                        move-result-object v$afterRegister
+                        invoke-direct/range { v$firstRegister .. v$lastRegister }, $listingRef
+                    """.trimIndent(),
+                )
+
                 val instructions = method.instructions.toList()
                 val returnIndex = instructions.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
                 if (returnIndex == -1) {

@@ -11,6 +11,7 @@ import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardKeySha
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardKeyShapeSelectionFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.frostedglass.gboardFrostedGlassFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.frostedglass.gboardFrostedGlassLifecyclePatch
+import dev.jason.gboardpatches.patches.gboard.shared.gboardCompatibility18_8
 import dev.jason.gboardpatches.patches.gboard.features.roundedkeyboard.gboardRoundedKeyboardBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.roundedkeyboard.gboardRoundedKeyboardFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.spacebarlogo.gboardSpacebarLogoFeatureMarkerPatch
@@ -63,7 +64,7 @@ val gboardFrostedGlassPatch = resourcePatch(
         "Blur needs Android 12 or newer.",
     default = true,
 ) {
-    compatibleWith(gboard)
+    compatibleWith(gboardCompatibility18_8())
 
     dependsOn(
         gboardPatchesSettingsPatch,

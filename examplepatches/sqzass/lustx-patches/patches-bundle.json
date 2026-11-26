@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-24T03:49:55",
-  "description": "## [1.30.0](https://github.com/sqzass/lustx-patches/compare/v1.29.1...v1.30.0) (2026-11-24)\n\n### ✨ New Features\n\n* add Patch Request template ([702898a](https://github.com/sqzass/lustx-patches/commit/702898a7e16fd3cfcbfceff231901f892973ff52))\n* **Super VPN:** add `Unlock Premium` patch for Super Unlimted VPN Pro Plus Max SomethingSOmething ([52fb231](https://github.com/sqzass/lustx-patches/commit/52fb23103d0255b1274e2090247ef01478f7ea1b))\n\n### 🐛 Bug Fixes\n\n* **SD Maid SE:** actually unlock premium ([e891eb6](https://github.com/sqzass/lustx-patches/commit/e891eb6d974c602c4d126423b7d86322f7c2f61a))",
-  "download_url": "https://github.com/sqzass/lustx-patches/releases/download/v1.30.0/patches-1.30.0.mpp",
+  "created_at": "2026-11-26T03:15:32",
+  "description": "## [1.32.1](https://github.com/sqzass/lustx-patches/compare/v1.32.0...v1.32.1) (2026-11-26)\n\n### 🐛 Bug Fixes\n\n* **Proton VPN:** fix excluded locations filtering ([d5ad3d1](https://github.com/sqzass/lustx-patches/commit/d5ad3d1e6d929df5a71a17eee11aaf7742532d19))",
+  "download_url": "https://github.com/sqzass/lustx-patches/releases/download/v1.32.1/patches-1.32.1.mpp",
   "signature_download_url": "",
-  "version": "1.30.0"
+  "version": "1.32.1"
 }

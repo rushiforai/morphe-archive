@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.settings.NezumiPrefs;
 
 public final class CustomSounds extends Fragment {
@@ -99,7 +100,7 @@ public final class CustomSounds extends Fragment {
             }
             return customId;
         } catch (Exception failure) {
-            android.util.Log.w("NezumiSounds", "Custom notification channel unavailable; using original");
+            NezumiLog.w("NezumiSounds", "Custom notification channel unavailable; using original");
             return channelId;
         }
     }
@@ -128,7 +129,7 @@ public final class CustomSounds extends Fragment {
                 player.setDataSource(file.getAbsolutePath());
                 return;
             } catch (IOException | RuntimeException failure) {
-                android.util.Log.w("NezumiSounds", "Custom sound unavailable; using original");
+                NezumiLog.w("NezumiSounds", "Custom sound unavailable; using original");
             }
         }
         player.setDataSource(context, original);

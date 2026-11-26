@@ -106,8 +106,8 @@ class MqttTelemetryTest {
         assertEquals(setOf(SYNTHETIC_MQTT_PUBLISH, SYNTHETIC_MQTT_KEEPALIVE), SYNTHETIC_PROFILE.hooks.getValue(MQTT_TELEMETRY))
         validateControls(mirroredControls(mqttClientFixture()), setOf(MQTT_TELEMETRY))
         // Each release renames the client and its argument types.
-        assertEquals(setOf("LX/119;->A0Q(LX/13Q;LX/137;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;[BIJ)LX/0uj;",
-            "LX/119;->A0M(Ljava/lang/String;)V"), BASE_PROFILE.hooks.getValue(MQTT_TELEMETRY))
+        assertEquals(setOf("LX/13J;->A0R(LX/15A;LX/150;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;[BIJ)LX/0yK;",
+            "LX/13J;->A0N(Ljava/lang/String;)V"), BASE_PROFILE.hooks.getValue(MQTT_TELEMETRY))
     }
 
     // Dropping the report while the keepalive still sends it would leave the connection with no keepalive, so a

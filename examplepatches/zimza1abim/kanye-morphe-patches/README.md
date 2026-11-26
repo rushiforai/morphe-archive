@@ -176,14 +176,14 @@ Each listed version passed patching and verification. Other versions may fail to
 | App | Package | Supported versions |
 |---|---|---|
 | Anytype | `io.anytype.app` | `0.48.10` `0.49.0` `0.50.4` |
-| Titanium Browser | `io.github.jqssun.helium` | `157.0.8103.50` `157.0.8103.78` `158.0.8127.42` |
-| Bare Browser | `org.barebrowser` | `2.0.5` `2.0.7` `2.0.8` |
+| Titanium Browser | `io.github.jqssun.helium` | `157.0.8103.78` `158.0.8127.42` `158.0.8127.92` |
+| Bare Browser | `org.barebrowser` | `2.0.7` `2.0.8` `2.0.9` |
 | Bitwarden | `com.x8bit.bitwarden` | `2026.10.1` `2026.11.1` |
 | Brave Browser | `com.brave.browser` | `1.99.55` `1.100.56` `1.100.58` |
 | Joplin | `net.cozic.joplin` | `3.7.10` `3.7.11` `3.7.12` |
 | Notesnook | `com.streetwriters.notesnook` | `3.4.15` `3.4.16` `3.4.17` |
-| OpenBot | `run.openbot.mobile` | `1.4.12` |
-| Orca | `dev.orca.app` | `0.0.68` `0.0.70` |
+| OpenBot | `run.openbot.mobile` | `1.4.13` |
+| Orca | `dev.orca.app` | `0.0.68` `0.0.70` `0.0.71` |
 <!-- VERSIONS_END -->
 
 > [!NOTE]
@@ -192,7 +192,7 @@ Each listed version passed patching and verification. Other versions may fail to
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v0.3.3](../../releases/tag/v0.3.3)**&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v0.3.8](../../releases/tag/v0.3.8)**&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details>
 <summary>📦 Anytype&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -214,7 +214,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 157.0.8103.50 | 157.0.8103.78 | 158.0.8127.42 |
+| 157.0.8103.78 | 158.0.8127.42 | 158.0.8127.92 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -232,7 +232,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 2.0.5 | 2.0.7 | 2.0.8 |
+| 2.0.7 | 2.0.8 | 2.0.9 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -314,7 +314,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 1.4.12 |
+| 1.4.13 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -329,8 +329,8 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 0.0.68 | 0.0.70 |
-| :---: | :---: |
+| 0.0.68 | 0.0.70 | 0.0.71 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

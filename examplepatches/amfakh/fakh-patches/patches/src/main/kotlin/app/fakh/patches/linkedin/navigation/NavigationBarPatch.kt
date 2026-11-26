@@ -53,6 +53,14 @@ private object TabClickFingerprint : Fingerprint(
     parameters = listOf("Landroid/view/View;"),
 )
 
+/** MediaCachedLix.isVideoTabSduiScreenEnabled(): whether the Video tab opens the server-driven video screen. */
+private object VideoTabScreenFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/media/framework/MediaCachedLix;",
+    name = "isVideoTabSduiScreenEnabled",
+    returnType = "Z",
+    parameters = emptyList(),
+)
+
 /**
  * The only two hooks into the bottom bar, shared by every patch that changes it: the filter that decides which tabs
  * it has (the More tab is one of them) and the point where its tabs have been sized.
@@ -115,7 +123,21 @@ val navigationBarPatch = patch(
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Feature")
     dependsOn(navigationHooksPatch)
-    execute { register(HIDE_TAB_LABELS, HIDE_TAB_BADGES) }
+    execute {
+        register(HIDE_TAB_LABELS, HIDE_TAB_BADGES)
+        VideoTabScreenFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $EXTENSION_CLASS->useServerVideoScreen()Z
+                    move-result v0
+                    if-eqz v0, :stock
+                    return v0
+                """,
+                ExternalLabel("stock", getInstruction(0)),
+            )
+        }
+    }
 }
 
 @Suppress("unused")

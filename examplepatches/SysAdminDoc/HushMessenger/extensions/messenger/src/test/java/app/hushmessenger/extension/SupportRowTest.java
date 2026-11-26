@@ -69,7 +69,11 @@ public class SupportRowTest {
     }
 
     @Test public void reportAProblemSitsJustAboveSupportAndOpensAFilledReport() throws Exception {
-        Settings.preferences.edit().putBoolean("people", true).putBoolean("typing", true).commit();
+        Settings.preferences.edit().putBoolean("people", true).putBoolean("stories", true).putBoolean("typing", true).commit();
+        // #241: People has been used, Stories hasn't yet, and Typing's hook failed with nothing working since.
+        long now = System.currentTimeMillis();
+        Settings.activeAt.put("people", now);
+        Settings.hookErrors.put("typing", "java.lang.IllegalStateException at TypingIndicator.hide:7|" + now);
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             root.findViewWithTag("tab_app").performClick();
@@ -93,10 +97,14 @@ public class SupportRowTest {
             assertTrue(url.length() <= ProblemReport.MAX_LENGTH);
             String body = java.net.URLDecoder.decode(url.substring(prefix.length()), "UTF-8");
             assertTrue(body, body.startsWith("Versions: HushMessenger " + BuildConfig.VERSION_NAME + " on Messenger "));
-            assertTrue(body, body.contains("\nControls on: Hide People You May Know, Hide typing indicator\n"));
+            assertTrue(body, body.contains("\nErrors: Hide typing indicator (java.lang.IllegalStateException at TypingIndicator.hide:7)\n"
+                + "Controls on: Hide People You May Know, Hide stories and notes (not used yet), Hide typing indicator\n"));
             assertTrue(body, body.endsWith("What happened:\n\n\nWhat I expected:\n\n"));
             // No package name, so a clone install's name stays private too.
             assertFalse(body, body.contains(screen.get().getPackageName()));
+        } finally {
+            Settings.activeAt.remove("people");
+            Settings.hookErrors.remove("typing");
         }
     }
 

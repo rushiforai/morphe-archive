@@ -25,7 +25,7 @@ private const val SS_MAP = "Lcom/google/common/collect/ImmutableMap;"
 private const val SS_HOOK_SIZE = 5
 
 internal const val SYNTHETIC_SEARCH_SECTIONS = "$SS_RESULT-><init>(${IMMUTABLE_LIST}Ljava/lang/Integer;I)V"
-internal const val SYNTHETIC_SEARCH_ITEMS = "$SS_SECTION-><init>($SS_TYPE$IMMUTABLE_LIST${SS_MAP}Ljava/lang/Integer;Ljava/lang/String;Z)V"
+internal const val SYNTHETIC_SEARCH_ITEMS = "$SS_SECTION-><init>($SS_TYPE$IMMUTABLE_LIST${SS_MAP}Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Z)V"
 internal const val SYNTHETIC_AI_CHAT_OPEN = "$SS_LAUNCHER->A00(Landroid/content/Context;LX/0Lz;$FB_USER_SESSION$THREAD_VIEW_PARAMS)Z"
 
 private val SS_CONSTRUCTOR = AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value
@@ -48,7 +48,7 @@ private fun ssSection(id: String = SYNTHETIC_SEARCH_ITEMS) = fixtureMethod(id, "
     iput-object v1, v0, $SS_SECTION->A00:$SS_TYPE
     iput-object v2, v0, $SS_SECTION->A01:$IMMUTABLE_LIST
     return-void
-""".trimIndent(), registers = 7, flags = SS_CONSTRUCTOR)
+""".trimIndent(), registers = 8, flags = SS_CONSTRUCTOR)
 
 private fun ssTypes(anchor: String = SECTION_TYPE_ANCHOR, type: String = SS_TYPE) = fixtureClass(type, listOf(
     fixtureMethod("$type-><clinit>()V", "const-string v0, \"$anchor\"\nreturn-void", registers = 1,
@@ -174,8 +174,11 @@ class SearchSectionsTest {
         assertTrue(findSearchItems(searchSectionsFixture() + ssTypes(type = "LX/N0b;")).isEmpty())
         assertTrue(findSearchItems(searchSectionsFixture().filter { it.type != SS_TYPE } + ssTypes(anchor = "NULL_STATE_GROUPS")).isEmpty())
         // A constructor whose rows don't follow the type.
-        val swapped = "$SS_SECTION-><init>($IMMUTABLE_LIST$SS_TYPE${SS_MAP}Ljava/lang/Integer;Ljava/lang/String;Z)V"
-        assertEquals(null, fixtureMethod(swapped, "return-void", registers = 7, flags = SS_CONSTRUCTOR).searchItemsSite())
+        val swapped = "$SS_SECTION-><init>($IMMUTABLE_LIST$SS_TYPE${SS_MAP}Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Z)V"
+        assertEquals(null, fixtureMethod(swapped, "return-void", registers = 8, flags = SS_CONSTRUCTOR).searchItemsSite())
+        // 587's constructor, one Integer short of 588's.
+        val older = "$SS_SECTION-><init>($SS_TYPE$IMMUTABLE_LIST${SS_MAP}Ljava/lang/Integer;Ljava/lang/String;Z)V"
+        assertEquals(null, fixtureMethod(older, "return-void", registers = 7, flags = SS_CONSTRUCTOR).searchItemsSite())
         // A launcher that names another spec.
         assertTrue(findAiChatOpen(listOf(fixtureClass(SS_LAUNCHER, listOf(ssLauncher(spec = "messaging.navigation.Other")))))
             .isEmpty())

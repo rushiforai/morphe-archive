@@ -97,7 +97,7 @@ final class XPostMetadata {
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 Haiagaru");
             connection.setUseCaches(false);
             if (connection.getResponseCode() != 200) return null;
-            try (InputStream input = connection.getInputStream();
+            try (InputStream input = AppTrafficUsage.counting(Haiagaru.applicationContextForExtension(),"x_posts",connection.getInputStream());
                  ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
                 long deadline = android.os.SystemClock.elapsedRealtime() + 20_000;
                 byte[] buffer = new byte[8192];

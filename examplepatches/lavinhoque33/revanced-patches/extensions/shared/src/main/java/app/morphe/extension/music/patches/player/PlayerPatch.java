@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-13.
+ * Modified by lavinhoque33, 2026-11-25.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -70,6 +70,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.music.shared.VideoType;
 import app.morphe.extension.music.utils.VideoUtils;
@@ -213,6 +214,7 @@ public class PlayerPatch {
     /** Clears the cached tint after the queue/miniplayer is dismissed. */
     public static void onMiniplayerDismissed() {
         lastMiniplayerColor = null;
+        if (MusicLightTheme.isEnabled()) MusicPlayerLightTheme.useSolidMiniplayerAlbumColor(false);
         miniplayerDismissWindowUntilMs = SystemClock.uptimeMillis() + MINIPLAYER_DISMISS_WINDOW_MS;
         final Integer defaultColor = defaultNavigationBarColor;
         if (defaultColor != null) postNavigationBarColor(defaultColor);
@@ -237,6 +239,10 @@ public class PlayerPatch {
 
     /** Returns the selected app theme when dynamic miniplayer color matching is disabled. */
     public static int getMiniPlayerThemeColor() {
+        if (MusicLightTheme.isEnabled()) {
+            MusicPlayerLightTheme.useSolidMiniplayerAlbumColor(false);
+            return BaseThemeUtils.getAppBackgroundColor();
+        }
         return BaseThemeUtils.getThemeDarkColor();
     }
 
@@ -261,8 +267,11 @@ public class PlayerPatch {
         } else {
             setLastMiniplayerColor(color);
         }
-        return Settings.CHANGE_MINIPLAYER_COLOR.get() && !Settings.MINIPLAYER_GLASS.get()
-                ? color : getMiniPlayerThemeColor();
+        if (Settings.CHANGE_MINIPLAYER_COLOR.get() && !Settings.MINIPLAYER_GLASS.get()) {
+            if (MusicLightTheme.isEnabled()) MusicPlayerLightTheme.useSolidMiniplayerAlbumColor(true);
+            return color;
+        }
+        return getMiniPlayerThemeColor();
     }
 
     public static int[] changePlayerBackgroundColor(int[] colors) {
@@ -279,6 +288,10 @@ public class PlayerPatch {
         }
 
         return colors;
+    }
+
+    static boolean isExplicitPlayerBackdrop(int[] colors) {
+        return colors == ZEN_MODE_GRADIENT_COLORS || colors == customColorGradient;
     }
 
     public static boolean changeSeekBarPosition(boolean original) {

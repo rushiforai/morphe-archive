@@ -24,8 +24,8 @@ internal fun communityStub(id: String, body: String = "const/4 v0, 0x0\nreturn v
 
 /**
  * Wiring for 583's closure: the session capture in slot 2, an $onThreadInViewport capture before the trailing flag,
- * a session-gated block before the second read, that read into v1 at [secondRead], and a 13-argument sink that takes
- * the callback after the list. A supported build's profile gets the IDs its record in scripts/profiles holds, not the
+ * a session-gated block before the second read, that read into v15 at [secondRead], and a 13-argument sink that takes
+ * the list in that register, as 588 does. A supported build's profile gets the IDs its record in scripts/profiles holds, not the
  * compiled profile being checked. A profile with no record behind it (the synthetic mapping, or a test's copy of a
  * recorded profile) uses its own line. The
  * community check asks the key's own channel test, then compares the key type with the announcement channel, as 585
@@ -33,7 +33,7 @@ internal fun communityStub(id: String, body: String = "const/4 v0, 0x0\nreturn v
  * types inline.
  *
  * A 15-part line is 586's family B (347215273, 275 and 277), which inlined the key test into the joined predicate, so
- * it names no key methods. No 587 build does that, so a test makes one from a recorded line by dropping its three key
+ * it names no key methods. No 588 build does that, so a test makes one from a recorded line by dropping its three key
  * IDs and naming the coordinator's scope getter in place of the loader's. Its fixture reads the loader and the loader's coordinator in the render, calls
  * the coordinator's own scope getter, reads the switch's lifecycle field inline, and has 22 registers in the closure,
  * which reads the list into v2 at 76 and keeps the section builder live in v3. [inlineCheck] on a family B record
@@ -137,9 +137,10 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
         9 to "iput-object v8, v1, $prefix", 18 to "return-void")), 17)
     val invokeId = record?.single { it.startsWith("hook community_inbox ") }?.substringAfter("hook community_inbox ")
         ?: activeProfile.hooks.getValue(COMMUNITY_INBOX).single()
-    // 587's layout: 84 instructions, the second read at 63, the viewport callback at 69, both aliases at 74 and 75, the sink at 76.
-    // 586 read the search icon flag through a two-instruction getter call, so its read sat three earlier at 60; 587 inlines a
-    // flag helper into the session-gated block again. A [secondRead] off 63 moves the whole tail with it.
+    // 588's layout: 84 instructions, the second read at 63 straight into v15 (the sink's tenth argument, an ImmutableList), the
+    // viewport callback into v1 at 69, the data key into v0 at 70, their moves at 74 and 75, the sink at 76. 587 read the
+    // list into v1 and aliased it for a twelfth argument. 586 read the search icon flag through a two-instruction getter
+    // call, so its read sat three earlier at 60. A [secondRead] off 63 moves the whole tail with it.
     val shift = secondRead - 63
     // Family B's layout: 98 instructions, the second read into v2 at 76, the viewport callback into v1 at 83, the data key
     // into v0 at 84, the list, callback and key aliases at 87 to 89, the sink at 90, and the section builder live in v3.
@@ -161,10 +162,11 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
         6 to "invoke-virtual {v0}, Ljava/util/AbstractCollection;->isEmpty()Z",
         8 to "if-nez v0, :empty", 27 to "iget-object v1, v4, $closure->\$threadTypeFilter:$scope",
         32 to "const-string v0, \"searchBarSection\"",
-        secondRead to "iget-object v1, v4, $closure->\$inboxUnitItems:$IMMUTABLE_LIST",
-        69 + shift to "iget-object v0, v4, $closure->\$onThreadInViewport:Lkotlin/jvm/functions/Function1;",
-        74 + shift to "move-object/from16 v17, v1", 75 + shift to "move-object/from16 v18, v0",
-        76 + shift to "invoke-static/range {v6 .. v18}, LX/Section;->build(LX/Session;LX/Scope;LX/Observer;LX/Binder;LX/Header;LX/Footer;LX/Loading;LX/Theme;LX/Publisher;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;)LX/Section;",
+        secondRead to "iget-object v15, v4, $closure->\$inboxUnitItems:$IMMUTABLE_LIST",
+        69 + shift to "iget-object v1, v4, $closure->\$onThreadInViewport:Lkotlin/jvm/functions/Function1;",
+        70 + shift to "iget-object v0, v4, $closure->\$dataInstanceKey:Ljava/lang/String;",
+        74 + shift to "move-object/from16 v18, v1", 75 + shift to "move-object/from16 v16, v0",
+        76 + shift to "invoke-static/range {v6 .. v18}, LX/Section;->build(LX/Session;LX/Scope;LX/Observer;LX/Binder;LX/Header;LX/Footer;LX/Loading;LX/Theme;LX/Publisher;${IMMUTABLE_LIST}Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)LX/Section;",
         77 + shift to "move-result-object v0", 78 + shift to "invoke-virtual {v2, v0}, LX/Builder;->add(LX/Section;)V",
         79 + shift to "return-object v2", 82 + shift to ":empty\nconst/4 v3, 0x0", 83 + shift to "goto :end",
         48 to ":end\nnop")), 21)

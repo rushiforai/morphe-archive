@@ -285,6 +285,8 @@ Block new bottom tabs	Blocca le nuove schede inferiori
 Block this commenter	Blocca l'autore del commento
 Block this creator	Blocca questo creator
 Block this sound	Blocca questo audio
+Block sound	Blocca audio
+Unblock sound	Sblocca audio
 Blocked	Bloccato
 Blocked %1$s	%1$s bloccato
 Blocked %1$s. Unblock	%1$s bloccato. Sblocca
@@ -606,6 +608,7 @@ Hide the tab names above the feed	Nascondi i nomi delle schede sopra il feed
 The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.	I nomi “Seguiti” e “Per te” sopra il feed scompaiono. Scorrere tra i feed e il pulsante di ricerca restano come sono.
 Hide floating promotion badges, coins, and timer banners on the feed.	Nascondi i badge promozionali fluttuanti, le monete e i banner con timer nel feed.
 Hide floating promotions	Nascondi le promozioni fluttuanti
+Hide from the host next time	Nasconditi da chi conduce la prossima volta
 Hide inserted cards	Nascondi le card inserite
 Hide message requests	Nascondi le richieste di messaggio
 Hide message streaks	Nascondi le serie di messaggi
@@ -1074,6 +1077,10 @@ Show the search entry inside TikTok's LIVE drawer, where available. This doesn't
 Show a video preview thumbnail while dragging the progress bar.	Mostra una miniatura di anteprima del video mentre trascini la barra di avanzamento.
 Show the block button on videos	Mostra il pulsante di blocco sui video
 Show the block sound button	Mostra il pulsante per bloccare l'audio
+Show Block sound on sound pages	Mostra Blocca audio nelle pagine degli audio
+Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound.	Aggiunge un pulsante Blocca audio sotto Salva nella pagina di un audio, quella che si apre dal disco che gira sul video. Salta ogni video che usa quell'audio.
+Hide sound page buttons	Nascondi i pulsanti della pagina dell'audio
+Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens.	Nasconde Jam Sound e Usa audio in fondo alla pagina di un audio, quella che si apre dal disco che gira in un video.
 Show failures on screen	Mostra gli errori sullo schermo
 Show gates	Mostra i gate
 Show last report	Mostra l'ultimo rapporto
@@ -1879,6 +1886,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	Mantieni lo schermo pulito nella LIVE successiva
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	Una LIVE a cui scorri torna a mostrare chat, regali e pulsanti. Questo mantiene lo schermo pulito da una stanza all'altra finché non lo disattivi.
+# context: LIVE settings row under Keep clear screen in the next LIVE; hides the list of viewers' messages over a LIVE stream (#525)
+Hide LIVE chat	Nascondi la chat delle LIVE
+# context: summary of Hide LIVE chat; the comment box is where you type a comment, the room's buttons are gifts, share and the rest (#525)
+Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.	Nasconde i messaggi della chat che scorrono sul video di una LIVE. La casella dei commenti e i pulsanti della stanza restano.
 # context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
 Offer full screen in more LIVEs	Offri lo schermo intero in più LIVE
 # context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
@@ -2281,6 +2292,7 @@ LIVE recording saved to %1$s	Registrazione del LIVE salvata in %1$s
 LIVE ended or dropped. Recording saved to %1$s	LIVE finito o caduto. Registrazione salvata: %1$s
 Storage almost full. Recording saved to %1$s	Memoria quasi piena. Registrazione salvata: %1$s
 Size limit reached. Recording saved to %1$s	Limite di dimensione raggiunto. Salvata in %1$s
+2 GB reached. Recording goes on in a new video.	2 GB raggiunti. Si continua in un nuovo video.
 TikTok closed. What was recorded is saved to %1$s	TikTok chiuso. Registrazione salvata in %1$s
 Recording stopped early. Saved to %1$s	Registrazione fermata in anticipo. Salvata in %1$s
 This LIVE's stream can't be saved	Lo stream di questo LIVE non può essere salvato
@@ -2416,7 +2428,7 @@ Blur the part of the video that sits behind the glass pill on the main feed, so 
 LIVE recording source	Origine della registrazione LIVE
 Stream only	Solo stream
 Screen	Schermo
-Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.	Solo stream salva il video della stanza, come prima. Schermo registra ciò che mostra il telefono mentre guardi, con l'audio dell'app se TikTok ha il permesso del microfono. Android chiede ogni volta di consentire la registrazione dello schermo e mostra un suo avviso mentre registra.
+Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it.	Solo stream salva il video della stanza, come prima. Schermo registra ciò che mostra il telefono mentre guardi, con l'audio dell'app se TikTok ha il permesso del microfono. Android chiede ogni volta di consentire la registrazione dello schermo e mostra un suo avviso mentre registra. Una registrazione dello schermo è nitida quanto la qualità che stai guardando. Tieni premuto il pulsante Registra in una LIVE per cambiarlo.
 Recording this LIVE's screen	Registrazione dello schermo di questa LIVE
 Screen recording wasn't allowed	Registrazione schermo non consentita
 Tap Stop or leave the room to save it.	Tocca Interrompi o esci dalla stanza per salvarla.
@@ -3080,6 +3092,7 @@ Save episodes	Salva episodi
 Pick episodes to save	Scegli gli episodi da salvare
 Episode %1$s	Episodio %1$s
 Preview only	Solo anteprima
+Locked	Bloccato
 Loading episodes	Caricamento degli episodi
 Couldn't load the episodes. Try again.	Impossibile caricare gli episodi. Riprova.
 Pick at least one episode	Scegli almeno un episodio
@@ -3110,7 +3123,7 @@ Writes TikTok's date by the creator's name with the month's name, like Oct 12. D
 Fade the name, date and caption	Attenua nome, data e descrizione
 Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	Mostra il nome del creator, la data, la descrizione e la riga della musica sul video a questo livello, e restano toccabili. A 100 seguono Attenua i controlli del video. A 0 vengono nascosti.
 LIVE buttons in the long-press menu	Pulsanti LIVE nel menu a pressione prolungata
-Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	Toglie i pulsanti Registra e Tocco automatico dal video e li mette nel menu che si apre tenendo premuto il centro di un LIVE.
+Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.	Toglie i pulsanti Registra e Tocco automatico e l'occhio della Modalità fantasma dal video e li mette nel menu che si apre tenendo premuto il centro di un LIVE.
 Auto tap started	Tocco automatico avviato
 Hide stories from accounts you don't follow	Nascondi le storie degli account che non segui
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	Le storie degli account che non segui escono dalla barra delle storie. Le storie degli account che segui restano.
@@ -3220,7 +3233,7 @@ With the switch above on, landscape and square videos are cropped to cover the s
 Random time each day	Orario casuale ogni giorno
 Sends at a different time each day, somewhere between When to send and Latest time.	Invia a un orario diverso ogni giorno, in un momento tra Quando inviare e Orario più tardo.
 Latest time	Orario più tardo
-The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	La fine della finestra casuale, nello stesso giorno di Quando inviare. Se non è più tardi, il messaggio parte all'orario di Quando inviare.
+The end of the random window. If it's earlier than When to send, the window runs past midnight.	La fine della finestra casuale. Se è prima di Quando inviare, la finestra va oltre la mezzanotte.
 # context: Jump to a date on Favorites grids (#508): the Favorites tab holds the videos you saved with the bookmark icon
 Jump to a date on Favorites grids	Vai a una data nelle griglie dei Preferiti
 Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.	Aggiunge un pulsante nell'angolo in alto della griglia dei Preferiti che fa iniziare i tuoi video salvati dall'anno o dal mese che scegli, così quelli più vecchi si caricano senza scorrere oltre i più recenti. Scegli lì Preferiti più recenti per tornare indietro.

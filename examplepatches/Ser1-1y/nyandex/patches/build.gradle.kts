@@ -33,7 +33,7 @@ dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
 
-    // Morphe's universal signature spoof, used by "Spoof app signature".
+    // Morphe's universal signature spoof, used by spoofAppSignaturePatch.
     implementation(libs.morphe.patches.library)
 
     testImplementation(kotlin("test"))

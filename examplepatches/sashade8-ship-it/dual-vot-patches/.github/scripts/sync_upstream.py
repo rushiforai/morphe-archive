@@ -23,6 +23,7 @@ import struct
 import subprocess
 import sys
 import zipfile
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -200,6 +201,12 @@ STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS = (
     "a564f44c019aa25953c2f57800879a9996aa1f76",
     "266523cc55f6e512bed5996e03be00f17d2ada88",
     "f5ed3227c4ae4b346337adda86b587c2cb628a27",
+)
+# Morphe 2.4.0-dev.12 records sign-in state for each fetched stream.
+STREAMING_DATA_REQUEST_DEV2412_CONFLICT_BLOBS = (
+    "f5ed3227c4ae4b346337adda86b587c2cb628a27",
+    "10d9071add71302102781ff4b0d66e9db77737d2",
+    "1ba2ae78510424162e52ecc0d2b5d281baeb40c1",
 )
 DEV210_ARRAYS_CONFLICT_BLOBS = (
     "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
@@ -1288,29 +1295,39 @@ def merge_streaming_data_request_dev237(source: str) -> str:
     return merged
 
 
-def merge_dev2411_source_conflict(source: str, sides_sha256: str, *, keep_ours: bool) -> str:
+def merge_reviewed_source_conflict(
+    source: str, sides_sha256: str, compose: Callable[[str, str], str]
+) -> str:
     """Resolve a single reviewed hunk and retain the rest of the Git merge."""
     pattern = r"(?ms)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
     conflicts = list(re.finditer(pattern, source))
     if len(conflicts) != 1:
-        raise SyncError("Expected one Morphe 2.4.0-dev.11 source conflict")
+        raise SyncError("Expected one reviewed source conflict")
     conflict = conflicts[0]
     ours, theirs = conflict.group(1, 2)
     if hashlib.sha256((ours + "\0" + theirs).encode()).hexdigest() != sides_sha256:
-        raise SyncError("Unexpected Morphe 2.4.0-dev.11 source conflict sides")
-    replacement = ours + "\n" + theirs if keep_ours else theirs
+        raise SyncError("Unexpected reviewed source conflict sides")
+    replacement = compose(ours, theirs)
     merged = source[:conflict.start()] + replacement + source[conflict.end():]
     if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
-        raise SyncError("Unresolved Morphe 2.4.0-dev.11 source conflict")
+        raise SyncError("Unresolved markers after reviewed source merge")
     return merged
 
 
 def merge_streaming_data_request_dev2411(source: str) -> str:
     # Only the playback failure path reaches this hunk. Direct audio and
     # downloads already returned above, keeping their independent client order.
-    return merge_dev2411_source_conflict(
+    return merge_reviewed_source_conflict(
         source, "59e7c271963c9d52becd76c316d2bc5a935eae90265c34203a466090cc46ba72",
-        keep_ours=False,
+        lambda ours, theirs: theirs,
+    )
+
+
+def merge_streaming_data_request_dev2412(source: str) -> str:
+    """Use the sign-in-aware record signature and retain the two Dual accessors."""
+    return merge_reviewed_source_conflict(
+        source, "53328d3cc9aedd35c6df4b064eadcea1230a36605b445a69cb03a9f8f51d71f1",
+        lambda ours, theirs: theirs + ours.split("\n", 1)[1],
     )
 
 
@@ -1331,7 +1348,8 @@ def resolve_streaming_data_request_conflict() -> None:
                        STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS,
-                       STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS):
+                       STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_DEV2412_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
         merge_known = {
             STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS: merge_streaming_data_request_dev210,
@@ -1343,6 +1361,7 @@ def resolve_streaming_data_request_conflict() -> None:
             STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
             STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
             STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS: merge_streaming_data_request_dev2411,
+            STREAMING_DATA_REQUEST_DEV2412_CONFLICT_BLOBS: merge_streaming_data_request_dev2412,
             STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS: merge_streaming_data_request_dev237,
         }[stage_blobs]
         merged = merge_known(destination.read_text(encoding="utf-8"))
@@ -1508,10 +1527,10 @@ def resolve_dev2411_settings_conflict() -> None:
     if blobs != DEV2411_SETTINGS_CONFLICT_BLOBS:
         return
     destination = ROOT / path
-    merged = merge_dev2411_source_conflict(
+    merged = merge_reviewed_source_conflict(
         destination.read_text(encoding="utf-8"),
         "1ada165069d7ace3d2f0e8cd4664ad95e724bb0ba003204951bb29700fe91006",
-        keep_ours=True,
+        lambda ours, theirs: ours + "\n" + theirs,
     )
     destination.write_text(merged, encoding="utf-8", newline="")
     run("git", "add", "--", path)
@@ -1694,6 +1713,35 @@ def resolve_dev247_patch_build_conflict() -> None:
     run("git", "add", "--", path)
 
 
+DEV2412_PLAYER_OVERLAY_PATH = (
+    "extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/PlayerOverlayButton.java"
+)
+DEV2412_PLAYER_OVERLAY_CONFLICT_BLOBS = (
+    "0fa1d5592416aafff9b7aa3e18d390a66fede864",
+    "a2cada29b75eb33a023b74e3aa0437b072fd86d1",
+    "2a233404334ce9bf380951f64a77b6e3e5b5e27a",
+)
+
+
+def resolve_dev2412_player_overlay_conflict() -> None:
+    path = DEV2412_PLAYER_OVERLAY_PATH
+    if path not in unresolved_paths():
+        return
+    blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
+    if blobs != DEV2412_PLAYER_OVERLAY_CONFLICT_BLOBS:
+        return
+    destination = ROOT / path
+    # Morphe accounts for native mute here. The rest of the Git merge
+    # retains Dual's caller-provided overlay button and spacing APIs.
+    merged = merge_reviewed_source_conflict(
+        destination.read_text(encoding="utf-8"),
+        "5f072950705a79f9d95a7200c70b4fdc89d8533713c780092257586d44d54e10",
+        lambda ours, theirs: theirs,
+    )
+    destination.write_text(merged, encoding="utf-8", newline="")
+    run("git", "add", "--", path)
+
+
 def merge_ref(
     ref: str,
     project_preference: str,
@@ -1741,6 +1789,7 @@ def merge_ref(
     resolve_stable200_test_dependencies()
     resolve_dev1498_vot_sheet_conflict()
     resolve_dev247_patch_build_conflict()
+    resolve_dev2412_player_overlay_conflict()
 
     remaining = unresolved_paths()
     if remaining:

@@ -154,9 +154,16 @@ message NavigationEndpoint {
     optional CreationEntrySheetEndpoint creationEntrySheetEndpoint = 144891985;
     optional ShortsCreationEndpoint shortsCreationEndpoint = 307460408;
     optional CreationModesCommand creationModesCommand = 469274066;
+    optional SignInEndpoint signInEndpoint = 49706687;
 }
 
 message CreationEntryEndpoint {
+}
+
+// Native account dialog command, from MorpheApp/morphe-patches#5255.
+message SignInEndpoint {
+    // Only set on 21.35+: the lite sheet closes on 21.30–34 and older builds use Google sign-in.
+    bool useAccountSwitcher = 15;
 }
 
 // Bottom sheet of the create button of the Android Automotive layout, with the creation buttons.

@@ -10,6 +10,41 @@ public final class LinkProbe extends android.app.Activity {
     private static void check(boolean value, String message) {
         if (!value) throw new AssertionError(message);
     }
+    private void showBadges() throws Exception {
+        setTheme(BoostTheme.mode() == 17 ? 0x7f141000 : 0x7f141001);
+        android.widget.LinearLayout rows = new android.widget.LinearLayout(this);
+        rows.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int padding = Math.round(16 * getResources().getDisplayMetrics().density);
+        rows.setPadding(padding, padding * 3, padding, padding);
+        rows.setBackgroundColor(BoostTheme.surface(0));
+        Class<?> viewClass = Class.forName("com.rubenmayayo.reddit.ui.customviews.BabushkaText");
+        Class<?> builderClass = Class.forName("com.rubenmayayo.reddit.ui.customviews.BabushkaText$a$a");
+        Class<?> partClass = Class.forName("com.rubenmayayo.reddit.ui.customviews.BabushkaText$a");
+        String[] labels = {"Fit check / Sizing", "Check it out!", "Question", "A very long flair label that should fit within the post width without drawing outside the view"};
+        int[] colors = {0xffcc3300, 0xff40d050, 0xffd02060, 0xff7755ee};
+        for (int i = 0; i < labels.length; i++) {
+            android.widget.TextView view = (android.widget.TextView) viewClass
+                .getConstructor(android.content.Context.class, android.util.AttributeSet.class)
+                .newInstance(this, null);
+            for (String label : new String[]{"Birkenstocks · username · ", " " + labels[i] + " ", " · 4y"}) {
+                Object builder = builderClass.getConstructor(String.class).newInstance(label);
+                builderClass.getField("c").setInt(builder, BoostTheme.text(0));
+                builderClass.getField("d").setInt(builder, label.contains(labels[i]) ? colors[i] : -1);
+                Object part = partClass.getConstructor(builderClass).newInstance(builder);
+                viewClass.getMethod("h", partClass).invoke(view, part);
+            }
+            viewClass.getMethod("i").invoke(view);
+            android.text.Spanned text = (android.text.Spanned) view.getText();
+            check(text.getSpans(0, text.length(), android.text.style.BackgroundColorSpan.class).length == 0,
+                "Inline badges must replace native square backgrounds");
+            check(text.getSpans(0, text.length(), android.text.style.ReplacementSpan.class).length == 1,
+                "Native post metadata must contain one rounded badge");
+            view.setPadding(0, padding, 0, padding);
+            rows.addView(view);
+        }
+        setContentView(rows);
+        android.util.Log.i("CatppuccinBadgeProbe", "PASS native post metadata, themed rounded badges");
+    }
     @Override public void onCreate(android.os.Bundle state) {
         super.onCreate(state);
         try {
@@ -29,6 +64,10 @@ public final class LinkProbe extends android.app.Activity {
             BoostTheme.selectTheme(this, selected);
             check(!preferences.getBoolean("pref_dynamic_colors", true), "Catppuccin selection must disable dynamic colors");
             check(BoostTheme.mode() == selected, "Probe must run with the requested theme enabled");
+            if (getIntent().getBooleanExtra("badges", false)) {
+                showBadges();
+                return;
+            }
             android.widget.TextView view = new android.widget.TextView(this);
             String url = "https://example.invalid/catppuccin-probe/" + System.nanoTime();
             android.text.Spanned source = android.text.Html.fromHtml("<a href='" + url + "'>Link</a>");

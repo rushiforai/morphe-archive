@@ -1,19 +1,16 @@
 package patches.universal.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import patches.universal.ads.util.cloneMutable
 import patches.universal.ads.util.cloneParameters
 import patches.universal.ads.util.findMutableMethodOf
 import patches.universal.ads.util.fireRewardedAdCallbacks
-import patches.universal.ads.util.registersUsed
 import patches.universal.ads.util.repeatLines
 import java.util.logging.Logger
 import patches.universal.ads.util.DiscordPromo
@@ -43,17 +40,7 @@ val adsFreeRewardsPatch = bytecodePatch(
         key = "rewardMultiplier",
         default = "1",
         title = "Reward multiplier",
-        description = "Make the ad reward worth this many times more. How it is applied depends on the reward multiplier mode. 1 leaves the reward unchanged.",
-    )
-    val rewardMultiplierMode by stringOption(
-        key = "rewardMultiplierMode",
-        default = "amount",
-        title = "Reward multiplier mode",
-        description = "'Amount' multiplies the reward the ad network reports, which works even on games that only pay out once per ad break, and reaches networks that have no reward strategy. 'Reward' repeats the reward callback instead, which is needed by games that grant their own fixed reward and ignore the reported amount, but is capped much lower because each repeat is written out.",
-        values = mapOf(
-            "Amount (reported value)" to "amount",
-            "Reward (repeat callback)" to "reward",
-        ),
+        description = "How many times the reward callback runs per ad.",
     )
     execute {
         val logger = Logger.getLogger(this::class.java.name)
@@ -67,10 +54,6 @@ val adsFreeRewardsPatch = bytecodePatch(
         val skipAdCountdown: Boolean? = true
         logger.info("Ads Free Rewards: strategy=$rewardStrategy")
 
-        val useAmount = (rewardMultiplierMode ?: "amount").trim().equals("reward", ignoreCase = true).not()
-        val modeLabel = if (useAmount) "amount" else "reward"
-        val limit = if (useAmount) MAX_AMOUNT_MULTIPLIER else MAX_REPEAT_MULTIPLIER
-
         val requested = (rewardMultiplier ?: "1").trim()
         val parsed = requested.toIntOrNull()
         val multiplier = when {
@@ -82,118 +65,37 @@ val adsFreeRewardsPatch = bytecodePatch(
                 logger.warning("Ads Free Rewards: rewardMultiplier $parsed is below 1 - using 1")
                 1
             }
-            parsed > limit -> {
-                logger.warning("Ads Free Rewards: rewardMultiplier $parsed is above the $limit limit for $modeLabel mode - using $limit")
-                limit
+            parsed > MAX_REPEAT_MULTIPLIER -> {
+                logger.warning("Ads Free Rewards: rewardMultiplier $parsed is above the $MAX_REPEAT_MULTIPLIER limit - using $MAX_REPEAT_MULTIPLIER")
+                MAX_REPEAT_MULTIPLIER
             }
             else -> parsed
         }
-        logger.info("Ads Free Rewards: rewardMultiplier=$multiplier mode=$modeLabel")
+        logger.info("Ads Free Rewards: rewardMultiplier=$multiplier mode=reward")
 
         if (multiplier > 1) {
-            if (useAmount) {
-                val scaled = scaleRewardAmounts(logger, multiplier)
-                logger.info("Ads Free Rewards: scaled reward amount in $scaled reward getter(s)")
-            } else {
-                logger.info("Ads Free Rewards: repeating the reward callback $multiplier time(s)")
-            }
+            logger.info("Ads Free Rewards: repeating the reward callback $multiplier time(s)")
         }
         val killed = skipAdCountdowns(logger)
         logger.info("Ads Free Rewards: removed ad countdown in $killed place(s)")
-        // In amount mode the multiplier is already spent on the reported value,
-        // so the callback is granted exactly once.
-        val repeat = multiplier.takeIf { !useAmount } ?: 1
-        applyAdsFreeRewardsV1190(logger, rewardStrategy, instantReward, repeat)
+        applyAdsFreeRewardsV1190(logger, rewardStrategy, instantReward, multiplier)
         val faked = forceAdAvailability(logger)
         if (faked > 0) logger.info("Ads Free Rewards: faked availability for $faked SDK check(s)")
     }
 }
 
 /**
- * Multiplies the value every `return vN` in [method] yields, so the SDK
- * reports the scaled amount instead of the real one.
- *
- * Rewriting the return sites in place keeps the method name, signature and
- * access flags untouched, so `invoke-super` call sites and subclass
- * overrides keep resolving. A rename-and-wrap scheme would break any
- * `invoke-super` that targets the renamed signature.
- *
- * The product is clamped to [MAX_SCALED_AMOUNT]: a large multiplier on a
- * large real amount overflows `int` and would otherwise hand the game a
- * negative reward.
- */
-private fun MutableMethod.scaleReturnedInt(multiplier: Int, labelPrefix: String): Int {
-    val impl = implementation ?: return 0
-    val sites = mutableListOf<Pair<Int, Int>>()
-    var index = 0
-    for (ins in impl.instructions) {
-        if (ins.opcode.name.equals("return", ignoreCase = true) && ins is OneRegisterInstruction) {
-            sites += index to ins.registerA
-        }
-        index++
-    }
-    if (sites.isEmpty()) return 0
-
-    val needed = 2
-
-    fun constBlockFor(mult: Int): String = "const v$mult, 0x${multiplier.toString(16)}"
-
-    var scaled = 0
-    sites.asReversed().forEachIndexed { reversedIdx, (at, retReg) ->
-        // Only the returned register is live at a return site. Every other
-        // register, parameters included, is dead and safe to reuse, so the
-        // scratch registers are taken from the top of the frame. The returned
-        // register is excluded so the multiply has a destination.
-        if (impl.registerCount < needed + 1) return@forEachIndexed
-        val temps = mutableListOf<Int>()
-        var candidate = impl.registerCount - 1
-        while (temps.size < needed && candidate >= 0) {
-            if (candidate != retReg) temps += candidate
-            candidate--
-        }
-        if (temps.size < needed) return@forEachIndexed
-
-        val mult = temps[0]
-        val clamp = temps.last()
-        val tag = "${labelPrefix}_${sites.size - reversedIdx}"
-
-        addInstructions(
-            at,
-            """
-            ${constBlockFor(mult)}
-            mul-int/2addr v$retReg, v$mult
-            const v$clamp, 0x${MAX_SCALED_AMOUNT.toString(16)}
-            if-le v$retReg, v$clamp, :$tag
-            move v$retReg, v$clamp
-            :$tag
-            """.trimIndent(),
-        )
-        scaled++
-    }
-    return scaled
-}
-
-private const val MAX_SCALED_AMOUNT = 1_000_000_000
-
-/**
- * Ceiling for the amount multiplier.
- *
- * The reward multiplier has to stay low because it unrolls the reward
- * callback once per step, so every step costs real dex. Scaling the reported
- * amount instead rewrites a fixed handful of return sites no matter how large
- * the multiplier is, so this limit is about int range and overflow rather than
- * output size.
- */
-private const val MAX_AMOUNT_MULTIPLIER = 1_000_000
-
-/**
- * Ceiling for the reward mode of the multiplier.
+ * Ceiling for the reward multiplier.
  *
  * Repeating the callback writes the reward out once per step, so this is
- * bounded by output size rather than by int range. [repeatLines] caps the
- * unroll at the same value.
+ * bounded by dex output size rather than by int range. Each repeated
+ * invoke-interface is 3 code units and a method body is capped at 65535, which
+ * puts the theoretical ceiling near 21k. [repeatLines] caps the unroll at the
+ * same value. Reaching much beyond this needs the repeat emitted as a counted
+ * loop instead of an unroll, which needs a spare register at every injection
+ * site; three of them do not currently grow their frames.
  */
-private const val MAX_REPEAT_MULTIPLIER = 50
+private const val MAX_REPEAT_MULTIPLIER = 10_000
 
 /**
  * Removes the rewarded-ad countdown.
@@ -226,91 +128,6 @@ private fun BytecodePatchContext.skipAdCountdowns(logger: Logger): Int {
             patched++
         } catch (e: Exception) {
             logger.warning("Ads Free Rewards: countdown failed $label - ${e.message}")
-        }
-    }
-    return patched
-}
-
-/**
- * Runs [scaleReturnedInt], growing the frame until it has registers to work
- * with.
- *
- * Reward getters are typically one-register methods: `iget` into v0 and
- * `return v0`, with v0 doubling as `this`. There is no free register for the
- * multiplier, so the frame has to be widened first. [scaleReturnedInt] leaves
- * the method untouched when it cannot proceed, so retrying after a grow is
- * safe.
- */
-private fun BytecodePatchContext.scaleWithFrameGrowth(
-    method: MutableMethod,
-    multiplier: Int,
-): Int {
-    var current = method
-    repeat(4) {
-        val done = current.scaleReturnedInt(multiplier, "morphe_amt")
-        if (done > 0) return done
-        val mutableClass = mutableClassDefBy(current.definingClass)
-        val target = mutableClass.methods.firstOrNull {
-            it.name == current.name &&
-                it.parameterTypes == current.parameterTypes &&
-                it.returnType == current.returnType
-        } ?: return 0
-        val grown = current.cloneMutable(additionalRegisters = 2)
-        mutableClass.methods.remove(target)
-        mutableClass.methods.add(grown)
-        current = grown
-    }
-    return 0
-}
-
-/**
- * Scales the reward amount each ad SDK reports.
- *
- * The reward multiplier in [rewardMultiplier] repeats the reward *callback*,
- * which only pays out on games that honour every event: a game that settles
- * one reward per ad break collapses the repeats back to a single payout.
- * Scaling the reported amount instead produces one callback that is already
- * worth N times, so it survives that deduplication, and the cost does not
- * grow with N.
- *
- * It is also network-agnostic. The per-network strategies only cover the SDKs
- * they were written for, while these getters exist in the networks those
- * strategies never reached, so a single pass covers more games.
- */
-private fun BytecodePatchContext.scaleRewardAmounts(logger: Logger, amountMultiplier: Int): Int {
-    if (amountMultiplier <= 1) return 0
-    val targets = listOf(
-        "AdMob RewardItem.getAmount" to AdMobRewardItemImplAmountFingerprint,
-        "AppLovin MAX MaxRewardImpl.getAmount" to MaxRewardImplAmountFingerprint,
-        "Pangle PAGRewardItem.getRewardAmount" to PangleRewardItemAmountFingerprint,
-        "Chartboost RewardEvent.getReward" to ChartboostRewardEventAmountFingerprint,
-        "Mintegral RewardPlus.getAmount" to MintegralRewardAmountFingerprint,
-        "Mintegral RewardPlus.getAmountMax" to MintegralRewardAmountMaxFingerprint,
-        "Unity LevelPlay LevelPlayReward.getAmount" to LevelPlayRewardAmountFingerprint,
-        "Meta RewardData.getQuantity" to MetaRewardDataQuantityFingerprint,
-    )
-    var patched = 0
-    for ((label, fingerprint) in targets) {
-        val method = fingerprint.methodOrNull
-        if (method == null) {
-            logger.info("Ads Free Rewards: amount scaling skipped $label - not present")
-            continue
-        }
-        if (AccessFlags.ABSTRACT.isSet(method.accessFlags) || AccessFlags.STATIC.isSet(method.accessFlags)) {
-            logger.info("Ads Free Rewards: amount scaling skipped $label - abstract or static")
-            continue
-        }
-        val scaled = try {
-            scaleWithFrameGrowth(method, amountMultiplier)
-        } catch (e: Exception) {
-            logger.warning("Ads Free Rewards: amount scaling failed $label - ${e.message}")
-            0
-        }
-        if (scaled > 0) {
-            logger.info("Ads Free Rewards: amount scaling $label x$amountMultiplier ($scaled return site(s))")
-            patched++
-        } else {
-            logger.info("Ads Free Rewards: amount scaling skipped $label - no usable return site")
         }
     }
     return patched
@@ -399,7 +216,7 @@ private fun BytecodePatchContext.applyAdsFreeRewardsV1190(logger: Logger, reward
         MadsRvHandlerOnRewardedFingerprint.methodOrNull != null
 
     if (multiplier != 1) {
-        logger.info("Ads Free Rewards: reward multiplier $multiplier - repeating the reward callback $multiplier times, shown/hidden lifecycle still fires once")
+        logger.info("Ads Free Rewards: reward multiplier $multiplier - the ad break is repeated $multiplier time(s)")
     }
 
     logger.info("Ads Free Rewards: detected SDKs  -  MAX Unity=$hasMaxUnity native MAX=$hasNativeMax UnityAds=$hasUnityAds UnityAdsV4=$hasUnityAdsV4 LevelPlay=$hasLevelPlay ironSourceBridge=$hasIronSourceUnityBridge MyTarget=$hasMyTarget Yandex=$hasYandexUnityRewarded Huawei=$hasHuawei AdMob=$hasAdMob InMobi=$hasInMobi InMobiRewarded=$hasInMobiRewarded IronSourceAds=$hasIronSourceAds MADS=$hasMads")
@@ -451,6 +268,7 @@ private fun BytecodePatchContext.applyAdsFreeRewardsV1190(logger: Logger, reward
     applyIronSourceAdsWrapperStrategy(logger, useIronSource, instantReward)
     applyMadsStrategy(logger, useIronSource, instantReward, multiplier)
     applyAdMobRewardedStrategy(logger, useMax, instantReward, multiplier)
+    applyAdMobRewardRepeatStrategy(logger, multiplier)
     applyLevelPlayStrategy(logger, useIronSource)
     if (applyIronSourceBridgeStrategy(logger, useIronSource, instantReward, multiplier)) return
     applyUnityAdsStrategy(logger, useUnityAds, instantReward, multiplier)
@@ -523,7 +341,7 @@ private fun BytecodePatchContext.applyYandexWrapperStrategy(logger: Logger, mult
 
 private fun BytecodePatchContext.applyInMobiRewardedStrategy(logger: Logger, useMax: Boolean, instantReward: Boolean?, multiplier: Int) {
     if (instantReward != true) return
-    if (multiplier > 1) logger.warning("Ads Free Rewards: InMobi reports no reward amount - rewardMultiplier has no effect for this network")
+    if (multiplier > 1) logger.warning("Ads Free Rewards: InMobi show is forced to success - there is no reward callback to repeat for this network")
     val inMobiShow = InMobiInterstitialShowFingerprint.methodOrNull ?: InMobiRewardedShowFingerprint.methodOrNull ?: return
     // InMobi mediated via AppLovin MAX - patching the show to instantly reward covers both interstitial and rewarded
     // Use the rewarded fingerprint if available, otherwise fallback to interstitial
@@ -541,7 +359,7 @@ private fun BytecodePatchContext.applyInMobiRewardedStrategy(logger: Logger, use
 
 private fun BytecodePatchContext.applyIronSourceAdsStrategy(logger: Logger, useIronSource: Boolean, instantReward: Boolean?, multiplier: Int) {
     if (instantReward != true || !useIronSource) return
-    if (multiplier > 1) logger.warning("Ads Free Rewards: ironSourceAds reports no reward amount - rewardMultiplier has no effect for this network")
+    if (multiplier > 1) logger.warning("Ads Free Rewards: ironSourceAds show is forced to success - there is no reward callback to repeat for this network")
     val ironAds = IronSourceAdsRewardedShowFingerprint.methodOrNull ?: return
     try {
         ironAds.addInstructions(0, """
@@ -709,9 +527,14 @@ private fun BytecodePatchContext.applyMaxUnityStrategy(logger: Logger, useMax: B
             invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
             invoke-static {v1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->forwardUnityEvent(Lorg/json/JSONObject;)V
         """.trimIndent()
-        // The displayed/hidden events still fire once so the ad flow completes
-        // normally; only the reward event is repeated.
-        val body = "$unityDisplayedEvent\n${repeatLines(multiplier, "            ", unityRewardEvent)}\n$unityHiddenEvent"
+        // The whole ad break is repeated, not just the reward callback. Games that
+        // collapse repeated reward callbacks within a single ad break - common
+        // in Unity IL2CPP titles, where one break means one payout no matter how
+        // many reward events arrive - would otherwise pay out exactly once.
+        // Replaying displayed -> reward -> hidden gives every iteration its own
+        // break, so the guard resets in between and each one pays out.
+        val oneBreak = "$unityDisplayedEvent\n$unityRewardEvent\n$unityHiddenEvent"
+        val body = repeatLines(multiplier, "            ", oneBreak)
         unityShow.cloneParameters().addInstructions(
             0, """
             move-object/from16 v0, p1
@@ -771,8 +594,9 @@ private fun BytecodePatchContext.applyNativeMaxStrategy(logger: Logger, useMax: 
 
 private fun BytecodePatchContext.applyAdMobRewardedStrategy(logger: Logger, useMax: Boolean, instantReward: Boolean?, multiplier: Int) {
     if (!useMax || instantReward != true) return
-    // AdMob RewardedAd is from GMS (not in app dex), so patch call sites instead of definition
+    // AdMob RewardedAd is from GMS (not in app dex), so scan call sites instead of definitions
     var patchedCallSites = 0
+    val patchedClasses = mutableListOf<String>()
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
         if (tl.contains("okhttp") || tl.contains("androidx") || tl.contains("com/google/android/gms/ads/rewarded")) return@classDefForEach
@@ -784,54 +608,121 @@ private fun BytecodePatchContext.applyAdMobRewardedStrategy(logger: Logger, useM
             }
             val impl = method.implementation ?: continue
             val instructions = impl.instructions.toList()
-            for ((index, insn) in instructions.withIndex()) {
+            for (insn in instructions) {
                 val ref = (insn as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference ?: continue
                 if (ref.definingClass != "Lcom/google/android/gms/ads/rewarded/RewardedAd;" || ref.name != "show" || ref.returnType != "V") continue
                 if (ref.parameterTypes.size != 2 || ref.parameterTypes[1] != "Lcom/google/android/gms/ads/OnUserEarnedRewardListener;") continue
-                // Found call site: RewardedAd.show(Activity, OnUserEarnedRewardListener)
-                // Replace it with direct reward: if p2 != null, p2.onUserEarnedReward(null)
-                    try {
-                        // Determine registers for Activity and listener (35c or 3rc)
-                        val (activityReg, listenerReg) = when (insn) {
-                            // invoke-virtual {v0, v1, v2}, RewardedAd.show
-                            // v0 = this (RewardedAd), v1 = Activity, v2 = listener
-                            // Need to parse: for 35c, registerCount, registers C/D/E etc.
-                            // For show with 3 regs (this, activity, listener), C=this, D=activity, E=listener
-                            is com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c -> {
-                                // invoke-virtual/range {v0..v2}
-                                if (insn.registerCount < 3) continue
-                                Pair(insn.registerD, insn.registerE)
-                            }
-                            is com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc -> {
-                                val start = insn.startRegister
-                                Pair(start + 1, start + 2)
-                            }
-                            else -> continue
-                        }
-                        // RewardedAd reports no amount, so the reward callback is repeated instead. Each
-                        // repetition needs its own label to stay unique inside the enclosing method.
-                        val rewardCalls = (1..multiplier).joinToString("\n") { iteration ->
-                            """
-                            if-eqz v$listenerReg, :morphe_admob_skip_${index}_$iteration
-                            const/4 v0, 0x0
-                            invoke-interface {v$listenerReg, v0}, Lcom/google/android/gms/ads/OnUserEarnedRewardListener;->onUserEarnedReward(Lcom/google/android/gms/ads/rewarded/RewardItem;)V
-                            :morphe_admob_skip_${index}_$iteration
-                            """.trimIndent().prependIndent("                        ")
-                        }
-                        mutableMethod.addInstructions(index, rewardCalls)
-                    // Keep original invoke as well? Actually we want to skip the ad, so we should nop the original invoke
-                    // Instead, we just inserted reward before, and let original show still run  -  it will show ad but also give reward instantly
-                    // To fully skip ad, we could nop the invoke, but that may break flow; for now we give instant reward plus still show ad (user sees ad but also gets reward)
-                    // For Ringdale, the ad is via MAX mediation, not direct, so this call site may not be the primary  -  but patching it still gives instant reward
-                    patchedCallSites++
+                // Record the wrapper but do NOT synthesise a reward here. Firing a fabricated
+                // onUserEarnedReward(null) at show() time both corrupts the method (removeInstruction
+                // re-indexes and ART rejects the injected branch) and crashes wrappers that dereference
+                // the RewardItem. Multiplication happens in applyAdMobRewardRepeatStrategy instead.
+                if (classDef.type !in patchedClasses) patchedClasses.add(classDef.type)
+                patchedCallSites++
+            }
+        }
+    }
+    // Cordova/web wrappers gate show() behind their own readiness probe (isLoaded() -> mAd != null)
+    // and refuse to render otherwise. Force those probes true in the wrappers we found, otherwise
+    // the ad button never reaches the show path when no ad is currently served.
+    var fakedReady = 0
+    if (patchedCallSites > 0) {
+        classDefForEach { classDef ->
+            if (classDef.type !in patchedClasses) return@classDefForEach
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                if (method.name != "isLoaded" && method.name != "isReady") continue
+                if (method.parameterTypes.isNotEmpty() || method.returnType != "Z") continue
+                if (com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(method.accessFlags)) continue
+                try {
+                    mutableClass.findMutableMethodOf(method).addInstructions(0, """
+                        const/4 v0, 0x1
+                        return v0
+                    """.trimIndent())
+                    fakedReady++
                 } catch (_: Exception) {}
             }
         }
     }
     if (patchedCallSites > 0) {
-        logger.info("Ads Free Rewards: AdMob patch - patched $patchedCallSites call site(s)")
+        logger.info("Ads Free Rewards: AdMob detected $patchedCallSites show call site(s), faked $fakedReady readiness check(s)")
     } else {
         logger.info("Ads Free Rewards: AdMob show call sites not found - skipping")
+    }
+}
+
+// Universal multiplier for AdMob-direct wrappers.
+//
+// The AdMob SDK fires OnUserEarnedRewardListener.onUserEarnedReward(RewardItem) exactly once per
+// watched ad, so the reward can only be multiplied at the receiver: repeat whatever the game does
+// with the reward inside its own listener implementation. That keeps a *real* RewardItem in play,
+// which matters because wrappers typically dereference it (admob-plus Cordova's emit() reads
+// getAmount()/getType(), so a fabricated null RewardItem crashes the game).
+//
+// Firing a synthetic callback at show() time cannot work and is deliberately not attempted: it
+// both crashes wrappers and skips the real ad, so the player never earns anything legitimately.
+private val REWARD_SKIP_OWNERS = listOf(
+    "analytics", "appmetrica", "databuckets", "adjust", "firebase", "flurry",
+    "http", "okhttp", "retrofit", "socket", "applovin", "facebook", "appsflyer",
+)
+
+private fun BytecodePatchContext.applyAdMobRewardRepeatStrategy(logger: Logger, multiplier: Int) {
+    if (multiplier <= 1) return
+    var patchedHandlers = 0
+    var repeatedInvokes = 0
+    classDefForEach { classDef ->
+        for (method in classDef.methods) {
+if (method.name != "onUserEarnedReward") continue
+                if (method.parameterTypes.size != 1) continue
+                if (method.parameterTypes[0] != "Lcom/google/android/gms/ads/rewarded/RewardItem;") continue
+                // Never rewrite the mediation SDK's own internals: duplicating its callbacks
+                // corrupts mediation state rather than granting the player anything.
+                if (classDef.type.startsWith("Lcom/google/android/gms/")) continue
+                val impl = method.implementation ?: continue
+            if (impl.instructions.none { true }) continue
+            // Parameters are allocated at the top of the frame, so the single RewardItem argument
+            // is always the highest register. Deriving it as registerCount - (params + this) would
+            // point at `this` for interface implementations, where the frame holds a leading local.
+            val rewardReg = impl.registerCount - 1
+            if (rewardReg < 0) continue
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
+            val instructions = impl.instructions.toList()
+            // Collected first: inserting shifts the indices of everything after it.
+            val repeats = mutableListOf<Pair<Int, String>>()
+            for ((index, insn) in instructions.withIndex()) {
+                val ref = (insn as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference ?: continue
+                val owner = ref.definingClass.lowercase()
+                if (REWARD_SKIP_OWNERS.any { owner.contains(it) }) continue
+                val registers = when (insn) {
+                    is com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction ->
+                        listOf(insn.registerC, insn.registerD, insn.registerE, insn.registerF, insn.registerG).take(insn.registerCount)
+                    is com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction ->
+                        (insn.startRegister until insn.startRegister + insn.registerCount).toList()
+                    else -> continue
+                }
+                if (registers.size < 2 || registers.size > 5) continue
+                // The reward must be handed onward as an argument, not be the receiver. Wrappers
+                // either read it directly (getAmount/getType) or delegate to another handler.
+                if (!registers.drop(1).contains(rewardReg)) continue
+                val text = "${insn.opcode.name} {${registers.joinToString(", ") { "v$it" }}}, ${ref}"
+                repeats.add(index to text)
+            }
+            if (repeats.isEmpty()) continue
+            // Back to front so earlier indices stay valid while we insert.
+            for ((index, text) in repeats.sortedByDescending { it.first }) {
+                try {
+                    val copies = (2..multiplier).joinToString("\n") { text }
+                    mutableMethod.addInstructions(index + 1, copies)
+                    repeatedInvokes++
+                } catch (_: Exception) {}
+            }
+            patchedHandlers++
+        }
+    }
+    if (patchedHandlers > 0) {
+        logger.info("Ads Free Rewards: AdMob reward repeat - amplified $patchedHandlers listener handler(s), $repeatedInvokes call site(s) x$multiplier")
+    } else {
+        logger.info("Ads Free Rewards: AdMob reward repeat - no onUserEarnedReward handler found")
     }
 }
 
@@ -923,3 +814,4 @@ private fun BytecodePatchContext.applyUnityAdsV4Strategy(logger: Logger, useUnit
         logger.info("Ads Free Rewards: Unity Ads v4 patch succeeded (4-arg show${if (multiplier > 1) ", reward x$multiplier" else ""})")
     }
 }
+

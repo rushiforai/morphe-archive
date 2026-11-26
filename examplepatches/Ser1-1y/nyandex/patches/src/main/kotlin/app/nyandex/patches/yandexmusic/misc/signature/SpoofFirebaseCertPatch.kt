@@ -58,8 +58,8 @@ private object FirebaseCertificateHeaderFingerprint : Fingerprint(
  * the certificate the Firebase project was registered with, so Firebase requests are
  * rejected. Reporting the stock fingerprint keeps Firebase Installations working.
  *
- * This does not replace the global PackageManager signature spoofing of the original
- * mod; it only fixes the documented Firebase header.
+ * This only fixes that header; `PackageManager` signature checks are handled by
+ * `spoofAppSignaturePatch`.
  */
 val spoofFirebaseCertPatch = patch(
     name = "Подменить заголовок сертификата Firebase",

@@ -125,6 +125,11 @@ internal data class CommitPipelineTargets(
     val pcnPerformActionMethod: String,
 )
 
+internal data class VoiceLifecycleTargets(
+    val onVoiceStartMethod: MutableMethod,
+    val onListeningStopMethod: MutableMethod,
+)
+
 internal object RamblerDynamicResolver {
     private const val CONTEXT_TYPE = "Landroid/content/Context;"
     private const val INTENT_TYPE = "Landroid/content/Intent;"
@@ -669,6 +674,26 @@ internal object RamblerDynamicResolver {
             textRegister = spacing.textRegister,
             pcnGetEditorInfoMethod = getEditorInfoMethod,
             pcnPerformActionMethod = resolvedPerformAction,
+        )
+    }
+
+    fun resolveVoiceLifecycleTargets(extensionClass: MutableClass): VoiceLifecycleTargets {
+        val onVoiceStart = extensionClass.methods.singleOrNull { method ->
+            method.returnType == "V" &&
+                method.containsString("onVoiceStart")
+        } ?: throw PatchException(
+            "Could not uniquely locate onVoiceStart(...)V on ${extensionClass.type}",
+        )
+        val onListeningStop = extensionClass.methods.singleOrNull { method ->
+            method.parameterTypes.isEmpty() &&
+                method.returnType == "V" &&
+                method.containsString("onListeningStop")
+        } ?: throw PatchException(
+            "Could not uniquely locate onListeningStop()V on ${extensionClass.type}",
+        )
+        return VoiceLifecycleTargets(
+            onVoiceStartMethod = onVoiceStart,
+            onListeningStopMethod = onListeningStop,
         )
     }
 

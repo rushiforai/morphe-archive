@@ -23,6 +23,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_PROMOTED_POSTS) return L10n.t("Hide promoted posts");
         if (setting == Settings.HIDE_SPONSORED_PROFILE_POSTS) return L10n.t("Hide sponsored profile posts");
         if (setting == Settings.HIDE_PROFILE_NOTES) return L10n.t("Hide profile notes");
+        if (setting == Settings.HIDE_PROFILE_GIFTS) return L10n.t("Hide the gift button on profiles");
         if (setting == Settings.LOCAL_PROFILE_COUNTS) return L10n.t("Local profile counts");
         if (setting == Settings.POST_SAVE_BUTTON) return L10n.t("Save button under posts");
         if (setting == Settings.POST_DOWNLOAD_BUTTON) return L10n.t("Download button under posts");
@@ -165,6 +166,7 @@ final class SwitchLabels {
         if (setting == Settings.LIKE_ONLY) return L10n.t("Like only");
         if (setting == Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS) return L10n.t("Hide GIF and sticker buttons");
         if (setting == Settings.HIDE_COMMENT_EMOJI_ROW) return L10n.t("Hide the emoji row on comments");
+        if (setting == Settings.KEEP_COMMENT_KEYBOARD_CLOSED) return L10n.t("Keep the keyboard closed when comments open");
         if (setting == Settings.HIDE_COMMENT_BOX_LINE) return L10n.t("Hide the line over the comment box");
         if (setting == Settings.HIDE_COMMENT_BOX) return L10n.t("Hide the comment box");
         if (setting == Settings.HIDE_VIDEO_COMMENT_COMPOSER) return L10n.t("Hide the video comment box");
@@ -253,6 +255,8 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_SOUND_BUTTON) return L10n.t("Hide the speaker button on reels");
         if (setting == Settings.REEL_SPEAKER_ABOVE_MENU) return L10n.t("Move the speaker above the three dots");
         if (setting == Settings.HIDE_REEL_AUDIO_LINE) return L10n.t("Hide the audio line on reels");
+        if (setting == Settings.HIDE_REEL_AI_LABEL) return L10n.t("Hide the AI content label on reels");
+        if (setting == Settings.HIDE_REEL_HASHTAGS) return L10n.t("Hide hashtags in reel captions");
         if (setting == Settings.HIDE_SLOW_CONNECTION_MESSAGE) return L10n.t("Hide the slow connection message");
         if (setting == Settings.HIDE_UP_NEXT) return L10n.t("Hide Up next on videos");
         if (setting == Settings.HIDE_REEL_FULLSCREEN_PILL) return L10n.t("Hide the Fullscreen button");
@@ -269,6 +273,7 @@ final class SwitchLabels {
         if (setting == Settings.FILL_REELS) return L10n.t("Fill the screen with reels");
         if (setting == Settings.FILL_EVERY_REEL) return L10n.t("Fill every reel");
         if (setting == Settings.PLAY_FEED_REELS_WHOLE) return L10n.t("Play whole reels in the feed's Reels row");
+        if (setting == Settings.UNCROPPED_FEED_REELS) return L10n.t("Show feed reels uncropped");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
         if (setting == Settings.NEWEST_REELS_FIRST) return L10n.t("Sort loaded reels");
         if (setting == Settings.PROFILE_REELS_MOST_VIEWED) return L10n.t("Most viewed on profile Reels");
@@ -368,6 +373,7 @@ final class SwitchLabels {
         if (setting == Settings.POST_MENU_PHOTO_SAVE) return L10n.t("Save photo in post menus");
         if (setting == Settings.POST_MENU_PHOTO_SEARCH) return L10n.t("Search photo in post menus");
         if (setting == Settings.MARKETPLACE_PHOTO_SAVE) return L10n.t("Long press to save Marketplace photos");
+        if (setting == Settings.SAVE_FILES_TO_DOWNLOADS) return L10n.t("Save files to Downloads");
         if (setting == Settings.OPEN_IN_ANOTHER_APP) return L10n.t("Open videos in another app");
         if (setting == Settings.POST_MENU_DOWNLOAD_FIRST) return L10n.t("Download first in post menus");
         if (setting == Settings.DOWNLOAD_COMPATIBLE) return L10n.t("Save videos other apps can open");

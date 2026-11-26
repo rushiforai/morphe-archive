@@ -22,6 +22,18 @@ public final class MebukiLoginFlowTest {
         expect(MebukiLoginFlow.Page.OTHER, "https", "notdiscord.com", "/", false);
         expect(MebukiLoginFlow.Page.OTHER, "http", "mebuki.moe", "/", false);
         expect(MebukiLoginFlow.Page.OTHER, "file", null, "/", false);
-        System.out.println("Navigation classification PASS: " + count + " cases");
+        String[][] auth = {
+            {"https", "discord.com", "/api/v9/auth/login", "POST", "true"},
+            {"https", "discord.com", "/api/v10/auth/mfa/totp", "POST", "true"},
+            {"https", "discord.com", "/api/v9/auth/login", "GET", "false"},
+            {"https", "discord.com.evil.invalid", "/api/v9/auth/login", "POST", "false"},
+            {"http", "discord.com", "/api/v9/auth/login", "POST", "false"},
+            {"https", "discord.com", "/api/v9/science", "POST", "false"}
+        };
+        for (String[] row : auth) {
+            if (MebukiLoginFlow.discordLoginPost(row[0],row[1],row[2],row[3]) != Boolean.parseBoolean(row[4]))
+                throw new AssertionError("Unexpected auth route classification");
+        }
+        System.out.println("Navigation classification PASS: " + count + " cases; auth error route PASS: " + auth.length);
     }
 }

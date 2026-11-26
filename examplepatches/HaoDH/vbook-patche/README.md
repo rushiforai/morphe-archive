@@ -40,7 +40,7 @@ No APKs, user data, account tokens or signing keys are included. This is an inde
 ## Available patches
 
 <!-- PATCHES_START -->
-> **[v1.3.0](https://github.com/HaoDH/vbook-patche/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.3.1](https://github.com/HaoDH/vbook-patche/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 vBook&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

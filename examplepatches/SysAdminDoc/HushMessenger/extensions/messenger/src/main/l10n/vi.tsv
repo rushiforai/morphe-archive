@@ -78,10 +78,10 @@ restarting	Đang khởi động lại Messenger…
 restart_saving	Đang lưu cài đặt của bạn, Messenger sẽ được mở lại sau khi hoàn tất.
 restart_account	Tài khoản của bạn sẽ vẫn đăng nhập.
 choices	Cài đặt của bạn
-restart_unavailable	Không thể khởi động lại. Vui lòng đóng và mở lại Messenger thủ công.
+restart_unavailable	Không thể khởi động lại. Hãy đóng và mở Messenger.
 settings_open_failed	Không thể mở Cài đặt HushMessenger.
-settings_open_instead	Điều khiển bản vá (Patch controls): Nhấn giữ biểu tượng Messenger trên màn hình chính
-restart_save_failed	Không thể lưu, do đó chưa khởi động lại Messenger. Vui lòng thử lại.
+settings_open_instead	Nhấn giữ biểu tượng Messenger: Patch controls
+restart_save_failed	Chưa lưu được nên Messenger chưa khởi động lại.
 paused	Tạm dừng mọi thay đổi
 search	Tìm kiếm điều khiển
 empty_title	Không có điều khiển phù hợp
@@ -222,6 +222,20 @@ invisible_buttons_level_choice	%1$s cho %2$s
 invisible_buttons_invisible	Đã vô hình
 invisible_buttons_visible	Đã trở lại bình thường
 invisible_buttons_level	Giờ hiện %1$s
+invisible_buttons_pick	Chọn nút trên màn hình
+invisible_buttons_pick_help	Đặt một nút tròn nhỏ ở cạnh các màn hình và menu của Messenger. Chạm vào nó, rồi chạm vào nút bất kỳ để chọn độ trong suốt của nút đó. Tắt đi khi bạn xong.
+invisible_buttons_pick_dot	Chọn một nút
+invisible_buttons_pick_now	Giờ hãy chạm vào nút bạn muốn
+invisible_buttons_pick_none	Không có nút nào ở đó
+invisible_buttons_group_screen	Danh sách chat và màn hình khác
+invisible_buttons_group_header	Phần trên của đoạn chat
+invisible_buttons_group_composer	Ô soạn tin nhắn
+invisible_buttons_group_chat	Trong đoạn chat
+invisible_buttons_group_menu	Menu và bảng
+invisible_buttons_group_ours	Nút của HushMessenger
+invisible_buttons_group_other	Khác
+tab_bar_slide	Trượt dọc thanh tab
+tab_bar_slide_help	Trượt ngón tay dọc thanh tab ở dưới cùng và một vùng sáng sẽ đi theo từ tab này sang tab khác. Nhấc tay để mở tab ở bên dưới. Chạm vẫn hoạt động như trước, và tính năng này vẫn chạy khi Vuốt để chuyển tab đang tắt. Khởi động lại Messenger sau khi bật.
 message_actions_hidden_label	%1$s (đã ẩn)
 message_actions_move_up	Đưa %1$s lên
 message_actions_move_down	Đưa %1$s xuống
@@ -234,13 +248,13 @@ message_actions_reset	Về thứ tự của Messenger
 message_actions_reset_done	Đã về thứ tự của Messenger
 text_style_bold	Đậm
 text_style_italic	Nghiêng
-text_style_read_only	'Đậm' và 'Nghiêng' chỉ áp dụng cho văn bản bạn đang nhập.
-text_style_bold_none	'Đậm' chỉ áp dụng cho các chữ cái từ A đến Z, chữ cái có dấu và các chữ số.
-text_style_italic_none	'Nghiêng' chỉ áp dụng cho các chữ cái từ A đến Z và chữ cái có dấu.
+text_style_read_only	'Đậm' và 'Nghiêng' chỉ dùng cho chữ bạn đang nhập.
+text_style_bold_none	'Đậm' chỉ dùng cho chữ cái và chữ số.
+text_style_italic_none	'Nghiêng' chỉ dùng cho chữ cái.
 bubble_stock	Mặc định gốc
 bubble_chat_heads	Bong bóng chat
 bubble_native	Bong bóng thông báo Android
-bubble_changed	Đã chọn '%s'. Có hiệu lực sau khi khởi động lại Messenger.
+bubble_changed	%s: hãy khởi động lại Messenger.
 bubble_help	'Mặc định gốc' để Messenger quyết định hành vi. 'Bong bóng chat' cũng yêu cầu bật công tắc 'Bong bóng chat' của riêng Messenger và cho phép hiển thị trên các ứng dụng khác. Nếu không cho phép dùng pin không hạn chế, bong bóng chat chỉ hiện khi Messenger đã đóng lúc tin nhắn đến, vì vậy hãy bật cả mục đó bên dưới. Nếu sử dụng 'Bong bóng thông báo Android', vui lòng cho phép bong bóng thông báo của Messenger trong cài đặt Android bên dưới. Các tài khoản không hỗ trợ bong bóng thông báo sẽ giữ nguyên hành vi ban đầu của Messenger. 'Tạm dừng mọi thay đổi' sẽ trả lại toàn bộ hành vi cho Messenger quyết định.
 bubble_unsupported	Gói bản vá này không hỗ trợ bong bóng thông báo Android, vì vậy Messenger sẽ giữ nguyên hành vi ban đầu. Cài đặt của bạn đã được lưu.
 bubble_battery_off	Cho phép dùng pin không hạn chế
@@ -249,7 +263,7 @@ bubble_battery_missing	Không tìm thấy màn hình này. Vui lòng mở thông
 bubble_permissions	Cài đặt bong bóng thông báo Android
 bubble_notifications	Cài đặt thông báo Messenger
 bubble_conversations	Cài đặt hội thoại Android
-bubble_settings_missing	Không tìm thấy màn hình này. Vui lòng mở thông tin ứng dụng, sau đó chọn 'Thông báo'.
+bubble_settings_missing	Hãy mở thông tin ứng dụng, rồi chọn Thông báo.
 facebook_keep_profile	Giữ lại nút trang cá nhân
 facebook_keep_profile_help	Giữ lại nút trang cá nhân trong trang chi tiết phòng chat và nút Xem trang cá nhân ở đầu một cuộc trò chuyện mới, cho phép bạn mở trang cá nhân Facebook của người khác. Các phím tắt Facebook khác vẫn sẽ bị ẩn.
 avatar_shape_rounded	Góc bo tròn
@@ -258,6 +272,14 @@ refresh_rate_hz	%1$s Hz
 refresh_rate_single	Màn hình của bạn chỉ chạy ở một tần số, nên ở đây không có gì để chọn.
 refresh_rate_picked	Messenger sẽ dùng %1$s Hz
 refresh_rate_help	Nhanh hơn thì cuộn mượt hơn và tốn pin hơn. Tần số mới có tác dụng khi bạn quay lại Messenger.
+see_through_tab_bar_frosted	Mờ
+see_through_tab_bar_standard	Tiêu chuẩn
+see_through_tab_bar_light	Trong hơn
+see_through_tab_bar_clear	Trong nhất
+see_through_tab_bar_picked	%1$s sẽ hiện sau khi Messenger khởi động lại
+see_through_tab_bar_help	Mờ cho thấy ít đoạn chat nhất, Trong nhất cho thấy nhiều nhất.
+story_row_size_picked	Thanh tin giờ hiện ở %1$s
+story_row_size_help	%1$s gần nhất với cỡ gốc của Messenger, %2$s là nhỏ nhất.
 hidden_words_words	Từ cần ẩn
 hidden_words_hint	Tối đa %1$d ký tự, cách nhau bằng dấu phẩy
 hidden_words_help	Phải khớp cả từ, nên "ok" không ẩn "okay". Chữ hoa chữ thường không quan trọng.
@@ -279,6 +301,16 @@ home_header_unreadable	Không thể mở ảnh đó.
 home_header_not_saved	Không thể lưu ảnh.
 home_header_busy	Vẫn đang sao chép ảnh trước.
 home_header_timeout	Ảnh mất quá lâu. Vui lòng thử lại.
+home_header_font	Phông chữ cho chữ
+home_header_font_none	Chữ đang dùng phông sans in đậm. Chọn tệp .ttf hoặc .otf tối đa %1$d MB để dùng phông của riêng bạn.
+home_header_font_using	Chữ đang dùng %1$s.
+home_header_font_missing	Bản sao %1$s của HushMessenger đã mất, nên chữ dùng phông sans in đậm. Hãy chọn lại tệp.
+home_header_font_choose	Chọn phông cho chữ
+home_header_font_remove	Xóa phông chữ
+home_header_font_help	Chỉ chữ trên tiêu đề dùng phông này. Phần còn lại của Messenger vẫn giữ phông của nó.
+home_header_font_saved	Đã lưu phông chữ.
+home_header_font_removed	Đã xóa phông chữ.
+home_header_font_remove_failed	Không thể xóa phông chữ.
 tab_icons_help	Mỗi tab nhận một biểu tượng nét đơn giản theo màu Messenger đang dùng. Chọn một ảnh cho tab bất kỳ để đặt ảnh của bạn vào đó. Ảnh vuông có nền trong suốt trông đẹp nhất. Ảnh có thể nặng tối đa %1$d MB.
 tab_icons_choose	Chọn
 tab_icons_remove	Bỏ
@@ -327,8 +359,8 @@ tab_badges_keep_menu	Giữ huy hiệu menu
 tab_badges_keep_facebook	Giữ huy hiệu nút Facebook
 experimental	Tính năng thử nghiệm
 new_setting	Mới
-choice_on	'%s' đã được bật
-choice_off	'%s' đã bị tắt
+choice_on	Đã bật: %s
+choice_off	Đã tắt: %s
 appearance	Giao diện
 material_you_black	Chế độ tối đen tuyền
 material_you_black_help	Sử dụng nền đen tuyền với Material You trong Messenger. Chế độ sáng không bị ảnh hưởng.
@@ -349,12 +381,16 @@ material_you_style_monochrome	Đơn sắc
 material_you_style_changed	Đã lưu kiểu %s
 light	Chủ đề sáng
 light_help	Chuyển màn hình cài đặt này sang màu sáng. Bản thân Messenger không bị ảnh hưởng.
+follow_phone_theme	Theo chế độ tối của điện thoại
+follow_phone_theme_help	Chuyển màn hình cài đặt này sang màu tối khi điện thoại ở chế độ tối và sang màu sáng khi không. Bản thân Messenger không bị ảnh hưởng.
+light_follows_phone	Theo chế độ tối của điện thoại đang bật, nên điện thoại sẽ chọn giao diện. Cài đặt của bạn đã được lưu.
 theme_help	Mặc định sử dụng chủ đề tối. Cài đặt của bạn sẽ được giữ lại.
 theme_status_wallpaper	Material You lấy màu từ hình nền của bạn. Chọn một màu nhấn hoặc dán một chủ đề để dùng màu của riêng bạn.
 theme_status_saved	Đã lưu chủ đề %s. Material You dùng chủ đề này khi đang bật.
 theme_status_unnamed	Đã lưu chủ đề của bạn. Material You dùng chủ đề này khi đang bật.
 theme_accents	Màu nhấn
 theme_accent_saved	Đã lưu màu nhấn
+theme_accent_saved_on	Đã lưu và bật màu nhấn
 theme_accent_blue	Xanh lam
 theme_accent_purple	Tím
 theme_accent_pink	Hồng
@@ -373,6 +409,7 @@ theme_paste	Dùng chủ đề đã sao chép
 theme_copy	Sao chép chủ đề
 theme_clear	Quay lại màu hình nền
 theme_pasted	Đã lưu chủ đề
+theme_pasted_on	Đã lưu và bật chủ đề
 theme_paste_empty	Không có gì để dán. Hãy sao chép một chủ đề trước.
 theme_paste_invalid	Đây không phải là chủ đề. Màu của bạn không thay đổi.
 theme_copied	Đã sao chép chủ đề
@@ -417,7 +454,7 @@ restart_waiting_one	Có %d thay đổi đang chờ khởi động lại
 restart_waiting_many	Có %d thay đổi đang chờ khởi động lại
 quick_setups	Cài đặt nhanh
 quick_setups_help	Nhấn một lần để áp dụng một nhóm cài đặt điều khiển, sau đó bạn vẫn có thể điều chỉnh từng mục. Nhấn giữ để ẩn phần này.
-quick_setups_hidden	Đã ẩn. Vui lòng nhấn vào '%1$s' dưới '%2$s'.
+quick_setups_hidden	Đã ẩn. Nhấn %1$s ở %2$s.
 quick_setups_home	Phần cài đặt nhanh
 quick_setups_home_shown	Hiện đang hiển thị. Nhấn một lần để ẩn.
 quick_setups_home_hidden	Hiện đang ẩn. Nhấn một lần để hiển thị lại.
@@ -432,8 +469,8 @@ quick_defaults	Khôi phục cài đặt mặc định
 quick_defaults_help	Vô hiệu hóa tất cả các điều khiển. Trạng thái tạm dừng và chủ đề được giữ nguyên.
 quick_changed_one	Đã thay đổi %d điều khiển
 quick_changed_many	Đã thay đổi %d điều khiển
-quick_unchanged	Không có mục nào cần thay đổi. Các điều khiển này đã ở cài đặt được chỉ định.
-quick_missing	Các điều khiển này chưa được cài đặt. Không có cài đặt nào bị thay đổi.
+quick_unchanged	Không có gì cần đổi. Đã đặt sẵn rồi.
+quick_missing	Chưa cài các điều khiển này. Không có gì đổi.
 quick_undone_one	Đã hoàn tác %d điều khiển
 quick_undone_many	Đã hoàn tác %d điều khiển
 undo	Hoàn tác
@@ -447,22 +484,22 @@ export	Sao chép cài đặt
 export_help	Sao chép cài đặt của bạn thành văn bản. Để khôi phục trong phiên bản cài đặt khác, trước tiên hãy sao chép đoạn văn bản đó ở đó, sau đó nhấp vào 'Dán cài đặt'.
 exported	Đã sao chép cài đặt
 export_failed	Không thể sao chép cài đặt của bạn. Vui lòng thử lại.
-choices_file_save_failed	Không thể lưu cài đặt của bạn vào tệp. Vui lòng thử lại.
+choices_file_save_failed	Chưa lưu được tệp. Vui lòng thử lại.
 import_choices	Dán cài đặt
 import_help	Khôi phục cài đặt từ văn bản do 'Sao chép cài đặt' tạo ra. Vui lòng sao chép văn bản đó trước, sau đó nhấp vào đây.
 imported_one	Đã khôi phục %d mục cài đặt.
 imported_many	Đã khôi phục %d mục cài đặt.
 imported_partial	Đã khôi phục %1$d / %2$d mục cài đặt.
-import_same	Cài đặt của bạn đã giống với bản sao lưu đó.
+import_same	Cài đặt đã giống bản sao lưu.
 import_none_changed	Không có cài đặt nào bị thay đổi.
-import_auto_reply_off	Trả lời tự động vẫn tắt vì bản sao lưu đó không có nội dung trả lời.
-import_empty	Không có nội dung để dán. Vui lòng sao chép cài đặt của bạn trước.
-import_invalid	Đây không phải là bản sao lưu cài đặt. Không có cài đặt nào bị thay đổi.
+import_auto_reply_off	Trả lời tự động vẫn tắt vì không có câu trả lời.
+import_empty	Không có gì để dán. Hãy sao chép cài đặt trước.
+import_invalid	Đây không phải bản sao lưu cài đặt.
 import_too_large	Bản sao lưu đó lớn hơn 128 KB nên không có gì thay đổi.
 import_zip_too_large	Bản sao lưu đó quá lớn nên không có gì thay đổi.
 export_too_large	Cài đặt của bạn quá lớn để lưu vào một bản sao lưu.
 export_too_large_detail	Phần lớn là của %s. Chưa sao chép hay lưu gì cả.
-restore_failed	Không thể đọc tệp đó. Vui lòng thử lại hoặc chọn tệp khác.
+restore_failed	Không đọc được tệp đó. Hãy chọn tệp khác.
 choices_file_no_picker	Không thể mở bộ chọn tệp trên điện thoại này.
 import_unknown_one	Đã bỏ qua %d cài đặt không được nhận dạng bởi phiên bản này.
 import_unknown_many	Đã bỏ qua %d cài đặt không được nhận dạng bởi phiên bản này.
@@ -470,7 +507,7 @@ import_unavailable_one	Đã bỏ qua %d cài đặt chưa cài đặt tính năn
 import_unavailable_many	Đã bỏ qua %d cài đặt chưa cài đặt tính năng vá tương ứng.
 import_damaged_one	Đã bỏ qua %d tệp không dùng được.
 import_damaged_many	Đã bỏ qua %d tệp không dùng được.
-import_no_choices	Không có cài đặt nào để khôi phục. Tất cả các mục không khớp với các tính năng vá bạn đã cài đặt.
+import_no_choices	Không có gì khớp với các bản vá bạn đã cài.
 save_choices_file	Lưu cài đặt vào tệp
 read_choices_file	Khôi phục cài đặt từ tệp
 choices_file_help	Lưu cài đặt của bạn, gồm cả trả lời tự động và các cuộc trò chuyện đã ẩn hoặc đã ghim. Nếu có ảnh tiêu đề hoặc ảnh thẻ, phông chữ riêng, ảnh trả lời tự động hoặc những người mà Liên hệ đặc biệt theo dõi, tệp sẽ là .zip chứa cả những thứ đó. Tin nhắn và tài khoản không được lưu. Các cài đặt không có trong tệp sẽ được giữ nguyên. Nếu màn hình cài đặt đóng lại khi chọn tệp, vui lòng chọn lại tệp.
@@ -480,10 +517,10 @@ choices_file_reading	Đang đọc tệp cài đặt…
 cancel_choices_file	Hủy thao tác tệp
 choices_file_canceled	Đã hủy. Tệp đang lưu có thể không đầy đủ.
 choices_file_canceled_read	Đã hủy. Cài đặt của bạn không thay đổi.
-choices_file_timeout	Thao tác hết thời gian chờ. Tệp đã lưu có thể không đầy đủ. Vui lòng thử lại.
-choices_file_timeout_read	Thao tác hết thời gian chờ. Cài đặt của bạn không thay đổi. Vui lòng thử lại.
+choices_file_timeout	Quá lâu. Tệp đã lưu có thể bị thiếu.
+choices_file_timeout_read	Quá lâu. Cài đặt không đổi. Hãy thử lại.
 choices_file_busy	Thao tác lưu hoặc khôi phục tệp trước đó vẫn đang tiến hành. Vui lòng thử lại sau.
-choices_file_changed	Cài đặt của bạn đã thay đổi trong quá trình khôi phục. Vui lòng thử lại.
+choices_file_changed	Cài đặt đã thay đổi. Vui lòng thử lại.
 check_updates	Kiểm tra cập nhật
 check_updates_help	Khi bật và khi mở màn hình cài đặt, GitHub sẽ được truy vấn xem có phiên bản mới hay không. Kết quả truy vấn sẽ được tái sử dụng trong một giờ. Mặc định tắt. GitHub có thể thấy địa chỉ IP của bạn nhưng sẽ không nhận được dữ liệu tài khoản hoặc cuộc trò chuyện.
 check_now	Kiểm tra ngay
@@ -528,7 +565,7 @@ safe_mode_help_paused	Messenger liên tục bị sự cố nhiều lần. Cài �
 resume	Khôi phục
 clear_safe_mode	Thoát chế độ an toàn
 safe_mode_cleared	Đã thoát chế độ an toàn. Các thay đổi vẫn tạm dừng.
-safe_mode_save_failed	Không thể rời khỏi chế độ an toàn. Các thay đổi vẫn tạm dừng.
+safe_mode_save_failed	Chưa rời được chế độ an toàn. Vẫn tạm dừng.
 enabled_one	Đã bật %d điều khiển
 enabled_many	Đã bật %d điều khiển
 saved_one	Đã lưu %d mục cài đặt. Tắt 'Tạm dừng mọi thay đổi' để sử dụng.
@@ -546,7 +583,7 @@ search_clear	Xóa
 search_clear_description	Xóa nội dung tìm kiếm
 camera_missing	Không tìm thấy ứng dụng máy ảnh để chụp ảnh.
 camera_failed	Không thể mở ứng dụng máy ảnh. Vui lòng thử lại.
-camera_permission	Vui lòng cho phép quyền máy ảnh trong thông tin ứng dụng của Messenger.
+camera_permission	Hãy cho phép máy ảnh ở thông tin ứng dụng Messenger.
 camera_photo	Ảnh
 camera_video	Video
 system_camera_ask	Hỏi chụp ảnh hay quay video
@@ -657,7 +694,7 @@ auto_reply_save	Lưu
 auto_reply_groups	Cũng phản hồi phòng chat nhóm
 auto_reply_full	Đã đạt giới hạn phản hồi có thể lưu (%s phản hồi)
 auto_reply_saved	Đã lưu phản hồi: %s
-auto_reply_saved_none	Chưa có phản hồi nào được lưu, vì vậy sẽ không tự động phản hồi
+auto_reply_saved_none	Chưa lưu phản hồi nào nên sẽ không trả lời
 auto_reply_picture	Hình ảnh (tùy chọn)
 auto_reply_picture_none	Chưa có hình ảnh. Sau khi thêm hình ảnh, nó sẽ được gửi ngay sau phản hồi.
 auto_reply_picture_set	Gửi ngay sau phản hồi
@@ -680,19 +717,19 @@ font_file_using	Đang sử dụng %1$s. Chọn tệp khác để thay thế.
 font_file_picked_off	Đã chọn %1$s. Bật công tắc này để sử dụng.
 font_file_missing	Bản sao %1$s được lưu bởi HushMessenger đã bị mất, do đó sẽ sử dụng phông chữ của điện thoại. Vui lòng chọn lại tệp.
 font_file_copying	Đang sao chép tệp phông chữ…
-font_file_set	Đã chọn phông chữ. Có thể sử dụng sau khi khởi động lại Messenger.
+font_file_set	Đã chọn phông chữ. Hãy khởi động lại Messenger.
 font_file_set_off	Đã chọn phông chữ. Bật công tắc này để sử dụng.
-font_file_not_font	Đây không phải là phông chữ .ttf hoặc .otf. Phông chữ của bạn không thay đổi.
-font_file_too_large	Tệp phông chữ đó vượt quá %1$d MB. Phông chữ của bạn không thay đổi.
-font_file_wont_load	Android không thể sử dụng phông chữ đó. Phông chữ của bạn không thay đổi.
-font_file_not_saved	Không thể lưu phông chữ. Vui lòng kiểm tra dung lượng trống rồi thử lại.
+font_file_not_font	Đây không phải phông chữ .ttf hoặc .otf.
+font_file_too_large	Tệp vượt quá %1$d MB. Phông chữ không đổi.
+font_file_wont_load	Android không dùng được phông chữ đó.
+font_file_not_saved	Chưa lưu được phông chữ. Hãy xem dung lượng trống.
 font_file_unreadable	Không thể mở tệp đó. Phông chữ của bạn không thay đổi.
 font_file_no_picker	Điện thoại này không có bộ chọn tệp.
 font_file_picker_failed	Không thể mở bộ chọn tệp. Vui lòng thử lại.
 font_file_busy	Không thể bắt đầu thao tác. Vui lòng thử lại sau.
 font_file_stop	Dừng sao chép
 font_file_stopped	Đã dừng sao chép. Phông chữ của bạn không thay đổi.
-font_file_timeout	Sao chép hết thời gian chờ. Phông chữ của bạn không thay đổi.
+font_file_timeout	Sao chép quá lâu. Phông chữ không đổi.
 font_file_finishing	Đang lưu phông chữ, sẽ hoàn tất sau chốc lát.
 font_file_stuck	Thao tác sao chép trước đó vẫn đang chờ đọc tệp. Bạn chỉ có thể chọn tệp khác sau khi các thao tác đó từ bỏ việc chờ đợi.
 font_phone_set	Đã đổi lại phông chữ của điện thoại. Có thể thấy thay đổi sau khi khởi động lại Messenger.
@@ -778,7 +815,7 @@ search_suggested.description	Ẩn những người được gợi ý ở đầu 
 search_reels.title	Ẩn reels gần đây trong tìm kiếm
 search_reels.description	Ẩn các reels bạn vừa xem khỏi phần tìm kiếm trước khi bạn gõ.
 longer_notes.title	Viết ghi chú dài hơn
-longer_notes.description	Cho phép nhập tối đa 500 ký tự trong ghi chú thay vì 60. Facebook quyết định ghi chú dài có đăng được hay không.
+longer_notes.description	Cho phép nhập tối đa 2000 ký tự trong ghi chú thay vì 60. Facebook quyết định ghi chú dài có đăng được hay không.
 chat_preview.title	Xem trước phòng chat khi nhấn giữ
 chat_preview.description	Nhấn giữ một phòng chat để xem nhanh trong bản xem trước của chính Messenger, kèm menu của phòng chat ở bên dưới, mà không cần mở phòng chat.
 chat_preview_size.title	Bản xem trước phòng chat lớn hơn
@@ -829,6 +866,8 @@ floating_tab_bar.title	Thanh tab nổi
 floating_tab_bar.description	Chuyển thanh tab dưới cùng sang kiểu nổi mà Messenger đang thử nghiệm, nằm đè lên danh sách đoạn chat thay vì bên dưới. Messenger có thể vẫn giữ thanh tab thông thường trên một số màn hình. Có hiệu lực sau khi khởi động lại Messenger.
 tab_swipe.title	Vuốt để chuyển tab
 tab_swipe.description	Vuốt ngang trên danh sách trò chuyện để sang tab kế tiếp trên thanh dưới cùng, thay vì phải với tay xuống nút của nó. Các tab đang ẩn sẽ được bỏ qua, và danh sách tự cuộn ngang vẫn giữ cú vuốt của nó. Khởi động lại Messenger sau khi bật.
+see_through_tab_bar.title	Thanh tab trong suốt
+see_through_tab_bar.description	Cho các đoạn chat hiện qua thanh tab nổi ở dưới, nhiều hay ít tùy bạn chọn bên dưới. Thẻ bạn đang mở và các biểu tượng vẫn giữ nguyên. Cần Thanh tab nổi hoặc thanh nổi riêng của Messenger. Khởi động lại Messenger để thấy thay đổi.
 chat_animation.title	Mở và đóng phòng chat bằng hiệu ứng trượt
 chat_animation.description	Trượt vào từ cạnh bên khi mở phòng chat và trượt ra khi quay lại. Bong bóng chat và bong bóng thông báo không bị ảnh hưởng.
 story_hold.title	Dừng lại khi kết thúc tin
@@ -925,7 +964,7 @@ analytics_uploads.title	Ngừng tải lên dữ liệu phân tích
 analytics_uploads.description	Ngăn dịch vụ nền của Messenger tải lên số liệu thống kê sử dụng. Dữ liệu sẽ vẫn được ghi lại trên điện thoại và có thể tiếp tục tải lên sau khi tắt tùy chọn này.
 attribution_uploads.title	Ngừng tải lên dữ liệu quy kết quảng cáo
 attribution_uploads.description	Dừng công việc đọc ID quảng cáo của điện thoại và gửi nó cùng với cài đặt theo dõi quảng cáo cho Meta. ID quảng cáo tự nó sẽ không thay đổi.
-ad_events.title	Ngừng ghi lại hoạt động liên kết hộp thư đến và quảng cáo
+ad_events.title	Ngừng ghi hoạt động hộp thư và quảng cáo
 ad_events.description	Dừng hai loại báo cáo được ghi lại bởi Messenger. Một loại ghi lại phần nào của danh sách trò chuyện được hiển thị trên màn hình, Messenger phân loại là dữ liệu quảng cáo hộp thư đến; loại kia ghi lại liên kết quảng cáo nào bạn đã dùng để mở phòng chat.
 dwell_tracking.title	Ngừng ghi lại thời gian bạn chú ý
 dwell_tracking.description	Dừng báo cáo mà Messenger gửi khi bạn rời khỏi một màn hình, trong đó ghi lại bạn đã nhìn mỗi thứ bao lâu, theo thứ tự nào và quay lại bao nhiêu lần. Nó cũng dừng bản sao của những mốc thời gian đó được ghi vào nhật ký hành trình của Messenger.
@@ -949,6 +988,8 @@ mark_read_button.title	Nút đánh dấu là đã đọc
 mark_read_button.description	Khi bật 'Ẩn thông báo đã đọc', hãy thêm biểu tượng 'Đánh dấu là đã đọc' của Messenger vào thanh trên cùng của phòng chat. Mở phòng chat vẫn sẽ không gửi thông báo đã đọc; khi bạn muốn người khác thấy đã đọc, hãy nhấp vào biểu tượng, thiết bị cục bộ cũng sẽ đánh dấu phòng chat là đã đọc. Khi thanh trên cùng đã đầy, biểu tượng này sẽ thay thế nút chi tiết phòng chat (nhấp vào tên phòng chat vẫn có thể mở cùng một trang), hoặc một nút khác không dùng để gọi nếu phòng chat không có nút đó, trong khi nút gọi vẫn ở vị trí cũ.
 read_chats_locally.title	Đánh dấu đã đọc trên điện thoại này
 read_chats_locally.description	Xóa vẻ ngoài chưa đọc của phòng chat bạn đã mở khi bật Ẩn thông báo đã đọc, nhờ vậy danh sách chat không còn hiển thị phòng chat đó in đậm kèm số tin nhắn. Không có gì được gửi tới Messenger, nên người kia vẫn không biết bạn đã đọc. Một tin nhắn mới trong phòng chat sẽ khiến vẻ ngoài chưa đọc xuất hiện lại.
+mark_read_locally.title	Đánh dấu là đã đọc chỉ trên điện thoại này
+mark_read_locally.description	Mục Đánh dấu là đã đọc của Messenger trên một phòng chat trong danh sách sẽ báo cho người kia biết bạn đã đọc tin nhắn của họ. Khi bật tùy chọn này, mục đó chỉ xóa vẻ ngoài chưa đọc trên điện thoại này và không có gì được gửi tới Messenger. Một tin nhắn mới trong phòng chat sẽ khiến vẻ ngoài chưa đọc xuất hiện lại.
 keep_unsent.title	Giữ lại tin nhắn đã thu hồi
 keep_unsent.description	Trong các phòng chat được hỗ trợ, giữ lại tin nhắn trên màn hình sau khi người khác thu hồi tin nhắn. Trong phòng chat mã hóa, tin nhắn sẽ được giữ lại trong thông báo. Phòng chat nhóm chưa được thử nghiệm. Tính năng tự thu hồi tin nhắn của chính bạn có thể bị hạn chế.
 hidden_words.title	Ẩn tin nhắn có từ bạn chọn
@@ -973,6 +1014,8 @@ avatar_shape.title	Ảnh đại diện hình vuông
 avatar_shape.description	Hiển thị ảnh đại diện của người dùng bằng hình vuông thay vì hình tròn. Bật 'Góc bo tròn' bên dưới để đổi thành hình vuông bo tròn. Có hiệu lực sau khi khởi động lại Messenger.
 thin_story_rings.title	Vòng tin mỏng
 thin_story_rings.description	Vẽ vòng màu quanh ảnh đại diện có tin với độ dày bằng một nửa bình thường để chiếm ít chỗ hơn.
+story_row_size.title	Thanh tin nhỏ hơn
+story_row_size.description	Vẽ thanh tin và ghi chú phía trên danh sách trò chuyện nhỏ hơn, theo cỡ bạn chọn bên dưới, để vừa nhiều hơn trên màn hình. Chạm vẫn mở tin hoặc ghi chú dưới ngón tay bạn.
 home_header.title	Tiêu đề trang chủ của riêng bạn
 home_header.description	Đặt chữ hoặc ảnh của riêng bạn ở đầu danh sách đoạn chat, thay cho logo chữ của Messenger. Nhập chữ hoặc chọn ảnh bên dưới. Nếu không có cả hai, logo chữ vẫn được giữ. Khởi động lại Messenger để thấy thay đổi.
 custom_font.title	Sử dụng phông chữ tùy chỉnh

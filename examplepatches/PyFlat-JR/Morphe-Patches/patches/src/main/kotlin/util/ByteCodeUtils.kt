@@ -3,7 +3,6 @@ package app.pyflat.util
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
@@ -13,7 +12,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-context(context: BytecodePatchContext)
 fun findEnumStaticField(enumString: String, enumType: String): String? {
     val clinitFingerprint = Fingerprint(
         name = "<clinit>",
@@ -30,7 +28,6 @@ fun findEnumStaticField(enumString: String, enumType: String): String? {
     return clinit.enumFieldDescriptorAfter(stringIndex)
 }
 
-context(context: BytecodePatchContext)
 fun injectEnumReturnByString(
     targetMethod: MutableMethod,
     enumString: String,
@@ -44,7 +41,6 @@ fun injectEnumReturnByString(
     targetMethod.injectEnumFieldReturn(fieldRef)
 }
 
-context(context: BytecodePatchContext)
 fun injectEnumReturnByConstants(
     classType: String,
     returnConstant: String,

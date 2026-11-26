@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.Compatibility
 internal val ORCA_VERSIONS = listOf(
     "0.0.68",
     "0.0.70",
+    "0.0.71",
 )
 
 internal val ORCA_COMPATIBILITY = Compatibility(

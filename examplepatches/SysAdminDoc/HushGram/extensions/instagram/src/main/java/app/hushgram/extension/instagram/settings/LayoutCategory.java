@@ -19,6 +19,7 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
 import android.content.Context;
+import android.os.Build;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 
@@ -84,8 +85,8 @@ final class LayoutCategory {
                         L10n.t("The buttons beside a reel and their counts take the color you picked instead of "
                                 + "white. Restart Instagram to see the change.")));
                 layout.addPreference(toggle(context, Settings.ACCENT_PILLS, L10n.t("Filters in the accent color"),
-                        L10n.t("The filters along the top of Saved take the color you picked, and the one you're on "
-                                + "is filled with it. Restart Instagram to see the change.")));
+                        L10n.t("The filters along the top of Saved and under a search take the color you picked, and "
+                                + "the one you're on is filled with it. Restart Instagram to see the change.")));
                 layout.addPreference(toggle(context, Settings.ACCENT_RINGS, L10n.t("Story rings in the accent color"),
                         L10n.t("Story rings take the color you picked instead of Instagram's gradient. A few other "
                                 + "gradients share those colors and change with them. Restart Instagram to see the change.")));
@@ -133,6 +134,13 @@ final class LayoutCategory {
                         L10n.t("Asks Android to run Instagram at your screen's fastest refresh rate, at the same "
                                 + "resolution. Some phones keep their own limit for apps, and battery saver can "
                                 + "still lower it.")), RefreshRate::switchChanged), SettingsIcons.PHONE));
+                // Only Android 15 and up let a view ask for a frame rate.
+                if (Build.VERSION.SDK_INT >= 35) {
+                    layout.addPreference(mark(toggle(context, Settings.MATCH_VIDEO_FRAME_RATE, L10n.t("Match the video's frame rate"),
+                            L10n.t("While a video plays, tells Android its frame rate and asks for a refresh rate that "
+                                    + "frame rate divides into, like 60 Hz for a 30 fps reel. Use the highest refresh rate "
+                                    + "comes first while it's on.")), SettingsIcons.PHONE));
+                }
             }
             if (build.contains(PatchFamily.APP_ICON)) {
                 layout.addPreference(mark(appIconRow(context), SettingsIcons.PHONE));

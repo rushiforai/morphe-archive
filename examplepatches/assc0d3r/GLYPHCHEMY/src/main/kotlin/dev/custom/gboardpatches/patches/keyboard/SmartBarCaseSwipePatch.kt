@@ -8,13 +8,11 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import dev.custom.gboardpatches.patches.shared.commitFunnel
 import dev.jason.gboardpatches.patches.gboard.shared.addHelperMethodIfMissing
 
 private const val CANDIDATE_HOLDER_CLASS =
     "Lcom/google/android/apps/inputmethod/latin/keyboard/widget/LatinFixedCountCandidatesHolderView;"
-private const val COMMIT_UTIL_CLASS = "Lowy;"
-private const val INPUT_CONNECTION = "Landroid/view/inputmethod/InputConnection;"
-private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
 private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
 private const val HELPER_CLASS = "Ldev/custom/gboardpatches/keyboard/SmartBarCaseSwipeRuntime;"
 
@@ -27,9 +25,10 @@ private const val HELPER_CLASS = "Ldev/custom/gboardpatches/keyboard/SmartBarCas
  *   patch already updates) gets a `dispatchTouchEvent` that only *watches* the gesture. It always
  *   forwards the event to the stock children, so an ordinary tap still commits through Gboard's own
  *   candidate path, with its trailing space, composing state and suggestion bookkeeping.
- * - `Lowy.f(InputConnection, CharSequence, int)` is Gboard's single `commitText` wrapper, i.e. the
- *   funnel every routed commit passes through. Its text argument is replaced by the runtime's
- *   answer, which is the same text unless a swipe just armed a capitalization for exactly that word.
+ * - Gboard's single `commitText` wrapper, `InputConnectionUtil.f(InputConnection, CharSequence,
+ *   int)` (`Lowy.f` on 18.6.3 and 18.5.4, `Laerl.f` on 18.8.0), is the funnel every routed commit
+ *   passes through. Its text argument is replaced by the runtime's answer, which is the same text
+ *   unless a swipe just armed a capitalization for exactly that word.
  *
  * So the stock commit runs unchanged; only the capitalization of the committed word is different.
  */
@@ -45,6 +44,7 @@ val smartBarCaseSwipePatch = bytecodePatch(
             packageName = "com.google.android.inputmethod.latin",
             targets = listOf(
                 AppTarget(version = "18.6.3.1002251336-release-arm64-v8a"),
+                AppTarget(version = "18.8.0.1022711984-beta-arm64-v8a"),
                 AppTarget(version = "18.5.4.993608717-release-arm64-v8a"),
                 AppTarget(version = null, isExperimental = true),
             ),
@@ -70,12 +70,7 @@ val smartBarCaseSwipePatch = bytecodePatch(
             """.trimIndent(),
         )
 
-        val commit = mutableClassDefByOrNull(COMMIT_UTIL_CLASS)
-            ?.methods
-            ?.firstOrNull { method ->
-                method.name == "f" && method.returnType == "V" &&
-                    method.parameterTypes == listOf(INPUT_CONNECTION, CHAR_SEQUENCE, "I")
-            } ?: error("Gboard commit funnel $COMMIT_UTIL_CLASS->f not found.")
+        val commit = commitFunnel { mutableClassDefByOrNull(it) }
 
         // The register is derived from the funnel's own signature, so the hook stays correct if
         // Gboard ever ships it as an instance method (where `this` shifts the text argument).

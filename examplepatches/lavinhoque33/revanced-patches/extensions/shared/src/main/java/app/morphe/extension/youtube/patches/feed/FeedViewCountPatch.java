@@ -4,6 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Modified by lavinhoque33, 2026-10-24 and 2026-11-20
+ * Modified by lavinhoque33, 2026-11-25
  */
 
 package app.morphe.extension.youtube.patches.feed;
@@ -694,6 +695,9 @@ public final class FeedViewCountPatch {
          */
         @Nullable
         Rect thumbnail;
+        /** The actual image even when the count badges use its duration host instead. */
+        @Nullable
+        Rect thumbnailImage;
         /** If the thumbnail is the host that shows the duration, not only the image. */
         boolean thumbnailShowsDuration;
         /** Texts below the thumbnail, with their top and left. */
@@ -732,13 +736,16 @@ public final class FeedViewCountPatch {
     }
 
     private static void findCardInfo(ComponentHost root, View view, CardInfo info, Rect rect) {
-        if (!info.thumbnailShowsDuration && view instanceof ImageView) {
+        if (view instanceof ImageView) {
             rect.set(0, 0, view.getWidth(), view.getHeight());
             root.offsetDescendantRectToMyCoords(view, rect);
             // The smallest, as a background can be as large as the card.
             if (isThumbnailShaped(root, rect)
-                    && (info.thumbnail == null || rect.height() < info.thumbnail.height())) {
-                info.thumbnail = new Rect(rect);
+                    && (info.thumbnailImage == null || rect.height() < info.thumbnailImage.height())) {
+                info.thumbnailImage = new Rect(rect);
+                if (!info.thumbnailShowsDuration) {
+                    info.thumbnail = info.thumbnailImage;
+                }
             }
         }
         if (view instanceof TextView textView) {
@@ -893,10 +900,14 @@ public final class FeedViewCountPatch {
         /** The thumbnail, or null if not found. */
         @Nullable
         public final Rect thumbnail;
+        /** Measured image or thumbnail host bounds, without the square-thumbnail estimate. */
+        @Nullable
+        public final Rect mountedThumbnail;
 
-        ThumbnailFrame(@Nullable Rect duration, @Nullable Rect thumbnail) {
+        ThumbnailFrame(@Nullable Rect duration, @Nullable Rect thumbnail, @Nullable Rect mountedThumbnail) {
             this.duration = duration;
             this.thumbnail = thumbnail;
+            this.mountedThumbnail = mountedThumbnail;
         }
     }
 
@@ -917,7 +928,8 @@ public final class FeedViewCountPatch {
                 thumbnail = new Rect(0, 0, host.getWidth(), squareBottom);
             }
         }
-        return new ThumbnailFrame(info.duration, thumbnail);
+        Rect mountedThumbnail = info.thumbnailImage != null ? info.thumbnailImage : info.thumbnail;
+        return new ThumbnailFrame(info.duration, thumbnail, mountedThumbnail);
     }
 
     /**

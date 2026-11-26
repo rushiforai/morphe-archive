@@ -590,8 +590,10 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelsTopBarScroll;->keepInPlac
 # The bind is the one (holder, message) method loading both reply keys. Left out, the border and
 # icon never show on a one-time photo or video.
 once-call Lapp/hushgram/extension/instagram/direct/ViewOnceMark;->mark(Landroid/view/View;I)V in instance (L*;L*;)V pooled holding story_camera_reply story_remix_reply
-# Hide the reply bar on reels from chats asks hideDirectReplyBar(Object) with the viewer's source
-# right after each read of the direct reply bar controller's hidden flag, when the flag is clear:
+# Hide the reply bar on reels from chats asks hideDirectReplyBar(Object, Object) with the viewer's
+# source and the controller, whose viewer config the extension reads off the state it keeps
+# (LX/0RL1;->A11, an LX/0BwL;, on 457's 386314341) so a chat's reel opened as its Blend's is told
+# (#804), right after each read of the direct reply bar controller's hidden flag, when the flag is clear:
 # once in the showReplyBar that turns the flag into visible or gone (merged into the controller's
 # superclass with the Spotlight reply bar's on 450, so the marker picks the method), and once in the
 # controller's onViewCreated, which calls Instagram's hide when the flag is set. Neither comes first
@@ -600,8 +602,8 @@ once-call Lapp/hushgram/extension/instagram/direct/ViewOnceMark;->mark(Landroid/
 # instance-of on 456.1's arm64 and x86 builds (0URS.A19 on 386215122), but 386215121 (armeabi-v7a)
 # keeps the controller's own override (0F8a.A1A) beside the Spotlight bar's, which holds the marker
 # alone, so the rule picks the show by the view id it hands the visibility setter, which only it loads.
-shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideDirectReplyBar(Ljava/lang/Object;)Z in instance ()V holding const:0x9fecd20e
-shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideDirectReplyBar(Ljava/lang/Object;)Z in instance (Landroid/view/View;Landroid/os/Bundle;)V pooled holding ReelsDirectReplyBar
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideDirectReplyBar(Ljava/lang/Object;Ljava/lang/Object;)Z in instance ()V holding const:0x9fecd20e
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideDirectReplyBar(Ljava/lang/Object;Ljava/lang/Object;)Z in instance (Landroid/view/View;Landroid/os/Bundle;)V pooled holding ReelsDirectReplyBar
 # Hide the Save button on reels asks hideSaveButton() first thing in the clips UFI method that builds
 # the reel Save button, and hideSaveCount() first thing in the one that builds the save count under
 # it. Both are private instance methods of the one clips UFI class taking the component scope and two
@@ -923,6 +925,16 @@ no-call Landroid/view/SurfaceControl$Transaction;->setExtendedRangeBrightness(La
 # elsewhere, it isn't the hook the patch wrote.
 start-call Lapp/hushgram/extension/instagram/media/HdrBoost;->optionOff(JJ)Z in instance (L*;JZ)Z class-holding __fbt_null__
 once-call Lapp/hushgram/extension/instagram/media/HdrBoost;->optionOff(JJ)Z in instance (L*;JZ)Z class-holding __fbt_null__
+# Keep HDR on photo uploads (#532) hands HdrPhotos.ultraHdr Instagram's answer to whether photos keep
+# Ultra HDR right before the one return of the check, the static (UserSession)Z reading the two server
+# flags below, which ThumbnailPreviewFragment.onResume asks too. The final renderer's flag for gain
+# maps in color goes through HdrPhotos.colorGainmap before its branch, in the one method holding
+# ImageFinalRenderer that calls setGainmap, and HdrPhotos.saved hears of each JPEG the photo save step
+# holding UltraHDR writes with Android's encoder. Left out, an Ultra HDR photo goes up as SDR unless the
+# server turns HDR on for the account; twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/media/HdrPhotos;->ultraHdr(I)I in static (Lcom/instagram/common/session/UserSession;)Z holding const:0x810442000311d9 const:0x8107d700012aba
+once-call Lapp/hushgram/extension/instagram/media/HdrPhotos;->colorGainmap(I)I in instance (L*;)V calling Landroid/graphics/Bitmap;->setGainmap(Landroid/graphics/Gainmap;)V pooled holding ImageFinalRenderer
+once-call Lapp/hushgram/extension/instagram/media/HdrPhotos;->saved(Landroid/graphics/Bitmap;Ljava/lang/String;I)V in instance ()Z pooled holding UltraHDR Landroid/graphics/Bitmap$CompressFormat;->JPEG:Landroid/graphics/Bitmap$CompressFormat;
 # And it hands the AV1 decoder settings' enhancement mode to HdrBoost.enhancementMode right before
 # their constructor writes it, so the synthetic HDR modes read as none (#85). The constructor is the
 # one method of its shape touching the field. Left out, software-decoded reels keep their synthetic
@@ -1135,12 +1147,14 @@ once-call Lapp/hushgram/extension/instagram/direct/ChatReels;->stop()Z in instan
 # one method naming ClipsPocketFeedDataSource. Left out, a chat with a Blend swipes straight into
 # the Blend; twice or elsewhere, some other viewer's source is swapped.
 once-call Lapp/hushgram/extension/instagram/direct/ChatReels;->blendAfterChat(Ljava/lang/Object;Ljava/lang/String;)Z in static (Landroid/content/Context;LX/*;Lcom/instagram/clips/intf/ClipsViewerConfig;*)LX/*; holding ClipsPocketFeedDataSource
-# And stopCached first in the static insert of one of the reels Instagram keeps cached for the
-# Reels tab (04HZ.A0A on 453's 385914283, #390), the one method holding its trace name, handed the
-# viewer's source. Near the last reel the viewer puts one in without asking the server. Left out, a
-# chat's reels go on to a suggested reel with the switch on; twice or elsewhere, the Reels tab loses
-# its cached reels.
-start-call Lapp/hushgram/extension/instagram/direct/ChatReels;->stopCached(Ljava/lang/Object;)Z in static (LX/*;LX/*;Z)V holding ClipsViewerFlashMediaController.insertItemToAdapter
+# And stopCached in the static insert of one of the reels Instagram keeps cached for the Reels tab
+# (04HZ.A0A on 453's 385914283, #390), the one method holding its trace name. Near the last reel the
+# viewer puts one in without asking the server. The ask comes before any of Instagram's code, after
+# the patch's own walk to the viewer's config through the controller's adapter (#804), whose null
+# check is a branch, so the rule is a once-call and SwipeChatReelsHookTest holds its place. Left
+# out, a chat's reels go on to a suggested reel with the switch on; twice or elsewhere, the Reels
+# tab loses its cached reels.
+once-call Lapp/hushgram/extension/instagram/direct/ChatReels;->stopCached(Ljava/lang/Object;)Z in static (LX/*;LX/*;Z)V holding ClipsViewerFlashMediaController.insertItemToAdapter
 # With every way to more reels stopped, nothing replaces the loading placeholder the Reels adapter
 # puts after the reels it adds (045b.A0a on 453's 385914283, #390), so the adapter's add asks
 # placeholder first, the one method holding its trace name, and writes the answer into its flag.
@@ -1522,6 +1536,29 @@ once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->dropsPromotion(Ljava
 # parameters sits on every build, and it loads no 0x45.
 start-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->blendButton()Z in static (LX/*;Lcom/instagram/common/session/UserSession;Ljava/lang/String;ZZZ)LX/*; holding const:0x45
 once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->blendButton()Z in static (LX/*;Lcom/instagram/common/session/UserSession;Ljava/lang/String;ZZZ)LX/*; holding const:0x45
+# Hide Meta AI restyle credits on stories asks MetaAi.storyCredit(kind) first in the one instance method
+# taking (Context, session, ReelHeaderAttributionType, ReelItem, two more) that decides whether a
+# story's header shows a line of that kind (03U8.A0H on 386314341), switching on the kind's
+# ordinal. A yes answers false, only for Meta AI's tool credit (Restyled with Meta AI and its Try it
+# link). Left out, the credit stays with the switch on; twice or elsewhere, it isn't the guard the
+# patch wrote. It holds no string, so the rules name its ordinal call.
+start-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->storyCredit(Ljava/lang/Object;)Z in instance (Landroid/content/Context;Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelHeaderAttributionType;Lcom/instagram/model/reels/ReelItem;LX/*;LX/*;)Z holding Ljava/lang/Enum;->ordinal()I
+once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->storyCredit(Ljava/lang/Object;)Z in instance (Landroid/content/Context;Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelHeaderAttributionType;Lcom/instagram/model/reels/ReelItem;LX/*;LX/*;)Z holding Ljava/lang/Enum;->ordinal()I
+# The same switch on reels asks MetaAi.restyleByline(name) first in the instance gate a reel's byline
+# asks, with the name EDITS_AI_RESTYLE, whether to leave Meta AI's restyle credit out (0JqL.A00 on
+# 386314341), and a yes answers true, the way Instagram's own flag holds the credit back. Its class's
+# second gate of the same shape (A01) tests the EDITS_ prefix too but compares no name, so the rules
+# name the equals call. Left out, the byline keeps the credit; twice or elsewhere, it isn't the guard
+# the patch wrote.
+start-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->restyleByline(Ljava/lang/Object;)Z in instance (Lcom/instagram/common/session/UserSession;Ljava/lang/String;)Z pooled holding EDITS_ Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->restyleByline(Ljava/lang/Object;)Z in instance (Lcom/instagram/common/session/UserSession;Ljava/lang/String;)Z pooled holding EDITS_ Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+# It asks MetaAi.restylePill() first in the static check a reel's pill row puts the restyle credit
+# pill in by (01Zx.A0D on 386314341, taking the media and the session), which looks for the restyle
+# tool among the tools the reel was made with and then reads server flag 0x810ad400063dca. A yes
+# answers false, so the row picks as it would for a reel made without it. Left out, the pill stays;
+# twice or elsewhere, it isn't the guard the patch wrote.
+start-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->restylePill()Z in static (LX/*;Lcom/instagram/common/session/UserSession;)Z holding const:0x810ad400063dca
+once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->restylePill()Z in static (LX/*;Lcom/instagram/common/session/UserSession;)Z holding const:0x810ad400063dca
 # Hide the Muse button on your profile asks MetaAi.museButton() just inside the Muse item's branch
 # of the static method ProfileActionBar fills its top bar with (09O4.A03 on 385611438), and a yes
 # goes back to the head of its walk of the items. Its only strings are ", " and an empty one,
@@ -2017,6 +2054,17 @@ start-call Lapp/hushgram/extension/instagram/feed/MenuItems;->editsRows(Ljava/ut
 once-call Lapp/hushgram/extension/instagram/feed/MenuItems;->editsRows(Ljava/util/List;)Ljava/util/List; in instance (LX/*;Ljava/lang/CharSequence;Ljava/lang/Integer;Ljava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Z)V pooled class-holding audio_page MUSIC
 once-call Lapp/hushgram/extension/instagram/feed/MenuItems;->editsTitle(Ljava/lang/CharSequence;Ljava/util/List;Ljava/util/List;)Ljava/lang/CharSequence; in instance (LX/*;Ljava/lang/CharSequence;Ljava/lang/Integer;Ljava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Z)V pooled class-holding audio_page MUSIC
 once-call Lapp/hushgram/extension/instagram/feed/FeedSaveRow;->allow(Ljava/util/List;)Ljava/util/List; in static (Z)Ljava/util/List; holding Lcom/instagram/feed/media/mediaoption/MediaOption$Option;->WHY_AM_I_SEEING_THIS:Lcom/instagram/feed/media/mediaoption/MediaOption$Option; Lcom/instagram/feed/media/mediaoption/MediaOption$Option;->REPORT:Lcom/instagram/feed/media/mediaoption/MediaOption$Option;
+# Its Interested switch (#815) hands each reel menu's follow test to reelFollowing right before the
+# test picks Interested or Not interested: the reduced three-dot list (0Ckr.A06 on 457, the one
+# static list of that shape reading both) and the sheet a press on a reel opens (0Ckr.A0B, the one
+# static method taking the press's PointF reading both). The post menu's opener hands the menu flags
+# maker's Interested flag to postOffered right before the maker (01Cy.FLn on 457, the one method
+# taking a View and a Media that names SimplifiedMediaOverflowBottomSheet). Left out, a followed
+# account's reel and the posts Instagram leaves it out of offer no Interested; twice or elsewhere,
+# it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/feed/InterestedEverywhere;->reelFollowing(I)Z in static (LX/*;LX/*;LX/*;)Ljava/util/ArrayList; holding Lcom/instagram/feed/media/mediaoption/MediaOption$Option;->INTERESTED:Lcom/instagram/feed/media/mediaoption/MediaOption$Option; Lcom/instagram/feed/media/mediaoption/MediaOption$Option;->NOT_INTERESTED:Lcom/instagram/feed/media/mediaoption/MediaOption$Option;
+once-call Lapp/hushgram/extension/instagram/feed/InterestedEverywhere;->reelFollowing(I)Z in static (Landroid/graphics/PointF;*)V holding Lcom/instagram/feed/media/mediaoption/MediaOption$Option;->INTERESTED:Lcom/instagram/feed/media/mediaoption/MediaOption$Option; Lcom/instagram/feed/media/mediaoption/MediaOption$Option;->NOT_INTERESTED:Lcom/instagram/feed/media/mediaoption/MediaOption$Option;
+once-call Lapp/hushgram/extension/instagram/feed/InterestedEverywhere;->postOffered(I)Z in instance (Landroid/view/View;Lcom/instagram/feed/media/Media;*)V pooled holding SimplifiedMediaOverflowBottomSheet
 # Hide Made with Edits (#570) hands the label kinds list to EditsLabel.labels in the constructor of
 # the feed header's label state, right before it's stored (the one constructor of that 22-value
 # shape storing a List, 01Zp on 454's 386014758). Left out, the Edits label keeps its turn under
@@ -2426,12 +2474,12 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->resetSpeed(F)F in 
 once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->item(Ljava/lang/Object;)V in static (*)V holding ClipsVideoPlayerController.maybeResumePlayer\splayVideoInZeroMode:\s
 once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->resuming(Ljava/lang/Object;)V in static (*)V holding ClipsVideoPlayerController.maybeResumePlayer\splayVideoInZeroMode:\s
 #
-# Open reel links on that reel (#606) asks the extension with the viewer's source right before the
+# Open reel links on that reel (#606) asks the extension with the viewer's source and config right before the
 # config's check that skips the Reels viewer's kept-reels controller, in the one method building it,
 # which reads the sync flow's flag (0x81033400080c42) a few instructions before that check (07NO.A1K
 # on 456's 386214574). Left out, a reel link opens on a reel Instagram kept; twice or elsewhere, it
 # isn't the hook the patch wrote. OpenReelLinksHookTest checks where it lands on every declared build.
-once-call Lapp/hushgram/extension/instagram/reels/ReelLinks;->skipsCachedReels(Ljava/lang/Object;)I in instance (LX/*;LX/*;Lkotlin/jvm/functions/Function0;)V holding const:0x81033400080c42
+once-call Lapp/hushgram/extension/instagram/reels/ReelLinks;->skipsCachedReels(Ljava/lang/Object;Ljava/lang/Object;)I in instance (LX/*;LX/*;Lkotlin/jvm/functions/Function0;)V holding const:0x81033400080c42
 #
 # The same patch asks the extension whether to hold each chunk of reels from the network right before
 # the viewer adds it, in the one static method logging the chunk and its add to the UI, and tells the
@@ -2627,6 +2675,17 @@ once-call Lapp/hushgram/extension/instagram/feed/CommentLikes;->hidden()Z in (LX
 # the dot and "AI-generated profile" on a no. Left out, the label stays; more often or elsewhere,
 # it isn't the check the patch wrote.
 once-call Lapp/hushgram/extension/instagram/feed/CommentAiLabel;->shown(I)Z in instance (LX/*;)LX/*; pooled holding row_comment_textview_username row_comment_textview_time_ago
+# Hide the (i) button in comments (#869), under Hide comments: the component drawing the row above
+# a sheet's comments (0TQj.A0p on 457, the one Button-role render reading CommentListViewModel's
+# two-string explanation from its own field) hands what it read to CommentAboutButton.disclosure
+# right after the read, and its own null test skips the (i). Left out, the (i) stays; more often
+# or elsewhere, it isn't the check the patch wrote.
+once-call Lapp/hushgram/extension/instagram/feed/CommentAboutButton;->disclosure(Ljava/lang/Object;)Ljava/lang/Object; in instance (LX/*;)LX/*; pooled holding android.widget.Button const:0x7f0810b0
+# The row with an (i) that a reel's comments can start with ("About comments on this reel", key
+# xar_info_row, #869), under the same switch: CommentListViewModel's static list builder (A07 on
+# 457) hands the list and the row to CommentAboutButton.aboutRow in place of its add of the row.
+# Left out, the row stays; more often or elsewhere, it isn't the add the patch replaced.
+once-call Lapp/hushgram/extension/instagram/feed/CommentAboutButton;->aboutRow(Ljava/lang/Object;Ljava/lang/Object;)V in static (*Lcom/instagram/comments/mvvm/viewmodel/CommentListViewModel;*)LX/*; pooled holding xar_info_row
 # The download button on feed posts (#97) calls FeedDownloadButton.bind first thing in the Feed
 # view binder Hide the Repost button's view hide is in (0Bfq.A07 on 450's 385611438). No rule, for
 # the reason above: the binder is picked by resource IDs. DownloadVideoHookTest checks on every
@@ -3434,8 +3493,10 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->install(I)Z i
 # On 456 the pager setup holds its viewPagerSetup trace in place of the marker (06ZV.A0R on
 # 386214574), and the handlers' markers are gone: each is the layout's one (MotionEvent) method
 # calling its superclass's handler of the same name, in the class whose constructor keeps its marker.
-# 456 renamed the pager's input field to A0A, the same in all its builds, and 457 to A09.
-once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pager(Ljava/lang/Object;Ljava/lang/Object;)I in static (Landroid/os/BaseBundle;Landroid/view/View;*)V holding ClipsViewerFragment.onViewCreated:viewPagerSetup
+# 456 renamed the pager's input field to A0A, the same in all its builds, and 457 to A09. The pager
+# hook also gets the object the pager went into, whose viewer config the extension reads so a chat's
+# reel opened as its Blend's is told (#804).
+once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pager(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)I in static (Landroid/os/BaseBundle;Landroid/view/View;*)V holding ClipsViewerFragment.onViewCreated:viewPagerSetup
 start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->userInput(Ljava/lang/Object;I)I in instance (Z)V holding Landroidx/viewpager2/widget/ViewPager2;->A09:Z
 once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->userInput(Ljava/lang/Object;I)I in instance (Z)V holding Landroidx/viewpager2/widget/ViewPager2;->A09:Z
 start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull(Ljava/lang/Object;)I in instance (Landroid/view/MotionEvent;)Z calling instance LX/*;->onInterceptTouchEvent(Landroid/view/MotionEvent;)Z class-holding android_purge_26_q3_ClipsSwipeRefreshLayout_init
@@ -3444,13 +3505,14 @@ start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull(Ljava/la
 shared-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull(Ljava/lang/Object;)I in instance (Landroid/view/MotionEvent;)Z calling instance LX/*;->onTouchEvent(Landroid/view/MotionEvent;)Z class-holding android_purge_26_q3_ClipsSwipeRefreshLayout_init
 # Play only the reel you opened (#656) puts ReelScrolling.autoScroll first in the Reels auto scroller's
 # check of whether to move on (0AMZ.A07 on 456's 386214574, the one method loading the flag below),
-# with the viewer's source read from the scroller. Every move the scroller makes on its own,
+# with the viewer's source read from the scroller and the scroller, whose viewer config the extension
+# reads off the state it keeps (#804). Every move the scroller makes on its own,
 # Instagram's auto scroll and Move on when a reel ends alike, asks that check first; on a 0 it answers
-# false. Ahead of the call sit only a move and a field read. Left out, those viewers auto scroll as
+# false. Ahead of the call sit only moves and a field read. Left out, those viewers auto scroll as
 # before; twice or elsewhere, it isn't the hook the patch wrote. AutoScrollCheckHookTest checks on the
 # 456 fixtures where it lands.
-start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->autoScroll(Ljava/lang/Object;)I in static (L*;)Z holding const:0x810d7500a24c26
-once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->autoScroll(Ljava/lang/Object;)I in static (L*;)Z holding const:0x810d7500a24c26
+start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->autoScroll(Ljava/lang/Object;Ljava/lang/Object;)I in static (L*;)Z holding const:0x810d7500a24c26
+once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->autoScroll(Ljava/lang/Object;Ljava/lang/Object;)I in static (L*;)Z holding const:0x810d7500a24c26
 # Swipe left to open the profile hands the answer of the Reels viewer's last swipe gate to
 # SwipeToProfile.allow right after it is read, in the one instance ()Z method loading the megaphone
 # name below (0A4B.A00 on 456, which dropped the check's purge marker). Left out, the switch does
@@ -3738,6 +3800,14 @@ once-call Lapp/hushgram/extension/instagram/feed/RefreshConfirm;->pull(Landroid/
 # where it lands on each declared build.
 start-call Lapp/hushgram/extension/instagram/profile/FollowConfirm;->hold(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z in instance (LX/*;Lcom/instagram/common/session/UserSession;Lcom/instagram/feed/media/Media;LX/*;Lcom/instagram/search/common/analytics/SearchContext;LX/*;LX/*;Ljava/lang/Double;Ljava/lang/String;)V holding Landroid/view/View;->isAttachedToWindow()Z
 once-call Lapp/hushgram/extension/instagram/profile/FollowConfirm;->hold(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z in instance (LX/*;Lcom/instagram/common/session/UserSession;Lcom/instagram/feed/media/Media;LX/*;Lcom/instagram/search/common/analytics/SearchContext;LX/*;LX/*;Ljava/lang/Double;Ljava/lang/String;)V holding Landroid/view/View;->isAttachedToWindow()Z
+# Its "Follow without the review sheet" switch (#867) hands FollowReview.skip the Follow listener
+# first thing in the "Review this account before following" sheet's builder (0BXc.A08 on 457), the
+# one static (Context, listener, listener, session, object, object) void, which reads the account's
+# field 0x46ae0f6e and its button text before it shows the sheet. Left out, the sheet still shows;
+# twice or elsewhere, it isn't the guard the patch wrote. FollowReviewHookTest checks where it lands
+# on each declared build.
+start-call Lapp/hushgram/extension/instagram/profile/FollowReview;->skip(Ljava/lang/Object;)Z in static (Landroid/content/Context;Landroid/content/DialogInterface$OnClickListener;Landroid/content/DialogInterface$OnClickListener;Lcom/instagram/common/session/UserSession;LX/*;LX/*;)V holding const:0x46ae0f6e Landroid/content/Context;->getString(I)Ljava/lang/String;
+once-call Lapp/hushgram/extension/instagram/profile/FollowReview;->skip(Ljava/lang/Object;)Z in static (Landroid/content/Context;Landroid/content/DialogInterface$OnClickListener;Landroid/content/DialogInterface$OnClickListener;Lcom/instagram/common/session/UserSession;LX/*;LX/*;)V holding const:0x46ae0f6e Landroid/content/Context;->getString(I)Ljava/lang/String;
 # Skip the collections tray (piko #2210) asks SaveTray.skip first thing in the check that decides
 # whether a save opens the collections tray (0BWA.A04 on 453, the one instance (UserSession) boolean
 # method loading the collab collection nux count), and answers false on a yes. 453's 385914510 asks
@@ -4086,6 +4156,13 @@ once-call Lapp/hushgram/extension/instagram/feed/FeedSound;->keepsMuted()I in in
 # view, where the account's audio state answered false and was never set. Left out, a song before any
 # video stays silent; twice or elsewhere, it isn't the test the patch wrote.
 once-call Lapp/hushgram/extension/instagram/feed/FeedSound;->startSongWithSound(Ljava/lang/Object;)I in static (Lcom/instagram/feed/media/Media;L*;L*;F)V class-holding FeedMusicController
+# Its reset hook (#762) tells FeedSound.audioStateChanging() first thing in the account audio state's own
+# setter, the static (state, Boolean) void method that stores the Boolean in the state and walks its
+# listener set, with the value about to be stored. Instagram hands it a null when it forgets the state
+# after ten minutes in the background. Left out, Home comes back muted after that reset; twice, later or
+# elsewhere, it isn't the call the patch wrote.
+start-call Lapp/hushgram/extension/instagram/feed/FeedSound;->audioStateChanging(Ljava/lang/Object;)V in static (LX/*;Ljava/lang/Boolean;)V holding LX/*;->*:Ljava/lang/Boolean; LX/*;->*:Ljava/util/concurrent/CopyOnWriteArraySet; Ljava/util/AbstractCollection;->iterator()Ljava/util/Iterator;
+once-call Lapp/hushgram/extension/instagram/feed/FeedSound;->audioStateChanging(Ljava/lang/Object;)V in static (LX/*;Ljava/lang/Boolean;)V holding LX/*;->*:Ljava/lang/Boolean; LX/*;->*:Ljava/util/concurrent/CopyOnWriteArraySet; Ljava/util/AbstractCollection;->iterator()Ljava/util/Iterator;
 # Long press to zoom (#63): the feed media touch helper hands every touch on a post's frame to the
 # extension first, in its one instance (MotionEvent) boolean method, the one of that shape reading
 # the helper's GestureDetector field. Left out, the zoom never learns where the finger went down;

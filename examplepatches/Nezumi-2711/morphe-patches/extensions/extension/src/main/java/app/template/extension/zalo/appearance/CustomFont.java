@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.TextPaint;
-import android.util.Log;
 import android.widget.Toast;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,6 +22,7 @@ import java.util.Locale;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.settings.NezumiPrefs;
 
 public final class CustomFont extends Fragment {
@@ -43,7 +43,8 @@ public final class CustomFont extends Fragment {
             if (!path.equals(cachedPath)) {
                 try {
                     cachedFont = Typeface.createFromFile(new File(context.getFilesDir(), path));
-                } catch (RuntimeException ignored) {
+                } catch (RuntimeException failure) {
+                    NezumiLog.swallowedOnce(TAG, "custom font file failed to load", failure);
                     cachedFont = null;
                 }
                 cachedPath = path;
@@ -69,7 +70,7 @@ public final class CustomFont extends Fragment {
     public static void diagnoseRichItem(Context context, Typeface original, Typeface requested, Typeface actual) {
         boolean selected = context != null && NezumiPrefs.of(context).contains(FONT);
         boolean loaded = getTypeface(context, 0) != null;
-        Log.i(TAG, "rich-item selected=" + selected + " loaded=" + loaded
+        NezumiLog.i(TAG, "rich-item selected=" + selected + " loaded=" + loaded
                 + " changed=" + (requested != original) + " applied=" + (actual == requested));
     }
 
@@ -181,7 +182,8 @@ public final class CustomFont extends Fragment {
                 save(getActivity(), data.getData());
                 Toast.makeText(getActivity(), "Font saved. Restart Zalo to refresh text.", Toast.LENGTH_LONG).show();
                 if (onChanged != null) onChanged.run();
-            } catch (Exception ignored) {
+            } catch (Exception failure) {
+                NezumiLog.w(TAG, "font import failed", failure);
                 Toast.makeText(getActivity(), "Could not load this font.", Toast.LENGTH_SHORT).show();
             }
         }

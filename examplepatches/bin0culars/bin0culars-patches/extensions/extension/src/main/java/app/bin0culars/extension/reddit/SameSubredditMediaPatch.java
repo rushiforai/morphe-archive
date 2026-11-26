@@ -55,6 +55,25 @@ public final class SameSubredditMediaPatch {
         }
     }
 
+    public static String endIfNoneMatch(List<?> posts, String after) {
+        String id = activeSubredditId;
+        if (id == null || after == null || posts == null || posts.isEmpty() || !BinocularsMods.isEnabled(KEY)) {
+            return after;
+        }
+        for (Object child : posts) {
+            if (child == null) {
+                continue;
+            }
+            try {
+                if (id.equals(subredditIdOf(child))) {
+                    return after;
+                }
+            } catch (RuntimeException ignored) {
+            }
+        }
+        return null;
+    }
+
     private static List<?> seedsOf(Object mediaContext) {
         // Modified during patching.
         return null;

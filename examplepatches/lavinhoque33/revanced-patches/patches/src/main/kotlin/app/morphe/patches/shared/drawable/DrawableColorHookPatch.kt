@@ -107,7 +107,7 @@ internal fun addDrawableColorHook(
     passDrawable: Boolean = false,
 ) {
     val method = insertMethod ?: throw PatchException("Litho background drawable color hook unavailable.")
-    val target = if (is_21_07_or_greater) preserveDrawableReceiver(method) else method
+    val target = if (passDrawable || is_21_07_or_greater) preserveDrawableReceiver(method) else method
     val callRegister = if (passDrawable) "p0, v$insertRegister" else "v$insertRegister"
     target.addInstructions(
         if (highPriority) insertIndex else insertIndex + offset,

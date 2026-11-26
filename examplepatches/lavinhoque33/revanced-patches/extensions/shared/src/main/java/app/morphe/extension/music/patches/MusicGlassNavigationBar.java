@@ -5,12 +5,13 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-16.
+ * Modified by lavinhoque33, 2026-11-25.
  * Written by lavinhoque33, 2026-11-13.
  */
 
 package app.morphe.extension.music.patches;
 
+import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -26,6 +27,8 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceType;
@@ -186,6 +190,8 @@ public final class MusicGlassNavigationBar {
      */
     private static WeakReference<View> currentPivotBar = new WeakReference<>(null);
     private static WeakReference<GlassCapsuleDrawable> currentGlass = new WeakReference<>(null);
+    private static WeakReference<LightPivotChrome> lightPivotChrome = new WeakReference<>(null);
+    private static int lightGlassSurface = MusicLightTheme.SURFACE;
 
     /**
      * If the page is being recorded for a blurred backdrop. The page can hold the glass that is
@@ -241,6 +247,7 @@ public final class MusicGlassNavigationBar {
      */
     private static final int OVERLAY_ELEMENTS_CONTAINER =
             ResourceUtils.getIdentifier(ResourceType.ID, "overlay_elements_container");
+    private static boolean samplesOverlayVisible;
 
     /**
      * If the class of a view is a RecyclerView, by class.
@@ -278,12 +285,116 @@ public final class MusicGlassNavigationBar {
     public static void onAlbumColorChanged() {
         GlassCapsuleDrawable glass = currentGlass.get();
         if (glass != null) {
-            Utils.runOnMainThread(() -> glass.setTintColor(getTintColor()));
+            Utils.runOnMainThread(() -> updateGlassTint(glass));
         }
     }
 
     private static int getTintColor() {
         return albumTint ? getAlbumColor() : 0;
+    }
+
+    private static void updateGlassTint(GlassCapsuleDrawable glass) {
+        final int tint = getTintColor();
+        glass.setTintColor(tint);
+        if (MusicLightTheme.isEnabled()) {
+            lightGlassSurface = MusicChromeColors.glassSurface(tint, opacityScale, lightTint);
+        }
+    }
+
+    /** Injection point in the visible branch of the stock pivot background setter. */
+    public static void onLightPivotBarPainted(View view) {
+        if (!MusicLightTheme.isEnabled() || !(view instanceof ViewGroup pivotBar) || view.getId() != PIVOT_BAR) {
+            return;
+        }
+
+        LightPivotChrome chrome = lightPivotChrome.get();
+        if (chrome == null || chrome.pivotBar != pivotBar) {
+            chrome = new LightPivotChrome(pivotBar);
+            lightPivotChrome = new WeakReference<>(chrome);
+        }
+        chrome.onGlobalLayout();
+    }
+
+    private static final class LightPivotChrome implements View.OnAttachStateChangeListener,
+            ViewTreeObserver.OnGlobalLayoutListener, ViewTreeObserver.OnPreDrawListener {
+        private final ViewGroup pivotBar;
+        @Nullable
+        private ViewTreeObserver observer;
+        private int surface;
+        private int selectedColor;
+        private int unselectedColor;
+        @Nullable
+        private ColorStateList tint;
+
+        LightPivotChrome(ViewGroup pivotBar) {
+            this.pivotBar = pivotBar;
+            pivotBar.addOnAttachStateChangeListener(this);
+            if (pivotBar.isAttachedToWindow()) onViewAttachedToWindow(pivotBar);
+        }
+
+        @Override
+        public void onViewAttachedToWindow(View view) {
+            observer = view.getViewTreeObserver();
+            observer.addOnGlobalLayoutListener(this);
+            observer.addOnPreDrawListener(this);
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View view) {
+            if (observer != null && observer.isAlive()) {
+                observer.removeOnGlobalLayoutListener(this);
+                observer.removeOnPreDrawListener(this);
+            }
+            observer = null;
+        }
+
+        @Override
+        public void onGlobalLayout() {
+            updateTint();
+            tintTabs();
+        }
+
+        @Override
+        public boolean onPreDraw() {
+            if (updateTint()) tintTabs();
+            return true;
+        }
+
+        private boolean updateTint() {
+            Drawable background = pivotBar.getBackground();
+            final int nextSurface;
+            if (background instanceof GlassCapsuleDrawable) {
+                nextSurface = samplesOverlayVisible ? Color.BLACK : lightGlassSurface;
+            } else {
+                nextSurface = MusicChromeColors.drawableSurface(background, MusicLightTheme.SURFACE);
+            }
+            if (tint != null && surface == nextSurface) return false;
+
+            surface = nextSurface;
+            final int selected = MusicChromeColors.foreground(surface);
+            final int unselected = MusicChromeColors.secondary(surface, selected);
+            if (tint != null && selectedColor == selected && unselectedColor == unselected) return false;
+
+            selectedColor = selected;
+            unselectedColor = unselected;
+            tint = MusicChromeColors.pivotTint(selected, unselected);
+            return true;
+        }
+
+        private void tintTabs() {
+            ViewGroup tabs = getTabs(pivotBar);
+            if (tabs == null) return;
+
+            for (int i = 0, count = tabs.getChildCount(); i < count; i++) {
+                View tab = tabs.getChildAt(i);
+                if (tab.findViewById(BUTTON_ICON) instanceof ImageView icon && icon.getImageTintList() != tint) {
+                    icon.setImageTintList(tint);
+                }
+                if (tab.findViewById(BUTTON_LABEL) instanceof TextView label && label.getTextColors() != tint) {
+                    label.setTextColor(tint);
+                }
+            }
+        }
     }
 
     /**
@@ -416,6 +527,7 @@ public final class MusicGlassNavigationBar {
                         if (found != null) insetMiniplayer = new WeakReference<>(found);
                     }
                     final int room = !ENABLED || isKeyboardShown(content) ? 0 : getContentRoom();
+                    samplesOverlayVisible = false;
                     updateListPadding(group, group, room, 0);
                 } catch (Exception ex) {
                     Logger.printException(() -> "Glass navigation bar list padding failure", ex);
@@ -450,6 +562,11 @@ public final class MusicGlassNavigationBar {
             return;
         }
         if (id != View.NO_ID && id == OVERLAY_ELEMENTS_CONTAINER) {
+            if (MusicLightTheme.isEnabled() && view.isShown() && view.getAlpha() > 0
+                    && view.getGlobalVisibleRect(floatingButtonVisibleRect)) {
+                samplesOverlayVisible = true;
+            }
+
             // The title and the buttons at the bottom of a video of Samples. Their layer shades the video
             // and ends below them, so the shade is continued below them, behind the bar.
             setBottomRoom(view, room, true);
@@ -741,6 +858,8 @@ public final class MusicGlassNavigationBar {
      * @return The opaque background color of the layout the page is in, or of the app theme.
      */
     private static int getPageBackgroundColor(View source) {
+        if (MusicLightTheme.isEnabled() && !samplesOverlayVisible) return MusicLightTheme.SURFACE;
+
         for (ViewParent parent = source.getParent(); parent instanceof View view; parent = view.getParent()) {
             if (view.getBackground() instanceof ColorDrawable color && Color.alpha(color.getColor()) == 255) {
                 return color.getColor();
@@ -824,7 +943,7 @@ public final class MusicGlassNavigationBar {
 
         CapsuleHost capsuleHost = new CapsuleHost(pivotBar);
         GlassCapsuleDrawable glass = new GlassCapsuleDrawable(pivotBar, capsuleHost, opacityScale, lightTint, rimScale);
-        glass.setTintColor(getTintColor());
+        updateGlassTint(glass);
         currentGlass = new WeakReference<>(glass);
 
         // The background and the padding the app gave the navigation bar and its buttons,
@@ -850,7 +969,7 @@ public final class MusicGlassNavigationBar {
             if (!hasFocus || currentPivotBar.get() != pivotBar) return;
             readSettings();
             glass.setStyle(opacityScale, lightTint, rimScale);
-            glass.setTintColor(getTintColor());
+            updateGlassTint(glass);
             pivotBar.requestLayout();
         });
 

@@ -51,6 +51,10 @@ public final class RamblerEnhancementsSettings {
             "pref_rambler_voice_search_triggers";
     public static final String PREF_KEY_HISTORY_ENABLED =
             "pref_rambler_history_enabled";
+    public static final String PREF_KEY_STATS_ENABLED =
+            "pref_rambler_stats_enabled";
+    public static final String PREF_KEY_TYPING_BASELINE_WPM =
+            "pref_rambler_typing_baseline_wpm";
     public static final String PREF_KEY_SEEDED_CONTACTS =
             "pref_rambler_contacts_seeded_names";
 
@@ -78,6 +82,10 @@ public final class RamblerEnhancementsSettings {
     public static final boolean DEFAULT_VOICE_SEARCH_ENABLED = false;
     public static final String DEFAULT_VOICE_SEARCH_TRIGGERS = "hit search, search it";
     public static final boolean DEFAULT_HISTORY_ENABLED = true;
+    public static final boolean DEFAULT_STATS_ENABLED = true;
+    public static final int DEFAULT_TYPING_BASELINE_WPM = 40;
+    public static final int MIN_TYPING_BASELINE_WPM = 15;
+    public static final int MAX_TYPING_BASELINE_WPM = 120;
 
     private static final ThreadLocal<Boolean> IN_GBOARD_PREFS_LOOKUP = new ThreadLocal<Boolean>();
     private static volatile GboardPrefsBridge cachedGboardBridge;
@@ -324,6 +332,31 @@ public final class RamblerEnhancementsSettings {
                 context, PREF_KEY_HISTORY_ENABLED, DEFAULT_HISTORY_ENABLED);
     }
 
+    public static boolean readStatsEnabled(Context context) {
+        return readDedicatedBoolean(
+                context, PREF_KEY_STATS_ENABLED, DEFAULT_STATS_ENABLED);
+    }
+
+    public static int readTypingBaselineWpm(Context context) {
+        SharedPreferences prefs = preferencesOrNull(context);
+        if (prefs == null) {
+            return DEFAULT_TYPING_BASELINE_WPM;
+        }
+        try {
+            return clampTypingBaselineWpm(
+                    prefs.getInt(PREF_KEY_TYPING_BASELINE_WPM, DEFAULT_TYPING_BASELINE_WPM));
+        } catch (Throwable ignored) {
+            return DEFAULT_TYPING_BASELINE_WPM;
+        }
+    }
+
+    public static int clampTypingBaselineWpm(int wpm) {
+        if (wpm < MIN_TYPING_BASELINE_WPM) {
+            return MIN_TYPING_BASELINE_WPM;
+        }
+        return Math.min(wpm, MAX_TYPING_BASELINE_WPM);
+    }
+
     public static boolean writeUseDictionaryWords(Context context, boolean enabled) {
         RamblerFlagRuntime.seedApplicationContext(context);
         boolean ok = writeLiveBoolean(context, PREF_KEY_USE_DICTIONARY_WORDS, enabled);
@@ -403,6 +436,23 @@ public final class RamblerEnhancementsSettings {
 
     public static boolean writeHistoryEnabled(Context context, boolean enabled) {
         return writeDedicatedBoolean(context, PREF_KEY_HISTORY_ENABLED, enabled);
+    }
+
+    public static boolean writeStatsEnabled(Context context, boolean enabled) {
+        return writeDedicatedBoolean(context, PREF_KEY_STATS_ENABLED, enabled);
+    }
+
+    public static boolean writeTypingBaselineWpm(Context context, int wpm) {
+        try {
+            SharedPreferences prefs = preferencesOrNull(context);
+            return prefs != null
+                    && prefs.edit()
+                    .putInt(PREF_KEY_TYPING_BASELINE_WPM, clampTypingBaselineWpm(wpm))
+                    .commit();
+        } catch (Throwable err) {
+            logWarningSafely("Failed to persist typing baseline WPM", err);
+            return false;
+        }
     }
 
     private static boolean readDedicatedBoolean(Context context, String key, boolean fallback) {

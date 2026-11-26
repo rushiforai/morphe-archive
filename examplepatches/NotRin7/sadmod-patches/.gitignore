@@ -1,0 +1,26 @@
+# Gradle & Kotlin
+.gradle/
+.kotlin/
+build/
+**/build/
+local.properties
+
+# Local extracted compile-only SDK
+.local-sdk/
+
+# Morphe signing private key (never commit)
+morphe-signing.key
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.DS_Store
+
+# Node / semantic-release
+node_modules/
+
+# Temporary / APK artifacts
+*.apk
+*.mpp
+*.mpe
+!gradle/wrapper/gradle-wrapper.jar

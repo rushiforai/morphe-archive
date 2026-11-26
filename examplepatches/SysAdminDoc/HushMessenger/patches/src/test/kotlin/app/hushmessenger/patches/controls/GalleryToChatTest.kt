@@ -15,6 +15,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableTryBlock
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -77,6 +81,25 @@ private val PUBLIC_STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
 private fun coroutineClass(body: String = EDITOR_BODY, type: String = COROUTINE) = fixtureClass(type,
     listOf(fixtureMethod(GALLERY_CHAT_EDITOR.replace(COROUTINE, type), body.replace(COROUTINE, type), registers = 9)), flags = FINAL_PUBLIC)
+
+/**
+ * 588's coroutine: the copy's goto takes it on to the builder, and a failed copy goes to a handler that leaves the
+ * media null. The copy is index 7, its goto 9, the handler 10 and the builder 12.
+ */
+private val EDITOR_BODY_588 = EDITOR_BODY.replace("$EDITOR_COPY\n:build", "$EDITOR_COPY\ngoto :build\nmove-exception v5\nconst/4 v0, 0x0\n:build")
+
+/** [EDITOR_BODY_588] with its try: from the chat's cast through the copy's goto, caught at the move-exception. */
+private fun coroutine588Class(body: String = EDITOR_BODY_588): MutableClass {
+    val plain = fixtureMethod(GALLERY_CHAT_EDITOR, body, registers = 9)
+    val code = plain.implementation!!.instructions.toList()
+    val address = IntArray(code.size + 1).also { for (i in code.indices) it[i + 1] = it[i] + code[i].codeUnits }
+    val start = code.indexOfFirst { it.opcode == Opcode.CHECK_CAST }
+    val until = code.indexOfFirst { it.opcode == Opcode.GOTO } + 1
+    val caught = ImmutableExceptionHandler("Ljava/lang/SecurityException;", address[code.indexOfFirst { it.opcode == Opcode.MOVE_EXCEPTION }])
+    val tried = ImmutableMethodImplementation(9, code, listOf(ImmutableTryBlock(address[start], address[until] - address[start], listOf(caught))), null)
+    return fixtureClass(COROUTINE, listOf(MutableMethod(ImmutableMethod(plain.definingClass, plain.name, plain.parameters, plain.returnType,
+        plain.accessFlags, null, null, tried))), flags = FINAL_PUBLIC)
+}
 
 private const val STEP = "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
 private const val MERGED_EDITOR = "$COROUTINE->A03$STEP"
@@ -162,6 +185,52 @@ private fun factoryClass(body: String = FACTORY_BODY, gate: String? = GATE_BODY,
     superclass: String = COMPOSER_FACTORY) = fixtureClass(type, listOf(fixtureMethod("$type->A8B()V", body.replace(FACTORY, type), registers = 4)) +
     listOfNotNull(gate?.let { fixtureMethod(GALLERY_TRAY_GATE.replace(FACTORY, type), it, registers = 3) }), superclass = superclass)
 
+/** 588's base gate: the chat factory's override folded in behind instance-of, false for any other factory. */
+private const val FOLDED_TRAY_GATE = "$COMPOSER_FACTORY->A1J()Z"
+
+/** [FOLDED_TRAY_GATE]'s body: the factory's branch returns at index 7, the other one is a zero at 8. Locals v0 to v2, this in v3. */
+private val FOLDED_GATE_BODY = """
+    instance-of v0, p0, $FACTORY
+    if-eqz v0, :other
+    move-object v0, p0
+    check-cast v0, $FACTORY
+    const-wide v0, 0x10101a000161d04L
+    invoke-static {v0, v1}, LX/2on;->A00(J)Z
+    move-result v0
+    return v0
+    :other
+    const/4 v0, 0x0
+    return v0
+""".trimIndent()
+
+/**
+ * 588's factory: no override of its own, and the null plugin is a copy of a register set to zero at the start, which
+ * only a later path writes again.
+ */
+private val FOLDED_FACTORY_BODY = """
+    const/4 v1, 0x0
+    invoke-virtual {p0}, $COMPOSER_FACTORY->A1J()Z
+    move-result v0
+    if-eqz v0, :none
+    goto :check
+    :none
+    move-object v2, v1
+    goto :built
+    :check
+    new-instance v2, $TRAY_PLUGIN
+    invoke-direct {v2}, $TRAY_PLUGIN-><init>()V
+    :built
+    invoke-virtual {p0, v2}, $FACTORY->A00(Ljava/lang/Object;)V
+    new-instance v1, LX/6rn;
+    return-void
+""".trimIndent()
+
+private fun baseFactoryClass(gate: String = FOLDED_GATE_BODY) =
+    fixtureClass(COMPOSER_FACTORY, listOf(fixtureMethod(FOLDED_TRAY_GATE, gate, registers = 4)), flags = AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value)
+
+private fun foldedClasses(factory: String = FOLDED_FACTORY_BODY, gate: String = FOLDED_GATE_BODY) =
+    chatClasses(factoryClass(factory, gate = null)) + baseFactoryClass(gate)
+
 /**
  * Open your gallery app's classes with the photo handler starting its coroutine and the event's intent field writable,
  * plus the coroutine, the tray insert, the camera result that names the chat's dispatcher, and the composer factory
@@ -209,6 +278,72 @@ class GalleryToChatTest {
         val found = found(chatClasses() + factoryClass(type = "LX/AFD;", gate = null))
         assertEquals(GALLERY_TRAY_GATE, found.last().hookId())
         assertEquals(GALLERY_TRAY_GATE, galleryChatRoute!!.tray)
+    }
+
+    @Test fun a588BaseGateAnsweringForTheChatFactoryIsHookedOnThatBranchOnly() {
+        val found = found(foldedClasses())
+        assertEquals(listOf(GALLERY_ITEMS, GALLERY_CHAT_EDITOR, FOLDED_TRAY_GATE), found.map { it.hookId() })
+        assertEquals(FOLDED_TRAY_GATE, galleryChatRoute!!.tray)
+        assertEquals(7, found.last().traySite())
+        val gate = MutableMethod(baseFactoryClass().methods.single())
+        val before = gate.code()
+        injectControl(GALLERY_TO_CHAT, mapOf(GALLERY_TO_CHAT to listOf(gate)))
+        val after = gate.code()
+        assertEquals(before.take(7), after.take(7))
+        assertEquals(GALLERY_TRAY_CALL, after[7].reference())
+        assertEquals(0, (after[7] as FiveRegisterInstruction).registerC)
+        assertEquals(Opcode.MOVE_RESULT, after[8].opcode)
+        assertEquals(before.drop(7), after.drop(9))
+        // Every other factory still gets the base's false.
+        assertEquals(10, after.branchTarget(1))
+
+        for ((case, classes) in mapOf(
+            "a base gate for another factory" to foldedClasses(gate = FOLDED_GATE_BODY.replace("instance-of v0, p0, $FACTORY", "instance-of v0, p0, LX/AEb;")),
+            "a base gate that tests another register" to foldedClasses(gate = FOLDED_GATE_BODY.replace("instance-of v0, p0,", "instance-of v0, v2,")),
+            "a branch out of the factory's answer" to foldedClasses(gate = FOLDED_GATE_BODY.replace("move-result v0\n", "move-result v0\nif-eqz v0, :other\n")),
+            "a true answer for other factories" to foldedClasses(gate = FOLDED_GATE_BODY.replace("const/4 v0, 0x0\nreturn v0", "const/4 v0, 0x1\nreturn v0")),
+            "a null copied from a register another path fills" to foldedClasses(FOLDED_FACTORY_BODY.replace("const/4 v1, 0x0\n",
+                "const/4 v1, 0x0\nif-nez p0, :zeroed\nnew-instance v1, LX/6rn;\n:zeroed\n")),
+            "a null copied from a register nothing set" to foldedClasses(FOLDED_FACTORY_BODY.replace("const/4 v1, 0x0\n", "")),
+            "a copy of a register set to something else" to foldedClasses(FOLDED_FACTORY_BODY.replace("const/4 v1, 0x0", "const/4 v1, 0x1")),
+        )) {
+            assertTrue(found(classes).isEmpty(), case)
+            assertEquals(null, galleryChatRoute, case)
+        }
+    }
+
+    @Test fun a588CopyInATryReachesTheTrayThroughItsGotoOnly() {
+        val found = found(chatClasses(coroutine588Class()))
+        assertEquals(listOf(GALLERY_ITEMS, GALLERY_CHAT_EDITOR, GALLERY_TRAY_GATE), found.map { it.hookId() })
+        val site = found[1].galleryChatSite(setOf(CHAT))!!
+        assertEquals(listOf(12, 1, 0, 2, 4, 9), listOf(site.at, site.intent, site.media, site.chat, site.params, site.jump))
+        val editor = MutableMethod(coroutine588Class().methods.single())
+        val before = editor.code()
+        injectControl(GALLERY_TO_CHAT, mapOf(GALLERY_TO_CHAT to listOf(editor)))
+        val after = editor.code()
+        // The copy's goto now goes to the hook past the method's end; everything else stays where it was.
+        assertEquals(before.take(9), after.take(9))
+        assertEquals(before.subList(10, before.size), after.subList(10, before.size))
+        assertEquals(before.size, after.branchTarget(9))
+        val ask = after[before.size] as FiveRegisterInstruction
+        assertEquals(GALLERY_CHAT_ITEM_CALL, after[before.size].reference())
+        assertEquals(listOf(1, 0), listOf(ask.registerC, ask.registerD))
+        // Not one of ours: on to the builder, as the goto went before.
+        assertEquals(Opcode.IF_EQZ, after[before.size + 2].opcode)
+        assertEquals(12, after.branchTarget(before.size + 2))
+        assertEquals(listOf(Opcode.SGET_OBJECT, Opcode.RETURN_OBJECT), after.takeLast(2).map { it.opcode })
+        // No try reaches the hook, so a failure in it is never taken for a failed copy.
+        val hookAt = after.take(before.size).sumOf { it.codeUnits }
+        assertTrue(editor.implementation!!.tryBlocks.all { it.startCodeAddress + it.codeUnitCount <= hookAt })
+
+        for ((case, body) in mapOf(
+            "a branch onto the copy's goto" to EDITOR_BODY_588.replace("goto :build\n", ":copied\ngoto :build\n").replace("if-eqz v1, :build", "if-eqz v1, :copied"),
+            "a last instruction that would fall into the hook" to "$EDITOR_BODY_588\nnop",
+            "a goto that skips the builder" to EDITOR_BODY_588.replace("goto :build\n", "goto :past\n").replace("sget-object v5, $UNIT", ":past\nsget-object v5, $UNIT"),
+        )) {
+            assertTrue(found(chatClasses(coroutine588Class(body))).isEmpty(), case)
+            assertEquals(null, galleryChatRoute, case)
+        }
     }
 
     @Test fun theTrayGateAsksTheSwitchWithTheServersAnswer() {

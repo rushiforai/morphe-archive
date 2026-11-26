@@ -486,9 +486,15 @@ private fun MutableClass.gapHook(fields: Collection<String>, method: String) = f
  * The divider composables of server drawn lists: (class, method or null for all of them) and the color getter
  * whose result they draw with. The getters are shared with other components, so only these calls are touched.
  */
+/**
+ * Where a divider reads its colour: class, method (null for any) and the token getters LinkedIn has used for it.
+ * 4.1.1272 and older read a faint background / border token, 4.1.1276 reads the plain divider token.
+ */
 private val COMPOSE_DIVIDERS = listOf(
-    Triple("Lcom/linkedin/android/infra/sdui/components/DividerKt;", null, "getBackgroundFaint-0d7_KjU"),
-    Triple("Lcom/linkedin/android/infra/sdui/components/LazyColumnItemsKt;", "ListDivider", "getBorderFaint-0d7_KjU"),
+    Triple("Lcom/linkedin/android/infra/sdui/components/DividerKt;", null,
+        listOf("getDivider-0d7_KjU", "getBackgroundFaint-0d7_KjU")),
+    Triple("Lcom/linkedin/android/infra/sdui/components/LazyColumnItemsKt;", "ListDivider",
+        listOf("getDivider-0d7_KjU", "getBorderFaint-0d7_KjU")),
 )
 
 /** LinkedIn's Application class. */
@@ -704,12 +710,15 @@ val removeGapsAndDividersPatch = bytecodePatch(
         }
         if (themes == 0) throw PatchException("No Compose gap tokens found")
 
-        COMPOSE_DIVIDERS.forEach { (type, method, getter) ->
-            val found = hookAfterWideResults(type, method, getter) { register ->
-                """
-                    invoke-static/range { v$register .. v${register + 1} }, $EXTENSION_PACKAGE/MaterialYou;->flatDivider(J)J
-                    move-result-wide v$register
-                """
+        COMPOSE_DIVIDERS.forEach { (type, method, getters) ->
+            // A build reads one of the getters; hooking a name that is absent finds nothing and changes nothing.
+            val found = getters.sumOf { getter ->
+                hookAfterWideResults(type, method, getter) { register ->
+                    """
+                        invoke-static/range { v$register .. v${register + 1} }, $EXTENSION_PACKAGE/MaterialYou;->flatDivider(J)J
+                        move-result-wide v$register
+                    """
+                }
             }
             if (found == 0) throw PatchException("No divider color in $type")
         }

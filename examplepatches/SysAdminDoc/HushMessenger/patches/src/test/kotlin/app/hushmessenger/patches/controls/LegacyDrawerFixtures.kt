@@ -42,6 +42,12 @@ private fun drawerMapping(refreshOwner: String) = when (refreshOwner) {
     // 587's armv7 builds.
     "LX/8xZ;" -> DrawerFixtureMapping("LX/9lO;", "BYz", "LX/TWj;", "LX/TWk;", "LX/Iji;", "LX/Ime;", "LX/TiC;", "LX/1db;", "LX/0RM;",
         inlineIcon = true, qrRow = true)
+    // 588's arm64 builds take the Settings icon from JaI.A00, returning J1f.
+    "LX/5nE;" -> DrawerFixtureMapping("LX/77g;", "BlS", "LX/Hte;", "LX/IqS;", "LX/JEa;", "LX/JaI;", "LX/J1f;", "LX/1i4;", "LX/0Rv;",
+        qrRow = true, iconFactoryOnBase = true)
+    // 588's armv7 builds, the same shape: JP6.A00 returning Inf.
+    "LX/5qV;" -> DrawerFixtureMapping("LX/7Ad;", "Blb", "LX/Hvt;", "LX/Ico;", "LX/J2h;", "LX/JP6;", "LX/Inf;", "LX/1iT;", "LX/0S1;",
+        qrRow = true, iconFactoryOnBase = true)
     else -> error("Unrecorded drawer mapping: $refreshOwner")
 }
 

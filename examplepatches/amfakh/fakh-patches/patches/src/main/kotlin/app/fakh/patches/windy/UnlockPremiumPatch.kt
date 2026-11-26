@@ -13,180 +13,69 @@ import app.morphe.patcher.patch.resourceFile
 // ── Architecture ─────────────────────────────────────────────────────────────
 //
 // Windy (com.windyty.android) is a Capacitor web-hybrid app. All subscription
-// logic lives entirely in a single minified JS bundle:
+// logic lives in a single minified JS bundle:
 //
 //   assets/public/v/<version>/mobile.js
 //
-// The bundle path uses a versioned directory (e.g. "51.3.2.mob.3c81") that
-// changes each release. The patch locates it dynamically by scanning
-// assets/public/v/ for any subdirectory containing mobile.js.
+// The version directory changes each release, so the patch scans for it.
 //
-// ── Subscription model (v51.3.2 identifiers) ─────────────────────────────────
+// ── Subscription model ───────────────────────────────────────────────────────
 //
-// Windy uses a custom store object (N in v51.3.2, was P in v51.0.1) backed by
-// SharedPreferences via a localStorage adapter. The store system has three
-// levels:
+// A custom store backed by SharedPreferences holds the `subscription` tier. A
+// read goes through the in-memory cache, then persistent storage, then the
+// default (`def`). Setting a key to null evicts it.
 //
-//   1. In-memory cache — set by store.set(key, value), evicted by
-//      store.set(key, null).
-//   2. Persistent storage — SharedPreferences; read on cache miss.
-//   3. Default value (def) — used when storage.get() returns null.
+// Three gates guard premium features:
 //
-// Two functions control the subscription state:
+//   subscription store: null is free, any string is subscribed.
+//   premium flag: `!!store.get(`subscription`)`, guards the premiumOnly store
+//     getters (zoom levels, tile steps, overlay params).
+//   hasAny: `store.get(`subscription`) !== null`, drives the UI (tile zoom
+//     caps, 1-hour forecast step, premium calendar, paywall).
+//   body.subs-{tier}: CSS class that hides the "Go Premium" buttons.
 //
-//   Au(subscriptionInfo): "setTier" — called with the server's account
-//     response. With an active subscription it writes the tier string
-//     (e.g. `premium`) to the store and calls ku(tier) to add the
-//     `subs-${tier}` class to <body>; without one it calls Ou().
-//
-//   Ou(): "clearTier" — reads the current subscription value, clears the
-//     `subscription` and `subscriptionInfo` stores to null, removes the
-//     `subs-${e}` body class and emits a `tier/none` analytics event.
-//
-// Three interconnected gates guard premium features:
-//
-//   subscription store: def:null → N.get(`subscription`) === null is free;
-//     any non-null string means subscribed.
-//
-//   xr (boolean flag): xr = !!N.get(`subscription`), kept in sync via
-//     N.once(`subscription`, ...). Guards the premiumOnly store getters
-//     (zoom levels, tile steps, overlay params, ...).
-//
-//   ju(): hasAny — ju = () => N.get(`subscription`) !== null. Drives the UI:
-//     minifest API ?premium param, tile zoom caps, 1-hour forecast step,
-//     premium calendar body class, paywall component.
-//
-//   body.subs-{tier}: CSS class on <body>; the stylesheet uses it to hide
-//     the "Go Premium" CTAs and show premium-only UI. Added by
-//     ku(tier), removed by Ou().
-//
-// ── Root cause of the popup ──────────────────────────────────────────────────
-//
-// Without patches, on app launch while logged out:
-//   1. Account API responds with auth:false.
-//   2. The response handler calls Au(null) → Ou().
-//   3. Ou() clears the subscription store to null → ju() = false, xr = false.
-//   4. Ou() removes `subs-${e}` from <body> → the premium CSS class is gone.
-//   5. The Go Premium button (hidden by CSS body.subs-premium) shows and
-//      triggers the subscription popup.
+// When the account API answers without a subscription (on launch while logged
+// out, or on logout), the app clears the store and removes the body class,
+// which brings the "Go Premium" popup back.
 //
 // ── Patch strategy ───────────────────────────────────────────────────────────
 //
-// Five same-length in-place byte replacements, targeting v51.3.2:
-//
-//   P1 — subscription store default (99 bytes):
-//     def:null → def:`premium` — P.get returns 'premium' on a cache miss,
-//     i.e. after Ou() evicts the cache entry.
-//     subscriptionInfo.def:null → def:0 — falsy, so the subscription-issue
-//     getter returns null → no warning popup.
-//     allowed:e=>!0 → e=>1 and nativeSync:!0 → 1 keep the length equal.
-//
-//   P2 — xr premium flag init (63 bytes):
-//     xr=!!N.get(`subscription`) → xr=!0, and the P.once registration is
-//     dead-coded behind a !0|| short-circuit, so the flag is true from
-//     module load, before the account API call fires.
-//
-//   P3 — ju() hasAny gate (35 bytes):
-//     ju=()=>N.get(`subscription`)!==null → ju=()=>!0||N.get(...).
-//     Always true; the store read becomes dead code.
-//
-//   P4 — Ou() subscription store clear (57 bytes):
-//     Removes both N.set(...,null) calls (replaced with void 0, padded).
-//     Prevents Ou() from writing null to SharedPreferences and evicting the
-//     in-memory cache, so the subscription store keeps returning the
-//     'premium' default even after Ou() runs.
-//
-//   P5 — Ou() body class direction (46 bytes):
-//     classList.remove(`subs-${e}`) → classList.add(`subs-${e}`).
-//     When Ou() fires, e = 'premium' (from P1, cache intact via P4), so
-//     classList.add('subs-premium') keeps the Go Premium button hidden.
-//     classList.add is idempotent.
-//
-// ── Stability notes ──────────────────────────────────────────────────────────
-//
-// All patterns target Windy-internal, structural syntax that is stable across
-// minor releases: the store declaration, the store API calls, the flag
-// initialiser and the DOM classList call. Minified identifier renames
-// (P→N, pr→gr→xr, Hl→du→ju, zl→cu→Ou) are handled by matching the semantic
-// patterns, never hardcoding names from another release — v51.3.2 renamed
-// every one of them relative to v51.0.1. Each pattern must occur exactly once
-// in the bundle; the in-place replacement keeps byte offsets intact.
+// The minifier renames every identifier in each release, so each pattern matches
+// the store keys and the syntax around them and captures the names it needs.
+// Each pattern must match exactly once.
 //
 
-/**
- * One same-length in-place replacement in the JS bundle.
- *
- * The replacement is padded with trailing spaces up to the original's byte
- * length at read time, so patch definitions only need to state the semantic
- * replacement, not hand-count filler spaces.
- */
-private class JsPatch(label: String, val original: String, replacement: String) {
-    /** Short diagnosis name used in [PatchException] messages. */
-    val label: String = label
-
-    /** Original bytes, exactly as they appear in the bundle. */
-    val originalBytes: ByteArray = original.toByteArray(Charsets.UTF_8)
-
-    /** Replacement bytes, space-padded to [originalBytes]' length. */
-    val replacementBytes: ByteArray = replacement.toByteArray(Charsets.UTF_8).let {
-        if (it.size > originalBytes.size) {
-            throw IllegalArgumentException(
-                "JsPatch '$label' replacement (${it.size} B) is longer than original " +
-                    "(${originalBytes.size} B): $replacement",
-            )
-        }
-        it + ByteArray(originalBytes.size - it.size) { 0x20 }
-    }
+/** One replacement in the JS bundle: the only match of [pattern] becomes [replacement] of that match. */
+private class JsPatch(val label: String, pattern: String, val replacement: (MatchResult) -> String) {
+    val regex = Regex(pattern)
 }
 
 private val PATCHES = listOf(
-    // P1 — subscription store default.
-    //
-    // def:`premium` → N.get returns 'premium' on cache miss (after P4
-    // neutralises the eviction). 'premium' matches the subs-premium CSS class
-    // that hides the Go Premium button. subscriptionInfo.def:0 → the
-    // subscription-issue getter receives falsy and returns null → no warning
-    // popup. allowed:cr (v51.3.2) vs ir (v51.0.1) — updated for this release.
+    // The store returns 'premium' when nothing is stored. subscriptionInfo is falsy, so the subscription issue
+    // warning stays hidden.
     JsPatch(
         label = "subscription store default",
-        original = "subscription:{def:null,allowed:e=>!0,save:!0,nativeSync:!0},subscriptionInfo:{def:null,allowed:cr},",
-        replacement = "subscription:{def:`premium`,allowed:e=>1,save:!0,nativeSync:1},subscriptionInfo:{def:0,allowed:cr},",
-    ),
-
-    // P2 — xr premium flag init. Forces xr=true at module load, before the
-    // account API fires. The N.once listener stays registered but never runs
-    // behind the !0|| short-circuit.
+        pattern = """(subscription:\{def:)null(,[^{}]*\},subscriptionInfo:\{def:)null""",
+    ) { "${it.groupValues[1]}`premium`${it.groupValues[2]}0" },
+    // The premium flag is true from module load, before the account API answers.
     JsPatch(
-        label = "xr premium flag init",
-        original = "xr=!!N.get(`subscription`),xr||N.once(`subscription`,e=>xr=!!e)",
-        replacement = "xr=!0,!0||N.once(`subscription`,e=>xr=!0)",
-    ),
-
-    // P3 — ju() hasAny gate. Short-circuits to always return true; the store
-    // read becomes unreachable.
+        label = "premium flag init",
+        pattern = """([\w$]+)=!!([\w$]+)\.get\(`subscription`\),\1\|\|\2\.once\(`subscription`,([\w$]+)=>\1=!!\3\)""",
+    ) { "${it.groupValues[1]}=!0" },
     JsPatch(
-        label = "ju hasAny gate",
-        original = "ju=()=>N.get(`subscription`)!==null",
-        replacement = "ju=()=>!0||N.get(`subscription`)",
-    ),
-
-    // P4 — Ou() subscription store clear. Prevents Ou() from writing null to
-    // SharedPreferences and evicting the in-memory cache, so the subscription
-    // store keeps returning 'premium' via its default even after Ou() runs.
+        label = "hasAny gate",
+        pattern = """([\w$]+)=\(\)=>[\w$]+\.get\(`subscription`\)!==null""",
+    ) { "${it.groupValues[1]}=()=>!0" },
+    // Clearing the tier keeps the store as it is, so it still returns 'premium'.
     JsPatch(
-        label = "Ou subscription store clear",
-        original = "N.set(`subscription`,null),N.set(`subscriptionInfo`,null)",
-        replacement = "void 0",
-    ),
-
-    // P5 — Ou() body class direction. Flips remove → add: when Ou() fires,
-    // e = P.get('subscription') = 'premium' (P1 default, cache intact via P4),
-    // so classList.add('subs-premium') keeps the Go Premium button hidden.
+        label = "subscription store clear",
+        pattern = """[\w$]+\.set\(`subscription`,null\),[\w$]+\.set\(`subscriptionInfo`,null\)""",
+    ) { "void 0" },
+    // Clearing the tier adds the body class instead of removing it, which keeps "Go Premium" hidden.
     JsPatch(
-        label = "Ou body class direction",
-        original = "e&&document.body.classList.remove(`subs-\${e}`)",
-        replacement = "e&&document.body.classList.add(`subs-\${e}`)",
-    ),
+        label = "body class removal",
+        pattern = """classList\.remove\((`subs-\$\{[\w$]+\}`)\)""",
+    ) { "classList.add(${it.groupValues[1]})" },
 )
 
 @Suppress("unused")
@@ -213,33 +102,15 @@ val windyUnlockPremiumPatch = patch(
                     "The versioned directory structure may have changed.",
             )
 
-        val bundle = bundleFile.readBytes()
-        if (bundle.isEmpty()) throw PatchException("Windy: mobile.js is empty.")
-
-        val patched = bundle.copyOf()
-
+        var bundle = bundleFile.readText()
         for (patch in PATCHES) {
-            val ob = patch.originalBytes
-            val rb = patch.replacementBytes
-
-            val idx = (0..patched.size - ob.size).firstOrNull { i ->
-                ob.indices.all { j -> patched[i + j] == ob[j] }
-            } ?: throw PatchException(
-                "Windy: '${patch.label}' pattern not found in ${bundleFile.name}. " +
-                    "The JS bundle may have changed — update the patch string.",
+            val match = patch.regex.findAll(bundle).singleOrNull() ?: throw PatchException(
+                "Windy: '${patch.label}' does not match exactly once in ${bundleFile.name}. " +
+                    "The JS bundle may have changed, update the pattern.",
             )
-
-            // Guard: detect double-apply.
-            if (rb.indices.all { j -> patched[idx + j] == rb[j] }) {
-                throw PatchException(
-                    "Windy: '${patch.label}' already patched at offset $idx. " +
-                        "Check the patch pipeline for a duplicate apply.",
-                )
-            }
-
-            rb.copyInto(patched, idx)
+            bundle = bundle.replaceRange(match.range, patch.replacement(match))
         }
 
-        bundleFile.writeBytes(patched)
+        bundleFile.writeText(bundle)
     }
 }

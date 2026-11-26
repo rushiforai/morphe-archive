@@ -103,6 +103,28 @@ public class MaterialYouThemeTest {
         assertTrue(MaterialYouTheme.isMessengerBlue(0xFF5AA7FF)); // Blue link
     }
 
+    /** #220: the floating tab bar's selected tab sits on these, and only its icon took the accent. */
+    @Test public void theFloatingBarsHighlightIsOneOfMessengersBlues() {
+        int dark = 0xFF001C3D, light = 0xFFEBF5FF;
+        assertTrue(MaterialYouTheme.isMessengerBlue(dark));
+        assertTrue(MaterialYouTheme.isMessengerBlue(light));
+        assertFalse("a navy one step off is still left alone", MaterialYouTheme.isMessengerBlue(0xFF001C3C));
+        int result = MaterialYouTheme.mig(dark);
+        assertEquals(MaterialYouTheme.palette().sameLightness(TonePalette.ACCENT, dark), result);
+        assertNotEquals("the dark highlight takes the accent", dark, result);
+        assertEquals("lightness preserved", TonePalette.lstar(dark), TonePalette.lstar(result), 1.5);
+        // Light mode keeps it unless the light mode switch is on, like every other blue.
+        MaterialYouTheme.darkModeAnswer(false);
+        assertEquals(light, MaterialYouTheme.migLight(light));
+        Settings.preferences.edit().putBoolean(MaterialYouTheme.LIGHT_KEY, true).commit();
+        try {
+            assertNotEquals(light, MaterialYouTheme.migLight(light));
+        } finally {
+            Settings.preferences.edit().remove(MaterialYouTheme.LIGHT_KEY).commit();
+            MaterialYouTheme.darkModeAnswer(true);
+        }
+    }
+
     @Test public void redIsNotBlue() {
         assertFalse(MaterialYouTheme.isMessengerBlue(0xFFFF0000));
         assertFalse(MaterialYouTheme.isMessengerBlue(0xFF00FF00));

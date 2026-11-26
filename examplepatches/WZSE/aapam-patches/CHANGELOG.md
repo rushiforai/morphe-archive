@@ -1,3 +1,15 @@
+## [1.8.0](https://github.com/WZSE/aapam-patches/compare/v1.7.0...v1.8.0) (2026-11-25)
+
+### ✨ New Features
+
+* **cred:** stub card tokenization security checks ([1a259cc](https://github.com/WZSE/aapam-patches/commit/1a259cc45f2480a30a7f31d363f62d0507b4be5a))
+
+## [1.8.0-dev.1](https://github.com/WZSE/aapam-patches/compare/v1.7.0...v1.8.0-dev.1) (2026-11-25)
+
+### ✨ New Features
+
+* **cred:** stub card tokenization security checks ([1a259cc](https://github.com/WZSE/aapam-patches/commit/1a259cc45f2480a30a7f31d363f62d0507b4be5a))
+
 ## [1.7.0](https://github.com/WZSE/aapam-patches/compare/v1.6.0...v1.7.0) (2026-11-25)
 
 ### ✨ New Features

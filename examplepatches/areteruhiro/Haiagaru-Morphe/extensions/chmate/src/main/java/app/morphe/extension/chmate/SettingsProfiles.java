@@ -35,6 +35,10 @@ public final class SettingsProfiles {
         booleanKey(ImageModeration.LIST);defaultValue(ImageModeration.LIST,false);
         booleanKey(NotificationNg.KEY);defaultValue(NotificationNg.KEY,true);
         booleanKey(NotificationNg.CHAIN_KEY);defaultValue(NotificationNg.CHAIN_KEY,false);
+        choiceKey(BoardUrlPicker.STYLE,new HashSet<>(Arrays.asList(0,1)));defaultValue(BoardUrlPicker.STYLE,1);
+        RULES.put(BoardUrlPicker.KEY,v->v instanceof String&&BoardUrlPicker.validSaved((String)v));
+        for(int slot=0;slot<DirectBoardShortcut.COUNT;slot++) RULES.put(DirectBoardShortcut.key(slot),v->v instanceof String&&DirectBoardShortcut.validSaved((String)v));
+        booleanKey(AppTrafficUsage.ENABLED);defaultValue(AppTrafficUsage.ENABLED,false);
         booleanKey(ThreadScopedNg.ENABLED);defaultValue(ThreadScopedNg.ENABLED,!prefs(activity).getBoolean(MinimalSetup.ACTIVE,false));
         booleanKey(QuickFilterOptions.TRANSPARENT);defaultValue(QuickFilterOptions.TRANSPARENT,false);
         booleanKey(MediaUploadHosts.ASK_DESTINATION);defaultValue(MediaUploadHosts.ASK_DESTINATION,false);
@@ -181,9 +185,14 @@ public final class SettingsProfiles {
         numberKey("popularReplyThreshold",1,9999);
         numberKey("popularReplyStandardThreshold",1,9999);
         for(String key:new String[]{"quickFilterAA","quickFilterMine","quickFilterReplies",HiddenNgUnread.KEY,HiddenNgUnread.NEW_ARRIVAL_KEY})booleanKey(key);
-        choiceKey("urlVideoFetchMode",new HashSet<>(Arrays.asList(0,1,2,3)));
-        choiceKey(GifAutoFetchPolicy.KEY,new HashSet<>(Arrays.asList(0,1,2,3)));
-        defaultValue(GifAutoFetchPolicy.KEY,Haiagaru.gifAutoFetchMode());
+        booleanKey(ThreadTitleActions.SHOW_REPORTER);defaultValue(ThreadTitleActions.SHOW_REPORTER,true);
+        booleanKey(EdgeReporterOptions.COPY_SUFFIX);defaultValue(EdgeReporterOptions.COPY_SUFFIX,true);
+        booleanKey(SelectionMenuPriority.KEY);defaultValue(SelectionMenuPriority.KEY,false);
+        numberKey("previewFileLimitMb",0,1024);
+        for(String key:new String[]{MobileMediaPolicy.IMAGE,MobileMediaPolicy.LIST,MobileMediaPolicy.WEB,MobileMediaPolicy.X}){choiceKey(key,new HashSet<>(Arrays.asList(0,1,2)));defaultValue(key,2);}
+        choiceKey("urlVideoFetchMode",new HashSet<>(Arrays.asList(0,1,2,3,4,5)));defaultValue("urlVideoFetchMode",4);
+        choiceKey(GifAutoFetchPolicy.KEY,new HashSet<>(Arrays.asList(0,1,2,3,4,5)));
+        defaultValue(GifAutoFetchPolicy.KEY,4);
         RULES.put("settingsLanguage",v->"ja".equals(v)||"en".equals(v)||"system".equals(v));
         RULES.put("imageVpnDomains",v->{if(!(v instanceof String))return false;
             try{ImageVpnRequestPolicy.parseDomains((String)v);return true;}catch(IllegalArgumentException invalid){return false;}});

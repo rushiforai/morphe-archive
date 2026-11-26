@@ -88,11 +88,14 @@ private fun isFdsResolver(method: Method): Boolean =
 
 /**
  * FDSColors by its shape, for the builds that dropped its name (584 calls it LX/9TH;): a class whose only field is a
- * static instance of itself, with FDS resolvers. scripts/CompatReport.java looks for the same shape.
+ * static instance of itself, with FDS resolvers. 588 (LX/APm;) dropped the instance too and keeps one static resolver in
+ * a class with no fields. scripts/CompatReport.java looks for the same shape.
  */
 internal fun isFdsColorsShape(cls: ClassDef): Boolean {
-    val field = cls.fields.singleOrNull() ?: return false
-    return field.type == cls.type && AccessFlags.STATIC.isSet(field.accessFlags) && cls.methods.any(::isFdsResolver)
+    val fields = cls.fields.toList()
+    val field = fields.singleOrNull()
+    val selfOnly = fields.isEmpty() || field != null && field.type == cls.type && AccessFlags.STATIC.isSet(field.accessFlags)
+    return selfOnly && cls.methods.any(::isFdsResolver)
 }
 
 private val materialYouResources = patch(description = "Record HushMessenger capability: material_you") {

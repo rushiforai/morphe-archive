@@ -12,7 +12,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.shared.ZaloEnv;
 
 /** Turns the recorder's temporary WAV into an m4a in Music/ZaloRecordings (WAV copy on failure). */
@@ -45,7 +45,7 @@ final class RecordingSaver {
     static void save(File wav, String peerName, boolean outgoing, long when, long minDurationMs) {
         Context context = ZaloEnv.appContext();
         if (context == null || wav == null || !wav.isFile()) {
-            Log.w(TAG, "nothing to save");
+            NezumiLog.w(TAG, "nothing to save");
             CallRecorder.toast("Không có dữ liệu ghi âm");
             return;
         }
@@ -53,13 +53,13 @@ final class RecordingSaver {
         try {
             info = parse(wav);
         } catch (Throwable failure) {
-            Log.e(TAG, "bad wav header", failure);
+            NezumiLog.e(TAG, "bad wav header", failure);
             info = null;
         }
         if (info != null) {
             long durationMs = info.dataLength * 1000L / ((long) info.sampleRate * info.channels * 2);
             if (durationMs < minDurationMs) {
-                Log.i(TAG, "too short (" + durationMs + " ms), dropped");
+                NezumiLog.i(TAG, "too short (" + durationMs + " ms), dropped");
                 //noinspection ResultOfMethodCallIgnored
                 wav.delete();
                 return;
@@ -79,7 +79,7 @@ final class RecordingSaver {
                 CallRecorder.toast("Đã lưu: " + name);
                 return;
             } catch (Throwable failure) {
-                Log.e(TAG, "m4a encode failed, falling back to wav", failure);
+                NezumiLog.e(TAG, "m4a encode failed, falling back to wav", failure);
             }
         }
         try {
@@ -89,7 +89,7 @@ final class RecordingSaver {
             wav.delete();
             CallRecorder.toast("Không chuyển được m4a, đã lưu WAV: " + name);
         } catch (Throwable failure) {
-            Log.e(TAG, "wav copy failed", failure);
+            NezumiLog.e(TAG, "wav copy failed", failure);
             CallRecorder.toast("Lưu bản ghi thất bại (giữ tại " + wav.getAbsolutePath() + ")");
         }
     }

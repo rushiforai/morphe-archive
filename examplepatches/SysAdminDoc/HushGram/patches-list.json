@@ -202,7 +202,7 @@
     },
     {
       "name": "Ask before a follow",
-      "description": "Asks you to confirm before a Follow or Follow back button follows someone or sends them a request, so a stray tap on a profile or in a Followers or Following list doesn't do it for you. Starts off. Turn it on in HushGram settings > Profiles.",
+      "description": "Asks you to confirm before a Follow or Follow back button follows someone or sends them a request, so a stray tap on a profile or in a Followers or Following list doesn't do it for you. A second switch skips Instagram's \"Review this account before following\" sheet, so one tap follows. Both start off. Turn them on in HushGram settings > Profiles.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -1727,7 +1727,7 @@
     },
     {
       "name": "Full screen Reels and Home",
-      "description": "Hides the status bar and the navigation bar while Reels shows, and optionally while Home or your messages do. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual. It can also show stories over the whole screen on tall phones. Starts off. Turn it on in HushGram settings > Reels (Full screen Reels), Feed (Full screen Home), Messages (Full screen Messages) and Stories (Stories fill the screen).",
+      "description": "Hides the status bar and the navigation bar while Reels shows, and optionally on Home, your messages, stories, Explore or your profile. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual. It can also show stories over the whole screen on tall phones. Starts off. Turn it on in HushGram settings > Reels (Full screen Reels), Feed (Full screen Home), Messages (Full screen Messages), Stories (Full screen stories, Stories fill the screen), Explore (Full screen Explore) and Profiles (Full screen profile).",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -2195,7 +2195,7 @@
     },
     {
       "name": "Hide Meta AI",
-      "description": "Removes Meta AI from Instagram's search bars, messages, home top bar, reels menus, share sheet and feed. Each part has its own switch. The search one and the Meta AI posts one start on, the rest start off. Change them in HushGram settings > Meta AI.",
+      "description": "Removes Meta AI from Instagram's search bars, messages, home top bar, reels menus, share sheet, stories and feed, and its restyle credits from stories and reels. Each part has its own switch. The search one and the Meta AI posts one start on, the rest start off. Change them in HushGram settings > Meta AI.",
       "category": "Interface",
       "use": true,
       "dependencies": [
@@ -2468,7 +2468,7 @@
     },
     {
       "name": "Hide comments",
-      "description": "Takes the Comment button and the comment count off posts in your feed. Other switches take Reply, the heart and like count, or AI labels off each comment, and the comment box off the comments. All start off. Turn them on in HushGram settings > Comments.",
+      "description": "Takes the Comment button and the comment count off posts in your feed. Other switches take Reply, the heart and like count, or AI labels off each comment, and the comment box, its gift button, the Meta AI search suggestion or the (i) button off the comments. All start off. Turn them on in HushGram settings > Comments.",
       "category": "Comments",
       "use": true,
       "dependencies": [
@@ -3638,7 +3638,7 @@
     },
     {
       "name": "Hide the reply box on stories",
-      "description": "Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are. Switches of their own take the Like, Comment and Share buttons off too, with no empty space left behind. All start off. Turn them on in HushGram settings > Stories.",
+      "description": "Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are. Switches of their own take the Like, Comment and Share buttons off too, with no empty space left behind, and the comments floating over stories. A choice lifts the line for writing a comment. All start off. Set them in HushGram settings > Stories.",
       "category": "Stories",
       "use": true,
       "dependencies": [
@@ -3980,6 +3980,45 @@
       "name": "Jump a profile's posts to a date",
       "description": "Puts a calendar on a profile's top bar. Pick a day and the posts grid goes back to that day, with older posts as you scroll. Pull down for the newest again. Starts off. Turn it on in HushGram settings > Profiles.",
       "category": "Profiles",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "457.0.0.55.73"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "457.0.0.55.73",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Keep HDR on photo uploads",
+      "description": "Lets an Ultra HDR photo you post keep its HDR gain map on Android 14 and newer. Experimental. Starts off. Turn it on in HushGram settings > Playback.",
+      "category": "Downloads",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -5737,7 +5776,7 @@
     },
     {
       "name": "Saved on your profile",
-      "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved on All, a handle to drag through Saved and your collections, and switches that hide the + for a new collection, Saved's Reels tab and the Saved bookmark on the Search tab. All start off. Turn them on in HushGram settings > Profiles. The bookmarks need an Instagram restart.",
+      "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved on All, a handle to drag through Saved and your collections, and switches that hide the + for a new collection, Saved's Reels tab and the Saved bookmark on the Search tab. The same handle can run down Home and your chats. All start off. Turn them on in HushGram settings > Profiles, Feed and Messages. The bookmarks need an Instagram restart.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -5893,7 +5932,7 @@
     },
     {
       "name": "Seek bar on feed videos",
-      "description": "Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed. Another switch there adds a small button on the video that shows or hides the bar, and a choice under it makes the bar see-through or puts it on frosted glass. Another puts the bar right on the video's bottom edge, where a scroll is less likely to catch it. One more lets a double tap on the left or right side of the video go back or ahead 10 seconds, while the middle still likes the post, and the arrows it flashes can be turned off. Two more choose a shape for every seek bar, story progress segments and videos in chats included, and show a preview above your finger while you drag one. Feed videos can also get a shape of their own, and the time over the bar, which a tap flips to the time left.",
+      "description": "Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed. Another switch there adds a small button on the video that shows or hides the bar, and a choice under it makes the bar see-through or puts it on frosted glass. Another puts the bar right on the video's bottom edge, where a scroll is less likely to catch it. One more lets a double tap on the left or right side of the video go back or ahead 10 seconds, while the middle still likes the post, and the arrows it flashes can be turned off. Two more choose a shape for every seek bar, story progress segments and videos in chats included, and show a preview above your finger while you drag one. Feed videos can also get a shape of their own, and the time over the bar, which a tap flips to the time left. The time can sit in the video's top corner instead, under Instagram's countdown.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -7532,7 +7571,7 @@
     },
     {
       "name": "Three-dot menu items",
-      "description": "Lets you leave Report, Mute and other items out of the menus behind the three dots on posts, reels and stories. Every item shows until you untick it in HushGram settings > Feed.",
+      "description": "Lets you leave Report, Mute and other items out of the menus behind the three dots on posts, reels and stories. Every item shows until you untick it in HushGram settings > Feed. A switch there also adds Interested to the menus that leave it out, like reels from accounts you follow. It starts off.",
       "category": "Fixes",
       "use": true,
       "dependencies": [
@@ -7688,7 +7727,7 @@
     },
     {
       "name": "Use the highest refresh rate",
-      "description": "Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution, so scrolling looks smoother on a 90 or 120 Hz phone. Some phones keep their own limit for apps. Starts off. Turn it on in HushGram settings > Layout.",
+      "description": "Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution, so scrolling looks smoother on a 90 or 120 Hz phone. Some phones keep their own limit for apps. On Android 15 and up, a second switch tells Android a playing video's frame rate and asks for a refresh rate that frame rate divides into, like 60 Hz for a 30 fps reel. Both start off. Turn them on in HushGram settings > Layout.",
       "category": "Fixes",
       "use": true,
       "dependencies": [

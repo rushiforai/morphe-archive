@@ -16,6 +16,9 @@ Adds Copy text to the menu a story's three dots open. It copies the words Instag
 Ads and privacy	광고 및 개인정보 보호
 Also in comments	댓글에도 적용
 Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution. Some phones keep their own limit for apps, and battery saver can still lower it.	화면의 가장 높은 주사율, 같은 해상도로 Instagram을 실행하도록 Android에 요청합니다. 일부 휴대전화는 앱에 자체 제한을 두며, 절전 모드가 주사율을 낮출 수도 있습니다.
+# context: Layout: a switch under Use the highest refresh rate (#868). While a video plays it tells Android the video's frames per second and asks Instagram's window for a refresh rate that frame rate divides into (60 Hz for a 30 fps video, 120 Hz for 24 fps). Use the highest refresh rate is the other switch's name, as on its own row.
+Match the video's frame rate	동영상 프레임 속도에 맞추기
+While a video plays, tells Android its frame rate and asks for a refresh rate that frame rate divides into, like 60 Hz for a 30 fps reel. Use the highest refresh rate comes first while it's on.	동영상이 재생되는 동안 프레임 속도를 Android에 알리고 그 배수인 주사율을 요청합니다. 예를 들어 30fps 릴스에는 60Hz입니다. 가장 높은 주사율 사용이 켜져 있으면 그쪽이 우선합니다.
 Back	뒤로
 Before you sign in	로그인 전에 읽어보세요
 Cancel	취소
@@ -382,6 +385,9 @@ Hide the Muse button on your profile	내 프로필에서 Muse 버튼 숨기기
 Removes the Muse button from the top bar of your profile. Your username and the menu stay.	내 프로필 상단 바에서 Muse 버튼을 없앱니다. 사용자 이름과 메뉴는 그대로 남습니다.
 Hide Blend on reels	릴스에서 Blend 숨기기
 Removes the Blend invite button from reels. Everything else on a reel stays.	릴스에서 Blend 초대 버튼을 없앱니다. 릴스의 다른 부분은 그대로 둡니다.
+# context: Meta AI: a Hide Meta AI switch (#866) that removes the line Instagram shows at the top of a story made with a Meta AI tool, such as Restyled with Meta AI followed by a Try it link, and the same restyle credit on reels. Restyled with Meta AI and Try it are Instagram's own labels, so use this language's Instagram wording for them where it's known.
+Hide Meta AI restyle credits	Meta AI 스타일 변경 표시 숨기기
+Removes lines like Restyled with Meta AI and its Try it link from the top of stories, and the same credit from reels. Music and effect credits stay.	스토리 상단에서 'Meta AI로 스타일 변경됨' 같은 줄과 '사용해 보기' 링크를 없애고, 릴스에서도 같은 표시를 없앱니다. 음악과 효과 표시는 그대로 둡니다.
 Explore	탐색
 Hide the Explore grid	탐색 그리드 숨기기
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	검색 탭 검색창 아래의 게시물과 릴스 격자를 숨깁니다. 검색, 최근 검색, 검색 결과는 그대로입니다.
@@ -762,6 +768,8 @@ That isn't a place. Type latitude, longitude.	올바른 장소가 아닙니다. 
 %1$d reels. Swipe again after %2$d minutes away.	릴스 %1$d개. %2$d분 동안 나가 있으면 다시 넘길 수 있습니다.
 The latitude and the longitude in degrees, with a comma between them, like 40.758, -73.9855. North and east are positive, south and west negative. A map app shows both when you press and hold a spot.	위도와 경도를 도 단위로, 쉼표로 구분해 입력합니다. 예: 40.758, -73.9855. 북쪽과 동쪽은 양수, 남쪽과 서쪽은 음수입니다. 지도 앱에서 한 지점을 길게 누르면 둘 다 표시됩니다.
 Turn off HDR brightness boosts	HDR 밝기 강조 끄기
+Keep HDR on photo uploads	사진 업로드 시 HDR 유지
+Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	실험적 기능입니다. Android 14 이상에서 게시하는 Ultra HDR 사진의 게인 맵이 유지되어 계속 HDR로 표시될 수 있습니다. 게시한 사진이 이상하게 보이면 끄세요.
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	검색에서 연 항목은 앱에서도 Instagram 쪽에서도 최근 항목에 남지 않습니다. 이미 있는 검색은 지울 때까지 남아 있습니다.
 Wi-Fi stays as it is. Turn this off to save data on every network.	Wi-Fi는 그대로입니다. 모든 네트워크에서 데이터를 아끼려면 이 스위치를 끄세요.
 Hide comments	댓글 숨기기
@@ -799,6 +807,14 @@ Takes AI-generated profile and similar AI labels off the line with a commenter's
 # context: Comments: a Hide comments switch that takes the comment box off the bottom of a comment sheet (#762). Comment box is the field where you type a comment; Post is Instagram's own label on its send button, use this language's Instagram word for it.
 Hide the comment box	댓글 입력창 숨기기
 Takes the comment box, with your picture and Post, off the bottom of a post's or reel's comments. Turn it off when you want to comment.	게시물이나 릴스 댓글 아래쪽에서 내 사진과 게시 버튼이 있는 댓글 입력창을 없앱니다. 댓글을 달고 싶을 때는 꺼 주세요.
+# context: Comments: two Hide comments switches (#869). One hides the Meta AI search suggestion some comment sheets show above the comments (a pill reading Search plus a topic), the other the gift button at the end of the comment box. Comment box is the field where you type a comment.
+Hide search suggestions in comments	댓글의 검색 추천 숨기기
+Takes the Meta AI search suggestion off the top of a post's or reel's comments. Not every post has one.	게시물이나 릴스 댓글 맨 위에 있는 Meta AI 검색 추천을 없앱니다. 모든 게시물에 있지는 않습니다.
+Hide the gift button	선물 버튼 숨기기
+Takes the gift button off the right end of the comment box. The box itself stays.	댓글 입력창 오른쪽 끝의 선물 버튼을 없앱니다. 입력창은 그대로 표시됩니다
+# context: Comments: a Hide comments switch (#869) that hides the round (i) info button some comment sheets draw at the top right, just above the first comment. Write (i) as is.
+Hide the (i) button in comments	댓글의 (i) 버튼 숨기기
+Takes the (i) button off the top right of a post's or reel's comments, and the row with an (i) that can sit above a reel's first comment. Not every post has them.	게시물이나 릴스 댓글의 오른쪽 위에 있는 (i) 버튼과, 릴스의 첫 댓글 위에 나올 수 있는 (i)가 있는 줄을 없앱니다. 모든 게시물에 있지는 않습니다.
 # context: Comments: the switch that hides the row of quick emoji above the comment box (#248). Comment box is the field where you type a comment.
 Hide the emoji row	이모지 줄 숨기기
 Takes the row of quick emoji off above the comment box. The box itself stays.	댓글 입력창 위에 있는 빠른 이모지 줄을 없앱니다. 입력창은 그대로 표시됩니다
@@ -983,7 +999,7 @@ Text in the accent color	텍스트를 강조 색상으로
 Names, captions and other main text take the same color as the icons. Gray text stays gray. Restart Instagram to see the change.	이름, 캡션 및 기타 주요 텍스트가 아이콘과 같은 색상으로 바뀝니다. 회색 텍스트는 회색으로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 # context: Layout > Accent color switch. Saved is Instagram's own Saved page, in its label for this language.
 Filters in the accent color	필터를 강조 색상으로
-The filters along the top of Saved take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	저장됨 상단의 필터가 선택한 색상으로 바뀌고, 현재 보고 있는 필터는 그 색상으로 채워집니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+The filters along the top of Saved and under a search take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	저장됨 상단과 검색 아래의 필터가 선택한 색상으로 바뀌고, 현재 보고 있는 필터는 그 색상으로 채워집니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	상단 바, 탭 바, 게시물 아래에 있는 Instagram 아이콘이 선택한 색상으로 바뀝니다. 텍스트는 그대로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Story rings in the accent color	스토리 링을 강조 색상으로
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	스토리 링이 Instagram의 그라데이션 대신 선택한 색상으로 바뀝니다. 같은 색상을 쓰는 다른 그라데이션 몇 가지도 함께 바뀝니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
@@ -2311,6 +2327,12 @@ Takes the Watch more reels button off the card a reel in your feed shows when it
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	릴스 PIP 모드
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	릴스가 재생되는 중에 Instagram을 나가면 다른 앱 위의 작은 창으로 줄어듭니다. 릴스 탭과 피드에서 연 릴스에서 작동하며, Android 15 이상이 필요합니다.
+# context: a switch on the Playback page under Picture in picture for reels; the reels window is Instagram's small picture in picture window for reels, and the button is Android's own button in that window
+Pause button in the reels window	릴스 창의 일시정지 버튼
+Instagram's small window for reels gets a button to pause the reel and play it again.	Instagram의 작은 릴스 창에 릴스를 일시정지하고 다시 재생하는 버튼이 생깁니다.
+# context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
+Previous and next in the reels window	릴스 창의 이전 및 다음
+Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	Instagram의 작은 릴스 창에 이전 릴스로 돌아가거나 다음 릴스로 넘어가는 Instagram 자체 버튼이 생깁니다.
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	스토리 PIP 모드
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	스토리가 재생되는 중에 Instagram을 나가면 다른 앱 위의 작은 창으로 줄어들고, 그 창에서 스토리가 계속 넘어갑니다.
@@ -2526,6 +2548,10 @@ Choose a file for your installed patches' settings and saved profiles. Your logi
 Ask before a follow	팔로우 전에 묻기
 # context: Profiles > summary of Ask before a follow; Follow, Follow back, Followers and Following are Instagram's own button and list names (#631)
 Asks before a Follow or Follow back button follows someone or sends them a request, so a stray tap on a profile or in a Followers or Following list doesn't do it for you.	팔로우 또는 맞팔로우 버튼이 누군가를 팔로우하거나 요청을 보내기 전에 먼저 묻습니다. 프로필이나 팔로워 또는 팔로잉 목록에서 실수로 탭해도 팔로우되지 않습니다.
+# context: Profiles > title of the switch that skips Instagram's "Review this account before following" sheet, so one tap on Follow follows (#867)
+Follow without the review sheet	검토 시트 없이 팔로우
+# context: Profiles > summary of Follow without the review sheet; the quoted title is Instagram's own sheet and Follow its button; Ask before a follow is the switch above (#867)
+For some accounts Instagram opens a "Review this account before following" sheet before a follow. With this on, the follow goes through at once, the same as the sheet's Follow button, so one tap follows. Ask before a follow still asks first.	일부 계정은 팔로우하기 전에 Instagram이 "팔로우하기 전에 이 계정을 검토하세요" 시트를 엽니다. 이 옵션을 켜면 시트의 팔로우 버튼을 누른 것처럼 바로 팔로우되어 한 번만 탭하면 됩니다. 팔로우 전에 묻기는 그대로 먼저 묻습니다.
 # context: Title of the question Ask before a follow puts up; %1$s is the account's username (#631)
 Follow @%1$s?	@%1$s님을 팔로우할까요?
 # context: Title of the question Ask before a follow puts up when the username can't be read (#631)
@@ -2664,6 +2690,9 @@ Use template	템플릿 사용
 Get Edits	Edits 다운로드
 # context: Title of the row under Feed that lists the items to keep in the menus behind the three dots on posts, reels and stories (#697, #707)
 Items in the three-dot menus	점 세 개 메뉴의 항목
+# context: Feed: a switch right under Items in the three-dot menus (#815). It adds Instagram's Interested row (the same word as the Interested item in that list) to the three-dot menus that leave it out, like the menu of a reel from an account you follow.
+Interested on every post and reel	모든 게시물과 릴스에 관심 있음
+Adds Interested to the three-dot menu of posts and reels that leave it out, like reels from accounts you follow.	관심 있음이 없는 게시물과 릴스의 점 세 개 메뉴에 관심 있음을 넣습니다. 팔로우하는 계정의 릴스도 마찬가지입니다.
 # context: Summary of Items in the three-dot menus under Feed while every item is ticked (#697, #707)
 Every item shows. Untick the ones you don't want in the menus behind the three dots on posts, reels and stories.	모든 항목이 표시됩니다. 게시물, 릴스, 스토리의 점 세 개 메뉴에서 원하지 않는 항목의 선택을 해제하세요.
 # context: Summary of Items in the three-dot menus under Feed naming the unticked items, which are joined with a comma (#697, #707)
@@ -2741,6 +2770,13 @@ Cache size limit	캐시 크기 한도
 %1$d MB	%1$dMB
 # context: Storage: second line under Clear saved copies now; %1$s is a size such as 312 MB
 Saved photos and videos take up %1$s now.	현재 저장된 사진과 동영상 용량: %1$s
+# context: Storage: a row that adds up how much space Instagram's data takes up outside its cache (#683), names its biggest folders (folder names like files/mqtt stay as they are) and HushGram's own files. Adding it up shows while it reads.
+Space used	사용 중인 공간
+Adding it up…	계산 중…
+Couldn't add up the space used.	사용 중인 공간을 계산할 수 없습니다.
+Instagram's data takes up %1$s, its cache aside.	Instagram 데이터 용량(캐시 제외): %1$s
+Biggest: %1$s.	가장 큰 항목: %1$s
+HushGram's own files take up %1$s.	HushGram 자체 파일 용량: %1$s
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	손가락 아래 유리 렌즈
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	리퀴드 글래스 알약의 버블을 손가락으로 누르고 있거나 탭 위로 밀면 버블이 커지고 뒤에 있는 화면을 더 강하게 굴절시킵니다. 손끝 아래의 유리처럼요. 손을 떼면 원래대로 돌아갑니다. 굴절에는 탭 바 뒤 흐림 효과와 Android 13 이상이 필요합니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
@@ -2966,3 +3002,87 @@ Getting the file ready	파일을 준비하는 중
 Couldn't get the file	파일을 가져오지 못했어요
 # context: Details in a post's menu (#839): a toast when no app on the phone takes the photo or video Open with offers
 No app here can open it	열 수 있는 앱이 없어요
+# context: Keep history for (#228): the title of a list row under Keep a viewing history, and of its dialogs
+Keep history for	기록 보관 기간
+# context: Keep history for (#228): its first choice, the newest 500 rows whatever their age
+Newest 500	최근 500개
+# context: Keep history for (#228): a choice of one day, typed under Custom
+1 day	1일
+# context: Keep history for (#228): a choice of days, like 7 days; %1$s is the number
+%1$s days	%1$s일
+# context: Keep history for (#228): the message of the dialog Custom opens
+Type how many days to keep, from 1 to 365.	보관할 일수를 1에서 365 사이로 입력하세요.
+# context: Keep history for (#228): the row's summary with Newest 500 chosen
+The newest 500 stay, however old they are.	기간과 상관없이 최근 500개를 남겨요.
+# context: Keep history for (#228): the row's summary with one day chosen
+Anything seen more than a day ago goes. At most 2000 stay.	본 지 하루가 넘은 항목은 지워져요. 최대 2000개까지 남아요.
+# context: Keep history for (#228): the row's summary with some days chosen; %1$s is the number
+Anything seen more than %1$s days ago goes. At most 2000 stay.	본 지 %1$s일이 넘은 항목은 지워져요. 최대 2000개까지 남아요.
+# context: Feed > title of the switch that shows a drag handle at the right edge of Home's feed while it scrolls, like Fast scroll in Saved; Home is Instagram's own Home tab (#826)
+Fast scroll on Home	홈 빠른 스크롤
+# context: Feed > summary of Fast scroll on Home; the feed is the list of posts on Home (#826)
+Shows a handle at the right edge of Home while it scrolls. Drag it to jump down your feed and back to the top.	홈을 스크롤하는 동안 오른쪽 가장자리에 핸들을 표시합니다. 핸들을 끌어 피드 아래로 이동하거나 맨 위로 돌아가세요.
+# context: Messages > title of the switch that shows a drag handle at the right edge of a chat while its messages scroll (#826)
+Fast scroll in chats	채팅 빠른 스크롤
+# context: Messages > summary of Fast scroll in chats; the newest messages are at the bottom of a chat (#826)
+Shows a handle at the right edge of a chat while it scrolls. Drag it up to your older messages and back down to the newest.	채팅을 스크롤하는 동안 오른쪽 가장자리에 핸들을 표시합니다. 핸들을 위로 끌면 이전 메시지로, 아래로 끌면 최신 메시지로 이동합니다.
+# context: Stories > title of the switch that hides the comments Instagram floats over a story while you watch it, next to Hide the Comment button on stories (#826)
+Hide comments on stories	스토리에서 댓글 숨기기
+# context: Stories > summary of Hide comments on stories; the faces are the small round profile pictures of the commenters; the Comment button is the story's own Comment button, translated as in Hide the Comment button on stories (#826)
+Takes the comments floating over stories off them, along with the faces of the people who wrote them. The Comment button still opens them.	스토리 위에 떠 있는 댓글과 댓글을 쓴 사람들의 얼굴을 없앱니다. 댓글 버튼으로는 계속 볼 수 있습니다.
+# context: Stories > title of the choice of how high the line you tap to write a comment sits on a story, under Hide comments on stories (#826)
+Comment line height on stories	스토리의 댓글 입력줄 높이
+# context: Stories > Comment line height on stories > choice that leaves the line where Instagram puts it; 'it' is the comment line (#826)
+Where Instagram puts it	Instagram 기본 위치
+# context: Stories > Comment line height on stories > choice that lifts the comment line a little (#826)
+A little higher	조금 더 높게
+# context: Stories > Comment line height on stories > choice that lifts the comment line more than A little higher (#826)
+Higher	더 높게
+# context: Stories > summary of Comment line height on stories while Where Instagram puts it is chosen; the line is the one you tap on a story to write a comment (#826)
+The line for writing a comment sits where Instagram puts it, at the bottom of the story.	댓글을 쓰는 입력줄이 Instagram이 둔 자리, 스토리 맨 아래에 있습니다.
+# context: Stories > summary of Comment line height on stories while A little higher is chosen (#826)
+The line for writing a comment sits a little higher on the story.	댓글을 쓰는 입력줄이 스토리에서 조금 더 높은 곳에 있습니다.
+# context: Stories > summary of Comment line height on stories while Higher is chosen; the bottom edge is the bottom of the screen (#826)
+The line for writing a comment sits higher on the story, well clear of the bottom edge.	댓글을 쓰는 입력줄이 스토리에서 더 높은 곳, 아래쪽 가장자리에서 충분히 떨어진 곳에 있습니다.
+# context: Stories: a switch (#187), named like Full screen Reels, Full screen Home and Full screen Messages
+Full screen stories	스토리 전체 화면
+# context: Full screen stories (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while a story shows. Swipe in from the edge to bring them back for a moment.	스토리가 표시되는 동안 상태 표시줄과 탐색 막대를 숨깁니다. 가장자리에서 안쪽으로 밀면 잠깐 다시 나타납니다.
+# context: Explore: a switch (#187), named like Full screen Home. Explore is Instagram's tab, as the app names it
+Full screen Explore	탐색 전체 화면
+# context: Full screen Explore (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while Explore shows. Swipe in from the edge to bring them back for a moment.	탐색이 표시되는 동안 상태 표시줄과 탐색 막대를 숨깁니다. 가장자리에서 안쪽으로 밀면 잠깐 다시 나타납니다.
+# context: Profiles: a switch (#187) for your own profile's tab, named like Full screen Home
+Full screen profile	프로필 전체 화면
+# context: Full screen profile (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while your profile tab shows. Swipe in from the edge to bring them back for a moment.	내 프로필 탭이 표시되는 동안 상태 표시줄과 탐색 막대를 숨깁니다. 가장자리에서 안쪽으로 밀면 잠깐 다시 나타납니다.
+# context: Settings entry > summary of Settings page logo while HushGram's logo is picked; this page is HushGram's settings page (#872)
+HushGram's logo shows at the top of this page.	이 페이지 맨 위에 HushGram 로고가 표시됩니다.
+# context: Settings entry > summary of Settings page logo while Instagram's icon is picked (#872)
+Instagram's icon shows at the top of this page.	이 페이지 맨 위에 Instagram 아이콘이 표시됩니다.
+# context: Settings entry > summary of Settings page logo while Your picture is picked; Your picture is the list choice of that name (#872)
+Your picture shows at the top of this page. Pick Your picture again to change it.	이 페이지 맨 위에 내 이미지가 표시됩니다. 바꾸려면 내 이미지를 다시 선택하세요.
+# context: Settings entry > Settings page logo list choice: HushGram's own logo (#872)
+HushGram's logo	HushGram 로고
+# context: Settings entry > Settings page logo list choice: Instagram's own app icon (#872)
+Instagram's icon	Instagram 아이콘
+# context: Settings entry > Settings page logo list choice: a picture the person picks from their phone (#872)
+Your picture	내 이미지
+# context: Settings entry > row and list title: the picture at the top of HushGram's settings page, over its name (#872)
+Settings page logo	설정 페이지 로고
+# context: Settings entry > row and dialog title: the name at the top of HushGram's settings page (#872)
+Settings page name	설정 페이지 이름
+# context: Settings entry > Settings page name dialog message; %1$d is the most characters it takes (#872)
+A name of your own at the top of this page, in place of HushGram. Up to %1$d characters. Leave it blank for HushGram.	이 페이지 맨 위에 HushGram 대신 표시할 이름입니다. 최대 %1$d자입니다. 비워 두면 HushGram이 표시됩니다.
+# context: Settings entry > row that puts HushGram's logo and name back at the top of the settings page (#872)
+Reset the settings page header	설정 페이지 머리글 초기화
+# context: Settings entry > summary of Reset the settings page header (#872)
+Puts HushGram's logo and name back at the top of this page.	이 페이지 맨 위에 HushGram 로고와 이름을 다시 표시합니다.
+# context: toast after Reset the settings page header; keep under two short lines (#872)
+Settings page header reset.	설정 페이지 머리글을 초기화했습니다.
+# context: toast after a picked picture becomes the settings page logo; keep under two short lines (#872)
+Settings page logo set.	설정 페이지 로고를 설정했습니다.
+# context: Settings entry > summary of Settings page name while no name is typed (#872)
+HushGram shows at the top of this page.	이 페이지 맨 위에 HushGram이 표시됩니다.
+# context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
+The top of this page says %1$s.	이 페이지 맨 위에 %1$s 이름이 표시됩니다.

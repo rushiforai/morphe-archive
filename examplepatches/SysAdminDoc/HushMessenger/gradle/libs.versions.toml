@@ -1,10 +1,12 @@
 [versions]
-# The patcher stable Morphe Manager 2.6.0 and Desktop 2.2.0 bundle. A newer pin trips Manager's
+# The patcher stable Morphe Manager 2.7.0 and Desktop 2.3.0 bundle. A newer pin trips Manager's
 # Patcher-Version gate, and scripts/check_release.py holds the README's minimum client versions to
-# this pin. 2.4.0 went stable on 2026-11-15; 2.1.0 (2026-10-30) began checking bundle signatures.
-morphe-patcher = "2.4.0"
+# this pin. 2.5.0 went stable on 2026-11-21 with 2.4.0's Kotlin, smali and ARSCLib and
+# kotlinx-serialization 1.13.0; 2.4.0 went stable on 2026-11-15; 2.1.0 (2026-10-30) began checking
+# bundle signatures.
+morphe-patcher = "2.5.0"
 # Read by the app.morphe.patches settings plugin. Keep it the smali commit the patcher above asks
-# for (2.4.0 asks for 5eaff5a2c9, 2.3.0 back to 2.0.1 asked for ac700e1942, 2.0.0 asked for
+# for (2.5.0 and 2.4.0 ask for 5eaff5a2c9, 2.3.0 back to 2.0.1 asked for ac700e1942, 2.0.0 asked for
 # 4220ae75f7): Gradle keeps whichever sorts higher, and ac700e1942 sorts above the newer commit.
 smali = "5eaff5a2c9"
 # Every org.bouncycastle request is rewritten to this, in :patches and on the settings classpath

@@ -2,9 +2,16 @@ name: Sync upstream
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
 
 permissions:
   contents: write
+
+# Serialize with Release: both workflows update main.
+concurrency:
+  group: morphe-main-branch-write
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -19,25 +26,39 @@ jobs:
 
       - name: Sync Morphe Patches
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          mkdir -p /tmp/my-workflows
-          cp -r .github/workflows/. /tmp/my-workflows/
+          # Keep repository-specific workflows, release configuration and
+          # generated release metadata while refreshing upstream source files.
+          mkdir -p /tmp/local-files
+          cp -a .github/workflows /tmp/local-files/workflows
+          for path in .releaserc CHANGELOG.md gradle.properties patches-bundle.json patches-list.json README.md; do
+            if [ -e "$path" ]; then
+              mkdir -p "/tmp/local-files/$(dirname "$path")"
+              cp -a "$path" "/tmp/local-files/$path"
+            fi
+          done
 
           git remote add upstream https://github.com/MorpheApp/morphe-patches.git
           git fetch upstream main --force
-
           git reset --hard upstream/main
 
           rm -rf .github/workflows
-          mkdir -p .github/workflows
-          cp -r /tmp/my-workflows/. .github/workflows/
+          mkdir -p .github
+          cp -a /tmp/local-files/workflows .github/workflows
+
+          for path in .releaserc CHANGELOG.md gradle.properties patches-bundle.json patches-list.json README.md; do
+            if [ -e "/tmp/local-files/$path" ]; then
+              mkdir -p "$(dirname "$path")"
+              cp -a "/tmp/local-files/$path" "$path"
+            fi
+          done
 
           git add -A
-
           if ! git diff --cached --quiet; then
-            git commit -m "Preserve local workflows"
+            git commit -m "Sync upstream while preserving local release files"
           fi
 
           git push origin main --force

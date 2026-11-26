@@ -2,16 +2,19 @@
 
 Changes in the source build, then released versions.
 
-## Unreleased
+## 0.0.19 (2026-11-25)
 
 * **Tooling:** The GitHub release notes carry the Threads bullets and the update steps now. The Docs and Tooling bullets stay here in the changelog, and the notes no longer end with a Validation section.
-* The bundle is built on Morphe patcher 2.5.0 now, the one that comes with Morphe Manager 2.7.0 and Morphe Desktop 2.3.0. Older Manager builds turn it down, so update Manager to 2.7.0 or newer first.
+* **Tooling:** The release scripts find the JDK around the `java` on PATH again. With a new enough java first on PATH they used to get back a bare `java` with no folder, and the whole-app walk contracts stopped on an empty path.
+* **Tooling:** A release runs the tests once now, in its build stage. Preflight and the push hook ran them too, along with a large set of tests that only checked the release scripts themselves, so the tests ran three times before a bundle got built. A fix after they pass runs them again only when it touches something they read. Those script tests are gone, and the push hook is a check of a few seconds for AI authorship, device serials and home folder paths.
+* The bundle is built on Morphe patcher 2.5.0 now, the one that comes with Morphe Manager 2.7.0 and Morphe Desktop 2.3.0. Older Manager builds won't load it, so update Manager to 2.7.0 or newer first.
 * HushThreads now patches Threads 457.0.0.57.74 only, on all ten APKMirror variants (arm64-v8a, armeabi-v7a, x86_64 and x86). Update Threads to 457 before you patch. v0.0.18 is the last release for 455.0.0.55.72.
-* `Hide ads` and `Hide suggested users` now also check the For You posts Threads loads ahead of time in the background. On 456 those went into the feed cache without passing the filter.
+* `Hide ads` and `Hide suggested users` now also check the For You posts Threads loads ahead of time in the background. Threads 456 started putting those straight into the feed cache, where the filter never saw them.
 * New `Hide post buttons` patch. The like, reply, repost, share and save buttons under posts and replies each get a Hide switch of their own under Posts in HushThreads settings, and a hidden button takes its count with it. All five start out showing, and Threads picks up a change after a restart. Asked for in #27.
 * New `HushThreads header logo` patch. It puts the HushThreads logo at the top of your feed where the Threads logo goes, and it stays still while the feed refreshes. It's in Manager's default selection, but its switch under Appearance in HushThreads settings starts off, and Threads picks up a change after a restart. Asked for in #26.
 * New `Custom launcher icon` patch. The icon on your home screen becomes the HushThreads logo, with a one-color version for themed icons, so you can tell your patched Threads apart at a glance. It isn't in Manager's default selection. Asked for in #26.
 * New `Custom font` patch. Pick a .ttf or .otf file under Appearance in HushThreads settings and Threads shows its text in that font, at the weights Threads uses. Icons keep their own font. It's in Manager's default selection with its switch off, and Threads picks up a change after a restart. Asked for in #28.
+* HushThreads settings come in Russian now. With your phone set to Russian, every row, summary, dialog and toast reads in Russian, and counts use Russian's own plural forms.
 
 ## 0.0.18 (2026-11-13)
 

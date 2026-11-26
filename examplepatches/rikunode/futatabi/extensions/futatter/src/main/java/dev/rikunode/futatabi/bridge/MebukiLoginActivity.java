@@ -18,7 +18,7 @@ import org.json.JSONObject;
 
 /**
  * Owner-operated Mebuki login WebView. No real login is executed automatically.
- * Credentials are copied only after an explicit session-check action, and never logged.
+ * Credentials are copied only after an owner-operated OAuth return or explicit check, and never logged.
  * Cookie attributes/expiry are not exposed by CookieManager.getCookie().
  */
 public final class MebukiLoginActivity extends Activity {
@@ -27,27 +27,53 @@ public final class MebukiLoginActivity extends Activity {
     private WebView browser;
     private TextView status, navigation;
     private Button check, erase, inspect, cancel;
-    private boolean busy, pageFailed;
+    private boolean busy, pageFailed, providerVisited;
     private MebukiLoginDiagnostics diagnostics;
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
-        setTitle("めぶきログイン");
+        setTitle("めぶきちゃんねるログイン");
+        if (getActionBar() != null) getActionBar().hide();
+        if (android.os.Build.VERSION.SDK_INT >= 30) getWindow().setDecorFitsSystemWindows(false);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setBackgroundColor(Color.WHITE);
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            layout.setOnApplyWindowInsetsListener((view, insets) -> {
+                android.graphics.Insets safe = insets.getInsets(
+                        android.view.WindowInsets.Type.systemBars() | android.view.WindowInsets.Type.displayCutout()
+                                | android.view.WindowInsets.Type.ime());
+                view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+                return android.view.WindowInsets.CONSUMED;
+            });
+        } else layout.setFitsSystemWindows(true);
+        LinearLayout controls = new LinearLayout(this);
+        controls.setOrientation(LinearLayout.VERTICAL);
+        android.widget.ScrollView details = new android.widget.ScrollView(this);
+        details.addView(controls);
+        details.setVisibility(android.view.View.GONE);
+        Button toggle = new Button(this);
+        toggle.setText("ログイン管理");
+        toggle.setOnClickListener(view -> {
+            boolean show = details.getVisibility() != android.view.View.VISIBLE;
+            details.setVisibility(show ? android.view.View.VISIBLE : android.view.View.GONE);
+            toggle.setText(show ? "管理を閉じる" : "ログイン管理");
+        });
+        layout.addView(toggle);
+        layout.addView(details, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
         status = new TextView(this);
-        status.setText("対応対象：X／Discord。Googleは対象外。本人ログイン後に保存を押してください。");
-        status.setPadding(20, 16, 20, 16);
-        layout.addView(status);
+        status.setText("X／Discordで認証後、自動確認・保存。手動確認は管理欄から。");
+        status.setPadding(12, 6, 12, 6);
+        layout.addView(status, 1);
 
         navigation = new TextView(this);
         navigation.setText("公式サイトを読み込み中…");
-        layout.addView(navigation);
+        controls.addView(navigation);
         check = new Button(this);
         check.setText("ログイン済みセッションを確認して端末内へ保存");
         check.setOnClickListener(view -> verifyAndStore());
-        layout.addView(check);
+        controls.addView(check);
 
         erase = new Button(this);
         erase.setText("保存したセッション情報だけを削除");
@@ -56,29 +82,38 @@ public final class MebukiLoginActivity extends Activity {
             boolean removed = getSharedPreferences(PREF, MODE_PRIVATE).edit().remove(MebukiSession.KEY).commit();
             status.setText(removed ? "アプリ専用の保存情報を消去しました。WebView内のサイトCookieは残ります。" : "保存情報の消去に失敗しました。");
         });
-        layout.addView(erase);
+        controls.addView(erase);
 
         EditText slug = new EditText(this);
         slug.setSingleLine(true);
         slug.setHint("スレURLの /t/ 以下のID（任意）");
-        layout.addView(slug);
+        controls.addView(slug);
         inspect = new Button(this);
         inspect.setText("保存済み認証で読取契約を確認（値は記録しない）");
         inspect.setOnClickListener(view -> inspectContract(slug.getText().toString().trim()));
-        layout.addView(inspect);
+        controls.addView(inspect);
         cancel = new Button(this);
-        cancel.setText("認証を中止してめぶきへ戻る");
+        cancel.setText("認証を中止してめぶきちゃんねるへ戻る");
         cancel.setOnClickListener(view -> {
             if (busy || browser == null) return;
+            providerVisited = false;
             browser.stopLoading();
             status.setText("中止操作：公式サイトへ戻ります。保存済み認証は変更しません。");
             browser.loadUrl(SITE);
         });
-        layout.addView(cancel);
+        controls.addView(cancel);
+        Button external = new Button(this);
+        external.setText("通常ブラウザで公式サイトを開く");
+        external.setOnClickListener(view -> {
+            if (!busy) openOfficialBrowser();
+        });
+        controls.addView(external);
 
         browser = new WebView(this);
         WebSettings settings = browser.getSettings();
         settings.setJavaScriptEnabled(true); // The official Better Auth interface requires JS.
+        // Discord OAuth login loop: discord/discord-api-docs#5165.
+        settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
@@ -127,17 +162,33 @@ public final class MebukiLoginActivity extends Activity {
             @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap icon) {
                 pageFailed = false;
                 if (diagnostics != null) diagnostics.event("page_started", url, "");
+                MebukiLoginFlow.Page page = classify(Uri.parse(url));
+                if (page == MebukiLoginFlow.Page.X || page == MebukiLoginFlow.Page.DISCORD)
+                    providerVisited = true;
+                if (page == MebukiLoginFlow.Page.ERROR_RETURN) providerVisited = false;
                 showNavigation(url, true);
             }
             @Override public void onPageFinished(WebView view, String url) {
                 if (diagnostics != null) diagnostics.snapshot(view, "page_finished");
-                if (!pageFailed && url.equals(view.getUrl())) showNavigation(url, false);
+                if (!pageFailed && url.equals(view.getUrl())) {
+                    showNavigation(url, false);
+                    MebukiLoginFlow.Page page = classify(Uri.parse(url));
+                    if (providerVisited && !busy && (page == MebukiLoginFlow.Page.SITE
+                            || page == MebukiLoginFlow.Page.CALLBACK)) {
+                        providerVisited = false;
+                        verifyAndStore();
+                    }
+                }
             }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
                 if (request.isForMainFrame()) {
                     pageFailed = true;
                     if (diagnostics != null) diagnostics.event("network_error", request.getUrl().toString(), "code=" + error.getErrorCode());
                     navigation.setText("ページ通信エラー（" + error.getErrorCode() + "）。認証成功は未確認です。");
+                    status.setText(navigation.getText());
+                } else if (discordLoginRequest(view, request)) {
+                    status.setText("Discord 認証通信エラー（" + error.getErrorCode()
+                            + "）。認証は未確認です。");
                 }
             }
             @Override public void onReceivedHttpError(WebView view, WebResourceRequest request, android.webkit.WebResourceResponse response) {
@@ -145,6 +196,10 @@ public final class MebukiLoginActivity extends Activity {
                     pageFailed = true;
                     if (diagnostics != null) diagnostics.event("http_error", request.getUrl().toString(), "status=" + response.getStatusCode());
                     navigation.setText("ページHTTPエラー（" + response.getStatusCode() + "）。認証成功は未確認です。");
+                    status.setText(navigation.getText());
+                } else if (discordLoginRequest(view, request)) {
+                    status.setText("Discord 認証 HTTP " + response.getStatusCode()
+                            + "。追加認証が表示された場合は画面の指示に従ってください。");
                 }
             }
             @Override public void onReceivedSslError(WebView view, android.webkit.SslErrorHandler handler, android.net.http.SslError error) {
@@ -152,12 +207,51 @@ public final class MebukiLoginActivity extends Activity {
                 if (diagnostics != null) diagnostics.event("tls_error", view.getUrl(), "cancelled=true");
                 pageFailed = true;
                 navigation.setText("TLS証明書エラーで中止しました。認証成功は未確認です。");
+                status.setText(navigation.getText());
             }
         });
         layout.addView(browser, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
         setContentView(layout);
+        layout.requestApplyInsets();
         browser.loadUrl(SITE);
+    }
+
+    private static boolean discordLoginRequest(WebView view, WebResourceRequest request) {
+        String current = view.getUrl();
+        if (current == null || classify(Uri.parse(current)) != MebukiLoginFlow.Page.DISCORD)
+            return false;
+        Uri uri = request.getUrl();
+        return MebukiLoginFlow.discordLoginPost(uri.getScheme(), uri.getHost(), uri.getPath(), request.getMethod());
+    }
+
+    // Browser-only fallback. The official browser owns its session;
+    // never copy a browser cookie or claim that this logs in the native app.
+    private void openOfficialBrowser() {
+        new android.app.AlertDialog.Builder(this)
+                .setMessage("公式サイトでのログイン・閲覧用です。ブラウザの認証はアプリへ取り込まれません。")
+                .setNegativeButton("キャンセル", null)
+                .setPositiveButton("開く", (dialog, which) -> {
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(SITE))
+                            .addCategory(android.content.Intent.CATEGORY_BROWSABLE).setPackage("com.android.chrome");
+                    android.content.Intent service = new android.content.Intent("android.support.customtabs.action.CustomTabsService")
+                            .setPackage("com.android.chrome");
+                    if (getPackageManager().resolveService(service, 0) != null) {
+                        Bundle extras = new Bundle();
+                        extras.putBinder("android.support.customtabs.extra.SESSION", null);
+                        extras.putInt("android.support.customtabs.extra.TITLE_VISIBILITY", 1);
+                        intent.putExtras(extras);
+                    }
+                    try { startActivity(intent); }
+                    catch (android.content.ActivityNotFoundException | SecurityException ex) {
+                        try {
+                            startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(SITE))
+                                    .addCategory(android.content.Intent.CATEGORY_BROWSABLE));
+                        } catch (android.content.ActivityNotFoundException | SecurityException unavailable) {
+                            status.setText("対応ブラウザがありません。");
+                        }
+                    }
+                }).show();
     }
 
     private static MebukiLoginFlow.Page classify(Uri uri) {
@@ -172,12 +266,13 @@ public final class MebukiLoginActivity extends Activity {
             case X: label = "Xの公式ドメイン：認証・追加認証は本人操作。結果未確認。"; break;
             case DISCORD: label = "Discordの公式ドメイン：認証・追加認証は本人操作。結果未確認。"; break;
             case GOOGLE_UNSUPPORTED: label = "Googleは対象外です。資格情報を入力せず戻ってください。"; break;
-            case CALLBACK: label = "めぶきへのcallbackを検出。認証成功は未確認。"; break;
-            case ERROR_RETURN: label = "めぶきから認証エラーの戻りを検出。成功は未確認。"; break;
-            case SITE: label = "めぶき公式サイト：ログイン後は保存ボタンで検証してください。"; break;
+            case CALLBACK: label = "めぶきちゃんねるへのcallbackを検出。認証成功は未確認。"; break;
+            case ERROR_RETURN: label = "めぶきちゃんねるから認証エラーの戻りを検出。成功は未確認。"; break;
+            case SITE: label = "めぶきちゃんねる公式サイト：自動確認が完了しない場合は管理欄で手動確認。"; break;
             default: label = "未確認のページ：資格情報を入力せず、必要に応じて戻ってください。";
         }
         navigation.setText((loading ? "読み込み中：" : "") + label);
+        if (page == MebukiLoginFlow.Page.ERROR_RETURN) status.setText(label);
     }
 
     private void setBusy(boolean value) {
@@ -193,7 +288,7 @@ public final class MebukiLoginActivity extends Activity {
         String current = browser.getUrl();
         Uri uri = current == null ? null : Uri.parse(current);
         if (uri == null || !"https".equals(uri.getScheme()) || !"mebuki.moe".equals(uri.getHost())) {
-            status.setText("めぶき公式サイトに戻ってから確認してください。");
+            status.setText("めぶきちゃんねる公式サイトに戻ってから確認してください。");
             return;
         }
         String cookies = CookieManager.getInstance().getCookie(SITE);
@@ -222,6 +317,11 @@ public final class MebukiLoginActivity extends Activity {
                 status.setText(persisted ? "認証済みセッションを端末内に保存しました。" :
                         state == MebukiSession.State.AUTHENTICATED ? "認証済みですが端末への保存に失敗しました。" :
                         "保存未完了：" + state.name());
+                if (persisted) {
+                    android.widget.Toast.makeText(this, "めぶきちゃんねるの認証を保存しました", android.widget.Toast.LENGTH_LONG).show();
+                    setResult(RESULT_OK);
+                    finish();
+                }
             });
         }, "futatabi-mebuki-session-check").start();
     }

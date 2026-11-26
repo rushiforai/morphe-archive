@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-25T15:33:57",
-  "description": "v0.4.0-beta.6: Default dark mode (default ON), only seeds unset theme preferences; existing choices preserved. Mebuki login experimental: X/Discord only; authenticated thread conversion pending.",
-  "download_url": "https://github.com/rikunode/futatabi/releases/download/v0.4.0-beta.6/futatabi-patches-v0.4.0-beta.6.mpp",
-  "signature_download_url": "",
-  "version": "0.4.0-beta.6"
+    "created_at":  "2026-11-26T16:19:34",
+    "description":  "Animanch in-app tap category picker for stock new threads; 32 categories; mock and APK gates passed",
+    "download_url":  "https://github.com/rikunode/futatabi/releases/download/v0.4.0-beta.28/futatabi-patches-v0.4.0-beta.28.mpp",
+    "signature_download_url":  "",
+    "version":  "0.4.0-beta.28"
 }

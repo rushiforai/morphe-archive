@@ -572,6 +572,8 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	�
 Hide profile notes	隐藏个人主页上的便签
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	隐藏头像上的便签气泡。下次打开个人主页时生效。
+Hide the gift button on profiles	隐藏个人主页上的礼物按钮
+Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	从别人的个人主页上移除送礼物按钮。下次打开个人主页时生效。
 # context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
 Save button under posts	帖子下方的收藏按钮
 # context: summary of that switch; Like, Comment and Share are the buttons under a post
@@ -3162,8 +3164,8 @@ Adds Facebook chats to Android's share menu. A photo or video you share there is
 Share to Facebook chats is off.	分享到 Facebook 聊天已关闭。
 Nothing in it to send.	没有可发送的内容。
 Couldn't save it to your gallery.	无法保存到图库。
-Copied and saved. Pick a chat.	已复制并保存。请选择聊天。
-In your gallery now. Pick a chat.	已在图库中。请选择聊天。
+Copied and saved. Paste and attach in a chat.	已复制并保存。请在聊天中粘贴并添加附件。
+Saved to your gallery. Attach it in a chat.	已保存到图库。请在聊天中添加附件。
 Copied. Pick a chat and paste it.	已复制。选择聊天后粘贴。
 Open your chats to pick one.	打开聊天列表选择一个。
 Post date after the caption	发布日期放在说明后
@@ -3180,3 +3182,17 @@ Open a chat, then come back here to give it a color of its own.	先打开一个�
 %1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s 是你最近打开的聊天，使用上方的聊天背景。输入颜色代码即可为它设置专属颜色。
 %1$s, the last chat you opened, is %2$s.	%1$s 是你最近打开的聊天，颜色为 %2$s。
 Type one color code, or two for a fade from top to bottom.	输入一个颜色代码，或输入两个以从上到下渐变。
+Hide the AI content label on reels	隐藏 Reels 上的 AI 内容标签
+Takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. A change shows from the next reel.	去掉 Facebook 标记为用 AI 制作的 Reels 上的“AI 内容”或“AI 信息”标签。更改会从下一个 Reels 开始显示。
+The %1$s row will be set to %2$s.	%1$s 将设为 %2$s。
+The %1$s row will go back to its default.	%1$s 将恢复为默认值。
+Save files to Downloads	将文件保存到下载文件夹
+A PDF, document or other file you download from a post goes to your phone's Downloads folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.	你从帖子下载的 PDF、文档或其他文件会存入手机的下载文件夹，文件管理器可以打开它。关闭后，Facebook 会把它放在文件管理器无法访问的地方。
+Hide hashtags in reel captions	隐藏 Reels 说明中的话题标签
+Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	去掉 Reels 说明中的话题标签，比如末尾的一串标签。句子里的话题标签会保留。更改会从下一个 Reels 开始显示。
+Keep the keyboard closed when comments open	打开评论时不弹出键盘
+Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	打开评论时不会弹出键盘，即使帖子还没有评论也一样。想写评论时点一下评论框。
+Settings language	设置语言
+Same as Facebook	与 Facebook 相同
+Show feed reels uncropped	动态中的 Reels 不裁剪
+Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	动态中的 Reels 按原本比例显示完整画面，不再被裁成 Facebook 的框。更改后新显示的 Reels 会生效。

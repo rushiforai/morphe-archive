@@ -73,6 +73,12 @@ public final class IconDrawable extends Drawable {
             + "20,16H6l-2,2V4h16v12z";
     static final String SHIELD = "M12,1L3,5v6c0,5.55 3.84,10.74 9,12 5.16,"
             + "-1.26 9,-6.45 9,-12V5l-9,-4z";
+    /** A funnel: the Feed filters page. */
+    static final String FUNNEL = "M4.25,5.61C6.27,8.2 10,13 10,13v6c0,0.55 0.45,1 1,1h2c0.55,0 1,-0.45 1,-1v-6c0,0 3.72,-4.8 5.74,-7.39C20.25,4.95 19.78,4 18.95,4H5.04C4.21,4 3.74,4.95 4.25,5.61z";
+
+    /** A phone with a bar along the bottom: the Navigation & panels page. */
+    static final String PHONE_NAV = "M17,1.01L7,1C5.9,1 5,1.9 5,3v18c0,1.1 0.9,2 2,2h10c1.1,0 2,-0.9 2,-2V3C19,1.9 18.1,1.01 17,1.01zM17,15.5H7V5h10V15.5zM7,17h10v2H7V17z";
+
     static final String MORE = "M6,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0."
             + "9 2,-2 -0.9,-2 -2,-2zM18,10c-1.1,0 -2,0."
             + "9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,"

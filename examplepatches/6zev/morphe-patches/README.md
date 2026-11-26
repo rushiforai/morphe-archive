@@ -85,25 +85,17 @@ https://github.com/6zev/morphe-patches
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.1](https://github.com/6zev/morphe-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.7.2](https://github.com/6zev/morphe-patches/releases/tag/v1.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
-<summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **Package name:** `dev.vodik7.tvquickactions`
 
-**🎯 Supported versions:**
-
-| 3.8.0 | 3.7.0 |
-| :---: | :---: |
-
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [ADB server log](#adb-server-log) | Writes the native ADB server's own log to /data/local/tmp/tvqa-server.log and lets its debug messages through. The server is started again every few seconds and nothing of what it says is reachable otherwise: its logger is built at a level that drops every message, and its output is sent to /dev/null. Use this to find out why it ends, not as a fix. |  |
-| [Input without the ADB server](#input-without-the-adb-server) | Keeps key, pointer and gamepad input working when the "ADB speed up" server is not running. The app only asks whether speed-up is enabled, not whether the server it starts as the shell user on localhost:15000 is up, and it drops the request without falling back when the port is closed - so numpad keys and mouse input do nothing. Each of those requests is now gated on the app's own port probe, and the injection site's ordinary path runs while no server is listening. |  |
-| [Never stop itself](#never-stop-itself) | Keeps the app from stopping its own package. Stop recent apps, Restart app and Force stop app all end in `am force-stop <package>` run over ADB, and the app is in the recents list it works from, so once an ADB connection is up the app stops itself, restarts, and loops every few seconds. The app only skips the foreground app, and only when the matching preference is enabled, so this covers what the preference does not. Custom ADB command actions are covered too, and such a command is logged under the TVQA-GUARD tag before it is dropped. |  |
-| [Unlock native engine](#unlock-native-engine) | Patches the native engine libraries so that they run on a re-signed APK. The anti-tamper constructor of libd.so that destroys a global mutex is disabled, and the trap instructions the verification routine plants inside its own code - udf #0 (SIGILL) and stores of the markers 0xdead and 0xdeadbeef (SIGSEGV) - are replaced by no-ops, leaving the routine's work intact. This is what makes Web Widget Overlay and button emulation work. The server-only liba.so self-stop calls are also disabled for ARM32 and ARM64 so ADB speed-up does not terminate the app. |  |
-| [Unlock premium](#unlock-premium) | Makes the bundled Google LVL policy always report the app as licensed, which unlocks the premium features. |  |
+| [Unlock premium](#unlock-premium) | Reports the app as licensed and stops the native engine from verifying the licence, which unlocks the premium features. |  |
+| [Unlock premium (native)](#unlock-premium-native) | Stops the native engine from verifying the licence, which is what the premium actions are gated on once the licence checks out in Java. |  |
 
 </details>
 

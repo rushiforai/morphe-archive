@@ -34,6 +34,7 @@ object Constants {
             "2b06cc3d47782d7c497c07f17cb5f859cd6bbcb66829f3e67b96b7a44820d2ce",
         ),
         targets = listOf(
+            AppTarget(version = "6.33.0", description = "APKPure XAPK (not on APKMirror)"),
             AppTarget(version = "6.32.0", description = "APKPure XAPK (not on APKMirror)"),
             AppTarget(version = "5.17.8", description = "APKMirror universal APK"),
         ),

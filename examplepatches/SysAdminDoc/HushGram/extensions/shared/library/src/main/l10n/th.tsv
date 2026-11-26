@@ -16,6 +16,9 @@ Adds Copy text to the menu a story's three dots open. It copies the words Instag
 Ads and privacy	โฆษณาและความเป็นส่วนตัว
 Also in comments	ในความคิดเห็นด้วย
 Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution. Some phones keep their own limit for apps, and battery saver can still lower it.	ขอให้ Android ใช้งาน Instagram ด้วยอัตรารีเฟรชสูงสุดของหน้าจอที่ความละเอียดเดิม โทรศัพท์บางรุ่นอาจจำกัดอัตราสำหรับแอปไว้ และโหมดประหยัดแบตเตอรี่ยังคงลดอัตราดังกล่าวลงได้
+# context: Layout: a switch under Use the highest refresh rate (#868). While a video plays it tells Android the video's frames per second and asks Instagram's window for a refresh rate that frame rate divides into (60 Hz for a 30 fps video, 120 Hz for 24 fps). Use the highest refresh rate is the other switch's name, as on its own row.
+Match the video's frame rate	ปรับตามอัตราเฟรมของวิดีโอ
+While a video plays, tells Android its frame rate and asks for a refresh rate that frame rate divides into, like 60 Hz for a 30 fps reel. Use the highest refresh rate comes first while it's on.	ขณะที่วิดีโอเล่น จะบอก Android ถึงอัตราเฟรมของวิดีโอและขออัตรารีเฟรชที่เป็นผลคูณของอัตรานั้น เช่น 60 Hz สำหรับรีล 30 fps เมื่อเปิด ใช้อัตรารีเฟรชสูงสุด อยู่ ตัวนั้นจะมาก่อน
 Back	ย้อนกลับ
 Before you sign in	ก่อนที่คุณจะเข้าสู่ระบบ
 Cancel	ยกเลิก
@@ -378,6 +381,9 @@ Hide the Muse button on your profile	ซ่อนปุ่ม Muse บนโป�
 Removes the Muse button from the top bar of your profile. Your username and the menu stay.	ลบปุ่ม Muse ออกจากแถบด้านบนของโปรไฟล์ ชื่อผู้ใช้และเมนูของคุณจะยังคงอยู่
 Hide Blend on reels	ซ่อน Blend บนรีลส์
 Removes the Blend invite button from reels. Everything else on a reel stays.	ลบปุ่มเชิญ Blend ออกจากรีลส์ ส่วนประกอบอื่นๆ ทั้งหมดบนรีลส์จะยังคงอยู่
+# context: Meta AI: a Hide Meta AI switch (#866) that removes the line Instagram shows at the top of a story made with a Meta AI tool, such as Restyled with Meta AI followed by a Try it link, and the same restyle credit on reels. Restyled with Meta AI and Try it are Instagram's own labels, so use this language's Instagram wording for them where it's known.
+Hide Meta AI restyle credits	ซ่อนเครดิตการปรับสไตล์ของ Meta AI
+Removes lines like Restyled with Meta AI and its Try it link from the top of stories, and the same credit from reels. Music and effect credits stay.	ลบบรรทัดอย่าง ปรับสไตล์ด้วย Meta AI และลิงก์ ลองเลย ออกจากด้านบนของสตอรี่ และลบเครดิตเดียวกันออกจากรีลส์ เครดิตเพลงและเอฟเฟกต์จะยังคงอยู่
 Explore	สำรวจ
 Hide the Explore grid	ซ่อนตารางหน้าสำรวจ
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	ซ่อนตารางโพสต์และรีลส์ใต้แถบแท็บค้นหา โดยฟังก์ชันค้นหา, การค้นหาล่าสุด และผลการค้นหาจะยังคงอยู่
@@ -756,6 +762,8 @@ That isn't a place. Type latitude, longitude.	นั่นไม่ใช่ต�
 %1$d reels. Swipe again after %2$d minutes away.	%1$d รีลส์ ปัดอีกครั้งหลังออกไป %2$d นาที
 The latitude and the longitude in degrees, with a comma between them, like 40.758, -73.9855. North and east are positive, south and west negative. A map app shows both when you press and hold a spot.	ละติจูดและลองจิจูดในหน่วยองศา โดยคั่นด้วยเครื่องหมายจุลภาค เช่น 40.758, -73.9855 ทิศเหนือและทิศตะวันออกเป็นค่าบวก ทิศใต้และทิศตะวันตกเป็นค่าลบ แอปแผนที่จะแสดงทั้งสองค่าเมื่อคุณกดค้างที่ตำแหน่งใดตำแหน่งหนึ่ง
 Turn off HDR brightness boosts	ปิดการเร่งความสว่าง HDR
+Keep HDR on photo uploads	คง HDR ไว้เมื่ออัปโหลดรูปภาพ
+Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	ทดลอง รูปภาพ Ultra HDR ที่คุณโพสต์จะเก็บ gain map ไว้บน Android 14 ขึ้นไป จึงยังแสดงเป็น HDR ได้ ปิดหากรูปภาพที่คุณโพสต์ดูผิดปกติ
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	สิ่งที่คุณเปิดจากการค้นหาจะไม่ถูกบันทึกไว้ใน "ล่าสุด" ทั้งในแอปและบนฝั่งของ Instagram การค้นหาที่มีอยู่แล้วจะยังคงอยู่จนกว่าคุณจะล้างออก
 Wi-Fi stays as it is. Turn this off to save data on every network.	Wi-Fi จะยังคงเหมือนเดิม ปิดตัวเลือกนี้เพื่อประหยัดข้อมูลในทุกเครือข่าย
 Hide comments	ซ่อนความคิดเห็น
@@ -793,6 +801,14 @@ Takes AI-generated profile and similar AI labels off the line with a commenter's
 # context: Comments: a Hide comments switch that takes the comment box off the bottom of a comment sheet (#762). Comment box is the field where you type a comment; Post is Instagram's own label on its send button, use this language's Instagram word for it.
 Hide the comment box	ซ่อนช่องแสดงความคิดเห็น
 Takes the comment box, with your picture and Post, off the bottom of a post's or reel's comments. Turn it off when you want to comment.	นำช่องแสดงความคิดเห็นพร้อมรูปของคุณและปุ่ม "โพสต์" ออกจากด้านล่างของความคิดเห็นในโพสต์หรือรีล ปิดสวิตช์นี้เมื่อคุณต้องการแสดงความคิดเห็น
+# context: Comments: two Hide comments switches (#869). One hides the Meta AI search suggestion some comment sheets show above the comments (a pill reading Search plus a topic), the other the gift button at the end of the comment box. Comment box is the field where you type a comment.
+Hide search suggestions in comments	ซ่อนคำแนะนำการค้นหาในความคิดเห็น
+Takes the Meta AI search suggestion off the top of a post's or reel's comments. Not every post has one.	นำคำแนะนำการค้นหาของ Meta AI ออกจากด้านบนของความคิดเห็นในโพสต์หรือรีล ไม่ใช่ทุกโพสต์ที่มี
+Hide the gift button	ซ่อนปุ่มของขวัญ
+Takes the gift button off the right end of the comment box. The box itself stays.	นำปุ่มของขวัญที่ปลายด้านขวาของช่องแสดงความคิดเห็นออก ทั้งนี้ช่องแสดงความคิดเห็นจะยังคงอยู่
+# context: Comments: a Hide comments switch (#869) that hides the round (i) info button some comment sheets draw at the top right, just above the first comment. Write (i) as is.
+Hide the (i) button in comments	ซ่อนปุ่ม (i) ในความคิดเห็น
+Takes the (i) button off the top right of a post's or reel's comments, and the row with an (i) that can sit above a reel's first comment. Not every post has them.	นำปุ่ม (i) ที่มุมขวาบนของความคิดเห็นในโพสต์หรือรีล และแถวที่มี (i) ซึ่งอาจอยู่เหนือความคิดเห็นแรกของรีลออก ไม่ใช่ทุกโพสต์ที่มี
 # context: Comments: the switch that hides the row of quick emoji above the comment box (#248). Comment box is the field where you type a comment.
 Hide the emoji row	ซ่อนแถวอิโมจิ
 Takes the row of quick emoji off above the comment box. The box itself stays.	นำแถวอิโมจิด่วนด้านบนช่องแสดงความคิดเห็นออก ทั้งนี้ช่องแสดงความคิดเห็นจะยังคงอยู่
@@ -977,7 +993,7 @@ Text in the accent color	ข้อความเป็นสีเน้น
 Names, captions and other main text take the same color as the icons. Gray text stays gray. Restart Instagram to see the change.	ชื่อ คำบรรยาย และข้อความหลักอื่นๆ จะเป็นสีเดียวกับไอคอน ข้อความสีเทายังคงเป็นสีเทา โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 # context: Layout > Accent color switch. Saved is Instagram's own Saved page, in its label for this language.
 Filters in the accent color	ตัวกรองเป็นสีเน้น
-The filters along the top of Saved take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	ตัวกรองด้านบนของที่บันทึกไว้จะเป็นสีที่คุณเลือก และตัวกรองที่ใช้อยู่จะเติมด้วยสีนั้น โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
+The filters along the top of Saved and under a search take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	ตัวกรองด้านบนของที่บันทึกไว้และใต้การค้นหาจะเป็นสีที่คุณเลือก และตัวกรองที่ใช้อยู่จะเติมด้วยสีนั้น โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	ไอคอนของ Instagram บนแถบด้านบน แถบแท็บ และใต้โพสต์จะเปลี่ยนเป็นสีที่คุณเลือก ส่วนข้อความจะยังคงเหมือนเดิม โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 Story rings in the accent color	วงแหวนสตอรี่เป็นสีเน้น
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	วงแหวนสตอรี่จะเปลี่ยนเป็นสีที่คุณเลือกแทนการไล่ระดับสีของ Instagram ทั้งนี้การไล่ระดับสีอื่นๆ บางส่วนที่ใช้สีเดียวกันจะเปลี่ยนตามไปด้วย โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
@@ -2299,6 +2315,12 @@ Takes the Watch more reels button off the card a reel in your feed shows when it
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	การแสดงภาพซ้อนภาพสำหรับรีลส์
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	การออกจาก Instagram ขณะที่รีลส์กำลังเล่นจะย่อขนาดเป็นหน้าต่างขนาดเล็กทับบนแอปอื่นๆ ของคุณ ใช้งานได้ในแท็บรีลส์และรีลส์ที่เปิดจากฟีด บน Android 15 ขึ้นไป
+# context: a switch on the Playback page under Picture in picture for reels; the reels window is Instagram's small picture in picture window for reels, and the button is Android's own button in that window
+Pause button in the reels window	ปุ่มหยุดชั่วคราวในหน้าต่างรีลส์
+Instagram's small window for reels gets a button to pause the reel and play it again.	หน้าต่างขนาดเล็กของ Instagram สำหรับรีลส์จะมีปุ่มสำหรับหยุดรีลส์ชั่วคราวและเล่นต่อ
+# context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
+Previous and next in the reels window	ก่อนหน้าและถัดไปในหน้าต่างรีลส์
+Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	หน้าต่างขนาดเล็กของ Instagram สำหรับรีลส์จะมีปุ่มของ Instagram เองสำหรับย้อนกลับไปรีลส์ก่อนหน้าหรือไปยังรีลส์ถัดไป
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	การแสดงภาพซ้อนภาพสำหรับสตอรี่
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	การออกจาก Instagram ขณะที่สตอรี่กำลังเล่นจะย่อขนาดเป็นหน้าต่างขนาดเล็กทับบนแอปอื่นๆ ของคุณ และเล่นสตอรี่ต่อไปเรื่อยๆ ในหน้าต่างนั้น
@@ -2524,6 +2546,10 @@ Choose a file for your installed patches' settings and saved profiles. Your logi
 Ask before a follow	ถามก่อนติดตาม
 # context: Profiles > summary of Ask before a follow; Follow, Follow back, Followers and Following are Instagram's own button and list names (#631)
 Asks before a Follow or Follow back button follows someone or sends them a request, so a stray tap on a profile or in a Followers or Following list doesn't do it for you.	ถามก่อนที่ปุ่มติดตามหรือติดตามกลับจะติดตามใครหรือส่งคำขอ เพื่อไม่ให้การแตะโดยไม่ได้ตั้งใจบนโปรไฟล์หรือในรายชื่อผู้ติดตามหรือกำลังติดตามทำแทนคุณ
+# context: Profiles > title of the switch that skips Instagram's "Review this account before following" sheet, so one tap on Follow follows (#867)
+Follow without the review sheet	ติดตามโดยไม่มีหน้าตรวจสอบ
+# context: Profiles > summary of Follow without the review sheet; the quoted title is Instagram's own sheet and Follow its button; Ask before a follow is the switch above (#867)
+For some accounts Instagram opens a "Review this account before following" sheet before a follow. With this on, the follow goes through at once, the same as the sheet's Follow button, so one tap follows. Ask before a follow still asks first.	สำหรับบางบัญชี Instagram จะเปิดหน้า "ตรวจสอบบัญชีนี้ก่อนติดตาม" ก่อนการติดตาม เมื่อเปิดตัวเลือกนี้ การติดตามจะเกิดขึ้นทันที เหมือนกดปุ่มติดตามในหน้านั้น แตะครั้งเดียวก็ติดตามได้ ถามก่อนติดตามยังคงถามก่อนเหมือนเดิม
 # context: Title of the question Ask before a follow puts up; %1$s is the account's username (#631)
 Follow @%1$s?	ติดตาม @%1$s หรือไม่
 # context: Title of the question Ask before a follow puts up when the username can't be read (#631)
@@ -2662,6 +2688,9 @@ Use template	ใช้เทมเพลต
 Get Edits	รับ Edits
 # context: Title of the row under Feed that lists the items to keep in the menus behind the three dots on posts, reels and stories (#697, #707)
 Items in the three-dot menus	รายการในเมนูสามจุด
+# context: Feed: a switch right under Items in the three-dot menus (#815). It adds Instagram's Interested row (the same word as the Interested item in that list) to the three-dot menus that leave it out, like the menu of a reel from an account you follow.
+Interested on every post and reel	สนใจ ในทุกโพสต์และรีล
+Adds Interested to the three-dot menu of posts and reels that leave it out, like reels from accounts you follow.	เพิ่ม สนใจ ในเมนูสามจุดของโพสต์และรีลที่ไม่มีตัวเลือกนี้ เช่น รีลจากบัญชีที่คุณติดตาม
 # context: Summary of Items in the three-dot menus under Feed while every item is ticked (#697, #707)
 Every item shows. Untick the ones you don't want in the menus behind the three dots on posts, reels and stories.	แสดงทุกรายการ ยกเลิกการเลือกรายการที่คุณไม่ต้องการในเมนูสามจุดของโพสต์ รีล และสตอรี่
 # context: Summary of Items in the three-dot menus under Feed naming the unticked items, which are joined with a comma (#697, #707)
@@ -2739,6 +2768,13 @@ Cache size limit	ขีดจำกัดขนาดแคช
 %1$d MB	%1$d MB
 # context: Storage: second line under Clear saved copies now; %1$s is a size such as 312 MB
 Saved photos and videos take up %1$s now.	รูปภาพและวิดีโอที่บันทึกไว้ใช้พื้นที่ %1$s ในตอนนี้
+# context: Storage: a row that adds up how much space Instagram's data takes up outside its cache (#683), names its biggest folders (folder names like files/mqtt stay as they are) and HushGram's own files. Adding it up shows while it reads.
+Space used	พื้นที่ที่ใช้
+Adding it up…	กำลังคำนวณ…
+Couldn't add up the space used.	คำนวณพื้นที่ที่ใช้ไม่ได้
+Instagram's data takes up %1$s, its cache aside.	ข้อมูลของ Instagram ใช้พื้นที่ %1$s ไม่รวมแคช
+Biggest: %1$s.	ใหญ่ที่สุด: %1$s
+HushGram's own files take up %1$s.	ไฟล์ของ HushGram เองใช้พื้นที่ %1$s
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	เลนส์แก้วใต้นิ้วของคุณ
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	แตะนิ้วค้างไว้บนฟองของแถบแคปซูลแบบแก้วเหลว หรือเลื่อนไปตามแท็บ แล้วฟองจะขยายและหักเหสิ่งที่อยู่ด้านหลังแรงขึ้น เหมือนแก้วใต้ปลายนิ้ว และจะกลับเป็นปกติเมื่อคุณปล่อยนิ้ว การหักเหต้องเปิดเบลอด้านหลังแถบแท็บและใช้ Android 13 ขึ้นไป รีสตาร์ท Instagram หลังจากเปลี่ยนแปลงการตั้งค่า
@@ -2964,3 +3000,87 @@ Getting the file ready	กำลังเตรียมไฟล์
 Couldn't get the file	ไม่สามารถดึงไฟล์ได้
 # context: Details in a post's menu (#839): a toast when no app on the phone takes the photo or video Open with offers
 No app here can open it	ไม่มีแอปที่เปิดได้
+# context: Keep history for (#228): the title of a list row under Keep a viewing history, and of its dialogs
+Keep history for	เก็บประวัติไว้
+# context: Keep history for (#228): its first choice, the newest 500 rows whatever their age
+Newest 500	ล่าสุด 500 รายการ
+# context: Keep history for (#228): a choice of one day, typed under Custom
+1 day	1 วัน
+# context: Keep history for (#228): a choice of days, like 7 days; %1$s is the number
+%1$s days	%1$s วัน
+# context: Keep history for (#228): the message of the dialog Custom opens
+Type how many days to keep, from 1 to 365.	พิมพ์จำนวนวันที่จะเก็บ ตั้งแต่ 1 ถึง 365
+# context: Keep history for (#228): the row's summary with Newest 500 chosen
+The newest 500 stay, however old they are.	เก็บ 500 รายการล่าสุดไว้ ไม่ว่าจะเก่าแค่ไหน
+# context: Keep history for (#228): the row's summary with one day chosen
+Anything seen more than a day ago goes. At most 2000 stay.	รายการที่ดูไปนานกว่า 1 วันจะถูกลบ เก็บไว้มากสุด 2000 รายการ
+# context: Keep history for (#228): the row's summary with some days chosen; %1$s is the number
+Anything seen more than %1$s days ago goes. At most 2000 stay.	รายการที่ดูไปนานกว่า %1$s วันจะถูกลบ เก็บไว้มากสุด 2000 รายการ
+# context: Feed > title of the switch that shows a drag handle at the right edge of Home's feed while it scrolls, like Fast scroll in Saved; Home is Instagram's own Home tab (#826)
+Fast scroll on Home	เลื่อนเร็วในหน้าหลัก
+# context: Feed > summary of Fast scroll on Home; the feed is the list of posts on Home (#826)
+Shows a handle at the right edge of Home while it scrolls. Drag it to jump down your feed and back to the top.	แสดงที่จับที่ขอบขวาของหน้าหลักขณะเลื่อน ลากเพื่อข้ามลงไปในฟีดและกลับขึ้นด้านบน
+# context: Messages > title of the switch that shows a drag handle at the right edge of a chat while its messages scroll (#826)
+Fast scroll in chats	เลื่อนเร็วในแชท
+# context: Messages > summary of Fast scroll in chats; the newest messages are at the bottom of a chat (#826)
+Shows a handle at the right edge of a chat while it scrolls. Drag it up to your older messages and back down to the newest.	แสดงที่จับที่ขอบขวาของแชทขณะเลื่อน ลากขึ้นไปยังข้อความเก่าและลากลงกลับมายังข้อความล่าสุด
+# context: Stories > title of the switch that hides the comments Instagram floats over a story while you watch it, next to Hide the Comment button on stories (#826)
+Hide comments on stories	ซ่อนความคิดเห็นบนสตอรี่
+# context: Stories > summary of Hide comments on stories; the faces are the small round profile pictures of the commenters; the Comment button is the story's own Comment button, translated as in Hide the Comment button on stories (#826)
+Takes the comments floating over stories off them, along with the faces of the people who wrote them. The Comment button still opens them.	นำความคิดเห็นที่ลอยอยู่บนสตอรี่ออก พร้อมกับใบหน้าของผู้ที่เขียน ปุ่มแสดงความคิดเห็นยังเปิดดูได้เหมือนเดิม
+# context: Stories > title of the choice of how high the line you tap to write a comment sits on a story, under Hide comments on stories (#826)
+Comment line height on stories	ความสูงของบรรทัดความคิดเห็นบนสตอรี่
+# context: Stories > Comment line height on stories > choice that leaves the line where Instagram puts it; 'it' is the comment line (#826)
+Where Instagram puts it	ตำแหน่งที่ Instagram วางไว้
+# context: Stories > Comment line height on stories > choice that lifts the comment line a little (#826)
+A little higher	สูงขึ้นเล็กน้อย
+# context: Stories > Comment line height on stories > choice that lifts the comment line more than A little higher (#826)
+Higher	สูงขึ้น
+# context: Stories > summary of Comment line height on stories while Where Instagram puts it is chosen; the line is the one you tap on a story to write a comment (#826)
+The line for writing a comment sits where Instagram puts it, at the bottom of the story.	บรรทัดสำหรับเขียนความคิดเห็นอยู่ในตำแหน่งที่ Instagram วางไว้ ที่ด้านล่างของสตอรี่
+# context: Stories > summary of Comment line height on stories while A little higher is chosen (#826)
+The line for writing a comment sits a little higher on the story.	บรรทัดสำหรับเขียนความคิดเห็นอยู่สูงขึ้นเล็กน้อยบนสตอรี่
+# context: Stories > summary of Comment line height on stories while Higher is chosen; the bottom edge is the bottom of the screen (#826)
+The line for writing a comment sits higher on the story, well clear of the bottom edge.	บรรทัดสำหรับเขียนความคิดเห็นอยู่สูงขึ้นบนสตอรี่ ห่างจากขอบล่างพอสมควร
+# context: Stories: a switch (#187), named like Full screen Reels, Full screen Home and Full screen Messages
+Full screen stories	สตอรี่แบบเต็มหน้าจอ
+# context: Full screen stories (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while a story shows. Swipe in from the edge to bring them back for a moment.	ซ่อนแถบสถานะและแถบการนำทางขณะแสดงสตอรี่ ปัดเข้าจากขอบเพื่อแสดงแถบชั่วขณะ
+# context: Explore: a switch (#187), named like Full screen Home. Explore is Instagram's tab, as the app names it
+Full screen Explore	สำรวจแบบเต็มหน้าจอ
+# context: Full screen Explore (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while Explore shows. Swipe in from the edge to bring them back for a moment.	ซ่อนแถบสถานะและแถบการนำทางขณะแสดงหน้าสำรวจ ปัดเข้าจากขอบเพื่อแสดงแถบชั่วขณะ
+# context: Profiles: a switch (#187) for your own profile's tab, named like Full screen Home
+Full screen profile	โปรไฟล์แบบเต็มหน้าจอ
+# context: Full screen profile (#187): its summary, worded like Full screen Home's
+Hides the status bar and the navigation bar while your profile tab shows. Swipe in from the edge to bring them back for a moment.	ซ่อนแถบสถานะและแถบการนำทางขณะแสดงแท็บโปรไฟล์ของคุณ ปัดเข้าจากขอบเพื่อแสดงแถบชั่วขณะ
+# context: Settings entry > summary of Settings page logo while HushGram's logo is picked; this page is HushGram's settings page (#872)
+HushGram's logo shows at the top of this page.	โลโก้ HushGram จะแสดงที่ด้านบนของหน้านี้
+# context: Settings entry > summary of Settings page logo while Instagram's icon is picked (#872)
+Instagram's icon shows at the top of this page.	ไอคอน Instagram จะแสดงที่ด้านบนของหน้านี้
+# context: Settings entry > summary of Settings page logo while Your picture is picked; Your picture is the list choice of that name (#872)
+Your picture shows at the top of this page. Pick Your picture again to change it.	รูปภาพของคุณจะแสดงที่ด้านบนของหน้านี้ เลือก รูปภาพของคุณ อีกครั้งเพื่อเปลี่ยน
+# context: Settings entry > Settings page logo list choice: HushGram's own logo (#872)
+HushGram's logo	โลโก้ HushGram
+# context: Settings entry > Settings page logo list choice: Instagram's own app icon (#872)
+Instagram's icon	ไอคอน Instagram
+# context: Settings entry > Settings page logo list choice: a picture the person picks from their phone (#872)
+Your picture	รูปภาพของคุณ
+# context: Settings entry > row and list title: the picture at the top of HushGram's settings page, over its name (#872)
+Settings page logo	โลโก้หน้าการตั้งค่า
+# context: Settings entry > row and dialog title: the name at the top of HushGram's settings page (#872)
+Settings page name	ชื่อหน้าการตั้งค่า
+# context: Settings entry > Settings page name dialog message; %1$d is the most characters it takes (#872)
+A name of your own at the top of this page, in place of HushGram. Up to %1$d characters. Leave it blank for HushGram.	ชื่อของคุณเองที่ด้านบนของหน้านี้แทน HushGram ได้สูงสุด %1$d ตัวอักษร เว้นว่างไว้เพื่อใช้ HushGram
+# context: Settings entry > row that puts HushGram's logo and name back at the top of the settings page (#872)
+Reset the settings page header	รีเซ็ตส่วนหัวของหน้าการตั้งค่า
+# context: Settings entry > summary of Reset the settings page header (#872)
+Puts HushGram's logo and name back at the top of this page.	นำโลโก้และชื่อของ HushGram กลับมาไว้ที่ด้านบนของหน้านี้
+# context: toast after Reset the settings page header; keep under two short lines (#872)
+Settings page header reset.	รีเซ็ตส่วนหัวการตั้งค่าแล้ว
+# context: toast after a picked picture becomes the settings page logo; keep under two short lines (#872)
+Settings page logo set.	ตั้งโลโก้หน้าการตั้งค่าแล้ว
+# context: Settings entry > summary of Settings page name while no name is typed (#872)
+HushGram shows at the top of this page.	HushGram จะแสดงที่ด้านบนของหน้านี้
+# context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
+The top of this page says %1$s.	ด้านบนของหน้านี้จะแสดง %1$s

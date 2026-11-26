@@ -12,6 +12,7 @@ import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
 import app.fakh.patches.linkedin.shared.Constants.GHOST_MODE
 import app.fakh.patches.linkedin.shared.Constants.HIDE_SPONSORED_MESSAGES
+import app.fakh.patches.linkedin.shared.Constants.MARK_READ_AFTER_REPLY
 import app.fakh.patches.linkedin.shared.settingsPatch
 import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
@@ -38,6 +39,13 @@ private object SendTypingIndicatorFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
 )
 
+/** DeliveryHelperImpl.sendMessage(MessageToSend, ContinuationImpl): delivers a message the user wrote. */
+private object DeliverMessageFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/messenger/data/repository/DeliveryHelperImpl;",
+    name = "sendMessage",
+    parameters = listOf("Lcom/linkedin/android/messenger/data/local/room/model/MessageToSend;", "L"),
+)
+
 /** MessagingSdkWriteFlowFeatureImpl.updateConversationReadStatus(List, boolean): LiveData. */
 private object UpdateReadStatusFingerprint : Fingerprint(
     definingClass = "Lcom/linkedin/android/messaging/sdk/MessagingSdkWriteFlowFeatureImpl;",
@@ -58,7 +66,7 @@ val messagingPatch = patch(
     dependsOn(settingsPatch)
 
     execute {
-        register(HIDE_SPONSORED_MESSAGES, GHOST_MODE)
+        register(HIDE_SPONSORED_MESSAGES, GHOST_MODE, MARK_READ_AFTER_REPLY)
 
         // Filter the conversation list before it is transformed. Range form: p1 can be above v15.
         ConversationListInputFingerprint.method.addInstructions(
@@ -86,12 +94,18 @@ val messagingPatch = patch(
             )
         }
 
+        // Ghost mode: remember a replied conversation, so it can be marked as read.
+        DeliverMessageFingerprint.method.addInstructions(
+            0,
+            "invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->messageSent(Ljava/lang/Object;)V"
+        )
+
         // Ghost mode: opening a chat no longer marks it as read on the server.
         UpdateReadStatusFingerprint.method.apply {
             addInstructionsWithLabels(
                 0,
                 """
-                    invoke-static/range { p2 .. p2 }, $EXTENSION_CLASS->blockMarkAsRead(Z)Z
+                    invoke-static/range { p1 .. p2 }, $EXTENSION_CLASS->blockMarkAsRead(Ljava/util/List;Z)Z
                     move-result v0
                     if-eqz v0, :update
                     new-instance v0, Landroidx/lifecycle/MutableLiveData;

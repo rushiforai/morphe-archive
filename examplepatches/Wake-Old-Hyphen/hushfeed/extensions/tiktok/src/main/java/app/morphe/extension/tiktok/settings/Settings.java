@@ -147,6 +147,11 @@ public class Settings extends BaseSettings {
     // On by default: AMOLED dark theme is in a build only when it was picked, so black is the ask.
     // Off puts TikTok's own dark grays back at the next start (#372).
     public static final BooleanSetting AMOLED_DARK_MODE = new BooleanSetting("amoled_dark_mode", TRUE, true);
+    // Saved the first time a build with that switch runs (#521). For AMOLED dark theme to be
+    // picked by default its switch has to start off, or every dark mode turns black at the next
+    // update (#372), and this is what will keep it on for the people who already had it.
+    public static final BooleanSetting AMOLED_SWITCH_BUILT_IN = new BooleanSetting(
+            "amoled_switch_built_in", FALSE, false, false);
     /** Colors of Hushfeed's settings and its own pop-ups: TikTok's mode, or always dark or light (#434). */
     public static final StringSetting SETTINGS_THEME = new StringSetting("settings_theme", "tiktok");
     /** The language of Hushfeed's settings and messages: TikTok's, or one picked under Hushfeed language (#431). */
@@ -933,6 +938,12 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting KEEP_LIVE_CLEAR_SCREEN = new BooleanSetting("keep_live_clear_screen", FALSE);
     /**
+     * Keeps a LIVE room's chat, the messages scrolling over the stream, out of sight (#525); the
+     * LIVE controls patch. Read before each frame the chat would draw, so a change shows the next
+     * time the room draws. See LiveChat.
+     */
+    public static final BooleanSetting HIDE_LIVE_CHAT = new BooleanSetting("hide_live_chat", FALSE);
+    /**
      * Gives every LIVE room TikTok's full screen button, which it attaches only in LIVE Studio
      * and screen share rooms (#57); the LIVE controls patch. TikTok still shows the button only
      * while the room's video is wide. Read as each room loads its widgets, so the next room
@@ -1542,6 +1553,12 @@ public class Settings extends BaseSettings {
             new BooleanSetting("local_hide_button", FALSE);
     public static final BooleanSetting BLOCK_SOUND_BUTTON =
             new BooleanSetting("block_sound_button", FALSE);
+    /** Block sound under Save on a sound's own page. On, since the patch itself is the opt-in. */
+    public static final BooleanSetting SOUND_PAGE_BLOCK_BUTTON =
+            new BooleanSetting("sound_page_block_button", TRUE);
+    /** Jam Sound and Use sound at the bottom of a sound's page (#535). */
+    public static final BooleanSetting HIDE_SOUND_PAGE_BUTTONS =
+            new BooleanSetting("hide_sound_page_buttons", FALSE);
     public static final StringSetting BLOCK_AUTHOR_BUTTON_POSITION =
             new StringSetting("block_author_button_position", "");
     public static final StringSetting LOCAL_HIDE_BUTTON_POSITION =
@@ -2080,7 +2097,7 @@ public class Settings extends BaseSettings {
                 LOCAL_HIDE_BUTTON_POSITION, BLOCK_SOUND_BUTTON_POSITION, NOT_INTERESTED_BUTTON_POSITION,
                 FEED_MUTE_BUTTON_POSITION, DOWNLOAD_BUTTON_POSITION, COMMENT_TRANSLATE_BUTTON_TURNED_ON,
                 SHARE_ACTION_CATALOG, PROFILE_SHORTCUT_CATALOG, POPUP_LABEL_CATALOG, SEARCH_TAB_CATALOG,
-                SETTINGS_ROW_CATALOG, DIAGNOSTIC_REPORT_SALT, AUTO_STREAK_STATE,
+                SETTINGS_ROW_CATALOG, DIAGNOSTIC_REPORT_SALT, AUTO_STREAK_STATE, AMOLED_SWITCH_BUILT_IN,
                 // The settings screen still searches while paused. Answering the empty default
                 // hid the recent searches, and the next search saved itself over all of them.
                 RECENT_SETTINGS_SEARCHES,
@@ -2108,6 +2125,16 @@ public class Settings extends BaseSettings {
             DOWNLOAD_PATHS_MIGRATED.save(TRUE);
         }
         migrateCaptionWeight();
+    }
+
+    /** Called at each start of a build with AMOLED dark mode's switch in it. */
+    public static void rememberAmoledSwitchBuiltIn() {
+        if (!AMOLED_SWITCH_BUILT_IN.savedValue()) AMOLED_SWITCH_BUILT_IN.save(TRUE);
+    }
+
+    /** Whether a build with AMOLED dark mode's switch has run on this phone. */
+    public static boolean amoledSwitchWasBuiltIn() {
+        return AMOLED_SWITCH_BUILT_IN.savedValue();
     }
 
     /** A Normal-weight captions switch left on becomes Caption boldness's Normal, once. */

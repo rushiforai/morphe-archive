@@ -251,7 +251,7 @@ final class Extras {
         return List.of(method);
     }
 
-    static final long CAR_EXTENSION_FLAG = 0x0081027600011849L;
+    static final long CAR_EXTENSION_FLAG = 0x0081026b0001184aL;
     static final String CAR_EXTENSION_STEP = "add_android_auto_extension";
 
     /**
@@ -401,7 +401,72 @@ final class Extras {
         var answers = new ArrayList<Method>();
         for (var cls : classes) for (var method : cls.getMethods())
             if (wanted.equals(hookId(method)) && isUnreadAnswer(method)) answers.add(method);
-        return answers.size() == 1 ? List.of(answers.get(0)) : List.of();
+        if (answers.size() != 1) return List.of();
+        // The hook hands the summary over straight out of its parameter register, so nothing may write that register.
+        var answer = answers.get(0);
+        int summary = answer.getImplementation().getRegisterCount() - 1;
+        for (var instruction : instructions(answer))
+            if (instruction.getOpcode().setsRegister() && instruction instanceof OneRegisterInstruction one
+                && (one.getRegisterA() == summary || (instruction.getOpcode().setsWideRegister() && one.getRegisterA() + 1 == summary)))
+                return List.of();
+        return List.of(answer);
+    }
+
+    static final String BADGE_COUNT_TRACE = "UnreadInboxItemsCalculator.updateBadgeUnreadCount";
+    static final String BADGE_TOTAL_LOG = " total=";
+    static final List<String> BADGE_COUNT_PARAMETERS =
+        List.of("Ljava/lang/String;", "Ljava/lang/String;", "I", "I", "I", "I", "I");
+    /** The unread total is the fourth parameter. Mirrors BADGE_TOTAL_PARAMETER in UnreadBadge.kt. */
+    static final int BADGE_TOTAL_PARAMETER = 3;
+
+    static boolean hasBadgeCountShape(Method method) {
+        return !AccessFlags.STATIC.isSet(method.getAccessFlags()) && "V".equals(method.getReturnType())
+            && params(method).equals(BADGE_COUNT_PARAMETERS);
+    }
+
+    static boolean loadsBadgeString(Method method, String wanted) {
+        for (var instruction : instructions(method))
+            if (instruction instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s
+                && wanted.equals(s.getString())) return true;
+        return false;
+    }
+
+    /**
+     * Whether the count logs the register as its total, copied out within three instructions of the label, and the
+     * entry is a spot nothing jumps onto and no try covers. Mirrors validateUnreadBadge in UnreadBadge.kt.
+     */
+    static boolean badgeCountHookable(Method method) {
+        var implementation = method.getImplementation();
+        if (implementation == null) return false;
+        int first = implementation.getRegisterCount() - (BADGE_COUNT_PARAMETERS.size() + 1);
+        if (first < 0) return false;
+        int total = first + 1 + BADGE_TOTAL_PARAMETER;
+        var code = instructions(method);
+        int at = -1;
+        for (int i = 0; i < code.size() && at < 0; i++)
+            if (code.get(i) instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s
+                && BADGE_TOTAL_LOG.equals(s.getString())) at = i;
+        if (at < 0) return false;
+        boolean logged = false;
+        for (int i = at + 1; i < Math.min(code.size(), at + 4); i++) {
+            var op = code.get(i).getOpcode();
+            if ((op == Opcode.MOVE || op == Opcode.MOVE_FROM16 || op == Opcode.MOVE_16)
+                && ((TwoRegisterInstruction) code.get(i)).getRegisterB() == total) logged = true;
+        }
+        if (!logged || Media.mediaTargets(method).contains(0)) return false;
+        for (var block : implementation.getTryBlocks()) if (block.getStartCodeAddress() == 0) return false;
+        return true;
+    }
+
+    /** unread_badge: the one badge count, alone in its shape on its class. Mirrors findUnreadBadge in UnreadBadge.kt. */
+    static List<Method> unreadBadge(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) {
+            var shaped = new ArrayList<Method>();
+            for (var method : cls.getMethods()) if (hasBadgeCountShape(method)) shaped.add(method);
+            if (shaped.size() == 1 && loadsBadgeString(shaped.get(0), BADGE_COUNT_TRACE)) found.add(shaped.get(0));
+        }
+        return found.size() == 1 && badgeCountHookable(found.get(0)) ? found : List.of();
     }
 
     static final String OVERLAY_CONFIG_HOLDER = "Lcom/facebook/rsys/overlayconfigmanager/OverlayConfigManagerHolder;";
@@ -607,7 +672,7 @@ final class Extras {
     private record RecoveryArm(int title, String label, int owner, int text) { }
 
     private static final Set<List<Integer>> RECOVERY_ROW_TITLES =
-        Set.of(List.of(0x7f14178d, 0x7f14178f), List.of(0x7f14178f, 0x7f141791));
+        Set.of(List.of(0x7f14179e, 0x7f1417a0), List.of(0x7f1417a0, 0x7f1417a2));
 
     private static List<Integer> recoveryArguments(Instruction i) {
         if (i.getOpcode() != Opcode.INVOKE_STATIC || !(i instanceof FiveRegisterInstruction call)) return null;
@@ -759,8 +824,9 @@ final class Extras {
     /** Mirrors searchItemsSite in SearchSections.kt. */
     private static boolean isSearchSectionConstructor(Method m, String type) {
         if (!"<init>".equals(m.getName()) || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"V".equals(m.getReturnType())) return false;
+        // 588's constructor takes a second Integer after 587's one.
         if (!searchTypes(m).equals(List.of(type, SEARCH_LIST, "Lcom/google/common/collect/ImmutableMap;", "Ljava/lang/Integer;",
-            "Ljava/lang/String;", "Z"))) return false;
+            "Ljava/lang/Integer;", "Ljava/lang/String;", "Z"))) return false;
         if (m.getImplementation() == null || mediaTargets(m).contains(0)) return false;
         int first = searchParameter(m, 0);
         return first >= 0 && searchParameter(m, 1) == first + 1;
@@ -868,6 +934,9 @@ final class Extras {
             if (branch >= 0) return false;
             branch = i;
         }
+        // 588 falls into the loader from an if-eqz right above that skips it, and nothing else may land on the loader.
+        if (branch < 0 && made >= 1 && code.get(made - 1).getOpcode() == Opcode.IF_EQZ && mediaTarget(code, made - 1) > made
+            && !mediaTargets(m).contains(made)) branch = made - 1;
         if (branch < 2 || mediaTargets(m).contains(branch)) return false;
         int pinnedRegister = ((OneRegisterInstruction) code.get(branch)).getRegisterA();
         var pinnedResult = code.get(branch - 1);
@@ -952,6 +1021,43 @@ final class Extras {
     static List<Method> openChatSound(List<ClassDef> classes) {
         var found = new ArrayList<Method>();
         for (var cls : classes) for (var method : cls.getMethods()) if (hasOpenChatSite(method)) found.add(method);
+        return found.size() == 1 ? found : List.of();
+    }
+
+    private static final String MARK_THREADS_PARAMS = "Lcom/facebook/messaging/service/model/MarkThreadsParams;";
+    private static final String MARK_THREADS_RESULT = "Lcom/facebook/fbservice/service/OperationResult;";
+    private static final String MARK_THREAD_KEY = "Lcom/facebook/messaging/model/threadkey/ThreadKey;";
+    private static final Set<String> MARK_THREAD_SHAPES = Set.of(
+        "(" + MARK_THREAD_KEY + "Ljava/lang/Long;Lkotlin/jvm/functions/Function1;)V",
+        "(" + MARK_THREAD_KEY + "Lkotlin/jvm/functions/Function1;)V");
+
+    /**
+     * Mirrors isMarkThreadsHandler in MarkReadLocally.kt: a static method answering an OperationResult that casts the
+     * mark_threads parcel and makes exactly two interface calls with a chat's key first, on one interface, one to mark
+     * the chat read and one to mark it unread.
+     */
+    private static boolean isMarkThreadsHandler(Method m) {
+        if (!AccessFlags.STATIC.isSet(m.getAccessFlags()) || !MARK_THREADS_RESULT.equals(m.getReturnType()) || m.getImplementation() == null) return false;
+        boolean parcel = false;
+        var owners = new HashSet<String>();
+        var shapes = new ArrayList<String>();
+        for (var i : instructions(m)) {
+            if (!(i instanceof ReferenceInstruction referring)) continue;
+            if (i.getOpcode() == Opcode.CHECK_CAST && referring.getReference() instanceof TypeReference type && MARK_THREADS_PARAMS.equals(type.getType())) parcel = true;
+            if (i.getOpcode() != Opcode.INVOKE_INTERFACE && i.getOpcode() != Opcode.INVOKE_INTERFACE_RANGE) continue;
+            if (!(referring.getReference() instanceof MethodReference call)) continue;
+            var types = typeNames(call.getParameterTypes());
+            if (types.isEmpty() || !MARK_THREAD_KEY.equals(types.get(0))) continue;
+            owners.add(call.getDefiningClass());
+            shapes.add("(" + String.join("", types) + ")" + call.getReturnType());
+        }
+        return parcel && shapes.size() == 2 && owners.size() == 1 && new HashSet<>(shapes).equals(MARK_THREAD_SHAPES);
+    }
+
+    /** mark_read_locally: the one mark_threads service handler. Mirrors findMarkReadLocally in MarkReadLocally.kt. */
+    static List<Method> markReadLocally(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) if (isMarkThreadsHandler(method)) found.add(method);
         return found.size() == 1 ? found : List.of();
     }
 }

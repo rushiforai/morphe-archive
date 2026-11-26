@@ -291,6 +291,8 @@ Block the advertising ID,Chặn ID quảng cáo
 Block this commenter,Chặn người bình luận này
 Block this creator,Chặn nhà sáng tạo này
 Block this sound,Chặn âm thanh này
+Block sound,Chặn âm thanh
+Unblock sound,Bỏ chặn âm thanh
 Blocked,Đã chặn
 Blocked %1$s,Đã chặn %1$s
 Blocked %1$s. Unblock,Đã chặn %1$s. Bỏ chặn
@@ -369,6 +371,8 @@ Clear preset,Xóa cấu hình sẵn
 Hashtags,Hashtag
 Keep clear screen in the next LIVE,Giữ xóa màn hình ở LIVE tiếp theo
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.","LIVE bạn vuốt tới sẽ hiện lại khung chat, quà tặng và các nút. Tùy chọn này giữ chế độ xóa màn hình từ phòng này sang phòng khác cho đến khi bạn tắt nó."
+Hide LIVE chat,Ẩn chat LIVE
+Hides the chat messages that scroll over a LIVE's video. The comment box and the room's buttons stay.,Ẩn các tin nhắn chat chạy trên video LIVE. Ô bình luận và các nút của phòng vẫn giữ nguyên.
 Offer full screen in more LIVEs,Cung cấp toàn màn hình trong nhiều LIVE hơn
 TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok chỉ hiện nút Toàn màn hình trong các LIVE phát từ máy tính hoặc màn hình được chia sẻ. Tùy chọn này hiện nút đó trong mọi LIVE khác có video ngang.
 Clear search,Xóa tìm kiếm
@@ -782,6 +786,7 @@ Hide every direct message conversation. Leaves the Inbox empty apart from whatev
 "Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.","Ẩn các video trên bảng tin có huy hiệu địa điểm, ngay cả khi chúng không phải là quảng cáo trả phí. Để giữ video và chỉ ẩn huy hiệu, hãy sử dụng tính năng Ẩn nhãn vị trí trong màn hình Bảng tin."
 "Hide floating promotion badges, coins, and timer banners on the feed.","Ẩn các huy hiệu quảng cáo nổi, đồng xu và biểu ngữ hẹn giờ trên bảng tin."
 Hide floating promotions,Ẩn khuyến mại nổi
+Hide from the host next time,Ẩn khỏi chủ phòng lần sau
 Hide gaming LIVEs,Ẩn luồng LIVE chơi game
 Hide inserted cards,Ẩn các thẻ được chèn vào
 Hide location labels,Ẩn nhãn vị trí
@@ -1858,6 +1863,10 @@ Show search in LIVE,Hiển thị tìm kiếm trong LIVE
 Show the Not interested button,Hiển thị nút Không quan tâm
 Show the block button on videos,Hiển thị nút chặn trên video
 Show the block sound button,Hiển thị nút chặn âm thanh
+Show Block sound on sound pages,Hiển thị Chặn âm thanh trên trang âm thanh
+"Add a Block sound button under Save on a sound's page, the one the spinning record on a video opens. It skips every video that uses that sound.","Thêm nút Chặn âm thanh bên dưới Lưu trên trang của một âm thanh, trang mở ra khi chạm vào đĩa nhạc đang quay trên video. Bỏ qua mọi video dùng âm thanh đó."
+Hide sound page buttons,Ẩn các nút trên trang âm thanh
+"Hide Jam Sound and Use sound at the bottom of a sound's page, the one the spinning record on a video opens.","Ẩn Jam Sound và Dùng âm thanh ở cuối trang của một âm thanh, trang mở ra khi bạn chạm vào đĩa nhạc đang quay trên video."
 Show the country a commenter's account is set to after the comment's time. Comments from accounts TikTok sends no country for stay as they are.,Hiển thị quốc gia được cài đặt trên tài khoản của người bình luận phía sau mốc thời gian. Các bình luận từ tài khoản mà TikTok không gửi dữ liệu quốc gia sẽ giữ nguyên.
 Show the country a video was posted from next to the creator's name.,Hiển thị quốc gia đăng tải video bên cạnh tên nhà sáng tạo.
 Show the country as a flag,Hiển thị quốc gia dưới dạng cờ
@@ -1912,6 +1921,7 @@ Sign in to edit your own profile counts,Đăng nhập để sửa số liệu tr
 Sign in to view this list,Đăng nhập để xem danh sách này
 Sign in without a passkey,Đăng nhập không cần khóa truy cập (passkey)
 Size limit reached. Recording saved to %1$s,Đã đạt giới hạn dung lượng. Đã lưu vào %1$s
+2 GB reached. Recording goes on in a new video.,Đã đủ 2 GB. Đang ghi tiếp sang video mới.
 Skip TikTok's setup screens,Bỏ qua các màn hình thiết lập ban đầu của TikTok
 Skip content warnings,Bỏ qua các cảnh báo nội dung
 Skip the Share to sheet after a save,"Bỏ qua bảng ""Chia sẻ tới"" sau khi lưu"
@@ -2040,7 +2050,7 @@ Story position,Vị trí tin (story)
 Story saved to %1$s,Đã lưu tin (story) vào %1$s
 Streak,Chuỗi tin nhắn liên tục (Streak)
 Stream only,Chỉ luồng phát (Stream)
-"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.","Chỉ ghi luồng phát sẽ lưu video trực tiếp từ phòng LIVE như trước. Quay màn hình sẽ ghi lại những gì điện thoại hiển thị trong lúc xem, kèm theo âm thanh ứng dụng phát ra khi TikTok có quyền sử dụng micro. Hệ thống Android sẽ yêu cầu bạn cấp phép quay màn hình mỗi lần và hiển thị thông báo riêng trong quá trình ghi."
+"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records. A screen recording looks as sharp as the quality you're watching. Hold the Record button in a LIVE to change it.","Chỉ ghi luồng phát sẽ lưu video trực tiếp từ phòng LIVE như trước. Quay màn hình sẽ ghi lại những gì điện thoại hiển thị trong lúc xem, kèm theo âm thanh ứng dụng phát ra khi TikTok có quyền sử dụng micro. Hệ thống Android sẽ yêu cầu bạn cấp phép quay màn hình mỗi lần và hiển thị thông báo riêng trong quá trình ghi. Bản quay màn hình sẽ nét đúng bằng chất lượng bạn đang xem. Nhấn giữ nút Ghi hình trong LIVE để đổi."
 Strong blur,Mờ mạnh
 Structured value observed,Giá trị có cấu trúc được ghi nhận
 Subscriber-only posts,Bài đăng dành riêng cho người đăng ký
@@ -2923,6 +2933,7 @@ Save episodes,Lưu các tập
 Pick episodes to save,Chọn tập để lưu
 Episode %1$s,Tập %1$s
 Preview only,Chỉ xem trước
+Locked,Đã khóa
 Loading episodes,Đang tải các tập
 Couldn't load the episodes. Try again.,Không tải được các tập. Hãy thử lại.
 Pick at least one episode,Hãy chọn ít nhất một tập
@@ -2951,7 +2962,7 @@ Write the month as a word,Viết tháng bằng chữ
 "Fade the name, date and caption","Làm mờ tên, ngày và chú thích"
 "Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.","Hiển thị tên nhà sáng tạo, ngày, chú thích và dòng nhạc trên video ở mức này, và vẫn nhấn được. Ở 100 chúng theo Làm mờ điều khiển video. Ở 0 chúng bị ẩn."
 LIVE buttons in the long-press menu,Nút LIVE trong menu nhấn giữ
-Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,Bỏ nút Ghi hình và Tự động chạm khỏi video và đưa chúng vào menu hiện ra khi nhấn giữ giữa LIVE.
+Takes the Record and Auto tap buttons and Ghost mode's eye off the video and puts them in the menu you get by holding the middle of a LIVE.,Bỏ nút Ghi hình và Tự động chạm cùng con mắt của Chế độ ẩn danh khỏi video và đưa chúng vào menu hiện ra khi nhấn giữ giữa LIVE.
 Auto tap started,Đã bắt đầu tự động chạm
 Hide stories from accounts you don't follow,Ẩn tin từ tài khoản bạn không theo dõi
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,Tin từ các tài khoản bạn không theo dõi sẽ rời khỏi khay chứa tin. Tin từ các tài khoản bạn theo dõi vẫn ở lại.
@@ -3049,7 +3060,7 @@ Fill wide videos too,Lấp đầy màn hình cả với video ngang
 Random time each day,Thời điểm ngẫu nhiên mỗi ngày
 "Sends at a different time each day, somewhere between When to send and Latest time.","Gửi vào một thời điểm khác nhau mỗi ngày, trong khoảng giữa Thời điểm gửi và Thời điểm muộn nhất."
 Latest time,Thời điểm muộn nhất
-"The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.","Điểm cuối của khoảng ngẫu nhiên, cùng ngày với Thời điểm gửi. Nếu không muộn hơn, tin nhắn sẽ gửi vào Thời điểm gửi."
+"The end of the random window. If it's earlier than When to send, the window runs past midnight.","Điểm cuối của khoảng ngẫu nhiên. Nếu sớm hơn Thời điểm gửi, khoảng này sẽ kéo dài qua nửa đêm."
 Jump to a date on Favorites grids,Chuyển đến ngày trên lưới Yêu thích
 "Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.","Thêm một nút ở góc trên của lưới Yêu thích để bắt đầu danh sách video đã lưu từ năm hoặc tháng bạn chọn, nhờ đó video cũ hơn được tải mà không phải cuộn qua video mới hơn. Chọn Yêu thích mới nhất ở đó để quay lại."
 Newest saves,Yêu thích mới nhất

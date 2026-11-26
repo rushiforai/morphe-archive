@@ -39,6 +39,7 @@ public final class RamblerEnhancementsTest {
         RamblerPreferenceLauncher.clearForTesting();
         RamblerCustomInstructionRules.clearForTesting();
         RamblerTextPipeline.clearForTesting();
+        RamblerDictationStats.clearForTesting();
         RamblerMuseStatsBridge.setBackendForTesting(null);
         RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD = "b";
         RamblerDynamicConfig.AGENTIC_EDITOR_INFO_FIELD = "h";
@@ -774,6 +775,120 @@ public final class RamblerEnhancementsTest {
         assertEquals("Voice dictionary & contacts",
                 RamblerEnhancementsActivity.titleForSection(
                         RamblerEnhancementsActivity.SECTION_CONTACTS));
+        assertEquals("Dictation stats & history",
+                RamblerEnhancementsActivity.titleForSection(
+                        RamblerEnhancementsActivity.SECTION_HISTORY));
+    }
+
+    @Test
+    public void onDeviceDictationStatsTrackWordsWpmLatencyTimeSavedPrivacyAndCardRender() {
+        Context context = RuntimeEnvironment.getApplication();
+        RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+        RamblerDynamicConfig.FEATURE_PRODUCTIVITY_TOOLS = true;
+        RamblerFlagRuntime.seedApplicationContext(context);
+
+        // Word counter handles contractions, hyphens, punctuation, and CJK accurately.
+        assertEquals(0, RamblerDictationStats.countWords("   ...   "));
+        assertEquals(4, RamblerDictationStats.countWords("Don't stop well-known tests!"));
+        assertEquals(6, RamblerDictationStats.countWords("今天天氣很好"));
+
+        final long[] elapsed = {10_000L};
+        final long[] wall = {1_795_600_000_000L}; // Day 1
+        RamblerDictationStats.setClockForTesting(new RamblerDictationStats.Clock() {
+            @Override
+            public long elapsedRealtime() {
+                return elapsed[0];
+            }
+
+            @Override
+            public long currentTimeMillis() {
+                return wall[0];
+            }
+        });
+
+        android.view.inputmethod.EditorInfo ed = new android.view.inputmethod.EditorInfo();
+        ed.packageName = "com.whatsapp";
+        FakePcn pcn = new FakePcn(ed);
+
+        // Session 1: 20 words spoken over 8,000 ms (150 WPM), 600 ms cloud latency.
+        RamblerDictationStats.onVoiceStart();
+        elapsed[0] += 8_000L;
+        RamblerDictationStats.onListeningStop();
+        elapsed[0] += 600L;
+        String s1 = "one two three four five six seven eight nine ten "
+                + "eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty";
+        RamblerTextPipeline.processCommitText(pcn, s1);
+
+        RamblerDictationStats.StatsSnapshot snap1 = RamblerDictationStats.readSnapshot(context);
+        assertEquals(20L, snap1.totalWords);
+        assertEquals(1L, snap1.totalSessions);
+        assertEquals(150, snap1.averageWpm());
+        assertEquals(150, snap1.bestWpm);
+        assertEquals(600L, snap1.averageLatencyMs());
+        assertEquals(600L, snap1.lastLatencyMs);
+        // At 40 WPM baseline: 20 words = 30,000 ms typing - (8,000 + 600) ms = 21,400 ms saved!
+        assertEquals(21_400L, snap1.estimatedTimeSavedMs(40));
+        assertEquals("21s", RamblerDictationStats.formatTimeSaved(snap1.estimatedTimeSavedMs(40), true));
+        assertEquals("600 ms", RamblerDictationStats.formatLatency(snap1.averageLatencyMs()));
+
+        // Session 2 on next calendar day: 30 words over 12,000 ms (150 WPM), 1,400 ms latency.
+        // Turning OFF text history must NOT stop anonymous stats tracking!
+        RamblerEnhancementsSettings.writeHistoryEnabled(context, false);
+        wall[0] += 86_400_000L; // +1 day
+        elapsed[0] += 5_000L;
+        RamblerDictationStats.onVoiceStart();
+        elapsed[0] += 12_000L;
+        RamblerDictationStats.onListeningStop();
+        elapsed[0] += 1_400L;
+        RamblerTextPipeline.processCommitText(pcn, s1 + " alpha beta gamma delta epsilon zeta eta theta iota kappa");
+
+        RamblerDictationStats.StatsSnapshot snap2 = RamblerDictationStats.readSnapshot(context);
+        assertEquals(50L, snap2.totalWords);
+        assertEquals(2L, snap2.totalSessions);
+        assertEquals(150, snap2.averageWpm()); // (50 * 60000) / 20000 = 150
+        assertEquals(1000L, snap2.averageLatencyMs()); // (600 + 1400) / 2 = 1000
+        assertEquals("1.00s", RamblerDictationStats.formatLatency(snap2.averageLatencyMs()));
+        assertEquals(1400L, snap2.lastLatencyMs);
+        // Daily counters rolled over cleanly for Day 2!
+        assertEquals(30L, snap2.todayWordsFor(RamblerDictationStats.currentDayKey()));
+        assertEquals(1L, snap2.todaySessionsFor(RamblerDictationStats.currentDayKey()));
+        // Typing 50 words @ 40 WPM = 75,000 ms; actual = 20,000 + 2,000 = 22,000 ms -> 53,000 ms saved!
+        assertEquals(53_000L, snap2.estimatedTimeSavedMs(40));
+
+        // Disabling stats tracking ignores new commits cleanly.
+        RamblerEnhancementsSettings.writeStatsEnabled(context, false);
+        elapsed[0] += 2_000L;
+        RamblerDictationStats.onVoiceStart();
+        elapsed[0] += 3_000L;
+        RamblerDictationStats.onListeningStop();
+        elapsed[0] += 500L;
+        RamblerTextPipeline.processCommitText(pcn, "ignored words while paused");
+        assertEquals(50L, RamblerDictationStats.readSnapshot(context).totalWords);
+        assertEquals(2L, RamblerDictationStats.readSnapshot(context).totalSessions);
+
+        // JSON backup preserves typingBaselineWpm & statsEnabled but NEVER exports private counters!
+        RamblerEnhancementsSettings.writeStatsEnabled(context, true);
+        RamblerEnhancementsSettings.writeTypingBaselineWpm(context, 50);
+        String backup = RamblerBackupManager.exportJson(context);
+        assertTrue(backup.contains("\"typingBaselineWpm\": 50"));
+        assertFalse("Private stats counters must not be exported", backup.contains("totalSpeakingMs"));
+        assertFalse("Private stats counters must not be exported", backup.contains("latencySamples"));
+
+        // Compact & full stats cards inflate cleanly in Robolectric with non-empty child views.
+        android.widget.LinearLayout compactCard =
+                RamblerStatsCardView.buildCard(context, true, () -> {}, null);
+        android.widget.LinearLayout fullCard =
+                RamblerStatsCardView.buildCard(context, false, null, () -> {});
+        assertTrue(compactCard.getChildCount() >= 4);
+        assertTrue(fullCard.getChildCount() >= 5);
+
+        // Reset clears all counters cleanly.
+        assertTrue(RamblerDictationStats.resetStats(context));
+        RamblerDictationStats.StatsSnapshot cleared = RamblerDictationStats.readSnapshot(context);
+        assertTrue(cleared.isEmpty());
+        assertEquals(0L, cleared.totalWords);
+        assertEquals(0, cleared.averageWpm());
+        assertEquals("—", RamblerDictationStats.formatTimeSaved(0L, false));
     }
 
     @SuppressWarnings("unused")

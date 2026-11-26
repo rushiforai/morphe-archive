@@ -1,8 +1,7 @@
 package dev.jason.gboardpatches.patches.gboard.features.swipeleftdelete
 
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
+import dev.jason.gboardpatches.patches.gboard.shared.gboardCompatibility18_8
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 
 val gboardSwipeLeftDeletePatch = bytecodePatch(
@@ -12,13 +11,9 @@ val gboardSwipeLeftDeletePatch = bytecodePatch(
         "you drag; keep holding to delete whole words.",
     default = true,
 ) {
-    compatibleWith(
-        Compatibility(
-            name = "Gboard",
-            packageName = "com.google.android.inputmethod.latin",
-            targets = listOf(AppTarget("18.6.3.1002251336-release-arm64-v8a")),
-        ),
-    )
+    // The pointer family the feature rides on was audited on 18.8.0: the owner moved from
+    // Lqck;->B to Lagyw;->D and the update-target method from F to H.
+    compatibleWith(gboardCompatibility18_8())
     dependsOn(
         gboardPatchesExtensionCarrierPatch,
         gboardSwipeLeftDeletePointerPatch,

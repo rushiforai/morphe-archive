@@ -16,6 +16,7 @@ jobs:
       UPSTREAM_CHANGED: ${{ steps.sync.outputs.UPSTREAM_CHANGED }}
       VERSION: ${{ steps.get_version.outputs.VERSION }}
       NAI64_VERSION: ${{ steps.nai64.outputs.NAI64_VERSION }}
+      NAI64_DOWNLOAD_URL: ${{ steps.nai64.outputs.NAI64_DOWNLOAD_URL }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,6 +26,7 @@ jobs:
       - name: Sync with upstream Hushfeed
         id: sync
         run: |
+          set -euo pipefail
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git remote add upstream https://github.com/SysAdminDoc/hushfeed.git || true
@@ -38,10 +40,10 @@ jobs:
             cp build/hushfeed_changelog.txt hushfeed_changelog.txt || true
             git merge upstream/main --no-edit
             git push origin main
-            echo "UPSTREAM_CHANGED=true" >> $GITHUB_OUTPUT
+            echo "UPSTREAM_CHANGED=true" >> "$GITHUB_OUTPUT"
           else
             echo "No new upstream commits. Skipping build."
-            echo "UPSTREAM_CHANGED=false" >> $GITHUB_OUTPUT
+            echo "UPSTREAM_CHANGED=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set up JDK 21
@@ -57,7 +59,7 @@ jobs:
 
       - name: Accept Android SDK licenses
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
-        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
       - name: Inject AMOLED Fix
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
@@ -75,8 +77,10 @@ jobs:
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         id: get_version
         run: |
+          set -euo pipefail
           VERSION=$(grep -E '^version\s*=' gradle.properties | head -n 1 | cut -d'=' -f2 | tr -d ' \r')
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          test -n "$VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build .mpp Bundle
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
@@ -96,14 +100,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fetch Nai64 version (GitLab)
+      - name: Fetch Nai64 metadata (GitLab)
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         id: nai64
+        env:
+          NAI64_META_URL: https://gitlab.com/api/v4/projects/kmru%2Fnai64extrapatches/repository/files/patches-bundle.json/raw?ref=main
         run: |
+          set -euo pipefail
           mkdir -p nai64-meta
-          curl -sL "https://gitlab.com/kmru/nai64extrapatches/-/raw/main/patches-bundle.json?ref_type=heads" -o nai64-meta/bundle.json
-          NAI64_VER=$(jq -r '.version // "unknown"' nai64-meta/bundle.json)
-          echo "NAI64_VERSION=$NAI64_VER" >> $GITHUB_OUTPUT
+          curl --fail --show-error --silent --location \
+            "$NAI64_META_URL" -o nai64-meta/bundle.json
+          NAI64_VER=$(jq -er '.version // "unknown"' nai64-meta/bundle.json)
+          NAI64_URL=$(jq -er '.download_url | strings | select(length > 0)' nai64-meta/bundle.json)
+          echo "NAI64_VERSION=$NAI64_VER" >> "$GITHUB_OUTPUT"
+          echo "NAI64_DOWNLOAD_URL=$NAI64_URL" >> "$GITHUB_OUTPUT"
           echo "Nai64 version: $NAI64_VER"
 
       - name: Upload changelog for publish job
@@ -135,23 +145,30 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
 
       - name: Install Python dependencies
         run: pip install requests pyyaml
 
       - name: Download Morphe CLI and APKEditor
         run: |
+          set -euo pipefail
           mkdir -p build
-          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url')
-          curl -L -o build/cli.jar "$CLI_URL"
-          APKEDITOR_URL=$(curl -s https://api.github.com/repos/REAndroid/APKEditor/releases/latest | jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url')
-          curl -L -o build/apkeditor.jar "$APKEDITOR_URL"
+          CLI_URL=$(curl --fail --show-error --silent --location \
+            https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest |
+            jq -er '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url')
+          curl --fail --show-error --location -o build/cli.jar "$CLI_URL"
+
+          APKEDITOR_URL=$(curl --fail --show-error --silent --location \
+            https://api.github.com/repos/REAndroid/APKEditor/releases/latest |
+            jq -er '.assets[] | select(.name | endswith(".jar")) | .browser_download_url')
+          curl --fail --show-error --location -o build/apkeditor.jar "$APKEDITOR_URL"
 
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
+          set -euo pipefail
           mkdir -p signing
           echo "$KEYSTORE_BASE64" | base64 -d > signing/keystore.bks
 
@@ -160,79 +177,96 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           PREFERRED_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          curl -sL -o build/bcprov.jar https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.78.1/bcprov-jdk18on-1.78.1.jar
-          keytool -list -v -keystore signing/keystore.bks -storetype BKS -storepass "$KEYSTORE_PASSWORD" -providerpath build/bcprov.jar -providerclass org.bouncycastle.jce.provider.BouncyCastleProvider > build/ks_list.txt 2>&1 || \
-          keytool -list -v -keystore signing/keystore.bks -storepass "$KEYSTORE_PASSWORD" > build/ks_list.txt 2>&1 || true
+          set -euo pipefail
+          curl --fail --show-error --silent --location \
+            -o build/bcprov.jar \
+            https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.78.1/bcprov-jdk18on-1.78.1.jar
+
+          keytool -list -v -keystore signing/keystore.bks -storetype BKS \
+            -storepass "$KEYSTORE_PASSWORD" -providerpath build/bcprov.jar \
+            -providerclass org.bouncycastle.jce.provider.BouncyCastleProvider \
+            > build/ks_list.txt 2>&1 || \
+          keytool -list -v -keystore signing/keystore.bks \
+            -storepass "$KEYSTORE_PASSWORD" > build/ks_list.txt 2>&1 || true
+
           DETECTED=$(awk '/^Alias name:/{a=$3} /Entry type: PrivateKeyEntry/{if(a!=""){print a; exit}}' build/ks_list.txt)
           if [ -n "$PREFERRED_ALIAS" ] && grep -q "^Alias name: $PREFERRED_ALIAS$" build/ks_list.txt; then
             FINAL_ALIAS="$PREFERRED_ALIAS"
           else
             FINAL_ALIAS="$DETECTED"
           fi
-          echo "SIGNING_ALIAS=$FINAL_ALIAS" >> $GITHUB_ENV
+          test -n "$FINAL_ALIAS"
+          echo "SIGNING_ALIAS=$FINAL_ALIAS" >> "$GITHUB_ENV"
 
       - name: Download base APK from PAB
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           mkdir -p build
           gh release download stock-tiktok-apk --repo Wake-Old-Hyphen/PAB \
             --pattern "com.zhiliaoapp.musically_${{ matrix.version }}-*arm64-v8a*.apk" --dir build/
           mv build/com.zhiliaoapp.musically_${{ matrix.version }}-*.apk build/base.apk
           FILE_SIZE=$(stat -c%s build/base.apk)
           if [ "$FILE_SIZE" -lt 100000000 ]; then
-            echo "Base APK too small ($FILE_SIZE bytes) — download failed."
+            echo "Base APK too small ($FILE_SIZE bytes) - download failed."
             exit 1
           fi
 
-      - name: Download Hushfeed bundle (injected)
+      - name: Download Hushfeed bundle
         run: |
+          set -euo pipefail
           mkdir -p bundles
-          curl -L -o bundles/hushfeed.mpp "https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-mpp.outputs.VERSION }}/patches-${{ needs.build-mpp.outputs.VERSION }}.mpp"
+          curl --fail --show-error --location \
+            -o bundles/hushfeed.mpp \
+            "https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-mpp.outputs.VERSION }}/patches-${{ needs.build-mpp.outputs.VERSION }}.mpp"
 
-      - name: Download Nai64 bundle (GitLab)
+      - name: Download Nai64 bundle
+        env:
+          NAI64_DOWNLOAD_URL: ${{ needs.build-mpp.outputs.NAI64_DOWNLOAD_URL }}
         run: |
-          mkdir -p bundles nai64-meta
-          curl -sL "https://gitlab.com/kmru/nai64extrapatches/-/raw/main/patches-bundle.json?ref_type=heads" -o nai64-meta/bundle.json
-          NAI64_URL=$(jq -r '.download_url' nai64-meta/bundle.json)
-          if [ -z "$NAI64_URL" ] || [ "$NAI64_URL" == "null" ]; then
-            echo "Could not find Nai64 download URL"
-            exit 1
-          fi
-          curl -L -o bundles/nai64.mpp "$NAI64_URL"
-          echo "Nai64 bundle downloaded: $(du -h bundles/nai64.mpp | cut -f1)"
-
-      - name: Download kveld9 bundle and hosts blocklist
-        run: |
+          set -euo pipefail
           mkdir -p bundles
-          KVELD9_URL=$(curl -sL "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json" | jq -r '.download_url')
-          if [ -z "$KVELD9_URL" ] || [ "$KVELD9_URL" == "null" ]; then
-            echo "Could not find kveld9 download URL"
-            exit 1
-          fi
-          curl -L -o bundles/kveld9.mpp "$KVELD9_URL"
-          curl -sL -o build/hosts-blocklist.txt "https://hagezi-mirror.dnsbunker.org/hosts/native.tiktok.extended.txt"
-          if [ ! -s build/hosts-blocklist.txt ]; then
-            echo "Hosts blocklist download failed or is empty"
-            exit 1
-          fi
+          curl --fail --show-error --silent --location \
+            "$NAI64_DOWNLOAD_URL" -o bundles/nai64.mpp
+          test -s bundles/nai64.mpp
+
+      - name: Download kveld9 bundle and hosts blocklist (mirror)
+        run: |
+          set -euo pipefail
+          mkdir -p bundles build
+          KVELD9_URL=$(curl --fail --show-error --silent --location \
+            "https://git.kvkdns.org/kveld9/kveld-morphe-patches/raw/branch/main/patches-bundle.json" |
+            jq -er '.download_url')
+          curl --fail --show-error --location -o bundles/kveld9.mpp "$KVELD9_URL"
+
+          curl --fail --show-error --silent --location \
+            -o build/hosts-blocklist.txt \
+            https://hagezi-mirror.dnsbunker.org/hosts/native.tiktok.extended.txt
+          test -s build/hosts-blocklist.txt
           echo "kveld9 bundle ready; hosts blocklist: $(wc -l < build/hosts-blocklist.txt) rules"
 
       - name: Generate options
-        run: java -jar build/cli.jar options-create -p bundles/hushfeed.mpp -p bundles/nai64.mpp -p bundles/kveld9.mpp -o build/options.json
+        run: |
+          java -jar build/cli.jar options-create \
+            -p bundles/hushfeed.mpp -p bundles/nai64.mpp -p bundles/kveld9.mpp \
+            -o build/options.json
 
       - name: Configure options
         run: python3 configure_options.py
 
       - name: Patch TikTok
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           java -jar build/cli.jar patch \
             -p bundles/hushfeed.mpp -p bundles/nai64.mpp -p bundles/kveld9.mpp \
             --options-file build/options.json --force \
             --keystore signing/keystore.bks \
-            --keystore-password "${{ secrets.KEYSTORE_PASSWORD }}" \
+            --keystore-password "$KEYSTORE_PASSWORD" \
             --keystore-entry-alias "$SIGNING_ALIAS" \
-            --keystore-entry-password "${{ secrets.KEY_PASSWORD }}" \
+            --keystore-entry-password "$KEY_PASSWORD" \
             --striplibs arm64-v8a \
             -o build/patched.apk build/base.apk
 
@@ -243,14 +277,17 @@ jobs:
           java -jar build/apkeditor.jar b -i build/decoded -o build/stripped.apk -f
 
       - name: Re-sign APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n1)
-          $BUILD_TOOLS/zipalign -p 4 build/stripped.apk build/aligned.apk
-          $BUILD_TOOLS/apksigner sign \
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)
+          "$BUILD_TOOLS/zipalign" -p 4 build/stripped.apk build/aligned.apk
+          "$BUILD_TOOLS/apksigner" sign \
             --ks signing/keystore.bks \
-            --ks-pass "pass:${{ secrets.KEYSTORE_PASSWORD }}" \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" \
             --ks-key-alias "$SIGNING_ALIAS" \
-            --key-pass "pass:${{ secrets.KEY_PASSWORD }}" \
+            --key-pass "pass:$KEY_PASSWORD" \
             --out "build/TikTok-${{ matrix.version }}-arm64-v${{ needs.build-mpp.outputs.VERSION }}-v${{ needs.build-mpp.outputs.NAI64_VERSION }}.apk" \
             build/aligned.apk
 
@@ -296,8 +333,8 @@ jobs:
 
       - name: Verify at least one APK exists
         run: |
-          if ! ls build/TikTok-*.apk 1>/dev/null 2>&1; then
-            echo "No APK artifacts found — every matrix leg failed."
+          if ! ls build/TikTok-*.apk >/dev/null 2>&1; then
+            echo "No APK artifacts found - every matrix leg failed."
             exit 1
           fi
           ls -lah build/TikTok-*.apk
@@ -305,7 +342,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
 
       - name: Install Python dependencies
         run: pip install pyyaml
@@ -313,22 +350,33 @@ jobs:
       - name: Download bundles and CLI for options regeneration
         env:
           GH_TOKEN: ${{ github.token }}
+          NAI64_DOWNLOAD_URL: ${{ needs.build-mpp.outputs.NAI64_DOWNLOAD_URL }}
         run: |
-          mkdir -p build bundles nai64-meta
-          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url')
-          curl -L -o build/cli.jar "$CLI_URL"
-          curl -L -o bundles/hushfeed.mpp "https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-mpp.outputs.VERSION }}/patches-${{ needs.build-mpp.outputs.VERSION }}.mpp"
-          
-          curl -sL "https://gitlab.com/kmru/nai64extrapatches/-/raw/main/patches-bundle.json?ref_type=heads" -o nai64-meta/bundle.json
-          NAI64_URL=$(jq -r '.download_url' nai64-meta/bundle.json)
-          curl -L -o bundles/nai64.mpp "$NAI64_URL"
-          
-          KVELD9_URL=$(curl -sL "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json" | jq -r '.download_url')
-          curl -L -o bundles/kveld9.mpp "$KVELD9_URL"
+          set -euo pipefail
+          mkdir -p build bundles
+          CLI_URL=$(curl --fail --show-error --silent --location \
+            https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest |
+            jq -er '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url')
+          curl --fail --show-error --location -o build/cli.jar "$CLI_URL"
+
+          curl --fail --show-error --location \
+            -o bundles/hushfeed.mpp \
+            "https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-mpp.outputs.VERSION }}/patches-${{ needs.build-mpp.outputs.VERSION }}.mpp"
+
+          curl --fail --show-error --silent --location \
+            "$NAI64_DOWNLOAD_URL" -o bundles/nai64.mpp
+          test -s bundles/nai64.mpp
+
+          KVELD9_URL=$(curl --fail --show-error --silent --location \
+            "https://git.kvkdns.org/kveld9/kveld-morphe-patches/raw/branch/main/patches-bundle.json" |
+            jq -er '.download_url')
+          curl --fail --show-error --location -o bundles/kveld9.mpp "$KVELD9_URL"
 
       - name: Regenerate options for notes
         run: |
-          java -jar build/cli.jar options-create -p bundles/hushfeed.mpp -p bundles/nai64.mpp -p bundles/kveld9.mpp -o build/options.json
+          java -jar build/cli.jar options-create \
+            -p bundles/hushfeed.mpp -p bundles/nai64.mpp -p bundles/kveld9.mpp \
+            -o build/options.json
           python3 configure_options.py
 
       - name: Generate release notes
@@ -341,18 +389,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           VERSIONS_STR=$(python3 -c "import glob; print(', '.join(sorted(f.replace('build/permissions-','').replace('.json','') for f in glob.glob('build/permissions-*.json'))))")
           TAG="privacy-tiktok-multi-v${{ needs.build-mpp.outputs.VERSION }}-$(date +%Y%m%d-%H%M%S)"
-          
-          gh release create "$TAG" --repo ${{ github.repository }} \
+
+          gh release create "$TAG" --repo "${{ github.repository }}" \
             --title "TikTok Privacy Build ($VERSIONS_STR)" \
             --notes-file build/release_notes.md \
             --prerelease
-          
+
           for apk in build/TikTok-*.apk; do
             ok=0
             for i in 1 2 3 4 5; do
-              if gh release upload "$TAG" "$apk" --clobber --repo ${{ github.repository }}; then
+              if gh release upload "$TAG" "$apk" --clobber --repo "${{ github.repository }}"; then
                 echo "Uploaded $apk"
                 ok=1
                 break

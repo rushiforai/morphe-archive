@@ -53,7 +53,7 @@ final class AimogeAdapter {
                 if (uuid == null) return BridgeServer.BridgeResponse.text(404, "Unknown thread");
                 return BridgeServer.BridgeResponse.html(thread(id, uuid));
             }
-            boolean thumb = path.matches("^/aimoge/thumb/[0-9]{13}s\\.jpg$");
+            boolean thumb = path.matches("^/aimoge/(thumb|cat)/[0-9]{13}s\\.jpg$");
             boolean original = path.matches("^/aimoge/src/[0-9]{13}\\.jpg$");
             if (thumb || original) {
                 String file = path.substring(path.lastIndexOf('/') + 1);
@@ -120,6 +120,68 @@ final class AimogeAdapter {
         return html.toString().getBytes(SJIS);
     }
 
+    synchronized void invalidateThread(String uuid) {
+        cache.remove(API + "/thread/" + uuid + "/public");
+    }
+
+    String stockThreadUuid(String id) { return ids.threadUuid(id); }
+
+    synchronized String confirmedNewThread(JSONObject accepted) throws Exception {
+        String thread=java.util.UUID.fromString(accepted.getString("threadId")).toString();
+        if(accepted.getInt("seq")!=0||!"public".equals(accepted.getString("status")))return null;
+        String post=java.util.UUID.fromString(accepted.getString("postId")).toString();
+        JSONArray posts=new JSONObject(new String(fetch(API+"/thread/"+thread+"/public",0,true),StandardCharsets.UTF_8)).getJSONArray("posts");
+        for(int i=0;i<posts.length();i++){
+            JSONObject p=posts.getJSONObject(i);
+            if(post.equals(p.optString("id"))&&thread.equals(p.optString("threadId"))&&p.optInt("seq",-1)==0){
+                cache.remove(API+"/catalog/"+BOARD+"?sort=bump&limit=20&page=1");
+                return ids.threadId(thread);
+            }
+        }
+        return null;
+    }
+
+    /** Only an actual returned UUID/seq and official public number can acknowledge a stock post. */
+    synchronized String confirmedNumber(String thread, JSONObject accepted) throws Exception {
+        String post = java.util.UUID.fromString(accepted.getString("postId")).toString();
+        if (!thread.equals(accepted.getString("threadId")) || !"public".equals(accepted.getString("status")))
+            return null;
+        int seq = accepted.getInt("seq");
+        if (seq <= 0) return null;
+        String route = API + "/thread/" + thread + "/public";
+        cache.remove(route);
+        JSONArray posts = new JSONObject(new String(fetch(route, 0, true), StandardCharsets.UTF_8)).getJSONArray("posts");
+        for (int i=0;i<posts.length();i++) {
+            JSONObject p=posts.getJSONObject(i);
+            if (!post.equals(p.optString("id")) || seq!=p.optInt("seq",-1)
+                    || !thread.equals(p.optString("threadId"))) continue;
+            Object value=p.opt("postSequenceNo");
+            if (!(value instanceof Number)) return null;
+            String number=value.toString();
+            return number.matches("[1-9][0-9]{0,17}") ? number : null;
+        }
+        return null;
+    }
+
+    JSONObject replyTargets(String uuid) throws Exception {
+        java.util.UUID.fromString(uuid);
+        ensureClientPolicy();
+        JSONArray posts = new JSONObject(new String(fetch(API + "/thread/" + uuid + "/public",
+                30000L, true), StandardCharsets.UTF_8)).getJSONArray("posts");
+        JSONArray targets = new JSONArray();
+        String title = "";
+        for (int i = 0; i < posts.length(); i++) {
+            JSONObject post = posts.getJSONObject(i);
+            String excerpt = PostPresentation.excerpt(post.optString("body", ""));
+            int seq = post.optInt("seq", i);
+            if (seq == 0) title = excerpt;
+            long number = post.optLong("postSequenceNo", 0);
+            if (number > 0) targets.put(new JSONObject().put("number", Long.toString(number))
+                    .put("seq", seq).put("excerpt", excerpt));
+        }
+        return new JSONObject().put("title", title).put("targets", targets);
+    }
+
     private byte[] thread(String id, String uuid) throws Exception {
         ensureClientPolicy();
         JSONObject result = new JSONObject(new String(fetch(API + "/thread/" + uuid + "/public",
@@ -146,7 +208,7 @@ final class AimogeAdapter {
             html.append("<span class='csb'>無念</span>Name<span class='cnm'>としあき</span>")
                     .append("<span class='cnw'>").append(escape(post.optString("createdAt", "")))
                     .append("</span><span class='cno'>No.").append(postId).append("</span>")
-                    .append("<blockquote>").append(escape(post.optString("body", "")))
+                    .append("<blockquote>").append(FutabaQuoteMarkup.render(escape(post.optString("body", ""))))
                     .append("</blockquote>");
             if (i > 0) html.append("</td></tr></table>");
         }

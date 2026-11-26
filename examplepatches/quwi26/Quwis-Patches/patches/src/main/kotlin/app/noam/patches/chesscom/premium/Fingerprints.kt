@@ -32,12 +32,16 @@ internal object ToolbarPremiumIconFingerprint : Fingerprint(
     strings = listOf("menuItemPremiumIconR", "menuItemPremiumIconL"),
 )
 
-/** toString() of the redesigned Home's toolbar state for a signed-in player. */
+/**
+ * toString() of the redesigned Home's toolbar state for a signed-in player. Only the first label
+ * is matched: 4.10.29 renamed the diamond field to shouldShowPaywallIcon, and the patch reads the
+ * constructor shape instead.
+ */
 internal object HomeToolbarStateToStringFingerprint : Fingerprint(
     name = "toString",
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
-    strings = listOf("LoggedIn(userAvatarUrl=", ", shouldShowDiamond="),
+    strings = listOf("LoggedIn(userAvatarUrl="),
 )
 
 /**

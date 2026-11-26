@@ -21,6 +21,7 @@ public final class GlassNavPatch {
     private static volatile float cachedDensity = -1f;
     private static volatile Boolean cachedIsDark;
     private static volatile int railTabCount;
+    static volatile boolean railInUse;
     static volatile long lastPageColor;
 
     private static final Function1<Object, Object> BAR_DRAW =
@@ -121,6 +122,7 @@ public final class GlassNavPatch {
 
     public static void railTabs(Object tabs) {
         try {
+            railInUse = true;
             if (tabs instanceof List) {
                 railTabCount = ((List<?>) tabs).size();
             } else {
@@ -174,19 +176,47 @@ public final class GlassNavPatch {
         }
     }
 
+    public static boolean showLabel(boolean original) {
+        try {
+            return original
+                    && !(BinocularsMods.isEnabled("glass_navigation")
+                            && !BinocularsMods.isEnabled("glass_navigation_labels"));
+        } catch (Throwable ignored) {
+            return original;
+        }
+    }
+
+    public static Object navItemModifier(boolean selected, Object modifier) {
+        try {
+            return GlassPill.navItemModifier(selected, modifier);
+        } catch (Throwable ignored) {
+            return modifier;
+        }
+    }
+
     public static Object barModifier(Object modifier) {
         try {
             if (!BinocularsMods.isEnabled("glass_navigation")) {
                 return modifier;
             }
-            int width = BinocularsMods.getInt("glass_navigation_width");
-            if (width == 100) {
-                return modifier;
+            boolean wasRail = railInUse;
+            railInUse = false;
+            if (wasRail) {
+                GlassSearch.onConfigurationChanged();
             }
+            int width = BinocularsMods.getInt("glass_navigation_width");
             float density = getDensity();
             float screenWidthDp = Resources.getSystem().getDisplayMetrics().widthPixels / density;
-            float pad = screenWidthDp * (100 - width) / 200f;
-            return padding(modifier, pad, 0f, pad, 0f, 0);
+            float pad = (width == 100 ? 0f : screenWidthDp * (100 - width) / 200f)
+                    + capsuleInsetDp(width);
+            float endPad = pad;
+            if (GlassSearch.isSearchButtonActive()) {
+                endPad += GlassSearch.buttonDiameterDp() + GlassSearch.BUTTON_GAP_DP;
+            }
+            if (pad <= 0f && endPad <= 0f) {
+                return modifier;
+            }
+            return padding(modifier, pad, 0f, endPad, 0f, 0);
         } catch (Throwable ignored) {
             return modifier;
         }
@@ -238,11 +268,14 @@ public final class GlassNavPatch {
         }
     }
 
-    private static long getCapsuleColor() {
+    static long getCapsuleColor() {
         try {
             boolean effectiveDark = glassIsDark();
             int rgb = effectiveDark ? 0x1C1C1E : 0xF2F2F7;
             int opacity = BinocularsMods.getInt("glass_navigation_opacity_percent");
+            if (GlassStyle.isSolid()) {
+                opacity = Math.max(opacity, 85);
+            }
             float factor = GlassBlur.blurActive() ? 0.6f : 1.0f;
             int alpha = Math.round(255f * opacity / 100f * factor);
             int argb = (alpha << 24) | rgb;
@@ -267,23 +300,41 @@ public final class GlassNavPatch {
         return cachedDensity;
     }
 
-    private static long packFloats(float x, float y) {
+    static long packFloats(float x, float y) {
         return ((long) Float.floatToRawIntBits(x) << 32) | (Float.floatToRawIntBits(y) & 0xFFFFFFFFL);
     }
 
+    private static float capsuleInsetDp(int widthPercent) {
+        return 20f * widthPercent / 100f;
+    }
+
+    static float capsuleSideGapPx(float totalWidthPx) {
+        float density = getDensity();
+        int widthPercent = BinocularsMods.getInt("glass_navigation_width");
+        float pad = totalWidthPx * (100 - widthPercent) / 200f;
+        float inset = capsuleInsetDp(widthPercent) * density;
+        return pad + inset;
+    }
+
+    static float capsuleHeightPx() {
+        float density = getDensity();
+        int heightPercent = BinocularsMods.getInt("glass_navigation_height");
+        return (BAR_ROW_HEIGHT_DP + 10f) * density * heightPercent / 100f;
+    }
+
     private static void drawBarCapsule(Object scope) {
+        railInUse = false;
         long size = drawScopeSize(scope);
         float width = Float.intBitsToFloat((int) (size >>> 32));
 
         float density = getDensity();
-        int widthPercent = BinocularsMods.getInt("glass_navigation_width");
-        float pad = width * (100 - widthPercent) / 200f;
-        float inset = 20f * density * widthPercent / 100f;
-        float left = pad + inset;
-        float capsuleWidth = width - (2f * pad) - (2f * inset);
+        float left = capsuleSideGapPx(width);
+        float capsuleWidth = width - (2f * left);
+        if (GlassSearch.isSearchButtonActive()) {
+            capsuleWidth -= (GlassSearch.buttonDiameterDp() + GlassSearch.BUTTON_GAP_DP) * density;
+        }
 
-        int heightPercent = BinocularsMods.getInt("glass_navigation_height");
-        float capsuleHeight = (BAR_ROW_HEIGHT_DP + 10f) * density * heightPercent / 100f;
+        float capsuleHeight = capsuleHeightPx();
         float top = (BAR_ROW_HEIGHT_DP * density - capsuleHeight) / 2f;
 
         if (capsuleWidth <= 0f || capsuleHeight <= 0f) {
@@ -298,12 +349,18 @@ public final class GlassNavPatch {
         long cornerRadius = packFloats(radius, radius);
         long color = getCapsuleColor();
 
+        GlassStyle.drawShadow(scope, left, top, capsuleWidth, capsuleHeight, radius);
         GlassBlur.drawBar(scope, left, top, capsuleWidth, capsuleHeight, radius);
         drawRoundRect(scope, color, topLeft, capsuleSize, cornerRadius, null, 1.0f, 0xF0);
-        GlassBlur.drawEdge(scope, left, top, capsuleWidth, capsuleHeight, radius);
+        if (GlassStyle.isClear()) {
+            GlassBlur.drawEdge(scope, left, top, capsuleWidth, capsuleHeight, radius);
+        } else {
+            GlassStyle.drawOutline(scope, left, top, capsuleWidth, capsuleHeight, radius);
+        }
     }
 
     private static void drawRailCapsule(Object scope) {
+        railInUse = true;
         long size = drawScopeSize(scope);
         float width = Float.intBitsToFloat((int) (size >>> 32));
         float height = Float.intBitsToFloat((int) size);
@@ -339,11 +396,16 @@ public final class GlassNavPatch {
         long cornerRadius = packFloats(radius, radius);
         long color = getCapsuleColor();
 
+        GlassStyle.drawShadow(scope, left, top, capsuleWidth, capsuleHeight, radius);
         drawRoundRect(scope, color, topLeft, capsuleSize, cornerRadius, null, 1.0f, 0xF0);
-        GlassBlur.drawEdge(scope, left, top, capsuleWidth, capsuleHeight, radius);
+        if (GlassStyle.isClear()) {
+            GlassBlur.drawEdge(scope, left, top, capsuleWidth, capsuleHeight, radius);
+        } else {
+            GlassStyle.drawOutline(scope, left, top, capsuleWidth, capsuleHeight, radius);
+        }
     }
 
-    private static Object padding(
+    static Object padding(
             Object modifier, float start, float top, float end, float bottom, int mask) {
         return modifier;
     }

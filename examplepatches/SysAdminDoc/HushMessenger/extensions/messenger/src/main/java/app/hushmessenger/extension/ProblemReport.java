@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.function.ToLongFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,7 +21,9 @@ import java.util.regex.Pattern;
  * <p>It carries only what a report needs: version names, the Messenger build it was patched from (which Spoof package
  * version hides from Android's version code), the phone's maker and model, Android's version, whether
  * changes are paused or in safe mode, whether notifications can pop up (switches, permissions and channel ids with their
- * importance), the English titles of the controls that are on, and for a crash in the last three
+ * importance), the English titles of the controls that are on with the ones Messenger hasn't used yet marked, the
+ * controls whose hook stopped with an error (the exception's class and where it hit HushMessenger's code, never its
+ * message), and for a crash in the last three
  * days the exception's class names and top code frames (never its message). No account, serial number, package name,
  * file path or log line goes in. The text is for the maintainer, so it stays English whatever the
  * phone's language. The whole address is held to MAX_LENGTH characters: the list of controls is shortened first,
@@ -36,6 +41,12 @@ final class ProblemReport {
     static final int MAX_NOTIFICATIONS = 400;
     /** Channels named below high, at most. The rest are counted. */
     static final int MAX_LOWERED = 12;
+    /** Failed controls named one by one, at most. The rest are counted. */
+    static final int MAX_ERRORS = 5;
+    /** One failed control's title and failure, at most. */
+    static final int MAX_ERROR = 2 * MAX_FACT;
+    /** After the title of a control that's on and that Messenger hasn't used yet, as its settings row says. */
+    static final String NOT_USED = " (not used yet)";
     /** Every Messenger channel id starts with this, so the report leaves it off. */
     static final String CHANNEL_PREFIX = "messenger_orca_";
     private static final Pattern CHANNEL_ID = Pattern.compile("[A-Za-z0-9_.-]{1,48}");
@@ -49,7 +60,7 @@ final class ProblemReport {
     static final Pattern ORIGINAL =Pattern.compile("([0-9][0-9A-Za-z.]{0,31})\\|([1-9][0-9]{0,9})\\|([0-9A-Za-z]{1,16})");
 
     /**
-     * "587.0.0.54.96 (347415354, base mapping)": the build the patch started from, which Android's own version code
+     * "588.1.0.66.98 (347617503, base mapping)": the build the patch started from, which Android's own version code
      * stops saying once Spoof package version is in. "unknown" for a build patched before the patch wrote it down or a
      * value that doesn't parse, never a guess from the installed version.
      */
@@ -85,6 +96,7 @@ final class ProblemReport {
         final String galleryOutcome;
         final String lastCrash;
         final String notifications;
+        final List<String> errors;
 
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
                 String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn) {
@@ -109,13 +121,27 @@ final class ProblemReport {
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
                 String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn,
                 String galleryOutcome, String lastCrash, String notifications) {
+            this(hushVersion, messengerVersion, messengerCode, patchedFrom, manufacturer, model, androidRelease, sdk,
+                paused, safeMode, controlsOn, galleryOutcome, lastCrash, notifications, Collections.<String>emptyList());
+        }
+
+        Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
+                String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn,
+                String galleryOutcome, String lastCrash, String notifications, List<String> errors) {
             this(hushVersion, messengerVersion, messengerCode, patchedFrom, bundle(BundleKey.SIGNED), manufacturer, model,
-                androidRelease, sdk, paused, safeMode, controlsOn, galleryOutcome, lastCrash, notifications);
+                androidRelease, sdk, paused, safeMode, controlsOn, galleryOutcome, lastCrash, notifications, errors);
         }
 
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String bundle,
                 String manufacturer, String model, String androidRelease, int sdk, boolean paused, boolean safeMode,
                 List<String> controlsOn, String galleryOutcome, String lastCrash, String notifications) {
+            this(hushVersion, messengerVersion, messengerCode, patchedFrom, bundle, manufacturer, model, androidRelease, sdk,
+                paused, safeMode, controlsOn, galleryOutcome, lastCrash, notifications, Collections.<String>emptyList());
+        }
+
+        Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String bundle,
+                String manufacturer, String model, String androidRelease, int sdk, boolean paused, boolean safeMode,
+                List<String> controlsOn, String galleryOutcome, String lastCrash, String notifications, List<String> errors) {
             this.hushVersion = clean(hushVersion);
             this.messengerVersion = clean(messengerVersion);
             this.messengerCode = messengerCode;
@@ -135,7 +161,60 @@ final class ProblemReport {
             // Class names and code frames only, as LastCrash saved them. Cleaned again so nothing else can ride along.
             this.lastCrash = LastCrash.clean(lastCrash);
             this.notifications = clean(notifications, MAX_NOTIFICATIONS);
+            List<String> failed = new ArrayList<>();
+            if (errors != null) for (String error : errors) if (!clean(error, MAX_ERROR).isEmpty()) failed.add(clean(error, MAX_ERROR));
+            this.errors = Collections.unmodifiableList(failed);
         }
+    }
+
+    /**
+     * The Controls on titles, in [controls] order ({key, English title, ...}): each one whose switch is [on], marked
+     * NOT_USED while Messenger hasn't used it and it hasn't failed either, the way its settings row reads.
+     */
+    static List<String> titlesOn(List<String[]> controls, Predicate<String> on, ToLongFunction<String> used,
+            Map<String, String> failures) {
+        List<String> titles = new ArrayList<>();
+        for (String[] spec : controls) {
+            if (!on.test(spec[0])) continue;
+            boolean waiting = used.applyAsLong(spec[0]) == 0 && !failedSince(failures.get(spec[0]), 0);
+            titles.add(waiting ? spec[1] + NOT_USED : spec[1]);
+        }
+        return titles;
+    }
+
+    /**
+     * "Chat bar buttons in the + menu (java.lang.IllegalStateException at ChatBarPlus.look:141)" for each of [controls]
+     * whose last failure, as Settings records one ("<exception class> at <where>|<time>"), came at or after its last
+     * use, switch on or off: the settings row shows the same error then.
+     */
+    static List<String> errors(List<String[]> controls, ToLongFunction<String> used, Map<String, String> failures) {
+        List<String> lines = new ArrayList<>();
+        for (String[] spec : controls) {
+            String record = failures.get(spec[0]);
+            if (failedSince(record, used.applyAsLong(spec[0]))) lines.add(spec[1] + " (" + record.substring(0, record.lastIndexOf('|')) + ")");
+        }
+        return lines;
+    }
+
+    private static boolean failedSince(String record, long used) {
+        if (record == null) return false;
+        int split = record.lastIndexOf('|');
+        if (split <= 0) return false;
+        try {
+            long at = Long.parseLong(record.substring(split + 1));
+            return at > 0 && at >= used;
+        } catch (NumberFormatException malformed) {
+            return false;
+        }
+    }
+
+    /** The errors line with the first MAX_ERRORS failed controls, and how many more there are. */
+    static String errorsLine(List<String> errors) {
+        StringBuilder line = new StringBuilder("Errors: ");
+        int kept = Math.min(errors.size(), MAX_ERRORS);
+        for (int i = 0; i < kept; i++) line.append(i > 0 ? ", " : "").append(errors.get(i));
+        if (errors.size() > kept) line.append(", and ").append(errors.size() - kept).append(" more");
+        return line.toString();
     }
 
     /**
@@ -229,6 +308,7 @@ final class ProblemReport {
         if (facts.paused) body.append("Pause all changes: on\n");
         if (!"NOT_USED".equals(facts.galleryOutcome)) body.append("Gallery result: ").append(facts.galleryOutcome).append('\n');
         if (!facts.lastCrash.isEmpty()) body.append("Last crash: ").append(facts.lastCrash).append('\n');
+        if (!facts.errors.isEmpty()) body.append(errorsLine(facts.errors)).append('\n');
         return body.append(controlsLine(facts.controlsOn, shown)).append("\n\n")
             .append(WHAT_HAPPENED).append("\n\n\n").append(WHAT_EXPECTED).append("\n\n").toString();
     }
@@ -240,9 +320,9 @@ final class ProblemReport {
             if (url.length() <= MAX_LENGTH) return url;
         }
         // Not reached in practice: five free-text facts of 120 characters, nine each once encoded, come to 5,400, and the
-        // patched-from and bundle lines are short ASCII lines patchedFrom and bundle built. A crash line adds at most 1,200 more and the
-        // notifications line, plain ASCII, about 600 encoded, and only when every free-text fact is at its longest does
-        // this run. Kept so odd facts can't push the questions out.
+        // patched-from and bundle lines are short ASCII lines patchedFrom and bundle built. A crash line adds at most 1,200 more, the
+        // notifications line, plain ASCII, about 600 encoded, and the errors line five entries of 240, and only when
+        // those are at their longest does this run. Kept so odd facts can't push the questions out.
         return url(WHAT_HAPPENED + "\n\n\n" + WHAT_EXPECTED + "\n\n");
     }
 

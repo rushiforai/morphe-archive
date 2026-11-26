@@ -449,6 +449,9 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_PROFILE_NOTES,
                         L10n.t("Hides the note bubble that sits on profile pictures. Applies the next time you open a "
                                 + "profile.")));
+                feed.addPreference(toggle(context, Settings.HIDE_PROFILE_GIFTS,
+                        L10n.t("Takes the Send a gift button off other people's profiles. Applies the next time you "
+                                + "open a profile.")));
             }
             // Read each time Facebook lays a profile out, so a change shows on the next profile opened.
             if (build.contains(PatchFamily.LOCAL_PROFILE_COUNTS)) {
@@ -1109,6 +1112,8 @@ final class FeedPages {
                     L10n.t("The comment box loses its GIF and sticker buttons. Typing, photos and posting work as before.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_EMOJI_ROW,
                     L10n.t("The row of emoji over the comment box goes away. You can still type emoji from your keyboard.")));
+            comments.addPreference(toggle(context, Settings.KEEP_COMMENT_KEYBOARD_CLOSED,
+                    L10n.t("Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_BOX_LINE,
                     L10n.t("The thin line along the top of the comment box goes away.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_BOX,

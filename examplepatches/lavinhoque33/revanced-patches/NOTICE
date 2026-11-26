@@ -26,8 +26,16 @@ The optional Reseam icon pack includes artwork from Reseam v1.1.0:
 https://github.com/Reseam/patches/tree/b51a7df87feecf660f866ab3dddddceb057e4bce/shared/youtube-common/patch/src/main/resources/reseam-branding
 Copyright (C) 2026 Reseam contributors
 Licensed under the GNU Affero General Public License, version 3 or later
-(see LICENSE-Reseam). The adaptive icon layers were converted to this
-project's icon format. These builds are not the original Reseam app.
+(see LICENSE-Reseam). The shared adaptive and legacy launcher artwork,
+notification glyph, settings glyph, and YouTube header templates come
+from the same v1.1.0 source. The supplied archive in
+https://github.com/lavinhoque33/revanced-patches/issues/77#issuecomment-7176375583
+matches that artwork. The settings and header source directories are:
+https://github.com/Reseam/patches/tree/b51a7df87feecf660f866ab3dddddceb057e4bce/apps/youtube/patch/src/main/resources
+RVX adapts the resource names and pairs the Reseam mark with the installed
+app's wordmark. These builds are not the original Reseam app.
+These notices are kept here because the resource linker encodes comments
+before the root of drawable XML as out-of-root text in the compiled files.
 This license grants no rights under trademark law to use the name
 "Reseam" or its logos.
 

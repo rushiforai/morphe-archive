@@ -77,6 +77,7 @@ final class SiteCardMetadata {
                         !(type.contains("text/html")||type.contains("application/xhtml+xml"))))
                     throw new IOException("Not preview content");
                 if(bytes.length>(image?2*1024*1024:512*1024))throw new IOException("Preview too large");
+                AppTrafficUsage.recordFeatureBytes(Haiagaru.applicationContextForExtension(),"web_cards",bytes.length);
                 Content content=new Content(bytes,result.getURL(),type);content.tunnel=true;return content;
             }
             Request request=new Request.Builder().url(url).header("User-Agent","Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/131.0 Mobile Safari/537.36")
@@ -94,7 +95,7 @@ final class SiteCardMetadata {
                 if(image?!type.toLowerCase(Locale.ROOT).startsWith("image/"):
                         !(type.toLowerCase(Locale.ROOT).contains("text/html")||type.toLowerCase(Locale.ROOT).contains("application/xhtml+xml")))
                     throw new IOException("Not preview content");
-                int limit=image?2*1024*1024:512*1024;
+                int limit=(int)MobileMediaPolicy.fileLimit(image?2*1024*1024:512*1024);
                 ByteArrayOutputStream output=new ByteArrayOutputStream();
                 try(InputStream stream=response.body().byteStream()) {
                     byte[] buffer=new byte[8192];int n;
@@ -106,7 +107,8 @@ final class SiteCardMetadata {
                         output.write(buffer,0,n);
                     }
                 }
-                return new Content(output.toByteArray(),url,type);
+                byte[] bytes=output.toByteArray();AppTrafficUsage.recordFeatureBytes(Haiagaru.applicationContextForExtension(),"web_cards",bytes.length);
+                return new Content(bytes,url,type);
             }
         }
         throw new IOException("Too many redirects");

@@ -4,14 +4,14 @@ Patches for **Muslim Pro** (`com.bitsmedia.android.muslimpro`), version `17.11`,
 
 ## Patches
 
-Every patch is on by default except GmsCore support. Morphe Manager groups them by category.
+Every patch is on by default. Morphe Manager groups them by category.
 
 | Category | Patch | What it does |
 |---|---|---|
 | Ads | Hide ads | Removes banner, full-screen, app open and rewarded ads, the ad cards in the Today feed, the partner card on the prayer times screen, and the empty strip the banner leaves at the bottom of screens such as Al-Qur'an and Doa. |
 | Ads | Hide Alipay+ Rewards | Removes the Alipay+ Rewards card and the cube icon in the header. |
 | Feature | Disable Play license check | Stops the Google Play license check from blocking the patched app with a "Get this app from Play" screen. |
-| Feature | GmsCore support | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
+| Feature | GmsCore support | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account, and a toast says so when "Continue with Google" is tapped without it. |
 | Feature | Hide Guest Pass | Removes the gift icon in the header and the invite section and row in the profile. |
 | Premium | Premium unlock | Unlocks Premium on the device: no ads, no upgrade banners and the Premium-only features that do not need the server. |
 | Privacy | Disable analytics | Turns off Firebase Analytics, Crashlytics, Performance and Sessions, and stops the Facebook SDK from logging app events and collecting the advertising id. |

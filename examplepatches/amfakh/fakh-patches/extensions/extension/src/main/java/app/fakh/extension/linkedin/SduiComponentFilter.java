@@ -7,12 +7,15 @@ package app.fakh.extension.linkedin;
 
 
 import android.os.SystemClock;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
  * Hook for the server driven UI (SDUI) screens, which render through
@@ -36,8 +39,13 @@ public final class SduiComponentFilter {
     private static final String[] COUNT_FORMATS = {"{0,plural,", "{0,number,"};
     private static final String COMMENT_SHEET_PREFIX = "commentSheetNavigating_";
     private static final int MAX_HIDDEN_COMMENT_SHEETS = 500;
+    private static final int CLOSE_MENU_STEP = 26610;
+    private static final int CONDITIONAL_STEP = 26552;
     /** Comment sheet keys of hidden posts, to hide their highlighted comments, which 4.1.1267 renders apart. */
     private static final Set<String> hiddenCommentSheets = ConcurrentHashMap.newKeySet();
+
+    /** The patterns of each muted list, by the text it was typed as. */
+    private static final Map<String, List<Pattern>> mutedPatterns = new ConcurrentHashMap<>();
 
     private static final long COMMENT_MENU_WINDOW_MS = 10_000;
     /** Until when (uptimeMillis) unnamed components may be a comment menu's rows. */
@@ -46,8 +54,9 @@ public final class SduiComponentFilter {
     /**
      * Called with every SDUI component before it is transformed; returns it or an edited copy. Focus mode blanks the
      * counts of the like, comment and repost buttons, Expand posts opens the post text, Tap to hide in viewers edits
-     * the video viewer, Post menu items adds rows to a post's ⋯ menu, and the Settings screen gets the Fakh Patches
-     * row.
+     * the video viewer, Post menu items adds rows to a post's ⋯ menu, the header switches edit the author rows of
+     * posts and comments, Most recent comments first changes the order of comments, and the Settings screen gets the
+     * Fakh Patches row.
      */
     public static Object rewrite(Object component) {
         component = SduiSettingsEntry.inject(component);
@@ -55,7 +64,11 @@ public final class SduiComponentFilter {
         boolean expandPosts = Settings.expandPosts();
         boolean viewer = Settings.viewerTapToHide();
         boolean postMenu = Settings.postMenu();
-        if (!focusMode && !expandPosts && !viewer && !postMenu) return component;
+        boolean postHeader = Settings.hidePostFollow() || Settings.hideDegree() || Settings.exactPostTime();
+        boolean newestComments = Settings.newestComments();
+        if (!focusMode && !expandPosts && !viewer && !postMenu && !postHeader && !newestComments) {
+            return component;
+        }
         try {
             Object viewTracking = Proto.is(component, "hasViewTracking") ? Proto.call(component, "getViewTracking") : null;
             String viewName = Proto.string(viewTracking, "getViewName");
@@ -76,10 +89,14 @@ public final class SduiComponentFilter {
             }
             boolean counts = focusMode && COUNT_BUTTONS.contains(viewName);
             boolean commentary = expandPosts && viewName.equals("feed-commentary");
-            if (!counts && !commentary) return component;
+            boolean header = postHeader && PostHeader.VIEWS.contains(viewName);
+            boolean comments = newestComments && viewName.equals("comment-sort-toggle");
+            if (!counts && !commentary && !header && !comments) return component;
             byte[] bytes = payload(component);
             if (bytes == null) return component;
             byte[] edited = commentary ? expandCommentary(bytes) : bytes;
+            if (header) edited = PostHeader.edit(viewName, edited);
+            if (comments) edited = newestCommentsFirst(edited);
             if (counts) {
                 for (String format : COUNT_FORMATS) edited = ProtoEdit.replaceStringsStartingWith(edited, format, "\u200b");
             }
@@ -104,6 +121,66 @@ public final class SduiComponentFilter {
         List<ProtoEdit.Field> fields = ProtoEdit.parse(component);
         fields.add(ProtoEdit.message(25, new ProtoEdit.Field(1, 2, expand), ProtoEdit.message(13)));
         return ProtoEdit.write(fields);
+    }
+
+    /**
+     * Switches a comment sheet to the newest comments when it opens: the sort toggle gets the action of its own "Most
+     * recent" choice as a second trigger (field 25, with the action in field 1 and field 13 marking it as firing on
+     * appear). It fires again whenever the toggle scrolls back into view, so it is made to run once. Its first step
+     * (type 26610, no data) closes the menu the choice sits in, which is not open here.
+     */
+    private static byte[] newestCommentsFirst(byte[] toggle) {
+        byte[] choice = PostCommentary.component(toggle, "comment-sort-toggle-recent", 0);
+        byte[] action = choice == null ? null : ProtoEdit.nested(choice, 25, 1);
+        if (action == null) return toggle;
+        List<ProtoEdit.Field> steps = ProtoEdit.parse(action);
+        List<ProtoEdit.Field> fields = ProtoEdit.parse(toggle);
+        if (steps == null || fields == null) return toggle;
+        steps.removeIf(step -> {
+            List<ProtoEdit.Field> parts = step.number == 5 ? ProtoEdit.parse(step.data) : null;
+            return parts != null && parts.size() == 1 && parts.get(0).number == 1
+                    && ProtoEdit.varintValue(parts.get(0)) == CLOSE_MENU_STEP;
+        });
+        // Each load of a comment sheet sends a different toggle, so each load switches once.
+        if (!runOnce(steps, "-fakh" + Integer.toHexString(Arrays.hashCode(toggle)))) return toggle;
+        fields.add(ProtoEdit.message(25, new ProtoEdit.Field(1, 2, ProtoEdit.write(steps)), ProtoEdit.message(13)));
+        return ProtoEdit.write(fields);
+    }
+
+    /**
+     * Makes the "Most recent" action run only once. Its conditional step (type 26552, with the condition in 2/1 and its
+     * steps in 2/2) holds while the sort order state is not yet "most recent"; the condition is pointed at a state of
+     * our own, named by adding {@code suffix}, and a copy of the first step, which sets the sort order, sets that state
+     * too. The steps beside the conditional one, which relabel the toggle, move inside it. A choice made by hand
+     * afterwards then stays.
+     *
+     * @return whether the step was found and changed
+     */
+    private static boolean runOnce(List<ProtoEdit.Field> steps, String suffix) {
+        for (ProtoEdit.Field step : steps) {
+            List<ProtoEdit.Field> parts = step.number == 5 ? ProtoEdit.parse(step.data) : null;
+            if (parts == null || parts.size() != 2 || ProtoEdit.varintValue(parts.get(0)) != CONDITIONAL_STEP) continue;
+            List<ProtoEdit.Field> body = ProtoEdit.parse(parts.get(1).data);
+            List<ProtoEdit.Field> then = body == null || body.size() != 2 ? null : ProtoEdit.parse(body.get(1).data);
+            if (then == null || then.isEmpty()) return false;
+            for (String state : ProtoScanner.scan(body.get(0).data).strings) {
+                if (!state.contains("-commentSortOrder")) continue;
+                ProtoEdit.Field mark = then.get(0).copy();
+                mark.data = ProtoEdit.replaceString(mark.data, state, state + suffix);
+                then.add(mark);
+                int at = 0;
+                for (ProtoEdit.Field other : steps) {
+                    if (other != step && other.number == 5) then.add(at++, other);
+                }
+                body.get(0).data = ProtoEdit.replaceString(body.get(0).data, state, state + suffix);
+                body.get(1).data = ProtoEdit.write(then);
+                parts.get(1).data = ProtoEdit.write(body);
+                step.data = ProtoEdit.write(parts);
+                steps.removeIf(other -> other != step && other.number == 5);
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean shouldHide(Object component) {
@@ -234,7 +311,10 @@ public final class SduiComponentFilter {
         boolean recommendations = Settings.hideRecommendations();
         boolean videos = Settings.hideVideoPosts();
         boolean shortLinks = Settings.resolveShortLinks();
-        if (!ads && !suggested && !celebrations && !jobs && !reposts && !recommendations && !videos && !shortLinks) {
+        boolean muted = !Settings.muted(Settings.MUTED_WORDS).isEmpty()
+                || !Settings.muted(Settings.MUTED_AUTHORS).isEmpty();
+        if (!ads && !suggested && !celebrations && !jobs && !reposts && !recommendations && !videos && !shortLinks
+                && !muted) {
             return false;
         }
 
@@ -255,6 +335,8 @@ public final class SduiComponentFilter {
         if (Settings.hideAds() && ProtoScanner.containsAscii(payload, "urn:li:sponsoredContentV2:")) {
             return "sponsored feed update";
         }
+        if (isMuted(Settings.MUTED_WORDS, PostCommentary.texts(payload))) return "muted word";
+        if (isMuted(Settings.MUTED_AUTHORS, PostCommentary.authors(payload))) return "muted author";
         // Child components are embedded in the post payload, so their view names identify the post type.
         if (Settings.hideCelebrations() && ProtoScanner.containsAscii(payload, "feed-celebrations-update-detail")) {
             return "celebration post";
@@ -283,6 +365,30 @@ public final class SduiComponentFilter {
             return "suggested post";
         }
         return null;
+    }
+
+    /**
+     * Whether one of the texts has an entry of a muted list, as whole words in any case, so "java" does not hide posts
+     * about JavaScript. The list holds one entry per line or comma.
+     */
+    private static boolean isMuted(String key, List<String> texts) {
+        String list = Settings.muted(key);
+        if (list.isEmpty()) return false;
+        List<Pattern> patterns = mutedPatterns.computeIfAbsent(list, source -> {
+            List<Pattern> built = new ArrayList<>();
+            for (String entry : source.split("[\\n,]")) {
+                if (entry.trim().isEmpty()) continue;
+                built.add(Pattern.compile("(?<![\\p{L}\\p{N}])" + Pattern.quote(entry.trim()) + "(?![\\p{L}\\p{N}])",
+                        Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
+            }
+            return built;
+        });
+        for (String text : texts) {
+            for (Pattern pattern : patterns) {
+                if (pattern.matcher(text).find()) return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -25,7 +25,7 @@ import app.morphe.patcher.patch.patch
 private const val UK = "Lapp/kmaps/extension/kakao/UbxKakao;"
 
 private val V5 = setOf("5.17.8")
-private val V6 = setOf("6.32.0")
+private val V6 = setOf("6.32.0", "6.33.0")
 
 internal val KAKAO_SITES: List<Site> = listOf(
     // K1: 5.17.8 ValidCheckerVehicle compares against 100 ms twice (gps and fused branch)

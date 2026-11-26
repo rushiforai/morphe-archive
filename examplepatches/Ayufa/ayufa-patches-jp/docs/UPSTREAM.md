@@ -1,10 +1,9 @@
 # 本家への追従方法（ayufa-patches-jp）
 
-このリポジトリは、次の4つの本家プロジェクトのパッチを1つの `.mpp` バンドルにまとめた日本語化プロジェクトです。
+このリポジトリは、次の3つの本家プロジェクトのパッチを1つの `.mpp` バンドルにまとめた日本語化プロジェクトです。
 
 - X 側: [crimera/piko](https://github.com/crimera/piko) の `x-lite` ブランチ（NewX）。ビルダーの系譜は [crimera/piko-newx](https://github.com/crimera/piko-newx)。
 - Twitch 側: [ryykitty/twitch-patched](https://github.com/ryykitty/twitch-patched)（ベースは v1.5.0）。
-- LINE 側: [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches)（ベースは v3.10.0）。収録するのは LINE 向けパッチだけで、同じ本家の Facebook 向けパッチは収録しません。
 - KakaoTalk 側: [AmpleReVanced/revanced-patches](https://github.com/AmpleReVanced/revanced-patches)（ベースは v1.5.0、GPL-3.0）。収録するのは KakaoTalk 向けパッチだけで、同じ本家の他アプリ向けパッチは収録しません。
 
 いずれも「本家をクローンし、言語だけを日本語にする」方式です。翻訳済みソースのコピーをこのリポジトリに保持し、ビルドはそのコピーをそのままビルドするだけです（v1.2.0 で統一。経緯は後述）。本家には迷惑をかけないため、次のルールを絶対とします。
@@ -18,8 +17,8 @@
 
 ## 共通: 翻訳済みソースのコピーを保持
 
-- 本家のソースツリーをコピーし、表示文字列を日本語化した状態で保持します（X 側は `sources/piko/`、Twitch 側は `sources/twitch/`、LINE 側は `sources/line/`、KakaoTalk 側は `sources/kakao/`）。コピー元の本家コミットは各コピーの記録ファイル（X 側: `sources/piko/UPSTREAM_BASE.md`、Twitch 側: `sources/twitch/CHANGELOG.md` の先頭、LINE 側: `sources/line/UPSTREAM_BASE.md`、KakaoTalk 側: `sources/kakao/UPSTREAM_BASE.md`）に残します。
-- ビルド（`build_combined.py`）は、X 側のコピー（Piko ツリー）をビルドホストとして使い捨てディレクトリへコピーし、Twitch 側・LINE 側・KakaoTalk 側のコピーを注入して1つの `.mpp` をビルドします。ビルド時に本家をクローンすることはありません。また、パッチの追加・統合・改名などの「仕掛け」は一切しません。本家のパッチがそのまま、機能ごとに Morphe の一覧へ出ます。
+- 本家のソースツリーをコピーし、表示文字列を日本語化した状態で保持します（X 側は `sources/piko/`、Twitch 側は `sources/twitch/`、KakaoTalk 側は `sources/kakao/`）。コピー元の本家コミットは各コピーの記録ファイル（X 側: `sources/piko/UPSTREAM_BASE.md`、Twitch 側: `sources/twitch/CHANGELOG.md` の先頭、KakaoTalk 側: `sources/kakao/UPSTREAM_BASE.md`）に残します。
+- ビルド（`build_combined.py`）は、X 側のコピー（Piko ツリー）をビルドホストとして使い捨てディレクトリへコピーし、Twitch 側・KakaoTalk 側のコピーを注入して1つの `.mpp` をビルドします。ビルド時に本家をクローンすることはありません。また、パッチの追加・統合・改名などの「仕掛け」は一切しません。本家のパッチがそのまま、機能ごとに Morphe の一覧へ出ます。
 - 本家のバージョンタグはこのリポジトリには取り込みません。このリポジトリのバージョニングは独立です（後述）。
 
 ## X 側（Piko / NewX）: sources/piko/
@@ -52,18 +51,11 @@
 - このパッチのフックは、文字列 `default_home_page` を読んで既定のホームページ（フォロー／ライブ／クリップ）を返すメソッド（31.8.0 では難読化名 tnk.b）の戻り値です。起動時の遷移は常にこのメソッドからページを明示的に渡すため、v1.3.0 の方式（画面の引数が無い場合の既定値を差し替え）は実フローで発火せず、v1.3.1 で現行方式に改めました。本家の実験（default_home_page）が終了・変更されるとこのフックは合わなくなる可能性があります。その場合はパッチ側だけが適用失敗になるので、本家取り込みとは切り分けて報告してください。
 - 例外（常時有効の修正）: `sources/twitch/patches/src/main/resources/reactnative/ui-fixes.js`（v1.5.4 で追加、本人の指示による）は本家に無いこちら側の修正で、新規パッチや設定項目にはせず「UI settings」パッチの実行時に常時組み込まれます。内容は2件: (1) 配信プレビューのサムネイルが更新されない問題の修正（チャンネルごとのプレビューURLが不変で画像キャッシュが永久に残るため、`/previews-ttv/` の URL にだけ CDN の max-age=300 と同じ5分周期のキャッシュキーを付ける。適用箇所は3層: 共有ヘルパー `getStreamThumbnailUrl` の戻り値（ホームのフィードはこの戻り値を React Native 標準の Image で描画するため、v1.5.4 の `CoreImage` ラッパーだけではフィードに効かなかった。v1.5.5 で追加）、`CoreImage` のラッパー（表示中は周期境界で再描画）、そしてプレビュー URL を props で受け取って React Native 標準の Image で直接描く部品（`FollowingRowThumbnail`＝フォロー一覧、`SkylineThumbnailBackground`＝ホーム背景）の props 境界での付け替え（v1.5.7 で追加。フォロー一覧はヘルパーも CoreImage も経由しないため、v1.5.6 まで一度も効いていなかった））、(2) チャット再接続時に「チャットに再接続しました」の行をチャット欄へ追加（v1.5.8 で方式変更: 当初 v1.5.4〜v1.5.7 は `useChatConnectionState` ラッパーによるスナックバー方式だったが、本人の実機では「再接続中」はスナックバーではなくチャット欄内の行（`ChatReconnectingLine`）として表示されており、求められているのもその行の対になる表示だったため廃止）。`ChatReconnectingLine` / `ChatDisconnectedLine` の描画で復旧待ちを記録し、続く `ChatConnectedLine`（ようこそ行）の直前に、本家行と同じ `StatusLine`＋`CoreText`（color 'alt-2'）で組み立てた行を追加する。フック解決は `UiSettingsAssets.kt` 側（getStreamThumbnailUrl / FollowingRowThumbnail / SkylineThumbnailBackground / CoreImage / ChatReconnectingLine / ChatDisconnectedLine / ChatConnectedLine / StatusLine / CoreText の Metro エクスポート解決）。本家の取り込みで削除したり設定項目化したりしないでください。本家が同等機能を実装したら、その時点で本人に報告して扱いを決めます。検証テストは `sources/twitch/scripts/tests/react-native-ui-fixes.test.cjs`。
 
-## LINE 側: sources/line/
+## LINE 側: 収録終了（2026-11-26）
 
-- 本家 [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) のソースツリー全体のコピーを保持します（ベースは v3.10.0、コミットは `sources/line/UPSTREAM_BASE.md` に記録）。本家には LINE 向けパッチ（39件）と Facebook 向けパッチ（20件）が同居していますが、**収録するのは LINE 向けだけ**です。Facebook 向けパッチはコピーには残し、ビルドへの注入時に除外します（注入範囲は `sources/line/UPSTREAM_BASE.md` に明記）。
-- 本家にも文字列リソースの仕組みが無いため、Twitch 側と同じくコピー側で表示文字列を直接翻訳します。翻訳範囲は、パッチ宣言の `description`（LINE 全39件）と、拡張機能内の LINE 設定画面「Andrew's Patch Setting」の表示文字列（`extensions/extension/` の `LineSettingsScreen.java`）です。`name` は本家の英語名のまま（絶対ルール）。設定キーや機能IDなどの内部識別子は翻訳しません。詳細は `docs/LOCALIZATION.md`。
-- 取り込み手順（本家のリリースタグ／`main` のみが対象）:
-  1. 本家を読み取り専用で取得する（浅いクローン、または push URL を無効化したリモートからの fetch）。本家のバージョンタグはこのリポジトリには取り込みません。
-  2. 本家の変更を `sources/line/` へ反映する（差分適用／手作業マージ）。コピーは本家のツリー全体を保持するので、Facebook 側の変更もコピーへは反映します（バンドルには入りません）。
-  3. 日本語化はソース内の文字列を直接書き換えているため、本家が同じ行を変更すると競合します。競合したら本家の新しい英語文字列を確認し、日本語訳を付け直して解消します。翻訳行以外で解釈に迷う競合が出たら、取り込みを中止してユーザーに報告します。
-  4. 本家に新しい表示文字列が増えたら翻訳して追加します（パッチ宣言の説明と、LINE 設定画面の表示文字列）。
-  5. 本家が LINE パッチを追加・削除・改名したら、`scripts/verify_bundle.py` の `EXPECTED_PATCHES`（`jp.naver.line.android` の本家英語名一覧）も合わせて更新します。新しいパッチは、名前は本家の英語名のまま、説明にのみ日本語訳を付けます（名前は絶対に翻訳しない）。Facebook パッチの増減は `EXPECTED_PATCHES` に影響しません。
-  6. `sources/line/UPSTREAM_BASE.md` のベースコミットを更新します。コミットは規約型 `i18n` を使います。
-- 本家が LINE パッチの説明や設定 UI の公式な日本語訳を提供し始めたら、その時点でユーザーに知らせ、LINE 側の追従は停止します（「本家が公式に日本語対応した場合」参照）。
+- 本家 [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) が v4.0.0（2026-11-21）で設定画面「Andrew's Patch Setting」の公式日本語訳（73件）を提供し始めたため、2026-11-22 に LINE 側の日次同期を停止し、コピーをベース 159c883（v3.12.0）のまま凍結しました。
+- 2026-11-26、本人の指示で LINE パッチの収録自体を終了しました（v1.8.0）。`sources/line/` のコピーはリポジトリから削除し、ビルドへの注入（`build_combined.py`）と検証対象（`scripts/verify_bundle.py` の `EXPECTED_PATCHES`）からも外しています。
+- LINE のパッチが必要な場合は、本家 andrewliang25/morphe-patches を Morphe のパッチソースとして直接追加してください（設定画面は公式の日本語表示になります）。
 
 ## KakaoTalk 側: sources/kakao/
 
@@ -114,8 +106,7 @@ v1.1.0〜v1.1.1 では、Morphe の一覧を「アプリごとに1パッチ」�
 - ビルドツリーへコピーした X 側の `patches-list.json`（本家自身の古いもの）を削除する（このビルドで生成した一覧だけを成果物にするため）。
 - 生成された `patches-list.json` の X 分の並びを、本家 piko-newx の公開リストの順序に並べ替える（Morphe Gradle プラグインは名前順で出力するため、そのままだと公開アセットの並びが本家と異なる。パッチャーは実行時に名前順でソートするので動作には無関係で、見た目を本家に合わせるだけの適応。並べ替えは `build_combined.py` の `reorder_patches_list`）。
 - `extensions/twitch/build.gradle.kts` から、プラグイン 2.0.0 系の `extension { name = ... }` ブロックを取り除く（1.3.4 系はモジュールパスから同じ名前 `extensions/twitch.mpe` を導出するため）。
-- LINE 側も同様に、`extensions/extension/build.gradle.kts` から `extension { name = ... }` ブロックを取り除く（モジュールパスから同じ名前 `extensions/extension.mpe` を導出するため）。LINE 側で注入するのは `patches/.../patches/line/` と `.../patches/shared/` と `extensions/extension/` だけで、Facebook パッチ（`patches/.../patches/facebook/`）と本家のリリース用ツール（`patches/src/main/kotlin/util/`、本家自身の `generatePatchesList` 用）は注入しません。
-- `extensions/proguard-rules.pro` に `-keep class dev.twitchpatches.**` と `-keep class app.andrewliang.**` を追加する（本家の keep 対象は `app.morphe.**` 等のみで、Twitch 拡張と LINE 拡張のクラス名参照を守るため）。KakaoTalk 拡張（`app.revanced.extension.kakaotalk.**`）は本家の keep 対象 `app.revanced.**` に含まれるため追加は不要。
+- `extensions/proguard-rules.pro` に `-keep class dev.twitchpatches.**` を追加する（本家の keep 対象は `app.morphe.**` 等のみで、Twitch 拡張のクラス名参照を守るため）。KakaoTalk 拡張（`app.revanced.extension.kakaotalk.**`）は本家の keep 対象 `app.revanced.**` に含まれるため追加は不要。
 - KakaoTalk 側の注入に伴う適応（いずれもビルドツリー内のみ。詳細は `build_combined.py` の `inject_kakao_sources` と各適応関数のコメント）:
   - KakaoTalk パッチが import する `patches/shared/`・`patches/all/` のファイル6件だけを注入する（`_KAKAO_SHARED_FILES`）。本家が同梱する `app/morphe/patches/**` のライブラリソースは注入せず、ホスト側の Morphe ライブラリで代替する（X 側と同じ解決方法）。
   - `kakaotalk/shared/Resources.kt` のロケール一覧に `AppLocale("ja-rJP", "ja")` を追加する。本家は対象ロケールを既定＋韓国語に絞っているため、そのままだと日本語リソースがアプリへマージされない。
@@ -133,7 +124,7 @@ v1.1.0〜v1.1.1 では、Morphe の一覧を「アプリごとに1パッチ」�
   - 収録パッチの大きな追加・削除や対応アプリの変更: minor（互換性が壊れる場合は major）を上げます。
 - リリース手順:
   1. バージョンを決め、`main` の対象コミットにタグ `vX.Y.Z` を付けて push します（または Actions の Release ワークフローを手動実行し、`publish_release` を有効にします）。
-  2. CI が `build_combined.py` で単一バンドルをビルドし、`scripts/verify_bundle.py` で4パッチセットの収録と日本語化を検証してから、GitHub Release に `patches-<X.Y.Z>.mpp` と `patches-list.json` を公開します。`patches-list.json` が生成されなかった場合は CI が失敗し、リリースされません。
+  2. CI が `build_combined.py` で単一バンドルをビルドし、`scripts/verify_bundle.py` で3パッチセットの収録と日本語化を検証してから、GitHub Release に `patches-<X.Y.Z>.mpp` と `patches-list.json` を公開します。`patches-list.json` が生成されなかった場合は CI が失敗し、リリースされません。
   3. CI が `patches-bundle.json`（最新リリースのメタデータ）を `main` にコミットします。
 - リリースノートには今回の変更内容（特に不具合修正と、上流取り込み・翻訳の追加分）を記載します。
 

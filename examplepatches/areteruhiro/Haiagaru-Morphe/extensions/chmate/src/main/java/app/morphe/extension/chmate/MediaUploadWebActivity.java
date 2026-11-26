@@ -177,9 +177,22 @@ public final class MediaUploadWebActivity extends HaiagaruComposeActivity {
                 || !MediaUploadWebPolicy.page("gigafile", web.getUrl())) return;
         Uri target = Uri.parse(url);
         if (!target.getHost().equalsIgnoreCase(Uri.parse(web.getUrl()).getHost())) return;
-        String name = URLUtil.guessFileName(url, disposition, mime)
-                .replace('/', '_').replace('\\', '_').replaceAll("\\p{Cntrl}", "_");
-        if (name.equals(".") || name.equals("..")) name = "gigafile-download";
+        String pageUrl = web.getUrl();
+        String fileToken = target.getQueryParameter("file");
+        new Thread(() -> {
+            String pageName = "";
+            if (fileToken != null) {
+                try { pageName = GigaFileDownload.fetchFilename(pageUrl,fileToken); }
+                catch (Exception ignored) { }
+            }
+            String name = GigaFileDownload.downloadName(disposition,mime,pageName,url);
+            String resolvedName = name;
+            runOnUiThread(() -> enqueueGigaDownload(target,ua,mime,resolvedName));
+        },"Haiagaru-GigaFile-name").start();
+    }
+
+    private void enqueueGigaDownload(Uri target,String ua,String mime,String name) {
+        if (isFinishing() || isDestroyed()) return;
         try {
             DownloadManager.Request request = new DownloadManager.Request(target);
             if (ua != null) request.addRequestHeader("User-Agent", ua);

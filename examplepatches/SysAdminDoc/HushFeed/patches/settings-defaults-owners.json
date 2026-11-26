@@ -122,6 +122,9 @@
       "VIDEO_BUTTON_SIZE",
       "VIDEO_BUTTONS_OVER_RAIL"
     ],
+    "Block sound on sound pages": [
+      "SOUND_PAGE_BLOCK_BUTTON"
+    ],
     "Block contact list access": [
       "BLOCK_CONTACT_LIST"
     ],
@@ -469,6 +472,9 @@
       "HIDE_SEARCH_SUGGESTIONS",
       "DISCOVER_SEARCH_BAR_ONLY"
     ],
+    "Hide sound page buttons": [
+      "HIDE_SOUND_PAGE_BUTTONS"
+    ],
     "Hide suggested accounts": [
       "HIDE_INBOX_SUGGESTED_ACCOUNTS",
       "KEEP_PROFILE_SUGGESTED_ACCOUNTS"
@@ -604,6 +610,7 @@
       "LIVE_START_QUALITY",
       "OFFER_LIVE_CLEAR_SCREEN",
       "KEEP_LIVE_CLEAR_SCREEN",
+      "HIDE_LIVE_CHAT",
       "OFFER_LIVE_FULL_SCREEN",
       "DARK_LIVE_PANELS",
       "LIVE_CARD_BACKGROUND",
@@ -954,6 +961,7 @@
     "LAUNCHER_SHORTCUTS_REMOVED": "Runtime state or legacy migration data; not a configurable feature default.",
     "REMOTE_CONFIG_STAMP": "Runtime state or legacy migration data; not a configurable feature default.",
     "AUTO_STREAK_STATE": "Runtime state or legacy migration data; not a configurable feature default.",
+    "AMOLED_SWITCH_BUILT_IN": "Runtime state or legacy migration data; not a configurable feature default.",
     "FEED_NAVIGATION_OBSERVED_TABS": "Runtime state or legacy migration data; not a configurable feature default.",
     "BOTTOM_NAVIGATION_OBSERVED_TABS": "Runtime state or legacy migration data; not a configurable feature default.",
     "COMMENT_TRANSLATE_BUTTON_TURNED_ON": "Runtime state or legacy migration data; not a configurable feature default.",

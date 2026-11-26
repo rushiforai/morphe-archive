@@ -2,7 +2,15 @@ name: Check Upstream Version
 
 on:
   schedule:
-    - cron: '0 10 * * *'
+    # GitHub's schedule event is the unreliable part, measured here: '0 10 * * *' drifted
+    # 13:43->16:44 UTC across a week of runs and was dropped entirely on 2026-11-25 (no run
+    # created, no failure -- delayed schedule events can be skipped under load). Four slots
+    # a day, all off the hour (peak load sits on the hour marks), bound a dropped slot at
+    # ~6h of detection latency; a whole dropped day still leaves the next day's slots. The
+    # check is idempotent -- a duplicate run only re-queries the store, and an open issue
+    # suppresses duplicate notifications -- so extra slots cost seconds, not double reports.
+    # The watchdog (upstream-check-watchdog.yml) alarms when even these all go quiet.
+    - cron: '23 1,7,13,19 * * *'
   workflow_dispatch:
 
 concurrency:

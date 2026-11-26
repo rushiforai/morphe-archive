@@ -362,11 +362,36 @@ public class InChatMenuTest {
         idle();
     }
 
-    /** On the S22 a video's emoji row lands across the video, nowhere near its top. */
-    @Test public void aMessageTooTallForTheRowKeepsItsPlaceWithTheCardUnderTheRow() {
+    /**
+     * On the S22 the emoji row lands across a photo or video rather than over it (#162). One that fits on the screen
+     * with the card still gets the card under it, moving up as far as the card needs, so the card never covers it.
+     */
+    @Test public void aPhotoTheRowLiesAcrossRisesWithTheCardUnderIt() {
         assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
         on(MenuBlur.KEY, FloatingMenu.KEY);
         makeTheMessageTall(400);
+
+        open(300);
+        idle();
+        fillIn();
+        idle();
+
+        float density = activity.getResources().getDisplayMetrics().density;
+        int gap = (int) (FloatingMenu.GAP_DP * density), edge = (int) (FloatingMenu.EDGE_DP * density);
+        int card = FloatingMenu.height(LABELS.length, density);
+        assertTrue("The fixture's photo fits with its card", 600 - 200 + gap + card <= chat.getHeight() - 2 * edge);
+        int rise = Math.max(0, 600 + gap + card - (chat.getHeight() - edge));
+        assertSame(message, lift().message);
+        assertEquals(rise, lift().rise);
+        assertEquals(-rise, panel.getTranslationY(), 0f);
+        assertEquals("Under the photo, not over it", 600 - rise + gap, ((FrameLayout.LayoutParams) card().getLayoutParams()).topMargin);
+    }
+
+    /** A video taller than the screen can share with the card keeps its place, and the card goes under the row. */
+    @Test public void aMessageTooTallForTheRowKeepsItsPlaceWithTheCardUnderTheRow() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        on(MenuBlur.KEY, FloatingMenu.KEY);
+        makeTheMessageTall(chat.getHeight());
 
         open(300);
         idle();

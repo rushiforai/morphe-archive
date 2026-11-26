@@ -18,16 +18,18 @@ import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.nyandex.patches.yandexmusic.shared.Constants.COMPATIBILITY_YANDEX_MUSIC
+import app.nyandex.patches.yandexmusic.util.hasStringConstant
+import app.nyandex.patches.yandexmusic.util.instructionsList
+import app.nyandex.patches.yandexmusic.util.methodReference
+import app.nyandex.patches.yandexmusic.util.mutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -90,7 +92,7 @@ val lyricsFallbackPatch = patch(
  */
 private fun hookTrackConstructor(): String {
     val trackClass = classDefByStrings(TRACK_TO_STRING, StringComparisonType.EQUALS)
-        .singleOrNull { it.interfaces.contains("Landroid/os/Parcelable;") }
+        .singleOrNull { it.interfaces.contains(PARCELABLE) }
         ?: throw PatchException("Track model was not found")
     val type = trackClass.type
 
@@ -243,11 +245,7 @@ private fun hookNextQueueItem(trackType: String) {
     )
     mutableTrack.methods.add(helper)
 
-    val method = mutableClassDefBy(ownerClass.type).methods.single {
-        it.name == nextMethod.name &&
-            it.parameterTypes.map(Any::toString) == nextMethod.parameterTypes.map(Any::toString) &&
-            it.returnType == nextMethod.returnType
-    }
+    val method = mutableMethodOf(ownerClass.type, nextMethod)
     val instructions = method.instructionsList()
     if (instructions.any { it.opcode.name.startsWith("IF_") || it.opcode.name.startsWith("GOTO") }) {
         throw PatchException("Next-queue-item helper ${ownerClass.type}.${method.name} has branches")
@@ -584,14 +582,6 @@ private fun hookTrackCacheRow() {
     logger.info("Track cache row ${row.type}: id ${idField.name}.${idString.name}, type ${typeField.name}")
 }
 
-private fun ClassDef.hasStringConstant(value: String): Boolean = methods.any { it.hasStringConstant(value) }
-
-
-private fun Method.hasStringConstant(value: String): Boolean =
-    implementation?.instructions?.any { instruction ->
-        ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == value
-    } == true
-
 /** The first instance field of [owner] read after the string constant [label]. */
 private fun Method.fieldAfterString(label: String, owner: String): FieldReference? {
     val instructions = implementation?.instructions?.toList() ?: return null
@@ -616,12 +606,6 @@ private fun Method.references(definingClass: String, name: String): Boolean =
         val reference = instruction.methodReference()
         reference?.definingClass == definingClass && reference.name == name
     } == true
-
-private fun Instruction.methodReference(): MethodReference? =
-    (this as? ReferenceInstruction)?.reference as? MethodReference
-
-private fun MutableMethod.instructionsList(): List<Instruction> =
-    implementation?.instructions?.toList() ?: emptyList()
 
 private fun MutableMethod.thisRegister(): Int {
     val implementation = implementation ?: throw PatchException("$name has no implementation")

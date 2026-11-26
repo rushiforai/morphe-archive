@@ -1,3 +1,117 @@
+## [1.16.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.15.0...v1.16.0) (2026-11-25)
+
+### ✨ New Features
+
+* **reddit:** Bar position and Show labels for the glass navigation bar ([#70](https://github.com/bin0culars/bin0culars-patches/issues/70)) ([ae3cfff](https://github.com/bin0culars/bin0culars-patches/commit/ae3cffff05613f85590b0d9928289aab2836d79f))
+* **reddit:** Create button in communities ([#84](https://github.com/bin0culars/bin0culars-patches/issues/84)) ([6babca1](https://github.com/bin0culars/bin0culars-patches/commit/6babca10315b6858ea51d39f2f4e60302e32e819))
+* **reddit:** Frosted glass blur for the menu, tabs and avatar at the top of Home ([#82](https://github.com/bin0culars/bin0culars-patches/issues/82)) ([49817af](https://github.com/bin0culars/bin0culars-patches/commit/49817af9b921b5acbe90d26fea829e4db00978bc))
+* **reddit:** Glass strength and glass tabs in the top row of Home ([#74](https://github.com/bin0culars/bin0culars-patches/issues/74)) ([a9a38cc](https://github.com/bin0culars/bin0culars-patches/commit/a9a38cc118531530aa358932bb31f4a6b9c0258a))
+* **reddit:** Glass top bar white only at the top, smaller centred tab labels ([#78](https://github.com/bin0culars/bin0culars-patches/issues/78)) ([6110677](https://github.com/bin0culars/bin0culars-patches/commit/6110677878b0f534bbb6a1a1eb666fe0e312117d))
+* **reddit:** iOS-style pill highlight for the glass tabs and bottom bar ([#77](https://github.com/bin0culars/bin0culars-patches/issues/77)) ([9e862c5](https://github.com/bin0culars/bin0culars-patches/commit/9e862c558d8b1193a0cc0c8cd89875466bef748c))
+* **reddit:** Search button for the glass navigation bar ([#72](https://github.com/bin0culars/bin0culars-patches/issues/72)) ([9a5e4d9](https://github.com/bin0culars/bin0culars-patches/commit/9a5e4d93efbc6424918f550aaae7ae8515c68058))
+* **reddit:** Video playback speed ([#67](https://github.com/bin0culars/bin0culars-patches/issues/67)) ([4c88abc](https://github.com/bin0culars/bin0culars-patches/commit/4c88abc3be0a1229ad89da9e161a5429b3e0cfa3))
+
+### 🐛 Bug Fixes
+
+* **reddit:** Frosted glass search button blurs the feed behind it like the bar ([#81](https://github.com/bin0culars/bin0culars-patches/issues/81)) ([2639b0c](https://github.com/bin0culars/bin0culars-patches/commit/2639b0c0244999b41df112ef8a0304e588b8ddba))
+* **reddit:** Glass top bar follows the visible feed's own scroll position ([#79](https://github.com/bin0culars/bin0culars-patches/issues/79)) ([3a7981b](https://github.com/bin0culars/bin0culars-patches/commit/3a7981b6e6d763a9f8a99253dd6793b867860120))
+* **reddit:** Glass top bar tabs no longer clipped, no white band, steadier search button ([#75](https://github.com/bin0culars/bin0culars-patches/issues/75)) ([e862323](https://github.com/bin0culars/bin0culars-patches/commit/e8623230b01d020e713e76b45b8309fbeb03ebdd))
+* **reddit:** Keep the frosted glass blur lined up while the bottom bar slides away ([#66](https://github.com/bin0culars/bin0culars-patches/issues/66)) ([4fb619d](https://github.com/bin0culars/bin0culars-patches/commit/4fb619d9c20041f7977ce6a81c03985c34b8c8f9))
+* **reddit:** Same-subreddit media no longer gets stuck on a loading screen ([#73](https://github.com/bin0culars/bin0culars-patches/issues/73)) ([850e807](https://github.com/bin0culars/bin0culars-patches/commit/850e807b5df12421939999c31af589b4ad23bfbd))
+* **reddit:** Top bar turns see-through again as soon as the feed scrolls ([#83](https://github.com/bin0culars/bin0culars-patches/issues/83)) ([b7cb4ff](https://github.com/bin0culars/bin0culars-patches/commit/b7cb4ff84b9086abf23b811ab66c49b4ba07ecdd))
+
+## [1.16.0-dev.13](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.12...v1.16.0-dev.13) (2026-11-25)
+
+### ✨ New Features
+
+* **reddit:** Create button in communities ([#84](https://github.com/bin0culars/bin0culars-patches/issues/84)) ([6babca1](https://github.com/bin0culars/bin0culars-patches/commit/6babca10315b6858ea51d39f2f4e60302e32e819))
+
+## [1.16.0-dev.12](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.11...v1.16.0-dev.12) (2026-11-25)
+
+### ✨ New Features
+
+* **reddit:** Create button in communities ([#84](https://github.com/bin0culars/bin0culars-patches/issues/84)) ([6babca1](https://github.com/bin0culars/bin0culars-patches/commit/6babca10315b6858ea51d39f2f4e60302e32e819))
+
+### 🐛 Bug Fixes
+
+* **reddit:** Top bar turns see-through again as soon as the feed scrolls ([#83](https://github.com/bin0culars/bin0culars-patches/issues/83)) ([b7cb4ff](https://github.com/bin0culars/bin0culars-patches/commit/b7cb4ff84b9086abf23b811ab66c49b4ba07ecdd))
+
+## [1.16.0-dev.12](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.11...v1.16.0-dev.12) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* **reddit:** Top bar turns see-through again as soon as the feed scrolls ([#83](https://github.com/bin0culars/bin0culars-patches/issues/83)) ([b7cb4ff](https://github.com/bin0culars/bin0culars-patches/commit/b7cb4ff84b9086abf23b811ab66c49b4ba07ecdd))
+
+## [1.16.0-dev.11](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.10...v1.16.0-dev.11) (2026-11-25)
+
+### ✨ New Features
+
+* **reddit:** Frosted glass blur for the menu, tabs and avatar at the top of Home ([#82](https://github.com/bin0culars/bin0culars-patches/issues/82)) ([49817af](https://github.com/bin0culars/bin0culars-patches/commit/49817af9b921b5acbe90d26fea829e4db00978bc))
+
+## [1.16.0-dev.10](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.9...v1.16.0-dev.10) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* **reddit:** Frosted glass search button blurs the feed behind it like the bar ([#81](https://github.com/bin0culars/bin0culars-patches/issues/81)) ([2639b0c](https://github.com/bin0culars/bin0culars-patches/commit/2639b0c0244999b41df112ef8a0304e588b8ddba))
+
+## [1.16.0-dev.9](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.8...v1.16.0-dev.9) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* **reddit:** Glass top bar follows the visible feed's own scroll position ([#79](https://github.com/bin0culars/bin0culars-patches/issues/79)) ([3a7981b](https://github.com/bin0culars/bin0culars-patches/commit/3a7981b6e6d763a9f8a99253dd6793b867860120))
+
+## [1.16.0-dev.8](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.7...v1.16.0-dev.8) (2026-11-25)
+
+### ✨ New Features
+
+* **reddit:** Glass top bar white only at the top, smaller centred tab labels ([#78](https://github.com/bin0culars/bin0culars-patches/issues/78)) ([6110677](https://github.com/bin0culars/bin0culars-patches/commit/6110677878b0f534bbb6a1a1eb666fe0e312117d))
+
+## [1.16.0-dev.7](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.6...v1.16.0-dev.7) (2026-11-25)
+
+### ✨ New Features
+
+* **reddit:** iOS-style pill highlight for the glass tabs and bottom bar ([#77](https://github.com/bin0culars/bin0culars-patches/issues/77)) ([9e862c5](https://github.com/bin0culars/bin0culars-patches/commit/9e862c558d8b1193a0cc0c8cd89875466bef748c))
+
+## [1.16.0-dev.6](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.5...v1.16.0-dev.6) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* **reddit:** Glass top bar tabs no longer clipped, no white band, steadier search button ([#75](https://github.com/bin0culars/bin0culars-patches/issues/75)) ([e862323](https://github.com/bin0culars/bin0culars-patches/commit/e8623230b01d020e713e76b45b8309fbeb03ebdd))
+
+## [1.16.0-dev.5](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.4...v1.16.0-dev.5) (2026-11-25)
+
+### ✨ New Features
+
+* **reddit:** Glass strength and glass tabs in the top row of Home ([#74](https://github.com/bin0culars/bin0culars-patches/issues/74)) ([a9a38cc](https://github.com/bin0culars/bin0culars-patches/commit/a9a38cc118531530aa358932bb31f4a6b9c0258a))
+
+## [1.16.0-dev.4](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.3...v1.16.0-dev.4) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* **reddit:** Same-subreddit media no longer gets stuck on a loading screen ([#73](https://github.com/bin0culars/bin0culars-patches/issues/73)) ([850e807](https://github.com/bin0culars/bin0culars-patches/commit/850e807b5df12421939999c31af589b4ad23bfbd))
+
+## [1.16.0-dev.3](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.2...v1.16.0-dev.3) (2026-11-25)
+
+### ✨ New Features
+
+* **reddit:** Search button for the glass navigation bar ([#72](https://github.com/bin0culars/bin0culars-patches/issues/72)) ([9a5e4d9](https://github.com/bin0culars/bin0culars-patches/commit/9a5e4d93efbc6424918f550aaae7ae8515c68058))
+
+## [1.16.0-dev.2](https://github.com/bin0culars/bin0culars-patches/compare/v1.16.0-dev.1...v1.16.0-dev.2) (2026-11-24)
+
+### ✨ New Features
+
+* **reddit:** Bar position and Show labels for the glass navigation bar ([#70](https://github.com/bin0culars/bin0culars-patches/issues/70)) ([ae3cfff](https://github.com/bin0culars/bin0culars-patches/commit/ae3cffff05613f85590b0d9928289aab2836d79f))
+
+## [1.16.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.15.0...v1.16.0-dev.1) (2026-11-24)
+
+### ✨ New Features
+
+* **reddit:** Video playback speed ([#67](https://github.com/bin0culars/bin0culars-patches/issues/67)) ([4c88abc](https://github.com/bin0culars/bin0culars-patches/commit/4c88abc3be0a1229ad89da9e161a5429b3e0cfa3))
+
+### 🐛 Bug Fixes
+
+* **reddit:** Keep the frosted glass blur lined up while the bottom bar slides away ([#66](https://github.com/bin0culars/bin0culars-patches/issues/66)) ([4fb619d](https://github.com/bin0culars/bin0culars-patches/commit/4fb619d9c20041f7977ce6a81c03985c34b8c8f9))
+
 ## [1.15.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.14.0...v1.15.0) (2026-11-24)
 
 ### ✨ New Features

@@ -10,8 +10,8 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
-private const val HOME_FRAGMENT = "LIIIIlIIlIllllII;"
-private const val FRAGMENT = "Landroidx/fragment/app/IIllllIIIIllIl;"
+private const val HOME_FRAGMENT = "LIIIIIIlIllIIlIIl;"
+private const val FRAGMENT = "Landroidx/fragment/app/IIllIIlllIIIl;"
 
 internal val homeLoadingPatch = patch {
     compatibleWith(deezerCompatibility)
@@ -42,7 +42,7 @@ internal val homeLoadingPatch = patch {
                 invoke-virtual {v0}, Landroid/view/View;->isShown()Z
                 move-result v0
                 if-eqz v0, :done
-                iget-object v0, p0, LIIIIllIlIIllIlll;->IIIIIlIIIlIlllI:Landroidx/recyclerview/widget/RecyclerView;
+                iget-object v0, p0, LIIIlIlIIIIllll;->IlllllIIIIIIlIII:Landroidx/recyclerview/widget/RecyclerView;
                 if-eqz v0, :done
                 invoke-virtual {v0}, Landroid/view/ViewGroup;->getChildCount()I
                 move-result v1
@@ -50,13 +50,13 @@ internal val homeLoadingPatch = patch {
                 if-nez v1, :done
                 invoke-virtual {v0, v1}, Landroid/view/ViewGroup;->getChildAt(I)Landroid/view/View;
                 move-result-object v0
-                instance-of v1, v0, LIlIIllIlIIllll;
+                instance-of v1, v0, LllIlIllIIIIllll;
                 if-eqz v1, :done
                 sget-boolean v0, $HOME_FRAGMENT->morpheHomeRecovered:Z
                 if-nez v0, :done
                 const/4 v0, 0x1
                 sput-boolean v0, $HOME_FRAGMENT->morpheHomeRecovered:Z
-                invoke-virtual {p0}, $FRAGMENT->requireActivity()Landroidx/fragment/app/lIIlllllllIlIl;
+                invoke-virtual {p0}, $FRAGMENT->requireActivity()Landroidx/fragment/app/IllIlIlllllllIIl;
                 move-result-object v0
                 invoke-virtual {v0}, Landroid/app/Activity;->recreate()V
                 :done

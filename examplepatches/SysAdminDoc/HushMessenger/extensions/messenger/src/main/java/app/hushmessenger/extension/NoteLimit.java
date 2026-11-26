@@ -10,7 +10,7 @@ import java.lang.reflect.Modifier;
  * be changed the composer gets Messenger's number back.
  */
 public final class NoteLimit {
-    static final int LIMIT = 500;
+    static final int LIMIT = 2000;
     private static final String KEY = "longer_notes";
 
     /** The filter's limit field, kept once found because Messenger calls this every time the note screen updates. */

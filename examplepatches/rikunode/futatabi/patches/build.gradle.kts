@@ -16,6 +16,10 @@ dependencies {
     patchListGeneratorClasspath(libs.gson)
 }
 tasks {
+    named<Jar>("jar") {
+        from(rootProject.file("LICENSE")) { into("META-INF") }
+        from(rootProject.file("THIRD_PARTY_NOTICES")) { into("META-INF/THIRD_PARTY_NOTICES") }
+    }
     register<JavaExec>("generatePatchesList") {
         dependsOn("buildAndroid")
         systemProperty("patchesVersion", project.version.toString())

@@ -38,6 +38,9 @@ private const val ACTIONS_LIST = "Lcom/google/common/collect/ImmutableList;"
 private const val ACTIONS_LIST_BUILDER = "Lcom/google/common/collect/ImmutableList\$Builder;"
 private const val ACTIONS_ENUM_MAP = "Ljava/util/EnumMap;"
 private val ACTIONS_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+/** Where a straight path ends: nothing falls through past these. */
+private val ACTIONS_PATH_ENDS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32, Opcode.RETURN, Opcode.RETURN_VOID, Opcode.RETURN_OBJECT,
+    Opcode.RETURN_WIDE, Opcode.THROW)
 
 private fun Instruction.actionRef() = (this as? ReferenceInstruction)?.reference
 private fun Instruction.actionField() = actionRef() as? FieldReference
@@ -99,18 +102,27 @@ private fun Method.actionsBarSite(): ActionsBarSite? {
         return first < at && hops > 0 && holdsHeld(source, first, hops - 1)
     }
     val heldType = parameterTypes[0].toString()
-    val reads = code.indices.filter { j ->
-        if (j + 3 >= code.size || code[j].opcode != Opcode.INVOKE_INTERFACE) return@filter false
+    // 587 asked the row for the flag straight away. 588 asks for the row once at the top and asks it for the flag a few
+    // instructions on, so the ask is the first such call down the straight path from the row's result, before anything
+    // writes over that register.
+    val reads = code.indices.mapNotNull { j ->
+        if (j + 1 >= code.size || code[j].opcode != Opcode.INVOKE_INTERFACE) return@mapNotNull null
         val row = code[j].actionCall()
-        val call = code[j + 2].actionCall()
         val args = code[j].actionArgs()
-        row?.definingClass == heldType && row.parameterTypes.isEmpty() && row.returnType.startsWith("L") &&
-            args.size == 1 && holdsHeld(args[0], j) && code[j + 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
-            code[j + 2].opcode == Opcode.INVOKE_INTERFACE && call?.definingClass == row.returnType &&
-            call.returnType == "Z" && call.parameterTypes.isEmpty() && code[j + 2].actionArgs() == listOf((code[j + 1] as OneRegisterInstruction).registerA) &&
-            code[j + 3].opcode == Opcode.MOVE_RESULT
+        if (row?.definingClass != heldType || row.parameterTypes.isNotEmpty() || !row.returnType.startsWith("L") || args.size != 1 ||
+            !holdsHeld(args[0], j) || code[j + 1].opcode != Opcode.MOVE_RESULT_OBJECT) return@mapNotNull null
+        val model = (code[j + 1] as OneRegisterInstruction).registerA
+        for (k in j + 2 until code.size - 1) {
+            val call = code[k].actionCall()
+            if (code[k].opcode == Opcode.INVOKE_INTERFACE && code[k].actionArgs() == listOf(model) && call?.definingClass == row.returnType &&
+                call.returnType == "Z" && call.parameterTypes.isEmpty()) {
+                return@mapNotNull if (code[k + 1].opcode == Opcode.MOVE_RESULT) row.toString() to call.toString() else null
+            }
+            if (code[k].actionWrites(model) || code[k].opcode in ACTIONS_PATH_ENDS) return@mapNotNull null
+        }
+        null
     }
-    val sent = reads.map { code[it].actionRef().toString() to code[it + 2].actionRef().toString() }.distinct().singleOrNull() ?: return null
+    val sent = reads.distinct().singleOrNull() ?: return null
     return ActionsBarSite(at, list, scratch, held, size.actionRef().toString(), size.opcode == Opcode.INVOKE_INTERFACE, sent.first, sent.second)
 }
 

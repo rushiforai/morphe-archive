@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3851
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.music.patches.lyrics.ui;
@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 
 import app.morphe.extension.music.patches.lyrics.LyricsLine;
+import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.music.settings.preference.LyricsTargetLanguagePreference;
 import app.morphe.extension.shared.ui.Dim;
@@ -258,9 +259,7 @@ final class LyricsViewSupport {
     static void applyFooterStyle(TextView footer) {
         footer.setTextSize(TypedValue.COMPLEX_UNIT_SP, FOOTER_TEXT_SIZE_SP);
         footer.setTextColor(LyricsColors.secondaryTextColor());
-        // The secondary color alone is brighter than the app draws this line, which
-        // sits dimmer than even the inactive lyrics above it.
-        footer.setAlpha(FOOTER_ALPHA);
+        footer.setAlpha(MusicLightTheme.isEnabled() ? 1f : FOOTER_ALPHA);
     }
 
     static int lineTextSizeSp(boolean isBackground, int textSize) {

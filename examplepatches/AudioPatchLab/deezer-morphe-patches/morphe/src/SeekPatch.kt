@@ -16,7 +16,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
-private const val PLAYBACK_RIGHTS = "LlIIIlIlIlIIIII;"
+private const val PLAYBACK_RIGHTS = "LllIIllIllIlllI;"
 private const val BOX_MUSIC_ACTIONS = "morpheBoxMusicActions"
 private const val BOX_LONG = "Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;"
 
@@ -50,8 +50,8 @@ internal val seekPatch = patch {
     execute {
         val rights = mutableClassDefBy(PLAYBACK_RIGHTS)
         val actions = rights.methods.single {
-            it.name == "IIIIIllIlIIllll" && it.parameterTypes == listOf("I") &&
-                it.returnType == "LlIllIlIllIIllll;"
+            it.name == "IllIIIlllIIlIlll" && it.parameterTypes == listOf("I") &&
+                it.returnType == "LIIIlIllIlIIIIll;"
         }
         val instructions = checkNotNull(actions.implementation).instructions
         val dispatch = instructions.indices.single { instructions[it].opcode == Opcode.PACKED_SWITCH }

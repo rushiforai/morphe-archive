@@ -12,8 +12,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
-private const val CELL_RIGHTS = "LllIIlIIIIlIllll;"
-private const val TRACK_RIGHTS = "LlIlIlIlllIIIll;"
+private const val CELL_RIGHTS = "LIIIllIlllIlIII;"
+private const val TRACK_RIGHTS = "LIlllllIllIlIII;"
 private const val CELL_DISPLAY_RIGHTS = "morpheTrackCellDisplayRights"
 
 private fun cellDisplayRights(): MutableMethod {
@@ -28,11 +28,11 @@ private fun cellDisplayRights(): MutableMethod {
     method.addInstructionsWithLabels(
         0,
         """
-            iget-object v0, p0, LllIIlIIIIlIllll;->llIIIIIIlIIIIll:$TRACK_RIGHTS
-            sget-object v1, LlIlIlIlllIIIll;->IIlllIlllIlll:$TRACK_RIGHTS
+            iget-object v0, p0, LIIIllIlllIlIII;->IllIlllIIIllIlII:$TRACK_RIGHTS
+            sget-object v1, LIlllllIllIlIII;->lIIlIlIllIl:$TRACK_RIGHTS
             if-ne v0, v1, :keep_rights
-            iget-boolean v0, p0, LllIIlIIIIlIllll;->IllIlIlIIlIllIll:Z
-            sget-object v1, LlIlIlIlllIIIll;->IIllllllllIlll:$TRACK_RIGHTS
+            iget-boolean v0, p0, LIIIllIlllIlIII;->lIIIIIlllllIIIII:Z
+            sget-object v1, LIlllllIllIlIII;->lIlIIIlIllI:$TRACK_RIGHTS
             new-instance v2, $CELL_RIGHTS
             invoke-direct {v2, v0, v1}, $CELL_RIGHTS-><init>(Z$TRACK_RIGHTS)V
             return-object v2
@@ -53,7 +53,7 @@ internal val trackCellDisplayRightsPatch = patch {
 internal fun MutableMethod.showSelectableTrackCell(bind: Int) {
     val formatter = checkNotNull(implementation).instructions[bind] as RegisterRangeInstruction
     check(formatter.registerCount == 9 && (formatter as ReferenceInstruction).reference.toString().startsWith(
-        "LllIlIIIlIIlIllI;->IlIIlllllllII(LIlllIIIlllllIIIl;",
+        "LIIlIlIlIllIlI;->llIllIIIlIlIl(LllIIlIIIll;",
     ))
     val rights = formatter.startRegister + 6
     addInstructionsWithLabels(
@@ -70,10 +70,10 @@ internal fun MutableMethod.showSelectableTrackCellsBeforeMapping(expectedCount: 
     val formatters = instructions.indices.filter { index ->
         instructions[index].opcode == Opcode.INVOKE_STATIC_RANGE &&
             (instructions[index] as ReferenceInstruction).reference.toString().startsWith(
-                "LllIlIIIlIIlIllI;->IlIIlllllllII(LIlllIIIlllllIIIl;",
+                "LIIlIlIlIllIlI;->llIllIIIlIlIl(LllIIlIIIll;",
             ) &&
             (instructions.getOrNull(index + 2) as? ReferenceInstruction)?.reference.toString() ==
-                "LIlllIllIllllIII;->IIIIIllIlIIllll(LIIllIlllllIIllIl;)LIIlIlIllllllIlII;"
+                "LIIIllIllIIIlIIl;->IllIIIlllIIlIlll(LIlIlllIlIllllIIl;)LIlIIIlIIIllllIlI;"
     }
     check(formatters.size == expectedCount)
     formatters.asReversed().forEach { showSelectableTrackCell(it) }

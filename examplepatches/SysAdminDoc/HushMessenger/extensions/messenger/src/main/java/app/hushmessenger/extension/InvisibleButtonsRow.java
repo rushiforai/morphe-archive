@@ -8,13 +8,15 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * The rows under Invisible buttons (#191): every button Messenger has shown so far, each with a strip of levels from
- * invisible to as Messenger draws it. One per settings page, filled again on every return, so a button first seen while
- * settings sat behind Messenger turns up without a trip out and back.
+ * invisible to as Messenger draws it, grouped by where it was first seen. One per settings page, filled again on every
+ * return, so a button first seen while settings sat behind Messenger turns up without a trip out and back.
  */
 final class InvisibleButtonsRow {
     private final SettingsActivity page;
@@ -44,13 +46,33 @@ final class InvisibleButtonsRow {
             return;
         }
         Map<String, Integer> levels = InvisibleButtons.levels();
+        Map<String, String> places = InvisibleButtons.places();
+        Map<String, List<String>> groups = new LinkedHashMap<>();
+        for (String place : InvisibleButtons.PLACES_SHOWN) groups.put(place, new ArrayList<>());
+        List<String> other = new ArrayList<>();
         for (String name : listed) {
-            Integer level = levels.get(name);
-            addItem(name, level == null ? 100 : level);
+            List<String> group = groups.get(places.get(name));
+            (group == null ? other : group).add(name);
         }
+        for (Map.Entry<String, List<String>> group : groups.entrySet()) {
+            if (group.getValue().isEmpty()) continue;
+            addGroup(group.getKey());
+            for (String name : group.getValue()) addItem(name, levels.containsKey(name) ? levels.get(name) : 100);
+        }
+        // Names seen before places were kept. On their own they stay one plain list, as they were.
+        if (!other.isEmpty() && other.size() < listed.size()) addGroup("other");
+        for (String name : other) addItem(name, levels.containsKey(name) ? levels.get(name) : 100);
         if (focusTag == null) return;
         View used = list.findViewWithTag(focusTag);
         if (used != null && used.isEnabled()) used.post(() -> used.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+    }
+
+    /** A group's title: where in Messenger its buttons were first seen. */
+    private void addGroup(String place) {
+        TextView title = page.ui.text(page.text.get("invisible_buttons_group_" + place), 13, page.ui.accent, true);
+        title.setTag("invisible_buttons_group_" + place);
+        title.setAccessibilityHeading(true);
+        page.ui.add(list, title, 14);
     }
 
     private void addItem(String name, int level) {

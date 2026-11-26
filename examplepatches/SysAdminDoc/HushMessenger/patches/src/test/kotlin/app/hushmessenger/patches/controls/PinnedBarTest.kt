@@ -103,6 +103,43 @@ class PinnedBarTest {
         assertEquals(before.map { it.opcode }, code.filterIndexed { i, _ -> i != 4 && i != 5 }.map { it.opcode })
     }
 
+    /** 588's fetch, cut down: one thread key check whose no skips the pinned loader with the if-eqz right above it. */
+    private fun pb588Fetch(extraJump: Boolean = false) = fixtureMethod(SYNTHETIC_PINNED_BAR, """
+        new-instance v1, Ljava/util/ArrayList;
+        invoke-direct {v1}, Ljava/util/ArrayList;-><init>()V
+        ${if (extraJump) "if-nez v2, :made" else "nop"}
+        invoke-virtual {v3}, $THREAD_KEY_TYPE->A1J()Z
+        move-result v0
+        if-eqz v0, :skip
+        :made
+        new-instance v0, $PB_LOADER
+        invoke-direct {v0, v2, v3}, $PB_LOADER-><init>($FB_USER_SESSION$THREAD_KEY_TYPE)V
+        invoke-virtual {v1, v0}, Ljava/util/AbstractCollection;->add(Ljava/lang/Object;)Z
+        :skip
+        const/4 v0, 0x0
+        return-object v0
+    """.trimIndent(), registers = 5)
+
+    @Test fun a588FetchThatSkipsTheLoaderOnANoGoesThroughTheExtension() {
+        val classes = listOf(fixtureClass(BANNER_FETCH, listOf(pb588Fetch())), pbLoader())
+        assertEquals(setOf(SYNTHETIC_PINNED_BAR), findPinnedBar(classes).map { it.hookId() }.toSet())
+        assertEquals(setOf(SYNTHETIC_PINNED_BAR), mirroredControls(classes).getValue(PINNED_BAR).map { it.hookId() }.toSet())
+        val method = pb588Fetch()
+        val before = method.pbCode()
+        hook(method)
+        val code = method.pbCode()
+        assertEquals(before.size + PB_HOOK_SIZE, code.size)
+        assertEquals("$THREAD_KEY_TYPE->A1J()Z", code[3].pbReference())
+        assertEquals(PINNED_BAR_CALL, code[5].pbReference())
+        assertEquals(Opcode.MOVE_RESULT, code[6].opcode)
+        assertEquals(Opcode.IF_EQZ, code[7].opcode)
+        // A yes falls into the loader; a no still skips it.
+        assertEquals(PB_LOADER, code[8].pbReference())
+        assertEquals(Opcode.CONST_4, code[code.branchTarget(7)].opcode)
+        // Anything else landing on the loader leaves the gate unproven.
+        assertEquals(null, pb588Fetch(extraJump = true).pinnedBarGate(PB_LOADER))
+    }
+
     @Test fun aSecondPassLeavesTheHookAsItIs() {
         val method = pbFetch()
         hook(method)

@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-23
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -54,12 +54,14 @@ package app.morphe.patches.youtube.layout.branding
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.folderOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.layout.branding.CUSTOM_BRANDING_EXTENSION_CLASS_DESCRIPTOR
 import app.morphe.patches.shared.layout.branding.BrandingIcon
 import app.morphe.patches.shared.layout.branding.CustomBrandingConfig
@@ -71,6 +73,7 @@ import app.morphe.patches.shared.layout.branding.applyCustomBranding
 import app.morphe.patches.shared.layout.branding.customBrandingIconOptionDescription
 import app.morphe.patches.shared.layout.branding.installYouTubeRvxSettingsIconLayout
 import app.morphe.patches.shared.layout.branding.prepareMountedBranding
+import app.morphe.patches.shared.layout.branding.reseamBrandingIcon
 import app.morphe.patches.shared.mapping.ResourceType
 import app.morphe.patches.shared.mapping.resourceLiteral
 import app.morphe.patches.shared.mainactivity.injectOnCreateMethodCall
@@ -110,8 +113,8 @@ private val availableIcon = listOf(
     BrandingIcon("mmt_pink", "MMT Pink", true),
     BrandingIcon("mmt_turquoise", "MMT Turquoise", true),
     BrandingIcon("mmt_yellow", "MMT Yellow", true),
-    BrandingIcon("reseam", "Reseam", true, launcherOnly = true),
-    BrandingIcon("revanced", "ReVanced", true, launcherOnly = true),
+    reseamBrandingIcon,
+    BrandingIcon("revanced", "ReVanced", true, usesOfficialSplash = true),
     BrandingIcon("revancify_blue", "Revancify Blue", true),
     BrandingIcon("revancify_red", "Revancify Red", true),
     BrandingIcon("squid_game", "Squid Game", true),
@@ -209,6 +212,21 @@ private val customBrandingBytecodePatch = bytecodePatch {
                     """.trimIndent(),
                 )
             }
+
+            // Reseam composes the actual themed stock wordmark. The resolver reuses p0 for its
+            // return value, so use the original themed Context before YouTube overwrites it.
+            val reseamResolver = "$CUSTOM_BRANDING_EXTENSION_CLASS_DESCRIPTOR->getReseamHeaderDrawable" +
+                "(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;"
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static/range {p0 .. p1}, $reseamResolver
+                    move-result-object v0
+                    if-eqz v0, :stock_header
+                    return-object v0
+                """.trimIndent(),
+                ExternalLabel("stock_header", getInstruction(0)),
+            )
         }
 
         if (is_20_00_or_greater) {

@@ -12,11 +12,12 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import app.template.extension.settings.Prefs;
 import app.template.extension.settings.ModSettingsActivity;
+import app.template.extension.settings.HideSections;
 import java.util.List;
 
 /** Independent film summary row and its full ratings destination. */
 public final class RatingsRow {
-    private static final String TAG = "morphe.external.ratings.row";
+    public static final String TAG = "morphe.external.ratings.row";
     private RatingsRow() {}
 
     static void bind(View host, WatchAvailability.Film film) {
@@ -25,7 +26,10 @@ public final class RatingsRow {
         View old = parent.findViewWithTag(TAG);
         if (old != null) parent.removeView(old);
         if (!Prefs.getBoolean(Prefs.KEY_EXTERNAL_RATINGS_ENABLED, false) || film.tmdb() == null
-                || ExternalRatings.key(host.getContext()) == null) return;
+                || ExternalRatings.key(host.getContext()) == null) {
+            HideSections.refreshWhereToWatch(parent);
+            return;
+        }
         Context context = host.getContext();
         LinearLayout row = new LinearLayout(context);
         row.setTag(TAG);
@@ -61,6 +65,7 @@ public final class RatingsRow {
             content.setLayoutParams(params);
         }
         parent.addView(row,new LinearLayout.LayoutParams(-1,-2));
+        HideSections.refreshWhereToWatch(parent);
         TextView status=text(context,"Loading ratings…","BodyMedium");scores.addView(status);
         load(scores,film.tmdb(),true,open);
     }

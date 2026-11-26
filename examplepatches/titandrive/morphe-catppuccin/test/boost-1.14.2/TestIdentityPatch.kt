@@ -14,7 +14,7 @@ private const val original = "com.rubenmayayo.reddit"
 private const val isolated = "com.rubenmayayo.reddit.catppuccin.test"
 
 val boostTestIdentityPatch = bytecodePatch(name="Boost isolated test identity",default=false) {
-    compatibleWith(Compatibility(name="Boost for Reddit",packageName=original,targets=listOf(AppTarget(version="1.14.2"),AppTarget(version="1.14.3"))))
+    compatibleWith(Compatibility(name="Boost for Reddit",packageName=original,targets=listOf(AppTarget(version="1.14.2"),AppTarget(version="1.14.3"),AppTarget(version="1.14.4"))))
     dependsOn(resourcePatch { execute {
         document("AndroidManifest.xml").use { xml ->
             xml.documentElement.setAttribute("package",isolated)
@@ -55,9 +55,10 @@ val boostTestIdentityPatch = bytecodePatch(name="Boost isolated test identity",d
             val target=mutableClassDefBy(klass).methods.single {it.name==method.name && it.parameterTypes==method.parameterTypes && it.returnType==method.returnType}
             for((i,reg,value) in changes) target.replaceInstruction(i,"const-string v$reg, \"$value\"")
         }
+        val preferences = if (packageMetadata.versionName == "1.14.4") "Lxs2;" else "Lps2;"
         // Set Macchiato once in this copy only; subsequent picker changes persist.
-        mutableClassDefBy("Lps2;").methods.single {it.name=="R"}.addInstructionsWithLabels(0,"""
-            iget-object v0, p0, Lps2;->a:Landroid/content/SharedPreferences;
+        mutableClassDefBy(preferences).methods.single {it.name=="R"}.addInstructionsWithLabels(0,"""
+            iget-object v0, p0, $preferences->a:Landroid/content/SharedPreferences;
             const-string v1, "catppuccin_test_bars"
             const/4 v2, 0
             invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
@@ -73,7 +74,7 @@ val boostTestIdentityPatch = bytecodePatch(name="Boost isolated test identity",d
             invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences${'$'}Editor;->putBoolean(Ljava/lang/String;Z)Landroid/content/SharedPreferences${'$'}Editor;
             invoke-interface {v0}, Landroid/content/SharedPreferences${'$'}Editor;->apply()V
             :bars_initialized
-            iget-object v0, p0, Lps2;->a:Landroid/content/SharedPreferences;
+            iget-object v0, p0, $preferences->a:Landroid/content/SharedPreferences;
             const-string v1, "catppuccin_test_defaults"
             const/4 v2, 0
             invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z

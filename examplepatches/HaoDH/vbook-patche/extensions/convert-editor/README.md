@@ -1,149 +1,110 @@
-# DeepSeek – Biên tập truyện convert
+# DeepSeek – Biên tập truyện convert 1.4.2
 
-Extension `translate` cho vBook. Đầu vào là truyện **đã convert sang tiếng Việt (QT/Hán Việt)**; đầu ra là bản biên tập tiếng Việt tự nhiên hơn. Đây không phải công cụ dịch lại từ nguyên văn tiếng Trung đã thất lạc.
+Biên tập truyện **đã convert sang tiếng Việt (QT/Hán Việt)** thành tiếng Việt tự nhiên. Bản 1.3.0 gửi **nguyên chương trong một yêu cầu** để AI có đủ ngữ cảnh và tự sửa xuống dòng, như khi dán toàn văn lên web. Không chia nhóm đoạn, không gắn ID, không buộc số đoạn kết quả bằng bản gốc.
 
-## Cài và đọc ngay trong chương
+## Cập nhật trong vBook
 
-1. Chép `vbook-convert-editor-1.1.1.zip` vào điện thoại hoặc cập nhật từ nguồn GitHub đã thêm. Trong phần quản lý tiện ích mở rộng của vBook, dùng chức năng nhập/cài extension từ tệp ZIP. Giữ nguyên ZIP, không giải nén trước khi chọn. Tên/vị trí nút có thể khác theo bản vBook.
-2. Mở truyện convert, mở cài đặt dịch của **truyện đó**, chọn **DeepSeek – Biên tập truyện convert**.
-3. Chọn nguồn **Việt convert (QT/Hán Việt)** và đích **Tiếng Việt – biên tập**. Không dùng đích **Tiếng Việt** thông thường. Bản 1.1.1 khai báo nguồn `vi`, đích riêng `qaa` với tên tiếng Việt; prompt vẫn yêu cầu biên tập tiếng Việt. Mã đích riêng tránh điều kiện bỏ qua cùng ngôn ngữ của vBook; không giả đầu vào là tiếng Trung.
-4. Mở cài đặt extension từ truyện, nhập DeepSeek API key của bạn. Chọn model **DeepSeek Flash** hoặc **DeepSeek V4 Pro** và văn phong trong các bộ chọn của vBook. Flash là mặc định.
-5. Có thể nhập yêu cầu văn phong, tên nhân vật/cảnh giới/thuật ngữ riêng cho truyện. Sau đó quay lại chương và bật dịch bằng extension đã chọn.
+1. Thêm hoặc làm mới nguồn: https://raw.githubusercontent.com/HaoDH/vbook-patche/main/extensions/plugin.json
+2. Cập nhật **DeepSeek – Biên tập truyện convert** lên metadata version **11**, tương ứng **1.4.2**. Không gỡ extension để cập nhật.
+3. Mở cài đặt extension, giữ/nhập DeepSeek API key. Trong cài đặt dịch của truyện chọn nguồn **Việt convert (QT/Hán Việt)** và đích **Tiếng Việt – biên tập**.
+4. Tải lại chương. Nhật ký mới có dòng **Editor 1.4.2: nguồn … [model]; gửi nguyên chương … ký tự** hoặc dùng lại toàn chương đã lưu.
 
-Extension chỉ xử lý nội dung chương. Mục lục, tên truyện, giới thiệu và kết quả tìm kiếm được giữ nguyên để tránh phát sinh các lần gọi API ngoài việc biên tập chương.
+Đường dẫn ZIP trong nguồn giữ cố định để các lần cập nhật dùng cùng định danh:
+https://raw.githubusercontent.com/HaoDH/vbook-patche/main/extensions/convert-editor.zip
 
-Chương đang mở chỉ chờ nội dung của chính nó; extension không tự biên tập các chương tiếp theo. Chương dài có thể cần nhiều lượt API. Đây không phải kết quả hiển thị tức thì hoặc dịch dạng streaming.
+Nếu cần ZIP thủ công: `vbook-convert-editor-1.4.2.zip`. Cài từ nguồn cố định là cách nên dùng để cập nhật về sau. Bản ZIP/đường dẫn cũ có thể là định danh riêng; cấu hình và bộ nhớ không tự chuyển giữa hai định danh. Giữ nguyên nguồn hiện tại nếu đã dùng đường dẫn cố định.
 
-### Sửa lỗi báo thành công nhưng chưa thấy thay đổi — 1.1.1
+## Cách biên tập nguyên chương
 
-vBook 1.2.9 có bước so sánh **ngôn ngữ cơ sở** của sách và đích trước khi gọi JavaScript. Mã `vi-convert` trong 1.0.0/1.1.0 bị chuẩn hóa về `vi`; khi đích cũng là `vi`, ứng dụng không gọi extension để biên tập nội dung đang đọc. Action A–B vẫn có thể chạy vì không đi qua điều kiện hiển thị này.
+- Gửi toàn văn nhận được, giữ các dòng gốc làm ngữ cảnh. Không nối dòng bằng quy tắc chữ thường/độ dài trước khi AI đọc.
+- Prompt yêu cầu AI nối những dòng ngắt giữa câu, tên, cụm từ; tự tách đoạn kể và lượt thoại hợp lý. Không tóm tắt, bỏ ý, thêm tình tiết hoặc dồn cả chương thành một đoạn.
+- Ví dụ `tu vi` xuống dòng `từ nguyên anh trung kỳ` được yêu cầu biên tập liền mạch. Cách dùng “kỳ/kì” tùy văn phong; extension không ép đổi chính tả này bằng mã.
+- Kết quả là một trường JSON `text` chứa toàn bộ chương, được tự do thay đổi số đoạn. Xuống dòng trong kết quả được giữ để đọc. JSON chỉ là vỏ truyền dữ liệu, không phải yêu cầu giữ cấu trúc đoạn của bản gốc.
+- Manifest đặt `max_length: 0`, `max_line: 0` để tắt giới hạn chia nhỏ của vBook. Đã đối chiếu đường xử lý trong APK 1.2.9; các bản ứng dụng khác vẫn cần kiểm tra trên thiết bị.
+- Một chương chưa lưu bình thường dùng một yêu cầu DeepSeek. Extension không tự thử lại hoặc chia nhỏ nếu API trả lỗi/chương bị cắt. Giới hạn đầu ra đặt 65.536 token, timeout 180 giây; chương quá dài vẫn có thể vượt giới hạn API hoặc thời gian chờ.
 
-Sau khi cập nhật lên metadata version **3**:
+AI có thể sửa sai hoặc bỏ ý dù phản hồi kết thúc bình thường; đây không phải phép kiểm chứng đầy đủ nội dung. Extension từ chối JSON sai, kết quả rỗng, phản hồi bị cắt và kết quả ngắn bất thường dưới 20% độ dài đầu vào với chương từ 1.000 ký tự. Không còn kiểm tra bằng số đoạn.
 
-1. Mở cài đặt dịch **của truyện**, chọn lại extension này.
-2. Chọn đích **Tiếng Việt – biên tập**, không giữ đích Tiếng Việt cũ. Chọn nguồn Việt convert (QT/Hán Việt).
-3. Bật dịch **nội dung chương**, trở lại trang đọc và **tải lại chương**. Nếu ứng dụng có lựa chọn hiện bản gốc/bản dịch, chọn bản dịch.
-4. Có thể chạy action **Kiểm tra điều kiện ngôn ngữ** từ cài đặt extension của truyện. Action này không gọi DeepSeek, không mất token, chỉ hiển thị ngôn ngữ sách/nguồn/đích và hướng dẫn sửa.
+## Biên tập riêng khoảng A–B
 
-Thông báo A–B thành công nghĩa là kết quả đã lưu riêng trong extension, **không có nghĩa sách gốc hoặc trang đang mở đã được thay thế**. Bản 1.1.1 không đổi prompt/cache identity từ 1.1.0, nên có thể dùng lại kết quả A–B đã lưu nếu model/văn phong/yêu cầu và cách chia đoạn khớp. Không cần biên tập trả phí lại toàn bộ trước khi thử tải lại chương với đích mới.
+1. Tải/lưu nội dung các chương trên máy trước. Extension không tự tải chương qua mạng.
+2. Mở cài đặt extension **từ truyện**, đặt **Từ mục chương A** và **Đến mục chương B**.
+3. A/B là thứ tự mục lục sau khi loại tiêu đề nhóm, bắt đầu từ 1, bao gồm cả hai đầu; không lấy số trong tên chương.
+4. Chọn **Biên tập khoảng chương A–B**, kiểm tra tên chương đầu/cuối rồi bấm Bắt đầu.
+5. Mỗi chương được gửi riêng nguyên chương. Sau khi thành công, mở chương bằng cùng extension/model/văn phong để đọc bản đã lưu.
 
-Giới hạn kiểm chứng: đã đối chiếu đường gọi và phép chuẩn hóa `Locale.getLanguage()` trong APK vBook 1.2.9 có sẵn tại project; chưa xác nhận trên thiết bị người dùng hoặc các bản vBook khác.
+Nếu dừng ở giữa khoảng, chương đã lưu vẫn giữ và được dùng lại khi chạy tiếp. Chương đang lỗi không có kết quả hoàn chỉnh để lưu. Không có bộ lập lịch nền hoặc tự biên tập các chương tiếp theo khi chỉ đọc một chương.
 
-## Biên tập riêng từ chương A đến chương B
+## Nhiều nguồn AI để tối ưu chi phí (mới ở 1.4.2)
 
-1. Tải/lưu nội dung các chương cần xử lý trước. API vBook chỉ cho extension đọc nội dung đã có trên máy; extension không tự tải các chương chưa lưu.
-2. Mở cài đặt extension **từ truyện cần xử lý**, nhập **Từ mục chương A** và **Đến mục chương B**.
-3. A/B là **thứ tự trong mục lục sau khi loại tiêu đề nhóm**, bắt đầu từ **1**, bao gồm cả hai đầu. Không lấy số trong tên chương. Nếu mục đầu là Lời tựa thì nó là mục 1.
-4. Chọn **Biên tập khoảng chương A–B**. Kiểm tra tên chương đầu/cuối và tổng số chương trong phần mô tả, rồi bấm **Bắt đầu**.
-5. Theo dõi nhật ký. Có thể dừng theo cơ chế action của vBook. Chạy lại cùng khoảng để tiếp tục dùng các đoạn đã lưu; nội dung thiếu hoặc lỗi được báo rõ.
-6. Mở chương với chính extension, model, văn phong và yêu cầu đã dùng để đọc kết quả. **Không cần nhập một sách mới.**
+Bản 1.4.2 thêm lựa chọn nguồn AI ngoài DeepSeek, chọn ngay trong **bộ chọn model** của truyện. Tất cả đều dùng chuẩn OpenAI chat-completions nên chỉ khác endpoint, API key và ID model.
 
-Phần xử lý A–B chạy trong màn hình action của vBook; extension không tự tạo tác vụ nền độc lập hoặc tự mở màn hình đọc khi đang chạy.
+| Model trong bộ chọn | Nguồn | Chi phí | Hạn mức tham khảo | Ghi chú |
+|---|---|---|---|---|
+| DeepSeek Flash | api.deepseek.com | Trả phí, rẻ (mặc định) | — | Như trước |
+| DeepSeek V4 Pro | api.deepseek.com | Trả phí, đắt hơn | — | Chất lượng cao hơn |
+| Gemini Flash-Lite (miễn phí) | Google AI Studio | Miễn phí | ~500 lượt/ngày | Dữ liệu bản free có thể được Google dùng để huấn luyện |
+| Gemini Flash (miễn phí) | Google AI Studio | Miễn phí | rất ít lượt/ngày | Chất lượng hơn Lite |
+| OpenRouter (model free) | openrouter.ai | Miễn phí | ~50 lượt/ngày | Nhập ID model `:free` vào ô OpenRouter |
+| Groq (miễn phí) | groq.com | Miễn phí | token/ngày | Nhanh; nhập ID model vào ô Groq |
+| Tùy chỉnh | tự nhập | Tùy nguồn | — | Nhập endpoint + key + model (vd Z.ai GLM) |
 
-## Cấu hình prompt như DeepSeek Translate — bản 1.1.0
+Các con số hạn mức lấy từ trang tổng hợp bên thứ ba (tháng 9–11/2026) và có thể thay đổi; kiểm tra lại với trang chính thức của từng nhà cung cấp.
 
-Giữ nguyên tên extension và nguồn khi cập nhật ZIP để vBook có thể nhận diện bản cập nhật. Không gỡ bản cũ trước chỉ để cập nhật: gỡ extension sẽ xóa dữ liệu của nó. Nếu vBook báo tạo thêm một extension riêng, dừng và kiểm tra trước khi xóa bản cũ.
+**Cấu hình:** mở cài đặt extension, nhập API key cho nguồn muốn dùng (ô DeepSeek, Gemini, OpenRouter, Groq hoặc Tùy chỉnh), rồi trong cài đặt dịch của truyện chọn model tương ứng.
 
-### 1. Prompt hệ thống biên tập
+**Thử lại trước khi chuyển nguồn (1.4.2):** nguồn miễn phí hay báo tạm quá tải (ví dụ Gemini trả HTTP 503 “high demand”). Extension thử lại chính nguồn đó tối đa 3 lần trước khi nghĩ tới DeepSeek, nên lỗi 503 chốc lát không còn làm nó âm thầm nhảy sang DeepSeek.
 
-Đây là hướng dẫn chung cho tất cả truyện, có thể sửa toàn bộ trong cài đặt extension. Mặc định đã tối ưu **biên tập Việt convert → Việt tự nhiên**; không lấy nguyên prompt dịch Trung → Việt của extension mẫu vì đầu vào không có nguyên văn Trung Quốc.
+**Tự chuyển về DeepSeek:** bật sẵn ở ô *“Tự chuyển sang DeepSeek khi nguồn free lỗi”*. Chỉ khi nguồn miễn phí thật sự hết hạn mức (HTTP 429), sai/thiếu khóa, hoặc vẫn quá tải sau khi thử lại, extension mới dùng **DeepSeek Flash** cho đúng chương đó nếu đã nhập DeepSeek API key (lượt đó tính phí DeepSeek). Không bao giờ gọi lặp DeepSeek→DeepSeek nên không tính phí hai lần. Tắt ô này nếu chỉ muốn dùng nguồn miễn phí và chấp nhận báo lỗi khi hết hạn mức.
 
-Các biến được thay tự động tương tự DeepSeek Translate:
+**Cache theo nguồn:** chương biên tập bằng nguồn/model nào thì lưu riêng theo nguồn đó. Đổi sang model khác sẽ biên tập lại (có thể tốn hạn mức/phí); đổi về đúng model cũ thì dùng lại bản đã lưu.
+
+**Vì sao vẫn thấy gọi DeepSeek khi đã chọn Gemini?** Mở **Nhật ký** của chương: mỗi lần biên tập có dòng `Editor 1.4.2: nguồn <tên nguồn> [<model>]…`. Nếu thấy `Nguồn Gemini lỗi: … Tự chuyển sang DeepSeek` thì nghĩa là Gemini lỗi (thiếu key trong ô **Gemini API key**, hết hạn mức, hoặc quá tải). Kiểm tra: đã dán Gemini key vào đúng ô Gemini chưa, và trong cài đặt dịch của truyện đã chọn đúng model **Gemini Flash-Lite** chưa (không phải chọn ở extension khác).
+
+## Prompt và bộ nhớ tên
+
+Giữ các cấu hình đã có: API key, model, văn phong, yêu cầu riêng và thuật ngữ từng truyện. **DeepSeek Flash** là mặc định, ngoài ra có **DeepSeek V4 Pro** và các nguồn miễn phí ở bảng trên. Với DeepSeek, thinking được tắt để ưu tiên tốc độ; các nguồn khác không gửi tham số riêng của DeepSeek.
+
+Prompt hệ thống có các biến:
 
 | Biến | Nội dung |
 |---|---|
-| `{source_language}` | tiếng Việt convert QT/Hán Việt |
-| `{target_language}` | tiếng Việt tự nhiên |
+| `{source_language}` | Tiếng Việt convert QT/Hán Việt |
+| `{target_language}` | Tiếng Việt tự nhiên |
 | `{style_prompt}` | Prompt văn phong đang chọn |
-| `{source_prompt}` | Hướng dẫn xử lý nội dung chương |
-| `{custom_instruction}` | Yêu cầu riêng của truyện, hoặc yêu cầu mặc định nếu chưa đặt riêng |
-| `{memory_prompt}` | Tên và thuật ngữ bạn nhập cho truyện; **không phải bộ nhớ do AI tự học** |
+| `{source_prompt}` | Hướng dẫn biên tập toàn bộ nguyên chương |
+| `{custom_instruction}` | Yêu cầu riêng của truyện hoặc yêu cầu mặc định |
+| `{memory_prompt}` | Tên/thuật ngữ người dùng nhập thủ công |
 
-Giữ những biến bạn muốn áp dụng. Nếu xóa `{style_prompt}` thì lựa chọn văn phong không còn được đưa vào prompt; tương tự với yêu cầu và thuật ngữ. Quy ước trả JSON và giữ số đoạn được nối riêng tự động, vì extension cần định dạng này để kiểm tra và lưu kết quả.
+Quy tắc gửi toàn chương và sửa ngắt dòng được nối riêng, áp dụng cả khi đã lưu prompt cũ. Nếu prompt riêng còn yêu cầu giữ số đoạn/đánh ID, nên xóa yêu cầu đó hoặc để trống ô prompt để dùng mặc định mới.
 
-Ví dụ prompt hệ thống có thể dán vào ô cấu hình:
+Bảng **Prompt phong cách biên tập** dùng chung, có `natural`, `wuxia`, `modern`. Thêm phong cách bằng key riêng và value là hướng dẫn; để trống bookId. Sửa prompt/model/văn phong sẽ cần biên tập lại chương; tải lại chương sau khi sửa.
 
-```text
-Bạn là biên tập viên tiểu thuyết tiếng Việt. Hãy biên tập {source_language} thành {target_language}.
-Sửa cú pháp QT, trật tự từ và cách diễn đạt gượng; giữ nhịp kể, sắc thái nhân vật và đầy đủ thông tin.
-Không thêm tình tiết, không tóm tắt, không suy đoán nguyên tác. Giữ nguyên tên Hán Việt, số liệu, cảnh giới và thuật ngữ. Chỉ sửa xưng hô khi có đủ ngữ cảnh.
+Mở cài đặt extension từ truyện để xem ba bảng **nhân vật**, **địa điểm**, **thuật ngữ/tổ chức**. Key là tên trong nguồn, value là cách viết muốn giữ. Mỗi truyện lưu riêng. Tự học lấy tối đa 8 tên trong chính phản hồi biên tập, không gọi API phân tích riêng, chỉ nhận tên có trong cả đầu vào và đầu ra và không ghi đè mục đã lưu. Giới hạn tự học 200 mục mỗi bảng; mỗi yêu cầu chỉ đưa tối đa 16 mục liên quan/khoảng 1.500 ký tự vào prompt.
 
-{style_prompt}
-{source_prompt}
-{custom_instruction}
-{memory_prompt}
+Có thể tắt tự học hoặc tắt dùng bộ nhớ. Tự học không làm hết hiệu lực các chương đã lưu. Sau khi sửa tên thủ công, tăng **Phiên bản bộ nhớ của truyện** nếu muốn biên tập lại cả chương đã lưu; có thể tốn API.
 
-Tự đối chiếu đủ ý và nhất quán tên trước khi trả kết quả; không in phần giải thích.
-```
+## Cache, dữ liệu và chi phí
 
-### 2. Prompt phong cách biên tập
+- Bản gốc không bị ghi đè. Kết quả lưu riêng theo truyện, toàn văn đầu vào, model và prompt trong bảng `edited_chapters`.
+- **Cache từng đoạn của 1.2.x không dùng cho chế độ nguyên chương.** Các bảng cũ không bị xóa, nhưng chương cần biên tập lại một lần để AI có ngữ cảnh toàn chương và sửa lại bố cục. Việc này có phí API.
+- API key và bộ nhớ tên được giữ khi cập nhật cùng đường dẫn cố định. Gỡ extension sẽ xóa dữ liệu riêng theo cơ chế vBook.
+- Cache dùng chung cho trang đọc và A–B khi toàn văn sau chuẩn hóa khớp. Cách ứng dụng cung cấp/chia nội dung khác nhau có thể làm giảm khả năng dùng lại.
+- Chỉ gửi trực tiếp tới endpoint của nguồn đang chọn (`api.deepseek.com`, `generativelanguage.googleapis.com`, `openrouter.ai`, `api.groq.com` hoặc endpoint tùy chỉnh bạn nhập), không qua máy chủ trung gian. Mỗi khóa chỉ gửi tới đúng nguồn của nó. Khóa nằm trong cấu hình vBook, không có trong ZIP; không cam kết là kho khóa mã hóa.
+- Nguồn miễn phí có thể dùng dữ liệu gửi lên để huấn luyện (rõ nhất là bản free của Gemini). Cân nhắc trước khi gửi nội dung nhạy cảm; muốn riêng tư hơn thì dùng DeepSeek trả phí.
+- Nội dung chương và hướng dẫn/tên liên quan được gửi tới DeepSeek. API tính phí theo tài khoản của bạn; ít lượt gọi hơn không bảo đảm một tỷ lệ tiết kiệm cố định.
 
-Mở bảng **Prompt phong cách biên tập** trong cài đặt. Ba hàng mặc định được tạo khi mở cài đặt lần đầu:
+## Kiểm tra
 
-- `natural`: Tự nhiên.
-- `wuxia`: Kiếm hiệp / Tiên hiệp.
-- `modern`: Hiện đại / Đô thị.
-
-Để sửa phong cách có sẵn, sửa `value` của hàng tương ứng. Để thêm phong cách, để trống `bookId`, nhập `key` mới (ví dụ `cung-dau`) và `value` là prompt. Phong cách mới hiện trong bộ chọn văn phong của vBook khi mở lại bộ chọn. Prompt là văn bản thường, không cần JSON.
-
-Ví dụ value cho `wuxia`:
-
-```text
-Giữ chất cổ phong vừa phải, tên chiêu thức, cảnh giới và pháp bảo dùng Hán Việt nhất quán. Câu kể và động từ phải tự nhiên, tránh lối “đối với ... mà nói”, “đem ... cho ...” nếu không cần thiết. Không hiện đại hóa lời thoại; không tự đổi ta/ngươi thành tôi/bạn. Không coi tu vi cao đồng nghĩa tuổi già.
-```
-
-Các prompt văn phong được dùng chung giữa các truyện; yêu cầu riêng từng truyện nằm ở ô riêng bên dưới. Không thêm API key vào prompt.
-
-### 3. Yêu cầu riêng và tên / thuật ngữ theo truyện
-
-Mở cài đặt extension **từ truyện** để thấy **Yêu cầu biên tập riêng cho truyện** và **Tên / thuật ngữ của truyện này**. Ví dụ:
-
-```text
-Yêu cầu riêng: Giữ ngôi kể thứ ba. Trong lời thoại giữ ta/ngươi nếu bản convert dùng như vậy. Nhân vật chưa rõ giới tính thì dùng tên hoặc cách nói trung tính. Không thay cách viết Lâm Phàm.
-
-Tên / thuật ngữ: Lâm Phàm; Trúc Cơ; Kim Đan; Thanh Vân Tông — giữ nguyên các cách viết này.
-```
-
-Nếu chưa đặt riêng, dùng yêu cầu/thuật ngữ mặc định trong cài đặt chung. Các chỉ dẫn này chỉ giúp AI nhất quán, không bảo đảm AI luôn sửa đúng.
-
-### Khi thay đổi prompt
-
-**Tải lại chương đang đọc** để vBook gọi lại extension. Bộ nhớ riêng của extension sẽ phân biệt prompt mới (kể cả sửa value của văn phong) và không dùng nhầm kết quả cũ. Biên tập lại có thể phát sinh phí API. Xử lý A–B dùng đúng cấu hình prompt/model/văn phong đã chọn lúc bắt đầu.
-
-Bản 1.1.0 thay prompt mặc định và khóa bộ nhớ; các kết quả tạo bằng 1.0.0 không được dùng lại cho prompt mới. API key, yêu cầu và thuật ngữ vẫn dùng các khóa cấu hình cũ của extension.
-
-## Bộ nhớ và tính toàn vẹn
-
-- Bản gốc của sách **không bị ghi đè**. Extension chỉ lưu bản biên tập riêng trong cơ sở dữ liệu của extension, theo từng truyện và đoạn văn.
-- Khóa bộ nhớ bao gồm nội dung gốc, model, văn phong, chỉ dẫn, thuật ngữ và phiên bản prompt. Có kiểm tra nội dung chính xác để tránh nhầm khi hash trùng.
-- Các đoạn đã lưu được dùng lại mà không cần thêm lượt API. Nếu vBook chia đoạn ở ranh giới khác, phần chưa khớp có thể phải gọi lại; không bảo đảm không tốn thêm token trong mọi kiểu chia nội dung của ứng dụng.
-- Đổi prompt/thuật ngữ/model sẽ cần biên tập lại. **Tải lại chương** sau khi đổi để bỏ qua cache riêng của vBook; cache của ứng dụng không biết mọi thay đổi trong cấu hình extension.
-- JSON lỗi, thiếu/thừa đoạn, đoạn trống và phản hồi bị cắt đều bị từ chối trước khi lưu nhóm đoạn đó. Các nhóm đã xử lý thành công trước đó vẫn được giữ.
-- Gỡ extension sẽ xóa bộ nhớ biên tập của extension theo cơ chế vBook. Nó không xóa sách gốc.
-- Không tự gọi thêm API để học tên hoặc phân tích nhân vật; yêu cầu và bảng thuật ngữ do người dùng nhập.
-
-## Khóa API, chi phí và giới hạn
-
-Khóa do bạn nhập tại máy, không nằm trong ZIP. Chỉ gửi tới `https://api.deepseek.com/chat/completions`; không có máy chủ trung gian. Khóa được lưu theo cơ chế cài đặt extension của vBook, không cam kết là kho khóa mã hóa. Đừng chia sẻ ảnh cài đặt có khóa.
-
-Nội dung chương, yêu cầu và thuật ngữ liên quan được gửi tới DeepSeek. Dùng API có tính phí theo tài khoản của bạn; chọn khoảng A–B và bấm Bắt đầu là chủ động yêu cầu xử lý khoảng đó. Extension không nạp tiền, không tự gửi lại khi hết số dư, không tự xoay nhiều API key.
-
-AI vẫn có thể sửa sai ý hoặc xưng hô. Không có nguyên văn Trung Quốc thì không thể bảo đảm khôi phục nghĩa đã mất trong bản convert. Nên thử một chương ngắn và đối chiếu trước khi chạy nhiều chương.
-
-Đã kiểm tra bằng môi trường mô phỏng các API vBook, không dùng khóa thật hoặc gửi yêu cầu trả phí. **Chưa thử cài trên điện thoại/vBook thực tế.** Nếu ứng dụng không hiện nguồn Việt convert hoặc không gọi dịch, gửi ảnh màn hình cài đặt dịch và nhật ký; không gửi API key.
-
-## Mã nguồn và kiểm tra
-
-Không cần cài thư viện npm:
+Không cần thư viện npm:
 
 ```text
 node --test tests/editor.test.cjs
 ```
 
-API extension tham khảo từ tài liệu chính thức: https://github.com/Darkrai9x/vbook-extensions/blob/master/extension-api.md
+21 kiểm thử cho luồng nguyên chương, bố cục đầu ra tự do, chương 153 dòng dài hơn 12.000 ký tự vẫn một lượt, cache/model/prompt, bộ nhớ tên, cấu hình một tầng, ngôn ngữ và A–B. Kiểm tra thêm với `core.js` lấy từ APK vBook 1.2.9 bằng cầu nối mô phỏng: API key hiện được, gửi toàn chương và giữ xuống dòng trong kết quả. Chưa gọi API trả phí hoặc xác nhận trực tiếp trên điện thoại; chưa đánh giá chất lượng biên tập bằng phản hồi AI thật.
 
-Mẫu DeepSeek chính thức: https://github.com/Darkrai9x/vbook-extensions/tree/master/deepseek-translate
+Tài liệu vBook: https://github.com/Darkrai9x/vbook-extensions/blob/master/extension-api.md
+DeepSeek Chat Completions: https://api-docs.deepseek.com/api/create-chat-completion/
 
-DeepSeek models và API: https://api-docs.deepseek.com/quick_start/pricing/
-
-Mã xử lý biên tập viết riêng cho extension này; không đóng gói lại mã/biểu tượng của extension mẫu. Không phải sản phẩm chính thức của vBook hoặc DeepSeek.
+Không phải sản phẩm chính thức của vBook hoặc DeepSeek.

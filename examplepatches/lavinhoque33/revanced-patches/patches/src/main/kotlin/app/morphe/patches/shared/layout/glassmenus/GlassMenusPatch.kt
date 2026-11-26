@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-25.
  * Written by lavinhoque33, 2026-11-24.
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -21,6 +22,7 @@ import app.morphe.patches.shared.drawable.addDrawableDrawnColorHook
 import app.morphe.patches.shared.mapping.ResourceType.LAYOUT
 import app.morphe.patches.shared.mapping.resourceLiteral
 import app.morphe.util.Utils.printWarn
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -45,6 +47,12 @@ private object MaterialBottomSheetFingerprint : Fingerprint(
 
 private object BottomSheetAttachedFingerprint : Fingerprint(
     name = "onAttachedToWindow",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+private object BottomSheetStartFingerprint : Fingerprint(
+    name = "onStart",
     returnType = "V",
     parameters = emptyList(),
 )
@@ -85,6 +93,7 @@ internal fun BytecodePatchContext.installGlassMenus(): Boolean {
         ?: return unavailableHook("Material bottom sheet")
     val bottomSheet = BottomSheetAttachedFingerprint.matchOrNull(bottomSheetClass)?.method
         ?: return unavailableHook("Material bottom sheet window")
+    val bottomSheetStart = BottomSheetStartFingerprint.matchOrNull(bottomSheetClass)?.method
     val dialog = DialogFragmentShowFingerprint.matchAllOrNull()?.singleOrNull()
         ?: return unavailableHook("dialog fragment")
     val showIndex = dialog.instructionMatches.first().index
@@ -94,6 +103,17 @@ internal fun BytecodePatchContext.installGlassMenus(): Boolean {
         return unavailableHook("Litho background")
     }
 
+    if (bottomSheetStart == null) {
+        printWarn("Glass menus: early Material bottom sheet hook is unavailable; keeping its stock dim.")
+    } else {
+        // Dialog has created its content but has not handed its window attributes to WindowManager.
+        // Hook at entry: some versions reuse p0 before returning.
+        bottomSheetStart.addInstruction(
+            0,
+            "invoke-static/range {p0 .. p0}, $GLASS_MENUS_EXTENSION->onBottomSheetStarting($DIALOG)V",
+        )
+    }
+
     bottomSheet.addInstruction(
         0,
         "invoke-static/range {p0 .. p0}, $GLASS_MENUS_EXTENSION->onBottomSheetDialog($DIALOG)V",
@@ -101,6 +121,11 @@ internal fun BytecodePatchContext.installGlassMenus(): Boolean {
     dialog.method.addInstruction(
         showIndex + 1,
         "invoke-static/range {v$dialogRegister .. v$dialogRegister}, $GLASS_MENUS_EXTENSION->onDialogShown($DIALOG)V",
+    )
+    dialog.method.addInstructionsAtControlFlowLabel(
+        showIndex,
+        "invoke-static/range {v$dialogRegister .. v$dialogRegister}, " +
+            "$GLASS_MENUS_EXTENSION->onDialogBeforeShow($DIALOG)V",
     )
     setExtensionIsPatchIncluded(GLASS_MENUS_EXTENSION)
     return true

@@ -69,6 +69,10 @@ final class NativeLine {
             "SELECT content, attachement_type, parameter, location_name, location_address FROM chat_history "
             + "WHERE chat_id = ? AND server_id = ? AND from_mid IS NOT NULL AND from_mid != ? LIMIT 1";
 
+    static final String MESSAGE_MENTION_SQL =
+            "SELECT parameter FROM chat_history "
+            + "WHERE chat_id = ? AND server_id = ? AND from_mid IS NOT NULL AND from_mid != ? LIMIT 1";
+
     static final String LATEST_CHAT_MESSAGE_SQL =
             "SELECT type, created_time, content, attachement_type, parameter, location_name, location_address "
             + "FROM chat_history WHERE chat_id = ? ORDER BY created_time DESC, id DESC LIMIT 1";
@@ -260,15 +264,28 @@ final class NativeLine {
     static BypassMatch checkSilentBypass(String chat, String account, String messageId,
                                          boolean checkMention, List<String> keywords) {
         boolean checkKeywords = keywords != null && !keywords.isEmpty();
+        if (checkKeywords) {
+            try {
+                if (!previewsAllowed()) checkKeywords = false;
+            } catch (ReflectiveOperationException | RuntimeException ignored) {
+                checkKeywords = false;
+            }
+        }
         if ((!checkMention && !checkKeywords) || !regularChat(chat)
                 || account == null || account.isEmpty() || messageId == null || messageId.isEmpty()) {
             return BypassMatch.NONE;
         }
+        String sql = checkKeywords ? MESSAGE_METADATA_SQL : MESSAGE_MENTION_SQL;
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(
                 Settings.context().getDatabasePath("naver_line").getAbsolutePath(), null,
                 SQLiteDatabase.OPEN_READONLY);
-             Cursor cursor = db.rawQuery(MESSAGE_METADATA_SQL, new String[]{chat, messageId, account})) {
+             Cursor cursor = db.rawQuery(sql, new String[]{chat, messageId, account})) {
             if (cursor.moveToFirst()) {
+                if (!checkKeywords) {
+                    String parameter = cursor.getString(0);
+                    return NotificationPolicy.isMentionedInParameter(parameter, account)
+                            ? new BypassMatch(true, false) : BypassMatch.NONE;
+                }
                 String content = cursor.getString(0);
                 int attachmentType = cursor.isNull(1) ? 0 : cursor.getInt(1);
                 String parameter = cursor.getString(2);
@@ -276,7 +293,7 @@ final class NativeLine {
                 String locationAddress = cursor.getString(4);
                 boolean mentionMatched = checkMention
                         && NotificationPolicy.isMentionedInParameter(parameter, account);
-                boolean keywordMatched = checkKeywords && NotificationPolicy.matchesMessageKeywords(
+                boolean keywordMatched = NotificationPolicy.matchesMessageKeywords(
                         content, attachmentType, parameter, locationName, locationAddress, keywords);
                 return (mentionMatched || keywordMatched)
                         ? new BypassMatch(mentionMatched, keywordMatched)

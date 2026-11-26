@@ -244,6 +244,13 @@ class AnalyticsUploadsTest {
         for ((case, timers) in cases) assertEquals(withoutTimer, found(analyticsUploadFixture(timers = timers)), case)
     }
 
+    @Test fun theXAnalyticsTimerIsTakenWhateverRedexNamesItsProviderGetter() {
+        // 588 names the provider's no-argument getter DRE() where 587 kept get().
+        val withoutTimer = found(analyticsUploadFixture(timers = emptyList()))
+        val renamed = timerBody().replace("$LOGGER_PROVIDER->get()", "$LOGGER_PROVIDER->DRE()")
+        assertEquals(setOf("$TIMER->run()V"), found(analyticsUploadFixture(timers = listOf(timerClass(run = timerRun(body = renamed))))) - withoutTimer)
+    }
+
     @Test fun theXAnalyticsTimerSkipsThatRunWhileTheSwitchIsOn() {
         val run = timerRun()
         val before = run.code()

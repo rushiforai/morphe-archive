@@ -21,6 +21,8 @@ import app.linenotifications.extension.core.NotificationPolicy;
 public final class Settings {
     private static volatile Context application;
     private static final ThreadLocal<java.lang.ref.WeakReference<Object>> menuFragment = new ThreadLocal<>();
+    private static final Set<String> RECONCILING_ACCOUNTS = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final Set<String> RECONCILED_ACCOUNTS = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private static final String PREFS = "line_notification_patches_v1";
     public static final String SILENT = "not_too_much_silent";
     public static final String MENTION_BYPASS = "silent_mention_bypass";
@@ -126,10 +128,118 @@ public final class Settings {
         return false;
     }
     static String mutePrefix(String account) { return "mute:" + encoded(account) + ":"; }
+    static String pendingHidePrefix(String account) { return "pending_hide:" + encoded(account) + ":"; }
+    static String pendingHideKey(String account, String chat) { return pendingHidePrefix(account) + encoded(chat); }
     static String quietKey(String account, String chat) { return "quiet:" + encoded(account) + ":" + encoded(chat); }
     static boolean quiet(String account, String chat) { return prefs().getBoolean(quietKey(account, chat), false); }
+    static boolean confirmedMutedOnly(String account, String chat) {
+        if (application == null || account == null || account.isEmpty() || !NativeLine.regularChat(chat)) return false;
+        return prefs().contains(mutePrefix(account) + encoded(chat))
+                || prefs().contains(pendingHideKey(account, chat));
+    }
     static boolean fullyMuted(String account, String chat) {
-        return prefs().contains(mutePrefix(account) + encoded(chat));
+        if (application == null || account == null || account.isEmpty() || !NativeLine.regularChat(chat)) return false;
+        if (prefs().contains(mutePrefix(account) + encoded(chat))) return true;
+        return reconcilePendingHide(account, chat);
+    }
+
+    /** Persists a crash-recovery marker synchronously on the worker before native mute runs. */
+    static boolean setPendingHide(String account, String chat, String name) {
+        String label = name == null || name.isEmpty()
+                ? Strings.get("line_notify_fallback_chat", "Chat") : name;
+        return prefs().edit().putString(pendingHideKey(account, chat), label).commit();
+    }
+
+    static void clearPendingHide(String account, String chat) {
+        prefs().edit().remove(pendingHideKey(account, chat)).apply();
+    }
+
+    static void commitHideSuccess(String account, String chat, String name) {
+        String label = name == null || name.isEmpty()
+                ? Strings.get("line_notify_fallback_chat", "Chat") : name;
+        // Preserve quietKey while hidden so unhiding restores the room's prior QUIET vs NORMAL mode.
+        prefs().edit()
+                .putString(mutePrefix(account) + encoded(chat), label)
+                .remove(pendingHideKey(account, chat))
+                .apply();
+    }
+
+    /**
+     * If a previous process exited after starting a native hide request and before the completion
+     * callback wrote the local mute key, reconcile it against LINE's persisted per-chat mute state.
+     */
+    static boolean reconcilePendingHide(String account, String chat) {
+        if (application == null || account == null || account.isEmpty() || !NativeLine.regularChat(chat)) return false;
+        String key = pendingHideKey(account, chat);
+        String pendingName = prefs().getString(key, null);
+        if (pendingName == null) return false;
+        if (ChatNotifications.isHideInFlight(account, chat)) return false;
+        try {
+            if (!NotificationPolicy.sameAccount(account, NativeLine.account())) return false;
+            boolean nativeMuted = NativeLine.muted(chat);
+            if (!NotificationPolicy.sameAccount(account, NativeLine.account())) return false;
+            if (nativeMuted) {
+                commitHideSuccess(account, chat, pendingName);
+                return true;
+            }
+            clearPendingHide(account, chat);
+            return false;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return true;
+        }
+    }
+
+    static boolean reconcileAllPendingHides(String account) {
+        if (application == null || account == null || account.isEmpty()) return false;
+        String prefix = pendingHidePrefix(account);
+        boolean allResolved = true;
+        for (java.util.Map.Entry<String, ?> entry : prefs().getAll().entrySet()) {
+            if (entry.getKey().startsWith(prefix) && entry.getValue() instanceof String) {
+                try {
+                    String chat = new String(
+                            Base64.decode(entry.getKey().substring(prefix.length()), Base64.URL_SAFE),
+                            StandardCharsets.UTF_8);
+                    reconcilePendingHide(account, chat);
+                    if (prefs().contains(entry.getKey())) allResolved = false;
+                } catch (IllegalArgumentException ignored) { }
+            }
+        }
+        return allResolved;
+    }
+
+    static void clearRuntimeStateForTest() {
+        RECONCILING_ACCOUNTS.clear();
+        RECONCILED_ACCOUNTS.clear();
+    }
+
+    static void markNeedsReconcile(String account) {
+        if (account != null && !account.isEmpty()) {
+            RECONCILED_ACCOUNTS.remove(account);
+        }
+    }
+
+    /** Reconciles interrupted hides and prunes surviving hidden notifications once per account per process. */
+    static void ensureAccountReconciled(String account, boolean asyncPrune) {
+        if (application == null || account == null || account.isEmpty() || !enabled(SILENT)) return;
+        if (RECONCILED_ACCOUNTS.contains(account)) return;
+        if (!RECONCILING_ACCOUNTS.add(account)) return;
+        if (asyncPrune) {
+            Notifications.reconcileAccountAsync(account);
+        } else {
+            runAccountReconcile(account);
+        }
+    }
+
+    static void runAccountReconcile(String account) {
+        try {
+            if (application == null || account == null || account.isEmpty() || !enabled(SILENT)) return;
+            boolean allMarkersResolved = reconcileAllPendingHides(account);
+            if (pruneHiddenNotifications(account) && allMarkersResolved) {
+                RECONCILED_ACCOUNTS.add(account);
+            }
+        } finally {
+            RECONCILING_ACCOUNTS.remove(account);
+        }
     }
     /** Presentation only: replaces generic chat-list attachment labels when More Chat Info is active. */
     public static String chatListLastMessage(String chat, String nativeText, Long lastTime, boolean hasDraft) {
@@ -159,28 +269,15 @@ public final class Settings {
         if (!enabled(SILENT) || intent == null || !"jp.naver.line.android.access.remote.action.MUTE_CURRENT_CHAT_ACTION".equals(intent.getAction())) return false;
         String chat = intent.getStringExtra("chatId");
         if (!NativeLine.regularChat(chat)) return false;
-        String account;
-        try {
-            account = NativeLine.account();
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return true;
-        }
-        ChatNotifications.change(context, chat, ChatNotifications.QUIET, null, success -> {
-            if (!Boolean.TRUE.equals(success)) return;
-            try {
-                if (!account.equals(NativeLine.account())) return;
-            } catch (ReflectiveOperationException | RuntimeException ignored) {
-                return;
-            }
-            NotificationManager manager = context.getSystemService(NotificationManager.class);
-            Notifications.cancelChatNotifications(manager, account, chat);
-        });
+        // Current-account notifications under SILENT use account-bound MuteActions; consume
+        // any leftover unbound native mute intent without changing room state.
         return true;
     }
     /** The original private service handles every action not owned by these patches. */
     public static boolean interceptNotificationAction(Context context, Intent intent) {
         if (ReadActions.handle(context, intent)) return true;
         if (SnoozeActions.handle(context, intent)) return true;
+        if (MuteActions.handle(context, intent)) return true;
         return interceptNotificationMute(context, intent);
     }
     static void setMuted(String account, String chat, String name, boolean mute) {
@@ -192,25 +289,40 @@ public final class Settings {
         editor.apply();
     }
 
-    private static void pruneHiddenNotifications() {
+    static boolean pruneHiddenNotifications(String account) {
+        if (application == null || account == null || account.isEmpty()) return false;
         try {
-            String account = NativeLine.account();
+            if (!NotificationPolicy.sameAccount(account, NativeLine.account())) return false;
             NotificationManager manager = context().getSystemService(NotificationManager.class);
-            if (manager == null) return;
+            if (manager == null) return false;
             Set<String> hiddenChats = new HashSet<>();
-            for (StatusBarNotification n : manager.getActiveNotifications()) {
-                Notification notif = n.getNotification();
-                if (notif == null || notif.extras == null || (notif.flags & Notification.FLAG_GROUP_SUMMARY) != 0) continue;
-                String chat = notif.extras.getString("line.chat.id");
-                String nAccount = notif.extras.getString(Notifications.ACCOUNT);
-                if (NotificationPolicy.sameAccount(account, nAccount)
-                        && NativeLine.regularChat(chat) && fullyMuted(account, chat)) {
-                    hiddenChats.add(chat);
+            String prefix = mutePrefix(account);
+            for (java.util.Map.Entry<String, ?> entry : prefs().getAll().entrySet()) {
+                if (entry.getKey().startsWith(prefix) && entry.getValue() instanceof String) {
+                    try {
+                        String chat = new String(
+                                Base64.decode(entry.getKey().substring(prefix.length()), Base64.URL_SAFE),
+                                StandardCharsets.UTF_8);
+                        if (NativeLine.regularChat(chat) && !ChatNotifications.isHideInFlight(account, chat)) {
+                            hiddenChats.add(chat);
+                        }
+                    } catch (IllegalArgumentException ignored) { }
                 }
             }
             if (!hiddenChats.isEmpty()) {
-                Notifications.cancelChatNotifications(manager, account, hiddenChats);
+                return Notifications.cancelConfirmedHiddenChats(manager, account, hiddenChats);
             }
+            return NotificationPolicy.sameAccount(account, NativeLine.account());
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    private static void pruneHiddenNotifications() {
+        try {
+            String account = NativeLine.account();
+            reconcileAllPendingHides(account);
+            pruneHiddenNotifications(account);
         } catch (ReflectiveOperationException | RuntimeException ignored) { }
     }
     public static int titleId() { return context().getResources().getIdentifier("line_notify_settings", "string", context().getPackageName()); }
@@ -225,6 +337,7 @@ public final class Settings {
         prefs().edit().putBoolean(key, checked).apply();
         if (SILENT.equals(key)) {
             if (checked) pruneHiddenNotifications();
+            Notifications.refreshReadActions();
             ChatNotifications.refreshChatList();
         }
         if (INFO.equals(key)) {
@@ -236,7 +349,7 @@ public final class Settings {
             if (!checked) NativeLine.clearMediaPreviewCache(context());
             Notifications.refreshActivePreviews();
         }
-        if (READ.equals(key)) Notifications.refreshReadActions();
+        if (READ.equals(key) || NO_REPLY.equals(key)) Notifications.refreshReadActions();
     }
 
     public static void show(Context context) {
@@ -282,7 +395,7 @@ public final class Settings {
                             .setPositiveButton(hidden
                                     ? Strings.get(context, "line_notify_btn_unhide", "Unhide")
                                     : Strings.get(context, "line_notify_btn_hide", "Hide"), (d, w) -> {
-                                try { if (account.equals(NativeLine.account())) ChatNotifications.change(context, chat,
+                                try { if (account.equals(NativeLine.account())) ChatNotifications.change(context, account, chat,
                                         hidden ? (quiet(account, chat) ? ChatNotifications.QUIET : ChatNotifications.NORMAL) : ChatNotifications.HIDDEN,
                                         null, null); }
                                 catch (ReflectiveOperationException ignored) { }

@@ -33,17 +33,17 @@ internal const val TAB_BAR_SCROLL_AWAY = "tab_bar_scroll_away"
 
 private const val TAB_BAR_FLAGS = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
 
-/** The flag the builder reads before it sets up the floating pill, as 587 numbers it (586 read 0x0101055400014313). */
-internal const val FLOATING_TAB_BAR_FLAG = 0x0101055600014560L
+/** The flag the builder reads before it sets up the floating pill, as 588 numbers it (587 read 0x0101055600014560). */
+internal const val FLOATING_TAB_BAR_FLAG = 0x010105590001470eL
 
-/** The flag the Chats page reads for its scroll-away answer, as 587 numbers it (586 read 0x0101039400033264). */
-internal const val CHATS_SCROLL_AWAY_FLAG = 0x0101039000033352L
+/** The flag the Chats page reads for its scroll-away answer, as 588 numbers it (587 read 0x0101039000033352). */
+internal const val CHATS_SCROLL_AWAY_FLAG = 0x01010390000333f8L
 
 /**
- * The flag the Chats page reads when the bar's frame asks whether a scroll may move the bar at all, as 587 numbers it.
+ * The flag the Chats page reads when the bar's frame asks whether a scroll may move the bar at all, as 588 numbers it (587 read 0x0101039000003351).
  * The scroll-away answer only sets how far the bar can go, so without this one the bar never starts sliding.
  */
-internal const val CHATS_SLIDE_FLAG = 0x0101039000003351L
+internal const val CHATS_SLIDE_FLAG = 0x01010390000033f7L
 
 private val CHATS_PAGE_FLAGS = setOf(CHATS_SCROLL_AWAY_FLAG, CHATS_SLIDE_FLAG)
 

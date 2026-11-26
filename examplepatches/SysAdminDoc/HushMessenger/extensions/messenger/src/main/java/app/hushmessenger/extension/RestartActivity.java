@@ -31,7 +31,7 @@ public class RestartActivity extends Activity {
         // On a Root Mount install this screen can be the first thing in the process, before any hook.
         HostScreens.start(this);
         Settings.initialize(this);
-        boolean light = Settings.preferences.getBoolean("light", false);
+        boolean light = SettingsTheme.light(this);
         setTheme(light ? android.R.style.Theme_Material_Light_NoActionBar : android.R.style.Theme_Material_NoActionBar);
         super.onCreate(state);
         SettingsUi ui = new SettingsUi(this, light);

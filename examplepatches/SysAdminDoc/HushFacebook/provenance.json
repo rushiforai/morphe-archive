@@ -182,6 +182,15 @@
     },
     {
       "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nLanguages.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for #582: the Settings language picker's languages, each named in itself, and the pick L10n reads in place of Facebook's languages once settings are ready."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/AnalyticsEvents.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/analytics/**"
       ],
@@ -525,6 +534,7 @@
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableBg.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableDe.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableEs.java",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableFr.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableIn.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableIt.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableKo.java",
@@ -1522,7 +1532,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the Icon style option of Hushfacebook settings for issue #278, after the idea of Hushfeed's two plain app icons. The resource patch reads the application icon from the manifest, finds its one adaptive-icon configuration and the themed-icon vector its monochrome layer names, and writes a solid background color and a one-color copy of that vector inline into the adaptive icon. The monochrome layer stays. For issue #467 the Hushfacebook style instead writes Hushfacebook's own logo, from HushfacebookLogo.kt, inline as the foreground on Hushfacebook blue, with a one-color H as the themed layer."
+      "changes": "Written for Hushfacebook: the Icon style option of Hushfacebook settings for issue #278, after the idea of Hushfeed's two plain app icons. The resource patch reads the application icon from the manifest, finds its one adaptive-icon configuration and the themed-icon vector its monochrome layer names, and writes a solid background color and a one-color copy of that vector inline into the adaptive icon. The monochrome layer stays. For issue #467 the Hushfacebook style instead writes Hushfacebook's own logo, from HushfacebookLogo.kt, inline as the foreground on Hushfacebook blue, with a one-color H as the themed layer. Two more styles draw that H in one color on black or white, Icon picture puts a PNG of the user's own in the foreground and drops the themed layer, and Icon background sets the color behind any style or picture."
     },
     {
       "paths": [
@@ -1532,6 +1542,16 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Hushfacebook's own logo (assets/icons/icon-1024.png) traced into vector paths for issue #467: the white H with its two blue slots, its light blue and navy copies behind it, and a one-color outline for themed icons, scaled into an adaptive icon's 66 dp safe circle."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/appicons/LauncherPicture.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/hushfeed",
+      "commit": "92679641a7a20fb1b62794f83653f948ccc15252",
+      "license": "GPL-3.0-only",
+      "changes": "The custom launcher picture and background color checks of Hushfeed's CustomLauncherIconPatch.kt, taken out into their own file for issue #467: the color parse, the PNG reader with its size, header, palette and scanline checks, and the picture folder lookup, with Hushfacebook's option names in every refusal. The icon itself is written by LauncherIconStyle.kt."
     },
     {
       "paths": [
@@ -2096,6 +2116,16 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook for issue #497: Fold long text. The patch finds the feed post text builder by its cut's shape, the line limit it calls (a static int method taking the user session and the story that reads the line limit's config key), the config factory it builds the cut with (a static (II) call whose answer the cut takes), the one maker in the line limit's class that calls both, and the comment sheet's cut config by its CommentBodyTruncationUtil trace string. Each line limit goes through the extension right after it lands, and each config call hands its characters and lines through it first, at the call's label so every jump to the call lands on the hook. The extension answers Facebook's own numbers unless Fold long posts or Fold long comments names a line count, and for posts while Show full post text is on."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/FileDownloads.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/file/SaveFilesToDownloadsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #590 from Facebook 588: the one method logging that a file's address isn't http or https makes a DownloadManager request from the address and enqueues it with no destination, so the file stayed in DownloadManager's private cache. Right after the request's constructor, the request and the address go to the extension, which while the switch is on points the request at the public Downloads folder under the address's last segment, cleaned by the save folder's rules and cut to 200 bytes of UTF-8 with its ending kept."
     }
   ]
 }

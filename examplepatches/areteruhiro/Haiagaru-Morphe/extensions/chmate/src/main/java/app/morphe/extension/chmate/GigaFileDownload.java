@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 final class GigaFileDownload {
-    private static final Pattern BUTTON = Pattern.compile("download\\(\\s*['\"]([A-Za-z0-9_-]+)['\"]\\s*,\\s*(true|false)(?:\\s*,\\s*(?:true|false))?\\s*\\)\\s*;?");
+    private static final Pattern BUTTON = Pattern.compile("download\\(\\s*(?:\\d+\\s*,\\s*)?['\"]([A-Za-z0-9_-]+)['\"]\\s*,\\s*(true|false)(?:\\s*,\\s*(?:true|false)){0,2}\\s*\\)\\s*;?");
     private static final String UA = "Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE
             + ") AppleWebKit/537.36 Chrome/125.0.0.0 Mobile Safari/537.36";
 
@@ -57,12 +57,24 @@ final class GigaFileDownload {
         return null;
     }
 
+    static String firstFileToken(String html) {
+        for (org.jsoup.nodes.Element button : Jsoup.parse(html).select("button[onclick]")) {
+            Matcher action = BUTTON.matcher(button.attr("onclick"));
+            if (action.matches()) return action.group(1);
+        }
+        return "";
+    }
+
     private void resolve() {
         try {
-            String token = page.getPathSegments().get(0);
+            String shareToken = page.getPathSegments().get(0);
             String html = text(page,1024*1024);
             org.jsoup.nodes.Element filename = Jsoup.parse(html).selectFirst("#dl");
             if (filename != null) originalFilename = filename.text().trim();
+            String parsedToken = firstFileToken(html);
+            final String token = parsedToken.isEmpty() ? shareToken : parsedToken;
+            String resolvedName = fetchFilename(page.toString(),token);
+            if (!resolvedName.isEmpty()) originalFilename = resolvedName;
             Boolean locked = protectedFile(html,token);
             if (locked == null) throw new IOException("Unsupported download page");
             if (locked) show(() -> askPassword(token));
@@ -70,6 +82,32 @@ final class GigaFileDownload {
         } catch (Exception failure) {
             failed("直接取得できませんでした。アプリ内ブラウザで開いてください。");
         }
+    }
+
+    static String fetchFilename(String pageUrl,String token) throws IOException {
+        if (!MediaUploadWebPolicy.gigaShare(pageUrl) || token == null
+                || !token.matches("[A-Za-z0-9_-]{1,120}")) return "";
+        Uri page = Uri.parse(pageUrl);
+        Uri endpoint = new Uri.Builder().scheme("https").authority(page.getHost())
+                .appendPath("get_uploaded_file_name_jx.php").appendQueryParameter("file",token).build();
+        HttpURLConnection connection = (HttpURLConnection) URI.create(endpoint.toString()).toURL().openConnection();
+        connection.setInstanceFollowRedirects(false);
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(10000);
+        connection.setRequestProperty("User-Agent",UA);
+        connection.setRequestProperty("Referer",pageUrl);
+        connection.setRequestProperty("X-Requested-With","XMLHttpRequest");
+        try {
+            if (connection.getResponseCode() != 200) return "";
+            try (InputStream in = connection.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                byte[] bytes = new byte[4096];
+                for (int n; (n=in.read(bytes)) != -1;) {
+                    if (out.size()+n > 65536) throw new IOException("Filename response exceeds limit");
+                    out.write(bytes,0,n);
+                }
+                return safeFilename(new JSONObject(out.toString(StandardCharsets.UTF_8.name())).optString("filename",""));
+            } catch (org.json.JSONException malformed) { return ""; }
+        } finally { connection.disconnect(); }
     }
 
     private void askPassword(String token) {
@@ -148,17 +186,37 @@ final class GigaFileDownload {
         String responseName = dispositionFilename(disposition);
         String visibleName = safeFilename(pageName);
         String name = responseName;
-        if (name.isEmpty() || (name.toLowerCase(java.util.Locale.ROOT).endsWith(".bin")
-                && hasExtension(visibleName))) name = visibleName;
-        if (name.isEmpty()) name = URLUtil.guessFileName(pageUrl,disposition,mime);
+        boolean phpEndpointName = isPhpName(responseName);
+        boolean usePageName = !visibleName.isEmpty() && (name.isEmpty()
+                || (name.toLowerCase(java.util.Locale.ROOT).endsWith(".bin") && hasExtension(visibleName))
+                || (phpEndpointName && !visibleName.equalsIgnoreCase(responseName)));
+        if (usePageName) name = visibleName;
+        boolean endpointResponseName = isDownloadEndpointName(name);
+        if (endpointResponseName && visibleName.isEmpty()) name = "gigafile-download";
+        boolean endpointUrlName = false;
+        if (name.isEmpty()) {
+            name = URLUtil.guessFileName(pageUrl,disposition,mime);
+            if (isDownloadEndpointName(name)) {
+                name = "gigafile-download";
+                endpointUrlName = true;
+            }
+        }
         name = safeFilename(name);
         if (name.isEmpty()) name = "gigafile-download";
-        if (!hasExtension(name)) {
+        if (!hasExtension(name) && !endpointUrlName && !endpointResponseName && !(usePageName && phpEndpointName)) {
             String type = mime == null ? "" : mime.split(";",2)[0].trim().toLowerCase(java.util.Locale.ROOT);
             String extension = android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
             if (extension != null && !extension.isEmpty()) name += "." + extension;
         }
         return name.length() > 200 ? name.substring(0,200) : name;
+    }
+
+    private static boolean isPhpName(String name) {
+        return name != null && name.toLowerCase(java.util.Locale.ROOT).endsWith(".php");
+    }
+
+    private static boolean isDownloadEndpointName(String name) {
+        return name != null && name.equalsIgnoreCase("download.php");
     }
 
     private static String dispositionFilename(String disposition) {

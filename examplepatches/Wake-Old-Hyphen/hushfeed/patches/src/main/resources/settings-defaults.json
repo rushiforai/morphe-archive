@@ -136,6 +136,9 @@
       "hide_live_bubble",
       "hide_wind_down_screens"
     ],
+    "Block sound on sound pages": [
+      "sound_page_block_button"
+    ],
     "Block suggested video notifications": [
       "block_suggested_video_notifications"
     ],
@@ -475,6 +478,9 @@
       "hide_search_suggestions",
       "discover_search_bar_only"
     ],
+    "Hide sound page buttons": [
+      "hide_sound_page_buttons"
+    ],
     "Hide suggested accounts": [
       "hide_inbox_suggested_accounts",
       "keep_profile_suggested_accounts"
@@ -608,6 +614,7 @@
       "live_start_quality",
       "offer_live_clear_screen",
       "keep_live_clear_screen",
+      "hide_live_chat",
       "offer_live_full_screen",
       "dark_live_panels",
       "live_card_background",
@@ -2816,6 +2823,12 @@
       "type": "boolean",
       "default": false
     },
+    "hide_live_chat": {
+      "field": "HIDE_LIVE_CHAT",
+      "key": "hide_live_chat",
+      "type": "boolean",
+      "default": false
+    },
     "hide_live_entrance": {
       "field": "HIDE_LIVE_ENTRANCE",
       "key": "hide_live_entrance",
@@ -3113,6 +3126,12 @@
     "hide_shop": {
       "field": "HIDE_SHOP",
       "key": "hide_shop",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_sound_page_buttons": {
+      "field": "HIDE_SOUND_PAGE_BUTTONS",
+      "key": "hide_sound_page_buttons",
       "type": "boolean",
       "default": false
     },
@@ -4813,6 +4832,12 @@
       "key": "sound_grid_sort",
       "type": "string",
       "default": "off"
+    },
+    "sound_page_block_button": {
+      "field": "SOUND_PAGE_BLOCK_BUTTON",
+      "key": "sound_page_block_button",
+      "type": "boolean",
+      "default": true
     },
     "sound_seekbar": {
       "field": "SOUND_SEEKBAR",

@@ -39,6 +39,10 @@ public final class HomeHeader {
     static final int MAX_LENGTH = 30;
     /** The copy of the picked picture, in Messenger's files. */
     static final String PICTURE = "hushmessenger-home-header.png";
+    /** #212: the copy of a font file picked for the words alone, in Messenger's files beside Use your own font's. */
+    static final String FONT = "hushmessenger-home-header-font";
+    /** The picked font file's name as its provider gave it. Empty or missing: the words draw in bold sans. */
+    static final String FONT_NAME = "home_header_font_name";
     /** The words' height when the wordmark gives none, in dp. */
     static final int FALLBACK_HEIGHT_DP = 24;
     /** The widest the header gets, as a share of the screen's width. Wider words get smaller. */
@@ -56,6 +60,9 @@ public final class HomeHeader {
     /** The picture read last, with the file's time and size when it was read. */
     private static Bitmap picture;
     private static long pictureModified = -1, pictureLength = -1;
+    /** The font file read last, null when it didn't load, with the file's time and size when it was read. */
+    private static Typeface font;
+    private static long fontModified = -1, fontLength = -1;
     private static final java.util.concurrent.atomic.AtomicBoolean WARMING = new java.util.concurrent.atomic.AtomicBoolean();
 
     private HomeHeader() { }
@@ -66,13 +73,12 @@ public final class HomeHeader {
         try {
             if (!Settings.wouldUse(KEY)) return wordmark;
             Context context = Settings.appContext;
-            File copy = context == null ? null : file(context);
-            String signature = signature(copy);
+            String signature = signature(context);
             if (signature == null) return wordmark;
             synchronized (marks) {
                 Drawable mark = marks.get(wordmark);
                 if (mark == null || !signature.equals(signatures.get(wordmark))) {
-                    mark = make(wordmark, copy, signature);
+                    mark = make(wordmark, context, signature);
                     if (mark == null) return wordmark;
                     marks.put(wordmark, mark);
                     signatures.put(wordmark, signature);
@@ -88,19 +94,23 @@ public final class HomeHeader {
 
     /**
      * What the header shows, as one line for the restart row and the mark cache: the picture's time and size, else the
-     * cleaned words. Null when there's neither, which keeps the wordmark.
+     * cleaned words and the picked font file's time and size. Null when there's neither, which keeps the wordmark.
      */
-    static String signature(File copy) {
+    static String signature(Context context) {
+        File copy = context == null ? null : file(context);
         if (copy != null && copy.isFile()) return "picture\n" + copy.lastModified() + "\n" + copy.length();
         SharedPreferences prefs = Settings.preferences;
         String words = clean(prefs == null ? null : prefs.getString(TEXT, ""));
-        return words.isEmpty() ? null : "text\n" + words;
+        if (words.isEmpty()) return null;
+        // The words never hold a line break, so the font's part can't run into them.
+        File face = picked(context);
+        return "text\n" + words + (face == null ? "" : "\nfont\n" + face.lastModified() + "\n" + face.length());
     }
 
     /** What a restart would show, for the restart row: nothing while the switch is off, paused or in safe mode. */
     static String inUse(Context context) {
         if (!Settings.wouldUse(KEY)) return "";
-        String signature = signature(file(context));
+        String signature = signature(context);
         return signature == null ? "" : signature;
     }
 
@@ -108,20 +118,58 @@ public final class HomeHeader {
         return new File(context.getFilesDir(), PICTURE);
     }
 
-    private static Drawable make(Drawable wordmark, File copy, String signature) {
+    /** Where the words' font file is kept. Tests get a folder of their own, the way Use your own font's do. */
+    static File fontFile(Context context) {
+        File folder = FontFile.testFolder;
+        return new File(folder != null ? folder : context.getFilesDir(), FONT);
+    }
+
+    /** The words' font file when one is picked and its copy is there, else null. */
+    static File picked(Context context) {
+        SharedPreferences prefs = Settings.preferences;
+        if (context == null || prefs == null || prefs.getString(FONT_NAME, "").isEmpty()) return null;
+        File copy = fontFile(context);
+        return copy.isFile() ? copy : null;
+    }
+
+    /**
+     * The picked font for the words, read again only when the file changed. Null when none is picked or the file won't
+     * load, so the words draw in bold sans as they always have. Only the words use it. Holds marks' lock.
+     */
+    static Typeface typeface(Context context) {
+        File copy = picked(context);
+        if (copy == null) return null;
+        long modified = copy.lastModified(), length = copy.length();
+        if (modified == fontModified && length == fontLength) return font;
+        Typeface read;
+        try {
+            read = new Typeface.Builder(copy).build();
+        } catch (RuntimeException unreadable) {
+            read = null;
+        }
+        if (read == null) android.util.Log.w("HushMessenger", "The home header font won't load, so the words stay in bold sans");
+        font = read;
+        fontModified = modified;
+        fontLength = length;
+        return read;
+    }
+
+    private static Drawable make(Drawable wordmark, Context context, String signature) {
         int height = wordmark.getIntrinsicHeight();
         if (height <= 0) height = Math.round(FALLBACK_HEIGHT_DP * Resources.getSystem().getDisplayMetrics().density);
         int maxWidth = Math.round(Resources.getSystem().getDisplayMetrics().widthPixels * MAX_WIDTH_SHARE);
         Look look = look(wordmark);
         if (signature.startsWith("picture\n")) {
-            Bitmap shown = load(copy);
+            Bitmap shown = load(file(context));
             // A copy that won't decode leaves the words, if there are any.
             if (shown != null) return new PictureMark(shown, height, maxWidth, look, wordmark);
             SharedPreferences prefs = Settings.preferences;
             String words = clean(prefs == null ? null : prefs.getString(TEXT, ""));
-            return words.isEmpty() ? null : new TextMark(words, height, maxWidth, look, wordmark);
+            return words.isEmpty() ? null : new TextMark(words, height, maxWidth, look, wordmark, typeface(context));
         }
-        return new TextMark(signature.substring(5), height, maxWidth, look, wordmark);
+        String words = signature.substring(5);
+        int end = words.indexOf('\n');
+        return new TextMark(end < 0 ? words : words.substring(0, end), height, maxWidth, look, wordmark, typeface(context));
     }
 
     /** The saved picture, read again only when the file changed. Null when it's gone or won't decode. Holds marks' lock. */
@@ -189,6 +237,8 @@ public final class HomeHeader {
         synchronized (marks) {
             picture = null;
             pictureModified = pictureLength = -1;
+            font = null;
+            fontModified = fontLength = -1;
             marks.clear();
             signatures.clear();
         }
@@ -492,9 +542,10 @@ public final class HomeHeader {
     }
 
     /**
-     * The words in bold sans as tall as the wordmark's letters and where they sit, in a slot as tall as the wordmark, in
-     * its color or its gradient from start to end. The words and a capital H together set the size, so short words
-     * without capitals or with descenders still fill the letters' height the way the wordmark does.
+     * The words in bold sans, or the font picked for them, as tall as the wordmark's letters and where they sit, in a
+     * slot as tall as the wordmark, in its color or its gradient from start to end. The words and a capital H together
+     * set the size, so short words without capitals or with descenders still fill the letters' height the way the
+     * wordmark does.
      */
     static final class TextMark extends Mark {
         final String text;
@@ -506,16 +557,22 @@ public final class HomeHeader {
         private int alpha = 255;
 
         TextMark(String text, int height, int maxWidth, Look look) {
-            this(text, height, maxWidth, look, null);
+            this(text, height, maxWidth, look, null, null);
         }
 
-        /** With no look yet, the words wait for [wordmark] to load, drawn meanwhile with its {@link #provisional} look. */
-        TextMark(String text, int height, int maxWidth, Look look, Drawable wordmark) {
+        /**
+         * With no look yet, the words wait for [wordmark] to load, drawn meanwhile with its {@link #provisional} look.
+         * A picked font file's [face] draws as it comes, with no bold added; null is bold sans.
+         */
+        TextMark(String text, int height, int maxWidth, Look look, Drawable wordmark, Typeface face) {
             super(height, look == null ? wordmark : null);
             this.text = text;
-            paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
+            paint.setTypeface(face != null ? face : Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
             width = lay(look != null ? look : wordmark != null ? provisional(wordmark) : Look.DEFAULT, maxWidth);
         }
+
+        /** The typeface the words draw in. */
+        Typeface typeface() { return paint.getTypeface(); }
 
         @Override int lay(Look look, int maxWidth) {
             colors = look.colors;

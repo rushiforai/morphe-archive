@@ -14,6 +14,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction;
+import com.android.tools.smali.dexlib2.iface.instruction.PayloadInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
@@ -59,15 +60,15 @@ final class Media {
     static final String QUICKSNAP_VIEWER = "Lcom/facebook/messaging/quicksnap/consumption/viewer/MsgrQuicksnapViewerFragment;";
     static final String WINDOW = "Landroid/view/Window;";
     static final String SET_FLAGS = WINDOW + "->setFlags(II)V", ADD_FLAGS = WINDOW + "->addFlags(I)V";
-    // "Generate AI stickers" as 587 numbers it, as in NativeMediaControls.kt
-    static final int GENERATE_AI_LABEL = 0x7f140566;
+    // "Generate AI stickers" as 588 numbers it, as in NativeMediaControls.kt
+    static final int GENERATE_AI_LABEL = 0x7f14056e;
     // "Generate": the same cell's label when its tap opens the custom, AI and music sticker menu
-    static final int GENERATE_MENU_LABEL = 0x7f141c62;
-    // The same label in 587's armv7 string pack, two resources on
-    static final int GENERATE_MENU_LABEL_ARMV7 = 0x7f141c64;
-    // The viewer's onCreateDialog override in 587, its armv7 build included, and A1M in its other arm64 builds
-    static final Set<String> EPHEMERAL_DIALOGS = Set.of("A1L", "A1M");
-    // The Quicksnap viewer's onCreateView frame in 587: 39 registers, 40 in its armv7 build
+    static final int GENERATE_MENU_LABEL = 0x7f141c71;
+    // The same label in 588's armv7 string pack, two resources on
+    static final int GENERATE_MENU_LABEL_ARMV7 = 0x7f141c73;
+    // The viewer's onCreateDialog override: A1N in 588's arm64 builds, A1L in its armv7 ones
+    static final Set<String> EPHEMERAL_DIALOGS = Set.of("A1N", "A1L");
+    // The Quicksnap viewer's onCreateView frame: 39 registers, 40 in the armv7 builds
     static final Set<Integer> QUICKSNAP_FRAMES = Set.of(39, 40);
 
     static int mediaTarget(List<Instruction> code, int at) {
@@ -117,36 +118,111 @@ final class Media {
         return sends;
     }
 
+    static MethodReference captionCall(Instruction i) {
+        return i instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference m ? m : null;
+    }
+
+    static List<Integer> captionRegisters(Instruction i) {
+        var out = new ArrayList<Integer>();
+        if (i instanceof FiveRegisterInstruction f) {
+            int[] all = {f.getRegisterC(), f.getRegisterD(), f.getRegisterE(), f.getRegisterF(), f.getRegisterG()};
+            for (int k = 0; k < f.getRegisterCount(); k++) out.add(all[k]);
+        } else if (i instanceof RegisterRangeInstruction r) {
+            for (int k = 0; k < r.getRegisterCount(); k++) out.add(r.getStartRegister() + k);
+        }
+        return out;
+    }
+
+    static boolean captionWrites(Instruction i, int reg) {
+        return i.getOpcode().setsRegister() && i instanceof OneRegisterInstruction o && o.getRegisterA() == reg;
+    }
+
+    /** The last instruction in front of before, after after, that writes reg. */
+    static Instruction lastCaptionWrite(List<Instruction> code, int reg, int after, int before) {
+        for (int i = before - 1; i > after; i--) if (captionWrites(code.get(i), reg)) return code.get(i);
+        return null;
+    }
+
     /**
-     * Whether the composer's send hands the typed text to the media parameters once, in a plain invoke-direct whose
-     * object register isn't the text's, with nothing branching onto the new-instance in front of it, and the fragment
-     * having exactly one text send to pass the words to. Mirrors MediaCaption.kt.
+     * Whether the composer's send ends the way MediaCaption.kt needs: one stock text send with the fragment, null
+     * mentions and text, the empty map and a fresh list, right after the anything-to-send question; one flag branch
+     * onto that question with a goto after it; the plain media send right before the flag, taking the fragment and
+     * ending with a list; one branch past it; nothing branching onto its first instruction or writing the flag or the
+     * fragment inside it; and one direct reader of the typed text. Mirrors MediaCaption.kt.
      */
     static boolean mediaCaptionSite(Method method) {
         var code = instructions(method);
+        String host = method.getDefiningClass();
         boolean marked = false;
         for (var i : code)
             if ((i.getOpcode() == Opcode.CONST_STRING || i.getOpcode() == Opcode.CONST_STRING_JUMBO) &&
                 i instanceof ReferenceInstruction r && r.getReference() instanceof StringReference s && SEND_CLICKED.equals(s.getString())) marked = true;
-        if (!marked || mediaCaptionSends(method).size() != 1) return false;
-        var sites = new ArrayList<Integer>();
-        for (int at = 0; at + 1 < code.size(); at++) {
-            if (code.get(at).getOpcode() != Opcode.NEW_INSTANCE) continue;
-            if (!(code.get(at) instanceof ReferenceInstruction made) || !(made.getReference() instanceof TypeReference built)) continue;
-            int holder = register(code.get(at));
-            var next = code.get(at + 1);
-            if (next.getOpcode() != Opcode.INVOKE_DIRECT || !(next instanceof FiveRegisterInstruction call)) continue;
-            if (!(next instanceof ReferenceInstruction r) || !(r.getReference() instanceof MethodReference ctor)) continue;
-            var params = ctor.getParameterTypes().stream().map(Object::toString).toList();
-            if (!ctor.getDefiningClass().equals(built.getType()) || !"<init>".equals(ctor.getName()) || call.getRegisterCount() != 5) continue;
-            if (!params.equals(List.of(method.getDefiningClass(), IMMUTABLE_LIST, CAPTION_MAP, CAPTION_STRING))) continue;
-            if (call.getRegisterC() != holder || call.getRegisterG() == holder) continue;
-            sites.add(at);
+        var sends = mediaCaptionSends(method);
+        if (!marked || sends.size() != 1) return false;
+        int sendAt = -1;
+        for (int i = 0; i < code.size(); i++) {
+            var m = captionCall(code.get(i));
+            if (m == null || !m.getDefiningClass().equals(host) || !"V".equals(m.getReturnType())) continue;
+            var id = m.getName() + "(" + String.join("", m.getParameterTypes().stream().map(Object::toString).toList()) + ")";
+            if (!id.equals(sends.get(0))) continue;
+            if (sendAt >= 0) return false;
+            sendAt = i;
         }
-        return sites.size() == 1 && !mediaTargets(method).contains(sites.get(0));
+        if (sendAt < 0 || code.get(sendAt).getOpcode() != Opcode.INVOKE_STATIC) return false;
+        if (!(code.get(sendAt) instanceof FiveRegisterInstruction call) || call.getRegisterCount() != 5) return false;
+        int fragment = call.getRegisterC();
+        int check = -1;
+        for (int at = sendAt - 3; at >= 0 && check < 0; at--) {
+            var asked = captionCall(code.get(at));
+            if (code.get(at).getOpcode() == Opcode.INVOKE_VIRTUAL && asked != null && asked.getDefiningClass().equals(host) &&
+                asked.getParameterTypes().isEmpty() && "Z".equals(asked.getReturnType()) && captionRegisters(code.get(at)).equals(List.of(fragment))) check = at;
+        }
+        if (check < 0) return false;
+        var answer = code.get(check + 1);
+        var skip = code.get(check + 2);
+        if (answer.getOpcode() != Opcode.MOVE_RESULT || skip.getOpcode() != Opcode.IF_NEZ || register(answer) != register(skip)) return false;
+        for (int i = check + 3; i < sendAt; i++) if (code.get(i) instanceof OffsetInstruction) return false;
+        if (call.getRegisterD() != call.getRegisterF()) return false;
+        var nothing = lastCaptionWrite(code, call.getRegisterD(), check + 2, sendAt);
+        if (nothing == null || nothing.getOpcode() != Opcode.CONST_4 || ((NarrowLiteralInstruction) nothing).getNarrowLiteral() != 0) return false;
+        var map = lastCaptionWrite(code, call.getRegisterE(), check + 2, sendAt);
+        if (map == null || map.getOpcode() != Opcode.SGET_OBJECT || !(map instanceof ReferenceInstruction mr) ||
+            !(mr.getReference() instanceof FieldReference field) || !CAPTION_MAP.equals(field.getType())) return false;
+        var list = lastCaptionWrite(code, call.getRegisterG(), check + 2, sendAt);
+        if (list == null || list.getOpcode() != Opcode.MOVE_RESULT_OBJECT) return false;
+        int flagAt = -1;
+        for (int i = 0; i < code.size(); i++)
+            if (code.get(i).getOpcode() == Opcode.IF_EQZ && mediaTarget(code, i) == check) { if (flagAt >= 0) return false; flagAt = i; }
+        if (flagAt < 1 || flagAt + 1 >= code.size()) return false;
+        var jump = code.get(flagAt + 1).getOpcode();
+        if (jump != Opcode.GOTO && jump != Opcode.GOTO_16 && jump != Opcode.GOTO_32) return false;
+        int sent = register(code.get(flagAt));
+        var media = code.get(flagAt - 1);
+        var mediaSend = captionCall(media);
+        if (mediaSend == null || (media.getOpcode() != Opcode.INVOKE_STATIC && media.getOpcode() != Opcode.INVOKE_STATIC_RANGE)) return false;
+        var mediaParams = mediaSend.getParameterTypes();
+        if (!mediaSend.getDefiningClass().equals(host) || !"V".equals(mediaSend.getReturnType()) || mediaParams.isEmpty() ||
+            !"Ljava/util/List;".equals(mediaParams.get(mediaParams.size() - 1).toString())) return false;
+        if (!captionRegisters(media).contains(fragment)) return false;
+        int guard = -1;
+        for (int i = 0; i < code.size(); i++)
+            if (code.get(i).getOpcode() == Opcode.IF_NEZ && mediaTarget(code, i) == flagAt) { if (guard >= 0) return false; guard = i; }
+        if (guard < 0) return false;
+        int at = guard + 1;
+        if (at > flagAt - 1) return false;
+        for (int i = at; i < flagAt; i++)
+            if (code.get(i) instanceof OffsetInstruction || captionWrites(code.get(i), sent) || captionWrites(code.get(i), fragment)) return false;
+        if (mediaTargets(method).contains(at) || fragment > 15 || sent > 15) return false;
+        var readers = new HashSet<String>();
+        for (var i : code) {
+            var m = captionCall(i);
+            if (i.getOpcode() == Opcode.INVOKE_DIRECT && m != null && m.getDefiningClass().equals(host) &&
+                m.getParameterTypes().isEmpty() && CAPTION_STRING.equals(m.getReturnType())) readers.add(m.getName());
+        }
+        return readers.size() == 1;
     }
 
-    /** media_caption: the one send that carries a caption into the media parameters. Mirrors MediaCaption.kt. */
+    /** media_caption: the one send whose words go out after its plain media send. Mirrors MediaCaption.kt. */
     static List<Method> mediaCaption(List<ClassDef> classes) {
         var found = new ArrayList<Method>();
         for (var cls : classes) for (var method : cls.getMethods()) if (mediaCaptionSite(method)) found.add(method);
@@ -180,7 +256,7 @@ final class Media {
      * guarded prefix: the Ephemeral viewer's bodies have none, and the Quicksnap viewer's all start past its site.
      */
     static List<Integer> screenshotViewerSites(Method method) {
-        if (!Set.of(EPHEMERAL_VIEWER, QUICKSNAP_VIEWER).contains(method.getDefiningClass())) return List.of();
+        if (!Set.of(EPHEMERAL_VIEWER, QUICKSNAP_VIEWER).contains(method.getDefiningClass())) return quicksnapHelperSites(method);
         var impl = method.getImplementation(); var c = instructions(method); var p = bubbleParameters(method);
         if (impl == null || AccessFlags.STATIC.isSet(method.getAccessFlags())) return List.of();
         List<Integer> sites; boolean valid, resume = false, hoisted = false; int reentry = -1, reentrySource = -1;
@@ -236,6 +312,68 @@ final class Media {
         if (resume) for (int i = 0; i < c.size(); i++) if (i != 10 && i != 13 && c.get(i) instanceof OffsetInstruction && mediaTarget(c, i) == 15) return List.of();
         if (hoisted) for (int i = 0; i < c.size(); i++) if (i != reentrySource && c.get(i) instanceof OffsetInstruction && mediaTarget(c, i) == reentry) return List.of();
         return sites;
+    }
+
+    static final String CLEAR_FLAGS = WINDOW + "->clearFlags(I)V";
+    static final List<String> QUICKSNAP_SECURE_PARAMS = List.of(WINDOW, "Lcom/facebook/auth/usersession/FbUserSession;", "Z");
+
+    /**
+     * 588's Quicksnap viewer hands its dialog's window to a helper with yes, and has no window flag call of its own: the
+     * helper's id, when the viewer makes that one call on the window Dialog.getWindow() gave it and a yes every path
+     * sets, or null. Mirrors quicksnapSecureHelper in NativeMediaControls.kt.
+     */
+    static String quicksnapSecureHelper(Method viewer) {
+        var c = instructions(viewer);
+        int call = -1;
+        for (int i = 0; i < c.size(); i++) {
+            var r = ref(c.get(i));
+            if (r != null && Set.of(SET_FLAGS, ADD_FLAGS, CLEAR_FLAGS).contains(r)) return null;
+            if (c.get(i) instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference m && "V".equals(m.getReturnType()) &&
+                refParams(m).equals(QUICKSNAP_SECURE_PARAMS)) {
+                if (call >= 0) return null;
+                call = i;
+            }
+        }
+        if (call < 0 || c.get(call).getOpcode() != Opcode.INVOKE_VIRTUAL) return null;
+        var args = bubbleArgs(c.get(call));
+        if (args.size() != 4) return null;
+        var windows = definitionsAt(viewer, call, args.get(1));
+        var yeses = definitionsAt(viewer, call, args.get(3));
+        if (windows == null || yeses == null || windows.isEmpty() || yeses.isEmpty()) return null;
+        // A missing dialog's tail hands the helper a null window, which the helper checks first.
+        boolean fromDialog = false;
+        for (int w : windows) {
+            boolean dialog = w >= 1 && c.get(w).getOpcode() == Opcode.MOVE_RESULT_OBJECT && ("Landroid/app/Dialog;->getWindow()" + WINDOW).equals(ref(c.get(w - 1)));
+            boolean none = w >= 0 && c.get(w).getOpcode() == Opcode.CONST_4 && ((NarrowLiteralInstruction) c.get(w)).getNarrowLiteral() == 0;
+            if (!dialog && !none) return null;
+            fromDialog |= dialog;
+        }
+        if (!fromDialog) return null;
+        for (int y : yeses)
+            if (y < 0 || c.get(y).getOpcode() != Opcode.CONST_4 || ((NarrowLiteralInstruction) c.get(y)).getNarrowLiteral() != 1) return null;
+        return ref(c.get(call));
+    }
+
+    /** The helper's addFlags site, the one between its flag constant and its clearFlags for no, or none. */
+    static List<Integer> quicksnapHelperSites(Method m) {
+        var impl = m.getImplementation();
+        if (impl == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"V".equals(m.getReturnType()) ||
+            !bubbleParameters(m).equals(QUICKSNAP_SECURE_PARAMS) || !impl.getTryBlocks().isEmpty()) return List.of();
+        var c = instructions(m);
+        int window = parameterRegister(m, 1), yes = parameterRegister(m, 3), site = -1;
+        var setters = new ArrayList<Integer>();
+        for (int i = 0; i < c.size(); i++) {
+            var r = ref(c.get(i));
+            if (r != null && Set.of(SET_FLAGS, ADD_FLAGS, CLEAR_FLAGS).contains(r)) setters.add(i);
+            if (ADD_FLAGS.equals(r)) { if (site >= 0) return List.of(); site = i; }
+            if (mediaWrites(c.get(i), window)) return List.of();
+        }
+        if (site < 2 || site + 4 != c.size() || !setters.equals(List.of(site, site + 2))) return List.of();
+        int flag = register(c.get(site - 2));
+        if (!mediaLiteral(c, site - 2, flag) || !mediaNull(c, site - 1, yes, site + 2) || !mediaCall(c, site, ADD_FLAGS, window, flag) ||
+            !mediaOp(c, site + 1, Opcode.RETURN_VOID) || !mediaCall(c, site + 2, CLEAR_FLAGS, window, flag) || !mediaOp(c, site + 3, Opcode.RETURN_VOID)) return List.of();
+        for (int t : mediaTargets(m)) if (t >= 1 && t <= site) return List.of();
+        return List.of(site);
     }
 
     /**
@@ -747,7 +885,20 @@ final class Media {
                 at = i;
             }
         if (at < 0) return null;
-        int media = copiedMedia(code, at), params = register(code.get(at));
+        // 588 copies inside a try and its goto takes the copy on to the builder; the hook goes past the method's end there.
+        int jump = -1;
+        if (copiedMedia(code, at) < 0) {
+            for (int i = 0; i < code.size(); i++)
+                if (TRAY_GOTOS.contains(code.get(i).getOpcode()) && mediaTarget(code, i) == at && copiedMedia(code, i) >= 0) {
+                    if (jump >= 0) return null;
+                    jump = i;
+                }
+            if (jump < 0) return null;
+            var last = code.get(code.size() - 1);
+            if (!(last instanceof PayloadInstruction) && !CHAT_RUN_ENDS.contains(last.getOpcode()) && !TRAY_GOTOS.contains(last.getOpcode())) return null;
+        }
+        int copied = jump >= 0 ? jump : at;
+        int media = copiedMedia(code, copied), params = register(code.get(at));
         if (media < 0) return null;
         int open = at + 1;
         for (; open < code.size(); open++) {
@@ -768,12 +919,13 @@ final class Media {
                 put.getRegisterB() == params && ((ReferenceInstruction) code.get(i)).getReference() instanceof FieldReference f &&
                 EDITOR_BUILDER.equals(f.getDefiningClass()) && CHAT_MEDIA.equals(f.getType())) stored = true;
         if (!stored) return null;
-        int start = at - 2;
+        int start = copied - 2;
         while (start > 0 && !endsChatRun(code.get(start - 1))) start--;
         var landings = mediaTargets(m);
-        for (int i = start + 1; i < at; i++) if (landings.contains(i)) return null;
+        for (int i = start + 1; i < copied; i++) if (landings.contains(i)) return null;
+        if (jump >= 0 && landings.contains(jump)) return null;
         int typed = -1, cast = -1;
-        for (int i = start; i < at; i++) {
+        for (int i = start; i < copied; i++) {
             if (code.get(i).getOpcode() == Opcode.INVOKE_VIRTUAL && ITEM_TYPE_CALL.equals(ref(code.get(i)))) {
                 if (typed >= 0) return null;
                 typed = i;
@@ -785,15 +937,15 @@ final class Media {
         }
         if (typed < 0 || cast < 0) return null;
         int intent = ((FiveRegisterInstruction) code.get(typed)).getRegisterC(), chat = register(code.get(cast));
-        for (int i = typed + 1; i < at; i++) if (writesRegister(code.get(i), intent)) return null;
-        for (int i = cast + 1; i < at; i++) if (writesRegister(code.get(i), chat)) return null;
+        for (int i = typed + 1; i < copied; i++) if (writesRegister(code.get(i), intent)) return null;
+        for (int i = cast + 1; i < copied; i++) if (writesRegister(code.get(i), chat)) return null;
         var registers = List.of(intent, media, chat, params);
         int locals = parameterRegister(m, 0);
         if (new HashSet<>(registers).size() != 4 || registers.stream().anyMatch(r -> r > 15 || r >= locals)) return null;
         int address = 0;
         for (int i = 0; i < at; i++) address += code.get(i).getCodeUnits();
         for (var block : m.getImplementation().getTryBlocks())
-            if (address >= block.getStartCodeAddress() && address < block.getStartCodeAddress() + block.getCodeUnitCount()) return null;
+            if (jump < 0 && address >= block.getStartCodeAddress() && address < block.getStartCodeAddress() + block.getCodeUnitCount()) return null;
         return new GalleryChatSite(at, intent, media, chat, params, typeOf(code.get(cast)), unit.toString());
     }
 
@@ -854,25 +1006,56 @@ final class Media {
     static final String COMPOSER_FACTORY = "Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;";
     static final Set<Opcode> TRAY_NULLS = Set.of(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST);
     static final Set<Opcode> TRAY_GOTOS = Set.of(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32);
+    static final Set<Opcode> TRAY_COPIES = Set.of(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16);
+
+    static boolean trayZero(Instruction i) {
+        return TRAY_NULLS.contains(i.getOpcode()) && ((NarrowLiteralInstruction) i).getNarrowLiteral() == 0;
+    }
 
     /** The tray gate's single return, when no branch lands on it and its register is below v16. Mirrors traySite. */
     static int traySite(Method m) {
         if (!m.getParameterTypes().isEmpty() || !"Z".equals(m.getReturnType()) || m.getImplementation() == null) return -1;
         var code = instructions(m);
-        int at = -1;
+        int at = -1, ends = 0;
         for (int i = 0; i < code.size(); i++)
             if (CHAT_RUN_ENDS.contains(code.get(i).getOpcode())) {
-                if (at >= 0) return -1;
+                ends++;
                 at = i;
             }
+        if (ends != 1) at = trayDispatchReturn(m);
         if (at < 0 || code.get(at).getOpcode() != Opcode.RETURN || register(code.get(at)) > 15 || mediaTargets(m).contains(at)) return -1;
         return at;
     }
 
     /**
+     * 588's base tray gate, which answers for one factory behind instance-of on this and false for every other: the
+     * index of that factory's branch's return, or -1. Mirrors trayDispatch in GalleryToChat.kt.
+     */
+    static int trayDispatchReturn(Method m) {
+        if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null) return -1;
+        var code = instructions(m);
+        if (code.size() < 5 || code.get(0).getOpcode() != Opcode.INSTANCE_OF || code.get(1).getOpcode() != Opcode.IF_EQZ) return -1;
+        var test = (TwoRegisterInstruction) code.get(0);
+        if (test.getRegisterB() != parameterRegister(m, 0) || register(code.get(1)) != test.getRegisterA()) return -1;
+        int other = mediaTarget(code, 1);
+        if (other < 3 || other + 2 != code.size() || code.get(other).getOpcode() != Opcode.CONST_4 ||
+            ((NarrowLiteralInstruction) code.get(other)).getNarrowLiteral() != 0 || register(code.get(other)) != register(code.get(other + 1)) ||
+            code.get(other + 1).getOpcode() != Opcode.RETURN || code.get(other - 1).getOpcode() != Opcode.RETURN) return -1;
+        for (int i = 2; i < other - 1; i++)
+            if (code.get(i) instanceof OffsetInstruction || CHAT_RUN_ENDS.contains(code.get(i).getOpcode())) return -1;
+        return other - 1;
+    }
+
+    /** The factory a base tray gate answers for, or null. */
+    static String trayDispatchType(Method m) {
+        return trayDispatchReturn(m) < 0 ? null : typeOf(instructions(m).get(0));
+    }
+
+    /**
      * The composer factory's override of the base call it asks before building the tray plugin, the one whose event set
-     * takes the tray insert. A false answer jumps to a zero for the plugin and a goto past where it's built. Only a factory
-     * that overrides its gate counts. Mirrors trayGate in GalleryToChat.kt.
+     * takes the tray insert. A false answer jumps to a zero for the plugin (on 588 a copy of a register only zeros reach)
+     * and a goto past where it's built. Only a factory that overrides its gate counts, or on 588 the base gate that
+     * answers for that factory behind an instance-of. Mirrors trayGate in GalleryToChat.kt.
      */
     static Method trayGate(List<ClassDef> classes) {
         var trays = new HashSet<String>();
@@ -881,6 +1064,8 @@ final class Media {
             for (var i : instructions(m)) if (i.getOpcode() == Opcode.CONST_CLASS && INSERT_PREVIEW.equals(typeOf(i))) trays.add(cls.getType());
         }
         var gates = new LinkedHashSet<String>();
+        ClassDef base = null;
+        for (var cls : classes) if (COMPOSER_FACTORY.equals(cls.getType())) base = cls;
         for (var factory : classes) {
             if (!COMPOSER_FACTORY.equals(factory.getSuperclass())) continue;
             for (var m : factory.getMethods()) {
@@ -891,8 +1076,17 @@ final class Media {
                     int plugin = register(code.get(built));
                     for (int none = 0; none + 1 < code.size(); none++) {
                         var zero = code.get(none);
-                        if (!TRAY_NULLS.contains(zero.getOpcode()) || register(zero) != plugin || ((NarrowLiteralInstruction) zero).getNarrowLiteral() != 0 ||
+                        if (!(zero instanceof OneRegisterInstruction) || register(zero) != plugin ||
                             !TRAY_GOTOS.contains(code.get(none + 1).getOpcode()) || mediaTarget(code, none + 1) <= built) continue;
+                        if (!trayZero(zero)) {
+                            // 588: a copy of a register every path reaches set to zero.
+                            if (!TRAY_COPIES.contains(zero.getOpcode())) continue;
+                            var defs = definitionsAt(m, none, ((TwoRegisterInstruction) zero).getRegisterB());
+                            if (defs == null || defs.isEmpty() || defs.contains(-1)) continue;
+                            boolean zeros = true;
+                            for (int d : defs) zeros &= trayZero(code.get(d));
+                            if (!zeros) continue;
+                        }
                         for (int guard = 2; guard < code.size(); guard++) {
                             if (code.get(guard).getOpcode() != Opcode.IF_EQZ || mediaTarget(code, guard) != none) continue;
                             var call = code.get(guard - 2);
@@ -904,6 +1098,12 @@ final class Media {
                             for (var own : factory.getMethods())
                                 overridden |= own.getName().equals(asked.getName()) && own.getParameterTypes().isEmpty() && "Z".equals(own.getReturnType());
                             if (overridden) gates.add(factory.getType() + "->" + asked.getName() + "()Z");
+                            else if (base != null) {
+                                Method folded = null; int same = 0;
+                                for (var own : base.getMethods())
+                                    if (own.getName().equals(asked.getName()) && own.getParameterTypes().isEmpty() && "Z".equals(own.getReturnType())) { same++; folded = own; }
+                                if (same == 1 && factory.getType().equals(trayDispatchType(folded))) gates.add(COMPOSER_FACTORY + "->" + asked.getName() + "()Z");
+                            }
                         }
                     }
                 }

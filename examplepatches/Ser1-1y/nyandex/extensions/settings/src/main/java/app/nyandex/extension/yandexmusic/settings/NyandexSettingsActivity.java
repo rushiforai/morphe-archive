@@ -18,10 +18,8 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.RippleDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -29,7 +27,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
@@ -116,7 +113,7 @@ public final class NyandexSettingsActivity extends Activity {
         // onBackPressed on Android 13+; a back callback is needed there.
         if (Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::leave);
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::finish);
         }
 
         LinearLayout root = new LinearLayout(this);
@@ -455,7 +452,7 @@ public final class NyandexSettingsActivity extends Activity {
         BackArrow back = new BackArrow(this, palette.primary);
         back.setContentDescription(NyandexSettings.text("Back", "Назад"));
         back.setBackground(new RippleDrawable(ColorStateList.valueOf(palette.ripple), null, oval(Color.WHITE)));
-        back.setOnClickListener(view -> leave());
+        back.setOnClickListener(view -> finish());
         bar.addView(back, squareParams(dp(48), 0));
 
         TextView title = new TextView(this);
@@ -509,7 +506,7 @@ public final class NyandexSettingsActivity extends Activity {
     }
 
     /**
-     * A tick when a switch flips, only with the "Haptic feedback" patch and its "Buttons and
+     * A tick when a switch flips, only with the «Тактильный отклик» patch and its "Buttons and
      * tabs" switch on. performHapticFeedback already follows the system "Touch feedback" setting.
      */
     private void toggleHaptic(View view, boolean checked) {
@@ -528,7 +525,7 @@ public final class NyandexSettingsActivity extends Activity {
         final PillSwitch toggle = new PillSwitch(this, palette.primary, palette.background, checked);
         toggle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         View row = addRow(title, subtitle, toggle, dp(52), dp(32), view -> {
-            toggle.setChecked(!toggle.isChecked(), true);
+            toggle.setChecked(!toggle.isChecked());
             toggleHaptic(toggle, toggle.isChecked());
             onToggle.onToggle(toggle.isChecked());
         });
@@ -684,17 +681,11 @@ public final class NyandexSettingsActivity extends Activity {
             return checked;
         }
 
-        void setChecked(boolean value, boolean animate) {
+        void setChecked(boolean value) {
             if (value == checked) return;
             checked = value;
             if (animator != null) animator.cancel();
-            float target = value ? 1f : 0f;
-            if (!animate) {
-                progress = target;
-                invalidate();
-                return;
-            }
-            animator = android.animation.ValueAnimator.ofFloat(progress, target);
+            animator = android.animation.ValueAnimator.ofFloat(progress, value ? 1f : 0f);
             animator.setDuration(150);
             animator.addUpdateListener(animation -> {
                 progress = (Float) animation.getAnimatedValue();
@@ -776,10 +767,6 @@ public final class NyandexSettingsActivity extends Activity {
     @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
-        leave();
-    }
-
-    private void leave() {
         finish();
     }
 

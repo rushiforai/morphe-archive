@@ -275,7 +275,6 @@ val unlockPremiumPatch = bytecodePatch(
             WCF_CTOR_PARAMS,
         )
 
-        // isPremium = true
         userInfoCtor.forceBooleanWrites(
             fields = listOf(
                 Triple(USER_INFO_CLASS, "d", "Z"),
@@ -283,14 +282,12 @@ val unlockPremiumPatch = bytecodePatch(
             value = 1,
         )
 
-        // userState = premium active subscription
         userInfoCtor.forceStringWrite(
             fieldClass = USER_INFO_CLASS,
             fieldName = "j",
             value = PREMIUM_USER_STATE,
         )
 
-        // isMpfEnabled = false
         userInfoCtor.forceBooleanWrites(
             fields = listOf(
                 Triple(USER_INFO_CLASS, "n", "Z"),

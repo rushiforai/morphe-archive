@@ -113,7 +113,8 @@ class ViewOnceAnywhereTest {
         validateControls(mirroredControls(fixture()), setOf(VIEW_ONCE_ANYWHERE))
         assertEquals(ViewOnceGate(VIEW_ONCE_BUILDER, VIEW_ONCE_COMPONENT, 1), viewOnceGate)
         assertEquals(setOf(SYNTHETIC_VIEW_ONCE), SYNTHETIC_PROFILE.hooks.getValue(VIEW_ONCE_ANYWHERE))
-        assertEquals(setOf(SYNTHETIC_VIEW_ONCE), BASE_PROFILE.hooks.getValue(VIEW_ONCE_ANYWHERE))
+        // The fixtures keep 587's names. 588 renames the builder and both its scope types.
+        assertEquals(setOf("LX/5yn;->render(LX/4nJ;LX/6Be;$VIEW_ONCE_CAPABILITIES)V"), BASE_PROFILE.hooks.getValue(VIEW_ONCE_ANYWHERE))
         assertEquals(8, host().validateViewOnceAnywhere())
     }
 

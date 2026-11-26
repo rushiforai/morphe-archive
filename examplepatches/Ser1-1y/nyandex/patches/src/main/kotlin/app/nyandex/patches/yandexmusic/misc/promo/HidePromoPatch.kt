@@ -12,7 +12,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
-import app.nyandex.patches.yandexmusic.misc.settings.NYANDEX_SETTINGS_CLASS
+import app.nyandex.patches.yandexmusic.misc.settings.enableSettingsSection
 import app.nyandex.patches.yandexmusic.misc.settings.nyandexSettingsPatch
 import app.nyandex.patches.yandexmusic.shared.Constants.COMPATIBILITY_YANDEX_MUSIC
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -35,9 +35,7 @@ val hidePromoPatch = patch(
 
     execute {
         // The settings page shows the promo section only when this patch is applied.
-        mutableClassDefBy(NYANDEX_SETTINGS_CLASS).methods
-            .single { it.name == "promoAvailable" }
-            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+        enableSettingsSection("promoAvailable")
 
         hookBlockRegistry()
     }

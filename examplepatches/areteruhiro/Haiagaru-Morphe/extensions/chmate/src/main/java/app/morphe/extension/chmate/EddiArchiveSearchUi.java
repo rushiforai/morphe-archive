@@ -165,6 +165,13 @@ final class EddiArchiveSearchUi {
         Button appearance = button("表示");
         appearance.setOnClickListener(view -> showAppearanceSettings());
         header.addView(appearance);
+        Button themeButton=button("配色");
+        themeButton.setOnClickListener(view->new HaiagaruDialog.Builder(activity).setTitle("エッヂ専用ビューアの配色")
+            .setSingleChoiceItems(new String[]{"端末設定に合わせる","ダーク","AMOLEDブラック","ライト"},Haiagaru.hissiViewerTheme(),(dialog,which)->{
+                SettingsProfiles.prefs(activity).edit().putInt("hissiViewerTheme",which).apply();
+                dialog.dismiss();activity.recreate();
+            }).setNegativeButton("閉じる",null).show());
+        header.addView(themeButton);
         searchVisibility = button("");
         searchVisibility.setOnClickListener(view -> toggleSearchForm());
         header.addView(searchVisibility);

@@ -455,7 +455,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
                 if (setting != null) {
                     updatePreference(pref, setting, syncSettingValue, applySettingToPreference);
-                } else if (BaseSettings.DEBUG.get() && (pref instanceof SwitchPreference
+                } else if (Logger.isDebugEnabled() && (pref instanceof SwitchPreference
                         || pref instanceof EditTextPreference || pref instanceof ListPreference)) {
                     // Probably a typo in the patches preference declaration.
                     Logger.printException(() -> "Preference key has no setting: " + key);
@@ -778,7 +778,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
     private void exportToClipboard(String logsToExport) {
         try {
-            if (!BaseSettings.DEBUG.get()) {
+            if (!Logger.isDebugEnabled()) {
                 Utils.showToastShort(str("morphe_debug_logs_disabled"));
                 return;
             }
@@ -799,7 +799,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     }
 
     private void exportToFile(String logsToExport) {
-        if (!BaseSettings.DEBUG.get() || logsToExport == null || logsToExport.trim().isEmpty()) {
+        if (!Logger.isDebugEnabled() || logsToExport == null || logsToExport.trim().isEmpty()) {
             Utils.showToastShort(str("morphe_debug_logs_none_found"));
             return;
         }
@@ -881,7 +881,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             }
 
             Context context = getContext();
-            if (!BaseSettings.DEBUG.get()) {
+            if (!Logger.isDebugEnabled()) {
                 Utils.showToastShort(str("morphe_debug_logs_disabled"));
                 return;
             }

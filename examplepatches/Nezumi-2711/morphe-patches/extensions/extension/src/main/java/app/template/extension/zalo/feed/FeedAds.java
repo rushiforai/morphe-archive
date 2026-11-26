@@ -4,6 +4,7 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -23,7 +24,8 @@ public final class FeedAds {
     private static boolean isFeedAdItem(Object item) {
         try {
             return item != null && item.getClass().getField("c").getInt(item) == 0x51;
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.swallowedOnce("NezumiFeedAds", "feed item type unavailable (field c)", failure);
             return false;
         }
     }

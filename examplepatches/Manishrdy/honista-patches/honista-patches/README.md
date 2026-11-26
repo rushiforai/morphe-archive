@@ -1,5 +1,27 @@
 # Honista Local Patches
 
+## Local 1.1.10 startup-module candidate
+
+Device logs on Samsung SM-S938U1 / Android 17 show repeated process deaths at
+`Choreographer.doFrame` because `ActivityThread.currentActivityThread()` returns
+null. A separate crash reports `X.038x` missing even though that class is present
+in the installed APK. These are consistent with startup state/class-loader
+corruption, rather than a login page refresh. The existing Choreographer helper
+looks for an instance field; this firmware reads the global ActivityThread.
+
+This candidate restores the bundled startup module through the existing module
+cache. It changes only the Java `Ail9.b` / `Ail9.d` task entry points and preserves
+the native constructor and `c()` declaration for JNI registration. The cache was
+identified from the native factory and checked against the installed DEX. Module
+bytes are SHA-256 checked before loading; the cache is populated before module
+initialization, matching the original ordering.
+
+Input/reference checks and full DEX compilation pass. Shipped as v1.1.10. Full
+module initialization requires the app's Application context; an additional startup
+API lookup (`X.Zs57`) is absent from the frozen module, so full feature
+compatibility is not established. Install using the existing Morphe signing key,
+then verify cold launch, login-screen stability and login.
+
 A local Morphe `.mpp` bundle implementing the retained changes in the workspace's `action_items.md`. One selectable patch, **Honista v13 complete local fixes**, installs all dependent changes together. This is an independent bundle; it does not require Piko.
 
 ## Local 1.1.3 startup candidate

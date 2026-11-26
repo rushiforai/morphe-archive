@@ -33,7 +33,11 @@ public class NotificationManager {
     private final Map<String, NotificationChannelGroup> groups = new HashMap<String, NotificationChannelGroup>();
     private final List<NotifyRecord> notifyHistory = new ArrayList<NotifyRecord>();
     private final List<String> cancelHistory = new ArrayList<String>();
+    private final List<Runnable> pendingActiveUpdates = new ArrayList<Runnable>();
+    private boolean deferActiveVisibility;
     private long nextPostTime = 1000L;
+    private int failNextNotifyCount;
+    public volatile Runnable onGetActiveNotificationsForTest;
 
     public NotificationManager() {
         resetForTest();
@@ -43,19 +47,78 @@ public class NotificationManager {
         return (tag == null ? "<null>" : tag) + "#" + id;
     }
 
+    public synchronized void failNextNotifyForTest(int count) {
+        this.failNextNotifyCount = Math.max(0, count);
+    }
+
+    public synchronized void setDeferActiveVisibilityForTest(boolean defer) {
+        this.deferActiveVisibility = defer;
+    }
+
+    public synchronized void flushDeferredActiveVisibilityForTest() {
+        List<Runnable> updates = new ArrayList<Runnable>(pendingActiveUpdates);
+        pendingActiveUpdates.clear();
+        for (Runnable r : updates) {
+            r.run();
+        }
+    }
+
     public synchronized void notify(String tag, int id, Notification notification) {
-        active.put(slotKey(tag, id), new StatusBarNotification(tag, id, ++nextPostTime, notification));
+        if (failNextNotifyCount > 0) {
+            failNextNotifyCount--;
+            throw new RuntimeException("Simulated notify IPC failure");
+        }
         notifyHistory.add(new NotifyRecord(tag, id, notification));
+        Runnable apply = new Runnable() {
+            @Override public void run() {
+                active.put(slotKey(tag, id), new StatusBarNotification(tag, id, ++nextPostTime, notification));
+            }
+        };
+        if (deferActiveVisibility) {
+            pendingActiveUpdates.add(apply);
+        } else {
+            apply.run();
+        }
+    }
+
+    private void applyCancelLocked(String key) {
+        StatusBarNotification removed = active.remove(key);
+        if (removed == null) return;
+        Notification n = removed.getNotification();
+        if (n == null || (n.flags & Notification.FLAG_GROUP_SUMMARY) == 0) return;
+        String group = n.getGroup();
+        if (group == null) return;
+        java.util.Iterator<Map.Entry<String, StatusBarNotification>> it = active.entrySet().iterator();
+        while (it.hasNext()) {
+            StatusBarNotification candidate = it.next().getValue();
+            Notification cn = candidate == null ? null : candidate.getNotification();
+            if (cn != null && (cn.flags & Notification.FLAG_GROUP_SUMMARY) == 0 && group.equals(cn.getGroup())) {
+                it.remove();
+            }
+        }
     }
 
     public synchronized void cancel(String tag, int id) {
-        String key = slotKey(tag, id);
-        active.remove(key);
+        final String key = slotKey(tag, id);
         cancelHistory.add(key);
+        Runnable apply = new Runnable() {
+            @Override public void run() {
+                applyCancelLocked(key);
+            }
+        };
+        if (deferActiveVisibility) {
+            pendingActiveUpdates.add(apply);
+        } else {
+            apply.run();
+        }
     }
 
-    public synchronized StatusBarNotification[] getActiveNotifications() {
-        return active.values().toArray(new StatusBarNotification[0]);
+    public StatusBarNotification[] getActiveNotifications() {
+        Runnable hook = onGetActiveNotificationsForTest;
+        if (hook != null) hook.run();
+        synchronized (this) {
+            return active.values().toArray(new StatusBarNotification[0]);
+        }
     }
 
     public synchronized void createNotificationChannel(NotificationChannel channel) {
@@ -92,7 +155,11 @@ public class NotificationManager {
         groups.clear();
         notifyHistory.clear();
         cancelHistory.clear();
+        pendingActiveUpdates.clear();
+        deferActiveVisibility = false;
         nextPostTime = 1000L;
+        failNextNotifyCount = 0;
+        onGetActiveNotificationsForTest = null;
         channels.put("line_default", new NotificationChannel("line_default", "Messages", IMPORTANCE_DEFAULT));
     }
 }

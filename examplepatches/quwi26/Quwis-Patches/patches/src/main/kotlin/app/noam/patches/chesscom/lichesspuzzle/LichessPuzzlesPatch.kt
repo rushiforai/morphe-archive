@@ -53,16 +53,24 @@ private const val SOLUTION = "Lcom/chess/features/puzzles/db/model/m;"
 private const val SOLUTION_41027 = "Lcom/chess/features/puzzles/db/model/l;"
 private const val TACTICS_PROBLEM = "Lcom/chess/net/model/TacticsProblem;"
 private const val PATH_RESULT = "Lchesscom/puzzles/v1/PuzzlePathResult;"
+// 4.10.29 wraps the path result in a sealed interface before the score model takes it.
+private const val PATH_RESULT_WRAPPER = "Lcom/chess/net/v1/path/a;"
 private const val RATING = "Lchesscom/puzzles/v1/Rating;"
 private const val SETTINGS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$l0;"
+// 4.10.29 moved the SettingsAndCoachLoaded state into r$m0.
+private const val SETTINGS_LOADED_41029 = "Lcom/chess/features/puzzles/rated/r\$m0;"
 private const val PUZZLE_SETTINGS = "Lcom/chess/features/puzzles/rated/api/PuzzleSettings;"
 private const val PATH_STATS = "Lcom/chess/features/path/ui/v4;"
 private const val PATH_STATS_41027 = "Lcom/chess/features/path/ui/t2;"
 // 4.10.28 gave t2 to an unrelated class and moved the path stats to r2.
 private const val PATH_STATS_41028 = "Lcom/chess/features/path/ui/r2;"
+// 4.10.29 gave r2 to an unrelated class and moved the path stats to v2.
+private const val PATH_STATS_41029 = "Lcom/chess/features/path/ui/v2;"
 private const val RATING_STATS = "Lcom/chess/features/puzzles/db/model/o;"
 private const val RATING_STATS_41027 = "Lcom/chess/features/puzzles/db/model/n;"
 private const val STATS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$q0;"
+// 4.10.29 moved the state that fills the missing stats into r$r0.
+private const val STATS_LOADED_41029 = "Lcom/chess/features/puzzles/rated/r\$r0;"
 private const val VIEW_MODEL = "Lcom/chess/features/puzzles/rated/RatedPuzzlesGameViewModel;"
 private const val PATH_REPOSITORY = "Lcom/chess/features/path/data/PathProgressRepositoryImpl;"
 private const val PUZZLE_SERVICE = "Lcom/chess/features/puzzles/api/h;"
@@ -88,6 +96,11 @@ private const val HUB_USER_41027 = "Lcom/chess/features/puzzles/home/ui/n0;"
 private const val HUB_STATE_41028 = "Lcom/chess/features/puzzles/home/ui/j0;"
 private const val HUB_PATH_41028 = "Lcom/chess/features/puzzles/home/ui/o0;"
 private const val HUB_USER_41028 = "Lcom/chess/features/puzzles/home/ui/p0;"
+// 4.10.29 keeps the j0 state class but moves the path and user models: j0 (state), m0 (path),
+// n0 (user).
+private const val HUB_STATE_41029 = "Lcom/chess/features/puzzles/home/ui/j0;"
+private const val HUB_PATH_41029 = "Lcom/chess/features/puzzles/home/ui/m0;"
+private const val HUB_USER_41029 = "Lcom/chess/features/puzzles/home/ui/n0;"
 private const val UNIT = "sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;\nreturn-object v0"
 private const val NOTHING = "const/4 v0, 0x0\nreturn-object v0"
 
@@ -138,12 +151,20 @@ val lichessPuzzlesPatch = bytecodePatch(
                 method.parameterTypes[5].toString() == HUB_USER_41028 &&
                 method.parameterTypes[6].toString() == HUB_PATH_41028
         } == true
+        // 4.10.29 keeps j0 and the 4.10.27 puzzle models, but the hub state grew to 17 parameters
+        // and the path and user models moved to m0 and n0.
+        val v41029 = classDefByOrNull(HUB_STATE_41029)?.methods?.any { method ->
+            method.name == "<init>" && method.parameterTypes.size == 17 &&
+                method.parameterTypes[6].toString() == HUB_USER_41029 &&
+                method.parameterTypes[7].toString() == HUB_PATH_41029
+        } == true
         val classicStateType = if (v41027) CLASSIC_STATE_41027 else CLASSIC_STATE
         val ratingHistoryType = if (v41027) RATING_HISTORY_41027 else RATING_HISTORY
         val ratingPointType = if (v41027) RATING_POINT_41027 else RATING_POINT
         val solutionType = if (v41027) SOLUTION_41027 else SOLUTION
         val ratingStatsType = if (v41027) RATING_STATS_41027 else RATING_STATS
         val pathStatsType = when {
+            v41029 -> PATH_STATS_41029
             v41028 -> PATH_STATS_41028
             v41027 -> PATH_STATS_41027
             classDefByOrNull(PATH_STATS) != null -> PATH_STATS
@@ -444,6 +465,8 @@ val lichessPuzzlesPatch = bytecodePatch(
             )
         }
         when {
+            v41029 ->
+                hookHubState(HUB_STATE_41029, HUB_PATH_41029, HUB_USER_41029, arity = 17, pathIndex = 7, userIndex = 6)
             v41028 ->
                 hookHubState(HUB_STATE_41028, HUB_PATH_41028, HUB_USER_41028, arity = 14, pathIndex = 6, userIndex = 5)
             v41027 ->
@@ -465,6 +488,7 @@ val lichessPuzzlesPatch = bytecodePatch(
                 reference.name == "<init>" && reference.parameterTypes.size == parameters.size &&
                     reference.parameterTypes.map(CharSequence::toString).zip(parameters).all { (actual, expected) ->
                         actual == expected ||
+                            (expected == PATH_RESULT && actual == PATH_RESULT_WRAPPER) ||
                             (expected == "Ljava/lang/Throwable;" && actual.endsWith("ApiException;"))
                     }
             }?.definingClass
@@ -566,6 +590,7 @@ val lichessPuzzlesPatch = bytecodePatch(
         mutableClassDefBy(MODE).methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" }
             .whileSession("const/4 v0, 0x0\nreturn v0")
         val settingsLoaded = mutableClassDefByOrNull(SETTINGS_LOADED)
+            ?: mutableClassDefByOrNull(SETTINGS_LOADED_41029)
             ?: mutableClassDefBy("Lcom/chess/features/puzzles/rated/t\$l0;")
         // 4.10.18 has a mode getter; 4.10.23 inlines it, so set the constructor's mode instead.
         val modeGetter = runCatching { settingsLoaded.getterForLabel(", mode=") }.getOrNull()
@@ -647,6 +672,7 @@ val lichessPuzzlesPatch = bytecodePatch(
 
         // The Classic layout needs path stats, which guest mode never loads.
         val statsLoaded = mutableClassDefByOrNull(STATS_LOADED)
+            ?: mutableClassDefByOrNull(STATS_LOADED_41029)
             ?: mutableClassDefBy("Lcom/chess/features/puzzles/rated/t\$q0;")
         val withStats = statsLoaded.methods.singleOrNull { method ->
             method.returnType == pathStats.type && method.parameterTypes.map { it.toString() } == listOf(pathStats.type)
@@ -688,8 +714,9 @@ val lichessPuzzlesPatch = bytecodePatch(
         // The stats event carries the rating summary. Guest stats have none (the flow emits
         // null), so the Classic rating box is never built even though path stats were filled
         // above. Supply an empty summary during a session; its constructor above sets current.
+        // 4.10.29's StatsAndFriendsLoaded adds a worlds parameter after the friends list.
         val statsEvent = statsLoaded.methods.singleOrNull { method ->
-            method.name == "<init>" && method.parameterTypes.size == 3 &&
+            method.name == "<init>" && method.parameterTypes.size >= 3 &&
                 method.parameterTypes[1].toString() == ratingStatsType
         } ?: throw PatchException("The puzzle stats event was not found")
         statsEvent.addInstructions(

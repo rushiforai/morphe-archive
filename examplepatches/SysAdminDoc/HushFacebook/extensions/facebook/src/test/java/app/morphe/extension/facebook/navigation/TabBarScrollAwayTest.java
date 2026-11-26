@@ -760,6 +760,29 @@ public class TabBarScrollAwayTest {
     }
 
     @Test
+    public void aReelsRowMadeAheadOnHomeTakesTheReelsTabsHeightOverAListLaidOutForHome() {
+        // #554 on the S22 (2026-11-26): the tab bar at the bottom kept on screen under See-through
+        // bars and Rounded tab bar. On Home the Reels list kept its whole 2316 below the status
+        // bar's strip and read 2391 with the strip's room, so the rows made ahead came out 2391 in
+        // the Reels tab's 2316 list, and the first reel's caption, time and seek bar sat behind the bar.
+        Settings.BOTTOM_TAB_BAR.save(true);
+        Settings.KEEP_TAB_BAR.save(true);
+        Settings.TRANSLUCENT_BARS.save(true);
+        Settings.ROUNDED_TAB_BAR.save(true);
+        onTabOf(new FeedTab(), new FeedTab(), new WatchTab(), new NotificationsTab());
+        assertEquals("nothing seen yet: the list as Home has it", 2391, TabBarScrollAway.rowFor(2041, -1, 2391));
+
+        onTabOf(new WatchTab(), new FeedTab(), new WatchTab(), new NotificationsTab());
+        assertEquals("on the Reels tab", 2316, TabBarScrollAway.rowFor(2041, -1, 2316));
+
+        onTabOf(new FeedTab(), new FeedTab(), new WatchTab(), new NotificationsTab());
+        assertEquals("made ahead on Home, the Reels tab's height", 2316, TabBarScrollAway.rowFor(2041, -1, 2391));
+        assertEquals("and before Home's list is laid out", 2316, TabBarScrollAway.rowFor(2041, -1, 0));
+        assertEquals("a row Facebook worked out another way takes the list", 2391,
+                TabBarScrollAway.rowFor(2100, -1, 2391));
+    }
+
+    @Test
     public void aReelsRowFillsTheWholeListUnderATabBarAlongTheBottom() throws Exception {
         // #466 on 588 (S22, 2026-11-19): tabs at the bottom with See-through bars, Rounded tab bar
         // and the status bar hidden run the Reels list the whole screen down under the bar. Rows
@@ -790,6 +813,61 @@ public class TabBarScrollAwayTest {
         assertEquals("and rows made ahead on Home take the same", 2400, TabBarScrollAway.rowFor(2062, -1, 0));
         list.setPadding(0, 30, 0, 50);
         assertEquals("inside the list's padding", 2320, TabBarScrollAway.reelsListHeight());
+    }
+
+    @Test
+    public void reelsOpenedFromAPostOverHomeKeepFacebooksRows() throws Exception {
+        // #505 (OnePlus 13, 0.25.0): tabs at the bottom, See-through bars and Rounded tab bar run the
+        // Reels tab's list the whole 3168 window down under the bar, so its rows of 2958 grew to
+        // 3168. A reel tapped in a post opened Facebook's scroller inside the main screen over Home,
+        // a list of 2958, and the height kept from the Reels tab made each of its rows 3168 too: the
+        // reel slid down over the seek bar, and the bar stayed on the reel before.
+        Settings.BOTTOM_TAB_BAR.save(true);
+        Settings.TRANSLUCENT_BARS.save(true);
+        Settings.ROUNDED_TAB_BAR.save(true);
+        screen = Robolectric.buildActivity(FbMainTabActivity.class).setup().get();
+        FrameLayout window = new FrameLayout(screen);
+        FrameLayout reelsPage = new FrameLayout(screen);
+        place(window, reelsPage, 0, 3168);
+        View reelsTab = new View(screen);
+        reelsTab.setId(0x7f0a2358);
+        place(reelsPage, reelsTab, 0, 3168);
+        View scroller = new View(screen);
+        scroller.setId(0x7f0a2358);
+        scroller.setVisibility(View.GONE);
+        place(window, scroller, 0, 2958);
+        screen.setContentView(window);
+        screen.currentTab = new WatchTab();
+        TabBarScrollAway.mainScreenCreated(screen);
+        StartTabRouteForTests.tabBar(screen, StartTabRouteForTests.tabs(new FeedTab(), new FeedTab(), new WatchTab()), null);
+        layOut(screen);
+        ShimmerTitleTest.appVisible(reelsTab, true);
+        TabBarScrollAway.reelsList = new WeakReference<>(reelsTab);
+        assertEquals("the Reels tab's list", 3168, TabBarScrollAway.reelsListHeight());
+        assertEquals("its rows fill it", 3168, TabBarScrollAway.rowFor(2958, -1, TabBarScrollAway.reelsListHeight(), 3168));
+
+        screen.currentTab = new FeedTab();
+        reelsPage.setVisibility(View.GONE);
+        layOut(screen);
+        assertEquals("rows made ahead on Home for the Reels tab", 3168, TabBarScrollAway.rowFor(2958, -1, 0, 3168));
+
+        scroller.setVisibility(View.VISIBLE);
+        layOut(screen);
+        TabBarScrollAway.reelsList = new WeakReference<>(scroller);
+        assertEquals("the scroller's list", 2958, TabBarScrollAway.reelsListHeight());
+        assertEquals("the scroller's rows fit its list", 2958,
+                TabBarScrollAway.rowFor(2958, -1, TabBarScrollAway.reelsListHeight(), 3168));
+        assertEquals("made before its list is read too", 2958, TabBarScrollAway.rowFor(2958, -1, 0, 3168));
+
+        TabBarScrollAway.reelsList = new WeakReference<>(reelsTab);
+        TabBarScrollAway.listIdForTests = 0x7f0a2358;
+        assertEquals("found by its id while the Reels tab's list is the one held", 2958,
+                TabBarScrollAway.rowFor(2958, -1, 0, 3168));
+
+        scroller.setVisibility(View.GONE);
+        layOut(screen);
+        assertEquals("the scroller closed, rows made ahead for the Reels tab fill it again", 3168,
+                TabBarScrollAway.rowFor(2958, -1, 0, 3168));
     }
 
     @Test

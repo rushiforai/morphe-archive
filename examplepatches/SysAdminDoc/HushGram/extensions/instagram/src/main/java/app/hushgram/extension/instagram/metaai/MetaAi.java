@@ -62,6 +62,16 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *
  * <p>Your profile's top bar is filled from a list of items, one view each. Where the loop reaches
  * the Muse button's item, {@link #museButton} decides whether it skips to the next one.
+ *
+ * <p>A story's header cycles through lines of several kinds: music, effects, the AI info label and
+ * Meta AI's tool credit (Restyled with Meta AI and its Try it link, and the like). Every list of
+ * them asks one check whether to show a kind's line for the story, and {@link #storyCredit} makes
+ * it answer no for Meta AI's credit.
+ *
+ * <p>A reel credits Meta AI's restyle in two places. Its byline asks a gate whether to leave an
+ * Edits credit out, by the credit's name, and {@link #restyleByline} makes it say yes for the
+ * restyle one. Its pill row asks one check whether the reel was restyled, and {@link #restylePill}
+ * makes that answer no. The same switch as the story credit covers both.
  */
 public final class MetaAi {
     /**
@@ -78,6 +88,12 @@ public final class MetaAi {
     /** The three Meta AI buttons in Instagram's native message composer button enum. */
     static final Set<String> COMPOSER_BUTTONS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "META_AI_DISCOVERY", "META_AI_INVOCATION", "META_AI_VOICE")));
+
+    /** The kind of story header line Meta AI's tool credit is, by its constant's name on Instagram 457. */
+    static final String STORY_CREDIT = "META_AI_ATTRIBUTION";
+
+    /** The name a reel's byline hands its Edits credit gate for Meta AI's restyle credit, on Instagram 457. */
+    static final String RESTYLE_GATE = "EDITS_AI_RESTYLE";
 
     /** The diagnostic counter route for the feed units. */
     static final String ROUTE = "Meta AI in the feed";
@@ -464,6 +480,61 @@ public final class MetaAi {
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.META_AI, "Blend button", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Injected at the start of the check that decides whether a story's header shows a line of a
+     * given kind, with that kind. Answers true, so the check answers no, for Meta AI's tool credit
+     * while Hide Meta AI restyle credits is on, and false for every other kind, with the switch
+     * off, or when anything goes wrong. Never throws.
+     */
+    public static boolean storyCredit(Object kind) {
+        try {
+            if (!(kind instanceof Enum<?>) || !STORY_CREDIT.equals(((Enum<?>) kind).name())) return false;
+            HookStatus.invoked(FamilyNames.META_AI);
+            if (!Utils.settingsReady() || !Settings.HIDE_META_AI_STORY_CREDIT.get()) return false;
+            Logger.printDebug(() -> "Meta AI: left the Meta AI credit off a story's header");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.META_AI, "story credit", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Injected at the start of the gate a reel's byline asks whether to leave one of its Edits
+     * credits out, with that credit's name. Answers true, so the gate says leave it out, for Meta
+     * AI's restyle credit while Hide Meta AI restyle credits is on, and false for every other name,
+     * with the switch off, or when anything goes wrong. Never throws.
+     */
+    public static boolean restyleByline(Object name) {
+        try {
+            if (!RESTYLE_GATE.equals(name)) return false;
+            HookStatus.invoked(FamilyNames.META_AI);
+            if (!Utils.settingsReady() || !Settings.HIDE_META_AI_STORY_CREDIT.get()) return false;
+            Logger.printDebug(() -> "Meta AI: left the restyle credit off a reel's byline");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.META_AI, "reel restyle byline", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Injected at the start of the check that decides whether a reel's pill credits Meta AI's
+     * restyle. Answers true, so the check answers no, while Hide Meta AI restyle credits is on, and
+     * false with the switch off or when anything goes wrong. Never throws.
+     */
+    public static boolean restylePill() {
+        try {
+            HookStatus.invoked(FamilyNames.META_AI);
+            if (!Utils.settingsReady() || !Settings.HIDE_META_AI_STORY_CREDIT.get()) return false;
+            Logger.printDebug(() -> "Meta AI: left the restyle pill off a reel");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.META_AI, "reel restyle pill", failure);
             return false;
         }
     }

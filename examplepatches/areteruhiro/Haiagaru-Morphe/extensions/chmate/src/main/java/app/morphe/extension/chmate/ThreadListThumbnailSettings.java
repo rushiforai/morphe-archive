@@ -106,6 +106,8 @@ final class ThreadListThumbnailSettings {
 
     static void addSettings(LinearLayout layout,Activity activity){
         migrate(activity);
+        android.widget.Spinner network=Haiagaru.addSpinner(layout,activity,"スレ一覧画像の自動取得",new String[]{"画像を取得","取得しない","Wi-Fi時のみ自動で取得"},MobileMediaPolicy.configured(MobileMediaPolicy.LIST));
+        new LiveSettings(FeatureSwitches.prefs(activity),ThreadListThumbnail::refresh).choice(network,MobileMediaPolicy.LIST);
         Switch enabled=new Switch(activity);
         enabled.setText("スレ一覧画像表示（実験）");
         enabled.setChecked(enabled(activity));
@@ -166,7 +168,7 @@ final class ThreadListThumbnailSettings {
             }
         });
         TextView help=new TextView(activity);
-        help.setText("機能は初期OFF。有効にすると使用中の板のスレ冒頭の画像・動画サムネイルを表示します。直接動画リンクは動画サムネイル生成設定に従い、YouTubeは公開画像を利用します。1スレあたり最大1〜4枚、大きさは24〜96dpのバーで変更できます。複数枚でもスレタイの文字領域を確保します。板は初期状態ですべて表示対象です。表示しない板だけチェックして除外できます。ふたば・あにまんは通常の掲示板設定で登録した板が対象です。5ch・エッヂは閲覧すると自動で対象・除外候補に追加されます。取得には通信が発生します。取得に失敗したスレは通常表示です。");
+        help.setText("機能は初期OFF。有効にすると使用中の板のスレ冒頭の画像・動画サムネイルを表示します。直接動画リンクは動画サムネイル生成設定に従い、YouTubeは公開画像を利用します。1スレあたり最大1〜4枚、大きさは24〜96dpのバーで変更できます。複数枚でもスレタイの文字領域を確保します。板は初期状態ですべて表示対象です。表示しない板だけチェックして除外できます。ふたば・あにまんは通常の掲示板設定で登録した板が対象です。5ch・エッヂは閲覧すると自動で対象・除外候補に追加されます。注意：有効にすると使用中（フォアグラウンド）の通信量が増えます。スレ本文・画像・動画の取得が発生し、動画サムネイル生成には動画本体を取得する場合があります。機能ごとの自動取得設定でWi-Fi時のみに制限できます。取得に失敗したスレは通常表示です。");
         layout.addView(help);
     }
 

@@ -411,6 +411,89 @@ public class LiveUnseenTest {
         LiveUnseen.hideAgain(null);
     }
 
+    /** D#359: in the long-press menu, the eye's row says what a tap on it will do in that room. */
+    @Test public void theEyesMenuRowSaysWhatATapWillDo() throws Exception {
+        on();
+        assertEquals("Let the host see you", LiveUnseenButton.menuLabel(ROOM));
+        reveal(ROOM);
+        assertEquals("Hide from the host next time", LiveUnseenButton.menuLabel(ROOM));
+        LiveUnseen.hideAgain(ROOM);
+        assertEquals("Let the host see you", LiveUnseenButton.menuLabel(ROOM));
+    }
+
+    /** A LIVE room's page as the eye reads it: its activity, its room, and resumed. */
+    public static final class RoomPage {
+        final Room room = new Room();
+        private final android.app.Activity activity;
+
+        RoomPage(android.app.Activity activity, String id) {
+            this.activity = activity;
+            room.idStr = id;
+        }
+
+        public android.app.Activity getActivity() {
+            return activity;
+        }
+
+        public boolean isResumed() {
+            return true;
+        }
+    }
+
+    /**
+     * D#359: with LIVE buttons in the long-press menu on, the eye leaves the video for that menu,
+     * but only once TikTok has entered the room. A room whose enter is held opens with none of
+     * TikTok's widgets, and holding its middle opens nothing, so there the eye stays on the video.
+     * It's the only way out of the hold. Record and Auto tap stay with it.
+     */
+    @Test public void theEyeStaysOnAHeldRoomUntilTikTokEntersIt() throws Exception {
+        on();
+        Settings.LIVE_BUTTONS_IN_MENU.save(true);
+        android.app.Activity activity = org.robolectric.Robolectric.buildActivity(android.app.Activity.class).setup().get();
+        android.view.ViewGroup content = activity.findViewById(android.R.id.content);
+        try {
+            int before = content.getChildCount();
+            assertThrows(IOException.class, () -> LiveUnseen.holdEnter(new Interceptor(ENTER), "chain"));
+            LiveUnseenButton.noteRoomFragment(new RoomPage(activity, ROOM));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(LiveUnseenButton.roomUnbuilt());
+            assertFalse(LiveUnseenButton.inMenu());
+            assertFalse("Record and Auto tap stay on the video too",
+                    app.morphe.extension.tiktok.live.LiveRecordChip.buttonsInMenu());
+            assertEquals("held, the eye is on the video", before + 1, content.getChildCount());
+
+            // Sent as it was, the held enter builds nothing, so the room still has no menu.
+            assertEquals(LiveUnseen.Reveal.SENT, reveal(ROOM));
+            LiveUnseenButton.refresh(activity);
+            assertFalse(LiveUnseenButton.inMenu());
+            assertEquals(before + 1, content.getChildCount());
+
+            // TikTok's own enter for the room goes out, and the room gets its widgets.
+            LiveUnseen.holdEnter(new Interceptor(ENTER), "chain");
+            assertFalse(LiveUnseenButton.roomUnbuilt());
+            assertTrue(LiveUnseenButton.inMenu());
+            LiveUnseenButton.refresh(activity);
+            assertEquals("the eye is in the menu instead", before, content.getChildCount());
+
+            Settings.LIVE_BUTTONS_IN_MENU.save(false);
+            assertFalse(LiveUnseenButton.inMenu());
+            LiveUnseenButton.refresh(activity);
+            assertEquals("the switch off puts it back", before + 1, content.getChildCount());
+
+            // Leaving ends the visit, and the next one is held again.
+            assertFalse(LiveUnseen.keepRoom(new Page(ROOM), Leave.USER_CLOSE_CLICK));
+            assertTrue(LiveUnseen.unbuilt(ROOM));
+            Settings.GHOST_HIDE_LIVE_VIEWS.save(false);
+            assertFalse("no hold without Watch LIVEs unseen", LiveUnseen.unbuilt(ROOM));
+            Settings.LIVE_BUTTONS_IN_MENU.save(true);
+            assertFalse("no eye without Watch LIVEs unseen", LiveUnseenButton.inMenu());
+        } finally {
+            Settings.LIVE_BUTTONS_IN_MENU.resetToDefault();
+            LiveUnseenButton.resetForTests();
+            activity.finish();
+        }
+    }
+
     @Test public void noRoomReadsAsNoRoom() {
         assertNull(app.morphe.extension.tiktok.follow.FollowDiagnostics.liveRoomIdOf(null));
         assertEquals(ROOM, app.morphe.extension.tiktok.follow.FollowDiagnostics.liveRoomIdOf(new Request(ENTER)));

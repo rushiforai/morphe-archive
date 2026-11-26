@@ -217,6 +217,66 @@ public class MetaAiTest {
         }
     }
 
+    /** Shaped like Instagram 457's kinds of line a story's header shows, a few of them. */
+    enum HeaderLine {
+        APP_ATTRIBUTION, EFFECT_ATTRIBUTION, GEN_AI_DETECTION_ATTRIBUTION, META_AI_ATTRIBUTION, MUSIC_ATTRIBUTION
+    }
+
+    /**
+     * Only Meta AI's line leaves a story's header, only with its own switch, which starts off, and
+     * never while paused. The AI info label and the other lines stay.
+     */
+    @Test
+    public void theStoryCreditFollowsItsOwnSwitch() {
+        assertFalse("off to start", Settings.HIDE_META_AI_STORY_CREDIT.get());
+        assertFalse(MetaAi.storyCredit(HeaderLine.META_AI_ATTRIBUTION));
+        Settings.HIDE_META_AI_STORY_CREDIT.save(true);
+        try {
+            assertTrue(MetaAi.storyCredit(HeaderLine.META_AI_ATTRIBUTION));
+            for (HeaderLine other : HeaderLine.values()) {
+                if (other != HeaderLine.META_AI_ATTRIBUTION) assertFalse(other + " stays", MetaAi.storyCredit(other));
+            }
+            assertFalse("a name that isn't a kind", MetaAi.storyCredit("META_AI_ATTRIBUTION"));
+            assertFalse(MetaAi.storyCredit(null));
+            Settings.HIDE_META_AI_SEARCH.save(false);
+            assertTrue("the search switch doesn't matter", MetaAi.storyCredit(HeaderLine.META_AI_ATTRIBUTION));
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            assertFalse("paused, Instagram decides", MetaAi.storyCredit(HeaderLine.META_AI_ATTRIBUTION));
+        } finally {
+            PauseForTests.resume();
+            Settings.HIDE_META_AI_SEARCH.save(true);
+            Settings.HIDE_META_AI_STORY_CREDIT.resetToDefault();
+        }
+    }
+
+    /**
+     * A reel's restyle credit follows the same switch: the byline's gate says leave it out only for
+     * the restyle credit's name, and the pill's check says no, both only with the switch on and
+     * never while paused.
+     */
+    @Test
+    public void theReelRestyleCreditsFollowTheSameSwitch() {
+        assertFalse("off to start", MetaAi.restyleByline("EDITS_AI_RESTYLE"));
+        assertFalse("off to start", MetaAi.restylePill());
+        Settings.HIDE_META_AI_STORY_CREDIT.save(true);
+        try {
+            assertTrue(MetaAi.restyleByline("EDITS_AI_RESTYLE"));
+            assertTrue(MetaAi.restylePill());
+            assertFalse("another Edits credit stays", MetaAi.restyleByline("EDITS_TEMPLATE"));
+            assertFalse("a name in another case isn't it", MetaAi.restyleByline("edits_ai_restyle"));
+            assertFalse(MetaAi.restyleByline(null));
+            Settings.HIDE_META_AI_SEARCH.save(false);
+            assertTrue("the search switch doesn't matter", MetaAi.restyleByline("EDITS_AI_RESTYLE"));
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            assertFalse("paused, Instagram decides", MetaAi.restyleByline("EDITS_AI_RESTYLE"));
+            assertFalse("paused, Instagram decides", MetaAi.restylePill());
+        } finally {
+            PauseForTests.resume();
+            Settings.HIDE_META_AI_SEARCH.save(true);
+            Settings.HIDE_META_AI_STORY_CREDIT.resetToDefault();
+        }
+    }
+
     /** The search switch also leaves the results page's Ask a follow-up bar out, and only that switch. */
     @Test
     public void theFollowUpBarFollowsTheSearchSwitch() {

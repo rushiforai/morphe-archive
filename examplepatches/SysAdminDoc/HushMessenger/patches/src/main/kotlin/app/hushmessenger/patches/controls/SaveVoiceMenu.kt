@@ -184,7 +184,8 @@ private fun List<Instruction>.pooledMessageKey(at: Int): Pair<MethodReference, I
  * The chat menu's tap method: an instance (item, extra) method that names [MENU_TAP_NAME] and reads the Bundle's message.
  * The name's const-string comes before any of its work, and its register is free since the const-string writes it. The
  * parameters must still hold what they came with there, and the next thing the method reads off itself is its handler,
- * from a field of the handler's own type. 586 kept the handler in an Object field and cast it after the read.
+ * from a field of the handler's own type. 588's Redex merges the tap with other menus' taps into one class that keeps the
+ * handler in an Object field, so there the very next instruction must cast what it read, and the cast names the handler.
  */
 private fun Method.menuTapSite(): MenuTapSite? {
     if (returnType != "Z" || AccessFlags.STATIC.isSet(accessFlags) || menuParams() != listOf(MENU_ITEM, OBJECT)) return null
@@ -201,7 +202,11 @@ private fun Method.menuTapSite(): MenuTapSite? {
     val read = (start until code.size).firstOrNull {
         code[it].opcode == Opcode.IGET_OBJECT && code[it].menuField()?.definingClass == definingClass
     } ?: return null
-    val handler = code[read].menuField()!!.type
+    val field = code[read].menuField()!!.type
+    val cast = code.getOrNull(read + 1)?.takeIf {
+        it.opcode == Opcode.CHECK_CAST && (it as OneRegisterInstruction).registerA == (code[read] as TwoRegisterInstruction).registerA
+    }
+    val handler = if (field == OBJECT) cast?.menuRef()?.toString() ?: return null else field
     if (!handler.startsWith("L") || handler == OBJECT) return null
     return MenuTapSite(start, scratch, first, code[read].menuRef().toString(), handler, pooledRows)
 }

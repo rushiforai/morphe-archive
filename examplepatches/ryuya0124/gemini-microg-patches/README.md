@@ -1,135 +1,57 @@
 # Gemini microG patches
 
-microGを使い、通常領域とSamsungセキュアフォルダでGeminiを動かすためのMorpheパッチ集です。GoogleアプリとGeminiランチャーを別パッケージとして構築します。
+[日本語](#日本語) · [English](#english) · [GitHub](https://github.com/ryuya0124/gemini-microg-patches) · [GitLab mirror](https://gitlab.com/ryuya0124/gemini-microg-patches)
 
-**最新の実機確認:** Google `17.72.17.ve.arm64`、Gemini `1.0.995038376`、パッチ `v0.3.2`。2026-11-12にSM-S948Q／Android17のセキュアフォルダuser150へ既存署名・データを保持して更新し、ユーザーがログイン状態の維持とチャット返答を確認。microGは既存環境を維持。通常領域は新版で未再検証。
+[![Morphe Managerに追加 / Add to Morphe Manager](docs/assets/add-to-morphe-manager.svg)](https://morphe.software/add-source?github=ryuya0124/gemini-microg-patches)
 
-## Setup / installation (English)
+[GitLabミラーの登録用JSON / GitLab mirror source JSON](https://gitlab.com/ryuya0124/gemini-microg-patches/-/raw/mirror-feed/patches-bundle.json)
 
-**Use v0.3.5 or newer and keep the default patch selection.** This includes compatibility with optional Play Store update blocking, the Android Morphe Manager startup-crash fix and an explanation of the initial account permissions. `Automatic Clone Setup` handles package, permission and provider isolation; official Clone app, Expert mode and custom options are unnecessary for normal patching. Read [Supported setup](docs/setup-en.md) for the input variants. Do not select the three historical account experiments.
+## 日本語
 
-Issue #8 reproduction and the verified fix are recorded in [the emulator regression report](docs/testing/issue-8-emulator.md).
+標準のGeminiアプリは、Samsungのセキュアフォルダ内では仕事用プロファイル向けの利用制限にかかります。このMorpheパッチ集を使うと、セキュアフォルダ内でもmicroG経由でGeminiにログインしてチャットできます。Geminiランチャー、パッチ済みGoogleアプリ、microGを同じプロファイルにインストールします。
 
-**v0.3.3:** Android版Morphe Managerで生成したGoogleが起動時に落ちる不具合を修正。Manager 2.5.0で旧版・修正版を生成し、Android 12で同じVerifyErrorの再現と解消を確認しました。[検証記録](docs/testing/issue-8-manager-registers.md)。上記の実機チャット確認はv0.3.2の記録です。
+### できること
 
-**v0.3.4:** 初回のアカウント用権限に説明を追加し、後回し・拒否後に繰り返し要求する動作を改善。Androidの「連絡先」「不明な操作」という表示は、microGでアカウントを使うための確認です。[詳細と検証](docs/testing/issue-8-permission-ui.md)。
+- **microGでログインしてチャット**。通常領域やSamsungセキュアフォルダで、microGに追加したGoogleアカウントを使えます。初回に権限が必要な場合は、アプリが用途を案内します。
+- **公式アプリと併用**。標準のパッチ選択でGoogleとGeminiのクローンが作成され、端末標準のGoogleアプリと並べてインストールできます。
+- **Geminiの単体APKに対応**。対応版のGeminiは分割APKをそろえずにインストールできます。
+- **既存チャットの更新警告を軽減**。会話を続けるときにアプリの更新を促されるケースを減らします。
 
-**v0.3.5:** Google/Geminiの両方に汎用の更新停止を適用すると「Googleアプリを更新」と誤表示される問題と、単体APKでエラー画面が落ちる問題を修正。[ログイン済みPlayストアでの再現・検証](docs/testing/issue-8-play-store.md)。
+### インストール
 
-## Morpheに追加
+1. **Morphe Manager 2.7.1以降**を用意します。Android端末でこのページの **Add to Morphe Manager** をタップし、安定版のパッチソースを追加します。
+2. Google **17.72.17.ve.arm64** と Gemini **1.0.995038376** の元APKを用意し、両方を **標準のパッチ選択** で処理します。Android 12では、GoogleはAndroid 11以降向け、GeminiはAndroid 10以降向けのバリアントを選びます。[対応APKとバリアント](docs/setup-en.md#input-versions-and-variants)
+3. 端末標準のGoogleアプリを残した状態で、使用するプロファイルにmicroG、パッチ済みGoogle、パッチ済みGeminiをインストールします。セキュアフォルダで使う場合は、3つともフォルダ内にインストールします。microGにアカウントを追加してからGemini (Morphe)を開き、案内に沿ってアカウントへのアクセスを許可します。
 
-[最新リリース](https://github.com/ryuya0124/gemini-microg-patches/releases/latest)から `.mpp` をダウンロードしてSources → Localで追加できます。
+GitLabから追加する場合は、上のJSONのリンク先を **Sources → Remote** に入力してください。MPPを手動で追加する場合は、リリースから `.mpp` を取得して **Sources → Local** で開けます。[GitHubの安定版リリース](https://github.com/ryuya0124/gemini-microg-patches/releases/latest) · [GitLabのリリース一覧](https://gitlab.com/ryuya0124/gemini-microg-patches/-/releases)
 
-[Morpheにソースを追加](https://morphe.software/add-source?github=ryuya0124/gemini-microg-patches)、またはSources → RemoteにこのリポジトリのURLを入力してください。更新情報はルートの `patches-bundle.json` で配信します。
+更新時は前回と同じ署名キーを使ってください。起動・ログイン・インストールで困ったときは、詳細手順を参照してください。[セットアップ詳細（英語）](docs/setup-en.md) · [トラブルシューティング](docs/troubleshooting.md)
 
-v0.3.2からは、このソースの**標準選択のまま**パッチしてください。`Automatic Clone Setup` が `.morphe` へのクローン化と権限・Providerの競合回避を行うため、公式Clone appやExpert modeでの手動設定は不要です。Googleはリソース入りのnodpi単体APKが扱いやすく、分割版では適合するresource splitも必要です。対応バリアントは[セットアップ手順](docs/setup-en.md)を参照してください。
+## English
 
-## できること
+Gemini’s work-profile restrictions limit use of the official app inside Samsung Secure Folder. These Morphe patches let you sign in and chat with Gemini inside Secure Folder using microG. Install the Gemini launcher, the patched Google app, and microG in the same Android profile.
 
-- Geminiからクローン版Googleアプリを起動
-- microGのアカウント同期・ログインと初回権限要求
-- プロセス名の不一致によるクラッシュとアカウント同期ループの修正
-- 仕事用プロファイルからのWeb転送と利用不可エラー `(19)` の回避
+### What the patches do
 
-Googleアプリの特定バージョンを対象にしています。元APKの一致とパッチの適用箇所を検証し、対応しない入力ではビルドを停止します。
+- **Sign in and chat with microG.** Use the Google account added to microG in your regular profile or Samsung Secure Folder. The app explains why it needs account access before requesting permission.
+- **Install alongside the official apps.** The default selection creates separate Google and Gemini clones that can coexist with the system Google app.
+- **Use a single Gemini APK.** Supported Gemini versions can be installed without their resource splits.
+- **Reduce the update warning for existing chats.** The patches mitigate the “Conversation requires an update” warning that can interrupt some conversations.
 
-## クイックスタート
+### Installation
 
-macOS / Linux、JDK 21、Python 3、Bashを用意します。署名にはAndroid SDK Build Tools `36.0.0`、端末への更新にはplatform-toolsが必要です。
+1. Use **Morphe Manager 2.7.1 or newer**. Tap **Add to Morphe Manager** at the top of this page on your Android device to add the stable patch source.
+2. Get the original APKs for Google **17.72.17.ve.arm64** and Gemini **1.0.995038376**. Patch both using the **default patch selection**. On Android 12, choose the Google variant for Android 11+ and the Gemini variant for Android 10+. [Supported APK variants](docs/setup-en.md#input-versions-and-variants)
+3. Keep the system Google app installed. Install microG and both patched apps in the profile you want to use. For Secure Folder, install all three inside the folder. Add your account to microG, open Gemini (Morphe), and follow the prompts to grant account access.
 
-```sh
-git clone https://github.com/ryuya0124/gemini-microg-patches.git
-cd gemini-microg-patches
-scripts/setup-tools.sh
-```
+To add the GitLab source, paste the JSON link above into **Sources → Remote**. To add an MPP manually, download the `.mpp` from a release and open it via **Sources → Local**. [Stable release on GitHub](https://github.com/ryuya0124/gemini-microg-patches/releases/latest) · [GitLab releases](https://gitlab.com/ryuya0124/gemini-microg-patches/-/releases)
 
-[inputs/README.md](inputs/README.md)に従って元APKを3つ配置します。
+Keep the same signing key when updating an existing installation. See the setup guide for help with APK variants, account permissions, and optional Play Store update blocking. [Detailed setup guide](docs/setup-en.md)
 
-```sh
-scripts/check-inputs.sh
-scripts/build-all.sh
-```
+## 開発 / Development
 
-これで `build/` に未署名APKが生成され、DEXの分岐と仕事用プロファイルの変更箇所が検証されます。
+[開発ガイド / Developer guide](docs/development.md)
 
-## 署名とインストール
+## Credits
 
-```sh
-cp .env.example .env
-# .envに署名キーパス、alias、パスワードを設定する
-scripts/create-keystore.sh  # 初回のみ。既存キーがあれば実行不要
-scripts/sign-apks.sh
-ADB_SERIAL=端末のIP:ポート scripts/install-device.sh
-```
-
-既存インストールを更新するときは**同じ署名キー**を使用します。Macの作業環境には既存キーと `.env` を配置済みです。パスワードはローカル専用の `local/SIGNING.md` にあります。新しいキーで既存キーを置き換えないでください。
-
-インストールする3ファイルは `dist/google-login.apk`、`dist/split_config.xxhdpi.apk`、`dist/gemini-login.apk` です。署名検証に成功したものだけを `dist/` に出力し、`SHA256SUMS` を生成します。
-
-インストール先は既定でAndroid user 0です。セキュアフォルダなど別ユーザーへ更新する場合は、`ANDROID_USER=150 ADB_SERIAL=端末のIP:ポート scripts/install-device.sh` のように明示します。
-
-利用するプロファイル内にmicroG (`app.revanced.android.gms`) とアカウントを用意し、Gemini (Morphe)を開いて初回のアカウント権限とmicroG拡張権限を許可します。SamsungではADBからセキュアフォルダ内のActivityを起動できないため、フォルダ内で手動で開きます。
-
-## Googleアプリの依存関係
-
-Geminiランチャーとは別に、**パッチ済みGoogleアプリとmicroGを同じプロファイルにインストール**してください。元の未改造Googleアプリを参照する設計ではありません。`Gemini Standalone Support` はsplit APKなしでインストールできるという意味で、Google本体を不要にする機能ではありません。v0.3.0からGeminiのManifestにもGoogleクローンのパッケージ可視性を明示します。
-
-## バージョン別フック情報
-
-[バージョン別記録](docs/versions/README.md)に、クラス・メソッド・フィールド・探索文字列・APKハッシュ・検証結果をまとめています。パッチ本体とDEX検証コードは同じ定義を参照します。新バージョンは別ファイルで追加し、未登録版への汎用適用は行いません。
-
-## 開発コマンド
-
-| コマンド | 用途 |
-| --- | --- |
-| `scripts/setup-tools.sh` | 固定バージョンの依存ツール取得・SHA-256検証 |
-| `scripts/check-repo.sh` | Bash・ShellCheck・管理対象ファイルの検査 |
-| `scripts/compile-patches.sh` | Desktop向け中間JARをコンパイル |
-| `scripts/build-mpp.sh` | JVMクラス・Android DEX・Manifest入りの配布用MPPを生成・検証 |
-| `scripts/check-hook-profiles.sh` | バージョン定義・入力ハッシュ・生成JSONの整合性を検証 |
-| `scripts/build-google.sh` | Google本体のパッチ適用とDEX検証 |
-| `scripts/build-all.sh` | Google・Geminiランチャー・splitを元APKから生成 |
-| `scripts/verify-apks.sh` | Google本体のDEX検証を再実行 |
-| `scripts/sign-apks.sh` | 3つのAPKを同じキーで署名・検証 |
-| `scripts/install-device.sh` | 明示したADB接続先へデータを保持して更新 |
-
-MPPの生成にはAndroid SDKの `platforms;android-36` も必要です。R8/D8 9.4.17はsetup-tools.shがハッシュ検証して取得します。
-
-Javaは `JAVA`、Kotlinは `KOTLINC`、SDKは `ANDROID_HOME`、署名ツールは `APKSIGNER`、ADBは `ADB` で上書きできます。通常領域を自動起動する場合は `LAUNCH=1 ANDROID_USER=0` を追加します。
-
-## GitHub Actions
-
-- **CI**: push / PRでスクリプト検査とKotlinコンパイル。配布用MPPとメタデータ・チェックサムをArtifactに保存。
-- **Build APKs (manual)**: 手動実行で元APKを取得し、3つの未署名APKを生成・検証。入力URLのSecrets設定が必要です。
-- **Release patch bundle**: `v*` タグでMPP・ソースメタデータ・チェックサムを含むReleaseを公開。
-
-**GitHub CI確認済み:** スクリプト検査、パッチと検証ツールのコンパイル、Artifact保存まで成功しました。[実行結果](https://github.com/ryuya0124/gemini-microg-patches/actions/runs/34036990773)
-
-設定手順と通常CIが検証する範囲は [docs/automation.md](docs/automation.md) を参照してください。署名キーはMac内で管理し、ActionsのAPK成果物はローカルで署名します。
-
-## ディレクトリ
-
-```text
-src/main/kotlin/  パッチ本体
-scripts/         ビルド・検証・署名・インストール
-config/          ツールの固定バージョンと元APKのハッシュ
-docs/            設計・自動化・トラブルシューティング
-analysis/legacy/ 過去の調査用Kotlinスクリプト
-inputs/          元APK（Git対象外）
-tools/           ダウンロードした依存ツール（Git対象外）
-build/           再生成できる中間成果物（Git対象外）
-dist/            署名・検証済み成果物（Git対象外）
-local/           署名キー・個人用メモ・旧作業資料（Git対象外）
-```
-
-次の作業者は [HANDOFF.md](HANDOFF.md) から確認してください。技術的な修正理由は [docs/architecture.md](docs/architecture.md)、既知の制約は [docs/troubleshooting.md](docs/troubleshooting.md) にまとめています。
-
-## 利用しているプロジェクト
-
-[Morphe Desktop](https://github.com/MorpheApp/morphe-desktop)、[Morphe patches](https://github.com/MorpheApp/morphe-patches)、[microG](https://github.com/microg/GmsCore)を利用しています。このリポジトリにはGoogleの元APK、署名キー、実機の生ログを含めません。
-
-更新時の探索方法・症状別の手掛かり・失敗例は [フック解析ガイド](docs/hook-analysis.md) を参照してください。`scripts/inspect-hooks.sh` で未知版のDEXも読み取り専用で検索できます。
-
-新版の解析には [DexKit探索ツール](analysis/dexkit/README.md) を利用できます。`scripts/setup-dexkit.sh` の後、`scripts/discover-hooks.sh APK` で候補を抽出し、同じ入力の再探索はキャッシュで省略します。
-
-クローンの出力検証には `scripts/verify-clone-contract.sh 元APK 生成APK` を使用できます。標準ビルド・署名・インストールの各段階でも実行します。Manager自体にこのCLI検証が組み込まれるわけではありません。
+[Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) · [Morphe patches](https://github.com/MorpheApp/morphe-patches) · [microG](https://github.com/microg/GmsCore)

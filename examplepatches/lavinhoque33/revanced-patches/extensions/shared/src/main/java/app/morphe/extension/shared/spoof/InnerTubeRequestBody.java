@@ -2,6 +2,8 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches/pull/4373
  *
+ * Modified by lavinhoque33, 2026-11-25.
+ *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
@@ -19,7 +21,7 @@ import java.util.zip.GZIPInputStream;
  * The body of an InnerTube request that loads a video: a player request, a watch next request,
  * or a request that holds a player request, such as a watch request or a Shorts watch request.
  */
-final class InnerTubeRequestBody {
+public final class InnerTubeRequestBody {
     // PlayerRequest.videoId and WatchNextRequest.videoId.
     private static final int VIDEO_ID_FIELD = 2;
     // GetWatchRequest.playerRequest and ReelItemWatchRequest.playerRequest.
@@ -36,7 +38,7 @@ final class InnerTubeRequestBody {
      * @return The video id, or null if the body has none.
      */
     @Nullable
-    static String readVideoId(byte[] body, boolean holdsPlayerRequest) throws IOException {
+    public static String readVideoId(byte[] body, boolean holdsPlayerRequest) throws IOException {
         byte[] message = isGzip(body) ? decompress(body) : body;
         if (holdsPlayerRequest) {
             message = SabrRequestBody.readMessageField(message, PLAYER_REQUEST_FIELD);

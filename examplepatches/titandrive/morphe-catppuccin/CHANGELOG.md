@@ -1,3 +1,15 @@
+# [0.12.1](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.12.1) (2026-11-25)
+
+### Fixes
+
+* **Boost:** Theme inline post badges with rounded corners, matching Catppuccin colors and readable text. Keep badge labels together instead of splitting them into square blocks.
+
+# [0.12.0](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.12.0) (2026-11-25)
+
+### Updates
+
+* **Boost:** Support Boost 1.14.4 with Patcheddit 2.5.1 stable and 2.6.0-dev.4. Update the native theme, font, media-viewer, account-header, and comment-badge bindings.
+
 # [0.11.2](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.11.2) (2026-11-08)
 
 ### Updates

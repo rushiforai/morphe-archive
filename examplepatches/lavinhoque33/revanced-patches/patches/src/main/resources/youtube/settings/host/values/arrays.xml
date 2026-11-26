@@ -1573,4 +1573,16 @@
     <string-array name="revanced_double_tap_seek_length_entry_values" translatable="false">
         <item>0</item>
     </string-array>
+    <string-array name="morphe_ghost_play_history_limit_entries">
+        <item>@string/morphe_ghost_play_history_limit_100</item>
+        <item>@string/morphe_ghost_play_history_limit_500</item>
+        <item>@string/morphe_ghost_play_history_limit_2000</item>
+        <item>@string/morphe_ghost_play_history_limit_unlimited</item>
+    </string-array>
+    <string-array name="morphe_ghost_play_history_limit_entry_values" translatable="false">
+        <item>100</item>
+        <item>500</item>
+        <item>2000</item>
+        <item>0</item>
+    </string-array>
 </resources>

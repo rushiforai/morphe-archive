@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: build-arm64.sh [brave|bare]   (default: brave)
+# Usage: build-arm64.sh [brave|bare|titanium]   (default: brave)
 # One engine source serves every Chromium port; only the JNI class, log tag
 # and output name differ.
 set -eu
@@ -10,7 +10,7 @@ BRAVE_CC="$BRAVE_NDK/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-an
 BRAVE_SHADOWHOOK="$BRAVE_PROJECT_DIR/patches/src/main/resources/helium/native/arm64-v8a"
 case "${1:-brave}" in
     brave)
-        PORT_DEFINES=""
+        PORT_DEFINES="-DFONTISM_ENGINE_VERSION=\"2.3.3-brave2\" -DFONTISM_SELECT_HAN"
         PORT_OUTPUT="$BRAVE_PROJECT_DIR/patches/src/main/resources/brave/native/arm64-v8a/libfontism_brave_233.so"
         ;;
     bare)
@@ -20,6 +20,15 @@ case "${1:-brave}" in
             -DFONTISM_BOOTSTRAP_CLASS=\"app/fontism/extension/bare/BareFontBootstrap\"
             -DFONTISM_LOCALE_DEFAULT_PROBE"
         PORT_OUTPUT="$BRAVE_PROJECT_DIR/patches/src/main/resources/bare/native/arm64-v8a/libfontism_bare_233.so"
+        ;;
+    titanium)
+        # Titanium keeps the original 2.3.3 fallback locator. Without
+        # FONTISM_SELECT_HAN and with version "2.3.3" this rebuilds the original
+        # engine byte for byte (SHA-256 bc34ee1b...107073d4).
+        PORT_DEFINES="-DLOG_TAG=\"FontismNative\" -DFONTISM_ENGINE_VERSION=\"2.3.3-titanium2\"
+            -DFONTISM_BOOTSTRAP_CLASS=\"app/fontism/extension/FontismBootstrap\"
+            -DFONTISM_TITANIUM_LOCATOR -DFONTISM_SELECT_HAN"
+        PORT_OUTPUT="$BRAVE_PROJECT_DIR/patches/src/main/resources/helium/native/arm64-v8a/libfontism_hook_233.so"
         ;;
     *) echo "unknown port: $1" >&2; exit 2 ;;
 esac

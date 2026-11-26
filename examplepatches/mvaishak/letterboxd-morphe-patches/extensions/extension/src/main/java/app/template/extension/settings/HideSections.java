@@ -2,8 +2,10 @@ package app.template.extension.settings;
 
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
+import app.template.extension.watch.RatingsRow;
 
 import java.util.WeakHashMap;
 
@@ -20,10 +22,8 @@ public final class HideSections {
 
     /**
      * Injected at the top of {@code WhereToWatchFragment.onViewCreated}. That method sets its own
-     * view {@code GONE} first, then a coroutine sets it back {@code VISIBLE} once availability
-     * data loads asynchronously — a one-shot hide here would just get overwritten once that
-     * finishes. A layout listener re-asserts {@code GONE} on every pass instead, the same
-     * reactive shape "Hide ratings until watched" uses for the same reason.
+     * view {@code GONE} first, then a coroutine updates its visibility asynchronously.
+     * Keep the injected external ratings row visible by hiding only the two stock children.
      */
     public static void enforceWhereToWatch(final Fragment fragment) {
         try {
@@ -40,13 +40,23 @@ public final class HideSections {
                         detach(view, self[0]);
                         return;
                     }
-                    if (view.getVisibility() != View.GONE) view.setVisibility(View.GONE);
+                    refreshWhereToWatch(view);
                 }
             };
             view.getViewTreeObserver().addOnGlobalLayoutListener(self[0]);
             self[0].onGlobalLayout();
         } catch (Throwable ignored) {
         }
+    }
+
+    public static void refreshWhereToWatch(View view) {
+        if (!Prefs.hideWhereToWatch() || !(view instanceof ViewGroup)) return;
+        ViewGroup root = (ViewGroup) view;
+        if (root.getChildCount() < 2) return;
+        root.getChildAt(0).setVisibility(View.GONE);
+        root.getChildAt(1).setVisibility(View.GONE);
+        boolean hasRatings = root.findViewWithTag(RatingsRow.TAG) != null;
+        view.setVisibility(hasRatings ? View.VISIBLE : View.GONE);
     }
 
     private static void detach(View v, ViewTreeObserver.OnGlobalLayoutListener l) {

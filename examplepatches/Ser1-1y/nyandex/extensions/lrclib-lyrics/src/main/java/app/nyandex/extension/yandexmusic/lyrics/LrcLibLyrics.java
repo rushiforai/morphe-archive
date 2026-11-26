@@ -105,15 +105,8 @@ public final class LrcLibLyrics {
     /** Whether lyrics of downloaded tracks are kept apart from the limited cache (default on). */
     static final String KEEP_DOWNLOADED_KEY = "lyrics_keep_downloaded";
 
-    /** LRCLIB could not be reached: network error or an HTTP status other than 200 and 404. */
-    private static class UnreachableException extends IOException {
-        UnreachableException(String message) {
-            super(message);
-        }
-    }
-
     /** LRCLIB answered with an HTTP status other than 200 and 404. */
-    private static final class StatusException extends UnreachableException {
+    private static final class StatusException extends IOException {
         final int status;
         /** The response's Retry-After in milliseconds, or -1. */
         final long retryAfterMs;
@@ -592,15 +585,14 @@ public final class LrcLibLyrics {
         return 0;
     }
 
-    private static int deleteAll(File directory) {
-        int deleted = 0;
+    private static void deleteAll(File directory) {
         File[] files = directory == null ? null : directory.listFiles();
         if (files != null) {
             for (File file : files) {
-                if (file.delete()) deleted++;
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
             }
         }
-        return deleted;
     }
 
     /**
@@ -699,9 +691,8 @@ public final class LrcLibLyrics {
     }
 
     /** Move a track's saved answers (every format) between the two directories. */
-    private static int moveFiles(String trackId, File from, File to) {
-        if (from == null || to == null) return 0;
-        int moved = 0;
+    private static void moveFiles(String trackId, File from, File to) {
+        if (from == null || to == null) return;
         for (String format : DISK_FORMATS) {
             String name = LrcLibCore.cacheFileName(trackId, format);
             File source = new File(from, name);
@@ -709,9 +700,9 @@ public final class LrcLibLyrics {
             File target = new File(to, name);
             //noinspection ResultOfMethodCallIgnored
             target.delete();
-            if (source.renameTo(target)) moved++;
+            //noinspection ResultOfMethodCallIgnored
+            source.renameTo(target);
         }
-        return moved;
     }
 
     private static boolean setting(String key, boolean defaultValue) {
@@ -785,12 +776,10 @@ public final class LrcLibLyrics {
     /**
      * Keep the disk cache bounded: above {@code limit} entries, drop the least recently used
      * down to five sixths of the limit, so pruning does not run on every write.
-     *
-     * @return The number of files deleted.
      */
-    private static int prune(File directory, int limit) {
+    private static void prune(File directory, int limit) {
         File[] files = directory.listFiles();
-        if (files == null || files.length <= limit) return 0;
+        if (files == null || files.length <= limit) return;
         int keep = limit - limit / 6;
         final long[] modified = new long[files.length];
         Integer[] order = new Integer[files.length];
@@ -799,11 +788,10 @@ public final class LrcLibLyrics {
             order[i] = i;
         }
         Arrays.sort(order, (a, b) -> Long.compare(modified[a], modified[b]));
-        int deleted = 0;
         for (int i = 0; i < files.length - keep; i++) {
-            if (files[order[i]].delete()) deleted++;
+            //noinspection ResultOfMethodCallIgnored
+            files[order[i]].delete();
         }
-        return deleted;
     }
 
     // endregion

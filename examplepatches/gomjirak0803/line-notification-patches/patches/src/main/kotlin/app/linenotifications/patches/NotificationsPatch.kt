@@ -323,7 +323,7 @@ val notTooMuchSilentPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_LINE)
-    dependsOn(notificationIntegrationPatch)
+    dependsOn(notificationIntegrationPatch, nativeReadActionResourcesPatch)
     execute {
         val registrant = mutableClassDefBy("Lgw3/i;").methods.single {
             it.name == "c" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Lfw3/d;")

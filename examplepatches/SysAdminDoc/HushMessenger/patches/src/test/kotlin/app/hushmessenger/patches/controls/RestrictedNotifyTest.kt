@@ -34,8 +34,7 @@ private const val NOTIFY_SETTING = "Lcom/facebook/messaging/model/threads/Notifi
 private const val FOLDER_READ = "iget-object v5, v2, $THREAD_SUMMARY->A10:$FOLDER"
 
 /** The folder enum's type in each stock build. */
-private val NATIVE_FOLDERS = mapOf(PROFILE_347415280 to "LX/19t;", PROFILE_347415262 to "LX/1AJ;", PROFILE_347415302 to "LX/19t;",
-    PROFILE_347415354 to "LX/19t;")
+private val NATIVE_FOLDERS = mapOf(PROFILE_347617503 to "LX/1CW;", PROFILE_347617497 to "LX/1Cv;")
 
 /**
  * The thread check cut down from 586: a chat or sender it can't load fails it, Other, Spam and Restricted end it, a
@@ -122,8 +121,8 @@ class RestrictedNotifyTest {
         assertEquals(listOf(SYNTHETIC_RESTRICTED_NOTIFY), found(restrictedNotifyFixture()))
         validateControls(mirroredControls(restrictedNotifyFixture()), setOf(RESTRICTED_NOTIFY))
         assertEquals(setOf(SYNTHETIC_RESTRICTED_NOTIFY), SYNTHETIC_PROFILE.hooks.getValue(RESTRICTED_NOTIFY))
-        // 587 gives the parser's coroutine an obfuscated name.
-        assertEquals(setOf("LX/CxP;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;"), BASE_PROFILE.hooks.getValue(RESTRICTED_NOTIFY))
+        // 588 gives the check its own class again, as 586 did (587 merged it into an obfuscated one).
+        assertEquals(setOf(SYNTHETIC_RESTRICTED_NOTIFY), BASE_PROFILE.hooks.getValue(RESTRICTED_NOTIFY))
         assertEquals(mapOf("OTHER" to "A0V", "INBOX" to "A0K", "SPAM" to "A0c", "RESTRICTED" to "A0b"), folders().enumConstantFields())
     }
 

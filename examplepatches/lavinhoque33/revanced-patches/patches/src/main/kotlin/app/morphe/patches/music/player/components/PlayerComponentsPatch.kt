@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-25.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -321,6 +321,7 @@ val playerComponentsPatch = bytecodePatch(
     dependsOn(
         settingsPatch,
         playerComponentsResourcePatch,
+        musicPlayerLightThemePatch,
         sharedResourceIdPatch,
         lithoFilterPatch,
         mainActivityResolvePatch,

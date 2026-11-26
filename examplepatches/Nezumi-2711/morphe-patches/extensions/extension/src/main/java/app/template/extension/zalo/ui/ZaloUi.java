@@ -26,6 +26,7 @@ import android.widget.TextView;
 import java.lang.reflect.Constructor;
 
 import app.template.extension.zalo.appearance.CustomFont;
+import app.template.extension.zalo.buglog.NezumiLog;
 
 /** Zalo-styled view builders shared by Nezumi screens: rows, switches, icons, groups, pages. */
 public final class ZaloUi {
@@ -133,7 +134,8 @@ public final class ZaloUi {
             Constructor<?> constructor = Class.forName("com.zing.zalo.ui.widget.RobotoTextView")
                     .getConstructor(Context.class);
             text = (TextView) constructor.newInstance(context);
-        } catch (ReflectiveOperationException | ClassCastException | SecurityException ignored) {
+        } catch (ReflectiveOperationException | ClassCastException | SecurityException failure) {
+            NezumiLog.swallowedOnce("NezumiUi", "RobotoTextView unavailable, using TextView", failure);
             text = new TextView(context);
         }
         text.setText(value);
@@ -219,7 +221,8 @@ public final class ZaloUi {
             Drawable icon = new BitmapDrawable(context.getResources(), bitmap);
             icon.setColorFilter(BLUE, PorterDuff.Mode.SRC_IN);
             return icon;
-        } catch (Exception ignored) {
+        } catch (Exception failure) {
+            NezumiLog.swallowedOnce("NezumiUi", "gear icon unavailable, using line icon", failure);
             return new LineIcon(BLUE, 0);
         }
     }
@@ -262,7 +265,9 @@ public final class ZaloUi {
             int unspecified = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
             native_.measure(unspecified, unspecified);
             if (native_.getMeasuredWidth() > 0 && native_.getMeasuredHeight() > 0) return native_;
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) { }
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.swallowedOnce("NezumiUi", "native switch unavailable, using ZaloToggle", failure);
+        }
         return new ZaloToggle(context, darkMode);
     }
 

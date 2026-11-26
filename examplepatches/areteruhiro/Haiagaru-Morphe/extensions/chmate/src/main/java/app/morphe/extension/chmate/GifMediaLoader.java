@@ -18,6 +18,7 @@ final class GifMediaLoader {
             if(ImageVpnController.protectedPreview(url)){
                 byte[] data=ImageVpnController.fetchPreview(url).getBody();
                 if(data==null||data.length>limit)throw new IOException("GIF too large");
+                AppTrafficUsage.recordFeatureBytes(context,"gif_media",data.length);
                 output.write(data);return;
             }
             Request request=new Request.Builder().url(url).header("Accept","image/gif,image/*;q=0.9,*/*;q=0.1").build();
@@ -25,17 +26,17 @@ final class GifMediaLoader {
             java.util.concurrent.ScheduledFuture<?> cancellation=CANCELLATIONS.scheduleAtFixedRate(()->{
                 if(stop.getAsBoolean()||caller.isInterrupted())call.cancel();
             },0,100,TimeUnit.MILLISECONDS);
-            try(Response response=call.execute()){
+            long[] received={0};try(Response response=call.execute()){
                 if(!response.isSuccessful()||response.body()==null)throw new IOException("HTTP "+response.code());
                 if(response.body().contentLength()>limit)throw new IOException("GIF too large");
                 try(InputStream input=response.body().byteStream()){
                     byte[] buffer=new byte[32768];int n;
                     while((n=input.read(buffer))!=-1){
                         if(stop.getAsBoolean())throw new InterruptedIOException("GIF cancelled");
-                        output.write(buffer,0,n);
+                        output.write(buffer,0,n);received[0]+=n;
                     }
                 }
-            }finally{cancellation.cancel(false);}
+            }finally{cancellation.cancel(false);AppTrafficUsage.recordFeatureBytes(context,"gif_media",received[0]);}
         });
     }
     private GifMediaLoader(){}

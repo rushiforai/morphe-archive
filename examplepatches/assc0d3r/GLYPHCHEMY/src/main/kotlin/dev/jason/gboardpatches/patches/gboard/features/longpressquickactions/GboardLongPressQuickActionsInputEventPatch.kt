@@ -1,9 +1,13 @@
 package dev.jason.gboardpatches.patches.gboard.features.longpressquickactions
 
+import dev.jason.gboardpatches.patches.gboard.shared.GboardMethodTarget
+import dev.jason.gboardpatches.patches.gboard.shared.gboardCompatibility18_8
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+import dev.jason.gboardpatches.patches.gboard.shared.selectReleaseTargets
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -24,11 +28,33 @@ import dev.jason.gboardpatches.patches.gboard.shared.isRegisterOperation
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
-import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 private val INPUT_EVENT_RUNTIME_CALL =
     RuntimeCallId.LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_HANDLE_INPUT_EVENT
 private val INPUT_EVENT_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(INPUT_EVENT_RUNTIME_CALL).reference
+
+/**
+ * 18.8.0 renamed the dispatcher class (`Lpbk;` -> `Lafae;`, proved by fourteen members the proposer
+ * matched in that class) and the event parameter (`Loak;` -> `Ladan;`). The stock entry the
+ * classifier checks is unchanged: `move-object/from16 v1, v27` copies the event, `if-nez` guards it,
+ * `const/4 v2, 0` materialises the default and `return v2` leaves. 28 registers puts the receiver at
+ * v26 and the event at v27, which is the register the stock move reads.
+ */
+private val GBOARD_LONG_PRESS_INPUT_EVENT_18_8 = GboardMethodTarget(
+    classType = "Lafae;",
+    name = "ay",
+    parameterTypes = listOf("Ladan;"),
+    returnType = "Z",
+)
+
+/** Chooses by what the APK declares so a build the projection cannot describe still resolves. */
+private fun longPressInputEventTarget(context: BytecodePatchContext): GboardMethodTarget =
+    selectReleaseTargets(
+        context = context,
+        projection = { GboardVersionBindings.longPressQuickActionsInputEvent },
+        probe = { target -> target },
+        audited = GBOARD_LONG_PRESS_INPUT_EVENT_18_8,
+    )
 
 internal val LONG_PRESS_QUICK_ACTIONS_INPUT_EVENT_DELEGATE = """
     ${RuntimeCallEmitter.invoke(INPUT_EVENT_RUNTIME_CALL, "p0 .. p1")}
@@ -55,22 +81,21 @@ private val LONG_PRESS_QUICK_ACTIONS_INPUT_EVENT_BRANCH = """
 internal val gboardLongPressQuickActionsInputEventPatch = bytecodePatch(
     description = "在 18.0.3 Gboard input event dispatcher 前處理 exact editing shortcuts。",
 ) {
-    compatibleWith(COMPATIBILITY_GBOARD)
+    compatibleWith(gboardCompatibility18_8())
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        val method = findMutableMethodOrThrow(
-            GboardVersionBindings.longPressQuickActionsInputEvent,
-        )
-        method.applyLongPressQuickActionsInputEventDelegate()
+        val target = longPressInputEventTarget(this)
+        findMutableMethodOrThrow(target)
+            .applyLongPressQuickActionsInputEventDelegate(target)
     }
 }
 
-internal fun MutableMethod.applyLongPressQuickActionsInputEventDelegate() {
+internal fun MutableMethod.applyLongPressQuickActionsInputEventDelegate(target: GboardMethodTarget) {
     applyVerified(
         VerifiedTransformationPlan(
-            targetName = GboardVersionBindings.longPressQuickActionsInputEvent.reference,
-            classify = MutableMethod::classifyLongPressInputEvent,
+            targetName = target.reference,
+            classify = { method -> method.classifyLongPressInputEvent(target) },
             mutate = { method ->
                 method.addInstructions(0, "nop")
                 val continuation = method.implementation!!.instructions[0]
@@ -89,16 +114,18 @@ internal fun MutableMethod.applyLongPressQuickActionsInputEventDelegate() {
     )
 }
 
-private fun MutableMethod.classifyLongPressInputEvent(): VerifiedTransformationState {
+private fun MutableMethod.classifyLongPressInputEvent(
+    target: GboardMethodTarget,
+): VerifiedTransformationState {
     val implementation = implementation
         ?: error("Long-press input event target has no implementation")
-    val layout = inputEventRegisterLayout(implementation.registerCount)
+    val layout = inputEventRegisterLayout(target, implementation.registerCount)
     val instructions = implementation.instructions
     return when (instructions.count { it.isMethodReference(INPUT_EVENT_RUNTIME_DESCRIPTOR) }) {
         0 -> {
             check(instructions.hasLongPressInputStockEntry(0, layout.eventRegister)) {
                 "Stock entry drift in " +
-                    "${GboardVersionBindings.longPressQuickActionsInputEvent.reference}: " +
+                    "${target.reference}: " +
                     instructions.take(4).joinToString { instruction ->
                         instruction.opcode.name + ":" +
                             (instruction as? OneRegisterInstruction)?.registerA + ":" +
@@ -156,8 +183,11 @@ private data class InputEventRegisterLayout(
     val eventRegister: Int,
 )
 
-private fun inputEventRegisterLayout(registerCount: Int): InputEventRegisterLayout {
-    val binding = GboardVersionBindings.longPressQuickActionsInputEvent
+private fun inputEventRegisterLayout(
+    target: GboardMethodTarget,
+    registerCount: Int,
+): InputEventRegisterLayout {
+    val binding = target
     check(binding.parameterTypes.size == 1 && binding.returnType == "Z") {
         "Long-press input event prototype drift: ${binding.reference}"
     }

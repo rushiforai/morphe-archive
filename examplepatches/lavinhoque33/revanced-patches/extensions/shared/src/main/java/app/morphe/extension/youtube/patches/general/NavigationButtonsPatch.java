@@ -2,6 +2,7 @@
  * Portions of this file are ported from Morphe:
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
+ * https://github.com/MorpheApp/morphe-patches/pull/5255
  *
  * Portions of this file are modified by anddea:
  * Copyright (C) 2026 anddea
@@ -12,7 +13,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-25.
  */
 
 package app.morphe.extension.youtube.patches.general;
@@ -25,10 +26,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.ViewStub;
 import android.view.Window;
 import android.view.WindowInsets;
@@ -48,8 +56,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -82,8 +92,10 @@ import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.Title;
 import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.NavigationEndpoint;
 import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.PivotBarItemRenderer;
 import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.RendererAccessibilityData;
+import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.SignInEndpoint;
 import app.morphe.extension.youtube.innertube.IconOuterClass.Icon;
 import app.morphe.extension.youtube.innertube.IconOuterClass.YTIconType;
+import app.morphe.extension.youtube.patches.CommandRouterPatch;
 import app.morphe.extension.youtube.patches.general.offline.OfflineScreens;
 import app.morphe.extension.youtube.patches.theme.ThemePatch.StatusBarTranslucency;
 import app.morphe.extension.youtube.patches.FixPagePaddingPatch;
@@ -184,6 +196,10 @@ public final class NavigationButtonsPatch {
 
     private static final boolean SHOW_SETTINGS_BUTTON = Settings.SHOW_SETTINGS_BUTTON.get();
     private static final boolean SHOW_SETTINGS_BUTTON_TYPE = Settings.SHOW_SETTINGS_BUTTON_TYPE.get();
+    private static final int ACCOUNT_SWITCHER_MODE = accountSwitcherMode();
+    private static final boolean ACCOUNT_SWITCHER_ENABLED = ACCOUNT_SWITCHER_MODE != 0
+            && !HIDE_NAVIGATION_BAR && !Settings.HIDE_NAVIGATION_LIBRARY_BUTTON.get()
+            && Settings.YOU_BUTTON_ACCOUNT_SWITCHER.get();
     private static final boolean SHOW_WATCH_LATER_BUTTON = Settings.SHOW_WATCH_LATER_BUTTON.get();
     private static final String WATCH_LATER_PIVOT_IDENTIFIER = "morphe_watch_later";
     private static final String WATCH_LATER_BROWSE_ID = "VLWL";
@@ -1214,6 +1230,38 @@ public final class NavigationButtonsPatch {
         return null; // Modified during patching.
     }
 
+    /** Native action bar adapter, implemented by the app's toolbar model owner during patching. */
+    public interface HomeToolbar {
+        @Nullable MessageLite patch_getToolbarButtonRenderer(Object item);
+        @Nullable Object patch_createToolbarNotificationsButton(MessageLite renderer);
+    }
+
+    /** Injection point. The native model has already combined the shared and page-local buttons. */
+    @Nullable
+    public static List<Object> restoreHomeToolbarNotifications(HomeToolbar toolbar, Collection<?> menu,
+            String browseId, boolean signedIn, MessageLite defaultRenderer) {
+        // The swap preference only requests the automotive guide; it does not guarantee a bottom bell.
+        boolean hasBottomBell = HomeToolbarNotifications.hasBottomBell(HIDE_NAVIGATION_BAR,
+                Settings.HIDE_NAVIGATION_NOTIFICATIONS_BUTTON.get(),
+                NavigationBar.hasServerNavigationButton(NavigationButton.NOTIFICATIONS));
+
+        try {
+            return HomeToolbarNotifications.withBell(menu, browseId, signedIn, HIDE_TOOLBAR_NOTIFICATION_BUTTON,
+                    hasBottomBell, toolbar::patch_getToolbarButtonRenderer, () -> {
+                        ExtensionRegistryLite registry = getGeneratedRegistry();
+                        if (registry == null) return null;
+
+                        String label = str("revanced_change_start_page_entry_notifications");
+                        MessageLite renderer = parseWithRegistry(
+                                defaultRenderer, HomeToolbarNotifications.renderer(label).toByteArray(), registry);
+                        return renderer == null ? null : toolbar.patch_createToolbarNotificationsButton(renderer);
+                    });
+        } catch (Exception ex) {
+            Logger.printException(() -> "Failed to restore Home toolbar Notifications", ex);
+            return null;
+        }
+    }
+
     /**
      * Injection point. Removes toolbar buttons hidden by the user before YouTube lays them out.
      */
@@ -1452,6 +1500,219 @@ public final class NavigationButtonsPatch {
         return shouldHideMap;
     }
 
+    /** Replaced during patching: 1 uses the full account dialog, 2 uses the lite account sheet. */
+    private static int accountSwitcherMode() {
+        return 0;
+    }
+
+    /** Injection point in PivotBar.dispatchTouchEvent. Only consumes the end of a recognized long press. */
+    public static boolean handleAccountSwitcherTouch(View pivotBar, MotionEvent event) {
+        return ACCOUNT_SWITCHER_ENABLED && AccountSwitcherShortcut.onTouch(pivotBar, event);
+    }
+
+    /** Injection point in the host detector, whose long-click can arrive after the touch has ended. */
+    public static boolean handleAccountSwitcherHostLongClick(View tab) {
+        // The timed touch path owns You, including when a late host callback would fall through to a tap.
+        return (ACCOUNT_SWITCHER_ENABLED && AccountSwitcherShortcut.isBound(tab)) || tab.performLongClick();
+    }
+
+    private static final class AccountSwitcherShortcut {
+        private static final String SENDER_VIEW_KEY =
+                "com.google.android.libraries.youtube.rendering.elements.sender_view";
+        private static final byte[] COMMAND = NavigationEndpoint.newBuilder()
+                .setSignInEndpoint(SignInEndpoint.newBuilder().setUseAccountSwitcher(ACCOUNT_SWITCHER_MODE == 2))
+                .build()
+                .toByteArray();
+
+        // All access is on the UI thread. A recreated or hidden bar must not receive commands from an old touch.
+        private static final List<WeakReference<View>> tabs = new ArrayList<>();
+        private static final Handler handler = new Handler(Looper.getMainLooper());
+        private static final Rect visibleBounds = new Rect();
+        private static final Point viewOffset = new Point();
+        private static final int[] screenLocation = new int[2];
+        private static final Runnable longPress = AccountSwitcherShortcut::performLongPress;
+
+        private static WeakReference<View> receiver = new WeakReference<>(null);
+        @Nullable
+        private static WeakReference<View> armedTab;
+        private static boolean touching;
+        private static boolean performed;
+        private static long downTime;
+        private static float startX, startY, touchX, touchY;
+        private static float touchSlopSquared;
+
+        private static final View.OnAttachStateChangeListener cancelOnDetach = new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View tab) {
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View tab) {
+                if (armedTab != null && armedTab.get() == tab) disarm();
+            }
+        };
+
+        private static void bind(View tab) {
+            for (int index = tabs.size() - 1; index >= 0; index--) {
+                View existing = tabs.get(index).get();
+                if (existing == null) tabs.remove(index);
+                if (existing == tab) return;
+            }
+            tabs.add(new WeakReference<>(tab));
+            tab.addOnAttachStateChangeListener(cancelOnDetach);
+
+            // YouTube finishes setting its own long-click listener after creating the view.
+            Utils.runOnMainThread(() -> tab.setOnLongClickListener(AccountSwitcherShortcut::onLongClick));
+        }
+
+        private static boolean isBound(View target) {
+            for (int index = tabs.size() - 1; index >= 0; index--) {
+                View tab = tabs.get(index).get();
+                if (tab != null && (target == tab || belongsTo(target, tab))) return true;
+            }
+            return false;
+        }
+
+        private static boolean onTouch(View pivotBar, MotionEvent event) {
+            int action = event.getActionMasked();
+            if (action == MotionEvent.ACTION_DOWN) {
+                startTouch(pivotBar, event);
+                return false;
+            }
+            if (!touching || receiver.get() != pivotBar) return false;
+            if (action == MotionEvent.ACTION_CANCEL) {
+                // ViewGroup can synthesize a cancel with a different down time.
+                endTouch();
+                return false;
+            }
+            if (downTime != event.getDownTime()) return false;
+
+            switch (action) {
+                case MotionEvent.ACTION_MOVE -> {
+                    View tab = armedTab == null ? null : armedTab.get();
+                    if (tab != null) {
+                        touchX = event.getRawX();
+                        touchY = event.getRawY();
+                        float dx = touchX - startX;
+                        float dy = touchY - startY;
+                        if (dx * dx + dy * dy > touchSlopSquared || !isHit(tab, touchX, touchY)) disarm();
+                    }
+                }
+                case MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_OUTSIDE -> disarm();
+                case MotionEvent.ACTION_UP -> {
+                    boolean cancelTap = performed;
+                    endTouch();
+                    if (cancelTap) {
+                        // Let both the native detector and framework children clean up, without changing
+                        // the parent's event. This re-enters the hook with no active gesture.
+                        MotionEvent cancel = MotionEvent.obtain(event);
+                        try {
+                            cancel.setAction(MotionEvent.ACTION_CANCEL);
+                            pivotBar.dispatchTouchEvent(cancel);
+                        } finally {
+                            cancel.recycle();
+                        }
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static void startTouch(View pivotBar, MotionEvent event) {
+            endTouch();
+            if (receiver.get() != pivotBar) receiver = new WeakReference<>(pivotBar);
+            touching = true;
+            downTime = event.getDownTime();
+            startX = touchX = event.getRawX();
+            startY = touchY = event.getRawY();
+
+            for (int index = tabs.size() - 1; index >= 0; index--) {
+                WeakReference<View> candidate = tabs.get(index);
+                View tab = candidate.get();
+                if (tab == null || !belongsTo(tab, pivotBar) || !isHit(tab, touchX, touchY)) continue;
+
+                armedTab = candidate;
+                int slop = ViewConfiguration.get(tab.getContext()).getScaledTouchSlop();
+                touchSlopSquared = (float) slop * slop;
+                handler.postAtTime(longPress, downTime + ViewConfiguration.getLongPressTimeout());
+                break;
+            }
+        }
+
+        private static void performLongPress() {
+            View tab = armedTab == null ? null : armedTab.get();
+            View pivotBar = receiver.get();
+            if (tab != null && pivotBar != null && !performed && belongsTo(tab, pivotBar)
+                    && isHit(tab, touchX, touchY)) {
+                tab.performLongClick();
+            }
+        }
+
+        private static boolean onLongClick(View tab) {
+            View pivotBar = receiver.get();
+            if (!touching || pivotBar == null || !belongsTo(tab, pivotBar)) {
+                // Accessibility and keyboard can invoke long-click without a touch.
+                return canPress(tab) && openAccountSwitcher(tab);
+            }
+            if (performed || armedTab == null || armedTab.get() != tab || !isHit(tab, touchX, touchY)) return true;
+
+            disarm();
+            performed = true;
+            if (openAccountSwitcher(tab)) return true;
+
+            performed = false;
+            return false;
+        }
+
+        private static boolean openAccountSwitcher(View tab) {
+            try {
+                Map<String, Object> context = new HashMap<>(2);
+                context.put(SENDER_VIEW_KEY, tab);
+                return CommandRouterPatch.executeCommand(COMMAND, context, tab);
+            } catch (RuntimeException ex) {
+                Logger.printException(() -> "Failed to open the native account switcher", ex);
+                return false;
+            }
+        }
+
+        private static boolean canPress(View tab) {
+            return tab.isAttachedToWindow() && tab.isShown() && tab.isEnabled()
+                    && tab.getWindowVisibility() == View.VISIBLE && tab.hasWindowFocus();
+        }
+
+        private static boolean belongsTo(View tab, View pivotBar) {
+            for (ViewParent parent = tab.getParent(); parent instanceof View; parent = parent.getParent()) {
+                if (parent == pivotBar) return true;
+            }
+            return false;
+        }
+
+        private static boolean isHit(View tab, float rawX, float rawY) {
+            if (!canPress(tab) || !tab.getGlobalVisibleRect(visibleBounds, viewOffset)) return false;
+
+            tab.getLocationOnScreen(screenLocation);
+            float x = rawX - screenLocation[0] + viewOffset.x;
+            float y = rawY - screenLocation[1] + viewOffset.y;
+            return x >= visibleBounds.left && x < visibleBounds.right
+                    && y >= visibleBounds.top && y < visibleBounds.bottom;
+        }
+
+        private static void disarm() {
+            if (armedTab != null) {
+                handler.removeCallbacks(longPress);
+                armedTab = null;
+            }
+        }
+
+        private static void endTouch() {
+            disarm();
+            touching = false;
+            performed = false;
+        }
+    }
+
     /**
      * Injection point.
      */
@@ -1482,6 +1743,8 @@ public final class NavigationButtonsPatch {
 
         if (BooleanUtils.isTrue(getHideMap().get(button))) {
             tabView.setVisibility(View.GONE);
+        } else if (ACCOUNT_SWITCHER_ENABLED && button == NavigationButton.LIBRARY) {
+            AccountSwitcherShortcut.bind(tabView);
         }
     }
 

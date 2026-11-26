@@ -56,10 +56,6 @@
 
 上のボタンから、このリポジトリを Morphe のパッチソースに追加して、使いたいパッチを選んで適用します（このリポジトリのパッチだけで大丈夫です）。
 
-⚠️ **対象バージョンは厳密に合わせてください**（バージョンごとに動作を確認しているため、対象以外には当てられません）。
-
-- Simeji の全パッチ → **20.7**（23.7 には当てないでください）
-
 ## パッチの詳細
 
 ### ⌨️ Simeji
@@ -114,7 +110,7 @@
 ## 🩹 パッチ一覧
 
 <!-- PATCHES_START -->
-> **[v1.3.0](https://github.com/Ayufa/ayufa-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.4.0](https://github.com/Ayufa/ayufa-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details>
 <summary>📦 Simeji&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
@@ -123,7 +119,7 @@
 
 **🎯 Supported versions:**
 
-| 20.7 |
+| 22.5 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -209,17 +205,6 @@
 Simeji のパッチは単体で動作します（本家に Simeji 向けのパッチはありません）。
 
 </details>
-
-## 本家との関係
-
-- 本家のリポジトリには、プルリクエスト・Issue・コメントなどを一切しません。見るだけ（読み取り専用）で使わせてもらっています
-- ライセンスやクレジットは本家に従います（GPL-3.0）
-
-### 本家の更新についていく仕組み
-
-- 本家のパッチャーなどの依存更新は、Dependabot が定期的に知らせてくれます
-- 詳しくは [本家への追従方法](docs/UPSTREAM.md) に書いてあります
-- リリースの署名はしていません（署名鍵は未設定です）
 
 ## 🛠️ 自分でビルドする場合
 

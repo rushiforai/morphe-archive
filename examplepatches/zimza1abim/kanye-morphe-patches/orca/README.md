@@ -50,9 +50,9 @@ Morphe patch for the Android package `dev.orca.app`. Supported versions are list
 Bundle adapter first; it needs the official source checkout with installed dependencies.
 
 ```sh
-git clone --depth 1 --branch android-v<version> https://github.com/stablyai/orca.git build/orca-source
-(cd build/orca-source/mobile && pnpm install --frozen-lockfile)
-node orca/build-bundle.cjs build/orca-source <original-app-release.apk>
+git clone --depth 1 --branch android-v<version> https://github.com/stablyai/orca.git build/orca-source-<version>
+(cd build/orca-source-<version>/mobile && pnpm install --frozen-lockfile)
+node orca/build-bundle.cjs build/orca-source-<version> <original-app-release.apk>
 ```
 
 The script verifies the original APK's bundle checksum, injects the font UI into the source,

@@ -18,7 +18,7 @@ body:
     attributes:
       label: HushTelegram and Telegram versions
       description: Long-press the Telegram icon and tap HushTelegram, or open Telegram's App info page and tap Additional settings in the app. Then tap About to open it and copy the Version line.
-      placeholder: HushTelegram 0.0.26 on Telegram 13.3.1
+      placeholder: HushTelegram 0.0.27 on Telegram 13.3.1
     validations:
       required: true
   - type: input

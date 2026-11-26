@@ -460,6 +460,30 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting SPOOF_APP_VERSION = new BooleanSetting("revanced_spoof_app_version", PatchStatus.SpoofAppVersionDefaultBoolean(), true, "revanced_spoof_app_version_user_dialog_message");
     public static final StringSetting SPOOF_APP_VERSION_TARGET = new StringSetting("revanced_spoof_app_version_target", PatchStatus.SpoofAppVersionDefaultString(), true, parent(SPOOF_APP_VERSION));
 
+    // PreferenceScreen: General - Ghost mode
+    public static final BooleanSetting GHOST_PLAY_ENABLED =
+            new BooleanSetting("morphe_ghost_play_enabled", FALSE, true);
+    public static final BooleanSetting GHOST_PLAY_MODE_ACTIVE =
+            new BooleanSetting("morphe_ghost_play_mode_active", FALSE, parent(GHOST_PLAY_ENABLED));
+    public static final BooleanSetting GHOST_PLAY_PERSIST_MODE =
+            new BooleanSetting("morphe_ghost_play_persist_mode", FALSE, parent(GHOST_PLAY_ENABLED));
+    public static final BooleanSetting GHOST_PLAY_TOOLBAR_BUTTON =
+            new BooleanSetting("morphe_ghost_play_toolbar_button", TRUE, parent(GHOST_PLAY_ENABLED));
+    public static final BooleanSetting GHOST_PLAY_FLYOUT_BUTTON =
+            new BooleanSetting("morphe_ghost_play_flyout_button", TRUE, parent(GHOST_PLAY_ENABLED));
+    public static final BooleanSetting GHOST_PLAY_PLAYER_BUTTON =
+            new BooleanSetting("morphe_ghost_play_player_button", TRUE, true, parent(GHOST_PLAY_ENABLED));
+    public static final BooleanSetting GHOST_PLAY_ANONYMIZE_REQUESTS =
+            new BooleanSetting("morphe_ghost_play_anonymize_requests", FALSE, parent(GHOST_PLAY_ENABLED));
+    public static final BooleanSetting GHOST_PLAY_AUTO_SHORTS =
+            new BooleanSetting("morphe_ghost_play_auto_shorts", FALSE, parent(GHOST_PLAY_ENABLED));
+    public static final BooleanSetting GHOST_PLAY_AUTO_SEARCH =
+            new BooleanSetting("morphe_ghost_play_auto_search", FALSE, parent(GHOST_PLAY_ENABLED));
+    public static final BooleanSetting GHOST_PLAY_LOCAL_HISTORY =
+            new BooleanSetting("morphe_ghost_play_local_history", FALSE, parent(GHOST_PLAY_ENABLED));
+    public static final IntegerSetting GHOST_PLAY_HISTORY_LIMIT = new IntegerSetting(
+            "morphe_ghost_play_history_limit", 500, parentsAll(GHOST_PLAY_ENABLED, GHOST_PLAY_LOCAL_HISTORY));
+
     // PreferenceScreen: General - Account menu
     public static final BooleanSetting HIDE_ACCOUNT_MENU = new BooleanSetting("revanced_hide_account_menu", FALSE);
     public static final BooleanSetting HIDE_ACCOUNT_MENU_FILTER_TYPE = new BooleanSetting("revanced_hide_account_menu_filter_type", FALSE, true, parent(HIDE_ACCOUNT_MENU));
@@ -487,6 +511,9 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_NAVIGATION_NEW_CONTENT_DOT = new BooleanSetting("revanced_hide_navigation_new_content_dot", FALSE, true);
     private static final BooleanSetting DEPRECATED_DISABLE_TRANSLUCENT_NAVIGATION_BAR = new BooleanSetting("revanced_disable_translucent_navigation_bar", FALSE);
     public static final BooleanSetting HIDE_NAVIGATION_BAR = new BooleanSetting("revanced_hide_navigation_bar", FALSE, true);
+    public static final BooleanSetting YOU_BUTTON_ACCOUNT_SWITCHER = new BooleanSetting(
+            "morphe_you_button_account_switcher", FALSE, true,
+            parentsAll(parentInverted(HIDE_NAVIGATION_BAR), parentInverted(HIDE_NAVIGATION_LIBRARY_BUTTON)));
     public static final EnumSetting<NavigationBarStyle> NAVIGATION_BAR_STYLE = new EnumSetting<>("morphe_navigation_bar_style", NavigationBarStyle.DEFAULT, true, "morphe_navigation_bar_style_user_dialog_message", parentInverted(HIDE_NAVIGATION_BAR));
     public static final BooleanSetting OPAQUE_SYSTEM_NAVIGATION_BAR_LIGHT = new BooleanSetting(
             "morphe_opaque_system_navigation_bar_light", FALSE, true,

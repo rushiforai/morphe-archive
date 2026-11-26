@@ -4,13 +4,13 @@ Patches for **Genius** (`com.genius.android`), version `8.2.3.5414`, as an APK f
 
 ## Patches
 
-Every patch except **GmsCore support** is on by default. Morphe Manager groups them by category.
+Every patch is on by default. Morphe Manager groups them by category.
 
 | Category | Patch | Default | What it does |
 |---|---|---|---|
 | Ads | Hide ads | On | Removes the sticky banner, inline feed and search ads, video pre-roll ads, and disables ad SDKs. |
 | Feature | Fix Spotify login | On | Makes Spotify login work in the patched app by signing in on Spotify's web page instead of the Spotify app. |
-| Feature | GmsCore support | Off | Makes "Sign in with Google" work through [microG RE](https://github.com/WSTxda/MicroG-RE) (GmsCore) instead of Google Play services. |
+| Feature | GmsCore support | On | Makes "Sign in with Google" work through [microG RE](https://github.com/WSTxda/MicroG-RE) (GmsCore) instead of Google Play services. |
 | Privacy | Disable analytics | On | Turns off analytics and tracking (Firebase, Mixpanel, comScore, MediaLab Analytics, and Facebook). |
 | Theme | Themed icon | On | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 

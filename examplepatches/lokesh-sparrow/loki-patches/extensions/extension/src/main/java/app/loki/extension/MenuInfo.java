@@ -71,6 +71,16 @@ public final class MenuInfo {
             rows.add(new String[]{"All codecs", flag(flags, "app.loki.menu.codec")});
             rows.add(new String[]{"Skip license check", flag(flags, "app.loki.menu.license")});
             rows.add(new String[]{"GmsCore support (MX Player Pro)", flag(flags, "app.loki.menu.gmscore")});
+        } else if (pkg.startsWith("idm.internet.download.manager")) {
+            rows.add(new String[]{"Remove ads (1DM)", flag(flags, "app.loki.menu.hideads")});
+            rows.add(new String[]{"Remove 1DM+ promotions", flag(flags, "app.loki.menu.promos")});
+            rows.add(new String[]{"Rename to IDM+", flag(flags, "app.loki.menu.rename")});
+        } else if (pkg.startsWith("com.metalsoft.trackchecker_mobile")) {
+            rows.add(new String[]{"Remove ads (TrackChecker)", flag(flags, "app.loki.menu.hideads")});
+        } else if (pkg.startsWith("com.dv.adm")) {
+            rows.add(new String[]{"Remove ads (ADM)", flag(flags, "app.loki.menu.hideads")});
+        } else if (pkg.startsWith("net.dinglisch.android.taskerm")) {
+            rows.add(new String[]{"Unlock Tasker", flag(flags, "app.loki.menu.premium")});
         } else if (pkg.startsWith("com.cv.docscanner")) {
             rows.add(new String[]{"Enable premium features (Doc Scanner)", flag(flags, "app.loki.menu.premium")});
             rows.add(new String[]{"Hide ads (Doc Scanner)", flag(flags, "app.loki.menu.hideads")});

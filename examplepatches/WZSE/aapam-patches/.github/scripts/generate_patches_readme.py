@@ -3,9 +3,8 @@
 Generates the patches section of README.md from patches-list.json
 and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
 
-Spoilers are expanded (open by default) if:
-  1. Total patch count <= AUTO_EXPAND_THRESHOLD.
-  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
+Spoilers are collapsed by default to keep the README compact, unless the marker
+explicitly says: <!-- PATCHES_START EXPANDED -->
 
 python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
 """
@@ -13,7 +12,6 @@ python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [RE
 import json
 import re
 import sys
-import os
 from pathlib import Path
 
 
@@ -26,235 +24,215 @@ branch      = sys.argv[2]
 json_path   = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("patches-list.json")
 readme_path = Path(sys.argv[4]) if len(sys.argv) > 4 else Path("README.md")
 
-
 if "/" not in repo_full:
     raise ValueError(f"Invalid repo format: {repo_full} (expected owner/repo)")
 
 owner, repo = repo_full.split("/", 1)
 
-
 with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
 
 
-def pkg_emoji(pkg):
-    """Return a standard package emoji regardless of the package name."""
-    return "📦"
+def md_cell(text):
+    """Escape pipes and collapse newlines for markdown table cells."""
+    return (text or "").replace("|", "\\|").replace("\n", "<br>")
+
+
+def format_version(target):
+    """Format a version label as inline code, marking experimental targets."""
+    ver = target.get("version")
+    if not ver:
+        return None
+    return f"🧪 `{ver}`" if target.get("isExperimental") else f"`{ver}`"
+
 
 # Group patches by package; patches with no compatiblePackages are universal.
-# JSON structure: compatiblePackages is a list of objects with
-# { packageName, name, targets: [{ version, isExperimental, description }] }
-by_pkg = {}   # packageName -> { name, emoji, patches, targets, version_patches, all_ver_patches }
+by_pkg = {}
 universal = {}
 
 for patch in data["patches"]:
     cp = patch.get("compatiblePackages")
     if not cp:
-        # Deduplicate universal patches by name
-        if patch["name"] not in universal:
-            universal[patch["name"]] = patch
+        universal.setdefault(patch["name"], patch)
         continue
+
     for pkg_entry in cp:
-        pkg  = pkg_entry["packageName"]
-        name = pkg_entry.get("name") or pkg  # fall back to package name if no label
+        pkg = pkg_entry["packageName"]
+        name = pkg_entry.get("name") or pkg
         if pkg not in by_pkg:
             by_pkg[pkg] = {
-                "name":            name,
-                "description":     pkg_entry.get("description"),
-                "emoji":           pkg_emoji(pkg),
-                "patches":         {},
-                "targets":         [],
-                "version_patches": {},  # ver_str -> { "target": target, "patches": {} }
-                "all_ver_patches": {},  # patches that apply to any version
+                "name": name,
+                "patches": {},
+                "targets": [],
+                "patch_versions": {},  # patch_name -> set of version strings (None = all)
             }
-        elif pkg_entry.get("description") and not by_pkg[pkg].get("description"):
-            by_pkg[pkg]["description"] = pkg_entry.get("description")
 
-        # Deduplicate patches that appear across multiple packages
-        if patch["name"] not in by_pkg[pkg]["patches"]:
-            by_pkg[pkg]["patches"][patch["name"]] = patch
+        entry = by_pkg[pkg]
+        entry["patches"].setdefault(patch["name"], patch)
 
-        existing_versions = {t["version"] for t in by_pkg[pkg]["targets"] if t.get("version")}
+        existing_versions = {t["version"]: t for t in entry["targets"] if t.get("version")}
         targets = pkg_entry.get("targets") or []
 
-        has_specific_ver = False
+        specific_vers = []
         for target in targets:
             ver_str = target.get("version")
-            if ver_str:
-                has_specific_ver = True
-                if ver_str not in existing_versions:
-                    by_pkg[pkg]["targets"].append(target)
-                    existing_versions.add(ver_str)
-                elif target.get("description"):
-                    for existing_t in by_pkg[pkg]["targets"]:
-                        if existing_t.get("version") == ver_str and not existing_t.get("description"):
-                            existing_t["description"] = target.get("description")
-                            break
+            if not ver_str:
+                continue
+            specific_vers.append(ver_str)
+            if ver_str not in existing_versions:
+                entry["targets"].append(target)
+                existing_versions[ver_str] = target
+            elif target.get("description") and not existing_versions[ver_str].get("description"):
+                existing_versions[ver_str]["description"] = target["description"]
 
-                if ver_str not in by_pkg[pkg]["version_patches"]:
-                    by_pkg[pkg]["version_patches"][ver_str] = {
-                        "target":  target,
-                        "patches": {},
-                    }
-                elif target.get("description") and not by_pkg[pkg]["version_patches"][ver_str]["target"].get("description"):
-                    by_pkg[pkg]["version_patches"][ver_str]["target"] = target
-
-                if patch["name"] not in by_pkg[pkg]["version_patches"][ver_str]["patches"]:
-                    by_pkg[pkg]["version_patches"][ver_str]["patches"][patch["name"]] = patch
-
-        if not has_specific_ver:
-            by_pkg[pkg]["all_ver_patches"][patch["name"]] = patch
-
-# Merge patches that apply to all versions into each version sub-group
-for pkg, entry in by_pkg.items():
-    for p_name, p in entry["all_ver_patches"].items():
-        for ver_dict in entry["version_patches"].values():
-            if p_name not in ver_dict["patches"]:
-                ver_dict["patches"][p_name] = p
-
-
-def anchor(name):
-    """Convert a patch name to a GitHub-compatible anchor slug."""
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
-
-
-def patches_table(patches):
-    """Render a sorted markdown table of patches with name, description, and options."""
-    rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
-        "|----------|----------------|-----------|",
-    ]
-    for p in sorted(patches, key=lambda x: x["name"]):
-        a = anchor(p["name"])
-        options = p.get("options") or []
-        if options:
-            # Show only option titles as a bullet list
-            parts = [opt.get("title") or opt.get("key") or "" for opt in options]
-            opts_cell = "<br>".join(f"• {t}" for t in parts)
+        pv = entry["patch_versions"].setdefault(patch["name"], set())
+        if specific_vers:
+            pv.update(specific_vers)
         else:
-            opts_cell = ""
-        desc = (p.get("description") or "").replace("\n", "<br>")
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
-    return "\n".join(rows)
+            pv.add(None)
 
 
-def versions_table(targets):
-    """Render a markdown table of supported versions.
-    Experimental versions get a 🧪 prefix.
-    Versions with a description get it shown in a second row below.
+def patches_table(patches, all_versions=None, patch_versions=None):
+    """Render a compact markdown table of deduplicated patches.
+
+    Includes a Versions column only when an app has multiple versions and
+    patches differ in which versions they support.
+    Includes an Options column only when at least one patch defines options.
     """
-    if not targets:
-        return ""
+    all_versions = all_versions or []
+    patch_versions = patch_versions or {}
 
-    cells = []
-    for t in targets:
-        ver   = t["version"]
-        if ver is None:
-            continue
-        label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
-        cells.append(label)
+    show_versions = False
+    if len(all_versions) > 1:
+        all_ver_set = set(all_versions)
+        for p in patches:
+            pv = patch_versions.get(p["name"], set())
+            if None not in pv and pv != all_ver_set:
+                show_versions = True
+                break
 
-    if not cells:
-        return ""
+    show_options = any(p.get("options") for p in patches)
 
-    header = "| " + " | ".join(cells) + " |"
-    sep = "| " + " | ".join(":---:" for _ in cells) + " |"
-    rows = [header, sep]
+    headers = ["Patch", "Description"]
+    aligns = [":---", ":---"]
+    if show_versions:
+        headers.append("Versions")
+        aligns.append(":---")
+    if show_options:
+        headers.append("Options")
+        aligns.append(":---")
 
-    # Optional description row — only rendered if at least one target has one
-    descs = [(t.get("description") or "").replace("\n", "<br>") for t in targets]
-    if any(descs):
-        rows.append("| " + " | ".join(descs) + " |")
+    rows = [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join(aligns) + " |",
+    ]
+
+    for p in sorted(patches, key=lambda x: x["name"].lower()):
+        cells = [
+            f"**{md_cell(p['name'])}**",
+            md_cell(p.get("description")),
+        ]
+
+        if show_versions:
+            pv = patch_versions.get(p["name"], set())
+            if None in pv or pv == set(all_versions):
+                cells.append("All")
+            else:
+                ordered = [f"`{v}`" for v in all_versions if v in pv]
+                cells.append(", ".join(ordered))
+
+        if show_options:
+            options = p.get("options") or []
+            if options:
+                parts = [md_cell(opt.get("title") or opt.get("key") or "") for opt in options]
+                cells.append("<br>".join(f"• {t}" for t in parts))
+            else:
+                cells.append("")
+
+        rows.append("| " + " | ".join(cells) + " |")
 
     return "\n".join(rows)
 
 
-def version_spoiler(target, patches, expanded=False):
-    """Render a nested <details> spoiler for a specific app version."""
-    ver = target.get("version")
-    label = f"🧪&nbsp;{ver}" if target.get("isExperimental") else ver
-    desc = target.get("description")
-    if desc:
-        desc_lines = desc.splitlines()
-        callout_body = "\n".join(f"> {line}" for line in desc_lines)
-        if desc.startswith("[!"):
-            desc_section = f"> {callout_body}\n\n"
-        else:
-            desc_section = f"> [!NOTE]\n{callout_body}\n\n"
-    else:
-        desc_section = ""
+def summary_table():
+    """Render an at-a-glance index of all apps, supported versions, and patch counts."""
+    rows = [
+        "| App | Supported Versions | Patches |",
+        "| :--- | :--- | :---: |",
+    ]
+    for entry in by_pkg.values():
+        vers = [format_version(t) for t in entry["targets"] if t.get("version")]
+        ver_cell = ", ".join(vers) if vers else "Any"
+        count = len(entry["patches"])
+        rows.append(f"| **{md_cell(entry['name'])}** | {ver_cell} | {count} |")
+
+    if universal:
+        rows.append(f"| **Universal** | Any | {len(universal)} |")
+
+    return "\n".join(rows)
+
+
+def version_notes(targets):
+    """Render optional target version notes if any exist."""
+    notes = []
+    for t in targets:
+        desc = t.get("description")
+        ver = t.get("version")
+        if desc and ver:
+            notes.append(f"> **{ver}:** {desc.replace(chr(10), ' ')}")
+    return ("\n".join(notes) + "\n\n") if notes else ""
+
+
+def app_details(entry, expanded=False):
+    """Render a single flat <details> block for an app."""
+    patches = list(entry["patches"].values())
+    all_versions = [t["version"] for t in entry["targets"] if t.get("version")]
     noun = "patch" if len(patches) == 1 else "patches"
     tag = "<details open>" if expanded else "<details>"
-    tbl = patches_table(patches)
+
+    if not all_versions:
+        ver_hint = "Any version"
+    elif len(all_versions) <= 2:
+        ver_hint = ", ".join(f"<code>{v}</code>" for v in all_versions)
+    else:
+        ver_hint = f"{len(all_versions)} versions"
+
+    tbl = patches_table(patches, all_versions, entry["patch_versions"])
+    notes = version_notes(entry["targets"])
+
     return f"""{tag}
-<summary>🎯 {label}&nbsp;&nbsp;•&nbsp;&nbsp;{len(patches)} {noun}</summary>
+<summary><b>{entry['name']}</b> — {len(patches)} {noun} ({ver_hint})</summary>
 <br>
 
-{desc_section}{tbl}
-
-</details>"""
-
-
-def spoiler(label, count, targets, tbl, expanded=False):
-    """Wrap a patches table in a <details> spoiler with a versions sub-table.
-    If expanded=True, the spoiler is open by default (for repos with few patches).
-    """
-    noun = "patch" if count == 1 else "patches"
-    vtbl = versions_table(targets)
-    versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
-    tag = "<details open>" if expanded else "<details>"
-    return f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
-<br>
-
-{versions_section}{tbl}
+{notes}{tbl}
 
 </details>"""
 
 
 def build_content(expanded=False):
-    """Build the full generated patches section."""
+    """Build the compact generated patches section."""
+    app_count = len(by_pkg)
+    app_noun = "app" if app_count == 1 else "apps"
+    patch_noun = "patch" if total == 1 else "patches"
+
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
-        f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} patches total"
+        f" · `{branch}` · {total} {patch_noun} across {app_count} {app_noun}",
+        "",
+        summary_table(),
+        "",
     ]
 
-    # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
-        patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
-        tag     = "<details open>" if expanded else "<details>"
-
-        if len(entry["targets"]) > 1:
-            # Multiple versions: render nested collapsible sections per version
-            noun = "patch" if len(patches) == 1 else "patches"
-            sub_spoilers = []
-            for target in entry["targets"]:
-                ver_str = target.get("version")
-                v_patches = list(entry["version_patches"].get(ver_str, {}).get("patches", {}).values())
-                sub_spoilers.append(version_spoiler(target, v_patches, expanded))
-
-            body = "\n\n".join(sub_spoilers)
-            lines.append(f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{len(patches)} {noun}</summary>
-<br>
-
-{body}
-
-</details>""")
-        else:
-            # Single version (or unversioned): keep the single table format
-            lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+    for entry in by_pkg.values():
+        lines.append(app_details(entry, expanded=expanded))
         lines.append("")
 
-    # Universal patches (no specific app)
     if universal:
         uni_patches = list(universal.values())
         noun = "patch" if len(uni_patches) == 1 else "patches"
-        tag  = "<details open>" if expanded else "<details>"
+        tag = "<details open>" if expanded else "<details>"
         lines.append(f"""{tag}
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
+<summary><b>Universal</b> — {len(uni_patches)} {noun}</summary>
 <br>
 
 {patches_table(uni_patches)}
@@ -262,25 +240,21 @@ def build_content(expanded=False):
 </details>""")
         lines.append("")
 
-    return "\n".join(lines)
+    return "\n".join(lines).rstrip()
 
 
-# Build and inject
 raw_ver = data["version"]
-# Strip leading "v" if present
-ver   = raw_ver.lstrip("v")
+ver = raw_ver.lstrip("v")
 total = sum(len(e["patches"]) for e in by_pkg.values()) + len(universal)
 
 readme = readme_path.read_text(encoding="utf-8")
 
-# Marker pattern — matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->
 START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"
-END_MARKER    = "<!-- PATCHES_END -->"
+END_MARKER = "<!-- PATCHES_END -->"
 
 marker_match = re.search(START_PATTERN, readme)
 
 if not marker_match or END_MARKER not in readme:
-    # Fallback: print to stdout so CI can catch the issue
     print(build_content(expanded=False))
     sys.stderr.write(
         f"⚠️  Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
@@ -289,24 +263,17 @@ if not marker_match or END_MARKER not in readme:
     sys.exit(1)
 
 actual_start = marker_match.group(0)
+expanded = "EXPANDED" in actual_start
+generated = build_content(expanded=expanded)
 
-# Auto-expand threshold
-AUTO_EXPAND_THRESHOLD = 20
-
-# Spoilers are expanded if:
-# 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)
-#    with only a few patches where collapsing adds no benefit.
-# 2. The README marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
-expanded = (
-    total <= AUTO_EXPAND_THRESHOLD or
-    "EXPANDED" in actual_start
+readme = readme.replace(
+    "https://morphe.software/add-source?github=xyz-user/xyz-patches",
+    f"https://morphe.software/add-source?github={repo_full}",
 )
-
-generated  = build_content(expanded=expanded)
-
-# Replace template links if present
-readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")
-readme = readme.replace("https://github.com/xyz-user/xyz-patches", f"https://github.com/{repo_full}")
+readme = readme.replace(
+    "https://github.com/xyz-user/xyz-patches",
+    f"https://github.com/{repo_full}",
+)
 
 new_readme = re.sub(
     rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",

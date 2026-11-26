@@ -7,8 +7,7 @@
     <string name="morphe_glass_menus_blur_title">Background blur</string>
     <string name="morphe_glass_menus_dim_title">Dim behind the menu</string>
     <string name="revanced_settings_shortcut_title">Show settings shortcut</string>
-    <string name="revanced_settings_shortcut_summary">Show a settings button next to your profile.
-        Tap for YouTube Music settings; touch and hold for RVX settings.</string>
+    <string name="revanced_settings_shortcut_summary">Show a settings button next to your profile. Tap for YouTube Music settings; touch and hold for RVX settings.</string>
     <string name="revanced_settings_shortcut_long_click">Open RVX settings</string>
     <string name="revanced_patches_update_notice_title">Patches update notice</string>
     <string name="revanced_patches_update_check_title">Check now</string>
@@ -86,9 +85,7 @@ Tap the continue button and allow optimization changes"</string>
     <string name="morphe_force_original_audio_title">Force original audio language</string>
     <string name="morphe_music_android_auto_last_played">Last played</string>
     <string name="morphe_music_android_auto_downloaded_playlists_title">Android Auto downloaded playlists</string>
-    <string name="morphe_music_android_auto_downloaded_playlists_summary">
-        Show stream copies in Playlists and device-file playlists in Downloaded playlists, including offline
-    </string>
+    <string name="morphe_music_android_auto_downloaded_playlists_summary">Show stream copies in Playlists and device-file playlists in Downloaded playlists, including offline</string>
     <string name="morphe_music_android_auto_downloaded_playlists_folder">Downloaded playlists</string>
     <string name="morphe_music_android_auto_downloaded_playlists_tracks">tracks</string>
     <string name="morphe_music_android_auto_downloaded_playlists_library">Library</string>
@@ -118,8 +115,7 @@ Tap the continue button and allow optimization changes"</string>
     <string name="morphe_music_crossfade_about_banner_title" translatable="false" />
     <string name="morphe_music_crossfade_about_best_summary">Normal song-to-song playback and auto-advance, repeat-one (the song crossfades into itself), and local audio - phone speaker, wired headphones, Bluetooth, or USB</string>
     <string name="morphe_music_crossfade_about_best_title">Works best with</string>
-    <string name="morphe_music_crossfade_about_credit_summary">PCM processing and transition engine by lavinhoque33.
-        Retained native-player integration and settings originated with VazerOG and Morphe.</string>
+    <string name="morphe_music_crossfade_about_credit_summary">PCM processing and transition engine by lavinhoque33. Retained native-player integration and settings originated with VazerOG and Morphe.</string>
     <string name="morphe_music_crossfade_about_credit_title">Credit</string>
     <string name="morphe_music_crossfade_about_how_summary">"Crossfade overlaps the end of one song with the start of the next, fading one down as the other comes up over your chosen duration and curve
 
@@ -127,8 +123,7 @@ It runs on auto-advance (when a song ends on its own) and on manual skips - each
 
 Requires YouTube Music 9.x or newer"</string>
     <string name="morphe_music_crossfade_about_how_title">How it works</string>
-    <string name="morphe_music_crossfade_about_known_summary">The PCM engine requires a supported decoded audio output.
-        Casting and unsupported outputs keep ordinary playback rather than using native-volume fades.</string>
+    <string name="morphe_music_crossfade_about_known_summary">The PCM engine requires a supported decoded audio output. Casting and unsupported outputs keep ordinary playback rather than using native-volume fades.</string>
     <string name="morphe_music_crossfade_about_known_title">Known issues</string>
     <string name="morphe_music_crossfade_about_quirks_summary">"Song/video switches stay on the native player and do not crossfade
 
@@ -844,6 +839,7 @@ If you are a YouTube Premium user, this setting may not be required"</string>
     <string name="morphe_theme_entry_dark_pink">Dark Pink</string>
     <string name="morphe_theme_entry_dark_red">Dark Red</string>
     <string name="morphe_theme_entry_dark_yellow">Dark Yellow</string>
+    <string name="morphe_theme_entry_light">Light</string>
     <string name="morphe_theme_entry_material_you_neutral">Material You (Neutral)</string>
     <string name="morphe_theme_entry_material_you_primary">Material You - Primary</string>
     <string name="morphe_theme_entry_material_you_secondary">Material You - Secondary</string>
@@ -896,16 +892,15 @@ If you are a YouTube Premium user, this setting may not be required"</string>
     <string name="revanced_custom_playback_speeds_title">Edit custom playback speeds</string>
     <string name="revanced_custom_player_background_color_primary_summary">"Type the hex code of the player background primary color
 
-Use dark colors if possible, as the app does not support light themes"</string>
+Use a dark color to keep player controls readable with a dark theme"</string>
     <string name="revanced_custom_player_background_color_primary_title">Player background primary color</string>
     <string name="revanced_custom_player_background_color_secondary_summary">"Type the hex code of the player background secondary color
 
-Use dark colors if possible, as the app does not support light themes"</string>
+Use a dark color to keep player controls readable with a dark theme"</string>
     <string name="revanced_custom_player_background_color_secondary_title">Player background secondary color</string>
     <string name="revanced_custom_player_background_invalid_toast">Invalid player background color</string>
     <string name="morphe_music_disable_audio_ducking_title">Disable audio ducking</string>
-    <string name="morphe_music_disable_audio_ducking_summary">Volume is not lowered when another app plays a short sound,
-        such as a notification</string>
+    <string name="morphe_music_disable_audio_ducking_summary">Volume is not lowered when another app plays a short sound, such as a notification</string>
     <string name="revanced_debug_export_logs_to_file_summary">Export RVX debug logs to a file</string>
     <string name="revanced_debug_export_logs_to_file_title">Export debug logs</string>
     <string name="revanced_debug_logs_disabled">Debug logging is disabled</string>

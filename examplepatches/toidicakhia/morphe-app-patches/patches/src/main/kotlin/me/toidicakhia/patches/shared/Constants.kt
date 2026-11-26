@@ -170,6 +170,23 @@ object Constants {
         )
     )
 
+    // Proxyman 1.33.0 (version code 70), distributed as an XAPK with a base APK
+    // plus config.arm64_v8a, config.en, config.fr and config.xxhdpi splits
+    // (Android 12L+).
+    val PROXYMAN_COMPATIBILITY = Compatibility(
+        name = "Proxyman",
+        packageName = "com.proxyman.proxymanandroid",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x4F46E5,
+        targets = listOf(
+            AppTarget(
+                version = "1.33.0",
+                versionCode = 70,
+                minSdk = 32
+            )
+        )
+    )
+
     // 1.1.1.1 6.38.11 (version code 5703), distributed as an APKM.
     val WARP_COMPATIBILITY = Compatibility(
         name = "1.1.1.1",

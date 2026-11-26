@@ -10,6 +10,7 @@ object RecommendedMediaRequestFingerprint : Fingerprint(
     filters = listOf(
         methodCall(definingClass = "Lcom/reddit/domain/model/media/MediaContext;", name = "getSeedSubredditIds"),
         methodCall(definingClass = "Lcom/reddit/domain/model/media/MediaContext;", name = "getListingType"),
+        methodCall(definingClass = "Lcom/reddit/domain/model/listing/Listing;", name = "<init>"),
     ),
     custom = { method, _ ->
         val params = method.parameterTypes.map { it.toString() }
@@ -26,6 +27,7 @@ object RecommendedVideosRequestFingerprint : Fingerprint(
     filters = listOf(
         methodCall(definingClass = "Lcom/reddit/domain/model/media/MediaContext;", name = "getSeedSubredditIds"),
         methodCall(definingClass = "Lcom/reddit/domain/model/media/MediaContext;", name = "getListingType"),
+        methodCall(definingClass = "Lcom/reddit/domain/model/listing/Listing;", name = "<init>"),
     ),
     custom = { method, _ ->
         val params = method.parameterTypes.map { it.toString() }

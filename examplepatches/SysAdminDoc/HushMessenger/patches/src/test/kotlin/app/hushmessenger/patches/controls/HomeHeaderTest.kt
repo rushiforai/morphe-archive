@@ -88,7 +88,7 @@ class HomeHeaderTest {
         assertEquals(listOf(SYNTHETIC_HOME_HEADER), found(homeHeaderFixture()))
         validateControls(mirroredControls(homeHeaderFixture()), setOf(HOME_HEADER))
         assertEquals(setOf(SYNTHETIC_HOME_HEADER), SYNTHETIC_PROFILE.hooks.getValue(HOME_HEADER))
-        assertEquals(setOf("LX/2MF;->render(LX/27r;)LX/1F6;"), BASE_PROFILE.hooks.getValue(HOME_HEADER))
+        assertEquals(setOf("LX/2W1;->render(LX/2Gk;)LX/1Jx;"), BASE_PROFILE.hooks.getValue(HOME_HEADER))
     }
 
     @Test fun lookalikesAreNotTheWordmark() {

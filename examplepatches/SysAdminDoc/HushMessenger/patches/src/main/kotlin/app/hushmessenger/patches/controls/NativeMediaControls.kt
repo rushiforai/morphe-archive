@@ -15,32 +15,35 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val EPHEMERAL_VIEWER = "Lcom/facebook/messaging/media/ephemeralmedia/viewer/EphemeralMediaViewerFragment;"
 internal const val QUICKSNAP_VIEWER = "Lcom/facebook/messaging/quicksnap/consumption/viewer/MsgrQuicksnapViewerFragment;"
-/** "Generate AI stickers" in Messenger 587's string pack (0x7f14055d in 586). Each release renumbers it. */
-internal const val GENERATE_AI_LABEL = 0x7f140566
+/** "Generate AI stickers" in Messenger 588's string pack (0x7f140566 in 587). Each release renumbers it. */
+internal const val GENERATE_AI_LABEL = 0x7f14056e
 /**
- * "Generate" in 587's string pack (0x7f141c4e in 586): the same cell when an account gets more than one sticker maker.
+ * "Generate" in 588's string pack (0x7f141c62 in 587): the same cell when an account gets more than one sticker maker.
  * Its tap opens a menu of custom, AI and music stickers, so it fronts the AI maker too.
  */
-internal const val GENERATE_MENU_LABEL = 0x7f141c62
-/** "Generate" in 587's armv7 string pack, two resources past arm64's, as in 586. */
-internal const val GENERATE_MENU_LABEL_ARMV7 = 0x7f141c64
-/** The viewer's onCreateDialog override, A1L in 587 (A1K in 586), its armv7 build included. */
-internal const val EPHEMERAL_DIALOG = "A1L"
+internal const val GENERATE_MENU_LABEL = 0x7f141c71
+/** "Generate" in 588's armv7 string pack, two resources past arm64's, as in 587. */
+internal const val GENERATE_MENU_LABEL_ARMV7 = 0x7f141c73
+/** The viewer's onCreateDialog override, A1N in 588's arm64 builds (A1L in 587, A1K in 586). */
+internal const val EPHEMERAL_DIALOG = "A1N"
 /**
- * The same override in 587's other arm64 builds (347415285 and its family), with the same body. Older releases used other
- * names for this body, so the name is what keeps their viewers out.
+ * The same override in 588's four armv7 builds, with the same body. Older releases used other names for this body, so
+ * the name is what keeps their viewers out.
  */
-internal const val EPHEMERAL_DIALOG_FAMILY_B = "A1M"
+internal const val EPHEMERAL_DIALOG_FAMILY_B = "A1L"
 internal val EPHEMERAL_DIALOGS = setOf(EPHEMERAL_DIALOG, EPHEMERAL_DIALOG_FAMILY_B)
-/** The Quicksnap viewer's onCreateView frame in 586 and 587. */
+/** The Quicksnap viewer's onCreateView frame in 586, 587 and 588's arm64 builds. */
 internal const val QUICKSNAP_REGISTERS = 39
-/** One register more in 587's armv7 build (586's had 38). */
+/** One register more in 587's and 588's armv7 builds (586's had 38). */
 internal const val QUICKSNAP_REGISTERS_ARMV7 = 40
 internal val QUICKSNAP_FRAMES = setOf(QUICKSNAP_REGISTERS, QUICKSNAP_REGISTERS_ARMV7)
 private const val WINDOW = "Landroid/view/Window;"
 private const val SET_FLAGS = "$WINDOW->setFlags(II)V"
 private const val ADD_FLAGS = "$WINDOW->addFlags(I)V"
+private const val CLEAR_FLAGS = "$WINDOW->clearFlags(I)V"
 private const val SECURE = 0x2000
+/** What 588's secure-window helper takes: the window, the account and yes to flag it, no to clear the flag. */
+internal val QUICKSNAP_SECURE_PARAMS = listOf(WINDOW, FB_USER_SESSION, "Z")
 
 internal fun screenshotViewerHooks() = setOf(
     "$EPHEMERAL_VIEWER->$EPHEMERAL_DIALOG(Landroid/os/Bundle;)Landroid/app/Dialog;",
@@ -59,6 +62,41 @@ private fun Instruction.writes(register: Int) = opcode.setsRegister() &&
     (mediaRegister() == register || ("WIDE" in opcode.toString() && mediaRegister()?.plus(1) == register))
 private fun Method.mediaCode() = implementation?.instructions?.toList().orEmpty()
 private fun mediaFailure(method: Method): Nothing = throw PatchException("Messenger controls: native media contract changed in ${method.hookId()}")
+
+/**
+ * 588's Quicksnap viewer no longer flags its window itself: onCreateView hands its dialog's window to a helper with yes,
+ * and the helper adds the flag for yes and clears it for no. The helper's id when the viewer has no window flag call of
+ * its own and makes that one call, on the window `Dialog.getWindow()` gave it and a yes every path sets, or null. A
+ * missing dialog's tail hands it a null window instead, which the helper checks before anything else.
+ */
+internal fun Method.quicksnapSecureHelper(): String? {
+    val code = mediaCode()
+    if (code.any { it.mediaRef() in setOf(SET_FLAGS, ADD_FLAGS, CLEAR_FLAGS) }) return null
+    val calls = code.indices.filter { i ->
+        val ref = (code[i] as? ReferenceInstruction)?.reference as? MethodReference
+        ref != null && ref.returnType == "V" && ref.parameterTypes.map { it.toString() } == QUICKSNAP_SECURE_PARAMS
+    }
+    val call = calls.singleOrNull() ?: return null
+    val args = code[call].mediaArgs()
+    if (code[call].opcode != Opcode.INVOKE_VIRTUAL || args.size != 4) return null
+    val flow = runCatching { ReadFlow(this) }.getOrNull() ?: return null
+    val windows = runCatching { flow.definitionsAt(call, args[1]) }.getOrNull() ?: return null
+    val yeses = runCatching { flow.definitionsAt(call, args[3]) }.getOrNull() ?: return null
+    fun dialogWindow(at: Int) = at >= 1 && code[at].opcode == Opcode.MOVE_RESULT_OBJECT &&
+        code[at - 1].mediaRef() == "Landroid/app/Dialog;->getWindow()$WINDOW"
+    fun noWindow(at: Int) = at >= 0 && code[at].opcode == Opcode.CONST_4 && (code[at] as NarrowLiteralInstruction).narrowLiteral == 0
+    if (windows.none(::dialogWindow) || windows.any { !dialogWindow(it) && !noWindow(it) }) return null
+    if (yeses.isEmpty() || yeses.any { it < 0 || code[it].opcode != Opcode.CONST_4 || (code[it] as NarrowLiteralInstruction).narrowLiteral != 1 }) return null
+    return code[call].mediaRef()
+}
+
+/** The helper [quicksnapSecureHelper] names, with its window flag site checked. */
+internal fun resolveQuicksnapSecureHelper(classes: Iterable<ClassDef>, id: String): Method {
+    val helper = classes.firstOrNull { it.type == id.substringBefore("->") }?.methods?.singleOrNull { it.hookId() == id }
+        ?: throw PatchException("Messenger controls: native media contract changed in $id")
+    helper.screenshotViewerSites()
+    return helper
+}
 
 /**
  * Exact native window operations, with their actual constants and null-checked receivers. No try block may cover a
@@ -85,7 +123,27 @@ internal fun Method.screenshotViewerSites(): List<Int> {
     val sites: List<Int>
     val allowedJumps: Set<Int>
     var jumpSources = emptySet<Int>()
+    var clears = emptyList<Int>()
     val valid = when {
+        definingClass != EPHEMERAL_VIEWER && definingClass != QUICKSNAP_VIEWER && returnType == "V" &&
+            parameterTypes.map { it.toString() } == QUICKSNAP_SECURE_PARAMS -> {
+            // 588's secure-window helper: the flag constant, then yes adds it and no clears it, each followed by the return.
+            //     const/16 vK, 0x2000
+            //     if-eqz pYes, :clear
+            //     invoke-virtual {pWindow, vK}, Window->addFlags(I)V
+            //     return-void
+            //     :clear
+            //     invoke-virtual {pWindow, vK}, Window->clearFlags(I)V
+            //     return-void
+            val window = parameterRegister(1)
+            val site = code.indices.singleOrNull { code[it].mediaRef() == ADD_FLAGS } ?: mediaFailure(this)
+            val flag = reg(site - 2) ?: mediaFailure(this)
+            sites = listOf(site); allowedJumps = emptySet(); clears = listOf(site + 2)
+            tries.isEmpty() && site >= 2 && literal(site - 2, flag) && nullCheck(site - 1, parameterRegister(3), site + 2) &&
+                call(site, ADD_FLAGS, listOf(window, flag)) && op(site + 1, Opcode.RETURN_VOID) &&
+                call(site + 2, CLEAR_FLAGS, listOf(window, flag)) && op(site + 3, Opcode.RETURN_VOID) && code.size == site + 4 &&
+                code.none { it.writes(window) }
+        }
         definingClass == EPHEMERAL_VIEWER && name in EPHEMERAL_DIALOGS &&
             parameterTypes.map { it.toString() } == listOf("Landroid/os/Bundle;") && returnType == "Landroid/app/Dialog;" -> {
             sites = listOf(9); allowedJumps = emptySet()
@@ -125,9 +183,9 @@ internal fun Method.screenshotViewerSites(): List<Int> {
         }
         else -> mediaFailure(this)
     }
-    val setters = code.indices.filter { code[it].mediaRef() in setOf(SET_FLAGS, ADD_FLAGS, "$WINDOW->clearFlags(I)V") }
+    val setters = code.indices.filter { code[it].mediaRef() in setOf(SET_FLAGS, ADD_FLAGS, CLEAR_FLAGS) }
     // A branch/switch may not enter the guarded prefix halfway through a value definition.
-    if (!valid || setters != sites || jumpTargets().any { it in 1..sites.last() && it !in allowedJumps } ||
+    if (!valid || setters != sites + clears || jumpTargets().any { it in 1..sites.last() && it !in allowedJumps } ||
         (allowedJumps.isNotEmpty() && code.any { "SWITCH" in it.opcode.toString() || "PAYLOAD" in it.opcode.toString() }) ||
         (allowedJumps.isNotEmpty() && jumpTargets(branches = false).any { it in allowedJumps }) ||
         (allowedJumps.isNotEmpty() && code.indices.any { it !in jumpSources && code[it] is OffsetInstruction && code.branchTarget(it) in allowedJumps })) mediaFailure(this)
@@ -162,7 +220,7 @@ internal data class AiCell(
 }
 
 /**
- * What tells the cell apart in each of 587's build families: the AI label it shows, how many renders offer that label,
+ * What tells the cell apart in each of 588's build families: the AI label it shows, how many renders offer that label,
  * how many instructions and registers its own render has, its Generate menu label and how many renders offer that.
  * Four renders offer the AI label and one the menu label. Every build names the cell and its types differently, so
  * discovery reads those off the class whose numbers match.
@@ -172,16 +230,12 @@ internal data class AiCellShape(
 )
 internal val aiCellShapes = listOf(
     AiCellShape(GENERATE_AI_LABEL, AI_CELL_SOURCES, AI_CELL_SIZE, GENERATE_MENU_LABEL, AI_MENU_SOURCES),
-    // 587's armv7 builds: the same render, and their own Generate label.
-    AiCellShape(GENERATE_AI_LABEL, AI_CELL_SOURCES, AI_CELL_SIZE, GENERATE_MENU_LABEL_ARMV7, AI_MENU_SOURCES),
-    // 587's other arm64 builds (347415280, 281 and 285): arm64's Generate label, a render an instruction shorter and a
-    // register wider.
-    AiCellShape(GENERATE_AI_LABEL, AI_CELL_SOURCES, AI_CELL_SIZE_SHORT, GENERATE_MENU_LABEL, AI_MENU_SOURCES, AI_CELL_REGISTERS_WIDE),
+    // 588's armv7 builds: their own Generate label, and a render two instructions shorter (one call fewer for the tint).
+    AiCellShape(GENERATE_AI_LABEL, AI_CELL_SOURCES, AI_CELL_SIZE_ARMV7, GENERATE_MENU_LABEL_ARMV7, AI_MENU_SOURCES),
 )
-internal const val AI_CELL_SIZE = 105
-internal const val AI_CELL_SIZE_SHORT = 104
+internal const val AI_CELL_SIZE = 107
+internal const val AI_CELL_SIZE_ARMV7 = 105
 internal const val AI_CELL_REGISTERS = 24
-internal const val AI_CELL_REGISTERS_WIDE = 25
 internal const val AI_CELL_SOURCES = 4
 internal const val AI_MENU_SOURCES = 1
 

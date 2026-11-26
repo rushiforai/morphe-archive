@@ -12,6 +12,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import app.template.extension.zalo.appearance.CustomFont;
+import app.template.extension.zalo.buglog.BugLogExport;
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.call.CallRecorder;
 import app.template.extension.zalo.chat.OnlineStatus;
 import app.template.extension.zalo.messages.OfficialAccounts;
@@ -55,6 +57,8 @@ public final class NezumiSettingsPage {
     static final int FEATURE_CALL_RECORDING = 1 << 14;
 
     static final int FEATURE_CONVERSATION_PROTECTION = 1 << 15;
+
+    static final int FEATURE_BUG_LOG = 1 << 16;
 
     static void attach(View root, View anchor, int feature) {
         if (root == null || anchor == null || !(anchor.getParent() instanceof ViewGroup)) return;
@@ -253,9 +257,51 @@ public final class NezumiSettingsPage {
             folder.setOnClickListener(view -> CallRecorder.openFolder(context));
             list.addView(folder);
         }
+        if ((features & FEATURE_BUG_LOG) != 0 && NezumiLog.isAvailable()) {
+            addBugLogRows(list, context, darkMode, vietnamese);
+        }
         ZaloUi.trimGroupDividers(list);
         page.show();
         page.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+    }
+
+    private static void addBugLogRows(LinearLayout list, Context context, boolean darkMode, boolean vietnamese) {
+        ZaloUi.addGroup(list, context, vietnamese ? "Gỡ lỗi" : "Debugging", darkMode);
+        ZaloUi.toggleRow(list, context, vietnamese ? "Ghi log lỗi" : "Record bug log", "warning",
+            NezumiLog.isEnabled(), darkMode, (button, checked) -> {
+                if (NezumiLog.isEnabled() == checked) return;
+                NezumiLog.setEnabled(context, checked);
+            });
+        String exportTitle = vietnamese ? "Xuất log" : "Export log";
+        View export = ZaloUi.row(context, exportTitle, ZaloUi.zdsIcon(context, "download", darkMode), true, darkMode, null);
+        TextView exportLabel = ZaloUi.rowTitle(export);
+        Runnable updateSize = () -> exportLabel.setText(exportTitle + " (" + formatSize(BugLogExport.totalBytes(context)) + ")");
+        updateSize.run();
+        export.setOnClickListener(view -> {
+            export.setEnabled(false);
+            BugLogExport.export(context, path -> {
+                export.setEnabled(true);
+                String message = path != null
+                    ? (vietnamese ? "Đã lưu log tại: " : "Log saved to: ") + path
+                    : (vietnamese ? "Không thể xuất log" : "Unable to export log");
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+            });
+        });
+        list.addView(export);
+        View clear = ZaloUi.row(context, vietnamese ? "Xóa log" : "Clear log",
+            ZaloUi.zdsIcon(context, "delete", darkMode), false, darkMode, null);
+        clear.setOnClickListener(view -> {
+            BugLogExport.clear(context);
+            updateSize.run();
+            Toast.makeText(context, vietnamese ? "Đã xóa log" : "Log cleared", Toast.LENGTH_SHORT).show();
+        });
+        list.addView(clear);
+    }
+
+    private static String formatSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024) + " KB";
+        return String.format(java.util.Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0));
     }
 
     private static void addSoundRows(LinearLayout list, Context context, String kind, String icon, String title,

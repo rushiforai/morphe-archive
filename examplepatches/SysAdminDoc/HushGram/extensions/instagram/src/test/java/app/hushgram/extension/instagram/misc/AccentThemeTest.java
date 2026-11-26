@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
@@ -557,10 +558,11 @@ public class AccentThemeTest {
     }
 
     /**
-     * Instagram builds its Compose palettes on a thread of its own as it starts, before the first
-     * screen's theme is styled, so with Classic colors on the grays come straight from the classic
-     * style for the kind of screen Instagram's Dark mode choice will show, and the other kind's stay
-     * (#528).
+     * Instagram builds its Compose palettes once, on a thread of its own as it starts and before the
+     * first screen's theme is styled, so with Classic colors on the grays come straight from the
+     * classic styles (#528). Both kinds do, whatever Instagram's Dark mode shows then: it switches
+     * without a restart, and palettes built on a light screen kept the dark one's Messages rows,
+     * Settings' header and its loading page black (#683).
      */
     @Test
     public void composeReadsTheClassicStyleBeforeAnyScreenIsStyled() {
@@ -583,17 +585,20 @@ public class AccentThemeTest {
 
             prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_ON).commit();
             assertEquals("Dark mode on", darkPage, AccentTheme.composeSurface(black, app));
-            assertEquals("a light screen's white with Dark mode on", white, AccentTheme.composeSurface(white, app));
+            assertEquals("a light screen's white with Dark mode on", lightPage, AccentTheme.composeSurface(white, app));
             AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
 
             prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_OFF).commit();
-            assertEquals("a light screen's black text with Dark mode off", black, AccentTheme.composeSurface(black, app));
+            assertEquals("a dark screen's black with Dark mode off", darkPage, AccentTheme.composeSurface(black, app));
             assertEquals("Dark mode off", lightPage, AccentTheme.composeSurface(white, app));
+            AccentTheme.darkSurfacesForTests(null);
             AccentTheme.lightSurfacesForTests(null);
 
             prefs.edit().clear().commit();
-            assertEquals("the system's light mode", black, AccentTheme.composeSurface(black, app));
+            assertEquals("the system's light mode", darkPage, AccentTheme.composeSurface(black, app));
             assertEquals("the system's light mode", lightPage, AccentTheme.composeSurface(white, app));
+            AccentTheme.darkSurfacesForTests(null);
             AccentTheme.lightSurfacesForTests(null);
 
             Settings.CLASSIC_COLORS.save(false);
@@ -1245,6 +1250,184 @@ public class AccentThemeTest {
         AccentTheme.searchSaved(null);
         String report = HookStatus.report().toString();
         assertTrue(report, report.contains(AccentTheme.BAR_ICONS + " 1"));
+    }
+
+    /**
+     * An icon tinted with Instagram's text color, a follow list's sort arrows or the comment composer's
+     * GIF button, takes the icon color its theme holds with Icons in the accent color on, each state
+     * keeping its alpha, and other colors stay (#187). The same goes for one color and for a tab strip's
+     * line, whose 0 stays 0. Off, or a theme holding one color for both, leaves them.
+     */
+    @Test
+    public void iconsInTheTextColorTakeTheThemesIconColor() {
+        Context light = new ContextThemeWrapper(themed(THEMED + ".texticons", (name, type) -> {
+            if (!type.equals("attr")) return 0;
+            if (name.equals(AccentTheme.ICON_ATTRIBUTE)) return android.R.attr.colorForeground;
+            return name.equals(AccentTheme.TEXT_ICON_ATTRIBUTE) ? android.R.attr.colorAccent : 0;
+        }), android.R.style.Theme_Material_Light);
+        TypedValue icon = new TypedValue();
+        assertTrue(light.getTheme().resolveAttribute(android.R.attr.colorForeground, icon, true));
+        TypedValue text = new TypedValue();
+        assertTrue(light.getTheme().resolveAttribute(android.R.attr.colorAccent, text, true));
+        int textColor = text.data;
+        int iconRgb = icon.data & 0xffffff;
+        assertTrue("two colors to tell apart", (textColor & 0xffffff) != iconRgb && textColor >>> 24 == 0xff && icon.data >>> 24 == 0xff);
+        int other = 0xff123456;
+        int[][] states = {{android.R.attr.state_pressed}, {android.R.attr.state_enabled}, {}};
+        int[] pressed = {android.R.attr.state_pressed};
+        int[] enabled = {android.R.attr.state_enabled};
+        android.widget.ImageView arrows = new android.widget.ImageView(light);
+        arrows.setImageTintList(new ColorStateList(states, new int[] {0x80000000 | (textColor & 0xffffff), textColor, other}));
+        AccentColor.image(arrows);
+        assertEquals("off", textColor, arrows.getImageTintList().getColorForState(enabled, 0));
+        assertEquals("off", textColor, AccentTheme.textIcon(light, textColor));
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        Settings.ACCENT_ICONS.save(true);
+
+        AccentColor.image(arrows);
+
+        ColorStateList tint = arrows.getImageTintList();
+        assertEquals("the pressed state's alpha kept", 0x80000000 | iconRgb, tint.getColorForState(pressed, 0));
+        assertEquals("the icon color", 0xff000000 | iconRgb, tint.getColorForState(enabled, 0));
+        assertEquals("another color stays", other, tint.getColorForState(new int[0], 0));
+        assertEquals("one color", 0xff000000 | iconRgb, AccentTheme.textIcon(light, textColor));
+        assertEquals("one color with its alpha", 0x33000000 | iconRgb, AccentTheme.textIcon(light, 0x33000000 | (textColor & 0xffffff)));
+        assertEquals("another color", other, AccentTheme.textIcon(light, other));
+        View strip = new View(light);
+        assertEquals("a tab strip's line", 0xff000000 | iconRgb, AccentTheme.tabIndicator(strip, textColor));
+        assertEquals("a line with no color of its own", 0, AccentTheme.tabIndicator(strip, 0));
+        android.widget.ImageView plain = new android.widget.ImageView(light);
+        AccentTheme.textIcons(plain);
+        assertNull("no tint", plain.getImageTintList());
+
+        Context same = new ContextThemeWrapper(themed(THEMED + ".texticons.same", (name, type) -> type.equals("attr")
+                && (name.equals(AccentTheme.ICON_ATTRIBUTE) || name.equals(AccentTheme.TEXT_ICON_ATTRIBUTE)) ? android.R.attr.colorForeground : 0),
+                android.R.style.Theme_Material_Light);
+        android.widget.ImageView kept = new android.widget.ImageView(same);
+        kept.setImageTintList(ColorStateList.valueOf(icon.data));
+        AccentTheme.textIcons(kept);
+        assertEquals("one color for both", icon.data, kept.getImageTintList().getDefaultColor());
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.TEXT_ICONS));
+    }
+
+    /**
+     * A menu row's icon, a reel's three-dot menu among them, is given the icon color its theme holds in
+     * place of Instagram's text color with Icons in the accent color on, and any other color, a red
+     * row's included, as it was told (#187). Off, it's given the color it was told. A missing icon
+     * throws as Instagram's own call would.
+     */
+    @Test
+    public void menuIconsInTheTextColorTakeTheThemesIconColor() {
+        Context light = new ContextThemeWrapper(themed(THEMED + ".menuicons", (name, type) -> {
+            if (!type.equals("attr")) return 0;
+            if (name.equals(AccentTheme.ICON_ATTRIBUTE)) return android.R.attr.colorForeground;
+            return name.equals(AccentTheme.TEXT_ICON_ATTRIBUTE) ? android.R.attr.colorAccent : 0;
+        }), android.R.style.Theme_Material_Light);
+        TypedValue icon = new TypedValue();
+        assertTrue(light.getTheme().resolveAttribute(android.R.attr.colorForeground, icon, true));
+        TypedValue text = new TypedValue();
+        assertTrue(light.getTheme().resolveAttribute(android.R.attr.colorAccent, text, true));
+        int textColor = text.data;
+        int iconColor = 0xff000000 | icon.data;
+        assertTrue("two colors to tell apart", (textColor & 0xffffff) != (iconColor & 0xffffff));
+        int red = 0xffed4956;
+        android.widget.ImageView row = new android.widget.ImageView(light);
+        AccentTheme.menuIcon(row, textColor);
+        assertTrue("off", atop(textColor, row.getColorFilter()));
+
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        Settings.ACCENT_ICONS.save(true);
+        AccentTheme.menuIcon(row, textColor);
+        assertTrue("the icon color", atop(iconColor, row.getColorFilter()));
+        AccentTheme.menuIcon(row, red);
+        assertTrue("a red row stays red", atop(red, row.getColorFilter()));
+        org.junit.Assert.assertThrows(NullPointerException.class, () -> AccentTheme.menuIcon(null, textColor));
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.TEXT_ICONS));
+    }
+
+    /**
+     * Instagram's prism chips, the filters under a search among them (#187): with Filters in the accent
+     * color on, the fill their background reads comes back as Saved's filters' look, the one you're on
+     * filled with the picked color, a pressed one keeping Instagram's color and the others clear, their
+     * outline the link shade for the screen, and the labels follow, the link shade or a color that reads
+     * on the fill once it's the one you're on. The switch off, paused or nothing to give answer
+     * Instagram's own and leave the labels.
+     */
+    @Test
+    public void prismChipsTakeThePickedColorWithTheFiltersSwitch() {
+        Ids ids = (name, type) -> type.equals("attr") && name.equals(AccentTheme.ICON_ATTRIBUTE) ? android.R.attr.colorForeground : 0;
+        Context light = new ContextThemeWrapper(themed(THEMED + ".prism", ids), android.R.style.Theme_Material_Light);
+        int gray = 0xff737373;
+        int[] selected = {android.R.attr.state_selected};
+        int[] pressed = {android.R.attr.state_pressed};
+        ColorStateList stock = new ColorStateList(new int[][] {selected, pressed, {}}, new int[] {0xff111111, 0xff222222, 0xff333333});
+        android.widget.LinearLayout chip = chip(light, gray);
+        android.widget.TextView label = (android.widget.TextView) chip.getChildAt(0);
+        android.widget.TextView inner = (android.widget.TextView) ((android.view.ViewGroup) chip.getChildAt(1)).getChildAt(0);
+        assertSame("off", stock, AccentTheme.prismFill(light, stock));
+        assertEquals("off", gray, AccentTheme.prismStroke(light, gray));
+        AccentTheme.prismChip(chip);
+        assertEquals("off", gray, label.getCurrentTextColor());
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        assertSame("the filters' switch off", stock, AccentTheme.prismFill(light, stock));
+        assertEquals("the filters' switch off", gray, AccentTheme.prismStroke(light, gray));
+        AccentTheme.prismChip(chip);
+        assertEquals("the filters' switch off", gray, label.getCurrentTextColor());
+        Settings.ACCENT_PILLS.save(true);
+
+        int onLight = 0xff000000 | AccentColor.swap(0xff3143e3, AccentHue.TEAL);
+        int fill = 0xff000000 | AccentColor.swap(0xff4a5df9, AccentHue.TEAL);
+        int onFill = AccentTheme.readsLight(fill) ? 0xff000000 : 0xffffffff;
+        ColorStateList fills = AccentTheme.prismFill(light, stock);
+        assertEquals("the one you're on filled", fill, fills.getColorForState(selected, 1));
+        assertEquals("a pressed one keeps Instagram's", 0xff222222, fills.getColorForState(pressed, 1));
+        assertEquals("the others clear", 0, fills.getColorForState(new int[0], 1));
+        assertEquals("the outline", onLight, AccentTheme.prismStroke(light, gray));
+        AccentTheme.prismChip(chip);
+        assertEquals("the others' label", onLight, label.getCurrentTextColor());
+        assertEquals("a label further in", onLight, inner.getCurrentTextColor());
+        label.setSelected(true);
+        assertEquals("the selected label reads on the fill", onFill, label.getCurrentTextColor());
+
+        Context dark = new ContextThemeWrapper(themed(THEMED + ".prism", ids), android.R.style.Theme_Material);
+        int onDark = 0xff000000 | AccentColor.swap(0xff85a1ff, AccentHue.TEAL);
+        assertEquals("the dark screen's outline", onDark, AccentTheme.prismStroke(dark, gray));
+        android.widget.LinearLayout night = chip(dark, gray);
+        AccentTheme.prismChip(night);
+        assertEquals("the dark screen's label", onDark, ((android.widget.TextView) night.getChildAt(0)).getCurrentTextColor());
+
+        assertSame("no context", stock, AccentTheme.prismFill(null, stock));
+        assertNull("nothing to give", AccentTheme.prismFill(light, null));
+        assertEquals("no context", gray, AccentTheme.prismStroke(null, gray));
+        AccentTheme.prismChip(null);
+        AccentTheme.prismChip(new View(light));
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        android.widget.LinearLayout paused = chip(light, gray);
+        assertSame("paused", stock, AccentTheme.prismFill(light, stock));
+        assertEquals("paused", gray, AccentTheme.prismStroke(light, gray));
+        AccentTheme.prismChip(paused);
+        assertEquals("paused", gray, ((android.widget.TextView) paused.getChildAt(0)).getCurrentTextColor());
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.PRISM_CHIPS));
+    }
+
+    /** A prism chip as Instagram builds one: a label in [color], and another inside a frame. */
+    private static android.widget.LinearLayout chip(Context context, int color) {
+        android.widget.LinearLayout chip = new android.widget.LinearLayout(context);
+        chip.addView(filter(context, color));
+        android.widget.FrameLayout frame = new android.widget.FrameLayout(context);
+        frame.addView(filter(context, color));
+        chip.addView(frame);
+        return chip;
     }
 
     /**

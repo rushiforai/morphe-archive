@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import app.template.extension.zalo.buglog.NezumiLog;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -41,8 +42,8 @@ public final class OfficialAccounts {
             // MessageManager singleton p8g.w(); M() reschedules the tab message list rebuild.
             Object repository = Class.forName("p8g").getMethod("w").invoke(null);
             repository.getClass().getMethod("M").invoke(repository);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
-            android.util.Log.w("NezumiOA", "Messages refresh unavailable");
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.w("NezumiOA", "Messages refresh unavailable", failure);
         }
     }
 
@@ -50,7 +51,8 @@ public final class OfficialAccounts {
         if (profile == null) return false;
         try {
             return Boolean.TRUE.equals(profile.getClass().getMethod("B2").invoke(profile));
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.swallowedOnce("NezumiOA", "official flag unavailable (B2)", failure);
             return false;
         }
     }
@@ -58,7 +60,8 @@ public final class OfficialAccounts {
     private static String conversationUid(Object conversation) {
         try {
             return (String) conversation.getClass().getField("b").get(conversation);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.swallowedOnce("NezumiOA", "conversation uid unavailable (field b)", failure);
             return null;
         }
     }
@@ -75,11 +78,14 @@ public final class OfficialAccounts {
         Object cached = null;
         try {
             cached = Class.forName("huj").getMethod("l", String.class).invoke(null, uid);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) { }
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.swallowedOnce("NezumiOA", "profile cache lookup unavailable (huj.l)", failure);
+        }
         if (hasOfficialFlag(cached)) return true;
         try {
             return hasOfficialFlag(conversation.getClass().getField("a").get(conversation));
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.swallowedOnce("NezumiOA", "conversation profile unavailable (field a)", failure);
             return false;
         }
     }
@@ -111,7 +117,9 @@ public final class OfficialAccounts {
                     if (official && known.add(uid)) learned = true;
                     if (official && mute) muteOfficialAccount(context, account, conversation);
                 }
-            } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) { }
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+                NezumiLog.swallowedOnce("NezumiOA", "conversation filtering failed for an item", failure);
+            }
             if (hide && !official) filtered.add(item);
         }
         if (learned) prefs.edit().putStringSet(oaKnownKey(account), known).apply();
@@ -154,7 +162,8 @@ public final class OfficialAccounts {
         String uid;
         try {
             uid = (String) conversation.getClass().getField("b").get(conversation);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.swallowedOnce("NezumiOA", "mute target uid unavailable (field b)", failure);
             return;
         }
         if (uid == null || uid.isEmpty()) return;
@@ -182,10 +191,10 @@ public final class OfficialAccounts {
                 ZaloEnv.collectNativeFlow(flow);
                 Set<String> tracked = trackedOfficialAccounts(context, account);
                 if (tracked.add(uid)) storeTrackedOfficialAccounts(context, account, tracked);
-                android.util.Log.i("NezumiOA", "Permanent mute dispatched");
+                NezumiLog.i("NezumiOA", "Permanent mute dispatched");
             }
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
-            android.util.Log.w("NezumiOA", "Automatic mute unavailable");
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.w("NezumiOA", "Automatic mute unavailable", failure);
         }
     }
 
@@ -212,10 +221,10 @@ public final class OfficialAccounts {
                     .newInstance(uid, 1, tracking);
                 Object flow = useCase.getClass().getMethod("p1", Object.class).invoke(useCase, event);
                 ZaloEnv.collectNativeFlow(flow);
-                android.util.Log.i("NezumiOA", "Unmute dispatched");
+                NezumiLog.i("NezumiOA", "Unmute dispatched");
             }
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
-            android.util.Log.w("NezumiOA", "Automatic unmute unavailable");
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
+            NezumiLog.w("NezumiOA", "Automatic unmute unavailable", failure);
         }
         if (changed) storeTrackedOfficialAccounts(context, account, tracked);
     }

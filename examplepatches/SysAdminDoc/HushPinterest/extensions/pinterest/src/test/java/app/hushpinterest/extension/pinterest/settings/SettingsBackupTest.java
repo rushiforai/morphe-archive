@@ -242,7 +242,7 @@ public class SettingsBackupTest {
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.MUTED_WORDS, SaveButtonColorSetting.SAVE_BUTTON_COLOR), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS, Settings.HIDE_AI_SELF_DESCRIBED,
-                        Settings.HIDE_SHOPPING, Settings.HIDE_VIDEO_PINS, Settings.HIDE_SAVED_PINS, Settings.HIDE_SAVED_PINS_ELSEWHERE, Settings.HIDE_HOME_SUGGESTIONS, Settings.HIDE_REFINE_SEARCH, Settings.KEEP_HOME_FEED, Settings.BACK_LEAVES_HOME, Settings.HIDE_REFRESH_PILL, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING, Settings.PLAIN_PIN_LINKS,
+                        Settings.HIDE_SHOPPING, Settings.HIDE_VIDEO_PINS, Settings.HIDE_SAVED_PINS, Settings.HIDE_SAVED_PINS_ELSEWHERE, Settings.HIDE_SEEN_PINS, Settings.HIDE_SEEN_PINS_SEARCH, Settings.HIDE_HOME_SUGGESTIONS, Settings.HIDE_REFINE_SEARCH, Settings.KEEP_HOME_FEED, Settings.BACK_LEAVES_HOME, Settings.HIDE_REFRESH_PILL, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING, Settings.PLAIN_PIN_LINKS,
                         Settings.HIDE_ADVERTISING_ID, Settings.LIKE_COMMENT_HISTORY, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER,
                         Settings.DOWNLOAD_UNMETERED_ONLY, Settings.DOWNLOAD_NO_ROAMING, Settings.COPY_IMAGE, Settings.SHARE_IMAGE, Settings.SAVE_DOWNLOADED_PINS, Settings.DOWNLOAD_SAVED_PINS, Settings.DOWNLOAD_BOARD, Settings.LONG_PRESS_DOWNLOAD, Settings.LONG_PRESS_VIEW,
                         Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND, Settings.LONG_PRESS_HIDE_SEARCH,

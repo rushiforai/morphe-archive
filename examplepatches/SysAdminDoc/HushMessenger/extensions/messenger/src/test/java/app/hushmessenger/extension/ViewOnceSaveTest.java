@@ -91,6 +91,8 @@ public class ViewOnceSaveTest {
         on(true, true);
         View pill = viewerOpens();
         assertNotNull("both switches on puts the button up", pill);
+        assertEquals("#191: listed in Invisible buttons by its words",
+            ((android.widget.TextView) pill).getText().toString(), InvisibleButtons.nameOf(pill));
         assertSame("a second viewer lock doesn't stack a second button", pill, viewerOpens());
     }
 

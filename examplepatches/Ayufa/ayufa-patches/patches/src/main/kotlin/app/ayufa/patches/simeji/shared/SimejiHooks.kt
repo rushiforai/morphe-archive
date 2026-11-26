@@ -83,7 +83,7 @@ internal fun MutableMethod.superOnCreateIndex(): Int {
 // between the app and IME processes.
 //
 // Every gate stores the helper's boolean result in v0, the first
-// local register. All gated methods in Simeji 20.7 declare at least
+// local register. All gated methods in Simeji 22.5 declare at least
 // one local register (verified per method against the dex), and a
 // local register holds no meaningful value at method entry, so
 // overwriting it before the original code runs is safe. [label] must

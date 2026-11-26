@@ -357,6 +357,44 @@ public final class LrclibReflection {
         return app instanceof Context ? ((Context) app).getApplicationContext() : null;
     }
 
+    static Object getMediaBrowser(Object fragment) {
+        if (fragment == null) return null;
+        return callNoArgs(fragment, "getMediaBrowser");
+    }
+
+    static long getPlaybackPositionMs(Object mediaBrowser) {
+        if (mediaBrowser == null) return -1L;
+        return asLong(callNoArgs(mediaBrowser, "getCurrentPosition"), -1L);
+    }
+
+    static long getPlaybackDurationMs(Object mediaBrowser) {
+        if (mediaBrowser == null) return -1L;
+        return asLong(callNoArgs(mediaBrowser, "getDuration"), -1L);
+    }
+
+    static boolean isPlaying(Object mediaBrowser) {
+        return mediaBrowser != null && Boolean.TRUE.equals(callNoArgs(mediaBrowser, "isPlaying"));
+    }
+
+    static void play(Object mediaBrowser) {
+        if (mediaBrowser == null) return;
+        callNoArgs(mediaBrowser, "play");
+    }
+
+    static void pause(Object mediaBrowser) {
+        if (mediaBrowser == null) return;
+        callNoArgs(mediaBrowser, "pause");
+    }
+
+    static void seekTo(Object mediaBrowser, long positionMs) {
+        if (mediaBrowser == null) return;
+        try {
+            callOneArg(mediaBrowser, "seekTo", long.class, Math.max(0L, positionMs));
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed seeking playback position", t);
+        }
+    }
+
     static void cancelShowLyricsLoadingMessage(Object fragment, Context ctx) {
         removeFragmentHandlerMessage(fragment, ctx, "message_show_lyrics_loading");
     }

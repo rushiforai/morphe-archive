@@ -187,6 +187,10 @@ final class UpdateChecker {
         if (pkg.contains("docscanner")) names.add("Doc Scanner");
         if (pkg.contains("apps.photos")) names.add("Google Photos");
         if (pkg.contains("mxtech")) names.add("MX Player");
+        if (pkg.contains("dinglisch")) names.add("Tasker");
+        if (pkg.startsWith("idm.internet")) names.add("1DM");
+        if (pkg.startsWith("com.dv.adm")) names.add("ADM");
+        if (pkg.startsWith("com.metalsoft.trackchecker")) names.add("TrackChecker");
         return names;
     }
 

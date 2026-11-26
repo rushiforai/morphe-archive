@@ -10,7 +10,7 @@
  * - Jav1x (https://github.com/Jav1x)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-24
+ * Modified by lavinhoque33, 2026-11-25
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -121,6 +121,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import app.morphe.extension.shared.patches.glassmenus.GlassMenusPatch;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.EnumSetting;
 import app.morphe.extension.shared.ui.SheetBottomDialog;
@@ -838,6 +839,10 @@ public class VideoUtils extends IntentUtils {
                     }
                 }
             });
+
+            if (fromOverlayButton && GlassMenusPatch.isPatchIncluded()) {
+                GlassMenusPatch.onOverlayVideoQualityDialog(dialog, mainLayout, context);
+            }
 
             dialog.show();
             return;

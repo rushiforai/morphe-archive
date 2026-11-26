@@ -140,6 +140,10 @@ public final class HiddenNgUnread {
             return adjustNewArrivalCount(previousTotal,currentTotal,hidden);
         }
     }
+    static boolean isHiddenNewArrival(String key,int responseNumber){
+        if(!newArrivalEnabled()||key==null||responseNumber<=0)return false;
+        synchronized(HIDDEN){Set<Integer> hidden=HIDDEN.get(key);return hidden!=null&&hidden.contains(responseNumber);}
+    }
     /** Pure range adjustment, also used by focused runtime verification. */
     public static int adjustNewArrivalCount(int previousTotal,int currentTotal,Set<Integer> hidden){
         int raw=Math.max(0,currentTotal-previousTotal);if(raw==0||hidden==null||hidden.isEmpty())return raw;

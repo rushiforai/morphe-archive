@@ -72,4 +72,8 @@ public final class NezumiSettings {
     public static void attachCallRecording(View root, View anchor) {
         NezumiSettingsPage.attach(root, anchor, NezumiSettingsPage.FEATURE_CALL_RECORDING);
     }
+
+    public static void attachBugLog(View root, View anchor) {
+        NezumiSettingsPage.attach(root, anchor, NezumiSettingsPage.FEATURE_BUG_LOG);
+    }
 }

@@ -35,7 +35,7 @@ private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 private val READ_BODY = """
     invoke-static {p0}, LX/2on;->A0F(Ljava/lang/Object;)LX/5bt;
     move-result-object p0
-    const-wide v0, 0x82059500020f8fL
+    const-wide v0, 0x82058c00020f73L
     invoke-static {p0, v0, v1}, $CONFIG_READ
     move-result v0
     const/4 v1, 0x3
@@ -75,7 +75,7 @@ private val PIN_ASK_BODY = """
     new-instance v6, $PIN_LAMBDA
     invoke-static {v11}, LX/2on;->A0F(Ljava/lang/Object;)LX/5bt;
     move-result-object v5
-    const-wide v0, 0x82059500020f8fL
+    const-wide v0, 0x82058c00020f73L
     invoke-static {v5, v0, v1}, $CONFIG_READ
     move-result v2
     return-void
@@ -383,9 +383,9 @@ class PinnedChatsTest {
     // and one odd reader spoils them all rather than leave a check that still uses Messenger's own limit.
     @Test fun anythingButAStraightReadOfTheLimitIsLeftAlone() {
         val cases = mapOf(
-            "another config id" to pinnedChatLimitFixture(reader(READ_BODY.replace("0x82059500020f8fL", "0x8205b900021070L"))),
-            "the id loaded twice" to pinnedChatLimitFixture(reader(READ_BODY.replace("const-wide v0, 0x82059500020f8fL",
-                "const-wide v0, 0x82059500020f8fL\nconst-wide v0, 0x82059500020f8fL"))),
+            "another config id" to pinnedChatLimitFixture(reader(READ_BODY.replace("0x82058c00020f73L", "0x8205b900021070L"))),
+            "the id loaded twice" to pinnedChatLimitFixture(reader(READ_BODY.replace("const-wide v0, 0x82058c00020f73L",
+                "const-wide v0, 0x82058c00020f73L\nconst-wide v0, 0x82058c00020f73L"))),
             "something between the id and the read" to pinnedChatLimitFixture(reader(READ_BODY.replace("invoke-static {p0, v0, v1}",
                 "nop\ninvoke-static {p0, v0, v1}"))),
             "a long read" to pinnedChatLimitFixture(reader(READ_BODY.replace(CONFIG_READ, "LX/17P;->A0G(Ljava/lang/Object;J)J")
@@ -420,7 +420,7 @@ class PinnedChatsTest {
 
     @Test fun anUnusableMethodRefusesTheSwitchBeforeAnyEdit() {
         val cases = mapOf(
-            "another config id" to reader(READ_BODY.replace("0x82059500020f8fL", "0x1L")),
+            "another config id" to reader(READ_BODY.replace("0x82058c00020f73L", "0x1L")),
             "no answer taken" to reader(READ_BODY.replace("move-result v0\n", "")),
             "another method" to fixtureMethod("LX/2na;->A01($FB_USER_SESSION)I", "const/4 v0, 0x3\nreturn v0", registers = 3, flags = STATIC),
         )

@@ -6,11 +6,10 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.SupportedAbi
 
 /**
- * The stock Messenger builds the patches were checked against. APKMirror lists sixteen arm64 builds of 587 (several
- * per screen density, nodpi among them) and three armv7 ones, and every one is here. Four of the arm64 ones
- * (347415280, 347415281, 347415284, 347415285) went through another Redex pass, so they keep pooled strings, merged
- * classes and inlined helpers of their own and share their own profile. Two more (347415302, 347415355) carry the
- * main build's code under other class names and share a profile of their own, and the three armv7 builds share one.
+ * The stock Messenger builds the patches were checked against. APKMirror lists sixteen arm64 builds of 588 (several
+ * per screen density, nodpi among them) and four armv7 ones (347617497, 347617513, 347617566, 347617583), and every
+ * one is here. The arm64 builds share one profile and the armv7 builds, which carry the same code under other Redex
+ * names, share another.
  *
  * A version name alone is insufficient: Meta publishes several DEX variants with that name. Each
  * build is recorded in scripts/profiles by CompatReport; the APKs themselves are local research
@@ -22,41 +21,42 @@ internal object MessengerTarget {
 
     /** Each supported version name and the version codes of its checked builds. */
     val VERSIONS: Map<String, List<Int>> = mapOf(
-        "587.0.0.54.96" to listOf(
-            347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299,
-            347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354, 347415355,
+        "588.1.0.66.98" to listOf(
+            347617497, 347617499, 347617503, 347617513, 347617515, 347617516, 347617517, 347617519, 347617532, 347617533,
+            347617535, 347617537, 347617566, 347617569, 347617572, 347617583, 347617586, 347617587, 347617588, 347617590,
         ),
     )
     val VERSION_CODES = VERSIONS.values.flatten()
 
     /** The ABI each checked build is for, as its record's APK ships native code for. */
     val ABIS: Map<Int, SupportedAbi> = mapOf(
-        347415262 to SupportedAbi.ARMEABI_V7A,
-        347415267 to SupportedAbi.ARM64_V8A,
-        347415268 to SupportedAbi.ARM64_V8A,
-        347415280 to SupportedAbi.ARM64_V8A,
-        347415281 to SupportedAbi.ARM64_V8A,
-        347415284 to SupportedAbi.ARM64_V8A,
-        347415285 to SupportedAbi.ARM64_V8A,
-        347415295 to SupportedAbi.ARMEABI_V7A,
-        347415299 to SupportedAbi.ARM64_V8A,
-        347415301 to SupportedAbi.ARM64_V8A,
-        347415302 to SupportedAbi.ARM64_V8A,
-        347415333 to SupportedAbi.ARM64_V8A,
-        347415337 to SupportedAbi.ARM64_V8A,
-        347415348 to SupportedAbi.ARMEABI_V7A,
-        347415350 to SupportedAbi.ARM64_V8A,
-        347415351 to SupportedAbi.ARM64_V8A,
-        347415352 to SupportedAbi.ARM64_V8A,
-        347415354 to SupportedAbi.ARM64_V8A,
-        347415355 to SupportedAbi.ARM64_V8A,
+        347617497 to SupportedAbi.ARMEABI_V7A,
+        347617499 to SupportedAbi.ARM64_V8A,
+        347617503 to SupportedAbi.ARM64_V8A,
+        347617513 to SupportedAbi.ARMEABI_V7A,
+        347617515 to SupportedAbi.ARM64_V8A,
+        347617516 to SupportedAbi.ARM64_V8A,
+        347617517 to SupportedAbi.ARM64_V8A,
+        347617519 to SupportedAbi.ARM64_V8A,
+        347617532 to SupportedAbi.ARM64_V8A,
+        347617533 to SupportedAbi.ARM64_V8A,
+        347617535 to SupportedAbi.ARM64_V8A,
+        347617537 to SupportedAbi.ARM64_V8A,
+        347617566 to SupportedAbi.ARMEABI_V7A,
+        347617569 to SupportedAbi.ARM64_V8A,
+        347617572 to SupportedAbi.ARM64_V8A,
+        347617583 to SupportedAbi.ARMEABI_V7A,
+        347617586 to SupportedAbi.ARM64_V8A,
+        347617587 to SupportedAbi.ARM64_V8A,
+        347617588 to SupportedAbi.ARM64_V8A,
+        347617590 to SupportedAbi.ARM64_V8A,
     )
 
     /**
      * The build codes Manager is told for one version name: one per ABI, which it hands its APK download helper and
      * checks a picked APK against (#138: without them it linked an unsupported build of the same version). Null when
      * a build's ABI isn't recorded or an ABI has more than one build, since the map holds one code per ABI and a
-     * missing ABI means any build. 587's several builds per ABI land here (#145), so Manager takes any 587 APK and the
+     * missing ABI means any build. 588's several builds per ABI land here (#145), so Manager takes any 588 APK and the
      * patch-time check refuses one that isn't recorded.
      */
     fun exactCodes(codes: List<Int>, abis: Map<Int, SupportedAbi> = ABIS): Map<SupportedAbi, Int>? {
@@ -70,7 +70,7 @@ internal object MessengerTarget {
     private const val META_SIGNER =
         "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27"
 
-    /** "587.0.0.54.96 APK (version code 347415354)", joined with " or " across version names. */
+    /** "588.1.0.66.98 APK (version code 347617503)", joined with " or " across version names. */
     fun supportedApks(versions: Map<String, List<Int>> = VERSIONS): String =
         versions.entries.joinToString(" or ") { (name, codes) -> "$name APK (version code ${codes.joinToString(" or ")})" }
 

@@ -235,48 +235,6 @@ public final class SaveChooser {
     private static final String[] MENU_SAVE_TEXT = {"save to playlist", "guardar en playlist", "guardar en una playlist",
             "guardar en lista", "añadir a playlist", "añadir a lista", "agregar a playlist", "agregar a lista"};
 
-    private static String text(app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text t) {
-        if (t == null) return "";
-        StringBuilder b = new StringBuilder(t.getSimpleText());
-        for (var r : t.getRunsList()) b.append(r.getText());
-        return b.toString().toLowerCase(Locale.ROOT).trim();
-    }
-
-    private static boolean isSaveToPlaylist(app.morphe.extension.youtube.innertube.IconOuterClass.Icon icon,
-                                            app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text t) {
-        int type = icon == null ? -1 : icon.getYtIconTypeValue();
-        if (type == ICON_ADD_TO_PLAYLIST || type == ICON_PLAYLIST_ADD) return true;
-        String s = text(t);
-        for (String m : MENU_SAVE_TEXT) if (s.startsWith(m)) return true;
-        return false;
-    }
-
-    /** The item's command where the item is Save to playlist (and has a command), else null. */
-    private static app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint pick(
-            app.morphe.extension.youtube.innertube.IconOuterClass.Icon icon,
-            app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text text,
-            app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint endpoint) {
-        return isSaveToPlaylist(icon, text) && endpoint.getSerializedSize() > 0 ? endpoint : null;
-    }
-
-    /** The card menu's own Save to playlist command, which opens the sheet with thumbnails, or null. */
-    private static app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint menuSaveCommand() {
-        if (!(lastMenu instanceof app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.MenuRenderer menu)) return null;
-        for (var item : menu.getItemsList()) {
-            var found = item.hasMenuServiceItemRenderer() ? pick(item.getMenuServiceItemRenderer().getIcon(),
-                    item.getMenuServiceItemRenderer().getText(), item.getMenuServiceItemRenderer().getServiceEndpoint())
-                    : item.hasMenuNavigationItemRenderer() ? pick(item.getMenuNavigationItemRenderer().getIcon(),
-                    item.getMenuNavigationItemRenderer().getText(), item.getMenuNavigationItemRenderer().getNavigationEndpoint())
-                    : item.hasMenuConditionalServiceItemRenderer() ? pick(item.getMenuConditionalServiceItemRenderer().getIcon(),
-                    item.getMenuConditionalServiceItemRenderer().getText(), item.getMenuConditionalServiceItemRenderer().getServiceEndpoint())
-                    : item.hasMenuConditionalNavigationItemRenderer() ? pick(item.getMenuConditionalNavigationItemRenderer().getIcon(),
-                    item.getMenuConditionalNavigationItemRenderer().getText(), item.getMenuConditionalNavigationItemRenderer().getNavigationEndpoint())
-                    : null;
-            if (found != null) return found;
-        }
-        return null;
-    }
-
     /**
      * Injection point, on the command Morphe's feed card save button runs (the menu's Save to Watch later): with the
      * option on, the button opens Save to... for the card's video instead. The sheet with thumbnails (the one the watch
@@ -284,29 +242,157 @@ public final class SaveChooser {
      * an add-to-playlist command built here, which is also the fallback where the menu has no such item.
      */
     public static Object cardSaveCommand(Object command) {
+        if (command == null) return null;
         try {
-            if (!XSettings.SAVE_OPENS_CHOOSER.get()
-                    || !(command instanceof app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint e)) {
-                return command;
-            }
-            var edit = e.getPlaylistEditEndpoint();
-            String id = edit.getActionsCount() > 0 ? edit.getActions(0).getAddedVideoId() : null;
-            if (id == null || id.isEmpty()) return command;
-            if (!"list".equals(XSettings.SAVE_STYLE.get())) {
-                var sheet = menuSaveCommand();
-                if (sheet != null) {
-                    if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens the Save to sheet for " + id);
-                    return sheet;
-                }
-            }
-            if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens the Save to list for " + id);
-            return app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint.newBuilder()
-                    .setAddToPlaylistEndpoint(app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer
-                            .AddToPlaylistEndpoint.newBuilder().setVideoId(id))
-                    .build();
+            return command.getClass().getName().startsWith("app.morphe.extension.shared.innertube.queue.")
+                    ? SharedQueue.card(command) : OldQueue.card(command);
         } catch (Throwable t) {
             Logger.printDebug(() -> "YouTube Extras: card save command kept: " + t);
             return command;
+        }
+    }
+
+    /** Morphe Patches up to 2.4.0-dev.1 (stable 2.3.0): the queue protos in the YouTube extension. */
+    private static final class OldQueue {
+        private static String text(app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text t) {
+            if (t == null) return "";
+            StringBuilder b = new StringBuilder(t.getSimpleText());
+            for (var r : t.getRunsList()) b.append(r.getText());
+            return b.toString().toLowerCase(Locale.ROOT).trim();
+        }
+
+        private static boolean isSaveToPlaylist(app.morphe.extension.youtube.innertube.IconOuterClass.Icon icon,
+                                                app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text t) {
+            int type = icon == null ? -1 : icon.getYtIconTypeValue();
+            if (type == ICON_ADD_TO_PLAYLIST || type == ICON_PLAYLIST_ADD) return true;
+            String s = text(t);
+            for (String m : MENU_SAVE_TEXT) if (s.startsWith(m)) return true;
+            return false;
+        }
+
+        /** The item's command where the item is Save to playlist (and has a command), else null. */
+        private static app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint pick(
+                app.morphe.extension.youtube.innertube.IconOuterClass.Icon icon,
+                app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text text,
+                app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint endpoint) {
+            return isSaveToPlaylist(icon, text) && endpoint.getSerializedSize() > 0 ? endpoint : null;
+        }
+
+        /** The card menu's own Save to playlist command, which opens the sheet with thumbnails, or null. */
+        private static app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint menuSaveCommand() {
+            if (!(lastMenu instanceof app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.MenuRenderer menu)) return null;
+            for (var item : menu.getItemsList()) {
+                var found = item.hasMenuServiceItemRenderer() ? pick(item.getMenuServiceItemRenderer().getIcon(),
+                        item.getMenuServiceItemRenderer().getText(), item.getMenuServiceItemRenderer().getServiceEndpoint())
+                        : item.hasMenuNavigationItemRenderer() ? pick(item.getMenuNavigationItemRenderer().getIcon(),
+                        item.getMenuNavigationItemRenderer().getText(), item.getMenuNavigationItemRenderer().getNavigationEndpoint())
+                        : item.hasMenuConditionalServiceItemRenderer() ? pick(item.getMenuConditionalServiceItemRenderer().getIcon(),
+                        item.getMenuConditionalServiceItemRenderer().getText(), item.getMenuConditionalServiceItemRenderer().getServiceEndpoint())
+                        : item.hasMenuConditionalNavigationItemRenderer() ? pick(item.getMenuConditionalNavigationItemRenderer().getIcon(),
+                        item.getMenuConditionalNavigationItemRenderer().getText(), item.getMenuConditionalNavigationItemRenderer().getNavigationEndpoint())
+                        : null;
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        static Object card(Object command) {
+            try {
+                if (!XSettings.SAVE_OPENS_CHOOSER.get()
+                        || !(command instanceof app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint e)) {
+                    return command;
+                }
+                var edit = e.getPlaylistEditEndpoint();
+                String id = edit.getActionsCount() > 0 ? edit.getActions(0).getAddedVideoId() : null;
+                if (id == null || id.isEmpty()) return command;
+                if (!"list".equals(XSettings.SAVE_STYLE.get())) {
+                    var sheet = menuSaveCommand();
+                    if (sheet != null) {
+                        if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens the Save to sheet for " + id);
+                        return sheet;
+                    }
+                }
+                if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens the Save to list for " + id);
+                return app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint.newBuilder()
+                        .setAddToPlaylistEndpoint(app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer
+                                .AddToPlaylistEndpoint.newBuilder().setVideoId(id))
+                        .build();
+            } catch (Throwable t) {
+                Logger.printDebug(() -> "YouTube Extras: card save command kept: " + t);
+                return command;
+            }
+        }
+    }
+
+    /** Morphe Patches 2.4.0-dev.12 on (YouTube 21.47.483): the queue protos moved to the shared-YouTube extension. Only the copy whose classes the app holds is ever loaded. */
+    private static final class SharedQueue {
+        private static String text(app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.Text t) {
+            if (t == null) return "";
+            StringBuilder b = new StringBuilder(t.getSimpleText());
+            for (var r : t.getRunsList()) b.append(r.getText());
+            return b.toString().toLowerCase(Locale.ROOT).trim();
+        }
+
+        private static boolean isSaveToPlaylist(app.morphe.extension.shared.innertube.IconOuterClass.Icon icon,
+                                                app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.Text t) {
+            int type = icon == null ? -1 : icon.getYtIconTypeValue();
+            if (type == ICON_ADD_TO_PLAYLIST || type == ICON_PLAYLIST_ADD) return true;
+            String s = text(t);
+            for (String m : MENU_SAVE_TEXT) if (s.startsWith(m)) return true;
+            return false;
+        }
+
+        /** The item's command where the item is Save to playlist (and has a command), else null. */
+        private static app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint pick(
+                app.morphe.extension.shared.innertube.IconOuterClass.Icon icon,
+                app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.Text text,
+                app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint endpoint) {
+            return isSaveToPlaylist(icon, text) && endpoint.getSerializedSize() > 0 ? endpoint : null;
+        }
+
+        /** The card menu's own Save to playlist command, which opens the sheet with thumbnails, or null. */
+        private static app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint menuSaveCommand() {
+            if (!(lastMenu instanceof app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.MenuRenderer menu)) return null;
+            for (var item : menu.getItemsList()) {
+                var found = item.hasMenuServiceItemRenderer() ? pick(item.getMenuServiceItemRenderer().getIcon(),
+                        item.getMenuServiceItemRenderer().getText(), item.getMenuServiceItemRenderer().getServiceEndpoint())
+                        : item.hasMenuNavigationItemRenderer() ? pick(item.getMenuNavigationItemRenderer().getIcon(),
+                        item.getMenuNavigationItemRenderer().getText(), item.getMenuNavigationItemRenderer().getNavigationEndpoint())
+                        : item.hasMenuConditionalServiceItemRenderer() ? pick(item.getMenuConditionalServiceItemRenderer().getIcon(),
+                        item.getMenuConditionalServiceItemRenderer().getText(), item.getMenuConditionalServiceItemRenderer().getServiceEndpoint())
+                        : item.hasMenuConditionalNavigationItemRenderer() ? pick(item.getMenuConditionalNavigationItemRenderer().getIcon(),
+                        item.getMenuConditionalNavigationItemRenderer().getText(), item.getMenuConditionalNavigationItemRenderer().getNavigationEndpoint())
+                        : null;
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        static Object card(Object command) {
+            try {
+                if (!XSettings.SAVE_OPENS_CHOOSER.get()
+                        || !(command instanceof app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint e)) {
+                    return command;
+                }
+                var edit = e.getPlaylistEditEndpoint();
+                String id = edit.getActionsCount() > 0 ? edit.getActions(0).getAddedVideoId() : null;
+                if (id == null || id.isEmpty()) return command;
+                if (!"list".equals(XSettings.SAVE_STYLE.get())) {
+                    var sheet = menuSaveCommand();
+                    if (sheet != null) {
+                        if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens the Save to sheet for " + id);
+                        return sheet;
+                    }
+                }
+                if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens the Save to list for " + id);
+                return app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint.newBuilder()
+                        .setAddToPlaylistEndpoint(app.morphe.extension.shared.innertube.queue.PlaylistQueueRenderer
+                                .AddToPlaylistEndpoint.newBuilder().setVideoId(id))
+                        .build();
+            } catch (Throwable t) {
+                Logger.printDebug(() -> "YouTube Extras: card save command kept: " + t);
+                return command;
+            }
         }
     }
 

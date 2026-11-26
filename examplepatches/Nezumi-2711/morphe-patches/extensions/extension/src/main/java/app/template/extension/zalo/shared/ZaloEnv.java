@@ -3,6 +3,8 @@ package app.template.extension.zalo.shared;
 import android.app.Activity;
 import android.content.Context;
 
+import app.template.extension.zalo.buglog.NezumiLog;
+
 /** Reflection helpers for Zalo's runtime: app context, signed-in account, language, coroutines. */
 public final class ZaloEnv {
     private ZaloEnv() { }
@@ -39,7 +41,8 @@ public final class ZaloEnv {
         try {
             Object account = Class.forName("com.zing.zalocore.CoreUtility").getField("i").get(null);
             return account instanceof String ? (String) account : null;
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.swallowedOnce("NezumiEnv", "current account unavailable (CoreUtility.i)", failure);
             return null;
         }
     }
@@ -48,7 +51,8 @@ public final class ZaloEnv {
         try {
             return (Context) Class.forName("com.zing.zalo.MainApplication")
                 .getMethod("getAppContext").invoke(null);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            NezumiLog.swallowedOnce("NezumiEnv", "app context unavailable (MainApplication.getAppContext)", failure);
             return null;
         }
     }
@@ -69,7 +73,9 @@ public final class ZaloEnv {
             Object language = Class.forName("z0r").getField("b").get(null);
             if ("vi".equals(language)) return true;
             if ("en".equals(language)) return false;
-        } catch (ReflectiveOperationException | SecurityException ignored) { }
+        } catch (ReflectiveOperationException | SecurityException failure) {
+            NezumiLog.swallowedOnce("NezumiEnv", "Zalo language unavailable (z0r.b), using system locale", failure);
+        }
         return "vi".equals(context.getResources().getConfiguration().locale.getLanguage());
     }
 }

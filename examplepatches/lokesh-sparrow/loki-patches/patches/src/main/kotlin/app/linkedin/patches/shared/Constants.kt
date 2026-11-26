@@ -11,7 +11,7 @@ import app.morphe.patcher.patch.*
  * LinkedIn builds this bundle has been checked against, oldest first. The manager suggests the last entry,
  * so a newly verified build is appended at the end and the oldest one dropped: the newest two are kept.
  */
-private val VERIFIED_LINKEDIN_BUILDS = listOf("4.1.1270", "4.1.1272")
+private val VERIFIED_LINKEDIN_BUILDS = listOf("4.1.1272", "4.1.1276")
 
 object Constants {
     /** Smali package of the runtime extension that the patches call into. */

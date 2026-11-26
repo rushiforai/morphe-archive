@@ -122,6 +122,7 @@ public class FloatingMenuTest {
         String[] expected = {"Reply", "Copy", "Delete", "More"};
         for (int i = 0; i < expected.length; i++) {
             assertEquals(expected[i], ((TextView) card.getChildAt(i)).getText().toString());
+            assertEquals("#191: listed in Invisible buttons by its words", expected[i], InvisibleButtons.nameOf(card.getChildAt(i)));
         }
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) card.getLayoutParams();
         // Under the message, lined up with its right edge, since that message is on the right.
@@ -205,6 +206,32 @@ public class FloatingMenuTest {
         assertEquals(0, FloatingMenu.rise(new Rect(112, 196, 969, 374), new Rect(381, 365, 1057, 466), frame, 400, 20, 12));
         // Never past the top of the chat: the emoji row stops an edge under it.
         assertEquals(200 - (75 + 12), FloatingMenu.rise(new Rect(112, 200, 969, 378), new Rect(381, 369, 1070, 2070), frame, 400, 20, 12));
+    }
+
+    @Test public void aPhotoTheEmojiRowLiesAcrossStillGetsTheCardUnderIt() {
+        // #162 on the S22: the newest photo sat at [372,1511][1057,2025] with Messenger's emoji row across its top, and
+        // the card went under the row, over the photo, leaving a strip of it between the two.
+        Rect frame = new Rect(0, 75, 1080, 2274);
+        Rect panel = new Rect(112, 1480, 969, 1658);
+        Rect photo = new Rect(372, 1511, 1057, 2025);
+
+        int rise = FloatingMenu.rise(panel, photo, frame, 400, 20, 12);
+        assertEquals(2025 + 20 + 400 - (2274 - 12), rise);
+        panel.offset(0, -rise);
+        photo.offset(0, -rise);
+        Rect placed = FloatingMenu.place(panel, photo, frame, 600, 400, 20, 12);
+
+        assertEquals(photo.bottom + 20, placed.top);
+        assertTrue(placed.bottom <= 2274 - 12);
+    }
+
+    @Test public void aMessageTooTallToShareTheScreenWithTheCardKeepsItUnderTheEmojiRow() {
+        Rect frame = new Rect(0, 75, 1080, 2274);
+        Rect panel = new Rect(112, 1000, 969, 1178);
+        Rect video = new Rect(381, 300, 1070, 2200);
+
+        assertEquals(0, FloatingMenu.rise(panel, video, frame, 400, 20, 12));
+        assertEquals(1178 + 20, FloatingMenu.place(panel, video, frame, 600, 400, 20, 12).top);
     }
 
     @Test public void aBubbleThatOnlySaysItTakesATapIsStillThePressedMessage() {

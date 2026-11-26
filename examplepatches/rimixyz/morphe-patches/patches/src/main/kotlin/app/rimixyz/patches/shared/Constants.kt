@@ -71,4 +71,53 @@ object Constants {
             AppTarget(version = "2.5.5", versionCode = 229)
         )
     )
+
+    val COMPATIBILITY_NOTISAVE = Compatibility(
+        name = "Notisave",
+        packageName = "com.tenqube.notisave",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x455A64,
+        signatures = setOf(
+            // SHA-256 do signer principal confirmada com apksigner --print-certs no base.apk.
+            // O Source Stamp (3257d599...) é mantido à parte, como nos demais alvos.
+            "792e6242acdb39da3f798e1d841bfb5ad4dfd2eeca17665f3480e402d115c997"
+        ),
+        targets = listOf(
+            // Bundle analisado: SHA-256 DC10DD2CBB23379C25DFE532209F7A5E3F40A9172AC773221C535539F55DD541.
+            // base.apk: AD585A8DC99B42D6CAD3C4F1F6A9BACA8CEBC8CBC1ACD44E517400F38A338C10.
+            AppTarget(version = "274.1.3.2", versionCode = 316)
+        )
+    )
+
+    val COMPATIBILITY_AUTOCLICKER = Compatibility(
+        name = "Auto Clicker",
+        packageName = "com.truedevelopersstudio.automatictap.autoclicker",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x2962FF,
+        signatures = setOf(
+            // SHA-256 do certificado lido de META-INF/GOOGPLAY.RSA com keytool -printcert.
+            "3978336c89d5429f50a756f68582160b0dc0332aa82f7056faa52bfc4fed35a2"
+        ),
+        targets = listOf(
+            // APK analisado: SHA-256 2A48AF68982BFF95588B740AAED2DE2994DD1A26A419CD66DB929B13CEBB3975.
+            AppTarget(version = "2.3.0", versionCode = 93)
+        )
+    )
+
+    val COMPATIBILITY_XRECORDER = Compatibility(
+        name = "XRecorder",
+        packageName = "videoeditor.videorecorder.screenrecorder",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x2962FF,
+        signatures = setOf(XRECORDER_CERT_SHA256),
+        targets = listOf(
+            // Bundle analisado: SHA-256 abc9e0c7166a3d106e918b5884de717b614ad81508ace6bee67e48b7616c2137.
+            // base.apk:          SHA-256 bbbefb52804ba7a16d8c5508ef5b99dc2130cfd899f374867eed8ff5e3eef1b7.
+            // Gravacao e estado Pro testados em aparelho real.
+            AppTarget(version = "2.5.6.1", versionCode = 2561002)
+        )
+    )
+
+    private const val XRECORDER_CERT_SHA256 =
+        "11D5525D76147B28FC6D974ABC56710576CF14A7CE78CF8E75FD8A67E312CEC0"
 }

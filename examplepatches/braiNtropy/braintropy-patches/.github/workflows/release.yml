@@ -7,6 +7,8 @@ on:
 jobs:
   release:
     name: Release
+    outputs:
+      published: ${{ steps.release.outputs.new_release_published }}
     permissions:
       contents: write
       packages: write
@@ -57,3 +59,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid clean --no-daemon
+
+  mirror-gitgud:
+    name: Mirror release to GitGud
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    uses: ./.github/workflows/mirror-gitgud.yml
+    secrets:
+      GITGUD_TOKEN: ${{ secrets.GITGUD_TOKEN }}

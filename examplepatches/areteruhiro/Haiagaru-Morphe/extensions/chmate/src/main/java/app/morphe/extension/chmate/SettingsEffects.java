@@ -16,7 +16,7 @@ final class SettingsEffects {
                 ||"copipeNg2".equals(key)||"arashiNg".equals(key)||"abbrevSingleId".equals(key);
     }
     static void changed(Context context,String key,boolean on){
-        if(HiddenNgUnread.KEY.equals(key)){HiddenNgUnread.clear();Haiagaru.refreshBoardListAfterReadSortChange();}
+        if(HiddenNgUnread.KEY.equals(key))Haiagaru.refreshBoardListAfterReadSortChange();
         if("forceHttps".equals(key))HttpsTransport.setEnabled(on);
         if(!on&&("wacchoiSearchEnabled".equals(key)||"wacchoiBackgroundSearch".equals(key))){
             for(WacchoiBackgroundJob job:WacchoiSearchService.jobs().values())if(job.running)job.cancel();

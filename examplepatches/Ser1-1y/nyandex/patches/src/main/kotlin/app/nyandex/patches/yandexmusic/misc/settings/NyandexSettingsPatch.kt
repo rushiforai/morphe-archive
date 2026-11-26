@@ -17,18 +17,18 @@ import app.morphe.patcher.patch.resourceXml
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.nyandex.patches.yandexmusic.shared.Constants.COMPATIBILITY_YANDEX_MUSIC
+import app.nyandex.patches.yandexmusic.util.hasStringConstant
+import app.nyandex.patches.yandexmusic.util.instructionsList
+import app.nyandex.patches.yandexmusic.util.methodReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import java.util.logging.Logger
@@ -40,6 +40,13 @@ internal const val NYANDEX_SETTINGS_CLASS = "Lapp/nyandex/extension/yandexmusic/
 internal const val SETTINGS_ENTRY_CLASS = "Lapp/nyandex/extension/yandexmusic/settings/SettingsEntry;"
 internal const val SETTINGS_ACTIVITY = "app.nyandex.extension.yandexmusic.settings.NyandexSettingsActivity"
 internal const val SETTINGS_ROW_METHOD = "nyandexSettingsRow"
+
+/** Makes `NyandexSettings.<name>()` return true, so the settings page shows that patch's section. */
+internal fun enableSettingsSection(name: String) {
+    mutableClassDefBy(NYANDEX_SETTINGS_CLASS).methods
+        .single { it.name == name }
+        .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+}
 
 /**
  * Compose test tags of settings blocks. The row goes on top of the first block found: "Offline and
@@ -103,7 +110,7 @@ private fun addSettingsRow() {
     } ?: throw PatchException("No settings block was found")
 
     val blockClass = mutableClassDefBy(blockType)
-    val block = blockClass.methods.singleOrNull { it.hasString(tag) }
+    val block = blockClass.methods.singleOrNull { it.hasStringConstant(tag) }
         ?: throw PatchException("Settings block method for $tag was not found")
     val instructions = block.instructionsList()
 
@@ -169,7 +176,7 @@ private fun createRowHelper(owner: String, composables: SettingsComposables): Mu
 private fun findSettingsComposables(): SettingsComposables {
     val blockClass = classDefByStrings(COLLECTION_BLOCK_TAG).singleOrNull()
         ?: throw PatchException("Settings collection block was not found")
-    val method = blockClass.methods.singleOrNull { it.hasString(COLLECTION_BLOCK_TAG) }
+    val method = blockClass.methods.singleOrNull { it.hasStringConstant(COLLECTION_BLOCK_TAG) }
         ?: throw PatchException("Settings collection block method was not found")
     val instructions = method.implementation!!.instructions.toList()
 
@@ -222,14 +229,3 @@ private fun findSettingsComposables(): SettingsComposables {
 
     return SettingsComposables(composerType, header, row, modifier, icon)
 }
-
-private fun Method.hasString(value: String): Boolean =
-    implementation?.instructions?.any { instruction ->
-        ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == value
-    } == true
-
-private fun MutableMethod.instructionsList(): List<Instruction> =
-    implementation?.instructions?.toList() ?: emptyList()
-
-private fun Instruction.methodReference(): MethodReference? =
-    (this as? ReferenceInstruction)?.reference as? MethodReference

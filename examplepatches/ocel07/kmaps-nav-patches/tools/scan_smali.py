@@ -148,9 +148,11 @@ def main():
     ap.add_argument('--scope', help='with --srcmap: file of source-name patterns / pkg: lines selecting packages')
     a = ap.parse_args()
     smap = {}
+    rawsrc = {}                                     # every SourceFile value, including R8 synthetic / library ids
     if a.srcmap:
         for l in open(a.srcmap, encoding='utf-8'):
             d, c, s = (l.rstrip('\n').split('\t') + ['', ''])[:3]
+            rawsrc[c] = s
             if s and not s.startswith('R8$$'):          # R8 synthetic classes share one fake name: keep their path
                 smap[c] = s
     pk = [p.strip('/') + '/' for p in a.pkg.split(',') if p]     # package prefixes (sub-packages included)
@@ -206,18 +208,36 @@ def main():
         s = smap.get(path)
         return s if s and s.endswith(('.kt', '.java')) else None
 
+    def flat(path):
+        """stable stand-in for a class R8 flattened into the default package ('si8', 'mcg'): its name changes every
+        build, so use what it belongs to - an R8 synthetic class or a library artifact (version dropped)"""
+        if '/' in path:
+            return None
+        s = rawsrc.get(path, '')
+        if s.startswith('R8$$'):
+            return 'syn:R8'
+        if '@@' in s:
+            return 'lib:' + s.split('@@')[0]
+        return None
+
+    def tname(path):
+        f = fname(path)
+        return f if f else flat(path)
+
     def keyed(r):
         kind, cls, desc, detail, dex, mname, info, src = r
         m = REF.match(detail)
         if m:          # TIMER/LOCREQ/NMEA: 'Owner;->method' (owner's last path segment, or its source file)
-            f = fname(m.group(1))
+            f = tname(m.group(1)) if smap else None
             detail = f'<{f}>->{m.group(2)}' if f else m.group(1).split('/')[-1] + ';->' + m.group(2)
         if smap:
-            desc = TYPE.sub(lambda t: f'<{fname(t.group(1))}>' if fname(t.group(1)) else t.group(0), desc)
+            desc = TYPE.sub(lambda t: f'<{tname(t.group(1))}>' if tname(t.group(1)) else t.group(0), desc)
             mname = f'{cls}.{mname}'
             s = smap.get(cls, '')
             if fname(cls):
                 cls = f'src:{s}'
+            elif flat(cls):
+                cls = flat(cls)
             elif '@@' in s:          # obfuscated library internals: 'lib:<artifact>' without its version
                 cls = 'lib:' + s.split('@@')[0]
         return kind, cls, desc, detail, dex, mname, info, src

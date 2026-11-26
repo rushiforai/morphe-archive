@@ -1,7 +1,7 @@
 ![HushThreads. Keep the thread. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.18-000000" alt="Version 0.0.18"></a>
+  <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.19-000000" alt="Version 0.0.19"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Threads-457.0.0.57.74-000000" alt="Threads 457.0.0.57.74">
@@ -24,7 +24,7 @@ HushThreads is a Morphe patch bundle for Android that takes the ads out of Threa
 
 Sponsored posts and suggested-account cards leave your feed before Threads shows them. Shared links lose their tracking tags, and a short `/share/` link becomes the post's own link. Web links open in your browser instead of Threads' own, with its click tracker skipped. You can also save photos and videos, keep your place in the feed, stop autoplay and make dark mode pure black.
 
-The latest release is [v0.0.18](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.18), with 26 patches. It's for Threads 455.0.0.55.72 on all nine APKMirror variants. The source build has moved to Threads 457.0.0.57.74, which ships in the next release. What changed in each version is in the [changelog](CHANGELOG.md).
+The latest release is [v0.0.19](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.19), with 30 patches. It's for Threads 457.0.0.57.74 on all ten APKMirror variants. What changed in each version is in the [changelog](CHANGELOG.md).
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads) | [Download a release](https://github.com/SysAdminDoc/HushThreads/releases/latest) | [Browse the patches](#patches)
 
@@ -34,13 +34,13 @@ HushThreads only comes from this repo, github.com/SysAdminDoc/HushThreads, and y
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.7.0 or newer.
 2. Add HushThreads as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads
-3. Get Threads 457.0.0.57.74 (`com.instagram.barcelona`) for any architecture and screen density in the [table below](#supported-threads-build), on Android 9 or newer. If you're installing the v0.0.18 release instead, get Threads 455.0.0.55.72. If you're on an older Threads, update it to 457 before you patch the source build.
+3. Get Threads 457.0.0.57.74 (`com.instagram.barcelona`) for any architecture and screen density in the [table below](#supported-threads-build), on Android 9 or newer. If you're on an older Threads, update it to 457 before you patch.
 4. Uninstall the stock Threads. A patched Threads can't install over Meta's signed copy. If you'd rather keep it, add `Change package name` (and `Change app name`, so you can tell them apart) and the patched one installs beside it as a second app with its own sign-in.
-5. In Morphe Manager, pick that file and patch. The default selection has every patch except the five the [Patches](#patches) section names, so you don't need Expert mode.
+5. In Morphe Manager, pick that file and patch. The default selection has every patch except the six the [Patches](#patches) section names, so you don't need Expert mode.
 
-To add one of those five, turn on **Settings → Advanced → Expert mode** in Manager before you pick the file. If you saved your own selection in Expert mode before, Manager may keep using it, so look over the list once.
+To add one of those six, turn on **Settings → Advanced → Expert mode** in Manager before you pick the file. If you saved your own selection in Expert mode before, Manager may keep using it, so look over the list once.
 
-The source build patches Threads 457 only. Each release moves to the newest stable Threads and drops the one before, so v0.0.15 is the last release for 451.0.0.51.80, v0.0.16 the last for 452.0.0.50.64, v0.0.17 the last for 454.0.0.54.79 and v0.0.18 the last for 455.0.0.55.72. If a patch can't find what it needs in your build, patching stops with a message naming it, so you don't end up with an app where that patch does nothing.
+HushThreads patches Threads 457 only. Each release moves to the newest stable Threads and drops the one before, so v0.0.15 is the last release for 451.0.0.51.80, v0.0.16 the last for 452.0.0.50.64, v0.0.17 the last for 454.0.0.54.79 and v0.0.18 the last for 455.0.0.55.72. If a patch can't find what it needs in your build, patching stops with a message naming it, so you don't end up with an app where that patch does nothing.
 
 In 2027 Android developer verification reaches every certified phone (it started on 2026-09-30 in Brazil, Indonesia, Singapore and Thailand), and a patched Threads signed with your own key counts as an app from an unverified developer. You can still install it over ADB, or through Android's advanced install flow, which is a one-time setting with a one-day wait.
 

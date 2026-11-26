@@ -135,7 +135,7 @@ public class SaveTextL10nTest {
     @Test
     public void everyToastFitsTwoLinesInEveryLanguage() {
         List<String> tooLong = new ArrayList<>();
-        for (String language : new String[] { "en", "de", "es", "in", "it", "ko", "pt-rBR", "tr", "zh-rTW" }) {
+        for (String language : new String[] { "en", "de", "es", "in", "it", "ko", "pt-rBR", "ru", "tr", "zh-rTW" }) {
             RuntimeEnvironment.setQualifiers(language);
             List<String> toasts = new ArrayList<>();
             for (Downloader.Status status : Downloader.Status.values()) {

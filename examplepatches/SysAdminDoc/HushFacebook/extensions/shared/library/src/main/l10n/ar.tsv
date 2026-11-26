@@ -910,6 +910,8 @@ Hides the For you searches Facebook suggests when you open search. Your recent s
 Hides the Imagine me button on posts and the Imagine option when you write a post or create a story. Everything else works as before.	يخفي زر تخيلني على المنشورات وخيار تخيل عندما تكتب منشورًا أو تنشئ قصة. كل شيء آخر يعمل كما كان.
 Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	يخفي زر الانضمام بجانب اسم المجموعة على منشورات مجموعات لم تنضم إليها، وشريط الانضمام إلى المجموعة تحت فيديوهاتها. يظهر التغيير على المنشورات المرسومة بعده.
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	يخفي فقاعة الملاحظة الموجودة على الصور الرمزية. يُطبَّق في المرة التالية التي تفتح فيها ملفًا شخصيًا.
+Hide the gift button on profiles	إخفاء زر الهدية في الملفات الشخصية
+Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	يزيل زر إرسال هدية من الملفات الشخصية للآخرين. يُطبَّق في المرة التالية التي تفتح فيها ملفًا شخصيًا.
 Hides the other Meta AI buttons Facebook puts under posts. The post's next button shows instead, if it has one.	يخفي أزرار Meta AI الأخرى التي يضعها فيسبوك تحت المنشورات. يظهر زر المنشور التالي بدلًا منها، إن وُجد.
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	يخفي صف الأشخاص الذين قد تعرفهم الذي يعرضه فيسبوك عندما تفتح البحث. عمليات بحثك الأخيرة والاقتراحات أثناء الكتابة تبقى.
 Hides the row of groups to join between posts and the groups card between reels. Posts from groups you're in stay.	يخفي صف المجموعات المقترحة للانضمام بين المنشورات وبطاقة المجموعات بين الريلز. منشورات المجموعات التي أنت فيها تبقى.
@@ -2242,8 +2244,8 @@ Adds Facebook chats to Android's share menu. A photo or video you share there is
 Share to Facebook chats is off.	المشاركة في محادثات فيسبوك متوقفة.
 Nothing in it to send.	لا يوجد ما يُرسل.
 Couldn't save it to your gallery.	تعذّر الحفظ في معرض الصور.
-Copied and saved. Pick a chat.	تم النسخ والحفظ. اختر محادثة.
-In your gallery now. Pick a chat.	أصبح في معرض الصور. اختر محادثة.
+Copied and saved. Paste and attach in a chat.	تم النسخ والحفظ. الصق وأرفق في محادثة.
+Saved to your gallery. Attach it in a chat.	حُفظ في المعرض. أرفقه في محادثة.
 Copied. Pick a chat and paste it.	تم النسخ. اختر محادثة والصقه.
 Open your chats to pick one.	افتح محادثاتك لتختار واحدة.
 Post date after the caption	تاريخ المنشور بعد الوصف
@@ -2260,3 +2262,17 @@ Open a chat, then come back here to give it a color of its own.	افتح محا�
 %1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s، آخر محادثة فتحتها، تأخذ خلفية المحادثات أعلاه. اكتب رمز لون لتمنحها لونًا خاصًا بها.
 %1$s, the last chat you opened, is %2$s.	%1$s، آخر محادثة فتحتها، لونها %2$s.
 Type one color code, or two for a fade from top to bottom.	اكتب رمز لون واحدًا، أو رمزين لتدرّج من الأعلى إلى الأسفل.
+Hide the AI content label on reels	إخفاء تسمية "محتوى الذكاء الاصطناعي" على ريلز
+Takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. A change shows from the next reel.	يزيل تسمية "محتوى الذكاء الاصطناعي" أو "معلومات الذكاء الاصطناعي" من الريلز التي يحددها فيسبوك على أنها مصنوعة بالذكاء الاصطناعي. يظهر التغيير من الريل التالي.
+The %1$s row will be set to %2$s.	سيُضبط صف %1$s إلى %2$s.
+The %1$s row will go back to its default.	سيعود صف %1$s إلى قيمته الافتراضية.
+Save files to Downloads	حفظ الملفات في التنزيلات
+A PDF, document or other file you download from a post goes to your phone's Downloads folder, where a file manager can open it. Off, Facebook keeps it where no file manager can reach it.	ملف PDF أو مستند أو أي ملف آخر تنزّله من منشور يذهب إلى مجلد التنزيلات في هاتفك، حيث يمكن لمدير الملفات فتحه. عند الإيقاف، يحتفظ به Facebook في مكان لا يصل إليه أي مدير ملفات.
+Hide hashtags in reel captions	إخفاء الوسوم في تعليقات الريلز
+Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	يزيل الوسوم من تعليقات الريلز، مثل مجموعة الوسوم في آخرها. يبقى الوسم الذي هو جزء من جملة. يظهر التغيير من الريل التالي.
+Keep the keyboard closed when comments open	إبقاء لوحة المفاتيح مغلقة عند فتح التعليقات
+Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	تُفتح التعليقات دون أن تظهر لوحة المفاتيح، حتى في منشور ليس عليه تعليقات بعد. اضغط على صندوق التعليق عندما تريد الكتابة.
+Settings language	لغة الإعدادات
+Same as Facebook	مثل فيسبوك
+Show feed reels uncropped	عرض الريلز في الخلاصة دون قص
+Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	تظهر الريلز في خلاصتك بالصورة كاملة وبشكلها الأصلي، بدلاً من قصها لتناسب إطار فيسبوك. الريلز المرسومة بعد التغيير تلتقطه.

@@ -9,7 +9,7 @@ object Constants {
         packageName = "com.fgol.HungrySharkEvolution",
         appIconColor = 0x0D47A1,
         targets = listOf(
-            AppTarget(version = "14.5.0")
+            AppTarget(version = "14.6.0"),
         )
     )
 }

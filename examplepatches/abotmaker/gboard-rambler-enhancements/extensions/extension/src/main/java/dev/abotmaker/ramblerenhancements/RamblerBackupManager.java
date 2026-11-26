@@ -93,6 +93,10 @@ public final class RamblerBackupManager {
                     RamblerEnhancementsSettings.readStripTrailingPeriod(context));
             behavior.put("historyEnabled",
                     RamblerEnhancementsSettings.readHistoryEnabled(context));
+            behavior.put("statsEnabled",
+                    RamblerEnhancementsSettings.readStatsEnabled(context));
+            behavior.put("typingBaselineWpm",
+                    RamblerEnhancementsSettings.readTypingBaselineWpm(context));
             root.put("behavior", behavior);
 
             // 3. Hands-free voice actions
@@ -254,6 +258,17 @@ public final class RamblerBackupManager {
                 if (behavior.has("historyEnabled")) {
                     RamblerEnhancementsSettings.writeHistoryEnabled(
                             context, behavior.optBoolean("historyEnabled", true));
+                }
+                if (behavior.has("statsEnabled")) {
+                    RamblerEnhancementsSettings.writeStatsEnabled(
+                            context, behavior.optBoolean("statsEnabled", true));
+                }
+                if (behavior.has("typingBaselineWpm")) {
+                    RamblerEnhancementsSettings.writeTypingBaselineWpm(
+                            context,
+                            behavior.optInt(
+                                    "typingBaselineWpm",
+                                    RamblerEnhancementsSettings.DEFAULT_TYPING_BASELINE_WPM));
                 }
                 restoredSections++;
             }

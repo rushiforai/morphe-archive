@@ -344,6 +344,11 @@
 
     move-result v3
 
+    const-string v9, "HonistaHTTP"
+    invoke-static {v3}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+    move-result-object v10
+    invoke-static {v9, v10}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
     if-lez v3, :cond_4
 
     new-instance v1, Ljava/util/HashSet;
@@ -359,6 +364,35 @@
     invoke-interface {v4, v3}, Lokhttp3/Interceptor$Chain;->proceed(Lokhttp3/Request;)Lokhttp3/Response;
 
     move-result-object v3
+
+    invoke-virtual {v3}, Lokhttp3/Response;->code()I
+    move-result v9
+    invoke-static {v9}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+    move-result-object v9
+    invoke-virtual {v3}, Lokhttp3/Response;->request()Lokhttp3/Request;
+    move-result-object v10
+    invoke-virtual {v10}, Lokhttp3/Request;->url()Lokhttp3/HttpUrl;
+    move-result-object v10
+    invoke-virtual {v10}, Lokhttp3/HttpUrl;->toString()Ljava/lang/String;
+    move-result-object v10
+    new-instance v11, Ljava/lang/StringBuilder;
+    invoke-direct {v11}, Ljava/lang/StringBuilder;-><init>()V
+    invoke-virtual {v11, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v10, " "
+    invoke-virtual {v11, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v11, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v11}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v9
+    const-string v10, "HonistaHTTP"
+    invoke-static {v10, v9}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    const-wide/16 v9, 0x800
+    invoke-virtual {v3, v9, v10}, Lokhttp3/Response;->peekBody(J)Lokhttp3/ResponseBody;
+    move-result-object v9
+    invoke-virtual {v9}, Lokhttp3/ResponseBody;->string()Ljava/lang/String;
+    move-result-object v9
+    const-string v10, "HonistaBody"
+    invoke-static {v10, v9}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
 
     sget-object v4, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
 

@@ -196,11 +196,13 @@ val hidePremiumPatch = bytecodePatch(
 
         // 4.10.28 draws the More screen's Try Premium banner from HomeBannerProvider's
         // getMoreBannerFlow, and the fixed composable above is gone. Emit a single null banner
-        // instead, which is what a Premium member's app shows.
-        mutableClassDefByOrNull("Lcom/chess/gopremium/home/HomeBannerProvider;")?.methods
+        // instead, which is what a Premium member's app shows. 4.10.29 moved the provider to
+        // gopremium/banner and renamed its Flow type again, so the return type stays open.
+        val moreBannerProvider = mutableClassDefByOrNull("Lcom/chess/gopremium/banner/HomeBannerProvider;")
+            ?: mutableClassDefByOrNull("Lcom/chess/gopremium/home/HomeBannerProvider;")
+        moreBannerProvider?.methods
             ?.singleOrNull { method ->
-                method.name == "b" && method.returnType == "Lcom/google/android/rc2;" &&
-                    method.parameterTypes.isEmpty()
+                method.name == "b" && method.returnType.startsWith("L") && method.parameterTypes.isEmpty()
             }
             ?.apply {
                 addInstructionsWithLabels(
@@ -294,13 +296,18 @@ val hidePremiumPatch = bytecodePatch(
 
         // The redesigned Home: no diamond in its toolbar (LoggedIn(avatar, streak, friend
         // requests, connection, shouldShowDiamond, ...)) and no sale banner in its content.
-        mutableClassDefBy(HomeToolbarStateToStringFingerprint.originalClassDef).methods.single {
-            it.name == "<init>" && it.parameterTypes.size == 8
-        }.apply {
+        mutableClassDefBy(HomeToolbarStateToStringFingerprint.originalClassDef).methods
+            .filter { it.name == "<init>" }
+            .maxByOrNull { it.parameterTypes.size }!!.apply {
             // 4.10.18 has one boolean; 4.10.23 adds shouldShowLogo after the diamond, so the
-            // diamond is still the first boolean parameter.
-            val diamond = parameterTypes.indexOfFirst { it.toString() == "Z" }
-            if (diamond < 0) throw PatchException("Unexpected Home toolbar state")
+            // diamond is still the first boolean parameter. 4.10.29 renames the diamond to
+            // shouldShowPaywallIcon and puts the paywall icon right after it.
+            val paywallIcon = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/gopremium/icon/a;" }
+            val diamond = if (paywallIcon > 0) paywallIcon - 1
+                else parameterTypes.indexOfFirst { it.toString() == "Z" }
+            if (diamond < 0 || parameterTypes[diamond].toString() != "Z") {
+                throw PatchException("Unexpected Home toolbar state")
+            }
             addInstructions(
                 0,
                 """
@@ -313,9 +320,12 @@ val hidePremiumPatch = bytecodePatch(
             .filter { it.name == "<init>" }.maxByOrNull { it.parameterTypes.size }!!.apply {
                 // 4.10.27 replaced the paywall Offer parameter with the banner state model
                 // (internal/paywall/a$b), 4.10.28 moved it to the Go Premium package
-                // (gopremium/home/a$a); older builds keep the paywall Offer.
-                val banner = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/gopremium/home/a\$a;" }
+                // (gopremium/home/a$a) and 4.10.29 to gopremium/banner/a$a; older builds keep
+                // the paywall Offer.
+                val banner = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/gopremium/banner/a\$a;" }
                     .takeIf { it >= 0 }
+                    ?: parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/gopremium/home/a\$a;" }
+                        .takeIf { it >= 0 }
                     ?: parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/internal/paywall/a\$b;" }
                         .takeIf { it >= 0 }
                     ?: parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/features/paywall/Offer;" }

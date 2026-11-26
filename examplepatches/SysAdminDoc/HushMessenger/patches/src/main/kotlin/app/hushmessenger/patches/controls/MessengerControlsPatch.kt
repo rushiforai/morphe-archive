@@ -203,7 +203,9 @@ internal fun MutableMethod.validateHook(hook: String) {
         CALL_BUTTON_BUILT -> validateCallButtonBuilt()
         HIDE_CALL_LISTS -> validateCallButtonLists()
         MARK_READ_CLICK -> validateMarkReadClick()
-        LOCAL_READ -> validateLocalRead()
+        // Mark chats read on this phone and Mark as read stays on this phone share it; the second finds the first's hook already in.
+        LOCAL_READ -> if (!localReadHooked()) validateLocalRead()
+        UNREAD_BADGE -> if (!unreadBadgeHooked()) validateUnreadBadge()
         ANALYTICS_UPLOADS -> validateAnalyticsUpload()
         ATTRIBUTION_UPLOADS -> validateAttributionUpload()
         AD_EVENTS -> validateAdEvent()
@@ -249,6 +251,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         TAB_BAR_OVERLAY -> validateTabBarOverlay()
         TAB_BAR_SCROLL_AWAY -> validateTabBarScrollAway()
         TAB_SWIPE -> validateTabSwipe()
+        FLOATING_PILL -> validateFloatingPill()
         AVATAR_SHAPE -> validateAvatarShape()
         STORY_RING -> validateStoryRing()
         QUIET_CALL_RING -> validateQuietCallRing()
@@ -288,6 +291,8 @@ internal fun MutableMethod.validateHook(hook: String) {
         "bubbles" -> validateBubbleEligibility()
         "bubble_mode" -> validateNativeBubbleMode()
         REFRESH_RATE -> validateRefreshRate()
+        STORY_ROW_SIZE -> validateStoryRowSize()
+        MARK_READ_LOCALLY -> validateMarkReadLocally()
         else -> validateSwitch()
     }
 }
@@ -399,6 +404,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             TAB_BAR_OVERLAY -> method.injectTabBarOverlay()
             TAB_BAR_SCROLL_AWAY -> method.injectTabBarScrollAway()
             TAB_SWIPE -> method.injectTabSwipe()
+            FLOATING_PILL -> method.injectFloatingPill()
             AVATAR_SHAPE -> method.injectAvatarShape()
             STORY_RING -> method.injectStoryRing()
             QUIET_CALL_RING -> method.injectQuietCallRing()
@@ -412,6 +418,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             INVISIBLE_BUTTONS -> method.injectInvisibleButtons()
             IOS_BARS -> method.injectIosBars()
             REFRESH_RATE -> method.injectRefreshRate()
+            STORY_ROW_SIZE -> method.injectStoryRowSize()
             CHAT_BAR_PLUS -> method.injectChatBarPlus()
             CALL_RECORDING -> method.injectCallRecording()
             HOME_HEADER -> method.injectHomeHeader()
@@ -441,6 +448,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "typing_mailbox" -> method.injectOutgoingTyping()
             "anonymous_stories" -> method.injectStorySeen()
             "growth_notes" -> method.injectNotesTips()
+            MARK_READ_LOCALLY -> method.injectMarkReadLocally()
+            UNREAD_BADGE -> method.injectUnreadBadge()
             else -> if (hook in pluginGates) method.injectPluginGate(key) else method.injectFeatureSwitch(key)
         }
     }
@@ -583,8 +592,10 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                 // Built before the first edit, so a compose fragment that can't take the helper stops the patch with
                 // Messenger untouched.
                 val sends = methods.getValue(MEDIA_CAPTION)
-                val helpers = sends.map { it.definingClass to it.validateMediaCaption().textSend }.distinct()
-                    .map { (host, send) -> mutableClassDefBy(host) to mediaCaptionHelper(host, send) }
+                val calls = sends.map { it.definingClass to it.validateMediaCaption().calls }.distinct()
+                if (calls.map { it.first }.distinct().size != calls.size)
+                    throw PatchException("Messenger controls: two different composer sends in one compose fragment")
+                val helpers = calls.map { (host, send) -> mutableClassDefBy(host) to mediaCaptionHelper(host, send) }
                 for ((host, _) in helpers) host.checkMediaCaptionHelper()
                 injectControl(key, methods)
                 for ((host, helper) in helpers) host.addMediaCaptionHelper(helper)
@@ -734,6 +745,10 @@ val tabSwipePatch = controlPatch("tab_swipe", "Swipe between tabs",
     "Swipe sideways on your chats to move to the next tab in the bar at the bottom, instead of reaching down for its button. Hidden tabs are skipped, and a list that scrolls sideways keeps the swipe. Restart Messenger after you turn it on.",
     "Tab bar", TAB_SWIPE)
 @Suppress("unused")
+val seeThroughTabBarPatch = controlPatch("see_through_tab_bar", "See-through tab bar",
+    "Lets your chats show through the floating tab bar at the bottom, as much as you pick in HushMessenger's settings. The tab you're on and the icons stay as they are. Needs Floating tab bar, or Messenger's own floating bar. Restart Messenger to see the change.",
+    "Tab bar", FLOATING_PILL)
+@Suppress("unused")
 val holdStoriesPatch = controlPatch("story_hold", "Hold stories at the end", "Keeps a story on screen when it ends instead of moving on to the next one, so you go on with a tap or a swipe. Photos and videos both wait, and the last story stays open until you close it.", "Navigation")
 @Suppress("unused")
 val hideAiStickersPatch = controlPatch("ai_stickers", "Hide AI sticker tools", "Hides the Generate and Generate AI sticker buttons, the AI sticker tab and AI sticker suggestions. Custom and music stickers in the Generate menu go with it.", "Stickers", "ai_stickers", "ai_sticker_cell", "ai_sticker_grid")
@@ -880,7 +895,7 @@ val stopAdEventsPatch = controlPatch("ad_events", "Stop inbox and ad link loggin
     "Stops two reports Messenger logs. One says which part of your chat list was on screen, which Messenger files under inbox ads. The other says which ad brought you in when a link from an ad opens a chat.", "Tracking")
 @Suppress("unused")
 val stopDwellTrackingPatch = controlPatch("dwell_tracking", "Stop attention time logging",
-    "Stops the report Messenger files when you leave a screen, which says how long you looked at each thing on it, in what order, and how often you came back. It also stops the copy of those timings that goes onto Messenger's journey log.", "Tracking")
+    "Stops the report Messenger files when you leave a screen, which says how long you looked at each thing on it, in what order, and how often you came back.", "Tracking")
 @Suppress("unused")
 val stopMqttLoggingPatch = controlPatch("mqtt_telemetry", "Stop live connection logging",
     "Drops the health reports and push logging Messenger sends over its live connection (MQTT). Messenger sends most of its traffic another way, so there's often little for it to drop. Messages, calls and active status keep working.", "Tracking")
@@ -907,7 +922,10 @@ val recoveryCodeRowPatch = controlPatch("recovery_code_row", "Show the 40-charac
 @Suppress("unused")
 val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Opening a chat no longer tells people you read their message, and the chat stays unread on this phone. Marking it read yourself, replying in it or reacting to a message marks it read and shows Seen, like Messenger does. Group chats aren't tested. Hide Delivered, under it, also holds back the Delivered tick in ordinary chats. Messenger's own Read receipts setting under Privacy & safety marks chats read without showing Seen.", "Privacy", HIDE_READ_RECEIPTS, REPLY_READ, DELIVERY_RECEIPT, REACTION_READ)
 @Suppress("unused")
-val readChatsLocallyPatch = controlPatch("read_chats_locally", "Mark chats read on this phone", "Clears the unread look of a chat you've opened while Hide read receipts is on, so the chat list stops showing it bold with a count. Nothing goes to Messenger, so the other person still isn't told you read it. A new message in the chat brings the unread look back.", "Privacy", LOCAL_READ)
+val readChatsLocallyPatch = controlPatch("read_chats_locally", "Mark chats read on this phone", "Clears the unread look of a chat you've opened while Hide read receipts is on, so the chat list stops showing it bold with a count. Nothing goes to Messenger, so the other person still isn't told you read it. A new message in the chat brings the unread look back.", "Privacy", LOCAL_READ, UNREAD_BADGE)
+@Suppress("unused")
+val markReadLocallyPatch = controlPatch("mark_read_locally", "Mark as read stays on this phone",
+    "Messenger's Mark as read on a chat in your list tells the other person you read their message. With this on it clears the unread look on this phone only and nothing goes to Messenger. A new message in the chat brings the unread look back.", "Privacy", MARK_READ_LOCALLY, LOCAL_READ, UNREAD_BADGE)
 
 val markReadButtonPatch = controlPatch("mark_read_button", "Mark as read button", "Puts Messenger's Mark as read icon in a chat's top bar while Hide read receipts is on. Opening the chat still sends nothing, and a tap on the icon sends Seen and marks the chat read. When the bar is full it takes the place of the chat details button (tapping the chat's name opens the same page), or of another button that isn't for calls when a chat doesn't have one, so the call buttons stay put.", "Privacy", MARK_READ_BAR, MARK_READ_CLICK)
 @Suppress("unused")
@@ -976,6 +994,10 @@ val iosBarsPatch = controlPatch("ios_bars", "Translucent chat bars",
 @Suppress("unused")
 val refreshRatePatch = controlPatch("refresh_rate", "Screen refresh rate",
     "Pick the refresh rate Messenger asks your screen for.", "Theme", REFRESH_RATE)
+@Suppress("unused")
+val storyRowSizePatch = controlPatch("story_row_size", "Smaller stories row",
+    "Draws the row of stories and notes above your chats smaller, by the size you pick in HushMessenger's settings, so more of it fits across the screen.",
+    "Theme", STORY_ROW_SIZE)
 private var anonymousStoriesApplied = false
 
 private val anonymousStoriesResources = patch(description = "Record HushMessenger capability: anonymous_stories") {

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.3] - 2026-11-26
+
+### Исправления
+- **VK Клипы:** Исправлено чтение текущего списка адаптера `AsyncListDiffer` в `ClipsAdsFilter` (выбирался пустой список слушателей `CopyOnWriteArrayList` вместо `mReadOnlyList`), из-за чего блокировались обновления `onInserted` в `ClipsOwnerSwipePagerAdapter`.
+- **Совместимость:** Адаптированы вызовы `Logger.isDebugEnabled()` и `ApkSigner.writeKeyStore` под `morphe-patches-library` `2.2.0-dev.3` и `morphe-patcher` `2.3.0`.
+
 ## [1.2.2] - 2026-11-09
 
 ### Исправления

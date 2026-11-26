@@ -84,7 +84,7 @@ class CodeReferrersTest {
     @Test fun nativeBuildsFindExactlyTheReferrers() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
-        for (code in listOf("347415354", "347415262")) {
+        for (code in listOf("347617503", "347617497")) {
             val apk = Files.list(Path.of(root!!)).use { files -> files.filter { it.toString().endsWith("-$code.apk") }.toList() }.single()
             val container = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val dexes = container.dexEntryNames.map { container.getEntry(it)!!.dexFile }
