@@ -1,6 +1,17 @@
-# Repos reported by the last notification (5)
-Nai64/Nai64ExtraPatches
-abotmaker/gboard-rambler-enhancements
-assc0d3r/GLYPHCHEMY
-kennyric/byd-maps-patches
-mben25/morphe-patches
+# Repos reported by the last notification (16)
+2kshoka/morphe-patches
+Darkaxt/morphe-patches
+EryrizalH/Morphe-patch-Siagatani
+Nai64/Nai64Patches
+NotRin7/sadmod-patches
+Parideboy/macrofactor-patches
+RoundSalmon4/morphe-patches-template
+RyuuseiAkira/w3s-patches
+chaosmanage/mygate-surprise-delivery-morphe-patches
+d0r4nn/mergenv1-patches
+georgewoodall82/eurowag-patches
+itnaegele/mobile-de-morphe-patches
+kuntal-devrat/diskwala-patches
+pomee4/morphe-patches
+saiyupunch/sai-patches
+smtgpm/morphe-patches-smtgpm
