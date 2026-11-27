@@ -5,6 +5,7 @@
 
 package app.fakh.patches.github
 
+import app.fakh.patches.github.shared.Constants.NAV_TABS
 import app.fakh.patches.github.shared.Constants.BACKGROUND_BLUR
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.fakh.patches.github.shared.Constants.GLASS_NAVBAR
@@ -277,8 +278,8 @@ private fun barCall(): Pair<MutableMethod, RangeCall> {
 @Suppress("unused")
 val navigationBarPatch = patch(
     name = "Navigation bar",
-    description = "Adds settings in Fakh Patches that hide the labels of the navigation bar tabs, choose which tabs it " +
-        "shows and in what order, and add Repositories and Stars tabs.",
+    description = "Adds a setting in Fakh Patches that chooses which tabs the navigation bar shows and in what order, " +
+        "and adds Repositories and Stars tabs.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)
@@ -335,6 +336,22 @@ val navigationBarPatch = patch(
         }
         addExtraTabs(tabType)
 
+        register(NAV_TABS)
+    }
+}
+
+@Suppress("unused")
+val hideTabLabelsPatch = patch(
+    name = "Hide tab labels",
+    description = "Adds a setting in Fakh Patches that removes the text under the icons of the navigation bar.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GITHUB)
+    category("Feature")
+    dependsOn(githubSettingsPatch)
+    extendWith("extensions/extension.mpe")
+
+    execute {
         val item = NavigationItemFingerprint.method
         val call = item.tabCall()
         val label = call.start + 7
@@ -347,8 +364,7 @@ val navigationBarPatch = patch(
             """,
         )
 
-        addSwitch(HIDE_TAB_LABELS)
-        addRow("fakh_nav_tabs", "Navigation bar tabs")
+        register(HIDE_TAB_LABELS)
     }
 }
 
@@ -484,8 +500,7 @@ val glassNavigationBarPatch = patch(
             """,
         )
         removeTabRipple()
-        addSwitch(GLASS_NAVBAR)
-        addSwitch(BACKGROUND_BLUR)
+        register(GLASS_NAVBAR, BACKGROUND_BLUR)
     }
 }
 
@@ -501,7 +516,7 @@ val smallerNavigationBarPatch = patch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        addSwitch(SMALLER_NAVBAR)
+        register(SMALLER_NAVBAR)
     }
 }
 
@@ -519,7 +534,6 @@ val navigationBarRightPatch = patch(
     execute {
         watchActivities()
         register(NAV_RIGHT)
-        addRow("fakh_nav_position", "Landscape navigation bar position")
     }
 }
 

@@ -7,8 +7,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.xperia.patches.sony.SONY_CAMERA
 import com.android.tools.smali.dexlib2.Opcode
@@ -28,7 +29,7 @@ private val rawStrings = mapOf(
 )
 
 /** Labels for the two connect-mode entries; looked up by name at runtime. */
-private val rawConnectModeStringsPatch = resourcePatch {
+private val rawConnectModeStringsPatch = patch {
     execute {
         document("res/values/strings.xml").use { document ->
             val resources = document.documentElement
@@ -55,7 +56,7 @@ private val rtmpComparisonClasses = listOf(
  * patch takes over the transport.
  */
 @Suppress("unused")
-val rawConnectModePatch = bytecodePatch(
+val rawConnectModePatch = patch(
     name = "[WIP] Raw stream connect modes",
     default = false,
     description = "Adds \"PC via USB\" and \"PC via Wi-Fi\" entries to Live streaming's Connect to list for the " +

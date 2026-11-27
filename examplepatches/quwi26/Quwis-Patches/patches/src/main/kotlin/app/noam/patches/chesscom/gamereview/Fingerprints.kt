@@ -45,11 +45,14 @@ internal object GameAnalysisPermissionsGetCanViewCoachCommentaryFingerprint : Fi
     returnType = "Z",
 )
 
-/** GameAnalysisRepositoryImpl's entry point: (config, side, coach, skills, depth, engine, Z) -> Flow. */
+/**
+ * GameAnalysisRepositoryImpl's entry point: (config, side, coach, skills, depth, engine, Z[, Z]) -> Flow.
+ * 4.10.31 adds a trailing boolean (the report card's entitlement) after the skills flag.
+ */
 internal object GameAnalysisRepositoryGetGameAnalysisFingerprint : Fingerprint(
     definingClass = "Lcom/chess/gamereview/repository/GameAnalysisRepositoryImpl;",
     custom = { method, _ ->
-        method.parameterTypes.size == 7 &&
+        method.parameterTypes.size in 7..8 &&
             method.parameterTypes.contains("Lcom/chess/entities/AnalysisDepth;") &&
             method.parameterTypes.contains("Lcom/chess/entities/AnalysisEngine;")
     },

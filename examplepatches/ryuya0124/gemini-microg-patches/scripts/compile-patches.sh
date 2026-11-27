@@ -23,6 +23,7 @@ build_extension() {
 }
 build_extension MicrogPermissions.java microg-permissions.bin
 build_extension ConversationUpdateCompatibility.java conversation-update.bin
+build_extension GeminiHaptics.java gemini-haptics.bin
 "$KOTLINC" "$ROOT/src/main/kotlin" -cp "$MORPHE" -d "$BUILD_DIR/gemini-patches.jar"
-jar uf "$BUILD_DIR/gemini-patches.jar" -C "$extension_dir/resources" extensions/microg-permissions.bin -C "$extension_dir/resources" extensions/conversation-update.bin
+jar uf "$BUILD_DIR/gemini-patches.jar" -C "$extension_dir/resources" extensions
 printf 'Built %s\n' "$BUILD_DIR/gemini-patches.jar"

@@ -61,7 +61,7 @@ public final class PortedFeatures {
         }
     }
 
-    // Names, descriptions and switch defaults as in Gboard-patches; flags verified present in Gboard 18.2.4.
+    // Names, descriptions and switch defaults as in Gboard-patches; flags verified present in Gboard 18.2.4 and 18.5.4.
     public static final List<Feature> ALL = Collections.unmodifiableList(Arrays.asList(
             new Feature("emoji_size", "Change emoji size", "Enables Gboard's emoji size setting.",
                     SWITCH, true, "emoji_scale_supported"),

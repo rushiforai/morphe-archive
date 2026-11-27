@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -58,6 +59,7 @@ val keepRecalledMessagesPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.KEEP_RECALLED_MESSAGES)
         check(IncomingUndoFingerprint.matchAll(1..1).size == 1)
         check(IncomingDeleteControlFingerprint.matchAll(1..1).size == 1)
         val undo = IncomingUndoFingerprint.method
@@ -96,6 +98,17 @@ val keepRecalledMessagesPatch = bytecodePatch(
             """.trimIndent(), ExternalLabel("nezumi_original_recall", originalStart))
         }
 
+        // Diagnostics only: SpecialMessageProcessor.b(vv3, Z) with Z=true (socket batch commands)
+        // queues delete-control targets in the app's pending map without calling d(), so those
+        // deletes skip the hook above. Log each batch so bug logs show when that path is taken.
+        // b has 20 registers, so p1/p2 are v18/v19: needs the /range form.
+        val deleteBatch = mutableClassDefBy(undo.definingClass).methods.single {
+            it.name == "b" && it.parameterTypes == listOf(message, "Z") && it.returnType == "V"
+        }
+        deleteBatch.addInstructions(0, """
+            invoke-static/range {p1 .. p2}, $RECALLED_MESSAGES->traceDeleteBatch(Ljava/lang/Object;Z)V
+        """.trimIndent())
+
         val row = mutableClassDefBy("Lcom/zing/zalo/ui/chat/chatrow/ChatRow;")
         val timeText = row.methods.single {
             it.name == "getCurrentTimeText" && it.parameterTypes.isEmpty() &&
@@ -104,6 +117,7 @@ val keepRecalledMessagesPatch = bytecodePatch(
         // 26.11.01: getCurrentTimeText reuses p0's register, so `this` is gone at its returns.
         // Wrap the private method's two call sites (dedup check and row bind) instead.
         var wrapped = 0
+        val timeTextCallers = LinkedHashSet<MutableMethod>()
         row.methods.filter { it.implementation != null && it != timeText }.forEach { caller ->
             val list = caller.implementation!!.instructions.toList()
             list.indices.reversed().forEach { index ->
@@ -119,6 +133,7 @@ val keepRecalledMessagesPatch = bytecodePatch(
                     invoke-static {v${invoke.registerC}, v$resultRegister}, $RECALLED_MESSAGES->formatRecallTime(Landroid/view/View;Ljava/lang/String;)Ljava/lang/String;
                     move-result-object v$resultRegister
                 """.trimIndent())
+                timeTextCallers += caller
                 wrapped++
             }
         }
@@ -145,6 +160,9 @@ val keepRecalledMessagesPatch = bytecodePatch(
             it.name == "p2" && it.parameterTypes == listOf(message, rowStyle) && it.returnType == "V"
         }
         bind.addInstructions(0, "invoke-static {p0}, $RECALLED_MESSAGES->trackRecallRow(Landroid/view/View;)V")
+
+        registerHooks(PatchId.KEEP_RECALLED_MESSAGES, undo, control, deleteBatch, *timeTextCallers.toTypedArray(),
+            timeVisible, bind)
 
         attachNezumiSettings("attachRecalledMessages")
     }

@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.shared.ZaloEnv;
 
 /** Turns the recorder's temporary WAV into an m4a in Music/ZaloRecordings (WAV copy on failure). */
@@ -33,7 +34,7 @@ final class RecordingSaver {
 
     static final String FOLDER = "ZaloRecordings";
     static final String RELATIVE_PATH = Environment.DIRECTORY_MUSIC + "/" + FOLDER;
-    private static final String TAG = CallRecorder.TAG;
+    private static final String TAG = "RecordingSaver";
 
     private static final class Wav {
         int channels;
@@ -43,9 +44,9 @@ final class RecordingSaver {
     }
 
     static void save(File wav, String peerName, boolean outgoing, long when, long minDurationMs) {
-        Context context = ZaloEnv.appContext();
+        Context context = ZaloEnv.appContext(Patch.CALL_RECORDING);
         if (context == null || wav == null || !wav.isFile()) {
-            NezumiLog.w(TAG, "nothing to save");
+            NezumiLog.w(Patch.CALL_RECORDING, TAG, "nothing to save");
             CallRecorder.toast("Không có dữ liệu ghi âm");
             return;
         }
@@ -53,13 +54,13 @@ final class RecordingSaver {
         try {
             info = parse(wav);
         } catch (Throwable failure) {
-            NezumiLog.e(TAG, "bad wav header", failure);
+            NezumiLog.e(Patch.CALL_RECORDING, TAG, "bad wav header", failure);
             info = null;
         }
         if (info != null) {
             long durationMs = info.dataLength * 1000L / ((long) info.sampleRate * info.channels * 2);
             if (durationMs < minDurationMs) {
-                NezumiLog.i(TAG, "too short (" + durationMs + " ms), dropped");
+                NezumiLog.i(Patch.CALL_RECORDING, TAG, "too short (" + durationMs + " ms), dropped");
                 //noinspection ResultOfMethodCallIgnored
                 wav.delete();
                 return;
@@ -79,7 +80,7 @@ final class RecordingSaver {
                 CallRecorder.toast("Đã lưu: " + name);
                 return;
             } catch (Throwable failure) {
-                NezumiLog.e(TAG, "m4a encode failed, falling back to wav", failure);
+                NezumiLog.e(Patch.CALL_RECORDING, TAG, "m4a encode failed, falling back to wav", failure);
             }
         }
         try {
@@ -89,7 +90,7 @@ final class RecordingSaver {
             wav.delete();
             CallRecorder.toast("Không chuyển được m4a, đã lưu WAV: " + name);
         } catch (Throwable failure) {
-            NezumiLog.e(TAG, "wav copy failed", failure);
+            NezumiLog.e(Patch.CALL_RECORDING, TAG, "wav copy failed", failure);
             CallRecorder.toast("Lưu bản ghi thất bại (giữ tại " + wav.getAbsolutePath() + ")");
         }
     }
@@ -201,13 +202,17 @@ final class RecordingSaver {
             if (target.uri != null) context.getContentResolver().delete(target.uri, null, null);
             if (target.file != null) //noinspection ResultOfMethodCallIgnored
                 target.file.delete();
-        } catch (RuntimeException ignored) { }
+        } catch (RuntimeException failure) {
+            NezumiLog.swallowed(Patch.CALL_RECORDING, TAG, "discarding the unfinished recording failed", failure);
+        }
     }
 
     private static void closeQuietly(Target target) {
         try {
             if (target.descriptor != null) target.descriptor.close();
-        } catch (IOException ignored) { }
+        } catch (IOException failure) {
+            NezumiLog.swallowed(Patch.CALL_RECORDING, TAG, "closing the recording file failed", failure);
+        }
         target.descriptor = null;
     }
 
@@ -310,11 +315,15 @@ final class RecordingSaver {
         } finally {
             try {
                 if (codecStarted) codec.stop();
-            } catch (RuntimeException ignored) { }
+            } catch (RuntimeException failure) {
+                NezumiLog.swallowed(Patch.CALL_RECORDING, TAG, "stopping the audio encoder failed", failure);
+            }
             codec.release();
             try {
                 if (muxerStarted) muxer.stop();
-            } catch (RuntimeException ignored) { }
+            } catch (RuntimeException failure) {
+                NezumiLog.swallowed(Patch.CALL_RECORDING, TAG, "stopping the muxer failed", failure);
+            }
             muxer.release();
         }
     }

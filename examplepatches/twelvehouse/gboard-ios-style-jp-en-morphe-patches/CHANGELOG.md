@@ -1,3 +1,15 @@
+## [1.4.0](https://github.com/twelvehouse/gboard-ios-style-jp-en-morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-26)
+
+### ✨ New Features
+
+* add an option to put the ?123 key before the globe key ([73f8985](https://github.com/twelvehouse/gboard-ios-style-jp-en-morphe-patches/commit/73f89857995c09a69ae9d5dec39ec77b8685c7ce))
+
+## [1.4.0-dev.1](https://github.com/twelvehouse/gboard-ios-style-jp-en-morphe-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-11-26)
+
+### ✨ New Features
+
+* add an option to put the ?123 key before the globe key ([73f8985](https://github.com/twelvehouse/gboard-ios-style-jp-en-morphe-patches/commit/73f89857995c09a69ae9d5dec39ec77b8685c7ce))
+
 ## [1.3.0](https://github.com/twelvehouse/gboard-ios-style-jp-en-morphe-patches/compare/v1.2.0...v1.3.0) (2026-11-16)
 
 ### ✨ New Features

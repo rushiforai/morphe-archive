@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-15.
  * Written by lavinhoque33, 2026-11-07.
  */
@@ -27,11 +28,6 @@ final class RowEndCheck {
             if (found != null && found.getParent() instanceof RelativeLayout) return name;
         }
         return null;
-    }
-
-    boolean isShown() {
-        DownloadedCheck existing = check.get();
-        return existing != null && existing.getParent() != null && existing.getVisibility() == View.VISIBLE;
     }
 
     String show(View row) {

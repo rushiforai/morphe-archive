@@ -34,6 +34,8 @@ import java.util.regex.Pattern;
  */
 final class AnimanchAdapter {
     private static final String HOST = "https://bbs.animanch.com";
+    // Official main.js uploadCheck maxSize (captured 2026-11-23): 5 MiB.
+    static final int MAX_IMAGE_BYTES = 5_242_880;
     private static final Charset SJIS = Charset.forName("Shift_JIS");
     private static final Pattern CARD = Pattern.compile(
             "<a\\s+[^>]*href=['\"](?:https://bbs\\.animanch\\.com)?/board/(\\d+)/['\"][^>]*class=['\"]card['\"][^>]*>(.*?)</a>",
@@ -50,6 +52,7 @@ final class AnimanchAdapter {
             "<a\\s+class=['\"]reslink['\"]\\s+href=['\"]#res([0-9]+)['\"][^>]*>&gt;&gt;[0-9]+</a>",
             Pattern.CASE_INSENSITIVE);
     private final SharedPreferences prefs;
+    private final Context context;
     private final Map<String, Cache> cache = new HashMap<>();
     private long lastRequest;
     private final File thumbnailCache;
@@ -67,6 +70,7 @@ final class AnimanchAdapter {
     }
 
     AnimanchAdapter(Context context) {
+        this.context=context;
         prefs = context.getSharedPreferences("futatabi_animanch_private", Context.MODE_PRIVATE);
         thumbnailCache = new File(context.getCacheDir(), "futatabi_animanch_images");
         for (int i = 0; i < imageLocks.length; i++) imageLocks[i] = new Object();
@@ -77,12 +81,12 @@ final class AnimanchAdapter {
             String path = rawPath.split("\\?", 2)[0];
             if (path.equals("/animanch/") || (path.equals("/animanch/futaba.php") &&
                     BridgeServer.hasCatalogMode(rawPath)))
-                return BridgeServer.BridgeResponse.html(catalog());
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog()));
             if (path.matches("/animanch/res/[0-9]{13}\\.htm")) {
                 String id = path.substring("/animanch/res/".length(), path.length() - 4);
                 String board = prefs.getString("board." + id, null);
                 if (board == null) return BridgeServer.BridgeResponse.text(404, "Unknown thread");
-                return BridgeServer.BridgeResponse.html(thread(id, board));
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,thread(id, board)));
             }
             if (path.matches("/animanch/(thumb|cat|src)/[0-9]{13}s?\\.jpg")) {
                 String name = path.substring(path.lastIndexOf('/') + 1);
@@ -212,14 +216,89 @@ final class AnimanchAdapter {
     }
 
     String confirmedNewThread(JSONObject accepted) throws Exception {
-        String thread=accepted.getString("thread"), number=accepted.getString("number");
-        if(!thread.matches("[1-9][0-9]{0,15}")||!"1".equals(number)||!accepted.optBoolean("attachmentUploaded"))return null;
-        String url=HOST+"/board/"+thread+"/";
-        String html=new String(fetch(url,0,1_700_000),StandardCharsets.UTF_8);
-        Matcher posts=RES.matcher(html);
-        if(!posts.find()||!number.equals(posts.group(1))||!IMAGE.matcher(posts.group(2)).find())return null;
-        synchronized(cache){cache.remove(HOST+"/");}
+        String thread=accepted.getString("thread");
+        if(!thread.matches("[1-9][0-9]{0,15}")||!"1".equals(accepted.optString("number"))
+                ||!accepted.optBoolean("attachmentUploaded")||!accepted.optBoolean("publicConfirmed"))return null;
         return remember("board.",thread);
+    }
+
+    private static boolean newThreadJump(String jump,String thread) {
+        try {
+            URL u=new URL(new URL(HOST+"/"),jump);
+            return "https".equals(u.getProtocol())&&"bbs.animanch.com".equals(u.getHost())
+                    &&u.getUserInfo()==null&&(u.getPort()==-1||u.getPort()==443)
+                    &&("/board/"+thread+"/").equals(u.getPath())
+                    &&(u.getQuery()==null||"res=1".equals(u.getQuery()))
+                    &&(u.getRef()==null||"res1".equals(u.getRef()));
+        } catch(Exception ex){return false;}
+    }
+
+    private static String comparable(String s){return s.replaceAll("[\\s\\u00a0]+"," ").trim();}
+    private static boolean explicitError(NetworkResponse r) {
+        String raw=new String(r.bytes,StandardCharsets.UTF_8).trim();
+        if(Pattern.compile("(?is)<(?:html|!doctype)\\b|class\\s*=\\s*['\"][^'\"]*\\b(?:bg-danger|alert-danger)\\b").matcher(raw).find()
+                ||raw.matches("(?is)^\\s*(?:error\\s*:|エラー|不正な操作|投稿できません|アップロードに失敗).*"))return true;
+        try {
+            JSONObject j=new JSONObject(raw);
+            return (j.has("error")&&!j.isNull("error")&&!Boolean.FALSE.equals(j.opt("error"))&&!j.optString("error").isEmpty())
+                    ||"error".equalsIgnoreCase(j.optString("status"))||"false".equals(j.optString("success"));
+        }catch(Exception ex){return false;}
+    }
+
+    private static BridgeServer.BridgeResponse newThreadFailure(String message) throws Exception {
+        return BridgeServer.BridgeResponse.json(409,new JSONObject().put("newThreadError",true).put("error",message).toString());
+    }
+
+    // Use the public page's canonical identity, title, OP content, timestamp and attachment
+    // structure; a generic <img> or an unrelated old thread is not a confirmation.
+    static boolean matchesNewOp(String html,String thread,String title,String text,long started) {
+        String base=HOST+"/board/"+thread+"/";
+        if(!Pattern.compile("(?i)<meta\\s+property=['\"]og:url['\"]\\s+content=['\"]"+Pattern.quote(base)+"['\"]").matcher(html).find())return false;
+        Matcher heading=Pattern.compile("(?is)<h1\\s+id=['\"]threadTitle['\"][^>]*>(.*?)<div\\s+class=['\"]shareBtns['\"]").matcher(html);
+        if(!heading.find()||!comparable(plain(heading.group(1))).equals(comparable(title)))return false;
+        Matcher posts=RES.matcher(html);
+        if(!posts.find()||!"1".equals(posts.group(1)))return false;
+        String op=posts.group(2);
+        Matcher date=POSTED.matcher(op);
+        if(!date.find())return false;
+        Matcher stamp=Pattern.compile("(\\d{2}/\\d{2}/\\d{2})\\([^)]*\\)\\s+(\\d{2}:\\d{2}:\\d{2})").matcher(plain(date.group(1)));
+        if(!stamp.matches())return false;
+        try {
+            long time=java.time.LocalDateTime.parse(stamp.group(1)+" "+stamp.group(2),
+                    java.time.format.DateTimeFormatter.ofPattern("uu/MM/dd HH:mm:ss",Locale.ROOT))
+                    .atZone(java.time.ZoneId.of("Asia/Tokyo")).toInstant().toEpochMilli();
+            if(time<started-120_000||time>System.currentTimeMillis()+120_000)return false;
+        }catch(Exception ex){return false;}
+        Matcher body=RES_BODY.matcher(op);
+        if(!body.find())return false;
+        String content=body.group(1);
+        Matcher attachment=Pattern.compile("(?is)<a\\s+href=['\"](?:https://bbs\\.animanch\\.com)?/img/"+thread+"/1/?['\"][^>]*>\\s*<img\\s+[^>]*src=['\"](?:https://bbs\\.animanch\\.com)?/thumb_m/"+thread+"/1/?['\"][^>]*>\\s*</a>").matcher(content);
+        if(!attachment.find())return false;
+        String bodyHtml=content.substring(0,attachment.start());
+        return comparable(plain(bodyHtml)).equals(comparable(text));
+    }
+
+    static boolean matchesCatalog(String html,String thread,String title) {
+        Matcher cards=CARD.matcher(html);
+        while(cards.find()){
+            if(!thread.equals(cards.group(1)))continue;
+            Matcher heading=BODY.matcher(cards.group(2));
+            if(heading.find()&&comparable(plain(heading.group(1))).equals(comparable(title)))return true;
+        }
+        return false;
+    }
+
+    private String confirmPublicThread(String thread,String title,String text,String category,long started) throws Exception {
+        NetworkResponse page=transmit("GET",HOST+"/board/"+thread+"/",null,null,null,true);
+        if(page.status!=200)return "スレの公開確認 HTTP "+page.status;
+        if(!matchesNewOp(new String(page.bytes,StandardCharsets.UTF_8),thread,title,text,started))
+            return "スレの公開確認：題名・本文・作成日時・画像の一致を確認できません";
+        NetworkResponse catalog=transmit("GET",HOST+"/category"+category+"/",null,null,null,true);
+        if(catalog.status!=200)return "カテゴリの公開確認 HTTP "+catalog.status;
+        if(!matchesCatalog(new String(catalog.bytes,StandardCharsets.UTF_8),thread,title))
+            return "カテゴリの公開確認：該当スレが一覧にありません（承認待ち等の可能性）";
+        synchronized(cache){cache.remove(HOST+"/");}
+        return null;
     }
 
     private static String virtualPostId(String thread, String number) {
@@ -253,18 +332,35 @@ final class AnimanchAdapter {
     BridgeServer.BridgeResponse post(JSONObject fields) {
         try {
             String threadId = fields.optString("threadId", "");
+            boolean creating=threadId.isEmpty();
+            long started=System.currentTimeMillis();
             String title = fields.optString("title", "");
             String name = fields.optString("name", "");
             String text = fields.optString("body", "");
             String category = fields.optString("category", "");
             JSONArray attachments = fields.optJSONArray("attachments");
+            byte[] attachmentBytes = null;
+            String attachmentMime = null;
             if (text.isEmpty() || text.length() > 1000)
                 return BridgeServer.BridgeResponse.text(400, "Body must be 1-1000 characters");
-            if (threadId.isEmpty() && (title.isEmpty() || category.isEmpty() ||
-                    attachments == null || attachments.length() == 0))
-                return BridgeServer.BridgeResponse.text(400, "New thread requires title, category and image");
             if (attachments != null && attachments.length() > 1)
                 return BridgeServer.BridgeResponse.text(400, "This version supports one image per post");
+            // Validate the official 5 MiB limit and MIME before comment.php can create
+            // a text-only thread. The site uploads the image in a separate later request.
+            if (attachments != null && attachments.length() == 1) {
+                JSONObject file = attachments.getJSONObject(0);
+                attachmentBytes = android.util.Base64.decode(
+                        file.getString("base64"), android.util.Base64.DEFAULT);
+                attachmentMime = file.optString("mime", "");
+                if (attachmentBytes.length == 0 || attachmentBytes.length > MAX_IMAGE_BYTES)
+                    return BridgeServer.BridgeResponse.text(400, "Animanch images must be 5 MiB or smaller; nothing was posted");
+                if (!attachmentMime.matches("image/(png|jpeg|gif|webp)"))
+                    return BridgeServer.BridgeResponse.text(400, "Unsupported Animanch image format; nothing was posted");
+            }
+            if (threadId.isEmpty() && (title.isEmpty() || category.isEmpty() || attachmentBytes == null))
+                return BridgeServer.BridgeResponse.text(400, "New thread requires title, category and image");
+            if(creating&&(!category.matches("[0-9]{1,2}")||StockReplyRequest.animanchCategoryName(Integer.parseInt(category))==null))
+                return newThreadFailure("カテゴリが不正です。未送信です。");
             String actualThread = threadId.isEmpty() ? "" : prefs.getString("board." + threadId, null);
             if (!threadId.isEmpty() && actualThread == null)
                 return BridgeServer.BridgeResponse.text(404, "Unknown reply thread");
@@ -278,47 +374,72 @@ final class AnimanchAdapter {
             // Establish the same official session as the site's form before preCheck.
             NetworkResponse formPage = transmit("GET", referer, null, null);
             if (formPage.status != 200)
-                return BridgeServer.BridgeResponse.text(formPage.status, "Animanch form HTTP " + formPage.status);
+                return creating?newThreadFailure("公式フォーム取得 HTTP "+formPage.status+"。未送信です。"):
+                        BridgeServer.BridgeResponse.text(formPage.status, "Animanch form HTTP " + formPage.status);
             String encoded = form(values);
             NetworkResponse pre = transmit("POST", HOST + "/inc/comment.php?preCheck",
                     encoded.getBytes(StandardCharsets.UTF_8), "application/x-www-form-urlencoded; charset=UTF-8", referer);
+            if (creating&&(pre.status!=200||explicitError(pre)))
+                return newThreadFailure("投稿前チェックで拒否またはエラー応答（HTTP "+pre.status+"）。本文未送信です。");
             if (pre.status != 200)
                 return BridgeServer.BridgeResponse.text(pre.status, boundedError(pre));
             NetworkResponse response = transmit("POST", HOST + "/inc/comment.php",
                     encoded.getBytes(StandardCharsets.UTF_8), "application/x-www-form-urlencoded; charset=UTF-8", referer);
+            if(creating&&(response.status!=200||explicitError(response)))
+                return newThreadFailure("本文投稿の応答がエラー（HTTP "+response.status+"）。結果未確定。再投稿せず確認してください。");
             if (response.status != 200)
                 return BridgeServer.BridgeResponse.text(response.status, boundedError(response));
-            JSONObject accepted = new JSONObject(new String(response.bytes, StandardCharsets.UTF_8));
+            JSONObject accepted;
+            try{accepted=new JSONObject(new String(response.bytes, StandardCharsets.UTF_8));}
+            catch(Exception ex){if(creating)return newThreadFailure("本文投稿 HTTP 200：応答JSONが不正です。結果未確定。再投稿せず確認してください。");throw ex;}
             String number = accepted.optString("number", "");
             String thread = accepted.optString("thread", "");
             String jump = accepted.optString("jump", "");
+            if(creating&&(!"1".equals(number)||!thread.matches("[1-9][0-9]{0,15}")||!newThreadJump(jump,thread)))
+                return newThreadFailure("本文投稿 HTTP 200：スレ番号・遷移先が不一致。結果未確定。再投稿せず確認してください。");
             if (number.isEmpty() || thread.isEmpty() || jump.isEmpty())
                 return BridgeServer.BridgeResponse.text(503, "Post response lacks required fields");
-            if (attachments != null && attachments.length() > 0) {
-                JSONObject file = attachments.getJSONObject(0);
-                byte[] bytes = android.util.Base64.decode(file.getString("base64"), android.util.Base64.DEFAULT);
-                if (bytes.length == 0 || bytes.length > 8_000_000)
-                    return BridgeServer.BridgeResponse.text(400, "Attachment exceeds size limit");
-                String mime = file.optString("mime", "");
-                if (!mime.matches("image/(png|jpeg|gif|webp)"))
-                    return BridgeServer.BridgeResponse.text(400, "Unsupported image format");
+            if (attachmentBytes != null) {
                 String boundary = "futatabi" + System.nanoTime();
-                byte[] multipart = multipart(boundary, AimogeWriteClient.attachmentName(mime), mime,
-                        bytes, number, thread);
-                NetworkResponse upload = transmit("POST", HOST + "/upload/", multipart,
-                        "multipart/form-data; boundary=" + boundary, referer);
-                if (upload.status != 200) {
+                byte[] multipart = multipart(boundary, AimogeWriteClient.attachmentName(attachmentMime),
+                        attachmentMime, attachmentBytes, number, thread);
+                NetworkResponse upload;
+                try {
+                    upload = transmit("POST", HOST + "/upload/", multipart,
+                            "multipart/form-data; boundary=" + boundary, referer);
+                } catch (Exception ex) {
                     JSONObject partial = new JSONObject();
                     partial.put("postAccepted", true);
                     partial.put("attachmentUploaded", false);
                     partial.put("number", number);
                     partial.put("thread", thread);
+                    partial.put("uploadHttpStatus", 0);
+                    partial.put("error", "Upload transport failed: " + ex.getClass().getSimpleName());
+                    return BridgeServer.BridgeResponse.json(409, partial.toString());
+                }
+                // Official jQuery .done() accepts successful 2xx responses, not only HTTP 200.
+                if(creating&&upload.status>=200&&upload.status<300&&explicitError(upload))
+                    return newThreadFailure("本文受理応答あり。画像送信 HTTP "+upload.status+" の本文がエラーです。再投稿せず確認してください。");
+                if (upload.status < 200 || upload.status >= 300) {
+                    JSONObject partial = new JSONObject();
+                    partial.put("postAccepted", true);
+                    partial.put("attachmentUploaded", false);
+                    partial.put("number", number);
+                    partial.put("thread", thread);
+                    partial.put("uploadHttpStatus", upload.status);
                     partial.put("error", boundedError(upload));
                     return BridgeServer.BridgeResponse.json(409, partial.toString());
                 }
             }
+            if(creating){
+                String failure;
+                try{failure=confirmPublicThread(thread,title,text,category,started);}
+                catch(Exception ex){failure="公開確認の通信・解析に失敗（"+ex.getClass().getSimpleName()+"）";}
+                if(failure!=null)return newThreadFailure("本文・画像の受理応答あり。"+failure+"。結果未確定。再投稿せず確認してください。");
+            }
             synchronized (cache) { cache.remove(referer); }
             JSONObject completed = new JSONObject();
+            if(creating)completed.put("publicConfirmed",true);
             completed.put("number", number); completed.put("thread", thread);
             completed.put("jump", jump); completed.put("attachmentUploaded", true);
             return BridgeServer.BridgeResponse.json(201, completed.toString());
@@ -339,6 +460,10 @@ final class AnimanchAdapter {
     }
 
     private NetworkResponse transmit(String method, String url, byte[] body, String type, String referer) throws Exception {
+        return transmit(method,url,body,type,referer,false);
+    }
+
+    private NetworkResponse transmit(String method,String url,byte[] body,String type,String referer,boolean publicRead) throws Exception {
         URL target = new URL(url);
         if (!"https".equals(target.getProtocol()) || !"bbs.animanch.com".equals(target.getHost()))
             throw new IllegalArgumentException("Untrusted endpoint");
@@ -357,8 +482,14 @@ final class AnimanchAdapter {
         connection.setReadTimeout(14000);
         connection.setRequestMethod(method);
         connection.setRequestProperty("User-Agent", "futatabi/0.3.0");
-        String cookie = prefs.getString("session_cookie", "");
-        if (!cookie.isEmpty()) connection.setRequestProperty("Cookie", cookie);
+        if(publicRead){
+            connection.setUseCaches(false);
+            connection.setRequestProperty("Cache-Control","no-cache");
+            connection.setRequestProperty("Cookie","");
+        }else{
+            String cookie = prefs.getString("session_cookie", "");
+            if (!cookie.isEmpty()) connection.setRequestProperty("Cookie", cookie);
+        }
         if (body != null) {
             if (referer != null) {
                 connection.setRequestProperty("Origin", HOST);
@@ -367,6 +498,8 @@ final class AnimanchAdapter {
             }
             connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", type);
+            if (type.startsWith("multipart/form-data"))
+                connection.setRequestProperty("Accept", "text/html, */*; q=0.01");
             connection.setFixedLengthStreamingMode(body.length);
         }
         try {
@@ -375,14 +508,14 @@ final class AnimanchAdapter {
             java.util.List<String> setCookies = null;
             for (Map.Entry<String, java.util.List<String>> entry : connection.getHeaderFields().entrySet())
                 if ("Set-Cookie".equalsIgnoreCase(entry.getKey())) setCookies = entry.getValue();
-            if (setCookies != null) for (String cookieLine : setCookies) {
+            if (!publicRead && setCookies != null) for (String cookieLine : setCookies) {
                 if (cookieLine.startsWith("PHPSESSID=")) {
                     String pair = cookieLine.split(";", 2)[0];
                     if (pair.length() < 240 && pair.matches("PHPSESSID=[A-Za-z0-9_-]+"))
                         prefs.edit().putString("session_cookie", pair).commit();
                 }
             }
-            if (status >= 300 && status < 400) throw new IllegalStateException("Unexpected redirect");
+            if (status >= 300 && status < 400) return new NetworkResponse(status,new byte[0]); // never follow a redirect
             try (InputStream in = status < 400 ? connection.getInputStream() : connection.getErrorStream()) {
                 return new NetworkResponse(status, in == null ? new byte[0] :
                         AimogeWriteClient.bounded(in, 1_700_000));
@@ -550,14 +683,15 @@ final class AnimanchAdapter {
     private static byte[] multipart(String boundary, String name, String mime,
                                     byte[] file, String number, String thread) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        part(out, boundary, "upname", number);
-        part(out, boundary, "thread", thread);
+        // Match the official #upform DOM/FormData order: file1, upname, thread.
         String safeName = name.replace("\\", "_").replace("\"", "_").replace("\r", "_").replace("\n", "_");
         String header = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"file1\"; filename=\"" +
                 safeName + "\"\r\nContent-Type: " + mime + "\r\n\r\n";
         out.write(header.getBytes(StandardCharsets.UTF_8));
         out.write(file);
         out.write("\r\n".getBytes(StandardCharsets.US_ASCII));
+        part(out, boundary, "upname", number);
+        part(out, boundary, "thread", thread);
         out.write(("--" + boundary + "--\r\n").getBytes(StandardCharsets.US_ASCII));
         return out.toByteArray();
     }

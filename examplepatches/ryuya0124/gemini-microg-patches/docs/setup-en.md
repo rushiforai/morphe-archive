@@ -6,11 +6,14 @@ Gemini is a launcher. Its native assistant/chat implementation is in the **Googl
 
 ## Input versions and variants
 
+Supported **Google app** versions are `17.54.18.ve.arm64`, `17.70.11.ve.arm64`, `17.72.17.ve.arm64`, `17.76.20.ve.arm64`, and `17.78.14.ve.arm64`. Supported **Gemini launcher** versions are `1.0.958859967`, `1.0.995038376`, and `1.0.1009090390`. Check the APK variant for your Android version. [Exact version codes](versions/README.md)
+
 | Component | Current local build input / tested version | Minimum Android |
 | --- | --- | --- |
 | Google app, default resource-split input | `17.72.17.ve.arm64` / versionCode `301831138` | API 32 (Android 12L) |
 | Gemini launcher, default input | `1.0.995038376` / versionCode `345` | API 32 (Android 12L) |
 | Google app, monolithic nodpi variant | Same version; [Android 11+ download](https://www.apkmirror.com/apk/google-inc/google-search/google-app-17-72-17-release/google-app-17-72-17-ve-arm64-android-apk-download/) | API 30 |
+| Google app, newer monolithic nodpi variant | `17.78.14.ve.arm64` / `301841514` ([Android 11+ download](https://www.apkmirror.com/apk/google-inc/google-search/google-app-17-78-14-release/google-app-17-78-14-ve-arm64-android-apk-download/)) | API 30 |
 | Gemini launcher, arm64/arm variant | Same version; [Android 10+ download](https://www.apkmirror.com/apk/google-inc/google-gemini/google-gemini-1-0-995038376-release/google-gemini-1-0-995038376-3-android-apk-download/) | API 29 |
 | microG RE | `7.3.0`, package `app.revanced.android.gms`, previously verified on the Samsung device | Check microG's own requirements |
 
@@ -18,9 +21,11 @@ Gemini is a launcher. Its native assistant/chat implementation is in the **Googl
 
 No root operation or de-Googled ROM is required by the install procedure. The Issue #8 regression passed on Google APIs emulators running **Android 12 / API 31** and API 36, with the original Google system app present, using shell UID 2000 and without `adb root`/`su`. The API 31 run used the API 30/API 29 variants above and passed all 26 assertions. See the [Android 12 verification and exact input hashes](testing/issue-8-android12.md). Account login/chat and the reporter's physical OnePlus 8 were not tested in these emulators.
 
+The `17.78.14.ve.arm64` nodpi APK also reached Gemini sign-in on API 31 with the `1.0.995038376` API 29 launcher and on API 37 with the `1.0.1009090390` API 32 launcher. The standalone Google APK needs no split. [Haptic feedback and update verification](testing/haptic-feedback.md)
+
 ## Morphe Manager configuration
 
-Use the [current stable patch bundle](https://github.com/ryuya0124/gemini-microg-patches/releases/latest) with **Morphe Manager 2.7.1 or newer** and the matching original APKs. Follow the [README](../README.md#installation) to add the stable source from GitHub or GitLab. The official patches bundle is optional for normal patching.
+Use the current stable patch bundle with **Morphe Manager 2.7.1 or newer** and the matching original APKs. The official patches bundle is optional for normal patching. [Add the source from GitHub, GitLab, or Forgejo](../README.md#installation)
 
 For **both** Google and Gemini:
 

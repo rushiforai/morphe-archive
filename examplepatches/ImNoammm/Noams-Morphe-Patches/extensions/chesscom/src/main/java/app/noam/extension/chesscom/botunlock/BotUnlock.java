@@ -16,4 +16,14 @@ public final class BotUnlock {
     public static boolean enabled() {
         return Features.botUnlockPatched() && Features.isEnabled(Features.BOT_UNLOCK);
     }
+
+    /** A bot's "can play": always, when unlocked. */
+    public static boolean canPlay(boolean canPlay) {
+        return canPlay || enabled();
+    }
+
+    /** A bot's "needs an activated account" (some event bots): never, when unlocked. */
+    public static boolean requiresActivation(boolean requires) {
+        return requires && !enabled();
+    }
 }

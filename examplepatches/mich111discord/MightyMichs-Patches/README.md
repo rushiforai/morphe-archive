@@ -36,15 +36,15 @@ Or
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.17.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.17.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;81 patches total
+> **[v1.18.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.18.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;81 patches total
 <details open>
 <summary>📦 WhatsApp&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.26.45.93 | 2.26.43.76 | 2.26.43.75 | 🧪&nbsp;2.26.43.74 | 🧪&nbsp;2.26.43.72 | 🧪&nbsp;2.26.44.70 | 🧪&nbsp;2.26.42.70 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 2.26.46.82 | 2.26.46.76 | 2.26.45.93 | 2.26.43.76 | 2.26.43.75 | 🧪&nbsp;2.26.43.74 | 🧪&nbsp;2.26.43.72 | 🧪&nbsp;2.26.44.70 | 🧪&nbsp;2.26.42.70 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -69,8 +69,8 @@ Or
 
 **🎯 Supported versions:**
 
-| 26.09.21 |
-| :---: |
+| 26.09.21 | 26.11.09 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

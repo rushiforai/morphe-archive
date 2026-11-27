@@ -9,9 +9,15 @@ import app.morphe.patcher.patch.patch
  */
 val pairipLicenseBypassPatch = patch {
     execute {
-        PairipCheckLicenseFingerprint.methodOrNull?.addInstructions(
-            0,
-            "return-void",
-        )
+        listOf(
+            PairipCheckLicenseFingerprint,
+            PairipInitializeLicenseCheckFingerprint,
+            PairipConnectToLicensingServiceFingerprint,
+        ).forEach { fingerprint ->
+            fingerprint.methodOrNull?.addInstructions(
+                0,
+                "return-void",
+            )
+        }
     }
 }

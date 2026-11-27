@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -38,13 +39,7 @@ public final class OfficialAccounts {
         synchronized (OA_LOCK) {
             OA_ATTEMPTS.clear();
         }
-        try {
-            // MessageManager singleton p8g.w(); M() reschedules the tab message list rebuild.
-            Object repository = Class.forName("p8g").getMethod("w").invoke(null);
-            repository.getClass().getMethod("M").invoke(repository);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-            NezumiLog.w("NezumiOA", "Messages refresh unavailable", failure);
-        }
+        MessagesTab.refreshList(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES);
     }
 
     private static boolean hasOfficialFlag(Object profile) {
@@ -52,7 +47,7 @@ public final class OfficialAccounts {
         try {
             return Boolean.TRUE.equals(profile.getClass().getMethod("B2").invoke(profile));
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-            NezumiLog.swallowedOnce("NezumiOA", "official flag unavailable (B2)", failure);
+            NezumiLog.swallowedOnce(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "official flag unavailable (B2)", failure);
             return false;
         }
     }
@@ -61,7 +56,7 @@ public final class OfficialAccounts {
         try {
             return (String) conversation.getClass().getField("b").get(conversation);
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-            NezumiLog.swallowedOnce("NezumiOA", "conversation uid unavailable (field b)", failure);
+            NezumiLog.swallowedOnce(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "conversation uid unavailable (field b)", failure);
             return null;
         }
     }
@@ -79,13 +74,13 @@ public final class OfficialAccounts {
         try {
             cached = Class.forName("huj").getMethod("l", String.class).invoke(null, uid);
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-            NezumiLog.swallowedOnce("NezumiOA", "profile cache lookup unavailable (huj.l)", failure);
+            NezumiLog.swallowedOnce(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "profile cache lookup unavailable (huj.l)", failure);
         }
         if (hasOfficialFlag(cached)) return true;
         try {
             return hasOfficialFlag(conversation.getClass().getField("a").get(conversation));
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-            NezumiLog.swallowedOnce("NezumiOA", "conversation profile unavailable (field a)", failure);
+            NezumiLog.swallowedOnce(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "conversation profile unavailable (field a)", failure);
             return false;
         }
     }
@@ -95,11 +90,11 @@ public final class OfficialAccounts {
     }
 
     public static List filterOfficialAccounts(List items) {
-        Context context = ZaloEnv.appContext();
+        Context context = ZaloEnv.appContext(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES);
         if (context == null || items == null) return items;
         boolean hide = isOAMessagesHidden(context);
         boolean mute = isOAMessagesMuted(context);
-        String account = ZaloEnv.currentAccount();
+        String account = ZaloEnv.currentAccount(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES);
         if (!mute) unmuteTrackedOfficialAccounts(context, account);
         if (!hide && !mute) return items;
         ArrayList filtered = hide ? new ArrayList(items.size()) : null;
@@ -118,7 +113,7 @@ public final class OfficialAccounts {
                     if (official && mute) muteOfficialAccount(context, account, conversation);
                 }
             } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-                NezumiLog.swallowedOnce("NezumiOA", "conversation filtering failed for an item", failure);
+                NezumiLog.swallowedOnce(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "conversation filtering failed for an item", failure);
             }
             if (hide && !official) filtered.add(item);
         }
@@ -163,7 +158,7 @@ public final class OfficialAccounts {
         try {
             uid = (String) conversation.getClass().getField("b").get(conversation);
         } catch (ReflectiveOperationException | RuntimeException failure) {
-            NezumiLog.swallowedOnce("NezumiOA", "mute target uid unavailable (field b)", failure);
+            NezumiLog.swallowedOnce(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "mute target uid unavailable (field b)", failure);
             return;
         }
         if (uid == null || uid.isEmpty()) return;
@@ -191,10 +186,10 @@ public final class OfficialAccounts {
                 ZaloEnv.collectNativeFlow(flow);
                 Set<String> tracked = trackedOfficialAccounts(context, account);
                 if (tracked.add(uid)) storeTrackedOfficialAccounts(context, account, tracked);
-                NezumiLog.i("NezumiOA", "Permanent mute dispatched");
+                NezumiLog.i(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "Permanent mute dispatched");
             }
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-            NezumiLog.w("NezumiOA", "Automatic mute unavailable", failure);
+            NezumiLog.w(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "Automatic mute unavailable", failure);
         }
     }
 
@@ -221,10 +216,10 @@ public final class OfficialAccounts {
                     .newInstance(uid, 1, tracking);
                 Object flow = useCase.getClass().getMethod("p1", Object.class).invoke(useCase, event);
                 ZaloEnv.collectNativeFlow(flow);
-                NezumiLog.i("NezumiOA", "Unmute dispatched");
+                NezumiLog.i(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "Unmute dispatched");
             }
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-            NezumiLog.w("NezumiOA", "Automatic unmute unavailable", failure);
+            NezumiLog.w(Patch.HIDE_OA_ACCOUNTS_IN_MESSAGES, "OfficialAccounts", "Automatic unmute unavailable", failure);
         }
         if (changed) storeTrackedOfficialAccounts(context, account, tracked);
     }

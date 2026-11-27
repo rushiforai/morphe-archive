@@ -192,7 +192,7 @@ Each listed version passed patching and verification. Other versions may fail to
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v0.3.8](../../releases/tag/v0.3.8)**&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v0.3.9](../../releases/tag/v0.3.9)**&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details>
 <summary>📦 Anytype&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -421,9 +421,9 @@ No. The patch code makes no network requests. The font you choose is stored only
 | Component | License | Where |
 |---|---|---|
 | [ShadowHook](https://github.com/bytedance/android-inline-hook) (ByteDance) | MIT | `libshadowhook.so`, `native/brave/font/include/shadowhook.h` |
-| [Joplin](https://github.com/laurent22/joplin) | AGPL-3.0 | `patches/src/main/resources/joplin/` bundles, built from the official `android-v<version>` tags with `scripts/joplin/` |
-| [Notesnook](https://github.com/streetwriters/notesnook) | GPL-3.0 | `patches/src/main/resources/notesnook/` bundles, built from the official `<version>-android` tags with `scripts/notesnook/` |
-| [Orca](https://github.com/stablyai/orca) | MIT | `patches/src/main/resources/orca/adapters/` bundles, built from the official `android-v<version>` tags with `orca/build-bundle.cjs` |
+| [Joplin](https://github.com/laurent22/joplin) | AGPL-3.0 | `patches/src/main/resources/joplin/` adapters (deltas against the official bundle), built from the official `android-v<version>` tags with `scripts/joplin/` |
+| [Notesnook](https://github.com/streetwriters/notesnook) | GPL-3.0 | `patches/src/main/resources/notesnook/` adapters (deltas against the official bundle), built from the official `<version>-android` tags with `scripts/notesnook/` |
+| [Orca](https://github.com/stablyai/orca) | MIT | `patches/src/main/resources/orca/adapters/` adapters (deltas against the official bundle), built from the official `android-v<version>` tags with `orca/build-bundle.cjs` |
 | [Pretendard](https://github.com/orioncactus/pretendard) | OFL-1.1 | `patches/src/main/resources/orca/fonts/`, unmodified, with `OFL.txt` |
 
 ---

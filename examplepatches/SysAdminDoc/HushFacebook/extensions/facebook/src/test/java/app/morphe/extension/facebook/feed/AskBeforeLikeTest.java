@@ -184,6 +184,61 @@ public class AskBeforeLikeTest {
         }
     }
 
+    private static final String GLIMPSE = "Lapp/morphe/extension/facebook/feed/AskBeforeLikeTest$Glimpse;"
+            + "->invoke(Ljava/lang/Object;)Ljava/lang/Object;";
+
+    /**
+     * A stand-in for the merged lambda a reaction picked on a held comment's sheet runs (#443): it
+     * takes the picked key and keeps the screen in a field typed Object, as merged lambdas do.
+     */
+    static final class Glimpse {
+        public final Object screen;
+        int reactions;
+        Object lastKey;
+
+        Glimpse(Object screen) {
+            this.screen = screen;
+        }
+
+        Object invoke(Object key) {
+            if (AskBeforeLike.hold(AskBeforeLike.COMMENT_REACTION, GLIMPSE, new Object[] {this, key})) return "unit";
+            reactions++;
+            lastKey = key;
+            return "unit";
+        }
+    }
+
+    private static final String SHEET = "Lapp/morphe/extension/facebook/feed/AskBeforeLikeTest$SheetBar;"
+            + "->invoke(Ljava/lang/Object;)Ljava/lang/Object;";
+
+    /** What a group post's comment sheet hands its reaction lambda: the picked reaction and the bar's view. */
+    static final class SheetPick {
+        public final int reaction;
+        public final View bar;
+
+        SheetPick(int reaction, View bar) {
+            this.reaction = reaction;
+            this.bar = bar;
+        }
+    }
+
+    /**
+     * A stand-in for the merged lambda a reaction picked on a group post's comment sheet runs (#443):
+     * its own fields keep no screen, only the sheet's state, and the pick it takes holds the bar's view.
+     */
+    static final class SheetBar {
+        public final Object state = "sheet state";
+        int reactions;
+        Object lastPick;
+
+        Object invoke(Object pick) {
+            if (AskBeforeLike.hold(AskBeforeLike.COMMENT_REACTION, SHEET, new Object[] {this, pick})) return "unit";
+            reactions++;
+            lastPick = pick;
+            return "unit";
+        }
+    }
+
     private Activity screen;
     private View button;
     private Footer footer;
@@ -402,6 +457,63 @@ public class AskBeforeLikeTest {
         footer.inline(button, "like");
         press(showing(), AlertDialog.BUTTON_POSITIVE);
         assertEquals("Continue didn't like it once", 2, footer.likes);
+        assertNull(showing());
+    }
+
+    @Test
+    public void aReactionPickedOnAHeldCommentAsksWithTheCommentSwitchAndOnlyContinueSendsIt() {
+        Glimpse glimpse = new Glimpse(screen);
+        Settings.ASK_BEFORE_LIKING_POSTS.save(true);
+        Settings.ASK_BEFORE_REACTING_TO_STORIES.save(true);
+        glimpse.invoke("love");
+        assertEquals("another switch held a comment reaction", 1, glimpse.reactions);
+        assertNull(showing());
+
+        Settings.ASK_BEFORE_LIKING_COMMENTS.save(true);
+        glimpse.invoke("haha");
+        AlertDialog question = showing();
+        assertTrue("no question went up over the screen the lambda keeps in an Object field", question != null);
+        assertEquals("React to this comment?", shadowOf(question).getMessage().toString());
+        assertEquals("the reaction went out before an answer", 1, glimpse.reactions);
+        press(question, AlertDialog.BUTTON_NEGATIVE);
+        assertEquals("Cancel sent the reaction", 1, glimpse.reactions);
+
+        glimpse.invoke("wow");
+        press(showing(), AlertDialog.BUTTON_POSITIVE);
+        assertEquals("Continue didn't send it once", 2, glimpse.reactions);
+        assertEquals("Continue sent another reaction than the one picked", "wow", glimpse.lastKey);
+        assertNull(showing());
+    }
+
+    @Test
+    public void aReactionPickedOnAGroupCommentSheetAsksOverTheBarsScreenAndOnlyContinueSendsIt() {
+        SheetBar sheet = new SheetBar();
+        sheet.invoke(new SheetPick(1, button));
+        assertEquals("a reaction was held with the switch off", 1, sheet.reactions);
+        assertNull(showing());
+
+        Settings.ASK_BEFORE_LIKING_COMMENTS.save(true);
+        sheet.invoke(new SheetPick(2, button));
+        AlertDialog question = showing();
+        assertTrue("no question went up over the screen of the bar the pick holds", question != null);
+        assertEquals("React to this comment?", shadowOf(question).getMessage().toString());
+        press(question, AlertDialog.BUTTON_NEGATIVE);
+        assertEquals("Cancel sent the reaction", 1, sheet.reactions);
+
+        SheetPick wow = new SheetPick(3, button);
+        sheet.invoke(wow);
+        press(showing(), AlertDialog.BUTTON_POSITIVE);
+        assertEquals("Continue didn't send it once", 2, sheet.reactions);
+        assertSame("Continue sent another pick than the one made", wow, sheet.lastPick);
+        assertNull(showing());
+    }
+
+    @Test
+    public void aCommentReactionWithNoScreenInItsFieldsGoesOut() {
+        Settings.ASK_BEFORE_LIKING_COMMENTS.save(true);
+        Glimpse glimpse = new Glimpse("not a screen");
+        glimpse.invoke("like");
+        assertEquals("a reaction with nowhere to ask was held", 1, glimpse.reactions);
         assertNull(showing());
     }
 

@@ -13,15 +13,6 @@ import java.util.regex.Pattern;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/**
- * The signed-in account's watch history, the source of a feed's red progress bars: YouTube fills a bar from the
- * account's resume positions on the device, and the feed item's own data has no trace of it (checked on 2026-11-11 on
- * a search result fully watched: its three copies hold no progress, and the bar is a separate component of 48 or 82
- * bytes). Reads the first pages of the History page every 10 minutes while feeds load, and keeps each video's
- * percent watched and title. The last read is saved to the app's files and loaded at start, since the first feed
- * after a start lays out before the first read answers (tested on 2026-11-11: a Home video played 20 s was in the
- * history read, but Home had laid it out a few seconds earlier, unhidden).
- */
 final class AccountHistory {
 
     private static final long REFRESH_MS = 10 * 60 * 1000;
@@ -32,9 +23,7 @@ final class AccountHistory {
     private static final Pattern TITLE = Pattern.compile("\"title\":\\{\"(?:runs\":\\[\\{\"text|simpleText|content)\":\"((?:[^\"\\\\]|\\\\.){3,200})\"");
     private static final Pattern TOKEN = Pattern.compile("\"continuationCommand\":\\{\"token\":\"([A-Za-z0-9_%=-]{20,})\"");
 
-    /** Video ID to percent watched (100 when the history lists it with no bar). */
     private static final Map<String, Integer> PERCENT_BY_ID = new ConcurrentHashMap<>();
-    /** Title, lowercase, to percent watched. */
     private static final Map<String, Integer> PERCENT_BY_TITLE = new ConcurrentHashMap<>();
     private static volatile long fetched;
     private static volatile boolean running;
@@ -77,12 +66,10 @@ final class AccountHistory {
     private AccountHistory() {
     }
 
-    /** After a video opens: the next feed reads the history again, at most once every 2 minutes. */
     static void soon() {
         if (System.currentTimeMillis() - fetched > 2 * 60 * 1000) fetched = 0;
     }
 
-    /** Starts a refresh when the last one is older than 10 minutes. */
     static void refresh() {
         long now = System.currentTimeMillis();
         if (running || now - fetched < REFRESH_MS) return;
@@ -120,7 +107,6 @@ final class AccountHistory {
         });
     }
 
-    /** Reads each video of a page in order: the percents and titles after a video ID belong to it. */
     private static int[] read(String text) {
         Matcher m = VIDEO.matcher(text);
         java.util.List<int[]> starts = new java.util.ArrayList<>();
@@ -161,13 +147,11 @@ final class AccountHistory {
         }
     }
 
-    /** Percent of the video the account watched, or -1 when its history (first pages) lacks the video. */
     static int percent(String videoId) {
         Integer p = videoId == null ? null : PERCENT_BY_ID.get(videoId);
         return p == null ? -1 : p;
     }
 
-    /** Percent watched of the video with this title, or -1. */
     static int percentByTitle(String title) {
         Integer p = title == null ? null : PERCENT_BY_TITLE.get(title.trim().toLowerCase());
         return p == null ? -1 : p;

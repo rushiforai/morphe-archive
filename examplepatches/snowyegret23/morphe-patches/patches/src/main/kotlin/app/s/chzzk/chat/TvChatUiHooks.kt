@@ -6,20 +6,22 @@ import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val COMMUNITY = "Lcom/navercorp/game/android/community/"
 private const val BUILDER = "Landroidx/compose/ui/text/AnnotatedString${'$'}Builder;"
 private const val SPAN = "Landroidx/compose/ui/text/SpanStyle;"
-private const val STATUS = "${COMMUNITY}data/core/entity/user/streaming/StreamingUserStatus;"
+private val BytecodePatchContext.STATUS get() = chzzkType("${COMMUNITY}data/core/entity/user/streaming/StreamingUserStatus;")
 private const val PROPERTY = "${COMMUNITY}data/core/entity/user/streaming/StreamingProperty"
-private const val MESSAGE = "${COMMUNITY}ui/common/ui/chat/message/streaming/entity/StreamingChatMessage;"
-private const val NICK_STYLE = "${COMMUNITY}ui/common/ui/chat/message/streaming/designstyle/StreamingMessageDesignStyle${'$'}NicknameStyleInfo;"
+private val BytecodePatchContext.MESSAGE get() = chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/entity/StreamingChatMessage;")
+private val BytecodePatchContext.NICK_STYLE get() = chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/designstyle/StreamingMessageDesignStyle${'$'}NicknameStyleInfo;")
 private const val INLINE = "${COMMUNITY}core/ui/ui/text/util/InlineTextContentBox"
 
 internal fun BytecodePatchContext.addTvChatUiHooks() {
-    val extra = "${COMMUNITY}data/core/entity/chat/extra/StreamingChatMessageExtra;"
+    val minified = packageMetadata.versionName == "1.5.0"
+    val extra = chzzkType("${COMMUNITY}data/core/entity/chat/extra/StreamingChatMessageExtra;")
     check(classDefBy(extra).methods.any { it.name == "g" && it.returnType == "Ljava/lang/String;" })
     uiBridge("deviceType", 1, """
         check-cast p0, $MESSAGE
@@ -35,7 +37,7 @@ internal fun BytecodePatchContext.addTvChatUiHooks() {
     uiBridge("nicknameSize", 4, """
         check-cast p0, $NICK_STYLE
         check-cast p1, Landroidx/compose/ui/unit/Density;
-        invoke-interface {p0, p1}, $NICK_STYLE->e(Landroidx/compose/ui/unit/Density;)Landroidx/compose/ui/text/TextStyle;
+        invoke-interface {p0, p1}, $NICK_STYLE->${if (minified) "f" else "e"}(Landroidx/compose/ui/unit/Density;)Landroidx/compose/ui/text/TextStyle;
         move-result-object v0
         iget-object v0, v0, Landroidx/compose/ui/text/TextStyle;->a:$SPAN
         iget-wide v0, v0, $SPAN->b:J
@@ -69,13 +71,17 @@ internal fun BytecodePatchContext.addTvChatUiHooks() {
         invoke-virtual {v1, v0}, $BUILDER->${if (packageMetadata.versionName == "1.4.0") "h" else "g"}(I)V
         return-void
     """)
-    val icon = "${COMMUNITY}core/ui/ui/text/util/InlineTextContentIconBox;"
+    val icon = chzzkType("${COMMUNITY}core/ui/ui/text/util/InlineTextContentIconBox;")
     val iconConstructor = classDefBy(icon).methods.single { it.name == "<init>" }
     check(iconConstructor.parameterTypes.size == 7)
     val pcIcon = "0x7f08049d"
     val mobileIcon = "0x7f08049e"
     val iosIcon = "0x7f080461"
-    uiBridge("appendDevice", 20, """
+    val iconSelection = if (minified) """
+        move/from16 v1, p2
+        invoke-static {v1}, $CHAT_UI->deviceIcon(I)I
+        move-result v1
+    """ else """
         move/from16 v1, p2
         const/4 v0, 0x1
         if-ne v1, v0, :mobile
@@ -89,6 +95,9 @@ internal fun BytecodePatchContext.addTvChatUiHooks() {
         :ios
         const v1, $iosIcon
         :icon
+    """
+    uiBridge("appendDevice", 20, """
+        $iconSelection
         new-instance v0, $icon
         move-wide/from16 v2, p3
         move-wide v4, v2
@@ -107,12 +116,12 @@ internal fun BytecodePatchContext.addTvChatUiHooks() {
         move-object/from16 v1, p0
         check-cast v1, $BUILDER
         move-object/from16 v2, p1
-        invoke-static {v1, v2, v0}, $INLINE${'$'}Companion;->a($BUILDER${"Ljava/util/Map;"}$INLINE;)V
+        invoke-static {v1, v2, v0}, ${chzzkType("$INLINE${'$'}Companion;")}->a($BUILDER${"Ljava/util/Map;"}${chzzkType("$INLINE;")})V
         move-wide/from16 v2, p3
-        invoke-static {v1, v2, v3}, $INLINE${'$'}Companion;->b(${BUILDER}J)V
+        invoke-static {v1, v2, v3}, ${chzzkType("$INLINE${'$'}Companion;")}->b(${BUILDER}J)V
         return-void
     """)
-    val nickname = mutableClassDefBy("${COMMUNITY}ui/common/ui/chat/message/streaming/util/StreamingNicknameKt;")
+    val nickname = mutableClassDefBy(chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/util/StreamingNicknameKt;"))
     val header = nickname.methods.single { it.returnType == "V" && MESSAGE in it.parameterTypeNames }
     check(header.localRegisterCount >= 5)
     val args = listOf(BUILDER, MESSAGE, NICK_STYLE, "Landroidx/compose/ui/unit/Density;", "Ljava/util/Map;")
@@ -130,10 +139,10 @@ internal fun BytecodePatchContext.addTvChatUiHooks() {
         move-result-object v$nameRegister
     """.trimIndent())
     val getterHooks = mapOf(
-        "$STATUS->p" to Pair("roleBadge", "Ljava/lang/String;"),
-        "$PROPERTY${'$'}Subscription;->c" to Pair("subscriptionBadge", "Ljava/lang/Object;"),
-        "$PROPERTY${'$'}DonationRanking;->a" to Pair("donationBadge", "Ljava/lang/Object;"),
-        "$STATUS->j" to Pair("activityBadges", "Ljava/util/List;")
+        "$STATUS->${if (minified) "o" else "p"}" to Pair("roleBadge", "Ljava/lang/String;"),
+        "${chzzkType("$PROPERTY${'$'}Subscription;")}->c" to Pair("subscriptionBadge", "Ljava/lang/Object;"),
+        "${chzzkType("$PROPERTY${'$'}DonationRanking;")}->a" to Pair("donationBadge", "Ljava/lang/Object;"),
+        "$STATUS->${if (minified) "i" else "j"}" to Pair("activityBadges", "Ljava/util/List;")
     )
     val getterCalls = badges.implementation!!.instructions.withIndex().mapNotNull { (index, instruction) ->
         val ref = instruction.getReference<MethodReference>() ?: return@mapNotNull null
@@ -156,7 +165,7 @@ internal fun BytecodePatchContext.addTvChatUiHooks() {
         invoke-static/range {p$verified .. p$verified}, $CHAT_UI->verifiedBadge(Z)Z
         move-result p$verified
     """ else {
-        check(verifiedType == "${COMMUNITY}core/base/entity/VerifiedMarkType;")
+        check(verifiedType == chzzkType("${COMMUNITY}core/base/entity/VerifiedMarkType;"))
         """
         invoke-static/range {p$verified .. p$verified}, $CHAT_UI->verifiedMark(Ljava/lang/Object;)Ljava/lang/Object;
         move-result-object p$verified

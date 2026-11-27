@@ -97,6 +97,16 @@ public final class RamblerBackupManager {
                     RamblerEnhancementsSettings.readStatsEnabled(context));
             behavior.put("typingBaselineWpm",
                     RamblerEnhancementsSettings.readTypingBaselineWpm(context));
+            behavior.put("toolbarButtonEnabled",
+                    RamblerEnhancementsSettings.readToolbarButtonEnabled(context));
+            behavior.put("spacebarLongPressRamblerEnabled",
+                    RamblerEnhancementsSettings.readSpacebarLongPressRamblerEnabled(context));
+            behavior.put("spacebarLongPressMode",
+                    RamblerEnhancementsSettings.readSpacebarLongPressMode(context));
+            behavior.put("autoLearnFixesEnabled",
+                    RamblerEnhancementsSettings.readAutoLearnFixesEnabled(context));
+            behavior.put("autoLearnToastEnabled",
+                    RamblerEnhancementsSettings.readAutoLearnToastEnabled(context));
             root.put("behavior", behavior);
 
             // 3. Hands-free voice actions
@@ -109,6 +119,15 @@ public final class RamblerBackupManager {
                     RamblerEnhancementsSettings.readVoiceSearchEnabled(context));
             voiceActions.put("voiceSearchTriggers",
                     RamblerEnhancementsSettings.readVoiceSearchTriggers(context));
+            voiceActions.put("searchStripTrailingPeriod",
+                    RamblerEnhancementsSettings.readSearchStripTrailingPeriod(context));
+            voiceActions.put("autoSearchOnCommitEnabled",
+                    RamblerEnhancementsSettings.readAutoSearchOnCommitEnabled(context));
+            JSONArray autoSearchAppsArr = new JSONArray();
+            for (String pkg : RamblerEnhancementsSettings.readAutoSearchApps(context)) {
+                autoSearchAppsArr.put(pkg);
+            }
+            voiceActions.put("autoSearchApps", autoSearchAppsArr);
             root.put("voiceActions", voiceActions);
 
             // 4. Custom instructions & per-app rules
@@ -126,13 +145,21 @@ public final class RamblerBackupManager {
             customInstr.put("disabledApps", disabledArr);
             root.put("customInstructions", customInstr);
 
-            // 5. Snippets & Find/Replace rules
+            // 5. Snippets, Find/Replace & Auto-learned fixes
             root.put("snippets", new JSONArray(
                     RamblerTextPipeline.serializeSnippetsJson(
                             RamblerTextPipeline.readSnippets(context))));
             root.put("replaceRules", new JSONArray(
                     RamblerTextPipeline.serializeReplaceRulesJson(
                             RamblerTextPipeline.readReplaceRules(context))));
+            JSONObject learnedObj = new JSONObject();
+            learnedObj.put("records", new JSONArray(
+                    RamblerLearnedFixes.serializeRecordsJson(
+                            RamblerLearnedFixes.readRecords(context))));
+            learnedObj.put("disabledIds", new JSONArray(
+                    RamblerLearnedFixes.serializeDisabledIdsJson(
+                            RamblerLearnedFixes.readDisabledIds(context))));
+            root.put("learnedFixes", learnedObj);
 
             // 6. Voice dictionary (MUSE_STATS) words if store is ready
             List<String> dictWords = RamblerMuseStatsBridge.readWords(context);
@@ -270,6 +297,35 @@ public final class RamblerBackupManager {
                                     "typingBaselineWpm",
                                     RamblerEnhancementsSettings.DEFAULT_TYPING_BASELINE_WPM));
                 }
+                if (behavior.has("toolbarButtonEnabled")) {
+                    RamblerEnhancementsSettings.writeToolbarButtonEnabled(
+                            context, behavior.optBoolean("toolbarButtonEnabled", true));
+                }
+                if (behavior.has("spacebarLongPressRamblerEnabled")) {
+                    RamblerEnhancementsSettings.writeSpacebarLongPressRamblerEnabled(
+                            context, behavior.optBoolean("spacebarLongPressRamblerEnabled", true));
+                }
+                if (behavior.has("spacebarLongPressMode")) {
+                    RamblerEnhancementsSettings.writeSpacebarLongPressMode(
+                            context,
+                            behavior.optString(
+                                    "spacebarLongPressMode",
+                                    RamblerEnhancementsSettings.DEFAULT_SPACEBAR_LONG_PRESS_MODE));
+                }
+                if (behavior.has("autoLearnFixesEnabled")) {
+                    RamblerEnhancementsSettings.writeAutoLearnFixesEnabled(
+                            context,
+                            behavior.optBoolean(
+                                    "autoLearnFixesEnabled",
+                                    RamblerEnhancementsSettings.DEFAULT_AUTO_LEARN_FIXES));
+                }
+                if (behavior.has("autoLearnToastEnabled")) {
+                    RamblerEnhancementsSettings.writeAutoLearnToastEnabled(
+                            context,
+                            behavior.optBoolean(
+                                    "autoLearnToastEnabled",
+                                    RamblerEnhancementsSettings.DEFAULT_AUTO_LEARN_TOAST));
+                }
                 restoredSections++;
             }
 
@@ -293,6 +349,31 @@ public final class RamblerBackupManager {
                     RamblerEnhancementsSettings.writeVoiceSearchTriggers(
                             context, voiceActions.optString("voiceSearchTriggers",
                                     RamblerEnhancementsSettings.DEFAULT_VOICE_SEARCH_TRIGGERS));
+                }
+                if (voiceActions.has("searchStripTrailingPeriod")) {
+                    RamblerEnhancementsSettings.writeSearchStripTrailingPeriod(
+                            context,
+                            voiceActions.optBoolean(
+                                    "searchStripTrailingPeriod",
+                                    RamblerEnhancementsSettings.DEFAULT_SEARCH_STRIP_TRAILING_PERIOD));
+                }
+                if (voiceActions.has("autoSearchOnCommitEnabled")) {
+                    RamblerEnhancementsSettings.writeAutoSearchOnCommitEnabled(
+                            context,
+                            voiceActions.optBoolean(
+                                    "autoSearchOnCommitEnabled",
+                                    RamblerEnhancementsSettings.DEFAULT_AUTO_SEARCH_ON_COMMIT));
+                }
+                JSONArray autoSearchAppsArr = voiceActions.optJSONArray("autoSearchApps");
+                if (autoSearchAppsArr != null) {
+                    List<String> apps = new ArrayList<String>(autoSearchAppsArr.length());
+                    for (int i = 0; i < autoSearchAppsArr.length(); i++) {
+                        String pkg = autoSearchAppsArr.optString(i, "").trim();
+                        if (!pkg.isEmpty()) {
+                            apps.add(pkg);
+                        }
+                    }
+                    RamblerEnhancementsSettings.writeAutoSearchApps(context, apps);
                 }
                 restoredSections++;
             }
@@ -336,6 +417,20 @@ public final class RamblerBackupManager {
                 RamblerTextPipeline.writeReplaceRules(
                         context,
                         RamblerTextPipeline.parseReplaceRulesJson(replaceArr.toString()));
+                restoredSections++;
+            }
+            JSONObject learnedObj = root.optJSONObject("learnedFixes");
+            if (learnedObj != null) {
+                JSONArray recArr = learnedObj.optJSONArray("records");
+                if (recArr != null) {
+                    RamblerLearnedFixes.writeRecords(
+                            context, RamblerLearnedFixes.parseRecordsJson(recArr.toString()));
+                }
+                JSONArray disArr = learnedObj.optJSONArray("disabledIds");
+                if (disArr != null) {
+                    RamblerLearnedFixes.writeDisabledIds(
+                            context, RamblerLearnedFixes.parseDisabledIdsJson(disArr.toString()));
+                }
                 restoredSections++;
             }
 

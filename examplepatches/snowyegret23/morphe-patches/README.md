@@ -2,7 +2,7 @@
 
 치지직을 보면서 채팅창을 내 화면에 맞게 조절하는 Android 패치 모음입니다. 채팅 폭을 드래그로 조절하고, 글자 크기와 배지·시각 표시, 플레이어 버튼을 바꿀 수 있습니다.
 
-**지원 앱: 치지직 3.17.0 · 3.16.0 · 3.15.2 · 3.15.0 · 3.14.10 · 3.14.0 / Android TV 1.4.0 · 1.3.0(실험적)** · [Morphe](https://morphe.software)에서 적용합니다.
+**지원 앱: 치지직 3.18.0 · 3.17.0 · 3.16.0 · 3.15.2 · 3.15.0 · 3.14.10 · 3.14.0 / Android TV 1.5.0 · 1.4.0 · 1.3.0(실험적)** · [Morphe](https://morphe.software)에서 적용합니다.
 
 ## 설치하기
 
@@ -14,8 +14,8 @@
 
 소스를 추가한 뒤에는 다음 순서로 설치합니다.
 
-1. APKMirror에서 [치지직 3.17.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-17-0-release/) · [3.16.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-16-0-release/) · [3.15.2](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-15-2-release/) · [3.15.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-15-0-release/) · [3.14.10](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-14-10-release/) 또는 [3.14.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-14-0-release/)의 기기에 맞는 **APKM** 파일을 내려받아 선택합니다. 같은 패치 모음이 APK 버전에 맞춰 적용됩니다.
-2. **S Chzzk Patches**의 기본 선택을 사용합니다. 번들 1.5.0부터 Android TV에서는 모바일 전용 패치인 **Auto claim TongPow**와 **Home without promotions**를 자동으로 건너뜁니다. 1.4.10에서 7개가 모두 선택되면 전문가 모드에서 이 두 패치를 해제하세요.
+1. APKMirror에서 [치지직 3.18.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-18-0-release/) · [3.17.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-17-0-release/) · [3.16.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-16-0-release/) · [3.15.2](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-15-2-release/) · [3.15.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-15-0-release/) · [3.14.10](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-14-10-release/) 또는 [3.14.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-14-0-release/)의 기기에 맞는 **APKM** 파일을 내려받아 선택합니다. 같은 패치 모음이 APK 버전에 맞춰 적용됩니다.
+2. **S Chzzk Patches**의 기본 선택을 사용합니다. Android TV에서는 모바일 전용 패치인 **Auto claim TongPow**와 **Home without promotions**를 자동으로 건너뜁니다.
 3. 패치 후 설치하면 원본과 별개인 **치지직 S**가 추가됩니다. 앱 이름·패키지 이름을 직접 지정하려면 전문가 모드에서 해당 패치 옵션을 바꾸세요.
 4. **설정 → Morphe** 또는 **방송 화면의 ⋯ → Morphe 설정**에서 채팅과 시청 옵션을 조절합니다.
 
@@ -42,6 +42,8 @@ Morphe의 APK 찾기 기능은 직접 다운로드 주소가 등록되지 않은
 | 시각·접속 기기 | 닉네임 앞 시:분 표시, 초·12시간제·크기 선택, PC·모바일·iOS 아이콘 |
 | 닉네임·배지 | 닉네임 숨기기, 구독·후원 순위·활동·인증·채널·역할 배지 각각 숨기기 |
 | 채팅 입력창 버튼 | 프로필·이모티콘·치즈 후원 버튼 각각 켜기/끄기 · 기본 모두 켜짐 |
+| 스트리머 채팅 강조 | 현재 방송의 스트리머 메시지에 배경색 표시 · 기본 꺼짐 |
+| 채팅 맨 위·맨 아래 이동 | 현재 남아 있는 가장 오래된 채팅 또는 최신 채팅으로 이동 · 기본 꺼짐 |
 | 표시 방식 | 닉네임과 본문 줄 분리 |
 | 메시지 필터 | 단어 포함·닉네임 일치 필터, 후원·구독·선물·시스템 등 메시지 숨기기 |
 | 채팅 주변 요소 | 후원·통나무 순위, 승부예측, 게임 프로모션, 팔로우 권유 숨기기 |
@@ -53,6 +55,8 @@ Morphe의 APK 찾기 기능은 직접 다운로드 주소가 등록되지 않은
 클린봇 및 임시차단·블라인드 메시지는 **앱에 원문이 남아 있는 경우** 원래 내용을 표시할 수 있습니다. 임시차단·블라인드 원문 표시는 기본으로 꺼져 있으며, 서버가 보내지 않은 내용은 복원하지 못합니다.
 
 최근 표시한 일반 채팅을 최대 200개까지 모아 보는 옵션도 있습니다. 최근 채팅 화면은 닉네임·시각과 본문을 구분하고, 가장 최근 메시지부터 보여 줍니다. 기본으로 꺼져 있고, 기록은 앱 실행 중 메모리에만 보관합니다. 최근 채팅의 커스텀 이모티콘은 텍스트 안내로 표시합니다.
+
+스트리머 채팅 강조와 맨 위·맨 아래 이동 버튼은 **Morphe → 채팅 화면**에서 켜거나 끌 수 있습니다. ↑는 앱이 현재 보관 중인 채팅의 처음으로 이동하며, ↓를 누르면 최신 채팅을 다시 따라갑니다.
 
 ## 방송 화면 조절
 
@@ -88,7 +92,7 @@ Morphe의 APK 찾기 기능은 직접 다운로드 주소가 등록되지 않은
 
 ## 지원 범위
 
-3.17.0 · 3.16.0 · 3.15.2 · 3.15.0 · 3.14.10 · 3.14.0을 함께 지원합니다. 모든 버전에서 휴대폰용 480–640dpi APKM과 태블릿 등에 사용하는 120–480dpi APKM에 적용할 수 있습니다. 120–480dpi 변형은 Android 12L 이상이 필요합니다.
+3.18.0 · 3.17.0 · 3.16.0 · 3.15.2 · 3.15.0 · 3.14.10 · 3.14.0을 함께 지원합니다. 모든 버전에서 휴대폰용 480–640dpi APKM과 태블릿 등에 사용하는 120–480dpi APKM에 적용할 수 있습니다. 120–480dpi 변형은 Android 12L 이상이 필요합니다.
 
 Android TV는 [치지직 TV 1.4.0 APKM](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-android-tv/치지직-chzzk-android-tv-1-4-0-release/)과 [1.3.0 APKM](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-android-tv/치지직-chzzk-android-tv-1-3-0-release/)을 실험적으로 지원합니다. TV 앱의 **설정 → Morphe** 또는 리모컨의 **메뉴 버튼**으로 설정을 열고, 방향키와 확인 버튼으로 조절하세요.
 

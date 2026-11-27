@@ -20,6 +20,28 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "5.8.11"
+            ),
+            AppTarget(
+                version = "5.8.13"
+            )
+        )
+    )
+
+    /**
+     * Same app, 5.8.13 (versionCode 893) only, for patches that cannot run on 5.8.11.
+     *
+     * This build switched R8 to whole-dex class renaming -- even library internals (RevenueCat,
+     * GMS utils) lose their names -- so patches fingerprinting on class or method names cannot
+     * run against it. Only shape- and string-based fingerprints survive.
+     */
+    val COMPATIBILITY_MACROFACTOR_DIET_5813 = Compatibility(
+        name = "MacroFactor",
+        packageName = "com.sbs.diet",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x000000,
+        targets = listOf(
+            AppTarget(
+                version = "5.8.13"
             )
         )
     )

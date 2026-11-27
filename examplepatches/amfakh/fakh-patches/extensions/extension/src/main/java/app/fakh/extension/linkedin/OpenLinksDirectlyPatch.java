@@ -20,8 +20,8 @@ public final class OpenLinksDirectlyPatch {
     /** Injected at the start of the SDUI NavigateToUrlActionViewData constructor (feed, profiles, ...). */
     public static Uri unwrap(Uri uri) {
         try {
-            if (uri == null || !Settings.openLinksDirectly()) return uri;
-            return expandShortLink(unwrapSafetyPage(uri));
+            if (uri == null) return uri;
+            return expandShortLink(Settings.openLinksDirectly() ? unwrapSafetyPage(uri) : uri);
         } catch (Throwable t) {
             Diagnostics.error("unwrap failed", t);
             return uri;

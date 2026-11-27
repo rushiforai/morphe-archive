@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest an idea for GinType
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: checkboxes
+    attributes:
+      label: Preflight checklist
+      description: Please complete these checks before submitting the request.
+      options:
+        - label: I have read the [README](https://github.com/srwi/GinType/blob/master/README.md) and the feature is not already documented.
+          required: true
+        - label: I have searched the [open and closed issues](https://github.com/srwi/GinType/issues?q=) for the same request without success.
+          required: true
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Problem description
+      description: What problem would this feature solve? Describe the situation clearly.
+      placeholder: I am frustrated when ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: What would you like GinType to do?
+      placeholder: I would like ... so that ...
+    validations:
+      required: true
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional information
+      description: Add any other context, examples, screenshots, or notes about the affected patch.
+    validations:
+      required: true

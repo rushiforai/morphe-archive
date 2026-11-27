@@ -290,6 +290,9 @@ Feed videos and stories wait for your tap. Reels and videos in Explore play as I
 Turn on Tap to play to use this choice.	Aktifkan Ketuk untuk memutar untuk menggunakan pilihan ini.
 Resume long videos	Lanjutkan video panjang
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Video dan reel lebih dari dua menit dilanjutkan dari posisi terakhir. Geser bilah untuk posisi lain. Video langsung dan iklan mulai seperti biasa.
+# context: a switch under Resume long videos (#874). A feed video you scroll past and come back to keeps playing from where it was, only until Instagram closes. The Reels tab is Instagram's own tab.
+Keep your place in feed videos	Ingat posisi di video feed
+A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over as usual.	Video feed yang kamu gulir lewati akan lanjut dari posisi terakhir saat kamu kembali, sampai kamu menutup Instagram. Reel di tab Reels mulai dari awal seperti biasa.
 Default playback quality	Kualitas pemutaran default
 # context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
 Videos, reels and stories play at the quality below, starting with the next one you open.	Video, reels, dan cerita diputar dengan kualitas di bawah, mulai dari yang berikutnya Anda buka.
@@ -771,6 +774,9 @@ The latitude and the longitude in degrees, with a comma between them, like 40.75
 Turn off HDR brightness boosts	Matikan peningkatan kecerahan HDR
 Keep HDR on photo uploads	Pertahankan HDR saat mengunggah foto
 Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	Eksperimental. Foto Ultra HDR yang kamu posting tetap menyimpan gain map-nya di Android 14 dan yang lebih baru, sehingga masih bisa tampil dalam HDR. Matikan jika foto yang kamu posting terlihat salah.
+# context: Keep HDR on video uploads, under Playback next to the photo switch. Instagram encodes a video again before it uploads it; HDR means HLG here.
+Keep HDR on video uploads	Pertahankan HDR saat mengunggah video
+Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong or won't upload.	Eksperimental. Video HDR yang kamu posting dienkode dalam HDR di Android 13 dan yang lebih baru, padahal Instagram akan menjadikannya SDR di beberapa ponsel. Matikan jika video yang kamu posting terlihat salah atau tidak terunggah.
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	Apa yang Anda buka dari pencarian tidak masuk ke Terbaru, baik di aplikasi maupun di sisi Instagram. Pencarian yang sudah ada di sana tetap ada sampai Anda menghapusnya.
 Wi-Fi stays as it is. Turn this off to save data on every network.	Wi-Fi tetap seperti semula. Matikan sakelar ini untuk menghemat data di setiap jaringan.
 Hide comments	Sembunyikan komentar
@@ -1099,6 +1105,8 @@ Stop the analytics upload alarm	Hentikan alarm unggah analitik
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram memasang alarm yang membangunkan ponselmu untuk mengirim data penggunaannya lima menit kemudian. Ini menghentikan alarm itu. Data dikirim saat kamu memakai aplikasi berikutnya.
 Stop background feed refresh	Hentikan penyegaran feed di latar belakang
 About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Kira-kira setiap setengah jam, Instagram membangunkan ponselmu untuk mengunduh feed lebih dulu. Ini menghentikannya. Feed dimuat saat kamu membuka aplikasi, dan pesan serta notifikasi tetap masuk.
+Let Instagram close after account checks	Biarkan Instagram tertutup setelah pemeriksaan akun
+When your phone checks its accounts, as it does at startup and when an account changes, Instagram never answers. Android then keeps it running for up to 15 minutes, even after you swipe it away. This answers right away so Instagram can close. Your login is unaffected.	Saat ponselmu memeriksa akunnya, seperti saat menyala dan saat ada akun yang berubah, Instagram tidak pernah menjawab. Android lalu membiarkannya berjalan hingga 15 menit, bahkan setelah kamu menggesernya keluar. Ini langsung menjawab agar Instagram bisa tertutup. Status login kamu tidak terpengaruh.
 Haptic style	Gaya haptik
 Short tick	Ketukan pendek
 System tick	Ketukan sistem
@@ -1922,6 +1930,21 @@ Seek bar button on feed videos	Tombol bilah geser di video feed
 Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	Menambahkan tombol kecil di kiri bawah video feed yang menampilkan atau menyembunyikan bilah gesernya. Berfungsi saat Bilah geser di video feed aktif maupun mati.
 Seek bar	Bilah geser
 Tint intensity	Intensitas warna
+# context: Tab bar: the Tint color list under Tint intensity that picks the glass tab bar's color, its choices' descriptions, the Custom tint color field under it with its dialog message and empty summary, and what both say while another switch is in the way (#875). Light, Dark and AMOLED black are choices in the list; Tint intensity, Custom tint color, Glass tab bar and Material look are rows' names
+Tint color	Warna kaca
+Light	Terang
+Dark	Gelap
+AMOLED black	Hitam AMOLED
+The glass takes Instagram's own colors, dark or light with its theme.	Kaca memakai warna Instagram sendiri, gelap atau terang mengikuti Instagram.
+Frosted white glass whatever Instagram's theme, with the tab icons dark on it.	Kaca putih buram saat Instagram gelap maupun terang, dengan ikon tab gelap di atasnya.
+Dark gray glass whatever Instagram's theme, with the tab icons white on it.	Kaca abu-abu gelap saat Instagram gelap maupun terang, dengan ikon tab putih di atasnya.
+A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.	Pil hitam tanpa kilau, untuk layar AMOLED. Intensitas warna yang lebih rendah membuat yang di belakangnya terlihat.
+The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones keep Instagram's colors.	Kaca memakai warna aksen yang dipilih Android dari wallpaper kamu. Android 12 dan yang lebih baru. Ponsel lama tetap memakai warna Instagram.
+The glass takes the color you type under Custom tint color.	Kaca memakai warna yang kamu ketik di Warna kaca kustom.
+Custom tint color	Warna kaca kustom
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.	Warna dalam enam digit heksa, seperti #4A6B82. Menyimpannya memilih Kustom di Warna kaca.
+Turn on Glass tab bar to use this choice.	Aktifkan Bilah tab kaca untuk menggunakan pilihan ini.
+Turn off Material look to use this choice.	Nonaktifkan Tampilan Material untuk menggunakan pilihan ini.
 Refraction intensity	Intensitas pembiasan
 Preview of the tab bar	Pratinjau bilah tab
 Keep stories playing while zooming	Putar cerita terus saat di-zoom
@@ -2334,6 +2357,9 @@ Instagram's small window for reels gets a button to pause the reel and play it a
 # context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
 Previous and next in the reels window	Sebelumnya dan berikutnya di jendela reels
 Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	Jendela kecil Instagram untuk reels mendapat tombolnya sendiri untuk kembali ke reel sebelumnya atau lanjut ke berikutnya.
+# context: a switch on the Playback page under Previous and next in the reels window; photo and carousel reels go in Instagram's small picture in picture window for reels, a carousel shows a dot per page, and the window's Previous and Next buttons turn its pages before moving to another reel (#873)
+Photos and carousels in the reels window	Foto dan carousel di jendela reels
+Photo and carousel reels go in Instagram's small window for reels too. A carousel shows a dot for each page, and Previous and Next go through its pages first.	Reels foto dan carousel juga masuk ke jendela kecil Instagram untuk reels. Carousel menampilkan titik untuk setiap halaman, dan Sebelumnya serta Berikutnya menelusuri halamannya lebih dulu.
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	Picture-in-picture untuk cerita
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	Saat kamu keluar dari Instagram ketika cerita sedang diputar, cerita mengecil menjadi jendela kecil di atas aplikasi lain dan terus berlanjut ke cerita berikutnya.
@@ -2781,6 +2807,9 @@ HushGram's own files take up %1$s.	File milik HushGram memakai %1$s.
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	Lensa kaca di bawah jarimu
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	Tahan jari di gelembung pil kaca cair, atau geser di sepanjang tab, dan gelembungnya membesar serta membiaskan apa yang ada di belakangnya lebih kuat, seperti kaca di bawah ujung jari. Gelembung kembali normal saat kamu melepasnya. Pembiasan butuh Blur di belakang bilah tab dan Android 13 atau yang lebih baru. Mulai ulang Instagram setelah mengubahnya.
+# context: Tab bar: switch under Glass lens under your finger that keeps Instagram's Search tab inside the liquid pill with the other tabs instead of in a glass circle of its own, and its description (#875). Search is Instagram's tab, named as it is there; Liquid glass look is another switch's name
+Keep Search in the pill	Biarkan Cari di dalam pil
+With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass circle of its own. Restart Instagram after changing it.	Saat Tampilan kaca cair aktif, Cari tetap di dalam pil bersama tab lainnya, bukan di lingkaran kaca sendiri. Mulai ulang Instagram setelah mengubahnya.
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	Simpan penonton cerita
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	Setiap kali kamu membuka siapa yang melihat salah satu ceritamu, daftarnya disimpan di ponsel ini dan disandingkan dengan pengikutmu. Tidak ada permintaan tambahan ke Instagram. Matikan dan langsung berhenti.
@@ -3087,3 +3116,11 @@ Settings page logo set.	Logo pengaturan dipasang.
 HushGram shows at the top of this page.	HushGram tampil di bagian atas halaman ini.
 # context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
 The top of this page says %1$s.	Bagian atas halaman ini bertuliskan %1$s.
+# context: Settings > Downloads > switch title, under Name saves by account and post time (#792)
+Date saves by when they were posted	Beri tanggal simpanan menurut waktu posting
+# context: Settings > Downloads > summary of Date saves by when they were posted (#792)
+Gives each saved photo and video the time its post went up, so your gallery sorts saves by the post instead of the day you saved them. A save that doesn't know when it was posted keeps the time it was saved.	Memberi setiap foto dan video yang disimpan waktu postingannya diunggah, sehingga galeri mengurutkan simpanan menurut postingan, bukan menurut hari kamu menyimpannya. Simpanan yang tidak tahu kapan diposting tetap memakai waktu saat disimpan.
+# context: Profiles > title of the switch that adds a Select all button beside Instagram's own Select on the grids in Your activity (#762); Your activity is Instagram's own page in the profile menu, use the name Instagram shows for it in this language
+Select all in Your activity	Pilih semua di Aktivitas Anda
+# context: Profiles > summary of Select all in Your activity (#762). Select, Delete and Unlike are Instagram's own buttons on those grids; use the words Instagram shows there in this language
+Adds Select all beside Select on the photo and video grids in Your activity, like your posts, reels and likes. Tick one first and it shows. It only ticks them. Nothing goes until you press Delete or Unlike yourself.	Menambahkan Pilih semua di samping Pilih pada kisi foto dan video di Aktivitas Anda, seperti postingan, reel, dan suka Anda. Tombol ini muncul setelah Anda mencentang satu. Ini hanya mencentangnya. Tidak ada yang hilang sampai Anda sendiri menekan Hapus atau Batal suka.

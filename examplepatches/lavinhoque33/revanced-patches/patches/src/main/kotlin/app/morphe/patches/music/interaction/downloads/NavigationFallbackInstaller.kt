@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-14.
  */
@@ -221,13 +222,9 @@ internal fun BytecodePatchContext.prepareNavigationFallback(requestType: String)
             invoke-virtual {v0}, $cancel
             return-void
         """)
-        owner.addDownloadsBridge("rvxJump", listOf("I", "Z"), "Ljava/lang/Object;", 8, """
-            invoke-virtual {p0}, ${abi.owner}->rvxItems()Ljava/util/List;
-            move-result-object v0
-            invoke-interface {v0, p1}, Ljava/util/List;->get(I)Ljava/lang/Object;
-            move-result-object v0
-            check-cast v0, ${rowRequest.definingClass}
-            ${invokeKind(rowRequest)} {v0}, $rowRequest
+        owner.addDownloadsBridge("rvxJump", listOf("Ljava/lang/Object;", "Z"), "Ljava/lang/Object;", 8, """
+            check-cast p1, ${rowRequest.definingClass}
+            ${invokeKind(rowRequest)} {p1}, $rowRequest
             move-result-object v1
             if-eqz p2, :row_ready
             invoke-virtual {v1}, $clone

@@ -16,7 +16,6 @@ import java.util.logging.Logger
 private const val PAGER_START_CLASS = "Lio/github/bryceaspringfield/morphe/extension/reddit/MediaPagerStart;"
 private val mediaTapsLogger = Logger.getLogger("FixSearchMediaTapsPatch")
 
-/** The constructor of the media viewer's start request: the cached posts, the tapped post, and its position. */
 private val START_REQUEST_PARAMETERS = listOf("Ljava/util/ArrayList;", "Lcom/reddit/domain/model/Link;", "I")
 
 @Suppress("unused")
@@ -67,7 +66,6 @@ val fixSearchMediaTapsPatch = bytecodePatch(
                 if (method.implementation == null) return@forEach
                 val list = method.instructions.toList()
                 list.indices.filter { readsPosition(list[it]) }.sortedDescending().forEach { index ->
-                    // The viewer's pages: the nearest cast to the pages type before the read.
                     val cast = (index - 1 downTo 0).firstOrNull { i ->
                         list[i].opcode == Opcode.CHECK_CAST && list[i].getReference<TypeReference>()?.type == pagesType
                     } ?: return@forEach

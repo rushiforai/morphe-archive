@@ -12,12 +12,6 @@ import java.util.Locale;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/**
- * Bottom bar buttons which need two taps: the first tap after a feed scroll or fling is spent on the bar (it slides back
- * in) or on stopping the scroll, and the page does not switch. A tap on a bar button which leaves the button unselected
- * 350 ms later is repeated once. The buttons are found by their descriptions (English and Spanish) each time the window
- * lays out, at most every 300 ms.
- */
 final class NavTapFix {
 
     private static final String[] BUTTONS = {"home", "inicio", "principal", "shorts", "subscriptions", "suscripciones", "you", "tú", "library", "biblioteca"};
@@ -46,7 +40,6 @@ final class NavTapFix {
 
     private static boolean isButton(View v) {
         String d = desc(v);
-        // A button with news reads "Subscriptions: New content is available" or "Notifications: 2 new items".
         int colon = d.indexOf(':');
         if (colon > 0) d = d.substring(0, colon).trim();
         for (String b : BUTTONS) if (d.equals(b)) return true;
@@ -63,9 +56,7 @@ final class NavTapFix {
         if (v instanceof ViewGroup g) for (int i = 0; i < g.getChildCount(); i++) scan(g.getChildAt(i), bottomHalfFromY);
     }
 
-    /** Whether the button was selected when the finger went down, and the page list shown then. */
     private static boolean downSelected;
-    /** Counts every finger-down on a bar button: a repeat is dropped once the user tapped another button (2026-11-16). */
     private static int touchSeq;
     private static java.lang.ref.WeakReference<View> downPage = new java.lang.ref.WeakReference<>(null);
 
@@ -79,15 +70,9 @@ final class NavTapFix {
             final View before = downPage.get();
             final int seq = touchSeq;
             Utils.runOnMainThreadDelayed(() -> {
-                // A later tap on any button (Home, then Subscriptions within 400 ms) made this repeat stale: repeating it
-                // sent the app back to the first button and left the bar highlighting a page not shown.
                 if (!v.isShown() || seq != touchSeq) return;
-                // Two failures seen: the button stays unselected, or (2026-11-11, with the miniplayer open) the button
-                // turns selected while the old page stays on screen. Either way the page list is the same view.
                 View now = page(v.getRootView());
                 boolean samePage = before != null && now == before && before.isShown();
-                // A different page list shows: the tap worked, the bar's highlight may lag, and a repeat would switch pages
-                // twice (2026-11-18: the bar highlighted Home while Subscriptions showed).
                 boolean switched = before != null && now != null && now != before;
                 if (switched) return;
                 if (!v.isSelected() || samePage) {
@@ -97,11 +82,9 @@ final class NavTapFix {
                 }
             }, 400);
         }
-        // The touch is handled by the button itself as before.
         return false;
     }
 
-    /** The page's list: the largest shown RecyclerView above the bottom bar. */
     private static View page(View root) {
         View[] best = {null};
         int[] area = {0};

@@ -194,7 +194,7 @@ private object GroupCallOnCreateFingerprint : Fingerprint(
 @Suppress("unused")
 val amoledThemePatch = bytecodePatch(
     name = "AMOLED dark theme",
-    description = "Use true-black backgrounds in Zalo's dark mode, with slightly lifted popups, sheets and chat bubbles, and a dimmed call screen.",
+    description = "Use true-black backgrounds in Zalo's dark mode, with slightly lifted popups, sheets and chat bubbles, and a dimmed call screen that can be made true black in Nezumi's Settings.",
     default = false,
 ) {
     compatibleWith(amoledCompatibility)
@@ -202,6 +202,7 @@ val amoledThemePatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.AMOLED_DARK_THEME)
         // updateData(II...): p1 = color, p2 = pressed color. The method has no
         // spare locals, so remap the parameters in place before they are stored.
         val update = ZinstantBackgroundUpdateFingerprint.method
@@ -240,6 +241,7 @@ val amoledThemePatch = bytecodePatch(
             it.method.addInstruction(addView.index + 1,
                 "invoke-static {v${call.registerC}, v${call.registerD}}, " +
                     "$AMOLED_THEME->dimCallBackground(Landroid/view/ViewGroup;Landroid/view/View;)V")
+            registerHooks(PatchId.AMOLED_DARK_THEME, it.method)
         }
         GroupCallOnCreateFingerprint.let {
             val setBackground = it.instructionMatches[2]
@@ -247,6 +249,11 @@ val amoledThemePatch = bytecodePatch(
             check(root < 16) { "setBackgroundResource register out of invoke range" }
             it.method.addInstruction(setBackground.index + 1,
                 "invoke-static {v$root}, $AMOLED_THEME->dimCallBackground(Landroid/view/ViewGroup;)V")
+            registerHooks(PatchId.AMOLED_DARK_THEME, it.method)
         }
+
+        registerHooks(PatchId.AMOLED_DARK_THEME, update, zarcel)
+
+        attachNezumiSettings("attachCallBackground")
     }
 }

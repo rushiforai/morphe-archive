@@ -4,6 +4,9 @@ public final class PreviewUrlsTest {
  static int checks;
  static void check(boolean ok,String text){if(!ok)throw new AssertionError(text);checks++;}
  public static void main(String[] args){
+  check(PreviewUrls.extract("example.com",8,true).isEmpty(),"explicit-only rejects prose domain");
+  check(PreviewUrls.extract("文章https://example.com/a",8,true).equals(List.of("https://example.com/a")),"explicit-only accepts Japanese-adjacent URL");
+  check(PreviewUrls.extract("文章ttps://example.com/a",8,true).size()==1,"explicit-only accepts abbreviated scheme");
   for(String id:new String[]{"A.Af1CYTq","ID:A.Af1CYTq","abcd.xy123","A.Af1CYTq (3/3 緑川)"})
    check(PreviewUrls.extract(id,8).isEmpty(),"ID must not become domain: "+id);
   for(String id:new String[]{"eRNd.ru1f","ID:eRNd.ru1f","ID: eRNd.ru1f","ID：eRNd.ru1f",

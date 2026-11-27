@@ -19,28 +19,80 @@ sys.modules[SPEC.name] = sync_upstream
 SPEC.loader.exec_module(sync_upstream)
 
 
+DUAL_STREAM_ACCESSORS = (
+    "        public boolean usesSabr() {\n"
+    "            return client.requireSABR;\n"
+    "        }\n"
+    "\n"
+    "        public String clientUserAgent() {\n"
+    "            return client.userAgent;\n"
+    "        }\n"
+)
+sign_in_ours = "                             ClientType client) {\n" + DUAL_STREAM_ACCESSORS
+SIGN_IN_RECORD = "                             ClientType client, boolean signedIn) {\n"
+SIGN_IN_CONFLICT = "<<<<<<< HEAD\n" + sign_in_ours + "=======\n" + SIGN_IN_RECORD + ">>>>>>> v2.4.0-dev.12\n"
+
+LEGACY_PREFERRED_CLIENT = "        ClientType preferredClient = clients[0];\n"
+PREFERRED_CLIENT = (
+    "        // The preferred client is not in the client order if it is skipped.\n"
+    "        ClientType preferredClient = SpoofVideoStreamsPatch.getPreferredClient();\n"
+)
+PREFERRED_CLIENT_CONFLICT = "<<<<<<< HEAD\n" + LEGACY_PREFERRED_CLIENT + "=======\n" + PREFERRED_CLIENT + ">>>>>>> v2.4.0-dev.11\n"
+
+
 class SyncUpstreamTests(unittest.TestCase):
     def test_dev2412_streaming_keeps_sign_in_and_dual_accessors(self):
-        methods = (
-            "        public boolean usesSabr() {\n"
-            "            return client.requireSABR;\n"
-            "        }\n"
-            "\n"
-            "        public String clientUserAgent() {\n"
-            "            return client.userAgent;\n"
-            "        }\n"
-        )
-        ours = "                             ClientType client) {\n" + methods
-        theirs = "                             ClientType client, boolean signedIn) {\n"
-        conflict = "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> v2.4.0-dev.12\n"
         before, after = "    public record StreamData(\n", "    }\n"
         self.assertEqual(
-            sync_upstream.merge_streaming_data_request_dev2412(before + conflict + after),
-            before + theirs + methods + after,
+            sync_upstream.merge_streaming_data_request_dev2412(before + SIGN_IN_CONFLICT + after),
+            before + SIGN_IN_RECORD + DUAL_STREAM_ACCESSORS + after,
         )
-        for invalid in (conflict.replace("signedIn", "unknown"), conflict + "<<<<<<< extra\n"):
+        for invalid in (SIGN_IN_CONFLICT.replace("signedIn", "unknown"), SIGN_IN_CONFLICT + "<<<<<<< extra\n"):
             with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
                 sync_upstream.merge_streaming_data_request_dev2412(invalid)
+
+    def test_stable240_streaming_combines_both_reviewed_hunks(self):
+        middle = "    }\n    // Complete the Base64 response before decoding.\n"
+        unchanged = "        if (directStreamsOnly || isDownload) return null;\n"
+        source = SIGN_IN_CONFLICT + middle + unchanged + PREFERRED_CLIENT_CONFLICT
+        self.assertEqual(
+            sync_upstream.merge_streaming_data_request_stable240(source),
+            SIGN_IN_RECORD + DUAL_STREAM_ACCESSORS + middle + unchanged + PREFERRED_CLIENT,
+        )
+        for invalid in (
+            SIGN_IN_CONFLICT,
+            PREFERRED_CLIENT_CONFLICT + SIGN_IN_CONFLICT,
+            source.replace("signedIn", "unknown"),
+            source.replace("getPreferredClient()", "getOtherClient()"),
+            source + PREFERRED_CLIENT_CONFLICT,
+            source + "<<<<<<< extra\n",
+        ):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_streaming_data_request_stable240(invalid)
+
+    def test_stable240_resolvers_reject_unknown_blob_at_each_stage(self):
+        for path, expected, resolve in (
+            (sync_upstream.STREAMING_DATA_REQUEST_PATH,
+             sync_upstream.STREAMING_DATA_REQUEST_STABLE240_CONFLICT_BLOBS,
+             sync_upstream.resolve_streaming_data_request_conflict),
+            (sync_upstream.DEV148_SETTINGS_PATH, sync_upstream.STABLE240_SETTINGS_CONFLICT_BLOBS,
+             sync_upstream.resolve_dev2411_settings_conflict),
+            (sync_upstream.DEV247_PATCH_BUILD_PATH, sync_upstream.STABLE240_PATCH_BUILD_CONFLICT_BLOBS,
+             sync_upstream.resolve_dev247_patch_build_conflict),
+            (sync_upstream.DUAL_YANDEX_ARRAYS_PATH, sync_upstream.STABLE240_ARRAYS_CONFLICT_BLOBS,
+             sync_upstream.resolve_dual_yandex_arrays_conflict),
+        ):
+            for stage in range(3):
+                blobs = list(expected)
+                blobs[stage] = "0" * 40
+                with (
+                    self.subTest(path=path, stage=stage + 1),
+                    mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
+                    mock.patch.object(sync_upstream, "output_of", side_effect=blobs),
+                    mock.patch.object(sync_upstream, "run") as run,
+                ):
+                    resolve()
+                    run.assert_not_called()
 
     def test_dev2412_overlay_accounts_for_native_mute_and_keeps_dual_api(self):
         ours = (
@@ -79,19 +131,13 @@ class SyncUpstreamTests(unittest.TestCase):
                     sync_upstream.resolve_dev2412_player_overlay_conflict()
 
     def test_dev2411_streaming_prefers_configured_client_only_for_playback_failure(self):
-        ours = "        ClientType preferredClient = clients[0];\n"
-        theirs = (
-            "        // The preferred client is not in the client order if it is skipped.\n"
-            "        ClientType preferredClient = SpoofVideoStreamsPatch.getPreferredClient();\n"
-        )
-        conflict = "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> v2.4.0-dev.11\n"
         prefix = "        if (directStreamsOnly) return null;\n        if (isDownload) return null;\n"
         suffix = "        if (!preferredClient.supportsOAuth2) {\n"
         self.assertEqual(
-            sync_upstream.merge_streaming_data_request_dev2411(prefix + conflict + suffix),
-            prefix + theirs + suffix,
+            sync_upstream.merge_streaming_data_request_dev2411(prefix + PREFERRED_CLIENT_CONFLICT + suffix),
+            prefix + PREFERRED_CLIENT + suffix,
         )
-        for invalid in (conflict.replace(ours, "changed\n"), conflict + conflict):
+        for invalid in (PREFERRED_CLIENT_CONFLICT.replace(LEGACY_PREFERRED_CLIENT, "changed\n"), PREFERRED_CLIENT_CONFLICT + PREFERRED_CLIENT_CONFLICT):
             with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
                 sync_upstream.merge_streaming_data_request_dev2411(invalid)
 
@@ -306,7 +352,8 @@ class SyncUpstreamTests(unittest.TestCase):
         root.__truediv__ = mock.Mock(return_value=destination)
         for blobs in (sync_upstream.DEV220_ARRAYS_CONFLICT_BLOBS,
                       sync_upstream.STABLE220_ARRAYS_CONFLICT_BLOBS,
-                      sync_upstream.DEV2411_ARRAYS_CONFLICT_BLOBS):
+                      sync_upstream.DEV2411_ARRAYS_CONFLICT_BLOBS,
+                      sync_upstream.STABLE240_ARRAYS_CONFLICT_BLOBS):
             destination.reset_mock()
             with (self.subTest(blobs=blobs),
                   mock.patch.object(sync_upstream, 'ROOT', root),

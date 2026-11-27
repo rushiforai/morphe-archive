@@ -16,6 +16,13 @@ public final class CarScanner221 {
     private static final int BODY = 0x9c854;
     private CarScanner221() {}
 
+    static boolean matchesStore(byte[] store) {
+        try {
+            requireHash(store, "8e27ae5a623eb6edc47e8c90c3592da7f5b0db0384f89a7ba8541489a4d26f67", "assembly store");
+            return true;
+        } catch (IllegalStateException unsupported) { return false; }
+    }
+
     public static Result patch(byte[] store, byte[] aot, byte[] guard) {
         requireHash(store, "8e27ae5a623eb6edc47e8c90c3592da7f5b0db0384f89a7ba8541489a4d26f67", "assembly store (unsupported or already modified)");
         requireHash(aot, "87a8bd91e73f0fd9f28754ca079ef753944b84fc5eddcc3f1bd558b3f13e9fbd", "AOT image");

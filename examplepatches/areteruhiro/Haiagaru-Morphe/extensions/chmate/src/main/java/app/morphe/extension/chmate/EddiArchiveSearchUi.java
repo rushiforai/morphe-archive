@@ -158,7 +158,7 @@ final class EddiArchiveSearchUi {
                 return insets;
             });
         }
-        TextView heading = text("‹ エッヂ過去ログ検索", 21, foreground);
+        TextView heading = text("‹ 過去ログ", 21, foreground);
         heading.setOnClickListener(view -> closeAction.run());
         LinearLayout header = row();
         header.addView(heading, weighted());
@@ -184,7 +184,7 @@ final class EddiArchiveSearchUi {
         provider.setContentDescription("過去ログの検索先");
         provider.setAdapter(new ArrayAdapter<String>(activity,
                 android.R.layout.simple_spinner_dropdown_item,
-                new String[]{"エッヂ過去ログ（従来）", "Kyodemo（現行＋過去ログ）"}) {
+                new String[]{"エッヂ過去ログ（従来）", "Kyodemo（現行＋過去ログ）", "携帯2chブラウザ ぬこ（過去ログ）"}) {
             @Override public View getView(int position, View recycled, ViewGroup parent) {
                 return styleSortText(super.getView(position, recycled, parent));
             }
@@ -452,6 +452,12 @@ final class EddiArchiveSearchUi {
 
     private void restoreQuery(Uri uri) {
         if (uri == null) return;
+        if("n2ch.net".equals(uri.getHost())&&"/q/-/".equals(uri.getPath())){
+            activeProvider=2;provider.setSelection(2);set(keyword,NukoArchive.keyword(uri.toString()));
+            try{page=Math.max(1,Integer.parseInt(uri.getQueryParameter("p"))+1);}
+            catch(RuntimeException ignored){page=1;}
+            return;
+        }
         if (KyodemoArchive.accepts(uri.toString())) {
             activeProvider = 1;
             provider.setSelection(1);
@@ -534,6 +540,8 @@ final class EddiArchiveSearchUi {
     }
 
     private Uri queryUri(int requestedPage) {
+        if(provider.getSelectedItemPosition()==2)
+            return Uri.parse(NukoArchive.query(value(keyword),requestedPage));
         if (provider.getSelectedItemPosition() == 1)
             return Uri.parse(KyodemoArchive.query(value(keyword), value(startDate), value(endDate), requestedPage));
         Uri.Builder builder = new Uri.Builder().scheme("https").authority(HOST).path("/")
@@ -570,6 +578,22 @@ final class EddiArchiveSearchUi {
                     }
                     bytes.write(buffer, 0, length);
                 }
+            }
+            if ("n2ch.net".equals(uri.getHost())) {
+                String html=new String(bytes.toByteArray(),java.nio.charset.Charset.forName("Windows-31J"));
+                if(!html.toLowerCase(java.util.Locale.ROOT).contains("name=\"kako\""))
+                    throw new java.io.IOException("ぬこの検索結果形式を確認できませんでした");
+                List<ThreadResult> threads=new ArrayList<>();
+                Matcher links=Pattern.compile("(?is)<a\\b[^>]*href=[\"'](/r/-/([a-zA-Z0-9_]+)/([0-9]{9,12})/[^\"']*)[\"'][^>]*>(.*?)</a>").matcher(html);
+                java.util.Set<String> seen=new java.util.HashSet<>();
+                while(links.find()&&threads.size()<100){
+                    String url="https://n2ch.net"+links.group(1).replace("&amp;","&");
+                    if(seen.add(links.group(2)+"/"+links.group(3)))
+                        threads.add(new ThreadResult(clean(links.group(4)),links.group(2),url,url));
+                }
+                int current=Integer.parseInt(uri.getQueryParameter("p"));
+                boolean hasNext=Pattern.compile("(?i)[?&](?:amp;)?p="+(current+1)+"(?:&|[\"'])").matcher(html).find();
+                return new SearchPage(threads,-1,hasNext);
             }
             if (KyodemoArchive.accepts(uri.toString())) {
                 KyodemoArchive.Page parsed = KyodemoArchive.parse(new String(bytes.toByteArray(),
@@ -641,6 +665,11 @@ final class EddiArchiveSearchUi {
             card.setOnClickListener(view -> {
                 try {
                     saveState(null);
+                    if("n2ch.net".equals(Uri.parse(thread.url).getHost())){
+                        Intent intent=new Intent(activity,HissiMenuActivity.class);
+                        intent.setAction(Intent.ACTION_VIEW);intent.setData(Uri.parse(thread.url));
+                        intent.putExtra("haiagaru.eddi.web",true);activity.startActivity(intent);return;
+                    }
                     EdgeArchiveLocalSearch.markArchiveResult(thread.url, thread.title);
                     if (opener.open(thread.url)) return;
                     Haiagaru.reportEddiArchiveError(activity, "THREAD_OPEN_FAILED",
@@ -684,7 +713,7 @@ final class EddiArchiveSearchUi {
     static int lastPageNumber(int total) { return (int) Math.max(1L, ((long) total + 49L) / 50L); }
 
     private void updateProviderControls() {
-        boolean original = provider.getSelectedItemPosition() != 1;
+        boolean original = provider.getSelectedItemPosition() == 0;
         // Kyodemo has no equivalent for these options; do not silently ignore an enabled control.
         for (View control : new View[]{exclude, orSearch, fuzzy, minimumReplies, sort})
             control.setVisibility(original ? View.VISIBLE : View.GONE);

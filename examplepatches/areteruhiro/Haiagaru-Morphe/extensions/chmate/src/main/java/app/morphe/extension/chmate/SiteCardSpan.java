@@ -13,12 +13,14 @@ final class SiteCardSpan extends ReplacementSpan {
     private final float density;
     private final java.lang.ref.WeakReference<TextView> host;
     private final int fallbackColor;
+    private final boolean compact;
     SiteCardSpan(SiteCardMetadata.Data data,Bitmap image,TextView view) {
         this.data=data;this.image=image;this.width=SiteCards.width(view);
+        compact=SiteCards.option(SiteCards.COMPACT,false);
         host=new java.lang.ref.WeakReference<>(view);fallbackColor=view.getCurrentTextColor();
         density=view.getResources().getDisplayMetrics().density;
     }
-    private int height(Paint paint){return Math.round(Math.max(124*density,paint.getTextSize()*7.5f+24*density));}
+    private int height(Paint paint){return compact?Math.round(paint.getFontSpacing()*2+24*density):Math.round(Math.max(124*density,paint.getTextSize()*7.5f+24*density));}
     @Override public int getSize(Paint paint,CharSequence text,int start,int end,Paint.FontMetricsInt fm){
         if(fm!=null){fm.ascent=-height(paint);fm.top=fm.ascent;fm.descent=0;fm.bottom=0;}return width;
     }
@@ -29,7 +31,7 @@ final class SiteCardSpan extends ReplacementSpan {
         RectF card=new RectF(x,top,x+width,top+h);paint.setColor(dark?0xff172321:0xfff3f6f4);
         c.drawRoundRect(card,10*density,10*density,paint);
         float imageSize=Math.min(80*density,h-pad*2),left=x+pad;
-        if(image!=null&&!image.isRecycled()) {
+        if(!compact&&image!=null&&!image.isRecycled()) {
             float scale=Math.max(imageSize/image.getWidth(),imageSize/image.getHeight());
             float cropW=imageSize/scale,cropH=imageSize/scale;
             Rect src=new Rect((int)((image.getWidth()-cropW)/2),(int)((image.getHeight()-cropH)/2),
@@ -41,6 +43,7 @@ final class SiteCardSpan extends ReplacementSpan {
         TextPaint tp=new TextPaint(original);tp.setUnderlineText(false);tp.setColor(color);tp.setTypeface(Typeface.create(original.getTypeface(),Typeface.BOLD));
         StaticLayout title=layout(data.title,tp,textWidth,2);
         c.save();c.translate(left,top+pad);title.draw(c);c.restore();
+        if(compact)return;
         float next=top+pad+title.getHeight()+6*density;
         tp.setTypeface(original.getTypeface());tp.setTextSize(original.getTextSize()*.88f);tp.setColor(dark?0xffbdc9c3:0xff53625a);
         if(!data.description.isEmpty()) {

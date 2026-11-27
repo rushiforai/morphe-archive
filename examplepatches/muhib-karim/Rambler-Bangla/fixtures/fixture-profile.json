@@ -1,0 +1,31 @@
+{
+  "profile": "fixture-v1",
+  "note": "Self-built synthetic fixture. Mirrors the documented 18.3.1 anchors with authored test strings; proves the patching pipeline end-to-end without any Google bytes.",
+  "methods": {
+    "cleanup_builder": {
+      "class": "Lkfd;",
+      "name": "d",
+      "signature": "(Lhrl;Ljava/lang/String;ILqqi;Laebb;Ljava/lang/String;Laugd;Ljava/util/concurrent/atomic/AtomicBoolean;)V"
+    },
+    "prompt_owner": {
+      "class": "Lkew;",
+      "name": "b",
+      "signature": "(Ljava/lang/Object;)V"
+    }
+  },
+  "fingerprints": {
+    "hinglish_override_rule": {
+      "sha256": "b0d558d7719f554d65f3095167b6d20e3930667916bd3594facf454ed1838479",
+      "bytes": 295
+    },
+    "lite_cleanup_prompt": {
+      "sha256": "e6409fab3f9c4c8d1f6dd3424bd59493f6eafc5a8e7c055ebde69e397a13884d",
+      "bytes": 821
+    }
+  },
+  "anchors": {
+    "enabled_languages_placeholder": "{ENABLED_LANGUAGES}",
+    "hinglish_placeholder": "{HINGLISH_OVERRIDE_RULE}"
+  },
+  "extension_class": "Lcom/akshaykadam/pixelboard/extension/ramblerlite/GboardRamblerLiteScriptRuntime;"
+}

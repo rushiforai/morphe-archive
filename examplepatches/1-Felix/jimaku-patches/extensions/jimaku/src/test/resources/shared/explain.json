@@ -1,0 +1,251 @@
+{
+  "note": "Written by Jimaku's extension/scripts/export-shared-cases.ts. Change the cases there, not here.",
+  "about": "What each failure says, from lib/messages.ts. Each case calls explain(code, extra, context) with context as base.context changed by the case's own, and expects `is` whole, or `text` alone. `shortTitle` cuts a running video's title so its message stays on one line.",
+  "base": {
+    "context": {
+      "standardAvailable": true,
+      "runningTitle": null,
+      "balance": 600
+    }
+  },
+  "cases": [
+    {
+      "name": "no minutes, offering Standard",
+      "code": "no_minutes",
+      "is": {
+        "text": "No Premium minutes left",
+        "standard": true,
+        "buy": true
+      }
+    },
+    {
+      "name": "no minutes on a video Standard can't make",
+      "code": "no_minutes",
+      "context": {
+        "standardAvailable": false
+      },
+      "is": {
+        "text": "No Premium minutes left",
+        "standard": false,
+        "buy": true
+      }
+    },
+    {
+      "name": "longer than the minutes left",
+      "code": "too_long",
+      "extra": {
+        "balance": 600
+      },
+      "is": {
+        "text": "Longer than your 10 minutes left",
+        "standard": true,
+        "buy": true
+      }
+    },
+    {
+      "name": "longer than no minutes at all",
+      "code": "too_long",
+      "context": {
+        "balance": 0
+      },
+      "text": "No Premium minutes left"
+    },
+    {
+      "name": "YouTube refused the audio",
+      "code": "download_refused",
+      "is": {
+        "text": "YouTube refused for now. Try again later.",
+        "standard": true
+      }
+    },
+    {
+      "name": "a video out of reach",
+      "code": "unavailable",
+      "is": {
+        "text": "Jimaku can't access this video",
+        "standard": true
+      }
+    },
+    {
+      "name": "server unreachable",
+      "code": "unreachable",
+      "is": {
+        "text": "Server unreachable. Try again later.",
+        "standard": false
+      }
+    },
+    {
+      "name": "offline",
+      "code": "offline",
+      "text": "Server unreachable. Try again later."
+    },
+    {
+      "name": "no speech",
+      "code": "no_speech",
+      "text": "No speech found in this video"
+    },
+    {
+      "name": "translation failed",
+      "code": "translation_failed",
+      "is": {
+        "text": "Translation failed. Try again later.",
+        "standard": false
+      }
+    },
+    {
+      "name": "captions that couldn't be used",
+      "code": "invalid_captions",
+      "text": "YouTube's captions couldn't be used"
+    },
+    {
+      "name": "captions that couldn't be read",
+      "code": "no_captions",
+      "text": "Couldn't read YouTube's captions for this video"
+    },
+    {
+      "name": "blocked",
+      "code": "blocked",
+      "text": "Not available for this video"
+    },
+    {
+      "name": "a video already being made by someone",
+      "code": "video_busy",
+      "text": "Subtitles are being made. Try again later."
+    },
+    {
+      "name": "the daily translation limit",
+      "code": "daily_limit",
+      "extra": {
+        "resets": "2026-10-03T00:00:00.000Z"
+      },
+      "text": "Free translation used up today. Try again later."
+    },
+    {
+      "name": "too many installs",
+      "code": "too_many_installs",
+      "text": "Too many new installs here today. Try again later."
+    },
+    {
+      "name": "an old version",
+      "code": "stale",
+      "text": "Jimaku was updated. Reload the page."
+    },
+    {
+      "name": "the offer has ended",
+      "code": "offer_off",
+      "text": "The offer has ended"
+    },
+    {
+      "name": "the offer is used up",
+      "code": "offer_cap",
+      "text": "All claims for this promotion have been used."
+    },
+    {
+      "name": "the offer was claimed",
+      "code": "already_claimed",
+      "text": "This Google account already claimed the offer."
+    },
+    {
+      "name": "this install's other video, named",
+      "code": "busy",
+      "extra": {
+        "video": "x"
+      },
+      "context": {
+        "runningTitle": "長い動画"
+      },
+      "is": {
+        "text": "Still making “長い動画”. Try again later.",
+        "standard": false
+      }
+    },
+    {
+      "name": "this install's other video, unnamed",
+      "code": "busy",
+      "text": "Still making another video. Try again later."
+    },
+    {
+      "name": "a long title, cut",
+      "code": "busy",
+      "context": {
+        "runningTitle": "Frieren: Beyond Journey's End – the complete first season, every episode"
+      },
+      "text": "Still making “Frieren: Beyond Journey…”. Try again later."
+    },
+    {
+      "name": "stalled",
+      "code": "stalled",
+      "is": {
+        "text": "Something went wrong. Try again later.",
+        "standard": false
+      }
+    },
+    {
+      "name": "interrupted",
+      "code": "interrupted",
+      "is": {
+        "text": "Something went wrong. Try again later.",
+        "standard": false
+      }
+    },
+    {
+      "name": "transcription failed",
+      "code": "transcription_failed",
+      "is": {
+        "text": "Something went wrong. Try again later.",
+        "standard": false
+      }
+    },
+    {
+      "name": "internal",
+      "code": "internal",
+      "is": {
+        "text": "Something went wrong. Try again later.",
+        "standard": false
+      }
+    },
+    {
+      "name": "never the server's own wording",
+      "code": "Traceback (most recent call last)",
+      "text": "Something went wrong. Try again later."
+    },
+    {
+      "name": "never an object's own key",
+      "code": "constructor",
+      "text": "Something went wrong. Try again later."
+    }
+  ],
+  "tryAgainLater": [
+    "download_refused",
+    "unreachable",
+    "translation_failed",
+    "video_busy",
+    "busy",
+    "daily_limit",
+    "internal"
+  ],
+  "neverTryAgain": [
+    "no_minutes",
+    "too_long",
+    "unavailable",
+    "no_speech",
+    "invalid_captions",
+    "no_captions",
+    "blocked",
+    "stale"
+  ],
+  "shortTitle": [
+    [
+      "Frieren: Beyond Journey's End – the complete first season, every episode",
+      "Frieren: Beyond Journey…"
+    ],
+    [
+      "葬送のフリーレン ミニアニメ「●●の魔法」第1回：「考えていることを言ってしまう魔法」",
+      "葬送のフリーレン ミニアニメ「●●の魔法」第1…"
+    ],
+    [
+      "A short title",
+      "A short title"
+    ]
+  ]
+}

@@ -42,6 +42,19 @@ final class AccountInfo {
         return location != null && Boolean.FALSE.equals(locationAccurate);
     }
 
+    /**
+     * The country flags and location filters use: with [device], the country of the
+     * connection source ("Switzerland App Store") when it names one, else the account
+     * location, as X-Posed's effectiveCountry.
+     */
+    String country(boolean device) {
+        if (device) {
+            String key = Countries.sourceCountry(source);
+            if (key != null) return Countries.displayName(key);
+        }
+        return location;
+    }
+
     String toJson() {
         try {
             JSONObject o = new JSONObject();

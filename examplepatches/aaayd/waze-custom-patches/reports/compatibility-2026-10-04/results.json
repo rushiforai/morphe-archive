@@ -1,0 +1,278 @@
+{
+  "date": "2026-10-04",
+  "source_commit": "63bd3d9",
+  "patch_bundle_tested": "1.14.2",
+  "release_bundle": "1.14.1030734",
+  "methodology": "Original signatures and hashes checked on every split. Version metadata bypassed for diagnostic older inputs. Same patch implementation across all ten. Automatic native profiles only. Release executable classes and extension DEX match the tested bundle except BuildTarget metadata. Final semantic native discovery reproduced identical verified renderer output hashes. Full APK reconstruction, hook and binding inspection; no phone or Android Auto runtime test.",
+  "versions": [
+    {
+      "version": "5.15.5.0",
+      "version_code": 1030665,
+      "uploaded": "2026-01-15T23:36:00Z",
+      "sha256": "8965f198d8e9aa1f3308b668e9ca1840e37cbadf0c91926512d09599852b11e5",
+      "original_signatures_verified": true,
+      "renderer_sha256": "3616e18ef06cdd8af0d607ef4894f5f3648572299cbcbc4b91a31ca3c53ac5cd",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "FAIL",
+      "automatic_build_pass": false,
+      "diagnostic_apk_sha256": "ed69adbc2e7f5b930309d2ea4c819f4cc40f2889ce3b6fc1eb896698e4daeda7",
+      "before_applied": 0,
+      "after_applied": 7,
+      "failed": [
+        {
+          "patch": "Detailed report icons at normal sizes",
+          "reason": "app.morphe.patcher.patch.PatchException: No verified icon-sizing profile for this ARM64 renderer. Refresh the Morphe source after the nightly build. Renderer SHA-256: 3616e18ef06cdd8af0d607ef4894f5f3648572299cbcbc4b91a31ca3c53ac5cd"
+        }
+      ]
+    },
+    {
+      "version": "5.16.2.0",
+      "version_code": 1030676,
+      "uploaded": "2026-02-20T17:53:00Z",
+      "sha256": "c49cc1859ef5d908fca072d5aca8a054a710f936e98d6a0a3ef1c82bc5d557bc",
+      "original_signatures_verified": true,
+      "renderer_sha256": "aa11bd2116835bf5146acfae534f67c272fbd06d1f1dae740d095d8f3f8408c5",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "FAIL",
+      "automatic_build_pass": false,
+      "diagnostic_apk_sha256": "52e6ea73e3955ed65316f556dce2447a306d3482b53193e1afb6cf7cfab0f682",
+      "before_applied": 0,
+      "after_applied": 7,
+      "failed": [
+        {
+          "patch": "Detailed report icons at normal sizes",
+          "reason": "app.morphe.patcher.patch.PatchException: No verified icon-sizing profile for this ARM64 renderer. Refresh the Morphe source after the nightly build. Renderer SHA-256: aa11bd2116835bf5146acfae534f67c272fbd06d1f1dae740d095d8f3f8408c5"
+        }
+      ]
+    },
+    {
+      "version": "5.17.1.0",
+      "version_code": 1030685,
+      "uploaded": "2026-03-12T03:26:00Z",
+      "sha256": "88a3639e12adf36e82b141e288ded5bc5dcb176c851ef7e44408e435373b0840",
+      "original_signatures_verified": true,
+      "renderer_sha256": "e6460526e776147dc583e98d66a4f3079dfd4913d2f9a1622701657c3d78a5bf",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "FAIL",
+      "automatic_build_pass": false,
+      "diagnostic_apk_sha256": "1f56111989a25925eb13345fd5e09191a879ce2a24a8ef4a0c89787fceda918f",
+      "before_applied": 0,
+      "after_applied": 7,
+      "failed": [
+        {
+          "patch": "Detailed report icons at normal sizes",
+          "reason": "app.morphe.patcher.patch.PatchException: No verified icon-sizing profile for this ARM64 renderer. Refresh the Morphe source after the nightly build. Renderer SHA-256: e6460526e776147dc583e98d66a4f3079dfd4913d2f9a1622701657c3d78a5bf"
+        }
+      ]
+    },
+    {
+      "version": "5.18.5.0",
+      "version_code": 1030690,
+      "uploaded": "2026-04-15T17:31:00Z",
+      "sha256": "b0ea556af1f66a1568014aee20a6ff28987e4fae921a7238fa24fdfa4f8cb115",
+      "original_signatures_verified": true,
+      "renderer_sha256": "68a1cf2cb69bb194399b635a5715a8065d860cc36487a345dda4bf45f6d8455a",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Detailed report icons at normal sizes",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "PASS",
+      "automatic_build_pass": true,
+      "diagnostic_apk_sha256": "8c309a0ab2be38fb541b5aee6dee03956d4f5e77f59c2f796b8e80f378c4afae",
+      "before_applied": 2,
+      "after_applied": 8,
+      "failed": [],
+      "native_output_sha256": "6ad182bbf15c31a6474ffb7d2bf1e3f345d423dd3108fc4bcc930fb636bbc362"
+    },
+    {
+      "version": "5.19.0.2",
+      "version_code": 1030701,
+      "uploaded": "2026-05-21T19:14:00Z",
+      "sha256": "29452ac3265452d12315ff12e03fbda697ce6a9a02f11ab8cfae86a8db6f5f04",
+      "original_signatures_verified": true,
+      "renderer_sha256": "bde427edb7e12fa22501e62d309147a206417428f2e2dcc06334c50fe9d5821f",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Detailed report icons at normal sizes",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "PASS",
+      "automatic_build_pass": true,
+      "diagnostic_apk_sha256": "9ab5d561fb532a79fbb6b886dca71b0d36237622d9d4dca12e4bdf8a7c0c2e17",
+      "before_applied": 5,
+      "after_applied": 8,
+      "failed": [],
+      "native_output_sha256": "7b9a5ea050914834faaa8db9729aef61e0c15c3e67148aa63ef75eca001d6708"
+    },
+    {
+      "version": "5.20.0.2",
+      "version_code": 1030707,
+      "uploaded": "2026-06-19T16:33:00Z",
+      "sha256": "b6d4ccfc828788e7af7145be45347689e586c9efb34169e37b6e032a54b8d898",
+      "original_signatures_verified": true,
+      "renderer_sha256": "c9bce5f73204b9c4f8da944cb0d444afda3df094ec019f2a6c82641106a0d376",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Detailed report icons at normal sizes",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "PASS",
+      "automatic_build_pass": true,
+      "diagnostic_apk_sha256": "4f7bea9f9d480b6d0f2868e3c98e3604c3fdcdf39f6d29a7e722d2ed12946077",
+      "before_applied": 5,
+      "after_applied": 8,
+      "failed": [],
+      "native_output_sha256": "67b3220487e3d32cae6636168f029dd3b0c46b116b5847938a1138ff0f1204bf"
+    },
+    {
+      "version": "5.21.0.0",
+      "version_code": 1030711,
+      "uploaded": "2026-07-01T20:52:00Z",
+      "sha256": "5922d571c483b25e906587f85cf56dafc06e6dba2756432a0a685b7d3ea09133",
+      "original_signatures_verified": true,
+      "renderer_sha256": "ebc5e6a5834e1dcc5dd1757917a8eab93a0eb64f70d21b85f78c73a4b8c241ec",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Detailed report icons at normal sizes",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "PASS",
+      "automatic_build_pass": true,
+      "diagnostic_apk_sha256": "9cb6e5bfca8e0d4551ada9eceab497f2973dd82cfa47f7a64f8e184c1278d161",
+      "before_applied": 5,
+      "after_applied": 8,
+      "failed": [],
+      "native_output_sha256": "36a04f447cf1d16c02968002817e121f884201ebadecd2a02742b5277af44db1"
+    },
+    {
+      "version": "5.22.1.1",
+      "version_code": 1030721,
+      "uploaded": "2026-08-18T06:39:00Z",
+      "sha256": "afae4967e6782aa17796252ab32d3784c22338163ef8a1ec218c1c15f5331c88",
+      "original_signatures_verified": true,
+      "renderer_sha256": "5f5b2e66afdded1631d6b801b7775ba90676d8c21defdc98f8aa5aa4c3327f3c",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Detailed report icons at normal sizes",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "PASS",
+      "automatic_build_pass": true,
+      "diagnostic_apk_sha256": "ce8e52fd86cae423bdf55ed2696485872241a9b2829aba5357be9f04929f5c62",
+      "before_applied": 7,
+      "after_applied": 8,
+      "failed": [],
+      "native_output_sha256": "036035c3472e764b9e624964d6851800642309a16d78cb831f6e71e5f8ed43d6"
+    },
+    {
+      "version": "5.23.90.900",
+      "version_code": 1030726,
+      "uploaded": "2026-09-11T22:10:00Z",
+      "sha256": "96e5b94d9861f873fe837e50fbf0d3539455c30a6de50b195adae1d56bd1fd75",
+      "original_signatures_verified": true,
+      "renderer_sha256": "8b561f78eec030819f33256d7b276ef33222790767de7ba0b139098c7f44c31f",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Detailed report icons at normal sizes",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "PASS",
+      "automatic_build_pass": true,
+      "diagnostic_apk_sha256": "4b649b3297fb1c10029961c82f6dda784f34b0dce7d4c410a2cb53f731264659",
+      "before_applied": 8,
+      "after_applied": 8,
+      "failed": [],
+      "native_output_sha256": "a65d1d9b4f338a16ca997ed0787dcd16d331b16f55e8cb5f81d1543805e58aa1"
+    },
+    {
+      "version": "5.24.90.901",
+      "version_code": 1030734,
+      "uploaded": "2026-10-02T19:49:00Z",
+      "sha256": "565ecb9de2e2ddd2a57412ababa1d19851af683193c28e0d30fd16e035d12a47",
+      "original_signatures_verified": true,
+      "renderer_sha256": "b3ea2c7960c6bc9f000b88abf369e609ed9e8172338fea76a574f3641f72feeb",
+      "applied": [
+        "Android Auto police alert distance",
+        "Android Auto setup",
+        "Detailed report icons at normal sizes",
+        "Rank badge selector",
+        "Selectable map themes",
+        "Selectable report icon packs",
+        "Speed camera sound below speed limit",
+        "Unlock driver moods"
+      ],
+      "structural_validation": "PASS",
+      "native_discovery": "PASS",
+      "automatic_build_pass": true,
+      "diagnostic_apk_sha256": "715dd0ed7609c72ed1c535341c26754ef3477fe6cd527e1d6f5a26a8be2cc3d4",
+      "before_applied": 8,
+      "after_applied": 8,
+      "failed": [],
+      "native_output_sha256": "3bd0a6804071bc7da152186a5dd0ffb3a94f7d10b521d971032714526a4d8f04"
+    }
+  ]
+}

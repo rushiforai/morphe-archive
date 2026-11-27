@@ -47,6 +47,60 @@ class BundleMetadataTest(unittest.TestCase):
         self.assertGreater(test_idx, prepare_idx)
         self.assertGreater(publish_idx, test_idx)
 
+    def test_patch_list_line_target_matches_shared_kt(self):
+        shared_src = (ROOT / "patches/src/main/kotlin/app/linenotifications/patches/shared/Shared.kt").read_text(encoding="utf-8")
+        target_match = re.search(
+            r'AppTarget\(\s*version\s*=\s*"([^"]+)"\s*,\s*versionCode\s*=\s*(\d+)\s*,\s*isExperimental\s*=\s*(true|false)',
+            shared_src,
+        )
+        self.assertIsNotNone(target_match)
+        expected_version = target_match.group(1)
+        expected_code = int(target_match.group(2))
+        expected_experimental = target_match.group(3) == "true"
+        self.assertIn(f'packageMetadata.versionName != "{expected_version}"', shared_src)
+        self.assertIn(f'packageMetadata.versionCode != "{expected_code}"', shared_src)
+
+        listing = json.loads((ROOT / "patches-list.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(listing["patches"]), 6)
+        for patch in listing["patches"]:
+            line_pkgs = [
+                pkg for pkg in patch["compatiblePackages"]
+                if pkg["packageName"] == "jp.naver.line.android"
+            ]
+            self.assertEqual(len(line_pkgs), 1, f"Missing jp.naver.line.android in {patch['name']}")
+            targets = line_pkgs[0]["targets"]
+            self.assertTrue(targets, f"No targets in {patch['name']}")
+            self.assertEqual(
+                [t["version"] for t in targets],
+                [expected_version],
+                f"Target version mismatch in {patch['name']}",
+            )
+            self.assertTrue(
+                all(code == expected_code for code in targets[0]["versionCodes"].values()),
+                f"Target versionCode mismatch in {patch['name']}",
+            )
+            self.assertIs(
+                targets[0]["isExperimental"],
+                expected_experimental,
+                f"Target isExperimental mismatch in {patch['name']}",
+            )
+
+    def test_release_workflow_prerelease_is_conditional(self):
+        workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+        branch_match = re.search(
+            r"if\s*\(\$version\s*-match\s*'-'\)\s*\{(?P<pre>.*?)\}\s*else\s*\{(?P<stable>.*?)\}",
+            workflow,
+            re.S,
+        )
+        self.assertIsNotNone(branch_match)
+        pre_block = branch_match.group("pre")
+        stable_block = branch_match.group("stable")
+        self.assertIn("gh release create", pre_block)
+        self.assertIn("--prerelease", pre_block)
+        self.assertIn("gh release create", stable_block)
+        self.assertNotIn("--prerelease", stable_block)
+        self.assertEqual(workflow.count("--prerelease"), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -44,12 +44,17 @@ public class InstantsButtonTest {
         }
     }
 
-    @Test public void theSwitchSitsUnderInboxAndStartsOff() {
-        String[] spec = null;
-        for (String[] control : SettingsActivity.CONTROLS) if (control[0].equals("instants_button")) spec = control;
-        assertNotNull(spec);
+    @Test public void theSwitchSitsUnderShowInstantsTabAndStartsOff() {
+        int at = -1, tab = -1;
+        for (int i = 0; i < SettingsActivity.CONTROLS.length; i++) {
+            if (SettingsActivity.CONTROLS[i][0].equals("instants_button")) at = i;
+            if (SettingsActivity.CONTROLS[i][0].equals(Settings.SHOW_INSTANTS_TAB)) tab = i;
+        }
+        assertTrue(at >= 0);
+        String[] spec = SettingsActivity.CONTROLS[at];
         assertEquals("Hide the Instants button", spec[1]);
-        assertEquals("inbox", spec[3]);
+        assertEquals("tab_bar", spec[3]);
+        assertEquals("Show Instants tab sends people here, so the two sit together", tab + 1, at);
         assertTrue(Settings.installed.contains("instants_button"));
         assertFalse(Settings.preferences.getBoolean("instants_button", false));
     }

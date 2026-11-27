@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vivimusic/automix/analysis.schema.json",
+  "title": "Automix song analysis",
+  "description": "One song's analysis as the planner reads it (src/automix/automix.js results; made by the analysis worker in src/vendor/automix, BitChord's analyzer). Times are seconds of the song's own timeline. Both apps produce and read this shape.",
+  "type": "object",
+  "required": ["fileKey", "durationSec", "bpm", "beatIntervalSec", "firstDownbeatSec", "gridConfidence"],
+  "properties": {
+    "analysisVersion": { "type": "string", "description": "Which producer and build made it: each app writes its own (extension 'bc8.v1', phone 'ayham.2'). An analysis with another app's or another build's value is redone, never mixed." },
+    "fileKey": { "type": "string", "description": "The YouTube video id." },
+    "musicVideo": { "type": "boolean", "description": "Analysed from a music video's audio. Loop mixes are refused for it: its bars rarely match the song's." },
+    "durationSec": { "type": "number", "exclusiveMinimum": 0 },
+    "bassCurve": {
+      "type": ["object", "null"],
+      "required": ["start", "step", "values"],
+      "properties": { "start": { "type": "number" }, "step": { "type": "number" }, "values": { "type": "array", "items": { "type": "number", "minimum": 0 } } },
+      "description": "Kick and bass level (Orchard bass_curve): 35-140 Hz RMS every 0.25 s from 0 s, 1 = the song's usual level (75th percentile of per-second means). Beatless passages read near 0; Automix v2's bridge and muffle read it. null: not measured."
+    },
+    "subBassRatio": { "type": ["number", "null"], "description": "Production style (Orchard's): log10 of the energy at 25-60 Hz over 60-250 Hz, whole song. Automix v2 never overlaps two songs 0.9 or more apart. null: not measured." },
+    "chroma": { "type": ["array", "null"], "items": { "type": "number" }, "minItems": 12, "maxItems": 12, "description": "The whole song's pitch-class profile, C to B, summed to 1 (Orchard earmark chroma). Automix v2's key score uses its cosine. null: not measured." },
+    "chromaCurve": {
+      "type": ["object", "null"],
+      "required": ["start", "step", "values", "weights"],
+      "properties": { "start": { "type": "number" }, "step": { "type": "number" }, "values": { "type": "array", "items": { "type": "array", "items": { "type": "number" }, "minItems": 12, "maxItems": 12 } }, "weights": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 4 } } },
+      "description": "Pitch classes every 0.5 s (16384-point spectra, peaks 65 Hz-2.1 kHz): each frame summed to 1, its weight against the song's median frame (drum-only frames weigh little). Automix v2's bridge checks the keys where two songs meet from it. null: not measured."
+    },
+    "loudnessCurve": {
+      "type": ["object", "null"],
+      "required": ["start", "step", "values"],
+      "properties": { "start": { "type": "number" }, "step": { "type": "number" }, "values": { "type": "array", "items": { "type": "number" } } },
+      "description": "K-weighted (ITU BS.1770) mean square every 0.1 s, in dB (floor -120). Automix v2 reads a region's EBU R128 gated loudness from it. null: not measured."
+    },
+    "contentEndSec": { "type": ["number", "null"], "description": "Where the music ends (trailing silence cut). Advanced AutoDJ (version 2) plans its mix-out against this. null: not measurable." },
+
+    "bpm": { "type": ["number", "null"], "description": "Tempo of the whole song's beat grid." },
+    "beatIntervalSec": { "type": ["number", "null"], "description": "60 / bpm, the grid's beat length." },
+    "firstDownbeatSec": { "type": ["number", "null"], "description": "Anchor of the constant bar grid: downbeats at firstDownbeatSec + k * 4 * beatIntervalSec." },
+    "gridConfidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "How well the constant grid fits. Blends need >= the planner's MIN_GRID_CONFIDENCE; long blends are shortened on a weak grid." },
+    "tailGrid": {
+      "description": "The grid fitted to the song's last part only, used for the outgoing side (asOutgoing). null: the end has no usable grid. Absent: older analysis, the whole-song grid is used.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["bpm", "beatIntervalSec", "firstDownbeatSec", "gridConfidence"],
+          "properties": {
+            "bpm": { "type": "number" },
+            "beatIntervalSec": { "type": "number" },
+            "firstDownbeatSec": { "type": "number" },
+            "gridConfidence": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      ]
+    },
+    "headBeats": { "$ref": "#/$defs/beatTrack", "description": "Beat This! model beats in the song's opening (the incoming loop is searched here)." },
+    "tailBeats": { "$ref": "#/$defs/beatTrack", "description": "Beat This! model beats in the song's ending (the outgoing loop is searched here)." },
+
+    "keyName": { "type": ["string", "null"], "description": "e.g. 'F# major'." },
+    "keyConfidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "camelot": {
+      "type": ["object", "null"],
+      "required": ["num", "letter"],
+      "properties": {
+        "num": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "letter": { "enum": ["A", "B"] }
+      }
+    },
+
+    "energy": { "type": "number", "description": "Mean of energyCurve." },
+    "energyCurve": { "type": "array", "items": { "type": "number" }, "description": "Loudness energy in consecutive 16-beat windows from 0 s (Auto blend length reads 'calm' as under 0.7 of the mean)." },
+    "introEndSec": { "type": ["number", "null"], "description": "Where full energy starts. A blend lands the incoming song's pre-full-energy phrase at its end." },
+    "outroStartSec": { "type": ["number", "null"], "description": "Where the ending starts." },
+
+    "loudness20Hz": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0 },
+      "description": "Optional. RMS of the decoded audio in consecutive 50 ms windows from 0 s (channel 0, every 16th sample: what the loop planner reads), for the overview's waveform and loop checks. The pair fixtures carry it beside the analysis."
+    },
+    "ytLoudnessDb": {
+      "type": ["number", "null"],
+      "description": "Optional. YouTube's loudness for this video: playerConfig.audioConfig.loudnessDb of the player response = trackAbsoluteLoudnessLkfs - loudnessTargetLkfs (target -7 LKFS). YouTube web only turns loud songs down, never quiet ones up: element volume = player volume x min(1, 10^(-loudnessDb/20)) (measured 2026-11-17 in Firefox: +1.76 dB -> x0.8166, +0.85 dB -> x0.9068, -1.26 dB -> x1). A deck replacing YouTube's sound plays at that same level. Both decks level against this. Extension: read in the page from the player response (#movie_player getPlayerResponse(), or the /youtubei/v1/player answer). Phone: the same field of its InnerTube player request (BitChord: StreamResolver.loudnessDbFor). null: YouTube gave none."
+    },
+    "ytPerceptualLoudnessDb": {
+      "type": ["number", "null"],
+      "description": "Optional. playerConfig.audioConfig.perceptualLoudnessDb when YouTube sends it: the track's absolute loudness in LKFS (equal to trackAbsoluteLoudnessLkfs; loudnessDb is this minus loudnessTargetLkfs, -7). Prefer: ytLoudnessDb to match what YouTube's own player does (a deck replacing the player must sound like it); ytPerceptualLoudnessDb, when present, to compare two songs' absolute loudness, else ytLoudnessDb - 7 (Metrolist's conversion)."
+    },
+
+    "vocals": {
+      "type": "array",
+      "description": "open-unmix vocal mask in windows: curve[i] is how sung the moment startSec + i / fps is (0..1; > 0.25 counts as sung). Used where a song has no synced lyrics.",
+      "items": {
+        "type": "object",
+        "required": ["startSec", "fps", "curve"],
+        "properties": {
+          "startSec": { "type": "number" },
+          "fps": { "type": "number", "exclusiveMinimum": 0 },
+          "curve": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "beatTrack": {
+      "type": "object",
+      "required": ["beats", "downbeats", "bpm", "confidence"],
+      "properties": {
+        "beats": { "type": "array", "items": { "type": "number" } },
+        "downbeats": { "type": "array", "items": { "type": "number" }, "description": "Bar lines. A loop runs from one downbeat to the one N bars later (within a quarter beat), so its seam is the music's own bar line." },
+        "bpm": { "type": "number" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

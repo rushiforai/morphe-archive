@@ -37,6 +37,8 @@ public final class MorpheSettings {
             "app.morphe.extension.kicktv.maturewarning.MatureWarningSection",
             "app.morphe.extension.kicktv.stoponminimize.StopOnMinimizeSection",
             "app.morphe.extension.kicktv.homedestination.HomeDestinationSection",
+            "app.morphe.extension.kicktv.chatbackground.ChatBackgroundSection",
+            "app.morphe.extension.kicktv.chatsplit.ChatSplitSection",
     };
 
     private MorpheSettings() {

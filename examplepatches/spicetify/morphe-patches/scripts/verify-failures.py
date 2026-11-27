@@ -22,7 +22,7 @@ def altered_apk(source, target, kind):
                 old, new = {"sharing": (b"Invalid uri ", b"Invalid urj "),
                             "sharing-response": (b"fullUrl_", b"testUrl_"),
                             "settings": (b"aboutPage", b"aboutPagg"),
-                            "home": (b"Lp/joz0;", b"Lp/jpz0;"),
+                            "home": (b"Lp/ypb1;", b"Lp/ypb2;"),
                             "navigation": (b"premium_tab_enabled", b"premium_tab_enablex"),
                             "ads": (b"featureTypeCase_", b"featureTypeTest_"),
                             "player-ads": (b"sectionTypeCase_", b"sectionTypeTest_"),
@@ -59,9 +59,9 @@ def main():
                               (args.stock, args.bundle, args.desktop))
     cases = [
         ("changed-settings-menu", "settings", "Clean sharing links", None,
-         "Spotify settings ABI changed: Lp/xlt;"),
+         "Spotify settings ABI changed: Lp/ec2;"),
         ("missing-sharing-builder", "sharing", "Clean sharing links", None,
-         "Spotify settings ABI changed: Lp/ion;"),
+         "Expected one Spotify share URL builder, found 0."),
         ("changed-sharing-response", "sharing-response", "Clean sharing links", None,
          "Spotify sharing response getter for fullUrl_ changed."),
         ("missing-theme-resource", "theme", "Theme colors", None,

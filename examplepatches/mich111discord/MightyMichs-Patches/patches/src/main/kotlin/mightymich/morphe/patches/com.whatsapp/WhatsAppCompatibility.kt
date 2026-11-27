@@ -10,6 +10,8 @@ object WhatsAppCompatibility {
         packageName = "com.whatsapp",
         apkFileType = ApkFileType.APK,
         targets = listOf(
+            AppTarget(version = "2.26.46.82"),
+            AppTarget(version = "2.26.46.76"),
             AppTarget(version = "2.26.45.93"),
             AppTarget(version = "2.26.43.76"),
             AppTarget(version = "2.26.43.75"),

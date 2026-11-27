@@ -9,3 +9,17 @@ internal object PairipCheckLicenseFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;"),
 )
+
+internal object PairipInitializeLicenseCheckFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "initializeLicenseCheck",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object PairipConnectToLicensingServiceFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "connectToLicensingService",
+    returnType = "V",
+    parameters = emptyList(),
+)

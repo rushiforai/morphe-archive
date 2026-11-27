@@ -10,11 +10,6 @@ import java.util.Map;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/**
- * Videos Home keeps suggesting: each video Home shows is counted once a visit (showings at least {@link #VISIT_GAP_MS}
- * apart), and a video shown the chosen number of times (XSettings.RESUGGESTED_LIMIT) which was never opened gets Not interested and is hidden. Opening a
- * video ends its count for good. The counts are kept in their own preferences file, the newest {@link #MAX_VIDEOS}.
- */
 final class Resuggested {
 
     static final int DEFAULT_LIMIT = 3;
@@ -24,7 +19,6 @@ final class Resuggested {
     private static final String FILE = "yx_resuggested";
     private static final String OPENED = "o";
 
-    /** Video ID to "count,last showing ms", or "o" once opened; in insertion order, oldest first. */
     private static Map<String, String> counts;
 
     private Resuggested() {
@@ -52,7 +46,6 @@ final class Resuggested {
         return counts;
     }
 
-    /** The chosen number of suggestions; 0 when off. */
     static int limit() {
         try {
             return Math.max(0, Integer.parseInt(XSettings.RESUGGESTED_LIMIT.get().trim()));
@@ -86,8 +79,6 @@ final class Resuggested {
         if (p != null) p.edit().putString("v", b.toString()).apply();
     }
 
-    /** Called when a video loads: once it plays in the watch player (an inline preview on Home is no opening), it is
-     * never counted again. */
     static void opened(String videoId) {
         if (videoId == null || limit() <= 0) return;
         Utils.runOnMainThreadDelayed(() -> {
@@ -100,7 +91,6 @@ final class Resuggested {
         }, 1500);
     }
 
-    /** Called for each video item Home lays out: true when the item reached the limit and is to be hidden. */
     static synchronized boolean onHome(VideoItem item) {
         if (limit() <= 0 || item.videoId == null || item.playlist || item.mix
                 || item.shorts || item.live) return false;

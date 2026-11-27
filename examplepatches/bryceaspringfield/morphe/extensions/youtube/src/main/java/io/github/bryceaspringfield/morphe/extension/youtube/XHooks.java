@@ -3,14 +3,12 @@ package io.github.bryceaspringfield.morphe.extension.youtube;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.patches.components.Filter;
 
-/** Entry points the patch calls from Morphe's own classes. */
 @SuppressWarnings("unused")
 public final class XHooks {
 
     private XHooks() {
     }
 
-    /** Appends the bundle's Litho filters to Morphe's list, as LithoFilterPatch's static initializer sets it. */
     public static Filter[] addFilters(Filter[] morphe) {
         try {
             Filter[] extra = {new XFilter(), new XLayoutFilter()};

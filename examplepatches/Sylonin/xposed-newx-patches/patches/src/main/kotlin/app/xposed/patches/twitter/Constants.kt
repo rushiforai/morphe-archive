@@ -9,6 +9,7 @@ object Constants {
     const val EXTENSION_PATH = "extensions/extension.mpe"
     const val HOOKS_CLASS = "Lapp/xposed/extension/Hooks;"
     const val BRIDGE_CLASS = "Lapp/xposed/extension/ComposeBridge;"
+    const val MODEL_BRIDGE_CLASS = "Lapp/xposed/extension/ModelBridge;"
 
     /** Oldest X release the patch supports. Newer releases are accepted too. */
     const val MIN_VERSION = "12.40.1-prod.01"

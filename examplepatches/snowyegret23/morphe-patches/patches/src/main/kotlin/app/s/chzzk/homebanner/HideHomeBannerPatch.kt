@@ -26,18 +26,20 @@ val hideHomeBannerPatch = bytecodePatch(
         if (packageMetadata.versionName in CHZZK_TV_VERSIONS) return@execute
 
         val entities = "Lcom/navercorp/game/android/community/data/"
-        initializeField("${entities}mobile/entity/home/streaming/StreamingHomeBanners;", "banners", null)
-        initializeField("${entities}core/entity/football/FootballCampaign;", "exposure", false)
+        val minified = packageMetadata.versionName == "3.18.0"
+        initializeField(if (minified) "Lmq8;" else "${entities}mobile/entity/home/streaming/StreamingHomeBanners;", "banners", null)
+        initializeField(if (minified) "Lmc3;" else "${entities}core/entity/football/FootballCampaign;", "exposure", false)
         val component = "Lcom/navercorp/game/android/community/data/mobile/entity/recommendation/TopicSlotComponent"
-        if (packageMetadata.versionName == "3.17.0") {
-            val rows = mutableClassDefBy("Lcom/navercorp/game/android/community/app/ui/home/streaming/topic/e;")
+        if (minified || packageMetadata.versionName == "3.17.0") {
+            val rows = mutableClassDefBy(if (minified) "Ly69;" else "Lcom/navercorp/game/android/community/app/ui/home/streaming/topic/e;")
                 .methods.single { it.name == "invoke" }
             val instructions = rows.implementation!!.instructions
-            val banners = setOf("$component${'$'}ImageBannerComponent;", "$component${'$'}SpecialEventBannerComponent;")
+            val banners = if (minified) setOf("Lts9;", "Lot9;") else
+                setOf("$component${'$'}ImageBannerComponent;", "$component${'$'}SpecialEventBannerComponent;")
             val checks = instructions.withIndex().filter {
                 it.value.opcode == Opcode.INSTANCE_OF && it.value.getReference<TypeReference>()?.type in banners
             }
-            check(checks.size == 2)
+            check(checks.size == 2 && checks.map { it.value.getReference<TypeReference>()!!.type }.toSet() == banners)
             for ((index, instruction) in checks) {
                 check(instructions[index + 1].opcode == Opcode.IF_EQZ)
                 val register = (instruction as TwoRegisterInstruction).registerA

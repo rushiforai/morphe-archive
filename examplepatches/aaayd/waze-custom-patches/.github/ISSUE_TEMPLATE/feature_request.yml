@@ -1,0 +1,9 @@
+name: Feature request
+description: Suggest a Waze custom patch improvement.
+title: "feature: "
+body:
+  - type: textarea
+    attributes:
+      label: Requested behaviour
+    validations:
+      required: true

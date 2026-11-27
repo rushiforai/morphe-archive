@@ -46,6 +46,7 @@ val hideBusinessBoxPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_BUSINESS_BOX_IN_MESSAGES)
         check(BusinessBoxListFingerprint.matchAll(1..1).size == 1)
         val method = BusinessBoxListFingerprint.method
         check(method.implementation!!.registerCount == 16)
@@ -98,6 +99,7 @@ val hideBusinessBoxPatch = bytecodePatch(
             invoke-virtual {p6}, $cacheCall
         """.trimIndent(), ExternalLabel("nezumi_hide_business_box", instructions[returnIndex]))
 
+        registerHooks(PatchId.HIDE_BUSINESS_BOX_IN_MESSAGES, method)
         attachNezumiSettings("attachBusinessBox")
     }
 }

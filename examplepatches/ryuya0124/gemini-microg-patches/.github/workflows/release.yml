@@ -1,7 +1,7 @@
 name: Release patch bundle
 on:
   push:
-    tags: ['v*']
+    tags: ['v*', '!v*-*']
 permissions:
   contents: write
 jobs:
@@ -25,7 +25,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          version="$(python3 -c 'import json; print(json.load(open("patches-bundle.json"))["version"])')"
+          version="$(jq -er '.version' patches-bundle.json)"
           test "$RELEASE_TAG" = "v$version"
           test -f "docs/releases/$RELEASE_TAG.md"
           gh release create "$RELEASE_TAG" "build/release/gemini-microg-patches-$version.mpp" build/release/patches-bundle.json build/release/SHA256SUMS --verify-tag --title "Gemini microG patches $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md"

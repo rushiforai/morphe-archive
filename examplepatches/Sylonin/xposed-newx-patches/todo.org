@@ -1,0 +1,140 @@
+:PROPERTIES:
+:ID:       6b169ec3-c44d-4a70-bc6a-fcfd4cf2d3b4
+:END:
+#+title: X-Posed feature parity
+
+This list covers the features of the X-Posed browser extension that this port lacks. It was
+compared against X-Posed 4.4.0 (commit 7e93b04, 2026-11-08). Upstream paths are relative to
+=extension/src/= in [[https://github.com/xaitax/x-account-location-device][xaitax/x-account-location-device]].
+
+* DONE Filters [12/12]
+- [X] Region countries: a region filter can also match chosen countries inside it, with
+  "Include countries" and All/None. Membership follows UN M49 geography. Upstream:
+  =shared/region-membership.js=, =shared/region-geography.js=.
+- [X] Account filters by permanent user ID, so handle changes don't matter. In Hide mode they
+  also hide an opened post.
+- [X] Display-name filters: words, phrases and emoji, case-insensitive. This needs the display
+  name from X's user model.
+- [X] Bio filters, with an option (off by default) to also match the self-written profile
+  location text.
+- [X] Domain and exact-URL filters on the profile website and bio links. A bare domain also
+  matches its subdomains. Same optional profile location match as bio filters.
+- [X] Account label filters: Parody, Commentary and Fan (X's =parody_commentary_fan_label=),
+  and the grey government or multilateral checkmark.
+- [X] Affiliation filters: an organization name or handle; part of the name is enough.
+- [X] Post language filters, using the language X assigns to the post. The user's own posts
+  are exempt, and unknown languages never match.
+- [X] Activity filters: minimum Following count and minimum total posts. Unknown counts never
+  match.
+- [X] Name pattern filters: minimum digits in the handle (1 to 15) and in the display name
+  (1 to 50, styled and non-Latin digits included).
+- [X] Location warning filter: hide or highlight accounts whose location X marks as possibly
+  inaccurate ("Show warned accounts" turned off).
+- [X] Saved filters page: one searchable list of every rule with category icons, edit and
+  remove, plus an "Add filter" flow.
+
+* DONE Always Show [3/3]
+- [X] Always Show list: accounts that no filter hides or highlights. Add or remove them from
+  the account sheet and from settings. Upstream adds @xaitax on new installs.
+- [X] Option (off by default) to exempt accounts the user follows, using the follow status X
+  has already loaded. Quoted authors are checked on their own.
+- [X] Exempt the signed-in user's own account from every filter.
+
+* DONE Filter behavior [9/9]
+- [X] Profile details from timelines: X-Posed reads the profile location, website and post
+  count from every user object X's web timelines return. NewX's timeline queries leave them
+  out (=UserProfileOnly= is only included when =$include_profile_info= is true, which only
+  profile lookups set), and timeline users become =MinimalUser=, which has no field for them.
+  Request the fragment in timelines when a filter needs it, and read the fields before X
+  drops them, so total posts, website and profile location filters work without opening
+  the profile.
+- [X] Use device country: take the country from the connection source (for example
+  "Switzerland App Store") for flags and country and region filters. Fall back to the account
+  location. Upstream: =getDeviceCountry= in =shared/utils.js=.
+- [X] Hide replies and quotes of filtered posts (off by default), even when the source post is
+  only highlighted. Each collapsed post shows the reason and a "Show post" control.
+- [X] Collapsed quotes in Hide mode: name the matching filters and offer "Show quoted post",
+  instead of removing the quote card.
+- [X] Opened posts: highlight a post the user opened instead of hiding it, unless a direct
+  account filter matches.
+- [X] Highlight in Lists: an option to highlight, not hide, in curated X List timelines while
+  other timelines keep the general mode.
+- [X] People lists: highlight matching accounts in Followers, Following, Verified followers and
+  account suggestions. Never hide them there, so the lists stay complete.
+- [X] "Use profile details" switch that stops reading bios, links and counts from X's data.
+  It turns off the filters that depend on them.
+- [X] Filter profiles: named filter sets that the user can create, rename, delete and switch.
+  Each signed-in X account remembers its profile. Badge settings and the cache stay shared.
+
+* TODO Account sheet [1/8]
+- [ ] Header with the profile picture, display name and the verification checkmark in its
+  color (blue, gold for business, grey for government), plus "Identity verified" and
+  "Protected" tags.
+- [ ] Activity counts: followers, following, posts and media.
+- [ ] Account history: creation date with account age, verified since, and the number of
+  handle changes.
+- [ ] Affiliation with the organization's badge image and a link to it.
+- [ ] User ID row. Tapping it copies the ID-based link =https://x.com/i/user/<id>=, which
+  keeps working after handle changes.
+- [X] Quick filter for the account itself (by user ID), next to the existing country or region
+  button.
+- [ ] Always Show button.
+- [ ] Copy or save the sheet as a PNG, in light or dark.
+
+* TODO Badges and surfaces [0/4]
+- [ ] Badges in the profile page header. It is not hooked today (see =docs/HOOKS.md=).
+- [ ] Chat: badges in one-to-one chat headers, inbox rows and message requests. The README
+  says badges appear in messages; check which of these three are covered.
+- [ ] Share button on badges, with a setting to hide it (see Sharing).
+- [ ] Defaults: upstream shows device icons and the location warning icon by default. Both are
+  off here. Decide whether to match.
+
+* TODO Sharing [0/2]
+- [ ] Post card: render a post as an image with its text, up to four uncropped photos,
+  metrics, account context (flag, connection, location warning), post and capture times, an
+  ID-based post link and the version. Upstream: =content/post-card.js=,
+  =content/evidence-capture.js=.
+- [ ] Share flow: a preview with an editable caption, then Quote, Reply or New post through
+  X's composer, or save the image. Nothing is posted without the user. Offer Android's share
+  sheet as well.
+
+* TODO Statistics [0/4]
+- [ ] Count each filtered post once across app restarts. Posts are only deduplicated within one
+  session today.
+- [ ] Device breakdown (iOS, Android, Web, Unknown) for filtered posts.
+- [ ] World map of filtered posts by country, with X regions and unmapped locations listed
+  separately. Upstream: =options/world-map.js=.
+- [ ] "Cached accounts" view: the same map and lists for the accounts in the local cache.
+
+* TODO Community cache [0/3]
+- [ ] Read and contribute the account creation date (=c=) and handle change count (=uc=).
+  Read them from X's About data first.
+- [ ] Show the cache's total size from =GET /stats=.
+- [ ] "Sync local cache to cloud": upload the local cache in batches of 25.
+
+* TODO Data and settings [0/10]
+- [ ] Export and import a backup: settings, filter profiles and lists, Always Show,
+  community-cache preference and the local account cache. Skip invalid or outdated cache
+  entries on import. Upstream: =shared/backup.js= (format 2.5).
+- [ ] Show the number of cached accounts and the cache duration next to "Clear cached
+  accounts".
+- [ ] Raise the local cache limit to 50,000 accounts. It is 20,000 here, and the whole store
+  is cleared when it overflows.
+- [ ] Main switch that turns X-Posed off without unpatching the app.
+- [ ] Rate limit status: show when X lookups are paused, and until when.
+- [ ] Debug mode: detailed logs on request.
+- [ ] Open settings without a badge, from X's side drawer or settings. Upstream adds a
+  "Blocking" link to X's sidebar, with a setting to hide it.
+- [ ] Quick Hide/Highlight switch. Upstream offers it as a keyboard shortcut and in its popup.
+- [ ] About: links to X-Posed's GitHub, privacy policy, issue tracker and support page.
+- [ ] Testing with a signed-in account (requested; later). Rather than exporting X's login
+  tokens from a published patch, which would let anyone holding the file use the account,
+  install a separately named test copy of X over adb, sign into it once, and update it in
+  place after each change.
+
+* Not applicable on Android
+- Opening account details on hover, the 300 ms hover delay and "Open details on click": on a
+  touch screen a tap always opens them.
+- "Open changelog on update" and the welcome page: Morphe Manager handles updates.
+- The browser popup: its controls are covered by the quick switch and settings items above.
+- Firefox container sign-in recovery and service worker keep-alive: browser-only problems.

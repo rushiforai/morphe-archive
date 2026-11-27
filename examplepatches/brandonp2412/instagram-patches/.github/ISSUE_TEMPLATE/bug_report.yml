@@ -1,0 +1,25 @@
+name: Bug report
+description: Report a problem with the Instagram notification prompts patch
+title: "bug: "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Instagram version
+      description: Please include version name and version code
+      placeholder: 454.0.0.13.77
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Bug and reproduction steps
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: If safe to share, provide redacted Morphe patch logs or Android crashes. Do not share credentials.
+      render: text

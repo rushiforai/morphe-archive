@@ -8,6 +8,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -146,20 +147,23 @@ internal fun BytecodePatchContext.addFollowingNetworkHooks() {
         return-object p0
     """)
 
-    if (packageMetadata.versionName !in setOf("1.3.0", "1.4.0")) return
-    val activityType = "Lcom/navercorp/game/android/community/tv/ui/TvActivity;"
-    val overlayActivity = "Lcom/navercorp/game/android/community/tv/component/activity/OverlayPlayerActivity;"
-    val overlayBase = "Lcom/navercorp/game/android/community/core/feature/feature/overlayplayer/component/OverlayPlayerViewModelBase;"
-    val overlayData = "Lcom/navercorp/game/android/community/core/feature/feature/overlayplayer/data/OverlayPlayerData${'$'}Data;"
-    val rectType = "Lcom/navercorp/game/android/community/core/ui/util/animation/LayoutAnim${'$'}Rect;"
-    val factory = classDefBy("${overlayData.removeSuffix(";")}${'$'}Companion;").methods.single {
-        AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypeNames == listOf("Ljava/lang/String;", rectType, "I") && it.returnType == overlayData
+    if (packageMetadata.versionName !in setOf("1.3.0", "1.4.0", "1.5.0")) return
+    val activityType = chzzkType("Lcom/navercorp/game/android/community/tv/ui/TvActivity;")
+    val overlayActivity = chzzkType("Lcom/navercorp/game/android/community/tv/component/activity/OverlayPlayerActivity;")
+    val overlayBase = chzzkType("Lcom/navercorp/game/android/community/core/feature/feature/overlayplayer/component/OverlayPlayerViewModelBase;")
+    val overlayData = chzzkType("Lcom/navercorp/game/android/community/core/feature/feature/overlayplayer/data/OverlayPlayerData${'$'}Data;")
+    val rectType = chzzkType("Lcom/navercorp/game/android/community/core/ui/util/animation/LayoutAnim${'$'}Rect;")
+    val minified = packageMetadata.versionName == "1.5.0"
+    val factory = classDefBy(chzzkType("Lcom/navercorp/game/android/community/core/feature/feature/overlayplayer/data/OverlayPlayerData${'$'}Data${'$'}Companion;")).methods.single {
+        AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypeNames == (if (minified) listOf("Ljava/lang/String;", rectType) else listOf("Ljava/lang/String;", rectType, "I")) &&
+            it.returnType == overlayData
     }
     val viewModel = classDefBy(overlayActivity).methods.single {
-        it.parameterTypes.isEmpty() && it.returnType == "Lcom/navercorp/game/android/community/tv/component/activity/OverlayPlayerViewModel;"
+        it.parameterTypes.isEmpty() && it.returnType == chzzkType("Lcom/navercorp/game/android/community/tv/component/activity/OverlayPlayerViewModel;")
     }
     val open = classDefBy(overlayBase).methods.single {
-        it.parameterTypeNames == listOf(overlayData, "Z") && it.returnType == "V" && it.name == "j"
+        it.parameterTypeNames == listOf(overlayData, "Z") && it.returnType == "V" && it.name == (if (minified) "h" else "j")
     }
     bridge("nativeChannelIntent", 5, """
         new-instance v0, Landroid/content/Intent;
@@ -178,7 +182,7 @@ internal fun BytecodePatchContext.addFollowingNetworkHooks() {
         check-cast p0, $overlayActivity
         const/4 v0, 0x0
         const/4 v1, 0x2
-        invoke-static {p1, v0, v1}, ${factory.smaliReference}
+        invoke-static {${if (minified) "p1, v0" else "p1, v0, v1"}}, ${factory.smaliReference}
         move-result-object v0
         invoke-virtual {p0}, ${viewModel.smaliReference}
         move-result-object v1
@@ -197,7 +201,7 @@ internal fun BytecodePatchContext.addFollowingNetworkHooks() {
                 invoke-static {p0, v0}, $FOLLOWING->receiveChannelIntent(Landroid/app/Activity;Landroid/content/Intent;)Z
             """.trimIndent())
         }
-    val newIntent = activity.methods.single { it.name == "J" && it.parameterTypeNames == listOf("Landroid/content/Intent;") }
+    val newIntent = activity.methods.single { it.name == (if (minified) "v" else "J") && it.parameterTypeNames == listOf("Landroid/content/Intent;") }
     check(newIntent.implementation!!.registerCount in 3..16)
     newIntent.addInstructionsWithLabels(0, """
         invoke-static {p0, p1}, $FOLLOWING->receiveChannelIntent(Landroid/app/Activity;Landroid/content/Intent;)Z

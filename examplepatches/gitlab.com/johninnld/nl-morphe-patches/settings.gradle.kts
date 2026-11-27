@@ -37,3 +37,6 @@ dependencyResolutionManagement {
 include(":medium-vendor", ":medium-stubs")
 project(":medium-vendor").projectDir = file("support/medium/vendor")
 project(":medium-stubs").projectDir = file("support/medium/stubs")
+
+include(":gboard-writing188-stubs")
+project(":gboard-writing188-stubs").projectDir = file("support/gboard-writing188-stubs")

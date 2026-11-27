@@ -1,6 +1,7 @@
 package app.spicetify.extension.spotify.theme;
 
 import android.util.Log;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -129,6 +130,7 @@ public final class ComposeTheme {
         Theme current = theme;
         Copy copy = new Copy(tables[1], current);
         for (String slot : tables[1].slots()) {
+            int themed = copy.themed;
             try {
                 Field field = holder.getClass().getDeclaredField(slot);
                 if (Modifier.isFinal(field.getModifiers())) throw new IllegalStateException("final slot");
@@ -140,6 +142,8 @@ public final class ComposeTheme {
                 }
                 field.set(holder, stock == null || current.colors.isEmpty() ? stock : copy.of(stock, slot));
             } catch (Exception e) {
+                // The group stayed Spotify's, so none of its colors count as themed.
+                copy.themed = themed;
                 Log.w(TAG, "Encore raw colors kept Spotify's " + slot, e);
             }
         }
@@ -242,7 +246,7 @@ public final class ComposeTheme {
             this.theme = theme;
         }
 
-        /** Rebuilds {@code node} through its only constructor, which takes its fields in name order. */
+        /** Rebuilds {@code node} through its constructor that takes its fields in name order, else field by field. */
         Object of(Object node, String path) throws ReflectiveOperationException {
             List<Field> fields = instanceFields(node.getClass());
             Object[] values = new Object[fields.size()];
@@ -264,15 +268,36 @@ public final class ComposeTheme {
                 types[i] = field.getType();
             }
             if (!changed) return node;
-            Constructor<?> constructor = node.getClass().getDeclaredConstructor(types);
-            constructor.setAccessible(true);
-            Object copy = constructor.newInstance(values);
+            Object copy = build(node.getClass(), fields, types, values);
             for (int i = 0; i < values.length; i++) {
                 if (!Objects.equals(fields.get(i).get(copy), values[i])) {
-                    throw new IllegalStateException(node.getClass().getName() + " doesn't take its fields in name order");
+                    throw new IllegalStateException(node.getClass().getName() + " doesn't take its fields in name order or ignored a write");
                 }
             }
             return copy;
+        }
+
+        private static Object build(Class<?> type, List<Field> fields, Class<?>[] types, Object[] values)
+                throws ReflectiveOperationException {
+            try {
+                Constructor<?> constructor = type.getDeclaredConstructor(types);
+                constructor.setAccessible(true);
+                return constructor.newInstance(values);
+            } catch (NoSuchMethodException noConstructor) {
+                // R8 removed the field constructors of Encore's raw groups: build a blank one, then write every field.
+                // Unverified on a device: needs ART to let Field.set write a final field after setAccessible(true).
+                Constructor<?>[] only = type.getDeclaredConstructors();
+                if (only.length != 1 || type.getSuperclass() != Object.class) throw noConstructor;
+                only[0].setAccessible(true);
+                Class<?>[] parameters = only[0].getParameterTypes();
+                Object[] zeros = new Object[parameters.length];
+                for (int i = 0; i < zeros.length; i++) {
+                    if (parameters[i].isPrimitive()) zeros[i] = Array.get(Array.newInstance(parameters[i], 1), 0);
+                }
+                Object copy = only[0].newInstance(zeros);
+                for (int i = 0; i < values.length; i++) fields.get(i).set(copy, values[i]);
+                return copy;
+            }
         }
 
         /** Compose keeps an sRGB color's ARGB in the high 32 bits. A stock color that moved stays. */

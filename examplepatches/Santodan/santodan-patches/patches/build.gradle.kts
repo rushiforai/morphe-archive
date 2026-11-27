@@ -462,6 +462,29 @@ tasks {
             file("${layout.buildDirectory.get()}/libs/patches-${project.version}.mpp").absolutePath,
             file("${layout.buildDirectory.get()}/verification/carscanner-242-bundle").absolutePath)
     }
+    register<JavaExec>("verifyCarScanner252") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyCarScanner252")
+        maxHeapSize = "1g"
+        args(file("../../OriginalApps/Car_Scanner-2.2.52.apk").absolutePath)
+    }
+    register<JavaExec>("verifyCarScanner252Bundle") {
+        dependsOn("testClasses", "buildAndroid")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyCarScanner252BundleKt")
+        maxHeapSize = "2g"
+        args(file("../../OriginalApps/Car_Scanner-2.2.52.apk").absolutePath,
+            file("${layout.buildDirectory.get()}/libs/patches-${project.version}.mpp").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/carscanner-252-bundle").absolutePath)
+    }
+    register<JavaExec>("verifyCarScannerGeneric") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyCarScannerGeneric")
+        maxHeapSize = "1g"
+        args(file("../../OriginalApps/Car_Scanner-2.2.52.apk").absolutePath)
+    }
     register<JavaExec>("verifyNuvioLauncherUi") {
         dependsOn("testClasses", ":extensions:nuvio-launcher-channels:compileReleaseKotlin", ":extensions:nuvio-launcher-channels:compileReleaseJavaWithJavac")
         classpath = sourceSets["test"].runtimeClasspath + files(
@@ -1739,12 +1762,12 @@ tasks.register<JavaExec>("verifyMonetDisplayedCards112Apk") {
         providers.gradleProperty("monetCards112Premium").getOrElse("false"))
 }
 
-// Fylo's latest Google Play original, preserving the three configuration splits separately.
+// Fylo's latest Google Play original, preserving the configuration splits separately.
 tasks.register<JavaExec>("verifyFylo") {
     dependsOn("testClasses")
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("santodan.patches.VerifyFylo")
-    args(file("../../OriginalApps/Fylo/2.6/base.apk").absolutePath,
+    args(file("../../OriginalApps/Fylo/2.9/base.apk").absolutePath,
         layout.buildDirectory.file("verification/fylo/billing.dex").get().asFile.absolutePath)
 }
 
@@ -1753,7 +1776,7 @@ tasks.register<JavaExec>("verifyFyloBundle") {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("santodan.patches.VerifyFyloBundleKt")
     maxHeapSize = "3g"
-    args(file("../../OriginalApps/Fylo/2.6/base.apk").absolutePath,
+    args(file("../../OriginalApps/Fylo/2.9/base.apk").absolutePath,
         layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath,
         layout.buildDirectory.dir("verification/fylo/bundle").get().asFile.absolutePath)
 }
@@ -1763,8 +1786,8 @@ tasks.register<JavaExec>("verifyFyloApk") {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("santodan.patches.VerifyFylo")
     maxHeapSize = "3g"
-    args("--apk", file("../../OriginalApps/Fylo/2.6/base.apk").absolutePath,
-        file(providers.gradleProperty("fyloApk").getOrElse("../../Apps/Fylo/Fylo-2.6-pro-unsigned.apk")).absolutePath)
+    args("--apk", file("../../OriginalApps/Fylo/2.9/base.apk").absolutePath,
+        file(providers.gradleProperty("fyloApk").getOrElse("../../Apps/Fylo/Fylo-2.9-pro-unsigned.apk")).absolutePath)
 }
 
 

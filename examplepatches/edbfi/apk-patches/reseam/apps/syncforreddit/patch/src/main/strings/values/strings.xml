@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<resources>
+    <string name="disable_sync_for_lemmy_bottom_sheet">Disable Sync for Lemmy bottom sheet</string>
+    <string name="disable_sync_for_lemmy_bottom_sheet_description">Prevents the Sync for Lemmy bottom sheet from opening at startup.</string>
+    <string name="fix_other_discussions">Fix Other discussions</string>
+    <string name="fix_other_discussions_description">Fixes “Other discussions” failing to load, by searching Reddit for the link instead.</string>
+    <string name="use_user_endpoint">Use /user/ endpoint</string>
+    <string name="use_user_endpoint_description">Requests user profiles from /user/ instead of /u/.</string>
+    <string name="fix_share_links">Fix /s/ links</string>
+    <string name="fix_share_links_description">Opens Reddit share links (/s/) as the post they point to, from the app and from other apps.</string>
+    <string name="fix_view_more_comments">Fix View more comments</string>
+    <string name="fix_view_more_comments_description">Fixes “View more” not loading further comments.</string>
+    <string name="fix_post_thumbnails">Fix post thumbnails</string>
+    <string name="fix_post_thumbnails_description">Fixes post thumbnails not loading.</string>
+    <string name="fix_video_downloads">Fix video downloads</string>
+    <string name="fix_video_downloads_description">Fixes downloaded Reddit videos having only audio.</string>
+    <string name="hide_gfycat_link_previews">Hide Gfycat link previews</string>
+    <string name="hide_gfycat_link_previews_description">Hides broken Gfycat link previews.</string>
+    <string name="fix_tenor_previews">Fix Tenor previews</string>
+    <string name="fix_tenor_previews_description">Loads missing Tenor thumbnails from public GIF pages.</string>
+    <string name="disable_ads">Disable ads</string>
+    <string name="disable_ads_description">Removes ads and the ad consent form, and keeps the ad SDKs from starting.</string>
+    <string name="imgur_client_id">Imgur client ID</string>
+    <string name="imgur_client_id_description">The client ID of an Imgur application you are authorized to use.</string>
+    <string name="fix_imgur">Fix Imgur</string>
+    <string name="fix_imgur_description">Loads Imgur albums and covers and uploads images through the Imgur API.</string>
+    <string name="fix_redgifs">Fix Redgifs</string>
+    <string name="fix_redgifs_description">Opens RedGIFs clips in the public embedded player and uses available Reddit video previews for Enhanced autoplay.</string>
+    <string name="fix_galleries">Fix galleries</string>
+    <string name="fix_galleries_description">Restores loading Reddit galleries from the post listing.</string>
+    <string name="fix_website_previews_and_backup">Fix website previews and hide retired cloud backup</string>
+    <string name="fix_website_previews_and_backup_description">Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available. Stores user tags and lets guests color comment authors on the device. Lets guests extract selectable text from images on the device. Lets guests translate comments and text posts on the device.</string>
+    <string name="spoof_client">Spoof client</string>
+    <string name="spoof_client_description">Uses your own Reddit OAuth registration when all three options are set. Leaves the app’s configuration in place when they are blank.</string>
+    <string name="oauth_client_id">OAuth client ID</string>
+    <string name="oauth_client_id_description">The public client ID from your own Reddit installed-app registration.</string>
+    <string name="oauth_redirect_uri">Redirect URI</string>
+    <string name="oauth_redirect_uri_description">The callback URI registered for that Reddit client.</string>
+    <string name="oauth_user_agent">User-Agent</string>
+    <string name="oauth_user_agent_description">A descriptive User-Agent that identifies your app and its operator.</string>
+</resources>

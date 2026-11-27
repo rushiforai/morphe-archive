@@ -175,6 +175,7 @@ final class FeedPages {
                 || build.contains(PatchFamily.SPONSORED_PROFILE_POSTS)
                 || build.contains(PatchFamily.PROFILE_NOTES)
                 || build.contains(PatchFamily.LOCAL_PROFILE_COUNTS)
+                || build.contains(PatchFamily.FRIEND_LIST)
                 || build.contains(PatchFamily.POST_ACTION_BUTTONS)
                 || build.contains(PatchFamily.AFFILIATE_LINKS)
                 || build.contains(PatchFamily.POST_WORDS)
@@ -234,6 +235,9 @@ final class FeedPages {
                                 ? L10n.t("Hides friend suggestions between posts, on your own profile, and as cards with an Add button in the "
                                         + "Stories tray.")
                                 : L10n.t("Hides friend suggestions between posts and on your own profile.")));
+                // Off until picked: the Friends tab is where people go to find friends (#600).
+                feed.addPreference(toggle(context, Settings.HIDE_FRIENDS_TAB_PEOPLE_YOU_MAY_KNOW,
+                        L10n.t("Hides the People you may know list in the Friends tab. Your friend requests stay.")));
                 // The groups card between reels goes through the Reels mid-card hook, which only
                 // Clean up Reels and Hide reel interest prompts put in.
                 feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_GROUPS,
@@ -462,6 +466,15 @@ final class FeedPages {
                 feed.addPreference(HushfacebookPreferenceFragment.countRow(context, LocalProfileCounts.Count.FRIENDS));
                 feed.addPreference(HushfacebookPreferenceFragment.countRow(context, LocalProfileCounts.Count.FOLLOWERS));
                 feed.addPreference(HushfacebookPreferenceFragment.countRow(context, LocalProfileCounts.Count.FOLLOWING));
+            }
+            // Read each time your All friends list is scrolled to its end (#597). The list stays usable
+            // with the switch off, since what's on it was found before.
+            if (build.contains(PatchFamily.FRIEND_LIST)) {
+                feed.addPreference(toggle(context, Settings.FRIEND_LIST_WATCH,
+                        L10n.t("Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on "
+                                + "this phone and tells you who's no longer on it since the time before. Someone who unfriended "
+                                + "you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.")));
+                feed.addPreference(FriendsGoneScreen.row(page, context));
             }
             if (build.contains(PatchFamily.RETURN_REFRESH)) {
                 feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
@@ -1103,7 +1116,8 @@ final class FeedPages {
         if (ask) {
             // Read on each tap, so a change shows on the next one.
             comments.addPreference(toggle(context, Settings.ASK_BEFORE_LIKING_COMMENTS,
-                    L10n.t("A tap on Like under a comment asks first, and only Continue likes or unlikes it.")));
+                    L10n.t("A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only "
+                            + "Continue goes ahead.")));
         }
         if (options) {
             comments.addPreference(toggle(context, Settings.LIKE_ONLY,
@@ -1112,8 +1126,21 @@ final class FeedPages {
                     L10n.t("The comment box loses its GIF and sticker buttons. Typing, photos and posting work as before.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_EMOJI_ROW,
                     L10n.t("The row of emoji over the comment box goes away. You can still type emoji from your keyboard.")));
+            // Read as each held comment is built, so a change shows on the next one held (#607).
+            comments.addPreference(toggle(context, Settings.HIDE_HELD_COMMENT_REACTIONS,
+                    L10n.t("Holding a comment no longer shows the row of reactions above it. Like under the comment still works.")));
+            comments.addPreference(toggle(context, Settings.HIDE_HELD_COMMENT_REPLY,
+                    L10n.t("Holding a comment no longer offers Reply. The Reply under the comment stays.")));
+            comments.addPreference(toggle(context, Settings.HIDE_HELD_COMMENT_COPY,
+                    L10n.t("Holding a comment no longer offers Copy.")));
+            comments.addPreference(toggle(context, Settings.HIDE_HELD_COMMENT_REPORT,
+                    L10n.t("Holding a comment no longer offers Report comment or Report to group admins.")));
+            comments.addPreference(toggle(context, Settings.HIDE_HELD_COMMENT_HIDE,
+                    L10n.t("Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.")));
             comments.addPreference(toggle(context, Settings.KEEP_COMMENT_KEYBOARD_CLOSED,
                     L10n.t("Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.")));
+            comments.addPreference(toggle(context, Settings.KEEP_COMMENTS_CLOSED_ON_TEXT_TAP,
+                    L10n.t("A tap on a post's text no longer opens its comments. The Comment button still does.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_BOX_LINE,
                     L10n.t("The thin line along the top of the comment box goes away.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_BOX,

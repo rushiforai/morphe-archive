@@ -1,0 +1,51 @@
+{
+  "profile": "gboard-18.3.1",
+  "note": "Fingerprints documented by the static analysis of the PixelBoard 18.3.1 artifact (APK SHA-256 e229d982ff65b24d71aeee804dcce6863e902ec409a0379ca3deaef17e30f6bd) and confirmed unchanged in the checked stock input APK for the Hinglish override. These are the fail-closed gates: if either hash is absent from the supplied APK, the patcher aborts.",
+  "target": {
+    "package": "com.google.android.inputmethod.latin",
+    "patched_package": "com.akshaykadam.pixelboard (PixelBoard rename - confirm per build)",
+    "version_name": "18.3.1.977415014 beta",
+    "version_code": 176004238,
+    "abi": "arm64-v8a"
+  },
+  "methods": {
+    "cleanup_builder": {
+      "class": "Lkfd;",
+      "name": "d",
+      "signature": "(Lhrl;Ljava/lang/String;ILqqi;Laebb;Ljava/lang/String;Laugd;Ljava/util/concurrent/atomic/AtomicBoolean;)V",
+      "dex": "classes3.dex",
+      "evidence": "JetsonLiteHandler cleanup request builder; replaces {ENABLED_LANGUAGES} from qqi.c and {HINGLISH_OVERRIDE_RULE} with the stock rule"
+    },
+    "prompt_owner": {
+      "class": "Lkew;",
+      "name": "b",
+      "signature": "(Ljava/lang/Object;)V",
+      "dex": "classes3.dex",
+      "evidence": "Owns the 17,802-byte Lite cleanup system prompt with the SCRIPT GATE Branch A Romanization mandate"
+    }
+  },
+  "fingerprints": {
+    "hinglish_override_rule": {
+      "sha256": "a024513458b73f915c78438cea2a9457b9c5aed28da3644030c3dc76cd0ac6e9",
+      "bytes": 289,
+      "begins": "3. Hinglish Override",
+      "dex": "classes3.dex"
+    },
+    "lite_cleanup_prompt": {
+      "sha256": "347a9484392763d5fb16660bc3ca9bbceb1851c96f2024f96c1e9327f504696e",
+      "bytes": 17802,
+      "begins": "<system_role>",
+      "dex": "classes3.dex"
+    }
+  },
+  "anchors": {
+    "enabled_languages_placeholder": "{ENABLED_LANGUAGES}",
+    "hinglish_placeholder": "{HINGLISH_OVERRIDE_RULE}"
+  },
+  "extension_class": "Lcom/akshaykadam/pixelboard/extension/ramblerlite/GboardRamblerLiteScriptRuntime;",
+  "known_limits": [
+    "Register binding for the enabled-languages value is derived at patch time by dataflow on the supplied APK; the patcher aborts if the {ENABLED_LANGUAGES} String.replace site cannot be resolved.",
+    "If the stock override rule loads before the {ENABLED_LANGUAGES} substitution in kfd.d, this profile aborts fail-closed; run analyze and report the site order.",
+    "Base/S remote cleanup policy is not established by these fingerprints; this profile patches the Lite path only."
+  ]
+}

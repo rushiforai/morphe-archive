@@ -1,0 +1,1 @@
+{"packageName":"com.waze","packageVersion":"5.24.90.901","patchingSteps":[{"step":"PATCHING","success":true},{"step":"REBUILDING","success":true}],"appliedPatches":[{"name":"Selectable report icon packs"}],"failedPatches":[]}

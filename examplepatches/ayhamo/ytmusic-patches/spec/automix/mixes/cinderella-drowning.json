@@ -1,0 +1,134 @@
+{
+  "format": "vivi-mix",
+  "version": 1,
+  "mixes": [
+    {
+      "from": {
+        "videoId": "rCwSRV7P6hY",
+        "title": "Cinderella",
+        "artist": "Future, Metro Boomin & Travis Scott"
+      },
+      "to": {
+        "videoId": "0X3Y2m9wj5c",
+        "title": "Drowning (feat. Kodak Black)",
+        "artist": "A Boogie Wit da Hoodie"
+      },
+      "override": {
+        "v": 1,
+        "preset": "custom",
+        "lanes": {
+          "volume": {
+            "unit": "beat",
+            "out": [
+              [
+                0,
+                0.83
+              ],
+              [
+                9.8,
+                0.84
+              ],
+              [
+                11.8,
+                1
+              ],
+              [
+                13.8,
+                0.83
+              ],
+              [
+                29.8,
+                0.8
+              ],
+              [
+                32,
+                1
+              ],
+              [
+                63.9,
+                1
+              ],
+              [
+                64,
+                0
+              ]
+            ],
+            "in": [
+              [
+                0,
+                0.88
+              ],
+              [
+                32,
+                0.88
+              ],
+              [
+                42,
+                0.74
+              ],
+              [
+                64,
+                0.74
+              ]
+            ]
+          },
+          "eq": {
+            "unit": "beat",
+            "out": {
+              "bass": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  2,
+                  -18
+                ],
+                [
+                  32,
+                  -18
+                ],
+                [
+                  32,
+                  0
+                ]
+              ]
+            },
+            "in": {
+              "bass": [
+                [
+                  0,
+                  -18
+                ],
+                [
+                  32,
+                  -18
+                ],
+                [
+                  32,
+                  -8
+                ],
+                [
+                  48,
+                  -18
+                ],
+                [
+                  63.9,
+                  -18
+                ],
+                [
+                  64,
+                  0
+                ]
+              ]
+            }
+          },
+          "effect": "none"
+        },
+        "bars": 16,
+        "beatMatch": "glide",
+        "gridBpm": 130
+      }
+    }
+  ]
+}

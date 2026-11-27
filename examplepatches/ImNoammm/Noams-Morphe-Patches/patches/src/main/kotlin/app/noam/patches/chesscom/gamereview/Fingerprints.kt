@@ -8,6 +8,7 @@
 package app.noam.patches.chesscom.gamereview
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.string
 
 internal object GameAnalysisPermissionsGetCanCreateFingerprint : Fingerprint(
     definingClass = "Lcom/chess/entities/GameAnalysisPermissions;",
@@ -54,37 +55,50 @@ internal object GameAnalysisRepositoryGetGameAnalysisFingerprint : Fingerprint(
     },
 )
 
-/** Builds the engine-line preview for a review position: (variants.d, AnalyzedPosition$Eval) -> api type. */
+/** Builds the engine-line preview for a review position: (position, AnalyzedPosition$Eval) -> api type. */
 internal object GameReviewV2V0DFingerprint : Fingerprint(
     custom = { method, classDef ->
         classDef.type.startsWith("Lcom/chess/gamereview/v2/") &&
             method.parameterTypes.size == 2 &&
-            method.parameterTypes[0] == "Lcom/chess/chessboard/variants/d;" &&
+            method.parameterTypes[0].startsWith("Lcom/chess/chessboard/variants/") &&
             method.parameterTypes[1].endsWith("/AnalyzedGameData\$AnalyzedPosition\$Eval;") &&
             method.returnType.startsWith("Lcom/chess/gamereview/api/")
     },
 )
 
-/** Builds the per-move review item: (AnalyzedPosition, history.i, GameAnalysisPermissions, Z) -> api.d. */
+/** Builds the per-move review item: (AnalyzedPosition, history entry, GameAnalysisPermissions, Z) -> api.d. */
 internal object GameReviewV2V0JFingerprint : Fingerprint(
     custom = { method, classDef ->
         classDef.type.startsWith("Lcom/chess/gamereview/v2/") &&
             method.parameterTypes.size == 4 &&
             method.parameterTypes[0].endsWith("/AnalyzedGameData\$AnalyzedPosition;") &&
-            method.parameterTypes[1] == "Lcom/chess/chessboard/history/i;" &&
+            method.parameterTypes[1].startsWith("Lcom/chess/chessboard/history/") &&
             method.parameterTypes[2] == "Lcom/chess/entities/GameAnalysisPermissions;" &&
             method.parameterTypes[3] == "Z" &&
             method.returnType == "Lcom/chess/gamereview/api/d;"
     },
 )
 
-/** GameAnalysisServiceImpl.a(CompatGameIdAndType, continuation): fetches the permissions object. */
+/** The analysis service's (CompatGameIdAndType, continuation) call: fetches the permissions object. */
 internal object GameAnalysisServiceImplGetPermissionsFingerprint : Fingerprint(
     custom = { method, classDef ->
-        classDef.type == "Lcom/chess/net/v1/analysis/GameAnalysisServiceImpl;" &&
-            method.name == "a" &&
+        classDef.type.startsWith("Lcom/chess/net/v1/analysis/") &&
             method.parameterTypes.size == 2 &&
             method.parameterTypes[0] == "Lcom/chess/entities/CompatGameIdAndType;" &&
             method.returnType == "Ljava/lang/Object;"
     },
+)
+
+/** toString() of the review overview's state, which keeps whether the move tally is unfolded. */
+internal object ReviewOverviewStateToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    strings = listOf(", isMoveTallyExpanded="),
+)
+
+/** The review summary's row for one move type: Tally(tally, modifier, onMoveClassificationClick, ...). */
+internal object TallyRowFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(string("tally"), string("onMoveClassificationClick")),
 )

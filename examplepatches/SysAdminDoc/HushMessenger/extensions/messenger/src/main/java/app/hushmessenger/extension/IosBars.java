@@ -2,11 +2,14 @@ package app.hushmessenger.extension;
 
 import android.annotation.TargetApi;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RecordingCanvas;
 import android.graphics.RenderEffect;
 import android.graphics.RenderNode;
 import android.graphics.Shader;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
@@ -38,7 +41,9 @@ import java.util.WeakHashMap;
  * keeps its place, the views around the list still cut it off at the bars' edges (so the only messages a bar shows are
  * the blurred ones it draws), and anything Messenger floats over the messages (the button back to the newest message)
  * is moved back out from under the bars. Messenger's bars are Litho views, and Litho puts its own colour back on a bar
- * whenever it mounts the bar again, so each frame a bar that lost its blur gets it back.
+ * whenever it mounts the bar again, so each frame a bar that lost its blur gets it back. Messenger paints the status
+ * bar's room with a strip of its own outside the chat, and when that strip sits right on the top bar it's frosted too,
+ * under the bar's colour, with the messages given its room as well, so the bar runs up to the top of the screen (#252).
  *
  * Nothing is kept but what was changed, so turning the switch off puts the chat back as it was. Needs Android 12, the
  * first version with a blur that costs nothing on the CPU. Public, since the call comes from Messenger's own chat
@@ -142,18 +147,23 @@ public final class IosBars {
                 restore(chat);
                 return;
             }
-            if (install(chat, bars)) Settings.enabled(KEY);
+            if (install(chat, bars, bars.growsUp() ? stripAbove(chat, bars.top) : null)) Settings.enabled(KEY);
         } catch (Throwable error) {
             Settings.hookFailedPrivately(KEY, "Can't look over the chat's bars", error);
         }
     }
 
-    /** Both bars again, as the messages behind them move. */
-    private static void redraw(View chat) {
+    /**
+     * Both bars and the strip over the top one again, as the messages behind them move. The strip sits outside the
+     * chat, so nothing else draws it again, and it kept the frame from before the list grew under it: solid colour
+     * (#252).
+     */
+    static void redraw(View chat) {
         Install had = installs.get(chat);
         if (had == null) return;
         if (had.top != null) had.top.invalidate();
         if (had.bottom != null) had.bottom.invalidate();
+        if (had.strip != null) had.strip.invalidate();
     }
 
     /**
@@ -167,6 +177,7 @@ public final class IosBars {
         try {
             frost(had.top, had.list);
             frost(had.bottom, had.list);
+            frostStrip(had.strip, had.band, had.top, had.list);
             ride(had);
         } catch (Throwable error) {
             had.broken = true;
@@ -221,7 +232,8 @@ public final class IosBars {
             View above = null, below = null;
             for (int i = 0; i < group.getChildCount(); i++) {
                 View child = group.getChildAt(i);
-                if (child == node || !child.isShown()) continue;
+                // The pinned message bar sits right under the chat's name, so it would read as the top bar.
+                if (child == node || !child.isShown() || PinnedBar.isBar(child)) continue;
                 Rect at = bounds(child);
                 if (at.height() <= 0 || at.height() > mine.height() || at.width() < mine.width() * WIDE) continue;
                 if (at.bottom <= mine.top + SLACK && (above == null || at.bottom > bounds(above).bottom)) above = child;
@@ -239,6 +251,48 @@ public final class IosBars {
         }
         if (top == null && bottom == null) return null;
         return new Bars(list, grown, top, bottom, topSide, bottomSide);
+    }
+
+    /**
+     * What paints the status bar's room right over the chat's top bar, or null (#252). Left alone it stays solid over a
+     * see-through bar. It isn't in the chat. A chat opened on its own screen has Messenger's own strip there, a view
+     * beside one of the chat's parents with nothing in it that spans the width, starts at the top of that parent and
+     * ends where the top bar starts. A chat opened from the chat list has nothing there but the window, and then it's
+     * the parent at the top of the window, whose background gets a band that high (see stripRoom).
+     */
+    static View stripAbove(View chat, View top) {
+        if (chat == null || top == null) return null;
+        Rect bar = bounds(top);
+        if (bar.height() <= 0 || bar.width() <= 0) return null;
+        int windowTop = bounds(chat.getRootView()).top;
+        View inner = chat;
+        for (ViewParent parent = chat.getParent(); parent instanceof ViewGroup; parent = parent.getParent()) {
+            ViewGroup group = (ViewGroup) parent;
+            Rect holder = bounds(group);
+            boolean clear = true;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View child = group.getChildAt(i);
+                if (child == inner || !child.isShown()) continue;
+                Rect at = bounds(child);
+                if (at.height() <= 0 || at.width() <= 0) continue;
+                if (at.top < bar.top - SLACK && at.bottom > holder.top + SLACK) clear = false;
+                if (child instanceof ViewGroup && ((ViewGroup) child).getChildCount() > 0) continue;
+                if (at.height() > bar.height() || at.width() < bar.width() * WIDE) continue;
+                if (at.top - holder.top <= SLACK && Math.abs(at.bottom - bar.top) <= SLACK) return child;
+            }
+            int band = bar.top - holder.top;
+            if (holder.top - windowTop <= SLACK && band > SLACK) {
+                return clear && band <= bar.height() && holder.width() >= bar.width() * WIDE ? group : null;
+            }
+            inner = group;
+        }
+        return null;
+    }
+
+    /** How much room [strip] adds over the top bar: its height, or for one of the chat's parents, the band over the bar. */
+    static int stripRoom(View strip, View top) {
+        if (strip == null || top == null) return 0;
+        return inside(top, strip) ? bounds(top).top - bounds(strip).top : strip.getHeight();
     }
 
     /** Whether [group] puts [child] where its margins say, so a negative margin lets the child reach past its edge. */
@@ -273,17 +327,24 @@ public final class IosBars {
     private static final class Install {
         final Bars bars;
         final View grown, list, top, bottom;
+        /** The strip behind the status bar over the top bar, or null (see stripAbove). */
+        final View strip;
         final Float topZ, bottomZ;
         final ViewOutlineProvider topOutline, bottomOutline;
         final int topMargin, bottomMargin, padTop, padBottom;
         final boolean clipped;
-        /** The bars' heights when this was built, and how far the list grew under each, 0 for a bar it doesn't reach. */
-        final int topHeight, bottomHeight, grewTop, grewBottom;
+        /**
+         * The bars' and the strip's heights when this was built, and how far the list grew under each side, 0 for a
+         * side it doesn't reach. At the top that's the bar and the strip over it together.
+         */
+        final int topHeight, bottomHeight, stripHeight, grewTop, grewBottom;
+        /** The strip's height when it's a parent of the chat whose background frosts only that band, else 0. */
+        final int band;
         /** What floats over the messages and was moved back out from under the bars: how far, and where it was left. */
         final Map<View, float[]> riders = new IdentityHashMap<>();
         boolean broken;
 
-        Install(Bars bars) {
+        Install(Bars bars, View strip) {
             this.bars = bars;
             this.grown = bars.grown;
             this.list = bars.list;
@@ -303,20 +364,27 @@ public final class IosBars {
             this.clipped = list instanceof ViewGroup && ((ViewGroup) list).getClipToPadding();
             this.topHeight = top != null ? top.getHeight() : 0;
             this.bottomHeight = bottom != null ? bottom.getHeight() : 0;
-            this.grewTop = grows && bars.growsUp() ? topHeight : 0;
+            boolean up = grows && bars.growsUp();
+            // The strip only goes see-through when the messages reach under it too, or it would show nothing but colour.
+            this.strip = up ? strip : null;
+            this.stripHeight = stripRoom(this.strip, top);
+            this.band = this.strip != null && inside(top, this.strip) ? stripHeight : 0;
+            this.grewTop = up ? topHeight + stripHeight : 0;
             this.grewBottom = grows && bars.growsDown() ? bottomHeight : 0;
         }
 
-        boolean holds(Bars other) {
+        boolean holds(Bars other, View otherStrip) {
             return grown == other.grown && list == other.list && top == other.top && bottom == other.bottom &&
-                (top == null || top.getHeight() == topHeight) && (bottom == null || bottom.getHeight() == bottomHeight);
+                (top == null || top.getHeight() == topHeight) && (bottom == null || bottom.getHeight() == bottomHeight) &&
+                (grewTop == 0 || (strip == otherStrip && stripRoom(strip, top) == stripHeight));
         }
 
         /** Whether the views this was built on are still the chat's. A rebuilt chat gets a fresh search. */
         boolean alive() {
             return list.getParent() != null && (grown == null || grown.getParent() != null) &&
                 (top == null || (top.getParent() != null && top.isShown())) &&
-                (bottom == null || (bottom.getParent() != null && bottom.isShown()));
+                (bottom == null || (bottom.getParent() != null && bottom.isShown())) &&
+                (strip == null || (strip.getParent() != null && strip.isShown()));
         }
     }
 
@@ -325,14 +393,15 @@ public final class IosBars {
      * layouts, since a chat lays itself out again for every message. A bar whose height changed is done over, so the
      * list's room always matches what the bars take.
      */
-    private static boolean install(View chat, Bars bars) {
+    private static boolean install(View chat, Bars bars, View strip) {
         Install had = installs.get(chat);
-        if (had != null && had.holds(bars)) return false;
+        if (had != null && had.holds(bars, strip)) return false;
         if (had != null) restore(chat);
-        Install install = new Install(bars);
+        Install install = new Install(bars, strip);
         installs.put(chat, install);
         frost(bars.top, bars.list);
         frost(bars.bottom, bars.list);
+        frostStrip(install.strip, install.band, bars.top, bars.list);
         // Both bars draw over the messages that now run under them, and neither takes a shadow for being raised.
         raise(bars.top);
         raise(bars.bottom);
@@ -357,8 +426,45 @@ public final class IosBars {
         // The blur's render node needs Android 12; blurs says the same, but a test can swap blurs out.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || bar == null || bar.getBackground() instanceof Frost) return;
         Drawable own = bar.getBackground();
-        Drawable backdrop = new Backdrop(list, bar, bar.getResources().getDisplayMetrics().density * RADIUS_DP);
+        Drawable backdrop = new Backdrop(list, bar, bar.getResources().getDisplayMetrics().density * RADIUS_DP, solid(own));
         bar.setBackground(new Frost(backdrop, own, faded(own, bar)));
+    }
+
+    /**
+     * [strip] draws the messages behind it blurred too, under a see-through copy of the top bar's colour rather than
+     * its own, so the bar looks like it runs up to the top of the screen (#252). A strip frosted from a colour the bar
+     * no longer has (a new chat theme) is done again.
+     */
+    private static void frostStrip(View strip, int band, View bar, View list) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || strip == null || bar == null) return;
+        Drawable barOwn = bar.getBackground() instanceof Frost ? ((Frost) bar.getBackground()).own : bar.getBackground();
+        Drawable now = strip.getBackground();
+        if (now instanceof StripFrost && ((StripFrost) now).from == barOwn) return;
+        Drawable own = now instanceof Frost ? ((Frost) now).own : now;
+        Integer fallback = solid(barOwn) != null ? solid(barOwn) : solid(own);
+        Drawable backdrop = new Backdrop(list, strip, strip.getResources().getDisplayMetrics().density * RADIUS_DP, fallback);
+        strip.setBackground(new StripFrost(backdrop, own, faded(barOwn != null ? barOwn : own, strip), barOwn, band, bar));
+    }
+
+    /** [drawable]'s colour when it's a colour nothing shows through, else null. */
+    private static Integer solid(Drawable drawable) {
+        if (!(drawable instanceof ColorDrawable)) return null;
+        int color = ((ColorDrawable) drawable).getColor();
+        return Color.alpha(color) == 0xFF ? color : null;
+    }
+
+    /**
+     * What a bar's blur sits on (#251): the colour behind the messages, from the first view around the list with a
+     * solid colour, up to the window's own. With none, [fallback], the bar's own colour. Where the list draws nothing
+     * (no messages yet, the gap above the first one) the blur is see-through, and while the chat slides in over the
+     * chat list that list showed through the bars.
+     */
+    static Integer baseColour(View list, Integer fallback) {
+        for (ViewParent at = list.getParent(); at instanceof View; at = at.getParent()) {
+            Integer color = solid(((View) at).getBackground());
+            if (color != null) return color;
+        }
+        return fallback;
     }
 
     /**
@@ -376,12 +482,51 @@ public final class IosBars {
     }
 
     /** A frosted bar's background: the blur, and the bar's colour over it. [own] is what the bar had, to give back. */
-    static final class Frost extends LayerDrawable {
+    static class Frost extends LayerDrawable {
         final Drawable own;
 
         Frost(Drawable backdrop, Drawable own, Drawable faded) {
             super(faded == null ? new Drawable[] {backdrop} : new Drawable[] {backdrop, faded});
             this.own = own;
+        }
+    }
+
+    /**
+     * The frost over the status bar. [from] is the top bar's colour it copies, so a new one is noticed. With a [band],
+     * it's the background of a whole parent of the chat: its own background is drawn as it was and the frost only in
+     * the band at the top, and only while the top bar shows, since that parent holds the chat list's screen too.
+     */
+    static final class StripFrost extends Frost {
+        final Drawable from;
+        final int band;
+        private final WeakReference<View> bar;
+
+        StripFrost(Drawable backdrop, Drawable own, Drawable faded, Drawable from, int band, View bar) {
+            super(backdrop, own, faded);
+            this.from = from;
+            this.band = band;
+            this.bar = new WeakReference<>(bar);
+        }
+
+        @Override protected void onBoundsChange(Rect bounds) {
+            if (band <= 0) {
+                super.onBoundsChange(bounds);
+                return;
+            }
+            super.onBoundsChange(new Rect(bounds.left, bounds.top, bounds.right, Math.min(bounds.bottom, bounds.top + band)));
+        }
+
+        @Override public void draw(Canvas canvas) {
+            if (band <= 0) {
+                super.draw(canvas);
+                return;
+            }
+            if (own != null) {
+                own.setBounds(getBounds());
+                own.draw(canvas);
+            }
+            View top = bar.get();
+            if (top != null && top.isShown()) super.draw(canvas);
         }
     }
 
@@ -470,6 +615,7 @@ public final class IosBars {
         if (had == null) return;
         give(had.top, had.topZ, had.topOutline);
         give(had.bottom, had.bottomZ, had.bottomOutline);
+        if (had.strip != null && had.strip.getBackground() instanceof Frost) had.strip.setBackground(((Frost) had.strip.getBackground()).own);
         for (Map.Entry<View, float[]> entry : had.riders.entrySet()) unride(entry.getKey(), entry.getValue());
         if (had.grewTop == 0 && had.grewBottom == 0) return;
         had.list.setPadding(had.list.getPaddingLeft(), had.padTop, had.list.getPaddingRight(), had.padBottom);
@@ -494,25 +640,35 @@ public final class IosBars {
     /**
      * The messages behind a bar, blurred. Each draw records the list's own drawing into a render node moved into the
      * bar's corner, hands the node the blur and draws it, so the blur is the GPU's work and the messages behind the
-     * bar are the ones on screen. The list is no parent of the bar, so nothing draws itself here.
+     * bar are the ones on screen. The list is no parent of the bar, so nothing draws itself here. The blur goes on the
+     * chat's own solid colour, so nothing from behind the chat shows through the bar.
      */
     @TargetApi(Build.VERSION_CODES.S)
     static final class Backdrop extends Drawable {
         private final WeakReference<View> source, holder;
         private final RenderNode node = new RenderNode("hush-ios-bar");
         private final float radius;
+        /** The bar's own colour when it's solid, for a chat with no solid colour around the list. */
+        private final Integer fallback;
+        private final Paint base = new Paint();
 
-        Backdrop(View source, View holder, float radius) {
+        Backdrop(View source, View holder, float radius, Integer fallback) {
             this.source = new WeakReference<>(source);
             this.holder = new WeakReference<>(holder);
             this.radius = radius;
+            this.fallback = fallback;
         }
 
         @Override public void draw(Canvas canvas) {
             View list = source.get(), bar = holder.get();
             Rect at = getBounds();
-            if (list == null || bar == null || at.isEmpty() || !(canvas instanceof RecordingCanvas)) return;
-            if (list.getWidth() <= 0 || list.getHeight() <= 0) return;
+            if (list == null || bar == null || at.isEmpty()) return;
+            Integer color = baseColour(list, fallback);
+            if (color != null) {
+                base.setColor(color);
+                canvas.drawRect(at, base);
+            }
+            if (!(canvas instanceof RecordingCanvas) || list.getWidth() <= 0 || list.getHeight() <= 0) return;
             try {
                 node.setPosition(0, 0, at.width(), at.height());
                 RecordingCanvas into = node.beginRecording();

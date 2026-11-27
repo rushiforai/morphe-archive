@@ -3,7 +3,7 @@ package app.xperia.patches.sony.stream
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.xperia.patches.sony.SONY_CAMERA
 
@@ -33,7 +33,7 @@ private val hooks = listOf(
  * code is skipped.
  */
 @Suppress("unused")
-val rawH264StreamPatch = bytecodePatch(
+val rawH264StreamPatch = patch(
     name = "[WIP] Raw H.264 stream",
     default = false,
     description = "Low-latency transport for Live streaming: the encoded H.264 is sent to the PC as a plain " +

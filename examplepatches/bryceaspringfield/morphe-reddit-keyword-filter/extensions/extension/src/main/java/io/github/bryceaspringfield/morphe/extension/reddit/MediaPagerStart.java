@@ -11,16 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * The page the full-screen media viewer opens on from a search's Media tab. Reddit opens it at the tapped post's
- * position in its search cache, while the viewer shows that list less the posts it leaves out (hidden, removed,
- * promoted, and a just-blocked account's posts). Each post left out before the tapped one shifts the viewer to a
- * neighbor of the tapped post. Here the viewer opens on the tapped post's own position in the list it shows.
- */
 @SuppressWarnings("unused")
 public final class MediaPagerStart {
 
-    /** The viewer's list of pages, stored just before Reddit reads the start position. */
     private static Object pages;
 
     private static final Map<Class<?>, List<Field>> STRING_FIELDS = new HashMap<>();
@@ -28,15 +21,10 @@ public final class MediaPagerStart {
     private MediaPagerStart() {
     }
 
-    /** Injection point: the list of pages the viewer is about to show. */
     public static void pages(Object list) {
         pages = list;
     }
 
-    /**
-     * Injection point: the start position for the viewer, from Reddit's start request (the cached list, the tapped
-     * post, and its position in the cached list). Returns Reddit's position when the tapped post is not in the list.
-     */
     public static int start(Object request) {
         Object list = pages;
         pages = null;
@@ -65,7 +53,6 @@ public final class MediaPagerStart {
         return fallback;
     }
 
-    /** Whether a page's own text fields name the post. */
     private static boolean names(Object item, String id, String kindWithId) throws IllegalAccessException {
         if (item == null) return false;
         for (Field field : stringFields(item.getClass())) {

@@ -25,6 +25,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_PROFILE_NOTES) return L10n.t("Hide profile notes");
         if (setting == Settings.HIDE_PROFILE_GIFTS) return L10n.t("Hide the gift button on profiles");
         if (setting == Settings.LOCAL_PROFILE_COUNTS) return L10n.t("Local profile counts");
+        if (setting == Settings.FRIEND_LIST_WATCH) return L10n.t("Keep track of your friends list");
         if (setting == Settings.POST_SAVE_BUTTON) return L10n.t("Save button under posts");
         if (setting == Settings.POST_DOWNLOAD_BUTTON) return L10n.t("Download button under posts");
         if (setting == Settings.HIDE_POST_LIKE_BUTTON) return L10n.t("Hide Like under posts");
@@ -52,6 +53,9 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_FIND_FRIENDS_CARD) return L10n.t("Hide the Find friends card");
         if (setting == Settings.HIDE_SEARCH_FOR_YOU) return L10n.t("Hide For you in search");
         if (setting == Settings.HIDE_SEARCH_PEOPLE_YOU_MAY_KNOW) return L10n.t("Hide \"People you may know\" in search");
+        if (setting == Settings.HIDE_FRIENDS_TAB_PEOPLE_YOU_MAY_KNOW) {
+            return L10n.t("Hide \"People you may know\" in the Friends tab");
+        }
         if (setting == Settings.HIDE_TOP_STORIES_TRAY) return L10n.t("Hide the Stories tray");
         if (setting == Settings.HIDE_STORIES_BETWEEN_POSTS) return L10n.t("Hide Stories between posts");
         if (setting == Settings.HIDE_HOME_COMPOSER) return L10n.t("Hide the composer row");
@@ -166,7 +170,13 @@ final class SwitchLabels {
         if (setting == Settings.LIKE_ONLY) return L10n.t("Like only");
         if (setting == Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS) return L10n.t("Hide GIF and sticker buttons");
         if (setting == Settings.HIDE_COMMENT_EMOJI_ROW) return L10n.t("Hide the emoji row on comments");
+        if (setting == Settings.HIDE_HELD_COMMENT_REACTIONS) return L10n.t("Hide reactions on a held comment");
+        if (setting == Settings.HIDE_HELD_COMMENT_REPLY) return L10n.t("Hide Reply on a held comment");
+        if (setting == Settings.HIDE_HELD_COMMENT_COPY) return L10n.t("Hide Copy on a held comment");
+        if (setting == Settings.HIDE_HELD_COMMENT_REPORT) return L10n.t("Hide Report on a held comment");
+        if (setting == Settings.HIDE_HELD_COMMENT_HIDE) return L10n.t("Hide the Hide comment option");
         if (setting == Settings.KEEP_COMMENT_KEYBOARD_CLOSED) return L10n.t("Keep the keyboard closed when comments open");
+        if (setting == Settings.KEEP_COMMENTS_CLOSED_ON_TEXT_TAP) return L10n.t("Post text doesn't open comments");
         if (setting == Settings.HIDE_COMMENT_BOX_LINE) return L10n.t("Hide the line over the comment box");
         if (setting == Settings.HIDE_COMMENT_BOX) return L10n.t("Hide the comment box");
         if (setting == Settings.HIDE_VIDEO_COMMENT_COMPOSER) return L10n.t("Hide the video comment box");
@@ -269,6 +279,7 @@ final class SwitchLabels {
         if (setting == Settings.SAVED_VIDEOS_IN_ORDER) return L10n.t("Play saved videos in a row");
         if (setting == Settings.SAVED_VIDEOS_STAY_ON_END) return L10n.t("Stay on a saved video when it ends");
         if (setting == Settings.SAVED_POSTS_IN_ROW) return L10n.t("Show saved posts in the row");
+        if (setting == Settings.FEED_REELS_ROW_IN_ORDER) return L10n.t("Play the feed's Reels row in order");
         if (setting == Settings.SKIP_STILL_WATCHING) return L10n.t("Skip \"Are you still watching?\"");
         if (setting == Settings.FILL_REELS) return L10n.t("Fill the screen with reels");
         if (setting == Settings.FILL_EVERY_REEL) return L10n.t("Fill every reel");
@@ -353,6 +364,7 @@ final class SwitchLabels {
         if (setting == Settings.PICTURE_IN_PICTURE) return L10n.t("Picture-in-picture");
         if (setting == Settings.PICTURE_IN_PICTURE_FROM_MENU) return L10n.t("Only from a reel's More menu");
         if (setting == Settings.PICTURE_IN_PICTURE_BUTTON) return L10n.t("Picture-in-picture button");
+        if (setting == Settings.NEXT_REEL_IN_WINDOW) return L10n.t("Next reel in the window");
         if (setting == Settings.KEEP_PLAYING_IN_BACKGROUND) return L10n.t("Keep playing in the background");
         if (setting == Settings.NEXT_REEL_IN_BACKGROUND) return L10n.t("Next reel in the background");
         if (setting == Settings.BACKGROUND_PLAY_BUTTON) return L10n.t("Background play button in the window");
@@ -464,8 +476,10 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REELS_TAB_BAR) return L10n.t("Hide the tab bar on the Reels tab");
         if (setting == Settings.HIDE_TAB_BAR_LINE) return L10n.t("Hide the line along the tab bar");
         if (setting == Settings.TAB_BAR_IN_GROUPS) return L10n.t("Keep the tab bar in groups");
+        if (setting == Settings.PROFILE_TAB_ACTIVITY_LOG) return L10n.t("Hold the profile tab for Activity log");
         if (setting == Settings.TRANSLUCENT_BARS) return L10n.t("See-through bars");
         if (setting == Settings.ROUNDED_TAB_BAR) return L10n.t("Rounded tab bar");
+        if (setting == Settings.GLASS_TAB_BAR) return L10n.t("Glass tab bar");
         if (setting == Settings.HIDE_STATUS_BAR) return L10n.t("Hide the status bar");
         if (setting == Settings.CENTER_FEED_ON_BIG_SCREENS) return L10n.t("Center the feed on big screens");
         if (setting == Settings.LIGHT_REELS_TAB_BARS) return L10n.t("Light bars on the Reels tab");

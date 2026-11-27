@@ -16,19 +16,41 @@ public final class StockNewThreadContractTest {
     static MebukiNewThreadDraft captured;
     static AnimanchNewThreadDraft animDraft;
     static int pickers;
-    static boolean badRead,failUpload;
+    static boolean badRead;
+    static int uploadStatus=200;
+    static boolean catalogVisible=true,uploadError,preError,badJump;
     static String expectedCategory="7";
+    static String opHtml(String title,String body,String imageThread,long timestamp){
+        String date=java.time.Instant.ofEpochMilli(timestamp).atZone(java.time.ZoneId.of("Asia/Tokyo"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("uu/MM/dd'(fixture)' HH:mm:ss"));
+        return "<meta property=\"og:url\" content=\"https://bbs.animanch.com/board/"+BOARD+"/\">"
+                +"<h1 id=\"threadTitle\">"+title+"<div class=\"shareBtns\"></div></h1>"
+                +"<li id='res1' class='list-group-item'><div class='resheader'><span class='resposted'>"+date+"</span></div>"
+                +"<div class='resbody good2'><p>"+body+"</p><a href='https://bbs.animanch.com/img/"+imageThread+"/1' class='thumb'>"
+                +"<img src='https://bbs.animanch.com/thumb_m/"+imageThread+"/1'></a></div></li>";
+    }
+    static String catalogHtml(String title){
+        return "<a href='https://bbs.animanch.com/board/"+BOARD+"/' class='card'><div class='card-body'>"
+                +title+"<p class='threadCount'>1</p></div></a>";
+    }
     static int animFormGets;
     static void check(boolean ok,String label){if(!ok)throw new AssertionError(label);}
     static void part(ByteArrayOutputStream out,String key,String val)throws Exception{
         out.write(("--"+B+"\r\nContent-Disposition: form-data; name=\""+key+"\"\r\n\r\n"+val+"\r\n").getBytes(StandardCharsets.UTF_8));
     }
     static byte[] form(String resto,String title,String email,boolean image)throws Exception{
+        return formWithImage(resto,title,email,image?new byte[]{97,98,99}:null,"image/jpeg");
+    }
+    static byte[] formWithImage(String resto,String title,String email,byte[] image,String mime)throws Exception{
         ByteArrayOutputStream out=new ByteArrayOutputStream();
         part(out,"mode","regist");part(out,"responsemode","ajax");part(out,"js","on");
         part(out,"com","fixture");part(out,"sub",title);part(out,"name","");part(out,"email",email);part(out,"pwd","fixture-key");
         if(resto!=null)part(out,"resto",resto);
-        if(image)out.write(("--"+B+"\r\nContent-Disposition: form-data; name=\"upfile\"; filename=\"fixture.jpg\"\r\nContent-Type: image/jpeg\r\n\r\nabc\r\n").getBytes(StandardCharsets.UTF_8));
+        if(image!=null){
+            String ext="image/png".equals(mime)?"png":"jpg";
+            out.write(("--"+B+"\r\nContent-Disposition: form-data; name=\"upfile\"; filename=\"fixture."+ext+"\"\r\nContent-Type: "+mime+"\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+            out.write(image);out.write("\r\n".getBytes(StandardCharsets.US_ASCII));
+        }
         out.write(("--"+B+"--\r\n").getBytes(StandardCharsets.UTF_8));
         return out.toByteArray();
     }
@@ -79,13 +101,28 @@ public final class StockNewThreadContractTest {
                     check("POST".equals(method)&&"PHPSESSID=fixture_only".equals(headers.get("cookie")),"session");
                     check(data.contains("title=title")&&Arrays.asList(data.split("&")).contains("category="+expectedCategory)&&data.contains("text=fixture")&&data.contains("thread=")&&!data.contains("thread="+BOARD),"new form fields");
                     check(!data.contains("email="),"category only, not upstream email");
-                    if(p.endsWith("preCheck")){pre++;response="{}";}
-                    else{anim++;check(pre==anim,"precheck first");response="{\"number\":\"1\",\"thread\":\""+BOARD+"\",\"jump\":\"https://bbs.animanch.com/board/"+BOARD+"/\"}";}
+                    if(p.endsWith("preCheck")){pre++;response=preError?"<p class='bg-danger'>Error: fixture</p>":"{}";}
+                    else{anim++;check(pre==anim,"precheck first");response=new JSONObject().put("number","1").put("thread",BOARD)
+                            .put("jump",badJump?"https://bbs.animanch.com/":"https://bbs.animanch.com/board/"+BOARD+"/").toString();}
                 }else if(p.equals("/upload/")){
-                    check("POST".equals(method)&&data.contains("name=\"upname\"\r\n\r\n1")&&data.contains("name=\"thread\"\r\n\r\n"+BOARD)&&data.contains("abc"),"upload fields");
-                    upload++;status=failUpload?403:200;response="";
+                    check("POST".equals(method)&&"PHPSESSID=fixture_only".equals(headers.get("cookie"))
+                            &&"https://bbs.animanch.com".equals(headers.get("origin"))
+                            &&"https://bbs.animanch.com/".equals(headers.get("referer"))
+                            &&"XMLHttpRequest".equals(headers.get("x-requested-with"))
+                            &&"text/html, */*; q=0.01".equals(headers.get("accept")),"official upload headers");
+                    check(headers.get("content-type")!=null&&headers.get("content-type").startsWith("multipart/form-data; boundary="),"multipart content type");
+                    int filePart=data.indexOf("name=\"file1\""),upPart=data.indexOf("name=\"upname\""),threadPart=data.indexOf("name=\"thread\"");
+                    check(filePart>=0&&filePart<upPart&&upPart<threadPart
+                            &&data.contains("name=\"upname\"\r\n\r\n1")
+                            &&data.contains("name=\"thread\"\r\n\r\n"+BOARD)
+                            &&data.contains("Content-Type: image/jpeg")&&data.contains("abc"),"official upload fields and order");
+                    upload++;status=uploadStatus;response=uploadError?"<p class='bg-danger'>Error: fixture</p>":"";
                 }else if(p.equals("/board/"+BOARD+"/")){
-                    reads++;response="<li id='res1'><img src='/fixture.jpg'></li>";
+                    check("GET".equals(method)&&"".equals(headers.get("cookie"))&&"no-cache".equals(headers.get("cache-control")),"fresh public OP readback");
+                    reads++;response=opHtml("title","fixture",BOARD,System.currentTimeMillis());
+                }else if(p.equals("/category"+expectedCategory+"/")){
+                    check("GET".equals(method)&&"".equals(headers.get("cookie"))&&"no-cache".equals(headers.get("cache-control")),"fresh public category readback");
+                    response=catalogVisible?catalogHtml("title"):"<html>fixture catalog without new thread</html>";
                 }else throw new AssertionError("unmocked animanch "+p);
             }else if(url.getHost().equals("mebuki.moe")&&p.equals("/api/auth/get-session")){
                 check("GET".equals(method),"Mebuki session read only");
@@ -115,7 +152,7 @@ public final class StockNewThreadContractTest {
             return "確認画面を開きます。未送信です。";
         },draft->{
             pickers++;animDraft=draft;
-            return "カテゴリを選択してください。まだ送信していません。";
+            return StockReply.error("カテゴリを選択してください。まだ送信していません。");
         });
         check(!result(stock,"aimoge",form(null,"title","sage",true)).contains("\"status\":\"ok\"")&&aim==0,"no login");
         c.getSharedPreferences("futatabi_extension_private",0).edit().putString("credential",TOKEN).putLong("credential_expires",System.currentTimeMillis()+600000).commit();
@@ -144,12 +181,19 @@ public final class StockNewThreadContractTest {
             check(!rejected.contains("\"status\":\"ok\"")&&rejected.contains("メール欄を空欄"),"old mail entry rejected");
         }
         check(animFormGets==0&&pre==0&&anim==0&&upload==0&&pickers==0,"invalid mail never opens picker or contacts upstream");
+        int beforePre=pre,beforeAnim=anim,beforeUpload=upload,beforePicker=pickers,beforeGets=animFormGets;
+        String tooLarge=result(stock,"animanch",formWithImage(null,"title","",
+                new byte[AnimanchAdapter.MAX_IMAGE_BYTES+1],"image/png"));
+        check(tooLarge.contains("5 MiB")&&pre==beforePre&&anim==beforeAnim&&upload==beforeUpload
+                &&pickers==beforePicker&&animFormGets==beforeGets,"official 5 MiB limit rejects before picker or POST");
         check(!result(stock,"animanch",form(null,"title","",false)).contains("\"status\":\"ok\"")&&pickers==0,"required image");
         check(!result(stock,"animanch",form("0","title","",true)).contains("\"status\":\"ok\"")&&pickers==1&&animFormGets==0,"opening picker does not send");
         check(!draftResult(animDraft,5).contains("\"status\":\"ok\"")&&animFormGets==0,"invalid selection does not send");
+        uploadStatus=201;
         ok=draftResult(animDraft,7);
         id=new JSONObject(ok).getString("thisno");
-        check(id.matches("[1-9][0-9]{12}")&&BOARD.equals(b.stockThreadId(id))&&anim==1&&upload==1,"default sends and maps thread");
+        check(id.matches("[1-9][0-9]{12}")&&BOARD.equals(b.stockThreadId(id))&&anim==1&&upload==1,"HTTP 201 upload accepted and OP image readback maps thread");
+        uploadStatus=200;
         check(!draftResult(animDraft,7).contains("\"status\":\"ok\"")&&anim==1,"double tap cannot send twice");
         expectedCategory="8";
         result(stock,"animanch",form(null,"title","",true));
@@ -163,15 +207,42 @@ public final class StockNewThreadContractTest {
         int beforeReply=animFormGets;
         String replyRejected=result(stock,"animanch",form(id,"","8",false));
         check(!replyRejected.contains("\"status\":\"ok\"")&&animFormGets==beforeReply&&anim==3,"reply email behavior unchanged");
-        failUpload=true;
+        uploadStatus=403;
         expectedCategory="7";
         result(stock,"animanch",form(null,"title","",true));
-        check(!draftResult(animDraft,7).contains("\"status\":\"ok\"")&&anim==4&&upload==4,"partial upload never reports success");
+        String partial=draftResult(animDraft,7);
+        check(!partial.contains("\"status\":\"ok\"")&&partial.contains("HTTP 403")&&anim==4&&upload==4,"HTTP 403 partial upload remains honest and reports upstream status");
         check(!draftResult(animDraft,7).contains("\"status\":\"ok\"")&&anim==4,"failed draft cannot retry automatically");
+        uploadStatus=200;
+        long now=System.currentTimeMillis();
+        check(AnimanchAdapter.matchesNewOp(opHtml("title","fixture",BOARD,now),BOARD,"title","fixture",now),"official OP structure accepted");
+        check(!AnimanchAdapter.matchesNewOp("<li id='res1'><img src='/fixture.jpg'></li>",BOARD,"title","fixture",now),"old beta.32 false-positive fixture rejected");
+        check(!AnimanchAdapter.matchesNewOp(opHtml("wrong","fixture",BOARD,now),BOARD,"title","fixture",now),"wrong title rejected");
+        check(!AnimanchAdapter.matchesNewOp(opHtml("title","wrong",BOARD,now),BOARD,"title","fixture",now),"wrong body rejected");
+        check(!AnimanchAdapter.matchesNewOp(opHtml("title","fixture","999",now),BOARD,"title","fixture",now),"unrelated image rejected");
+        check(!AnimanchAdapter.matchesNewOp(opHtml("title","fixture",BOARD,now-600000),BOARD,"title","fixture",now),"old OP rejected");
+        check(!AnimanchAdapter.matchesCatalog(catalogHtml("wrong"),BOARD,"title"),"catalog wrong title rejected");
+        StockReply sync=new StockReply(a,b,api,draft->"fixture",draft->draft.choose(7));
+        catalogVisible=false;
+        String missing=result(sync,"animanch",form(null,"title","",true));
+        check(!missing.contains("\"status\":\"ok\"")&&missing.contains("一覧にありません"),"missing public catalog cannot succeed");
+        catalogVisible=true;uploadError=true;
+        String error200=result(sync,"animanch",form(null,"title","",true));
+        check(!error200.contains("\"status\":\"ok\"")&&error200.contains("HTTP 200"),"upload HTTP 200 error cannot succeed");
+        uploadError=false;badJump=true;
+        int uploadsBefore=upload;
+        String wrongJump=result(sync,"animanch",form(null,"title","",true));
+        check(!wrongJump.contains("\"status\":\"ok\"")&&wrongJump.contains("遷移先")&&upload==uploadsBefore,"wrong jump rejected before upload");
+        badJump=false;
+        check(result(sync,"animanch",form(null,"title","",true)).contains("\"status\":\"ok\""),"same original stock request receives confirmed success");
+        preError=true;
+        int postsBefore=anim;
+        String badPre=result(sync,"animanch",form(null,"title","",true));
+        check(!badPre.contains("\"status\":\"ok\"")&&badPre.contains("本文未送信")&&anim==postsBefore,"preCheck HTTP 200 error stops before comment");
         check(!result(stock,"mebuki",form(null,"title","",false)).contains("\"status\":\"ok\"")&&handoffs==0,"Mebuki missing image");
         check(!result(stock,"mebuki",form(null,"title","sage",true)).contains("\"status\":\"ok\"")&&handoffs==0,"Mebuki unsupported mail");
         check(!result(stock,"mebuki",form(null,"title","",true)).contains("\"status\":\"ok\"")&&handoffs==1,"Mebuki handoff is pending, not success");
-        check("title".equals(captured.title)&&"fixture".equals(captured.body)&&"image/jpeg".equals(captured.mime)&&Arrays.equals(captured.image,new byte[]{97,98,99}),"Mebuki draft title/body/image");
+        check("fixture".equals(captured.title)&&"title".equals(captured.body)&&"image/jpeg".equals(captured.mime)&&Arrays.equals(captured.image,new byte[]{97,98,99}),"Mebuki draft title/body/image");
         check(sessionReads==0,"draft handoff made no outbound request");
         check(MebukiSession.sameAccount("fixture-old","fixture-renewed"),"renewed same account");
         check(!MebukiSession.sameAccount("fixture-old","fixture-other"),"different account");
@@ -181,15 +252,26 @@ public final class StockNewThreadContractTest {
         String op="fixture <script>no execution</script>";
         long timestamp=java.time.Instant.parse("2026-11-25T15:00:00Z").toEpochMilli();
         check(MebukiThreadData.convert(own).matchesNewThread(op,timestamp),"authored new OP readback");
+        check(MebukiThreadData.convert(own).matchesNewOwnThread(timestamp),"new own OP with editable official body");
+        check(!MebukiThreadData.convert(fixture).matchesNewOwnThread(timestamp),"not own new OP");
         check(!MebukiThreadData.convert(fixture).matchesNewThread(op,timestamp),"not own OP");
         check(!MebukiThreadData.convert(own).matchesNewThread("different",timestamp),"body mismatch");
         check(!MebukiThreadData.convert(own).matchesNewThread(op,timestamp+1),"old thread");
         check(!MebukiThreadData.convert(own.replaceFirst("\\\"attachments\\\":\\[\\{.*?\\}\\]","\"attachments\":[]")).matchesNewThread(op,timestamp),"missing attachment");
+        MebukiNewThreadDraft emptyBody=new MebukiNewThreadDraft(StockReplyRequest.parse(HEADERS.get("content-type"),form(null,"","",true)));
+        check("fixture".equals(emptyBody.title)&&emptyBody.body.isEmpty(),"stock title transferred, official body empty");
+        check(MebukiNewThreadObservation.isCreatePost("POST","https","mebuki.moe",-1,"/app/new.data"),"SPA create POST");
+        check(MebukiNewThreadObservation.isCreatePost("POST","https","mebuki.moe",443,"/app/new"),"native form create POST");
+        check(!MebukiNewThreadObservation.isCreatePost("GET","https","mebuki.moe",-1,"/app/new.data"),"GET not a create POST");
+        check(!MebukiNewThreadObservation.isCreatePost("POST","https","mebuki.moe.example",-1,"/app/new.data"),"other host not observed");
+        check(!MebukiNewThreadObservation.isCreatePost("POST","https","mebuki.moe",444,"/app/new.data"),"other port not observed");
         if(args.length==1)java.nio.file.Files.writeString(java.nio.file.Path.of(args[0]),new JSONObject()
                 .put("ready",MebukiNewThreadDraft.readyScript()).put("begin",captured.beginScript("fixture-draft"))
+                .put("beginEmpty",emptyBody.beginScript("fixture-empty"))
                 .put("chunk",MebukiNewThreadDraft.chunkScript("fixture-draft","YWJj"))
-                .put("finish",captured.finishScript("fixture-draft")).toString());
+                .put("finish",captured.finishScript("fixture-draft")).put("imageReady",captured.imageReadyScript())
+                .put("observe",MebukiNewThreadObservation.SCRIPT).put("banner",MebukiPwaBanner.SCRIPT).toString());
         check(!result(stock,"aimoge",form("invalid","title","sage",true)).contains("\"status\":\"ok\"")&&aim==2,"invalid reply ID does not create");
-        System.out.println("PASS stock new thread: Aimoge credential, fields, image, OP readback; Animanch 32 picker options, default, no send until selection, cancel/double-tap guard, invalid rejection, unchanged replies, precheck, image, readback, partial failure; Mebuki draft handoff without posting; malformed reply rejected. No live network.");
+        System.out.println("PASS stock new thread: Animanch canonical OP/title/body/time/attachment, public category, HTTP 200 errors, wrong jump, partial failure, original-request confirmed result, picker/cancel/size guards; existing Aimoge and Mebuki contract cases. No live network.");
     }
 }

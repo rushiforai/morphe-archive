@@ -8,20 +8,28 @@ import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
 import app.noam.patches.chesscom.shared.markFeaturePatched
 import app.noam.patches.chesscom.shared.returnString
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.URL
+import java.net.URLEncoder
+import java.net.UnknownHostException
 import java.security.DigestInputStream
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
+import javax.net.ssl.SSLSocket
+import javax.net.ssl.SSLSocketFactory
 
 private const val ANALYSIS = "${Constants.EXTENSION_PACKAGE}/stockfish/Analysis;"
-private const val BOARD_STATE = "Lcom/chess/chessboard/vm/movesinput/CBViewModelStateImpl;"
+private const val BOARD_STATE_PACKAGE = "Lcom/chess/chessboard/vm/movesinput/"
 private const val V2_BOARD = "Lcom/chess/chessboard/v2/ChessBoardView;"
 
 /** Stockfish's own Android build, downloaded while patching so the patches don't carry it. */
@@ -78,9 +86,9 @@ private fun downloadOnce(engine: File) {
     try {
         val archiveDigest = MessageDigest.getInstance("SHA-256")
         val engineDigest = MessageDigest.getInstance("SHA-256")
-        val connection = open()
+        val response = open()
         val found = try {
-            DigestInputStream(BufferedInputStream(connection.inputStream, BUFFER), archiveDigest).use { raw ->
+            DigestInputStream(BufferedInputStream(response.body, BUFFER), archiveDigest).use { raw ->
                 val gzip = GZIPInputStream(raw, BUFFER)
                 val copied = Tar(gzip).copy(STOCKFISH_MEMBER) { member ->
                     DigestOutputStream(partial.outputStream().buffered(BUFFER), engineDigest).use { member.copyTo(it, BUFFER) }
@@ -91,7 +99,7 @@ private fun downloadOnce(engine: File) {
                 copied
             }
         } finally {
-            connection.disconnect()
+            response.close()
         }
         val archive = hex(archiveDigest.digest())
         if (archive != STOCKFISH_ARCHIVE_SHA256) {
@@ -111,31 +119,219 @@ private fun downloadOnce(engine: File) {
     }
 }
 
+/** One answer from a server: its status, where a redirect points, and the body of a 200. */
+private class Response(val code: Int, val location: String?, val body: InputStream?, private val closer: () -> Unit) {
+    fun close() = closer()
+}
+
 /**
- * The archive's connection. GitHub answers with a redirect to its download server; it is followed
+ * The archive's response. GitHub answers with a redirect to its download server; it is followed
  * here rather than by the connection, so a failure can say which of the two didn't answer.
  */
-private fun open(): HttpURLConnection {
+private fun open(): Response {
     var url = URL(STOCKFISH_URL)
     repeat(5) {
-        val connection = url.openConnection() as HttpURLConnection
-        connection.instanceFollowRedirects = false
-        connection.connectTimeout = CONNECT_TIMEOUT_MS
-        connection.readTimeout = READ_TIMEOUT_MS
-        val code = try {
-            connection.responseCode
-        } catch (e: IOException) {
-            connection.disconnect()
-            throw Unanswered(url.host, e)
-        }
-        if (code == HttpURLConnection.HTTP_OK) return connection
-        val location = connection.getHeaderField("Location")
-        connection.disconnect()
-        if (code !in 300..399 || location == null) throw IOException("${url.host} answered $code")
+        val response = fetch(url)
+        if (response.code == HttpURLConnection.HTTP_OK && response.body != null) return response
+        response.close()
+        val location = response.location
+        if (response.code !in 300..399 || location == null) throw IOException("${url.host} answered ${response.code}")
         url = URL(url, location)
         if (url.protocol != "https") throw IOException("${url.host} sent the download to ${url.protocol}")
     }
     throw IOException("Too many redirects from $STOCKFISH_URL")
+}
+
+/**
+ * Asks [url]'s server. When the device can't look the server up (Morphe Manager 2.7 patches with a
+ * runtime whose DNS doesn't work on Android), it is looked up over DNS over HTTPS instead.
+ */
+private fun fetch(url: URL): Response {
+    val connection = url.openConnection() as HttpURLConnection
+    connection.instanceFollowRedirects = false
+    connection.connectTimeout = CONNECT_TIMEOUT_MS
+    connection.readTimeout = READ_TIMEOUT_MS
+    val code = try {
+        connection.responseCode
+    } catch (e: UnknownHostException) {
+        connection.disconnect()
+        return try {
+            fetchOverResolvedAddress(url).also {
+                logger.info("${url.host} couldn't be looked up on this device, so it was looked up over DNS over HTTPS")
+            }
+        } catch (fallback: IOException) {
+            throw Unanswered(url.host, IOException("${describe(e)}, and DNS over HTTPS failed too (${describe(fallback)})", e))
+        }
+    } catch (e: IOException) {
+        connection.disconnect()
+        throw Unanswered(url.host, e)
+    }
+    val body = if (code == HttpURLConnection.HTTP_OK) connection.inputStream else null
+    return Response(code, connection.getHeaderField("Location"), body) { connection.disconnect() }
+}
+
+/** Cloudflare's and Google's DNS over HTTPS, reached by IP address, so using them needs no lookup. */
+private val DNS_OVER_HTTPS = listOf("https://1.1.1.1/dns-query?type=A&name=", "https://8.8.8.8/resolve?type=A&name=")
+
+/** The IPv4 addresses of [host], from DNS over HTTPS. */
+private fun lookUpOverHttps(host: String): List<InetAddress> {
+    var failure: IOException = UnknownHostException(host)
+    for (server in DNS_OVER_HTTPS) {
+        try {
+            val connection = URL(server + URLEncoder.encode(host, "UTF-8")).openConnection() as HttpURLConnection
+            connection.connectTimeout = CONNECT_TIMEOUT_MS
+            connection.readTimeout = READ_TIMEOUT_MS
+            connection.setRequestProperty("Accept", "application/dns-json")
+            val answer = try {
+                connection.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+            } finally {
+                connection.disconnect()
+            }
+            val addresses = ipv4Data(answer).map { InetAddress.getByAddress(host, it) }
+            if (addresses.isNotEmpty()) return addresses
+            failure = UnknownHostException("$host has no address at $server")
+        } catch (e: IOException) {
+            failure = e
+        }
+    }
+    throw failure
+}
+
+/** The IPv4 addresses among a DNS JSON answer's "data" values (the others name aliases). */
+private fun ipv4Data(answer: String): List<ByteArray> {
+    val key = "\"data\":\""
+    val found = mutableListOf<ByteArray>()
+    var at = answer.indexOf(key)
+    while (at >= 0) {
+        val start = at + key.length
+        val end = answer.indexOf('"', start)
+        if (end < 0) break
+        val parts = answer.substring(start, end).split('.')
+        val bytes = parts.mapNotNull { part -> part.toIntOrNull()?.takeIf { it in 0..255 && part.isNotEmpty() } }
+        if (parts.size == 4 && bytes.size == 4) found += ByteArray(4) { bytes[it].toByte() }
+        at = answer.indexOf(key, end)
+    }
+    return found
+}
+
+/**
+ * Plain HTTP/1.1 over TLS to an address found over DNS over HTTPS. The TLS session still names and
+ * checks the real server, and the archive's SHA-256 is checked as always.
+ */
+private fun fetchOverResolvedAddress(url: URL): Response {
+    val port = if (url.port == -1) 443 else url.port
+    var failure: IOException = UnknownHostException(url.host)
+    for (address in lookUpOverHttps(url.host)) {
+        val raw = Socket()
+        try {
+            raw.connect(InetSocketAddress(address, port), CONNECT_TIMEOUT_MS)
+            raw.soTimeout = READ_TIMEOUT_MS
+            val socket = (SSLSocketFactory.getDefault() as SSLSocketFactory).createSocket(raw, url.host, port, true) as SSLSocket
+            socket.sslParameters = socket.sslParameters.apply { endpointIdentificationAlgorithm = "HTTPS" }
+            socket.startHandshake()
+            val path = (url.path.ifEmpty { "/" }) + (url.query?.let { "?$it" } ?: "")
+            socket.outputStream.write(
+                ("GET $path HTTP/1.1\r\nHost: ${url.host}\r\nUser-Agent: Noam's Morphe Patches\r\n" +
+                    "Accept: */*\r\nConnection: close\r\n\r\n").toByteArray(Charsets.US_ASCII),
+            )
+            socket.outputStream.flush()
+            return readResponse(socket)
+        } catch (e: IOException) {
+            raw.close()
+            failure = e
+        }
+    }
+    throw failure
+}
+
+/** Reads the status and headers, and hands over the body of a 200 as it arrives. */
+private fun readResponse(socket: SSLSocket): Response {
+    val input = BufferedInputStream(socket.inputStream, BUFFER)
+    val status = readLine(input) ?: throw IOException("${socket.inetAddress} closed the connection")
+    val code = status.split(' ').getOrNull(1)?.toIntOrNull() ?: throw IOException("Unexpected answer: $status")
+    val headers = mutableMapOf<String, String>()
+    while (true) {
+        val line = readLine(input) ?: break
+        if (line.isEmpty()) break
+        val colon = line.indexOf(':')
+        if (colon > 0) headers[line.substring(0, colon).trim().lowercase()] = line.substring(colon + 1).trim()
+    }
+    val body = when {
+        code != HttpURLConnection.HTTP_OK -> null
+        headers["transfer-encoding"]?.lowercase()?.contains("chunked") == true -> Chunked(input)
+        else -> headers["content-length"]?.toLongOrNull()?.let { LengthLimited(input, it) } ?: input
+    }
+    return Response(code, headers["location"], body) { socket.close() }
+}
+
+/** One CRLF-ended header line, or null at the end of the stream. */
+private fun readLine(input: InputStream): String? {
+    val line = StringBuilder()
+    while (true) {
+        val b = input.read()
+        if (b < 0) return if (line.isEmpty()) null else line.toString()
+        if (b == '\n'.code) return line.toString().trimEnd('\r')
+        line.append(b.toChar())
+    }
+}
+
+/** A body sent in chunks, read as one stream. */
+private class Chunked(private val input: InputStream) : InputStream() {
+    private var left = 0L
+    private var ended = false
+
+    private fun nextChunk(): Boolean {
+        if (ended) return false
+        if (left == 0L) {
+            val size = readLine(input)?.substringBefore(';')?.trim()?.toLongOrNull(16) ?: throw IOException("Bad chunk")
+            if (size == 0L) {
+                ended = true
+                return false
+            }
+            left = size
+        }
+        return true
+    }
+
+    private fun chunkDone() {
+        if (left == 0L) readLine(input)
+    }
+
+    override fun read(): Int {
+        if (!nextChunk()) return -1
+        val b = input.read()
+        if (b < 0) throw IOException("The download ended early")
+        left--
+        chunkDone()
+        return b
+    }
+
+    override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+        if (length == 0) return 0
+        if (!nextChunk()) return -1
+        val n = input.read(buffer, offset, minOf(length.toLong(), left).toInt())
+        if (n < 0) throw IOException("The download ended early")
+        left -= n
+        chunkDone()
+        return n
+    }
+}
+
+/** A body of a known length. */
+private class LengthLimited(private val input: InputStream, private var left: Long) : InputStream() {
+    override fun read(): Int {
+        if (left <= 0) return -1
+        val b = input.read()
+        if (b >= 0) left--
+        return b
+    }
+
+    override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+        if (left <= 0) return -1
+        val n = input.read(buffer, offset, minOf(length.toLong(), left).toInt())
+        if (n > 0) left -= n
+        return n
+    }
 }
 
 /** A server that couldn't be reached. */
@@ -307,8 +503,20 @@ val stockfishPatch = bytecodePatch(
     execute {
         markFeaturePatched("stockfishPatched")
 
-        val state = mutableClassDefBy(BOARD_STATE)
-        val positionType = state.methods.single { it.name == "getPosition" && it.parameterTypes.isEmpty() }.returnType
+        val positionType = mutableClassDefBy(V2_BOARD).methods
+            .single { it.name == "getPosition" && it.parameterTypes.isEmpty() }.returnType
+        // The older board's view state: the moves-input class holding a position, with a setter for it.
+        fun ClassDef.setsPosition() = methods.any { method ->
+            method.name != "<init>" && method.returnType == "V" &&
+                method.parameterTypes.map { it.toString() } == listOf(positionType) && method.implementation != null
+        }
+        val states = mutableListOf<ClassDef>()
+        classDefForEach { classDef ->
+            if (classDef.type.startsWith(BOARD_STATE_PACKAGE) && classDef.setsPosition() &&
+                classDef.methods.any { it.name == "getPosition" && it.returnType == positionType && it.implementation != null }
+            ) states += classDef
+        }
+        val state = mutableClassDefBy(states.singleOrNull() ?: throw PatchException("Expected one board view state, found ${states.size}"))
 
         // The position's FEN: the one no-argument String method of its (obfuscated) interface.
         val position = classDefByOrNull { it.type == positionType }

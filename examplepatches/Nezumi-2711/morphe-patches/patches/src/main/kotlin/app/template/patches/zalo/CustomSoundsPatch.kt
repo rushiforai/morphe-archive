@@ -81,6 +81,7 @@ val customSoundsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.CUSTOM_SOUNDS)
         check(IncomingRingtoneFingerprint.matchAll(1..1).size == 1)
         val method = IncomingRingtoneFingerprint.method
         val instructions = method.implementation!!.instructions.toList()
@@ -113,6 +114,7 @@ val customSoundsPatch = bytecodePatch(
         builder.replaceInstruction(0,
             "invoke-static {p0, p1}, $CUSTOM_SOUNDS->notificationBuilder(Landroid/content/Context;Ljava/lang/String;)Landroid/app/Notification\$Builder;")
         builder.replaceInstruction(1, "move-result-object v0")
+        registerHooks(PatchId.CUSTOM_SOUNDS, method, oneShot, builder)
         attachNezumiSettings("attachCustomSounds")
     }
 }

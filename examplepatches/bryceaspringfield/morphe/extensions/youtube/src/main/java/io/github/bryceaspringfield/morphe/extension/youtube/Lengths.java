@@ -1,12 +1,10 @@
 package io.github.bryceaspringfield.morphe.extension.youtube;
 
-/** Video lengths typed by the user: h:mm:ss, m:ss, or a number of minutes (decimals allowed). */
 final class Lengths {
 
     private Lengths() {
     }
 
-    /** Seconds, or -1 for a blank or unreadable length. */
     static int parse(String raw) {
         if (raw == null) return -1;
         String s = raw.trim().toLowerCase().replace("min", "").replace("m", "").trim();

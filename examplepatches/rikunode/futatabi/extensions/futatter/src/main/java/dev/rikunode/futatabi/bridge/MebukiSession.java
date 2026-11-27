@@ -85,6 +85,20 @@ final class MebukiSession {
         return c;
     }
 
+    /** Official client catalog endpoint; never follow an authentication redirect. */
+    static String readCatalog(String cookie) throws Exception {
+        if(verify(cookie)!=State.AUTHENTICATED)throw new ReadFailure("CATALOG_SESSION");
+        HttpURLConnection c=connect("/api/catalog",cookie);
+        c.setRequestProperty("Accept","text/x-script, text/plain, application/json");
+        try {
+            int status=c.getResponseCode();
+            if(status!=200)throw new ReadFailure("CATALOG_HTTP "+status);
+            try(InputStream in=c.getInputStream()){
+                return new String(AimogeWriteClient.bounded(in,2_000_000),StandardCharsets.UTF_8);
+            }
+        }finally{c.disconnect();}
+    }
+
     /** Authenticated full read, only called from the in-process private reader. */
     static MebukiThreadData readThread(String slug, String cookie) throws Exception {
         if (slug == null || !slug.matches("[A-Za-z0-9_-]{8,24}"))

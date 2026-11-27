@@ -49,6 +49,11 @@ final class CallCaptionsRow {
     private void pickHeard() {
         SettingsDialog sheet = sheet("call_captions_heard_title", "call_captions_heard_hint");
         if (sheet == null) return;
+        fillHeard(sheet, null);
+    }
+
+    /** The heard sheet's choices, under a line saying the last pick was turned down when [refused] names it. */
+    private void fillHeard(SettingsDialog sheet, String refused) {
         CallCaptions.parts().heardLanguages(page, (installed, more) -> {
             if (open != sheet) return;
             sheet.body.removeAllViews();
@@ -56,10 +61,19 @@ final class CallCaptionsRow {
                 say(sheet, "call_captions_no_recognizer");
                 return;
             }
+            if (refused != null) say(sheet, "call_captions_cant_hear", CallCaptions.name(refused));
             String now = saved(CallCaptions.HEARD_LANGUAGE);
             RadioGroup group = group("call_captions_heard_choices");
-            choice(group, "", page.text.get("call_captions_phone_language", CallCaptions.name(java.util.Locale.getDefault().toLanguageTag())),
-                now.isEmpty(), () -> picked(CallCaptions.HEARD_LANGUAGE, "", null));
+            String phone = java.util.Locale.getDefault().toLanguageTag();
+            // The phone's language is only certain to work when the recognizer already has it.
+            boolean phoneHeard = false;
+            for (String language : installed) phoneHeard |= CallCaptions.sameLanguage(language, phone);
+            boolean sure = phoneHeard;
+            choice(group, "", page.text.get("call_captions_phone_language", CallCaptions.name(phone)),
+                now.isEmpty(), () -> {
+                    if (sure) picked(CallCaptions.HEARD_LANGUAGE, "", null);
+                    else tryHeard(sheet, "", phone, false, () -> fillHeard(sheet, phone));
+                });
             List<String> listed = new ArrayList<>(installed);
             for (String language : installed) choice(group, language, CallCaptions.name(language), language.equalsIgnoreCase(now),
                 () -> picked(CallCaptions.HEARD_LANGUAGE, language, null));
@@ -69,8 +83,28 @@ final class CallCaptionsRow {
                     language.equalsIgnoreCase(now), () -> picked(CallCaptions.HEARD_LANGUAGE, language, language));
             }
             choice(group, OTHER, page.text.get("call_captions_other"), false,
-                () -> pickOther(sheet, CallCaptions.HEARD_LANGUAGE, listed, true));
+                () -> pickOther(sheet, CallCaptions.HEARD_LANGUAGE, listed, true, null));
             page.ui.add(sheet.body, group, 0);
+        });
+    }
+
+    /**
+     * A language the recognizer never listed goes past it before it's saved (#244). Filipino on a Galaxy S26 Ultra
+     * was picked from the list of every language, and the recognizer only turned it down once a call started. Now the
+     * sheet asks it first: a language it takes is saved (fetching its model when [fetch] is set or it needs one), and
+     * one it turns down puts the choices back under a line that says so, keeping what was saved before.
+     */
+    private void tryHeard(SettingsDialog sheet, String saving, String language, boolean fetch, Runnable refused) {
+        if (open != sheet) return;
+        sheet.body.removeAllViews();
+        say(sheet, "call_captions_checking", CallCaptions.name(language));
+        CallCaptions.parts().tryHearing(page, language, answer -> {
+            if (open != sheet) return;
+            if (answer == CallCaptions.HEARS_NEVER) {
+                refused.run();
+                return;
+            }
+            picked(CallCaptions.HEARD_LANGUAGE, saving, fetch || answer == CallCaptions.HEARS_AFTER_DOWNLOAD ? language : null);
         });
     }
 
@@ -90,24 +124,28 @@ final class CallCaptionsRow {
             for (String language : targets) choice(group, language, CallCaptions.name(language), language.equalsIgnoreCase(now),
                 () -> picked(CallCaptions.SHOWN_LANGUAGE, language, null));
             choice(group, OTHER, page.text.get("call_captions_other"), false,
-                () -> pickOther(sheet, CallCaptions.SHOWN_LANGUAGE, targets, false));
+                () -> pickOther(sheet, CallCaptions.SHOWN_LANGUAGE, targets, false, null));
             page.ui.add(sheet.body, group, targets.isEmpty() ? 12 : 0);
         });
     }
 
     /**
      * The same sheet again, holding every other language the phone knows (#159). What the recognizer and the translator
-     * report leaves out languages they turn out to handle, so a pick here saves that language and the phone answers for
-     * itself: a heard language fetches its model first, and a shown language the phone can't translate into leaves
-     * captions as spoken, which the call says.
+     * report leaves out languages they turn out to handle, so the phone answers for itself: a heard language goes past
+     * the recognizer and fetches its model (#244), and a shown language the phone can't translate into leaves captions
+     * as spoken, which the call says.
      */
-    private void pickOther(SettingsDialog sheet, String key, List<String> listed, boolean download) {
+    private void pickOther(SettingsDialog sheet, String key, List<String> listed, boolean heard, String refused) {
         if (open != sheet) return;
         sheet.body.removeAllViews();
+        if (refused != null) say(sheet, "call_captions_cant_hear", CallCaptions.name(refused));
         String now = saved(key);
         RadioGroup group = group("call_captions_other_choices");
         for (String language : CallCaptions.others(listed)) choice(group, language, CallCaptions.name(language),
-            language.equalsIgnoreCase(now), () -> picked(key, language, download ? language : null));
+            language.equalsIgnoreCase(now), () -> {
+                if (heard) tryHeard(sheet, language, language, true, () -> pickOther(sheet, key, listed, true, language));
+                else picked(key, language, null);
+            });
         page.ui.add(sheet.body, group, 0);
     }
 
@@ -129,8 +167,8 @@ final class CallCaptionsRow {
         return sheet;
     }
 
-    private void say(SettingsDialog sheet, String id) {
-        TextView line = page.ui.text(page.text.get(id), 15, page.ui.muted, false);
+    private void say(SettingsDialog sheet, String id, Object... values) {
+        TextView line = page.ui.text(page.text.get(id, values), 15, page.ui.muted, false);
         line.setTag(id);
         page.ui.add(sheet.body, line, 0);
     }

@@ -26,22 +26,12 @@ private object SetPlayWhenReadyFingerprint : Fingerprint(
     parameters = listOf("I", "Z", "Z"),
 )
 
-@Suppress("unused")
-val videoTabPatch = patch(
-    name = "Video tab",
-    description = "Shows the video's time above the seek bar, in the Video tab and the full screen video viewer, " +
-        "and can go to the next video of the tab when one ends. Adds switches in Fakh Patches.",
-    default = true
-) {
-    compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feed")
-
+/** Tells the extension which player plays, which both the video time and the Video tab's auto-scroll follow. */
+private val playerHookPatch = patch {
     // The tab's posts are remembered in the SDUI component hook, and its screen is seen by the SduiFragment hooks.
     dependsOn(sduiComponentFilterPatch)
 
     execute {
-        register(VIDEO_TAB_TIME, VIDEO_TAB_AUTO_SCROLL)
-
         // At method entry every local register is free; the p registers can be above v15.
         SetPlayWhenReadyFingerprint.method.addInstructions(
             0,
@@ -52,4 +42,28 @@ val videoTabPatch = patch(
             """
         )
     }
+}
+
+@Suppress("unused")
+val videoTimePatch = patch(
+    name = "Show video time",
+    description = "Shows the video's time above the seek bar, in the Video tab and the full screen video viewer.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Video & viewers")
+    dependsOn(playerHookPatch)
+    execute { register(VIDEO_TAB_TIME) }
+}
+
+@Suppress("unused")
+val videoTabPatch = patch(
+    name = "Auto-scroll videos",
+    description = "Goes to the next video of the Video tab when one ends.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Video & viewers")
+    dependsOn(playerHookPatch)
+    execute { register(VIDEO_TAB_AUTO_SCROLL) }
 }

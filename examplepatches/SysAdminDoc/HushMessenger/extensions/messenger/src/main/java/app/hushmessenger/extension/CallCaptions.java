@@ -31,6 +31,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * Live captions on calls (#159). The far side's sound, which plays through WebRTC's Java thread with this on, goes to
@@ -95,7 +96,20 @@ public final class CallCaptions {
         void shownLanguages(Context context, String from, Consumer<List<String>> ready);
 
         void download(Context context, String language);
+
+        /**
+         * Asks the recognizer about one language the way a call would, and answers [HEARS], [HEARS_AFTER_DOWNLOAD] or
+         * [HEARS_NEVER] on the main thread. A recognizer that doesn't say counts as hearing it.
+         */
+        void tryHearing(Context context, String language, IntConsumer answer);
     }
+
+    /** The recognizer takes the language, or didn't say otherwise. */
+    static final int HEARS = 0;
+    /** The recognizer does the language once its model is on the phone. */
+    static final int HEARS_AFTER_DOWNLOAD = 1;
+    /** The recognizer turned the language down (#244: Filipino on a Galaxy S26 Ultra). */
+    static final int HEARS_NEVER = 2;
 
     static volatile Parts parts;
 

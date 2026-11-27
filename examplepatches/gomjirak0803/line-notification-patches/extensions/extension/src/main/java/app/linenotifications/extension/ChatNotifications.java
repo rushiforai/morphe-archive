@@ -109,9 +109,9 @@ final class ChatNotifications {
         try {
             Class<?> busType = NativeLine.type("com.linecorp.rxeventbus.d");
             Object key = busType.getField("a").get(null);
-            Object bus = NativeLine.type("sc0.f").getMethod("a", Context.class, NativeLine.type("sc0.a"))
+            Object bus = NativeLine.type("bd0.f").getMethod("a", Context.class, NativeLine.type("bd0.a"))
                     .invoke(null, Settings.context(), key);
-            Object event = NativeLine.type("xe8.b").getField("CHAT_LIST").get(null);
+            Object event = NativeLine.type("n88.b").getField("CHAT_LIST").get(null);
             busType.getMethod("b", Object.class).invoke(bus, event);
         } catch (ReflectiveOperationException | RuntimeException ignored) { }
     }
@@ -180,7 +180,7 @@ final class ChatNotifications {
                         else if (nativeCallback != null) {
                             Object result = NativeLine.type("com.linecorp.chathistory.menu.t$a$b")
                                     .getConstructor(boolean.class).newInstance(mode == NORMAL);
-                            NativeLine.type("nt8.l").getMethod("invoke", Object.class).invoke(nativeCallback, result);
+                            NativeLine.type("cn8.l").getMethod("invoke", Object.class).invoke(nativeCallback, result);
                         } else toast(context, mode == HIDDEN ? Strings.get(context, "line_notify_toast_hidden", "Notifications hidden completely.")
                                 : mode == QUIET ? Strings.get(context, "line_notify_toast_quiet", "Set to silent notifications.")
                                 : wasHidden ? Strings.get(context, "line_notify_toast_unhidden", "Notifications unhidden.")
@@ -224,13 +224,13 @@ final class ChatNotifications {
                             trace("setting: native delivery already matches");
                             finish.accept(true); return;
                         }
-                        Object manager = NativeLine.type("wk8.a2").getMethod("a", Context.class, boolean.class)
+                        Object manager = NativeLine.type("ke8.o1").getMethod("a", Context.class, boolean.class)
                                 .invoke(null, Settings.context(), false);
-                        Object repository = NativeLine.type("wk8.l0").getMethod("r").invoke(manager);
+                        Object repository = NativeLine.type("ke8.z").getMethod("t").invoke(manager);
                         Class<?> continuationType = NativeLine.type("kotlin.coroutines.Continuation");
-                        Object emptyContext = NativeLine.type("bt8.j").getField("a").get(null);
-                        Object successResult = NativeLine.type("ig3.t$c").getField("a").get(null);
-                        Object suspended = NativeLine.type("ct8.a").getField("COROUTINE_SUSPENDED").get(null);
+                        Object emptyContext = NativeLine.type("qm8.i").getField("a").get(null);
+                        Object successResult = NativeLine.type("ln3.u$c").getField("a").get(null);
+                        Object suspended = NativeLine.type("rm8.a").getField("COROUTINE_SUSPENDED").get(null);
                         Object continuation = Proxy.newProxyInstance(Settings.context().getClassLoader(),
                                 new Class<?>[]{continuationType}, (proxy, method, args) -> {
                                     if (method.getName().equals("getContext")) return emptyContext;
@@ -241,7 +241,7 @@ final class ChatNotifications {
                                 });
                         if (!NotificationPolicy.sameAccount(account, NativeLine.account())) { finish.accept(false); return; }
                         trace("setting: calling native setter");
-                        Object result = NativeLine.type("ue3.k").getMethod("p", String.class, boolean.class, continuationType)
+                        Object result = NativeLine.type("yl3.e").getMethod("t", String.class, boolean.class, continuationType)
                                 .invoke(repository, chat, desiredNative, new NotificationContinuation(continuation));
                         if (result != suspended) finish.accept(successResult.equals(result));
                     } catch (ReflectiveOperationException | RuntimeException ignored) { finish.accept(false); }

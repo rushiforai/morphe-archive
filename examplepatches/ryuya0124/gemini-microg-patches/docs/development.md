@@ -4,7 +4,9 @@
 
 ## ビルド
 
-macOS / Linux、JDK 21、Python 3、Bashを用意します。配布用MPPには Android SDK の `platforms;android-36`、署名には Build Tools `36.0.0`、端末へのインストールには platform-tools が必要です。`setup-tools.sh` は設定ファイルに記載された R8/D8 などを取得し、ハッシュを検証します。[依存ツールのバージョン](../config/tools.lock.json)
+macOS / Linux、JDK 21、Bash、`jq`、`curl`、`zip`、`unzip`、`shasum` を用意します。配布用MPPには Android SDK の `platforms;android-36`、署名には Build Tools `36.0.0`、端末へのインストールには platform-tools が必要です。`setup-tools.sh` は設定ファイルに記載された R8/D8 などを取得し、ハッシュを検証します。[依存ツールのバージョン](../config/tools.lock.json)
+
+`scripts/emulator/test-issue8*.mjs` の回帰試験には Node.js 22 以降を使います。ビルド、署名、GitHub Actionsの実行はBashとコマンドラインツールだけで行えます。
 
 ```sh
 git clone https://github.com/ryuya0124/gemini-microg-patches.git

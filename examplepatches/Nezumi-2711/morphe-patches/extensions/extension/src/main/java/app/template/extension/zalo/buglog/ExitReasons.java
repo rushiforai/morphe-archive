@@ -21,12 +21,13 @@ import app.template.extension.zalo.settings.NezumiPrefs;
  * Native crashes and ANRs kill the process without reaching any Java handler. On Android 11+
  * the system remembers why each process died; on the next start this copies every exit recorded
  * since the last read into the bug log, with the ANR trace or the readable part of the native
- * tombstone when the system kept one.
+ * tombstone when the system kept one. Patches found in the trace are named on the first line,
+ * like Java crashes ({@code [patched-by: ...] [nezumi: ...]}).
  */
 final class ExitReasons {
     private ExitReasons() { }
 
-    private static final String TAG = "ExitInfo";
+    private static final String TAG = "ExitReasons";
     private static final int MAX_TRACE_BYTES = 64 * 1024;
 
     static void recordAsync(Context context) {
@@ -35,7 +36,7 @@ final class ExitReasons {
             try {
                 record(context);
             } catch (Throwable failure) {
-                NezumiLog.swallowed(TAG, "reading exit reasons failed", failure);
+                NezumiLog.swallowed(Patch.CORE, TAG, "reading exit reasons failed", failure);
             }
         }, "NezumiExitInfo");
         thread.setDaemon(true);
@@ -43,7 +44,7 @@ final class ExitReasons {
     }
 
     private static synchronized void record(Context context) {
-        if (Build.VERSION.SDK_INT < 30 || !NezumiLog.isEnabled()) return;
+        if (Build.VERSION.SDK_INT < 30 || !NezumiLog.isRecording()) return;
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         if (manager == null) return;
         SharedPreferences prefs = NezumiPrefs.of(context);
@@ -64,17 +65,23 @@ final class ExitReasons {
                 || reason == ApplicationExitInfo.REASON_INITIALIZATION_FAILURE
                 || reason == ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE;
             StringBuilder line = new StringBuilder();
-            line.append(interesting ? "E" : "I").append('/').append(TAG).append(" [previous run] ")
+            line.append(LogLine.body(interesting ? 'E' : 'I', Patch.CORE.id, TAG, "previous run", "", null))
                 .append(reasonName(reason)).append(" at ").append(format.format(new Date(exit.getTimestamp())))
                 .append(", process ").append(exit.getProcessName())
                 .append(", status ").append(exit.getStatus())
                 .append(", importance ").append(exit.getImportance())
                 .append(", pss ").append(exit.getPss()).append(" KB");
-            if (exit.getDescription() != null) line.append("\n  description: ").append(exit.getDescription());
+            String trace = null;
             if (reason == ApplicationExitInfo.REASON_ANR || reason == ApplicationExitInfo.REASON_CRASH_NATIVE) {
-                String trace = readTrace(exit, reason == ApplicationExitInfo.REASON_CRASH_NATIVE);
-                if (trace != null) line.append("\n  trace:\n").append(trace);
+                trace = readTrace(exit, reason == ApplicationExitInfo.REASON_CRASH_NATIVE);
+                if (trace != null) {
+                    // An ANR dump holds every thread; the main thread is the one that hung.
+                    String frames = reason == ApplicationExitInfo.REASON_ANR ? Attribution.mainThreadSection(trace) : trace;
+                    line.append(NezumiLog.attribution().labels(Attribution.framesOf(frames)));
+                }
             }
+            if (exit.getDescription() != null) line.append("\n  description: ").append(exit.getDescription());
+            if (trace != null) line.append("\n  trace:\n").append(trace);
             NezumiLog.fileRaw(line.toString());
         }
         if (newest != lastSeen) prefs.edit().putLong(NezumiPrefs.BUG_LOG_EXIT_SEEN, newest).apply();

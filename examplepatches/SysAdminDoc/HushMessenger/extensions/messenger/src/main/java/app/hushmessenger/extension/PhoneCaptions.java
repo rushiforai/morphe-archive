@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * The phone's own speech pieces for live captions, all on-device: the recognizer Android 13 lets an app feed from a
@@ -141,6 +142,91 @@ final class PhoneCaptions implements CallCaptions.Parts {
         MAIN.postDelayed(fetching::destroy, 10000);
     }
 
+    /** A recognizer that hasn't turned a language down by now has taken it, and is only waiting for someone to talk. */
+    static final long TRY_MILLIS = 4000;
+
+    /**
+     * Starts the session a call would start, on a pipe nothing is written to, and listens for the recognizer's answer
+     * about the language (#244). The list the recognizer reports isn't the whole story, so this asks the way the call
+     * will, and settings can say so before the call does.
+     */
+    @Override public void tryHearing(Context context, String language, IntConsumer answer) {
+        if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(context)) {
+            answer.accept(CallCaptions.HEARS_NEVER);
+            return;
+        }
+        ParcelFileDescriptor[] pipe;
+        try {
+            pipe = ParcelFileDescriptor.createPipe();
+        } catch (IOException error) {
+            answer.accept(CallCaptions.HEARS);
+            return;
+        }
+        SpeechRecognizer trying = SpeechRecognizer.createOnDeviceSpeechRecognizer(context);
+        AtomicBoolean answered = new AtomicBoolean();
+        Runnable[] waiting = new Runnable[1];
+        IntConsumer done = result -> {
+            if (!answered.compareAndSet(false, true)) return;
+            MAIN.removeCallbacks(waiting[0]);
+            close(pipe[0]);
+            close(pipe[1]);
+            try {
+                trying.cancel();
+            } catch (RuntimeException ignored) {
+                // Going anyway.
+            }
+            trying.destroy();
+            answer.accept(result);
+        };
+        waiting[0] = () -> done.accept(CallCaptions.HEARS);
+        trying.setRecognitionListener(new RecognitionListener() {
+            @Override public void onReadyForSpeech(Bundle params) {}
+
+            @Override public void onBeginningOfSpeech() {}
+
+            @Override public void onRmsChanged(float rms) {}
+
+            @Override public void onBufferReceived(byte[] buffer) {}
+
+            @Override public void onEndOfSpeech() {}
+
+            @Override public void onError(int error) {
+                done.accept(error == SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED ? CallCaptions.HEARS_NEVER
+                    : error == SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE ? CallCaptions.HEARS_AFTER_DOWNLOAD : CallCaptions.HEARS);
+            }
+
+            @Override public void onResults(Bundle results) {
+                done.accept(CallCaptions.HEARS);
+            }
+
+            @Override public void onPartialResults(Bundle results) {}
+
+            @Override public void onEndOfSegmentedSession() {
+                done.accept(CallCaptions.HEARS);
+            }
+
+            @Override public void onEvent(int type, Bundle params) {}
+        });
+        MAIN.postDelayed(waiting[0], TRY_MILLIS);
+        try {
+            trying.startListening(callSession(language, pipe[0]));
+        } catch (RuntimeException error) {
+            done.accept(CallCaptions.HEARS);
+        }
+    }
+
+    /** What a call asks the recognizer for: one long segmented session on the call's sound, never the microphone. */
+    static Intent callSession(String language, ParcelFileDescriptor reading) {
+        return recognizing(language)
+            .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE, reading)
+            .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_CHANNEL_COUNT, 1)
+            .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
+            .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_SAMPLING_RATE, CallMix.RATE)
+            .putExtra(RecognizerIntent.EXTRA_SEGMENTED_SESSION, RecognizerIntent.EXTRA_AUDIO_SOURCE);
+    }
+
     private static TranslationSpec spec(String language) {
         return new TranslationSpec(ULocale.forLanguageTag(language), TranslationSpec.DATA_FORMAT_TEXT);
     }
@@ -201,14 +287,7 @@ final class PhoneCaptions implements CallCaptions.Parts {
             close(reading);
             reading = pipe[0];
             feed.into(new PipeSink(pipe[1]));
-            Intent intent = recognizing(language)
-                .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-                .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-                .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE, pipe[0])
-                .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_CHANNEL_COUNT, 1)
-                .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
-                .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_SAMPLING_RATE, CallMix.RATE)
-                .putExtra(RecognizerIntent.EXTRA_SEGMENTED_SESSION, RecognizerIntent.EXTRA_AUDIO_SOURCE);
+            Intent intent = callSession(language, pipe[0]);
             try {
                 recognizer.startListening(intent);
             } catch (RuntimeException error) {

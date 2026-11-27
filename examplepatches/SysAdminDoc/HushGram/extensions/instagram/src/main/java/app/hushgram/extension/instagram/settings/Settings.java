@@ -2318,6 +2318,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_glass_tab_bar_keep_size", FALSE, true, parent(GLASS_TAB_BAR_LIQUID));
 
     /**
+     * Under {@link #GLASS_TAB_BAR_LIQUID}: Search stays in the pill with the other tabs, where Instagram put it,
+     * rather than in a glass circle of its own beside the pill (#875). The compact row then shrinks to whichever
+     * tab you're on, Search too. Read as the bar is built, so a change asks for a restart. Off to start.
+     */
+    public static final BooleanSetting GLASS_TAB_BAR_SEARCH_IN_PILL =
+            new BooleanSetting("hushgram_glass_tab_bar_search_in_pill", FALSE, true, parent(GLASS_TAB_BAR_LIQUID));
+
+    /**
      * Under {@link #GLASS_TAB_BAR_LIQUID}: a finger held on the bubble, or sliding it across the tabs, swells it
      * and makes its lens bend what's behind it harder, the way glass does under a fingertip (#705). It eases back
      * once the finger lifts. The lens needs Blur behind the tab bar and Android 13 or newer, and without them the
@@ -2408,6 +2416,36 @@ public class Settings extends BaseSettings {
     public static final IntegerSetting GLASS_TAB_BAR_OPACITY =
             new IntegerSetting("hushgram_glass_tab_bar_opacity_percent", 100, false, parent(GLASS_TAB_BAR))
                     .withRange(0, 150);
+
+    /**
+     * Under {@link #GLASS_TAB_BAR}: the color the pill's glass is tinted ({@link app.hushgram.extension.instagram.misc.GlassTint},
+     * #875). Starts on Instagram's own colors, the glass the bar has always had. The Material look draws the pill in
+     * its own colors, so the choice rests while that's on, unless the liquid look, which wins over it, is on too.
+     * Read as the pill draws, so a change shows on the bar without a restart.
+     */
+    public static final EnumSetting<app.hushgram.extension.instagram.misc.GlassTint> GLASS_TAB_BAR_TINT =
+            new EnumSetting<>("hushgram_glass_tab_bar_tint",
+                    app.hushgram.extension.instagram.misc.GlassTint.INSTAGRAM, false, glassTintAvailability());
+
+    /**
+     * The color typed for Custom under {@link #GLASS_TAB_BAR_TINT} (#875), {@code #RRGGBB}. Empty to start, which
+     * leaves Custom on Instagram's colors. Rests with the tint, and shows on the bar without a restart.
+     */
+    public static final StringSetting GLASS_TAB_BAR_TINT_CUSTOM =
+            new StringSetting("hushgram_glass_tab_bar_tint_custom", "", false, glassTintAvailability());
+
+    /** The glass tab bar on, and the pill not drawn by the Material look in its own colors (#875). */
+    private static Setting.Availability glassTintAvailability() {
+        return new Setting.Availability() {
+            @Override public boolean isAvailable() {
+                return GLASS_TAB_BAR.savedValue() && (GLASS_TAB_BAR_LIQUID.savedValue() || !GLASS_TAB_BAR_MATERIAL.savedValue());
+            }
+
+            @Override public List<Setting<?>> getParentSettings() {
+                return Collections.singletonList(GLASS_TAB_BAR);
+            }
+        };
+    }
 
     /**
      * Under {@link #GLASS_TAB_BAR_REFRACT}: how far the pill's rim bends what's behind it, in percent of the
@@ -2572,6 +2610,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting STOP_BACKGROUND_FETCH =
             new BooleanSetting("hushgram_stop_background_fetch", FALSE);
+
+    /**
+     * Instagram's account authenticator answers Android's account feature checks at once, so Android's
+     * account service lets go of it instead of keeping it running for up to 15 minutes
+     * ({@link app.hushgram.extension.instagram.misc.Heartbeat#answerAccountFeatures}, #341). Read each time
+     * Android asks. Off to start.
+     */
+    public static final BooleanSetting ANSWER_ACCOUNT_CHECKS =
+            new BooleanSetting("hushgram_answer_account_checks", FALSE);
 
     /**
      * Instagram's windows ask Android for the display's fastest mode at the resolution it runs at
@@ -3042,6 +3089,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_PROFILE_FOLLOW_BUTTONS =
             new BooleanSetting("hushgram_hide_profile_follow_buttons", FALSE);
+
+    /**
+     * Select all beside Select on Your activity's photo and video grids (#762,
+     * {@link app.hushgram.extension.instagram.profile.ActivitySelectAll}). Read each time a screen lays
+     * out, so it needs no restart. Off to start.
+     */
+    public static final BooleanSetting ACTIVITY_SELECT_ALL =
+            new BooleanSetting("hushgram_activity_select_all", FALSE);
 
     /**
      * The tabs Instagram leaves off other people's profiles, as Instagram's tab keys with commas between ({@link app.hushgram.extension.instagram.profile.ProfileTabs}):
@@ -5219,6 +5274,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_resume_long_videos", FALSE);
 
     /**
+     * A feed video of any length you scroll away from picks up where you left it when you scroll
+     * back to it, while Instagram stays open ({@link app.hushgram.extension.instagram.media.ResumePlayback},
+     * #874). Reels in the Reels viewer, live videos and ads start as Instagram starts them. The
+     * places stay in memory and nothing is written. Read at each start. Off to start.
+     */
+    public static final BooleanSetting RESUME_FEED_VIDEOS =
+            new BooleanSetting("hushgram_resume_feed_videos", FALSE);
+
+    /**
      * HDR photos and reels don't brighten the screen: every headroom Instagram asks Android for is
      * none, HDR color mode is the default one, the screen's HDR/SDR ratio reads as none, the screen
      * reads as one without HDR outside the camera's recording helper, and Instagram's extended range
@@ -5236,6 +5300,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting KEEP_HDR_ON_PHOTO_UPLOADS =
             new BooleanSetting("hushgram_keep_hdr_on_photo_uploads", FALSE);
+
+    /**
+     * An HDR video you post is encoded in HDR: Instagram's encoder search marks a 10-bit HEVC
+     * encoder as keeping HLG on Android 13 and newer even when the encoder doesn't list P010
+     * ({@link app.hushgram.extension.instagram.media.HdrVideos}, #532). Read as each video is
+     * encoded for upload. Off to start: experimental.
+     */
+    public static final BooleanSetting KEEP_HDR_ON_VIDEO_UPLOADS =
+            new BooleanSetting("hushgram_keep_hdr_on_video_uploads", FALSE);
 
     /**
      * Feed videos and reels stop on their last frame instead of playing again
@@ -5279,6 +5352,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting REELS_PIP_SKIP_BUTTONS =
             new BooleanSetting("hushgram_reels_pip_skip_buttons", FALSE);
+
+    /**
+     * Lets photo and carousel reels into Instagram's picture in picture window for reels, which
+     * otherwise takes video reels only (#873,
+     * {@link app.hushgram.extension.instagram.media.ReelsPipStills}). Read each time Instagram asks
+     * whether a reel can go in the window. Off to start.
+     */
+    public static final BooleanSetting REELS_PIP_STILLS =
+            new BooleanSetting("hushgram_reels_pip_stills", FALSE);
 
     /**
      * Leaving Instagram while a story plays shrinks it into a picture in picture window that keeps
@@ -5400,6 +5482,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SAVE_NAME_BY_POST =
             new BooleanSetting("hushgram_save_name_by_post", FALSE);
+
+    /**
+     * Every save, photo or video, is dated by when its post went up rather than when it was saved
+     * (#792): the date taken Android's gallery reads out of the file (a JPEG's EXIF dates, an MP4's
+     * movie and track times, an MKV's DateUTC) and the file's modified time. Only when the save
+     * knows the post time. Starts off, so saves keep the time they were saved.
+     */
+    public static final BooleanSetting SAVE_POST_DATE =
+            new BooleanSetting("hushgram_save_post_date", FALSE);
 
     /**
      * A saved photo carries where it came from in its EXIF: the account that posted it, when the

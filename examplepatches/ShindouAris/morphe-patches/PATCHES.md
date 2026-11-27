@@ -1,0 +1,45 @@
+# Patches
+
+> Generated from `patches-list.json` — **v1.3.0** (`main`) · **31 patches** across **1 app** · back to [README](README.md)
+
+---
+
+## Google Maps (com.google.android.apps.maps)
+
+**Supported versions:** `26.44.06.1006895251`
+
+| Patch | Details |
+|---|---|
+| **120 refresh rate** | Lifts the 60 Hz limit Maps puts on itself, on the app and on the map, so it can run at your screen's full refresh rate (such as 120 Hz). Uses more battery, most of all while navigating. Off by default: switch it on on the Customization screen. |
+| **Account sheet cleanup** | Removes the "More from this app" label from the account sheet, and keeps the sheet open when you come back from Settings or Customization or tap "Your profile", instead of dropping back to the map. |
+| **Add microG-RE support** | Builds microG Maps, a separate app that signs in to your Google account through microG-RE (MicroG-RE or ReVanced GmsCore). Not for root installs; for original microG, use Add original microG support. |
+| **Add original microG support** | Signs in through original microG on ROMs with signature spoofing. Keeps Maps' own package name; allow signature spoofing for it. |
+| **Android Auto Car App Library** | Adds a Car App Library service so Android Auto lists Maps as a navigation app and shows Maps' own car UI on it, with Waze Mod and xADAS overlays. Off by default. |
+| **Any media app** | Navigation's Default media app (Settings &gt; Navigation) offers every music and podcast app that works with Android Auto, such as Poweramp, also where Google switches media controls off. YouTube Music and Spotify only connect to Google's own Maps. |
+| **Better offline maps** | Reworks the offline area picker: zooming out really selects more instead of being shrunk to Google's size cap, the box can be resized by dragging its edges and corners, a large area is split into several downloads whose true total size is shown, and areas already downloaded are drawn on the map. Can be turned off on the Customization screen. |
+| **Black theme** | AMOLED-black theme. Pins Maps' own dark mode and its separate navigation colour scheme, and remaps colour resources, drawable fills and draw-time paints so no surface is left grey. |
+| **Blue pin** | Chromium-coloured flat map pin on every in-app product logo and the search bar's leading icon. |
+| **Bypass Play Services checks** | Makes Maps' bundled Play services signature and availability checks always pass, so it runs re-signed and with Play services disabled or absent, and lets it load tiles, search and routing by sending Google's own package and certificate in the identity headers the Maps backend checks. Where Play services rejects the re-signed app, Maps degrades instead of crashing. Also skips Google's "isn't Play Protect certified" page, and with no Play services at all uses Android's own Cronet so the map still loads. |
+| **Change app name** | Sets the launcher and in-app app name.<br><sub>Options: App name</sub> |
+| **Change package name** | Installs alongside stock Google Maps under its own package name. On by default, because stock Maps comes built into most phones and cannot be replaced by a patched copy.<br><sub>Options: Package name</sub> |
+| **Customization screen** | Adds a Customization row under Settings on the account sheet and at the top of Settings, with switches for the patches here that can be turned back off inside the app. |
+| **Follow playing media** | Navigation's media controls show what any app is playing (needs notification access). |
+| **Hide ads and clutter** | Hides promoted map pins (on the map, in search results and along a route) and "Sponsored" search results, Gemini's AI summaries ("Know before you go" and the review summary), the row of businesses under an address on its place sheet, the home tab's Explore feed and the Explore / Contribute / You tabs. Each can be switched back on on the Customization screen. |
+| **Legacy icon** | Uses the flat multicolour pin Maps had before the 2025 gradient icon as the launcher icon and on the screen Maps opens with. With Add microG-RE support, microG's C sits in the pin's circle. |
+| **Light map** | Adds a Customization switch that keeps the map light while Maps' menus are dark. |
+| **Location provider toggle** | Adds a Location source choice to the Customization screen: Android's own location providers, microG-RE's or Google Play services' fused provider. With Android, neither is ever asked for a location. A source that is missing or disabled is never used, so location keeps working without it. Also keeps the network (Wi-Fi/cell) provider registered when no fused provider answers, instead of GPS only, so a fix does not go stale indoors.<br><sub>Options: Default to Play services location</sub> |
+| **Map region** | Adds a Customization option to pick the country the map's names and borders are shown for. |
+| **Media panel can be closed** | Navigation's media button stays above the media controls, so they can be closed again. |
+| **Offline saved places** | Save places without a Google account, kept only on the phone: Save opens Maps' own "Place saved" sheet (Want to go, Travel plans, Starred places, Favorites, your own lists, a note), and a "Local saved" row on the account sheet rebuilds Maps' You tab -- your recent places, your lists and labels (Home, Work, your own) -- with export and import (backup file, KML, Google Takeout's saved lists and Saved Places.json, several files or the whole Takeout .zip at once). It also has a Timeline: where the phone has been, grouped into days and visits, kept only on the phone, with GPX export. Recording is off until switched on there; it shows a notification while it runs. With Add microG-RE support, Maps' own Save keeps syncing to your account and Local saved instead copies the account's saved lists to the phone (Pull from Google account). |
+| **Power saving mode** | Brings the Pixel-only power saving mode to every phone: while driving with navigation, press the power button and Maps shows only key information such as the next turn on a black screen. Turn it on or off in Settings &gt; Navigation &gt; Power saving mode. Pixels that have it built in keep Google's own version unless Power saving mode is turned on in Power Saving Options, a row on the account sheet under Customization, which also has: a navigation button that opens the power saving screen without locking the phone, switching to it by itself when idle, the normal screen near turns, a speedometer on it, a lower frame rate, and its black map in navigation or all over Maps. |
+| **Proxy** | Adds a Proxy screen to Customization that sends Maps' own traffic, map data included, through an HTTP proxy -- for example Orbot's (127.0.0.1:8118) to use Tor. Map data never falls back to a direct connection: if the proxy stops, Maps stops loading. Needs a recent Play services network engine (Cronet); Maps warns when it cannot take the proxy. |
+| **Rectangle shapes** | Squares off rounded corners across the UI, including the two round navigation buttons. |
+| **Remove permissions** | Removes permissions that only serve Google-account features or Google's data collection: background location, physical activity, contacts, microphone (voice search stops working), camera (Lens and Live View stop working), car speed, advertising ID, push messages and Google services settings. Left out with Add microG-RE support, whose account features need them. |
+| **Remove sign-in prompts** | Removes Google's sign-in prompts: the first-launch "Make it your map" page, the search screen's "Tired of typing?" card and the account sheet's "Sign in" pill. Tapping "Your profile" (or the pill, where it still shows) answers with a "Can't sign in" toast instead of nothing. With Add microG-RE support, which signs in, only the first-launch page and the card go. |
+| **Remove telemetry** | Points the Firebase Installations and Play services compliance check-ins at an unresolvable host, turns Firebase Analytics off, stops every ad impression and click ping from being sent, and deregisters Google's logging, performance-monitoring, survey and Location History libraries and the on-device federated-learning services. With Add microG-RE support, Firebase Installations and Location History are left alone, so Timeline, account sync and push messages keep working. |
+| **Review counts in navigation search** | Places found while navigating show their review count next to the rating. |
+| **Speeding chime** | Plays a chime when your speed passes the speed limit during navigation, as Waze does. Maps itself only turns its speedometer red. When it chimes is chosen in Speeding chime, a row on the account sheet. |
+| **Trim account menu** | Removes Your Timeline, Location sharing, Your data in Maps and Help &amp; feedback from the account sheet. Left out with Add microG-RE support, whose account features need them. |
+| **Zoom controls in navigation** | Adds +, − and reset tiles during turn-by-turn that change the navigation zoom while the camera keeps following the car. |
+
+---

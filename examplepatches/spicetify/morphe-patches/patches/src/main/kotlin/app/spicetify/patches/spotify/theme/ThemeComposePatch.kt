@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.newInstance
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
@@ -26,17 +27,19 @@ private const val BRUSH = "Landroidx/compose/ui/graphics/Brush;"
 private val PUBLIC_STATIC_FINAL = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL)
 
 /** Compose's Color(Long), which turns an ARGB constant into a Compose color. */
-private const val COLOR = "Lp/iae1;->g(J)J"
+private const val COLOR = "Lp/ddp;->h(J)J"
 
 /** Spotify's #282828 surface, as a constant. */
 private const val SURFACE = 0xFF282828L
 
 /** The static fields that keep a #282828 surface for two Compose screens, set when their class loads. */
-private val SURFACE_FIELDS = listOf("Lp/pz01;->a:J", "Lp/t5s0;->b:J")
+private val SURFACE_FIELDS = listOf("Lp/q5d1;->a:J", "Lp/ro21;->b:J")
 
-/** ProvideEncoreTheme, which picks the Encore palette for a theme and provides it. */
-internal object ProvideEncoreThemeFingerprint : Fingerprint(
-    filters = listOf(string("EncoreLayoutTheme: Invalid screen dimensions (")),
+/** The static initializer of Encore's theme enum, found by two of its constants (R8 can unbox the enum, as it did in 9.1.80). */
+internal object EncoreThemeEnumFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
+    parameters = listOf(),
+    filters = listOf(string("AdvertisingDark"), string("XirpDark")),
 )
 
 /** The merged lambda holding the default value of the Encore palette's CompositionLocal. */
@@ -46,11 +49,18 @@ internal object EncoreThemeDefaultsFingerprint : Fingerprint(
     ),
 )
 
-/** The static initializer of Encore's raw colors: the only method with these three grays. */
-internal object EncoreRawColorsFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
+/** The constructor of Encore's gray ramp: the only method with these three grays. */
+internal object EncoreGrayRampFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     parameters = listOf(),
     filters = listOf(literal(0xFF181818L), literal(0xFF333333L), literal(0xFF535353L)),
+)
+
+/** The static initializer of Encore's raw colors: the only code that builds the gray ramp. */
+private fun encoreRawColorsFingerprint(grayRamp: String) = Fingerprint(
+    accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
+    parameters = listOf(),
+    filters = listOf(newInstance(grayRamp)),
 )
 
 /**
@@ -92,9 +102,11 @@ internal val themeComposePatch = bytecodePatch {
             log.info("ComposeTheme hook: $definingClass->$name index $index")
         }
 
-        // The palette getters in ProvideEncoreTheme's theme switch all return the palette type, and the
-        // default dark palette is the one case read from a static field.
-        val provide = ProvideEncoreThemeFingerprint.matchAll(1..1).single().method
+        // The enum's one instance method switches on the theme and returns its palette: the palette getters
+        // it calls all return the palette type, and the default dark palette is the one case read from a static field.
+        val provide = EncoreThemeEnumFingerprint.matchAll(1..1).single().classDef.methods.singleOrNull {
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.isEmpty() && it.returnType.startsWith("L")
+        } ?: throw PatchException("Expected one palette method in Encore's theme enum.")
         val paletteType = provide.implementation!!.instructions
             .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
             .filter { it.parameterTypes.isEmpty() && it.returnType.startsWith("L") }
@@ -115,7 +127,9 @@ internal val themeComposePatch = bytecodePatch {
             """)
         }
 
-        val rawColors = EncoreRawColorsFingerprint.matchAll(1..1).single().method
+        val grayRamp = EncoreGrayRampFingerprint.matchAll(1..1).single().classDef.type
+        val rawColors = encoreRawColorsFingerprint(grayRamp).matchAllOrNull()?.singleOrNull()?.method
+            ?: throw PatchException("Expected one static initializer that builds Encore's gray ramp $grayRamp.")
         val store = rawColors.implementation!!.instructions.withIndex().singleOrNull { (_, instruction) ->
             instruction.opcode == Opcode.SPUT_OBJECT &&
                 ((instruction as ReferenceInstruction).reference as FieldReference).definingClass == rawColors.definingClass
@@ -125,8 +139,10 @@ internal val themeComposePatch = bytecodePatch {
         rawColors.hook(store.index + 1,
             "invoke-static/range { v$register .. v$register }, $COMPOSE_THEME_CLASS->primitives(Ljava/lang/Object;)V")
 
+        val scrim = headerScrimFingerprint(holder).matchAllOrNull()?.singleOrNull()?.method
+            ?: throw PatchException("Expected one header scrim that reads Encore's raw colors $holder.")
         // p1 and p2 are the scrim's top and bottom alphas.
-        headerScrimFingerprint(holder).matchAll(1..1).single().method.hook(0, """
+        scrim.hook(0, """
             invoke-static/range { p1 .. p1 }, $COMPOSE_THEME_CLASS->scrimAlpha(F)F
             move-result p1
             invoke-static/range { p2 .. p2 }, $COMPOSE_THEME_CLASS->scrimAlpha(F)F

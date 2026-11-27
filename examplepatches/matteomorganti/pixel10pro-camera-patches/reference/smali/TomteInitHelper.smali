@@ -1,0 +1,10824 @@
+.class public Lcom/google/android/patch/cameralooks/TomteInitHelper;
+.super Ljava/lang/Object;
+.source "TomteInitHelper.java"
+
+
+# static fields
+.field private static final TAG:Ljava/lang/String; = "PATCH_LOOKS"
+
+.field private static sLastInitGcamPtr:J
+
+.field public static sCurrentModeOrdinal:I
+
+.field public static sSelectedLookId:I
+
+.field public static sLastSelectedLook:Lqvj;
+
+.field public static sAppContext:Landroid/content/Context;
+
+.field public static final PREF_FILM_GRAIN:Ljava/lang/String; = "pref_camera_looks_film_grain_key"
+
+.field public static final PREF_MAX_BRIGHTNESS:Ljava/lang/String; = "pref_camera_max_brightness_key"
+
+.field public static final PREF_JPEG_QUALITY:Ljava/lang/String; = "pref_camera_jpeg_quality_key"
+
+.field public static final PREF_NOISE_REDUCTION:Ljava/lang/String; = "pref_camera_noise_reduction_key"
+
+.field public static final PREF_FOCAL_CYCLING:Ljava/lang/String; = "pref_camera_focal_length_cycling_key"
+
+.field public static final PREF_RAW_SEPARATE_FOLDER:Ljava/lang/String; = "pref_camera_raw_separate_folder_key"
+
+.field public static final PREF_FRONT_BACKLIGHT_FIX:Ljava/lang/String; = "pref_camera_front_backlight_fix_key"
+
+.field public static sIsFrontCamera:Z
+
+.field public static sCurrentActivity:Ljava/lang/ref/WeakReference;
+
+.field public static sFineTuneContrast:F
+
+.field public static sFineTuneShadows:F
+
+.field public static sFineTuneHighlights:F
+
+.field public static sFineTuneVibrance:F
+
+.field public static sFineTuneTint:F
+
+.field public static sFineTuneWarmth:F
+
+.field public static sFineTuneSharpness:F
+
+.field public static sFineTuneGrain:F
+
+.field public static sHasCustomTone:Z
+
+.field public static sHasCustomColor:Z
+
+.field public static sHasCustomDetail:Z
+
+.field public static volatile lastExposureTimeNs:J
+
+.field public static sLastNightSightTimestamp:J
+
+.field public static sLastNightSightCaptureTime:J
+
+.field public static volatile sIsVideoAeLocked:Z
+
+.field public static sCurrentVae:Ljava/lang/ref/WeakReference;
+
+
+
+# direct methods
+.method static constructor <clinit>()V
+    .locals 2
+
+    .line 11
+    const-wide/16 v0, 0x0
+
+    sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastInitGcamPtr:J
+
+    .line 12
+    const/4 v0, -0x1
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    const/4 v0, 0x1
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    const/4 v0, 0x0
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastSelectedLook:Lqvj;
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
+
+    sput-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsFrontCamera:Z
+
+    sput-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsVideoAeLocked:Z
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentVae:Ljava/lang/ref/WeakReference;
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentActivity:Ljava/lang/ref/WeakReference;
+
+    const/4 v0, 0x0
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    const/4 v0, 0x0
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const-wide/32 v0, 0x1312d00
+
+    sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->lastExposureTimeNs:J
+
+    const-wide/16 v0, 0x0
+
+    sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightTimestamp:J
+
+    sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightCaptureTime:J
+
+
+    :try_start_propatcher
+    const-string v0, "propatcher"
+
+    invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
+
+    const-string v0, "PATCH_LOOKS"
+
+    const-string v1, "libpropatcher.so loaded successfully."
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_propatcher
+    .catch Ljava/lang/Throwable; {:try_start_propatcher .. :try_end_propatcher} :catch_propatcher
+
+    :catch_propatcher
+    return-void
+.end method
+
+.method public static native nativeIsProPatcherLoaded()Z
+.end method
+
+.method public static native nativeApplyTuning(FI)V
+.end method
+
+.method public static native nativeSetFineTuning(FFFFFFF)V
+.end method
+
+.method public static native nativeSetGrainEnabled(Z)V
+.end method
+
+.method public static native nativeProcessHardwareBuffer(Landroid/hardware/HardwareBuffer;I)V
+.end method
+
+.method public static native nativeProcessRasterImage(JIIIII)V
+.end method
+
+.method public static native nativeProcessFrontBacklightImage(JIIII)V
+.end method
+
+.method public static native nativeGetAeExposureCompensation(J)F
+.end method
+
+.method public static getAeExposureCompensation(J)F
+    .locals 2
+
+    :try_start_ae_ec
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteProPatcherLoader;->loadProPatcher()V
+
+    invoke-static {p0, p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeGetAeExposureCompensation(J)F
+
+    move-result p0
+
+    return p0
+    :try_end_ae_ec
+    .catchall {:try_start_ae_ec .. :try_end_ae_ec} :catchall_ae_ec
+
+    :catchall_ae_ec
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public static getSelectedLookId()I
+    .locals 3
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    if-ltz v0, :cond_check_pref
+
+    return v0
+
+    :cond_check_pref
+    :try_start_pref_look
+    const-string v0, "pref_sauce_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-nez v0, :cond_got_pref
+
+    const-string v0, "pref_hdr_sauce_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    :cond_got_pref
+    if-eqz v0, :cond_ret_zero
+
+    instance-of v1, v0, Ljava/lang/Integer;
+
+    if-eqz v1, :cond_check_num
+
+    check-cast v0, Ljava/lang/Integer;
+
+    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
+
+    move-result v0
+
+    goto :goto_cache
+
+    :cond_check_num
+    instance-of v1, v0, Ljava/lang/Number;
+
+    if-eqz v1, :cond_check_str
+
+    check-cast v0, Ljava/lang/Number;
+
+    invoke-virtual {v0}, Ljava/lang/Number;->intValue()I
+
+    move-result v0
+
+    goto :goto_cache
+
+    :cond_check_str
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-static {v0}, Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I
+
+    move-result v0
+
+    :goto_cache
+    if-ltz v0, :cond_ret_zero
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->loadFineTuningForLook(I)V
+
+    return v0
+    :try_end_pref_look
+    .catch Ljava/lang/Throwable; {:try_start_pref_look .. :try_end_pref_look} :catch_pref_look
+
+    :catch_pref_look
+    :cond_ret_zero
+    const/4 v0, 0x0
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->loadFineTuningForLook(I)V
+
+    return v0
+.end method
+
+.method public static processHardwareBuffer(Landroid/hardware/HardwareBuffer;)V
+    .locals 2
+
+    if-nez p0, :cond_not_null
+
+    return-void
+
+    :cond_not_null
+    # Issue #95 Fix: Ignore small preview / Zoom Stabilization PiP minimap (< 640x480)
+    invoke-virtual {p0}, Landroid/hardware/HardwareBuffer;->getWidth()I
+
+    move-result v0
+
+    const/16 v1, 0x280
+
+    if-ge v0, v1, :cond_chk_min_h
+
+    return-void
+
+    :cond_chk_min_h
+    invoke-virtual {p0}, Landroid/hardware/HardwareBuffer;->getHeight()I
+
+    move-result v0
+
+    const/16 v1, 0x1e0
+
+    if-ge v0, v1, :cond_chk_mode
+
+    return-void
+
+    :cond_chk_mode
+    sget v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    # Video = 2, Photo Sphere/Panorama = 4, Portrait = 6, Landscape(LongExposure) = 14, Action Pan = 15
+    const/4 v0, 0x2
+
+    if-ne v1, v0, :cond_chk_4
+
+    return-void
+
+    :cond_chk_4
+    const/4 v0, 0x4
+
+    if-ne v1, v0, :cond_chk_6
+
+    return-void
+
+    # Issues #94 & #96 Fix: Portrait live depth/bokeh preview bypasses native buffer grading
+    :cond_chk_6
+    const/4 v0, 0x6
+
+    if-ne v1, v0, :cond_chk_14
+
+    return-void
+
+    :cond_chk_14
+    const/16 v0, 0xe
+
+    if-ne v1, v0, :cond_chk_15
+
+    return-void
+
+    :cond_chk_15
+    const/16 v0, 0xf
+
+    if-ne v1, v0, :cond_chk_active
+
+    return-void
+
+    :cond_chk_active
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSelectedLookId()I
+
+    move-result v0
+
+    if-gtz v0, :cond_active
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->hasActiveFineTuning()Z
+
+    move-result v1
+
+    if-nez v1, :cond_active
+
+    :cond_ret
+    return-void
+
+    :cond_active
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->ensureNativeLoaded()V
+
+    :try_start_0
+    invoke-static {p0, v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeProcessHardwareBuffer(Landroid/hardware/HardwareBuffer;I)V
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_0
+
+    :catch_0
+    return-void
+.end method
+
+.method public static processInterleavedImage(Lcom/google/googlex/gcam/InterleavedWriteViewU8;)V
+    .locals 10
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    :try_start_proc
+    # 1. Quick check: Is a look active or fine-tuning set, or front backlight fix active?
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSelectedLookId()I
+
+    move-result v6
+
+    if-nez v6, :cond_check_ft
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->hasActiveFineTuning()Z
+
+    move-result v0
+
+    if-nez v0, :cond_check_ft
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFrontBacklightFixActive()Z
+
+    move-result v0
+
+    if-nez v0, :cond_check_ft
+
+    return-void
+
+    :cond_check_ft
+    # 2. Check mode: Video = 2, Photo Sphere/Panorama = 4, Landscape = 14, Action Pan = 15
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    const/4 v1, 0x2
+
+    if-ne v0, v1, :cond_chk_4
+
+    return-void
+
+    :cond_chk_4
+    const/4 v1, 0x4
+
+    if-ne v0, v1, :cond_chk_14
+
+    return-void
+
+    :cond_chk_14
+    const/16 v1, 0xe
+
+    if-ne v0, v1, :cond_chk_15
+
+    return-void
+
+    :cond_chk_15
+    const/16 v1, 0xf
+
+    if-ne v0, v1, :cond_load
+
+    return-void
+
+    :cond_load
+    # 3. Ensure native library loaded
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteProPatcherLoader;->isLoaded()Z
+
+    move-result v0
+
+    if-nez v0, :cond_get_view
+
+    sget-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
+
+    if-eqz v0, :cond_get_view
+
+    :try_start_ensure_load
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteProPatcherLoader;->load(Landroid/content/Context;)V
+    :try_end_ensure_load
+    .catch Ljava/lang/Throwable; {:try_start_ensure_load .. :try_end_ensure_load} :catch_ensure_load
+
+    :catch_ensure_load
+    :cond_get_view
+    # 4. Extract read view and dimensions
+    invoke-virtual {p0}, Lcom/google/googlex/gcam/InterleavedWriteViewU8;->b()Lcom/google/googlex/gcam/InterleavedReadViewU8;
+
+    move-result-object v7
+
+    if-nez v7, :cond_extract
+
+    return-void
+
+    :cond_extract
+    :try_start_view
+    invoke-virtual {v7}, Lcom/google/googlex/gcam/InterleavedReadViewU8;->d()I
+
+    move-result v2
+
+    invoke-virtual {v7}, Lcom/google/googlex/gcam/InterleavedReadViewU8;->c()I
+
+    move-result v3
+
+    invoke-virtual {v7}, Lcom/google/googlex/gcam/InterleavedReadViewU8;->b()I
+
+    move-result v4
+
+    invoke-virtual {v7}, Lcom/google/googlex/gcam/InterleavedReadViewU8;->f()I
+
+    move-result v5
+
+    invoke-virtual {v7}, Lcom/google/googlex/gcam/InterleavedReadViewU8;->g()Laaai;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_free_view
+
+    iget-wide v0, v0, Laaai;->a:J
+
+    const-wide/16 v8, 0x0
+
+    cmp-long v8, v0, v8
+
+    if-eqz v8, :cond_free_view
+
+    # Apply front backlight fix if active
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFrontBacklightFixActive()Z
+
+    move-result v8
+
+    if-eqz v8, :cond_check_raster
+
+    invoke-static/range {v0 .. v5}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeProcessFrontBacklightImage(JIIII)V
+
+    :cond_check_raster
+    if-nez v6, :cond_do_raster
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->hasActiveFineTuning()Z
+
+    move-result v8
+
+    if-eqz v8, :cond_free_view
+
+    :cond_do_raster
+    invoke-static/range {v0 .. v6}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeProcessRasterImage(JIIIII)V
+
+    :cond_free_view
+    :try_end_view
+    .catchall {:try_start_view .. :try_end_view} :catchall_view
+
+    invoke-virtual {v7}, Lcom/google/googlex/gcam/InterleavedReadViewU8;->h()V
+
+    goto :cond_ret
+
+    :catchall_view
+    move-exception v0
+
+    invoke-virtual {v7}, Lcom/google/googlex/gcam/InterleavedReadViewU8;->h()V
+
+    throw v0
+    :try_end_proc
+    .catch Ljava/lang/Throwable; {:try_start_proc .. :try_end_proc} :catch_proc
+
+    :catch_proc
+    :cond_ret
+    return-void
+.end method
+
+.method public static hasActiveFineTuning()Z
+    .locals 3
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    const/4 v1, 0x0
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_c
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_c
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_s
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_s
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_hl
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_hl
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_v
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_v
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_w
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_w
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_sh
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_sh
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    const/high16 v1, 0x3f800000    # 1.0f
+
+    sub-float/2addr v0, v1
+
+    invoke-static {v0}, Ljava/lang/Math;->abs(F)F
+
+    move-result v0
+
+    const v1, 0x3c23d70a    # 0.01f
+
+    cmpl-float v0, v0, v1
+
+    if-lez v0, :cond_gr
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_gr
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const/4 v1, 0x0
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_none
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_none
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static updateToneFineTuning(IF)V
+    .locals 1
+
+    if-nez p0, :cond_s
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    goto :cond_sync
+
+    :cond_s
+    const/4 v0, 0x1
+
+    if-ne p0, v0, :cond_hl
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    goto :cond_sync
+
+    :cond_hl
+    const/4 v0, 0x2
+
+    if-ne p0, v0, :cond_sync
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    :cond_sync
+    const/4 v0, 0x1
+
+    sput-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomTone:Z
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+
+    return-void
+.end method
+
+.method public static updateColorFineTuning(IF)V
+    .locals 1
+
+    if-nez p0, :cond_tint
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    goto :cond_sync
+
+    :cond_tint
+    const/4 v0, 0x1
+
+    if-ne p0, v0, :cond_warmth
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    goto :cond_sync
+
+    :cond_warmth
+    const/4 v0, 0x2
+
+    if-ne p0, v0, :cond_sync
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    :cond_sync
+    const/4 v0, 0x1
+
+    sput-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomColor:Z
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+
+    return-void
+.end method
+
+.method public static updateDetailFineTuning(IF)V
+    .locals 2
+
+    if-nez p0, :cond_grain
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    goto :cond_sync
+
+    :cond_grain
+    const/4 v0, 0x1
+
+    if-ne p0, v0, :cond_sync
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const v0, 0x3d4ccccd    # 0.05f
+
+    cmpl-float v0, p1, v0
+
+    if-lez v0, :cond_grain_off
+
+    const/4 v0, 0x1
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeSetGrainEnabled(Z)V
+
+    goto :cond_sync
+
+    :cond_grain_off
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeSetGrainEnabled(Z)V
+
+    :cond_sync
+    const/4 v0, 0x1
+
+    sput-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomDetail:Z
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+
+    return-void
+.end method
+
+.method public static syncFineTuningToNative()V
+    .locals 7
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->ensureNativeLoaded()V
+
+    :try_start_sync
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    sget v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    sget v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    sget v3, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    sget v4, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    sget v5, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    sget v6, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    invoke-static/range {v0 .. v6}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeSetFineTuning(FFFFFFF)V
+    :try_end_sync
+    .catch Ljava/lang/Throwable; {:try_start_sync .. :try_end_sync} :catch_sync
+
+    :catch_sync
+    return-void
+.end method
+
+.method public static resetFineTuning()V
+    .locals 2
+
+    const/4 v0, 0x0
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    const/high16 v1, 0x3f800000    # 1.0f
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const/4 v1, 0x0
+
+    :try_start_reset
+    invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeSetGrainEnabled(Z)V
+    :try_end_reset
+    .catch Ljava/lang/Throwable; {:try_start_reset .. :try_end_reset} :catch_reset
+
+    :catch_reset
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+
+    return-void
+.end method
+
+.method public static loadFineTuningForLook(I)V
+    .locals 4
+
+    :try_start_load
+    const/4 v0, 0x0
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    const/high16 v1, 0x3f800000    # 1.0f
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const/4 v1, 0x0
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomTone:Z
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomColor:Z
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomDetail:Z
+
+    invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeSetGrainEnabled(Z)V
+
+    if-gtz p0, :cond_has_look
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+
+    return-void
+
+    :cond_has_look
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "pref_tomte_extra_key_"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_check_caps
+
+    invoke-virtual {v1}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    const-string v2, ","
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->split(Ljava/lang/String;)[Ljava/lang/String;
+
+    move-result-object v1
+
+    array-length v2, v1
+
+    const/4 v3, 0x3
+
+    if-lt v2, v3, :cond_check_caps
+
+    const/4 v2, 0x0
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    const/4 v2, 0x1
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    const/4 v2, 0x2
+
+    aget-object v1, v1, v2
+
+    invoke-static {v1}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v1
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    const/4 v1, 0x1
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomTone:Z
+
+    :cond_check_caps
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "pref_tomte_caps_key_"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_check_aura
+
+    invoke-virtual {v1}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    const-string v2, ","
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->split(Ljava/lang/String;)[Ljava/lang/String;
+
+    move-result-object v1
+
+    array-length v2, v1
+
+    const/4 v3, 0x3
+
+    if-lt v2, v3, :cond_caps_check_legacy_detail
+
+    const/4 v2, 0x0
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    const/4 v2, 0x1
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    const/4 v2, 0x2
+
+    aget-object v1, v1, v2
+
+    invoke-static {v1}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v1
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    const/4 v1, 0x1
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomColor:Z
+
+    goto :cond_check_aura
+
+    :cond_caps_check_legacy_detail
+    const/4 v3, 0x2
+
+    if-ne v2, v3, :cond_check_aura
+
+    const/4 v2, 0x0
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    const/4 v2, 0x1
+
+    aget-object v1, v1, v2
+
+    invoke-static {v1}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v1
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const/4 v1, 0x1
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomDetail:Z
+
+    :cond_check_aura
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "pref_tomte_aura_key_"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_check_grain_state
+
+    invoke-virtual {v1}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    const-string v2, ","
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->split(Ljava/lang/String;)[Ljava/lang/String;
+
+    move-result-object v1
+
+    array-length v2, v1
+
+    const/4 v3, 0x3
+
+    if-lt v2, v3, :cond_aura_check_detail
+
+    # Legacy fallback: aura had color vector
+    const/4 v2, 0x0
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    const/4 v2, 0x1
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    const/4 v2, 0x2
+
+    aget-object v1, v1, v2
+
+    invoke-static {v1}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v1
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    const/4 v1, 0x1
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomColor:Z
+
+    goto :cond_check_grain_state
+
+    :cond_aura_check_detail
+    const/4 v3, 0x1
+
+    if-lt v2, v3, :cond_check_grain_state
+
+    const/4 v3, 0x0
+
+    aget-object v3, v1, v3
+
+    invoke-static {v3}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v3
+
+    sput v3, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    const/4 v3, 0x1
+
+    sput-boolean v3, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomDetail:Z
+
+    const/4 v3, 0x2
+
+    if-lt v2, v3, :cond_check_grain_state
+
+    const/4 v2, 0x1
+
+    aget-object v1, v1, v2
+
+    invoke-static {v1}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v1
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    :cond_check_grain_state
+    sget v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const v2, 0x3d4ccccd    # 0.05f
+
+    cmpl-float v2, v1, v2
+
+    if-lez v2, :cond_grain_loaded_off
+
+    const/4 v2, 0x1
+
+    invoke-static {v2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeSetGrainEnabled(Z)V
+
+    goto :cond_done
+
+    :cond_grain_loaded_off
+    const/4 v2, 0x0
+
+    invoke-static {v2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeSetGrainEnabled(Z)V
+
+    :cond_done
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+    :try_end_load
+    .catch Ljava/lang/Throwable; {:try_start_load .. :try_end_load} :catch_load
+
+    :catch_load
+    return-void
+.end method
+
+.method public static getEffectiveQwk(Lqwk;)Lqwk;
+    .registers 12
+
+    if-nez p0, :cond_check_active
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->hasActiveFineTuning()Z
+
+    move-result v0
+
+    if-nez v0, :cond_build_new
+
+    const/4 v0, 0x0
+
+    return-object v0
+
+    :cond_check_active
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->hasActiveFineTuning()Z
+
+    move-result v0
+
+    if-nez v0, :cond_build_new
+
+    return-object p0
+
+    :cond_build_new
+    :try_start_qwk
+    # 1. Contrast (field a)
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    const/4 v1, 0x0
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_def_c
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    goto :goto_h
+
+    :cond_def_c
+    if-eqz p0, :cond_empty_c
+
+    iget-object v0, p0, Lqwk;->a:Lj$/util/Optional;
+
+    goto :goto_h
+
+    :cond_empty_c
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v0
+
+    :goto_h
+    # 2. Highlights (field b)
+    sget v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    cmpl-float v3, v2, v1
+
+    if-eqz v3, :cond_def_h
+
+    invoke-static {v2}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v2
+
+    invoke-static {v2}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v2
+
+    goto :goto_s
+
+    :cond_def_h
+    if-eqz p0, :cond_empty_h
+
+    iget-object v2, p0, Lqwk;->b:Lj$/util/Optional;
+
+    goto :goto_s
+
+    :cond_empty_h
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v2
+
+    :goto_s
+    # 3. Shadows (field c)
+    sget v3, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    cmpl-float v4, v3, v1
+
+    if-eqz v4, :cond_def_s
+
+    invoke-static {v3}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v3
+
+    invoke-static {v3}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v3
+
+    goto :goto_v
+
+    :cond_def_s
+    if-eqz p0, :cond_empty_s
+
+    iget-object v3, p0, Lqwk;->c:Lj$/util/Optional;
+
+    goto :goto_v
+
+    :cond_empty_s
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v3
+
+    :goto_v
+    # 4. Vibrance (field d)
+    sget v4, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    cmpl-float v5, v4, v1
+
+    if-eqz v5, :cond_def_v
+
+    invoke-static {v4}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v4
+
+    invoke-static {v4}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v4
+
+    goto :goto_t
+
+    :cond_def_v
+    if-eqz p0, :cond_empty_v
+
+    iget-object v4, p0, Lqwk;->d:Lj$/util/Optional;
+
+    goto :goto_t
+
+    :cond_empty_v
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v4
+
+    :goto_t
+    # 5. Tint (field e)
+    sget v5, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    cmpl-float v6, v5, v1
+
+    if-eqz v6, :cond_def_t
+
+    invoke-static {v5}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v5
+
+    invoke-static {v5}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v5
+
+    goto :goto_w
+
+    :cond_def_t
+    if-eqz p0, :cond_empty_t
+
+    iget-object v5, p0, Lqwk;->e:Lj$/util/Optional;
+
+    goto :goto_w
+
+    :cond_empty_t
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v5
+
+    :goto_w
+    # 6. Warmth (field f)
+    sget v6, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    cmpl-float v7, v6, v1
+
+    if-eqz v7, :cond_def_w
+
+    invoke-static {v6}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v6
+
+    invoke-static {v6}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v6
+
+    goto :goto_m
+
+    :cond_def_w
+    if-eqz p0, :cond_empty_w
+
+    iget-object v6, p0, Lqwk;->f:Lj$/util/Optional;
+
+    goto :goto_m
+
+    :cond_empty_w
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v6
+
+    :goto_m
+    # 7. Mono (field g)
+    if-eqz p0, :cond_empty_m
+
+    iget-object v7, p0, Lqwk;->g:Lj$/util/Optional;
+
+    goto :goto_sh
+
+    :cond_empty_m
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v7
+
+    :goto_sh
+    # 8. Sharpness (field h)
+    sget v8, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    const/high16 v9, 0x3f800000    # 1.0f
+
+    sub-float v9, v8, v9
+
+    invoke-static {v9}, Ljava/lang/Math;->abs(F)F
+
+    move-result v9
+
+    const v10, 0x3c23d70a    # 0.01f
+
+    cmpl-float v9, v9, v10
+
+    if-lez v9, :cond_def_sh
+
+    invoke-static {v8}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v8
+
+    invoke-static {v8}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v8
+
+    goto :goto_gr
+
+    :cond_def_sh
+    if-eqz p0, :cond_empty_sh
+
+    iget-object v8, p0, Lqwk;->h:Lj$/util/Optional;
+
+    goto :goto_gr
+
+    :cond_empty_sh
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v8
+
+    :goto_gr
+    # 9. Grain (field i)
+    sget v9, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    cmpl-float v1, v9, v1
+
+    if-eqz v1, :cond_def_gr
+
+    invoke-static {v9}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v9
+
+    goto :goto_construct
+
+    :cond_def_gr
+    if-eqz p0, :cond_empty_gr
+
+    iget-object v9, p0, Lqwk;->i:Lj$/util/Optional;
+
+    goto :goto_construct
+
+    :cond_empty_gr
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object v9
+
+    :goto_construct
+    new-instance v1, Lqwk;
+
+    move-object v10, v9
+
+    move-object v9, v8
+
+    move-object v8, v7
+
+    move-object v7, v6
+
+    move-object v6, v5
+
+    move-object v5, v4
+
+    move-object v4, v3
+
+    move-object v3, v2
+
+    move-object v2, v0
+
+    # registers: v1(this), v2(a), v3(b), v4(c), v5(d), v6(e), v7(f), v8(g), v9(h), v10(i)
+    invoke-direct/range {v1 .. v10}, Lqwk;-><init>(Lj$/util/Optional;Lj$/util/Optional;Lj$/util/Optional;Lj$/util/Optional;Lj$/util/Optional;Lj$/util/Optional;Lj$/util/Optional;Lj$/util/Optional;Lj$/util/Optional;)V
+
+    return-object v1
+    :try_end_qwk
+    .catch Ljava/lang/Throwable; {:try_start_qwk .. :try_end_qwk} :catch_qwk
+
+    :catch_qwk
+    return-object p0
+.end method
+
+.method public static applyEffectiveToneVector([F)[F
+    .registers 4
+
+    if-nez p0, :cond_check_tone_len
+
+    const/4 v0, 0x3
+
+    new-array p0, v0, [F
+
+    goto :cond_apply_tone
+
+    :cond_check_tone_len
+    array-length v0, p0
+
+    const/4 v1, 0x3
+
+    if-ge v0, v1, :cond_apply_tone
+
+    const/4 v0, 0x3
+
+    new-array v0, v0, [F
+
+    array-length v1, p0
+
+    const/4 v2, 0x0
+
+    invoke-static {p0, v2, v0, v2, v1}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
+
+    move-object p0, v0
+
+    :cond_apply_tone
+    sget-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomTone:Z
+
+    if-eqz v0, :cond_check_tone_fields
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    const/4 v1, 0x0
+
+    aput v0, p0, v1
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    const/4 v1, 0x1
+
+    aput v0, p0, v1
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    const/4 v1, 0x2
+
+    aput v0, p0, v1
+
+    return-object p0
+
+    :cond_check_tone_fields
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    const/4 v1, 0x0
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_check_s
+
+    const/4 v2, 0x0
+
+    aput v0, p0, v2
+
+    :cond_check_s
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_check_hl
+
+    const/4 v2, 0x1
+
+    aput v0, p0, v2
+
+    :cond_check_hl
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    cmpl-float v1, v0, v1
+
+    if-eqz v1, :cond_tone_done
+
+    const/4 v1, 0x2
+
+    aput v0, p0, v1
+
+    :cond_tone_done
+    return-object p0
+.end method
+
+.method public static applyEffectiveColorVector([F)[F
+    .registers 4
+
+    if-nez p0, :cond_check_color_len
+
+    const/4 v0, 0x4
+
+    new-array p0, v0, [F
+
+    goto :cond_apply_color
+
+    :cond_check_color_len
+    array-length v0, p0
+
+    const/4 v1, 0x4
+
+    if-ge v0, v1, :cond_apply_color
+
+    const/4 v0, 0x4
+
+    new-array v0, v0, [F
+
+    array-length v1, p0
+
+    const/4 v2, 0x0
+
+    invoke-static {p0, v2, v0, v2, v1}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
+
+    move-object p0, v0
+
+    :cond_apply_color
+    sget-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomColor:Z
+
+    if-eqz v0, :cond_check_color_fields
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    const/4 v1, 0x0
+
+    aput v0, p0, v1
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    const/4 v1, 0x1
+
+    aput v0, p0, v1
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    const/4 v1, 0x2
+
+    aput v0, p0, v1
+
+    return-object p0
+
+    :cond_check_color_fields
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    const/4 v1, 0x0
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_check_t
+
+    const/4 v2, 0x0
+
+    aput v0, p0, v2
+
+    :cond_check_t
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_check_w
+
+    const/4 v2, 0x1
+
+    aput v0, p0, v2
+
+    :cond_check_w
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneWarmth:F
+
+    cmpl-float v1, v0, v1
+
+    if-eqz v1, :cond_color_done
+
+    const/4 v1, 0x2
+
+    aput v0, p0, v1
+
+    :cond_color_done
+    return-object p0
+.end method
+
+.method public static applyEffectiveCapsVector([F)[F
+    .registers 4
+
+    if-nez p0, :cond_check_caps_len
+
+    const/4 v0, 0x2
+
+    new-array p0, v0, [F
+
+    goto :cond_apply_caps
+
+    :cond_check_caps_len
+    array-length v0, p0
+
+    const/4 v1, 0x2
+
+    if-ge v0, v1, :cond_apply_caps
+
+    const/4 v0, 0x2
+
+    new-array v0, v0, [F
+
+    array-length v1, p0
+
+    const/4 v2, 0x0
+
+    invoke-static {p0, v2, v0, v2, v1}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
+
+    move-object p0, v0
+
+    :cond_apply_caps
+    sget-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sHasCustomDetail:Z
+
+    if-eqz v0, :cond_check_caps_fields
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    const/4 v1, 0x0
+
+    aput v0, p0, v1
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const/4 v1, 0x1
+
+    aput v0, p0, v1
+
+    return-object p0
+
+    :cond_check_caps_fields
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    const/high16 v1, 0x3f800000    # 1.0f
+
+    sub-float/2addr v0, v1
+
+    invoke-static {v0}, Ljava/lang/Math;->abs(F)F
+
+    move-result v0
+
+    const v1, 0x3c23d70a    # 0.01f
+
+    cmpl-float v0, v0, v1
+
+    if-lez v0, :cond_check_gr
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneSharpness:F
+
+    const/4 v1, 0x0
+
+    aput v0, p0, v1
+
+    :cond_check_gr
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneGrain:F
+
+    const/4 v1, 0x0
+
+    cmpl-float v1, v0, v1
+
+    if-eqz v1, :cond_caps_done
+
+    const/4 v1, 0x1
+
+    aput v0, p0, v1
+
+    :cond_caps_done
+    return-object p0
+.end method
+
+.method public static getPreviewBufferUsage(J)J
+    .locals 4
+
+    const-wide/16 v0, -0x1
+
+    cmp-long v0, p0, v0
+
+    if-nez v0, :cond_custom
+
+    const-wide/16 v0, 0x933
+
+    return-wide v0
+
+    :cond_custom
+    const-wide/16 v0, 0x33
+
+    or-long/2addr p0, v0
+
+    return-wide p0
+.end method
+
+.method public static applyNativeTuning()V
+    .locals 0
+
+    return-void
+.end method
+
+.method public static restartCameraForTuning()V
+    .locals 4
+
+    :try_start_0
+    const-string v0, "PATCH_LOOKS"
+
+    const-string v1, "Restarting camera to apply native tuning (Intent.makeRestartActivityTask)..."
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_done
+
+    const-string v1, "Applying tuning\u2026 Restarting camera"
+
+    const/4 v2, 0x0
+
+    invoke-static {v0, v1, v2}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_no_toast
+
+    invoke-virtual {v1}, Landroid/widget/Toast;->show()V
+
+    :cond_no_toast
+    invoke-virtual {v0}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+
+    move-result-object v2
+
+    invoke-virtual {v2, v1}, Landroid/content/pm/PackageManager;->getLaunchIntentForPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_use_fallback
+
+    invoke-virtual {v2}, Landroid/content/Intent;->getComponent()Landroid/content/ComponentName;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_use_fallback
+
+    goto :goto_have_component
+
+    :cond_use_fallback
+    new-instance v2, Landroid/content/ComponentName;
+
+    const-string v3, "com.android.camera.CameraLauncher"
+
+    invoke-direct {v2, v1, v3}, Landroid/content/ComponentName;-><init>(Ljava/lang/String;Ljava/lang/String;)V
+
+    :goto_have_component
+    invoke-static {v2}, Landroid/content/Intent;->makeRestartActivityTask(Landroid/content/ComponentName;)Landroid/content/Intent;
+
+    move-result-object v1
+
+    invoke-virtual {v0, v1}, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V
+
+    const-wide/16 v0, 0x15e
+
+    invoke-static {v0, v1}, Ljava/lang/Thread;->sleep(J)V
+
+    invoke-static {}, Landroid/os/Process;->myPid()I
+
+    move-result v0
+
+    invoke-static {v0}, Landroid/os/Process;->killProcess(I)V
+
+    :cond_done
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_0
+
+    return-void
+
+    :catch_0
+    move-exception v0
+
+    const-string v1, "PATCH_LOOKS"
+
+    const-string v2, "Failed to restart camera for tuning"
+
+    invoke-static {v1, v2, v0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
+    invoke-static {}, Landroid/os/Process;->myPid()I
+
+    move-result v0
+
+    invoke-static {v0}, Landroid/os/Process;->killProcess(I)V
+
+    return-void
+.end method
+
+.method public static ensureNativeLoaded()V
+    .locals 1
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteProPatcherLoader;->isLoaded()Z
+
+    move-result v0
+
+    if-nez v0, :cond_ret
+
+    sget-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
+
+    if-eqz v0, :cond_ret
+
+    :try_start_ensure_load
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteProPatcherLoader;->load(Landroid/content/Context;)V
+    :try_end_ensure_load
+    .catch Ljava/lang/Throwable; {:try_start_ensure_load .. :try_end_ensure_load} :cond_ret
+
+    :cond_ret
+    return-void
+.end method
+
+.method public static setContext(Landroid/content/Context;)V
+    .locals 1
+
+    if-eqz p0, :cond_store
+
+    :try_start_app_ctx
+    invoke-virtual {p0}, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_store
+
+    move-object p0, v0
+    :try_end_app_ctx
+    .catch Ljava/lang/Throwable; {:try_start_app_ctx .. :try_end_app_ctx} :cond_store
+
+    :cond_store
+    sput-object p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
+
+    if-eqz p0, :cond_ret
+
+    :try_start_loader
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteProPatcherLoader;->load(Landroid/content/Context;)V
+    :try_end_loader
+    .catch Ljava/lang/Throwable; {:try_start_loader .. :try_end_loader} :catch_loader
+
+    :catch_loader
+    :cond_ret
+    return-void
+.end method
+
+.method public static updateLastExposureTime(J)V
+    .locals 3
+
+    const-wide/16 v0, 0x0
+
+    cmp-long v0, p0, v0
+
+    if-lez v0, :cond_ret
+
+    sput-wide p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->lastExposureTimeNs:J
+
+    :cond_ret
+    return-void
+.end method
+
+.method public static getLastExposureTime()J
+    .locals 4
+
+    sget-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->lastExposureTimeNs:J
+
+    const-wide/16 v2, 0x0
+
+    cmp-long v2, v0, v2
+
+    if-gtz v2, :cond_ret
+
+    const-wide/32 v0, 0x1312d00
+
+    :cond_ret
+    return-wide v0
+.end method
+
+.method public static sanitizeExposureTime(J)Ljava/lang/Long;
+    .locals 4
+
+    const-wide/16 v0, 0x0
+
+    cmp-long v0, p0, v0
+
+    if-gtz v0, :cond_valid
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getLastExposureTime()J
+
+    move-result-wide p0
+
+    :cond_valid
+    invoke-static {p0, p1}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+
+.method public static getApplicationContext()Landroid/content/Context;
+    .locals 1
+
+    :try_start_app
+    sget-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
+
+    if-eqz v0, :cond_try_camera_app
+
+    return-object v0
+    :try_end_app
+    .catch Ljava/lang/Throwable; {:try_start_app .. :try_end_app} :catch_app
+
+    :catch_app
+    :cond_try_camera_app
+    :try_start_camera_app
+    sget-object v0, Lcom/google/android/apps/camera/app/CameraApp;->sAppContext:Landroid/content/Context;
+
+    if-eqz v0, :cond_try_activity
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
+
+    return-object v0
+    :try_end_camera_app
+    .catch Ljava/lang/Throwable; {:try_start_camera_app .. :try_end_camera_app} :catch_camera_app
+
+    :catch_camera_app
+    :cond_try_activity
+    :try_start_act
+    sget-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentActivity:Ljava/lang/ref/WeakReference;
+
+    if-eqz v0, :cond_try_activity_thread
+
+    invoke-virtual {v0}, Ljava/lang/ref/WeakReference;->get()Ljava/lang/Object;
+
+    move-result-object v0
+
+    check-cast v0, Landroid/app/Activity;
+
+    if-eqz v0, :cond_try_activity_thread
+
+    invoke-virtual {v0}, Landroid/app/Activity;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_try_activity_thread
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
+
+    return-object v0
+    :try_end_act
+    .catch Ljava/lang/Throwable; {:try_start_act .. :try_end_act} :catch_act
+
+    :catch_act
+    :cond_try_activity_thread
+    :try_start_thread
+    invoke-static {}, Landroid/app/ActivityThread;->currentApplication()Landroid/app/Application;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_null
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
+
+    return-object v0
+    :try_end_thread
+    .catch Ljava/lang/Throwable; {:try_start_thread .. :try_end_thread} :catch_thread
+
+    :catch_thread
+    :cond_null
+    const/4 v0, 0x0
+
+    return-object v0
+.end method
+
+.method private static checkPrefValue(Ljava/lang/Object;Z)Z
+    .locals 1
+
+    if-nez p0, :cond_not_null
+
+    return p1
+
+    :cond_not_null
+    instance-of v0, p0, Ljava/lang/Boolean;
+
+    if-eqz v0, :cond_check_str
+
+    check-cast p0, Ljava/lang/Boolean;
+
+    invoke-virtual {p0}, Ljava/lang/Boolean;->booleanValue()Z
+
+    move-result p0
+
+    return p0
+
+    :cond_check_str
+    instance-of v0, p0, Ljava/lang/CharSequence;
+
+    if-eqz v0, :cond_check_num
+
+    invoke-virtual {p0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object p0
+
+    const-string v0, "1"
+
+    invoke-virtual {v0, p0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_true
+
+    const-string v0, "true"
+
+    invoke-virtual {v0, p0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_false
+
+    :cond_true
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_check_false
+    const-string v0, "0"
+
+    invoke-virtual {v0, p0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_false
+
+    const-string v0, "false"
+
+    invoke-virtual {v0, p0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result p0
+
+    if-eqz p0, :cond_ret_def
+
+    :cond_false
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_num
+    instance-of v0, p0, Ljava/lang/Number;
+
+    if-eqz v0, :cond_ret_def
+
+    check-cast p0, Ljava/lang/Number;
+
+    invoke-virtual {p0}, Ljava/lang/Number;->intValue()I
+
+    move-result p0
+
+    if-eqz p0, :cond_false
+
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_ret_def
+    return p1
+.end method
+
+.method public static getSharedPrefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
+    .locals 3
+
+    if-nez p0, :cond_has_ctx
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object p0
+
+    if-nez p0, :cond_has_ctx
+
+    const/4 p0, 0x0
+
+    return-object p0
+
+    :cond_has_ctx
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    invoke-virtual {p0}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    const-string v1, "_preferences_camera"
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const/4 v1, 0x0
+
+    invoke-virtual {p0, v0, v1}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+.method public static getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+    .locals 5
+
+    :try_start_pref
+    if-nez p0, :cond_check_ctx
+
+    const/4 p0, 0x0
+
+    return-object p0
+
+    :cond_check_ctx
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_has_ctx
+
+    const/4 p0, 0x0
+
+    return-object p0
+
+    :cond_has_ctx
+    invoke-virtual {v0}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+
+    move-result-object v1
+
+    # Tier 1: Check <packageName>_preferences (Primary AndroidX store)
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    invoke-direct {v2}, Ljava/lang/StringBuilder;-><init>()V
+
+    invoke-virtual {v2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    const-string v3, "_preferences"
+
+    invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v2
+
+    const/4 v3, 0x0
+
+    invoke-virtual {v0, v2, v3}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_check_camera_pref
+
+    invoke-interface {v2}, Landroid/content/SharedPreferences;->getAll()Ljava/util/Map;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_check_camera_pref
+
+    invoke-interface {v2, p0}, Ljava/util/Map;->containsKey(Ljava/lang/Object;)Z
+
+    move-result v4
+
+    if-eqz v4, :cond_check_camera_pref
+
+    invoke-interface {v2, p0}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_check_camera_pref
+
+    return-object v2
+
+    :cond_check_camera_pref
+    # Tier 2: Check <packageName>_preferences_camera (GCam camera store)
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    invoke-direct {v2}, Ljava/lang/StringBuilder;-><init>()V
+
+    invoke-virtual {v2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    const-string v1, "_preferences_camera"
+
+    invoke-virtual {v2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v0, v1, v3}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_ret_null
+
+    invoke-interface {v0}, Landroid/content/SharedPreferences;->getAll()Ljava/util/Map;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_ret_null
+
+    invoke-interface {v0, p0}, Ljava/util/Map;->containsKey(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_ret_null
+
+    invoke-interface {v0, p0}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_ret_null
+    const/4 p0, 0x0
+
+    return-object p0
+    :try_end_pref
+    .catchall {:try_start_pref .. :try_end_pref} :catch_pref
+
+    :catch_pref
+    const/4 p0, 0x0
+
+    return-object p0
+.end method
+
+.method public static setPrefEntry(Ljava/lang/String;Ljava/lang/String;)V
+    .locals 5
+
+    :try_start_spe
+    if-eqz p0, :cond_spe_end
+
+    if-nez p1, :cond_spe_start
+
+    goto :cond_spe_end
+
+    :cond_spe_start
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_spe_has_ctx
+
+    goto :cond_spe_end
+
+    :cond_spe_has_ctx
+    invoke-virtual {v0}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+
+    move-result-object v1
+
+    const/4 v2, 0x0
+
+    # 1. Synchronously commit to <packageName>_preferences (Primary AndroidX store)
+    new-instance v3, Ljava/lang/StringBuilder;
+
+    invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
+
+    invoke-virtual {v3, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    const-string v4, "_preferences"
+
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v3
+
+    invoke-virtual {v0, v3, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+
+    move-result-object v3
+
+    if-eqz v3, :cond_spe_write_camera
+
+    invoke-interface {v3}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences$Editor;
+
+    move-result-object v3
+
+    if-eqz v3, :cond_spe_write_camera
+
+    invoke-interface {v3, p0, p1}, Landroid/content/SharedPreferences$Editor;->putString(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;
+
+    move-result-object v3
+
+    invoke-interface {v3}, Landroid/content/SharedPreferences$Editor;->commit()Z
+
+    :cond_spe_write_camera
+    # 2. Synchronously commit to <packageName>_preferences_camera (GCam camera store)
+    new-instance v3, Ljava/lang/StringBuilder;
+
+    invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
+
+    invoke-virtual {v3, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    const-string v1, "_preferences_camera"
+
+    invoke-virtual {v3, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_spe_log
+
+    invoke-interface {v0}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences$Editor;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_spe_log
+
+    invoke-interface {v0, p0, p1}, Landroid/content/SharedPreferences$Editor;->putString(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;
+
+    move-result-object v0
+
+    invoke-interface {v0}, Landroid/content/SharedPreferences$Editor;->commit()Z
+
+    :cond_spe_log
+    const-string v0, "PATCH_LOOKS"
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "setPrefEntry: synchronously committed key="
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    const-string v2, ", value="
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    :cond_spe_end
+    :try_end_spe
+    .catchall {:try_start_spe .. :try_end_spe} :catchall_spe
+
+    return-void
+
+    :catchall_spe
+    move-exception v0
+
+    const-string v1, "PATCH_LOOKS"
+
+    const-string v2, "setPrefEntry failed"
+
+    invoke-static {v1, v2, v0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
+    return-void
+.end method
+
+.method public static isGrainEnabled()Z
+    .locals 1
+
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static isFineTuningSupported()Z
+    .locals 3
+
+    sget-object v0, Landroid/os/Build;->DEVICE:Ljava/lang/String;
+
+    if-nez v0, :cond_check_device
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_device
+    const-string v1, "oriole"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_raven
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_raven
+    const-string v1, "raven"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_bluejay
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_bluejay
+    const-string v1, "bluejay"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_panther
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_panther
+    const-string v1, "panther"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_cheetah
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_cheetah
+    const-string v1, "cheetah"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_lynx
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_lynx
+    const-string v1, "lynx"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_felix
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_felix
+    const-string v1, "felix"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_tangorpro
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_tangorpro
+    const-string v1, "tangorpro"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_shiba
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_shiba
+    const-string v1, "shiba"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_husky
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_husky
+    const-string v1, "husky"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_akita
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_akita
+    const-string v1, "akita"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_tokay
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_tokay
+    const-string v1, "tokay"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_caiman
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_caiman
+    const-string v1, "caiman"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_komodo
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_komodo
+    const-string v1, "komodo"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_c_comet
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c_comet
+    const-string v1, "comet"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_hardware
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_hardware
+    sget-object v0, Landroid/os/Build;->HARDWARE:Ljava/lang/String;
+
+    if-nez v0, :cond_hw_nonnull
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_hw_nonnull
+    const-string v1, "gs101"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_hw_gs201
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_hw_gs201
+    const-string v1, "gs201"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_hw_zuma
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_hw_zuma
+    const-string v1, "zuma"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_hw_zumapro
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_hw_zumapro
+    const-string v1, "zumapro"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_supported
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_supported
+    const/4 v0, 0x1
+
+    return v0
+.end method
+
+.method public static is60FpsHdrSupported()Z
+    .locals 3
+
+    sget-object v0, Landroid/os/Build;->DEVICE:Ljava/lang/String;
+
+    if-nez v0, :cond_check_60fps_dev
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_60fps_dev
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    # Pixel 9 Pro (caiman)
+    const-string v1, "caiman"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_60fps_komodo
+
+    const/4 v0, 0x1
+
+    return v0
+
+    # Pixel 9 Pro XL (komodo)
+    :cond_60fps_komodo
+    const-string v1, "komodo"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_60fps_comet
+
+    const/4 v0, 0x1
+
+    return v0
+
+    # Pixel 9 Pro Fold (comet)
+    :cond_60fps_comet
+    const-string v1, "comet"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_60fps_p10
+
+    const/4 v0, 0x1
+
+    return v0
+
+    # Pixel 10 family
+    :cond_60fps_p10
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isPixel10Family()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_60fps_ret_false
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_60fps_ret_false
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static isMaxBrightnessEnabled()Z
+    .locals 2
+
+    const-string v0, "pref_camera_max_brightness_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    const/4 v1, 0x0
+
+    invoke-static {v0, v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->checkPrefValue(Ljava/lang/Object;Z)Z
+
+    move-result v0
+
+    return v0
+.end method
+
+.method public static getJpegQuality()I
+    .locals 3
+
+    :try_start_jq
+    const-string v0, "pref_camera_jpeg_quality_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_default
+
+    instance-of v1, v0, Ljava/lang/Number;
+
+    if-eqz v1, :cond_check_str
+
+    check-cast v0, Ljava/lang/Number;
+
+    invoke-virtual {v0}, Ljava/lang/Number;->intValue()I
+
+    move-result v0
+
+    return v0
+
+    :cond_check_str
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-static {v0}, Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I
+
+    move-result v0
+    :try_end_jq
+    .catch Ljava/lang/Throwable; {:try_start_jq .. :try_end_jq} :catch_jq
+
+    return v0
+
+    :catch_jq
+    :cond_default
+    const/16 v0, 0x5f
+
+    return v0
+.end method
+
+.method public static getNoiseReductionMode()I
+    .locals 2
+
+    :try_start_nr
+    const-string v0, "pref_camera_noise_reduction_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_default
+
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "off"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ret_off
+
+    const-string v1, "0"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_min
+
+    :cond_ret_off
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_min
+    const-string v1, "low"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_minimal
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_minimal
+    const-string v1, "minimal"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ret_min
+
+    const-string v1, "3"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ret_min
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_default
+
+    :cond_ret_min
+    const/4 v0, 0x1
+
+    return v0
+
+    :try_end_nr
+    .catch Ljava/lang/Throwable; {:try_start_nr .. :try_end_nr} :catch_nr
+
+    :catch_nr
+    :cond_default
+    const/4 v0, 0x2
+
+    return v0
+.end method
+
+.method public static isEdgeTpuBlocked()Z
+    .locals 1
+
+    # On Google Tensor devices (Pixel 6, 7, 8, 9, 10), /vendor/bin/hw/android.hardware.edgetpu.service
+    # restricts /dev/edgetpu access to Google platform release key.
+    # Third-party re-signed builds fail with errno -8 (PERMISSION_DENIED).
+    # Always report true so Gcam cleanly bypasses EdgeTPU ML denoisers (Pecan/Walnut/Chess)
+    # and utilizes full multi-frame SpatialRGB burst merge with zero pipeline aborts.
+    const/4 v0, 0x1
+
+    return v0
+.end method
+
+.method public static isPixel10Family()Z
+    .locals 3
+
+    :try_start_p10
+    sget-object v0, Landroid/os/Build;->MODEL:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_p10_dev
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "pixel 10"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_p10_dev
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_p10_dev
+    sget-object v0, Landroid/os/Build;->DEVICE:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_p10_board
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "frankel"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_p10
+
+    const-string v1, "blazer"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_p10
+
+    const-string v1, "mustang"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_p10
+
+    const-string v1, "rango"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_p10_board
+
+    :cond_is_p10
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_p10_board
+    sget-object v0, Landroid/os/Build;->HARDWARE:Ljava/lang/String;
+
+    if-eqz v0, :cond_ret_not_p10
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "laguna"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+    :try_end_p10
+    .catch Ljava/lang/Throwable; {:try_start_p10 .. :try_end_p10} :catch_p10
+
+    if-eqz v0, :cond_ret_not_p10
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :catch_p10
+    :cond_ret_not_p10
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static filterPecanForce(Z)Z
+    .locals 2
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mode
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    const/4 v1, 0x2
+
+    if-ge v0, v1, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static filterPecanModelType(I)I
+    .locals 2
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mode
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    const/4 v1, 0x2
+
+    if-ge v0, v1, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static applyShotParamsDenoiseAndSharpen(Lcom/google/googlex/gcam/ShotParams;)V
+    .locals 8
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    :try_start_shotparams
+    iget-wide v0, p0, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    const-wide/16 v2, 0x0
+
+    cmp-long v4, v0, v2
+
+    if-nez v4, :cond_check_front
+
+    return-void
+
+    :cond_check_front
+    # Fix Overexposure / Blown-Out Highlights on Non-Default Looks (Issue #2 & User Godmode Request):
+    # When ShotParams.tomte_type > 0, Gcam's AE engine in libgcastartup.so forces t=0.7f
+    # ("TomteType %s forcing t=%.1f to reduce highlights and dim shadows" -> "Highlights will be blown out")
+    # and BuildPayloadBurstSpec drops all PSL (Preserving Short Luminance) frames
+    # ("No PSL frames to request for this Tomte type").
+    # On Tensor G1-G5, this destroys HDR+ dynamic range and blows out highlights.
+    # By enforcing ShotParams.tomte_type = 0 here, Gcam runs pure calibrated stock HDR+
+    # Auto-Exposure with full PSL bracket capture, preserving 100% of highlight detail,
+    # while TomteMetadata and nativeProcessRasterImage still apply the exact Look styling.
+    const/4 v2, 0x0
+
+    invoke-static {v0, v1, p0, v2}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_tomte_type_set(JLcom/google/googlex/gcam/ShotParams;I)V
+
+    # Capture-Level Auto-Exposure Trim for Non-Default Photographic Looks
+    # When a non-default Look is selected (sSelectedLookId > 0), TomteGlobalTonemap in libgcastartup.so
+    # applies Google's Tensor G6 tone curves which lift midtones and highlights.
+    # Applying a -0.50 EV capture compensation preserves raw sensor highlight dynamic headroom.
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSelectedLookId()I
+
+    move-result v2
+
+    if-lez v2, :cond_check_front_backlight
+
+    :try_start_look_ae
+    invoke-virtual {p0}, Lcom/google/googlex/gcam/ShotParams;->a()Lcom/google/googlex/gcam/AeShotParams;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_check_front_backlight
+
+    iget-wide v3, v2, Lcom/google/googlex/gcam/AeShotParams;->a:J
+
+    const-wide/16 v6, 0x0
+
+    cmp-long v6, v3, v6
+
+    if-eqz v6, :cond_check_front_backlight
+
+    invoke-static {v3, v4}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getAeExposureCompensation(J)F
+
+    move-result v5
+
+    const/high16 v6, 0x3f000000    # 0.50f (increased from 0.30f to eliminate residual overexposure)
+
+    sub-float/2addr v5, v6
+
+    invoke-static {v3, v4, v2, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->AeShotParams_exposure_compensation_set(JLcom/google/googlex/gcam/AeShotParams;F)V
+
+    :cond_check_front_backlight
+    :try_end_look_ae
+    .catch Ljava/lang/Throwable; {:try_start_look_ae .. :try_end_look_ae} :catch_look_ae
+
+    :catch_look_ae
+    # Front Camera Backlight AE / AWB Optimization:
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFrontBacklightFixActive()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_check_p10
+
+    :try_start_ae
+    # 1. Lift people brightness in AE from bottom 5% underexposure
+    invoke-virtual {p0}, Lcom/google/googlex/gcam/ShotParams;->a()Lcom/google/googlex/gcam/AeShotParams;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_skip_ae
+
+    iget-wide v3, v2, Lcom/google/googlex/gcam/AeShotParams;->a:J
+
+    const-wide/16 v6, 0x0
+
+    cmp-long v6, v3, v6
+
+    if-eqz v6, :cond_skip_ae
+
+    const v5, 0x3e4ccccd    # 0.20f (moderated face brightness preference in backlit scenes from 0.42f)
+
+    invoke-static {v3, v4, v2, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->AeShotParams_people_brightness_preference_set(JLcom/google/googlex/gcam/AeShotParams;F)V
+
+    const/high16 v5, 0x40c00000    # 6.0f (moderated max HDR portrait dynamic range ratio from 8.0f)
+
+    invoke-static {v3, v4, v2, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->AeShotParams_max_hdr_portrait_ratio_override_set(JLcom/google/googlex/gcam/AeShotParams;F)V
+
+    :cond_skip_ae
+    :try_end_ae
+    .catch Ljava/lang/Throwable; {:try_start_ae .. :try_end_ae} :catch_ae
+
+    :catch_ae
+    :try_start_peony
+    # 2. Disable peony AWB to prevent neutralizing warm melanin skin into ashy/cyan shadow
+    const/4 v2, 0x0
+
+    invoke-static {v0, v1, p0, v2}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_peony_awb_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    # 3. Force face detection rerun
+    const/4 v2, 0x1
+
+    invoke-static {v0, v1, p0, v2}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_rerun_face_detection_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+    :try_end_peony
+    .catch Ljava/lang/Throwable; {:try_start_peony .. :try_end_peony} :catch_peony
+
+    :catch_peony
+    :cond_check_p10
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_check_denoise
+
+    # On Tensor devices where EdgeTPU is blocked on re-signed builds:
+    # Disable all EdgeTPU ML denoisers to prevent errno -8 EdgeTPU permission blocks & pipeline stalls
+    const/4 v3, 0x0
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_pecan_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_pecan_model_type_set(JLcom/google/googlex/gcam/ShotParams;I)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_walnut_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_chess_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_chess_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_almond_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    # Ensure full spatial/temporal QuadBayer merge and high-ISO denoisers are active:
+    const/4 v3, 0x1
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_allow_spatial_rgb_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_strengthen_denoise_for_sky_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_remosaic_merged_output_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    goto :cond_check_sharpen
+
+    :cond_check_denoise
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v2
+
+    const/4 v3, 0x2
+
+    if-ge v2, v3, :cond_check_sharpen
+
+    # Off (0) or Low/Minimal (1): Disable ML secondary denoisers to retain 100% fine textures and natural sensor grain
+    const/4 v3, 0x0
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_pecan_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_pecan_model_type_set(JLcom/google/googlex/gcam/ShotParams;I)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_walnut_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_chess_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_chess_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_almond_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_strengthen_denoise_for_sky_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    :cond_check_sharpen
+    :try_end_shotparams
+    .catch Ljava/lang/Throwable; {:try_start_shotparams .. :try_end_shotparams} :catch_shotparams
+
+    :catch_shotparams
+    return-void
+.end method
+
+.method public static filterWalnutEnabled(Z)Z
+    .locals 2
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mode
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    const/4 v1, 0x2
+
+    if-ge v0, v1, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static filterWalnutOption(I)I
+    .locals 2
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mode
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    const/4 v1, 0x2
+
+    if-ge v0, v1, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static filterChessEnabled(Z)Z
+    .locals 2
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mode
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    const/4 v1, 0x2
+
+    if-ge v0, v1, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static filterEdamameEnabled(Z)Z
+    .locals 2
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mode
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    const/4 v1, 0x2
+
+    if-ge v0, v1, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static filterAlmondEnabled(Z)Z
+    .locals 1
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mode
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    if-nez v0, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static filterMochiEnabled(Z)Z
+    .locals 2
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isEdgeTpuBlocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mode
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_check_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    const/4 v1, 0x2
+
+    if-ge v0, v1, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static filterSkyDenoise(Z)Z
+    .locals 2
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    if-nez v0, :cond_ret_orig
+
+    const/4 p0, 0x0
+
+    :cond_ret_orig
+    return p0
+.end method
+
+.method public static filterNoiseScale(F)F
+    .locals 2
+
+    :try_start_fns
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    if-nez v0, :cond_check_min
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_min
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_ret_stock
+
+    const/high16 v0, 0x3f000000    # 0.5f
+
+    mul-float/2addr p0, v0
+
+    return p0
+    :try_end_fns
+    .catch Ljava/lang/Throwable; {:try_start_fns .. :try_end_fns} :catch_fns
+
+    :catch_fns
+    :cond_ret_stock
+    return p0
+.end method
+
+.method public static filterCompressDng(Z)Z
+    .locals 2
+
+    :try_start_fcd
+    const-string v0, "pref_camera_raw_compression_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_default_compressed
+
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "uncompressed"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_default_compressed
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_default_compressed
+    const/4 p0, 0x1
+
+    return p0
+    :try_end_fcd
+    .catch Ljava/lang/Throwable; {:try_start_fcd .. :try_end_fcd} :catch_fcd
+
+    :catch_fcd
+    const/4 p0, 0x1
+    return p0
+.end method
+
+.method public static getEdgeMode()I
+    .locals 2
+
+    :try_start_gem
+    const-string v0, "pref_camera_sharpness_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_em_standard
+
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "soft"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_em_soft
+
+    const-string v1, "0"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_natural
+
+    :cond_em_soft
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_natural
+    const-string v1, "natural"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_em_standard
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_em_standard
+    const/4 v0, 0x2
+
+    return v0
+    :try_end_gem
+    .catch Ljava/lang/Throwable; {:try_start_gem .. :try_end_gem} :catch_gem
+
+    :catch_gem
+    const/4 v0, 0x2
+
+    return v0
+.end method
+
+.method public static getCamera2NoiseReductionMode()I
+    .locals 2
+
+    :try_start_c2nr
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v0
+
+    if-nez v0, :cond_c2nr_fast
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c2nr_fast
+    const/4 v0, 0x1
+
+    return v0
+    :try_end_c2nr
+    .catch Ljava/lang/Throwable; {:try_start_c2nr .. :try_end_c2nr} :catch_c2nr
+
+    :catch_c2nr
+    const/4 v0, 0x1
+
+    return v0
+.end method
+
+.method public static getCamera2EdgeMode()I
+    .locals 2
+
+    :try_start_c2em
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getEdgeMode()I
+
+    move-result v0
+
+    if-nez v0, :cond_c2em_fast
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_c2em_fast
+    const/4 v0, 0x1
+
+    return v0
+    :try_end_c2em
+    .catch Ljava/lang/Throwable; {:try_start_c2em .. :try_end_c2em} :catch_c2em
+
+    :catch_c2em
+    const/4 v0, 0x1
+
+    return v0
+.end method
+
+.method public static getVideoEdgeMode()I
+    .locals 2
+
+    :try_start_gvem
+    const-string v0, "pref_video_sharpness_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_vem_stock
+
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "off"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vem_off
+
+    const-string v1, "0"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_vem_check_reduced
+
+    :cond_vem_off
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_vem_check_reduced
+    const-string v1, "reduced"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vem_reduced
+
+    const-string v1, "fast"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vem_reduced
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_vem_stock
+
+    :cond_vem_reduced
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_vem_stock
+    const/4 v0, -0x1
+
+    return v0
+    :try_end_gvem
+    .catch Ljava/lang/Throwable; {:try_start_gvem .. :try_end_gvem} :catch_gvem
+
+    :catch_gvem
+    const/4 v0, -0x1
+
+    return v0
+.end method
+
+.method public static getVideoNoiseReductionMode()I
+    .locals 2
+
+    :try_start_gvnr
+    const-string v0, "pref_video_noise_reduction_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_vnr_stock
+
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "off"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vnr_off
+
+    const-string v1, "0"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_vnr_check_min
+
+    :cond_vnr_off
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_vnr_check_min
+    const-string v1, "minimal"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vnr_min
+
+    const-string v1, "low"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vnr_min
+
+    const-string v1, "fast"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vnr_min
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_vnr_stock
+
+    :cond_vnr_min
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_vnr_stock
+    const/4 v0, -0x1
+
+    return v0
+    :try_end_gvnr
+    .catch Ljava/lang/Throwable; {:try_start_gvnr .. :try_end_gvnr} :catch_gvnr
+
+    :catch_gvnr
+    const/4 v0, -0x1
+
+    return v0
+.end method
+
+.method public static filterVideoNoiseReductionMode(I)I
+    .locals 1
+
+    :try_start_fvnr
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoNoiseReductionMode()I
+
+    move-result v0
+
+    if-ltz v0, :cond_done
+
+    return v0
+
+    :cond_done
+    :try_end_fvnr
+    .catch Ljava/lang/Throwable; {:try_start_fvnr .. :try_end_fvnr} :catch_fvnr
+
+    :catch_fvnr
+    return p0
+.end method
+
+.method public static getVideoStabilizationMode()I
+    .locals 2
+
+    :try_start_gvsm
+    const-string v0, "pref_video_stabilization_mode_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_vsm_default
+
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "ois_only"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vsm_ois
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_vsm_check_off
+
+    :cond_vsm_ois
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_vsm_check_off
+    const-string v1, "off"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vsm_off
+
+    const-string v1, "2"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_vsm_default
+
+    :cond_vsm_off
+    const/4 v0, 0x2
+
+    return v0
+
+    :cond_vsm_default
+    const/4 v0, 0x0
+
+    return v0
+    :try_end_gvsm
+    .catch Ljava/lang/Throwable; {:try_start_gvsm .. :try_end_gvsm} :catch_gvsm
+
+    :catch_gvsm
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static filterVideoBitrate(ILandroid/media/MediaFormat;)I
+    .locals 4
+
+    if-gtz p0, :cond_chk_pref
+
+    return p0
+
+    :cond_chk_pref
+    :try_start_fvb
+    const-string v0, "pref_video_bitrate_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-nez v0, :cond_chk_val
+
+    return p0
+
+    :cond_chk_val
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "high"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_high_bitrate
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_chk_ultra
+
+    :cond_high_bitrate
+    if-eqz p1, :cond_high_mult
+
+    :try_start_high_fmt
+    const-string v0, "video-qp-max"
+
+    const/16 v1, 0x18
+
+    invoke-virtual {p1, v0, v1}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V
+
+    const-string v0, "video-qp-min"
+
+    const/16 v1, 0xc
+
+    invoke-virtual {p1, v0, v1}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V
+
+    const-string v0, "width"
+
+    invoke-virtual {p1, v0}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v0
+
+    const-string v1, "height"
+
+    invoke-virtual {p1, v1}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v1
+
+    mul-int/2addr v0, v1
+
+    const v1, 0x700000
+
+    if-lt v0, v1, :cond_high_1080
+
+    const-string v0, "frame-rate"
+
+    invoke-virtual {p1, v0}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v0
+
+    const/16 v1, 0x30
+
+    if-ge v0, v1, :cond_high_4k60
+
+    const v1, 0x344c200
+
+    if-le p0, v1, :cond_high_4k30
+
+    :cond_high_4k60
+    const p0, 0x5f5e100
+
+    return p0
+
+    :cond_high_4k30
+    const p0, 0x42c1d80
+
+    return p0
+
+    :cond_high_1080
+    const v1, 0x1c0000
+
+    if-lt v0, v1, :cond_high_mult
+
+    const p0, 0x2160ec0
+
+    return p0
+    :try_end_high_fmt
+    .catch Ljava/lang/Throwable; {:try_start_high_fmt .. :try_end_high_fmt} :catch_high_fmt
+
+    :catch_high_fmt
+    :cond_high_mult
+    shr-int/lit8 v0, p0, 0x1
+
+    shr-int/lit8 v1, p0, 0x3
+
+    add-int/2addr p0, v0
+
+    add-int/2addr p0, v1
+
+    return p0
+
+    :cond_chk_ultra
+    const-string v1, "ultra"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ultra_bitrate
+
+    const-string v1, "2"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_ret_orig
+
+    :cond_ultra_bitrate
+    if-eqz p1, :cond_ultra_mult
+
+    :try_start_ultra_fmt
+    const-string v0, "video-qp-max"
+
+    const/16 v1, 0x14
+
+    invoke-virtual {p1, v0, v1}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V
+
+    const-string v0, "video-qp-min"
+
+    const/16 v1, 0xa
+
+    invoke-virtual {p1, v0, v1}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V
+
+    const-string v0, "width"
+
+    invoke-virtual {p1, v0}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v0
+
+    const-string v1, "height"
+
+    invoke-virtual {p1, v1}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v1
+
+    mul-int/2addr v0, v1
+
+    const v1, 0x700000
+
+    if-lt v0, v1, :cond_ultra_1080
+
+    const-string v0, "frame-rate"
+
+    invoke-virtual {p1, v0}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v0
+
+    const/16 v1, 0x30
+
+    if-ge v0, v1, :cond_ultra_4k60
+
+    const v1, 0x344c200
+
+    if-le p0, v1, :cond_ultra_4k30
+
+    :cond_ultra_4k60
+    const p0, 0x8f0d180
+
+    return p0
+
+    :cond_ultra_4k30
+    const p0, 0x68de980
+
+    return p0
+
+    :cond_ultra_1080
+    const v1, 0x1c0000
+
+    if-lt v0, v1, :cond_ultra_mult
+
+    const p0, 0x2faf080
+
+    return p0
+    :try_end_ultra_fmt
+    .catch Ljava/lang/Throwable; {:try_start_ultra_fmt .. :try_end_ultra_fmt} :catch_ultra_fmt
+
+    :catch_ultra_fmt
+    :cond_ultra_mult
+    shl-int/lit8 v0, p0, 0x1
+
+    shr-int/lit8 v1, p0, 0x3
+
+    add-int/2addr v0, v1
+
+    return v0
+
+    :cond_ret_orig
+    return p0
+    :try_end_fvb
+    .catch Ljava/lang/Throwable; {:try_start_fvb .. :try_end_fvb} :catch_fvb
+
+    :catch_fvb
+    return p0
+.end method
+
+.method public static isVideoMode()Z
+    .locals 2
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    const/4 v1, 0x2
+
+    if-ne v0, v1, :cond_chk_slow
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_chk_slow
+    const/4 v1, 0x5
+
+    if-ne v0, v1, :cond_chk_intent
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_chk_intent
+    const/4 v1, 0x7
+
+    if-ne v0, v1, :cond_chk_timelapse
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_chk_timelapse
+    const/16 v1, 0x9
+
+    if-ne v0, v1, :cond_ret_f
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_ret_f
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static isVideoAeLocked()Z
+    .locals 1
+
+    sget-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsVideoAeLocked:Z
+
+    if-eqz v0, :cond_ret_f
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isVideoMode()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_ret_f
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_ret_f
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static registerCaptureSession(Lvae;)V
+    .locals 1
+
+    if-eqz p0, :cond_ret
+
+    new-instance v0, Ljava/lang/ref/WeakReference;
+
+    invoke-direct {v0, p0}, Ljava/lang/ref/WeakReference;-><init>(Ljava/lang/Object;)V
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentVae:Ljava/lang/ref/WeakReference;
+
+    :cond_ret
+    return-void
+.end method
+
+.method public static setVideoAeLocked(Z)V
+    .locals 3
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isVideoMode()Z
+
+    move-result v0
+
+    if-nez v0, :cond_do_set
+
+    return-void
+
+    :cond_do_set
+    sput-boolean p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsVideoAeLocked:Z
+
+    sget-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentVae:Ljava/lang/ref/WeakReference;
+
+    if-eqz v0, :cond_ret
+
+    invoke-virtual {v0}, Ljava/lang/ref/WeakReference;->get()Ljava/lang/Object;
+
+    move-result-object v0
+
+    check-cast v0, Lvae;
+
+    if-eqz v0, :cond_ret
+
+    :try_start_dispatch
+    sget-object v1, Landroid/hardware/camera2/CaptureRequest;->CONTROL_AE_LOCK:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    if-eqz p0, :cond_disp_false
+
+    sget-object v2, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+
+    goto :cond_disp_send
+
+    :cond_disp_false
+    sget-object v2, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+
+    :cond_disp_send
+    new-instance p0, Lvaz;
+
+    invoke-direct {p0, v1, v2}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {v0, p0}, Lvae;->r(Lvaz;)V
+    :try_end_dispatch
+    .catch Ljava/lang/Throwable; {:try_start_dispatch .. :try_end_dispatch} :catch_disp
+
+    :catch_disp
+    :cond_ret
+    return-void
+.end method
+
+.method public static onFocusLockStateChanged(Z)V
+    .locals 1
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isVideoMode()Z
+
+    move-result v0
+
+    if-nez v0, :cond_do_lock
+
+    return-void
+
+    :cond_do_lock
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->setVideoAeLocked(Z)V
+
+    return-void
+.end method
+
+.method public static onViewfinderTapped()V
+    .locals 1
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isVideoMode()Z
+
+    move-result v0
+
+    if-nez v0, :cond_do_tap
+
+    return-void
+
+    :cond_do_tap
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->setVideoAeLocked(Z)V
+
+    return-void
+.end method
+
+.method public static onVideoExposureSliderActive(Lvae;)V
+    .locals 1
+
+    if-eqz p0, :cond_do_lock
+
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->registerCaptureSession(Lvae;)V
+
+    :cond_do_lock
+    const/4 v0, 0x1
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->setVideoAeLocked(Z)V
+
+    return-void
+.end method
+
+.method public static onVideoExposureSliderReset(Lvae;)V
+    .locals 1
+
+    if-eqz p0, :cond_do_unlock
+
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->registerCaptureSession(Lvae;)V
+
+    :cond_do_unlock
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->setVideoAeLocked(Z)V
+
+    return-void
+.end method
+
+.method public static applyVideoIspToBuilder(Landroid/hardware/camera2/CaptureRequest$Builder;)V
+    .locals 2
+
+    if-nez p0, :cond_chk_mode
+
+    return-void
+
+    :cond_chk_mode
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isVideoMode()Z
+
+    move-result v0
+
+    if-nez v0, :cond_chk_edge
+
+    return-void
+
+    :cond_chk_edge
+    :try_start_avem
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoEdgeMode()I
+
+    move-result v0
+
+    if-ltz v0, :cond_chk_nr
+
+    sget-object v1, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v0
+
+    invoke-virtual {p0, v1, v0}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+    :try_end_avem
+    .catch Ljava/lang/Throwable; {:try_start_avem .. :try_end_avem} :catch_avem
+
+    :catch_avem
+    :cond_chk_nr
+    :try_start_avnr
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoNoiseReductionMode()I
+
+    move-result v0
+
+    if-ltz v0, :cond_chk_stab
+
+    sget-object v1, Landroid/hardware/camera2/CaptureRequest;->NOISE_REDUCTION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v0
+
+    invoke-virtual {p0, v1, v0}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+    :try_end_avnr
+    .catch Ljava/lang/Throwable; {:try_start_avnr .. :try_end_avnr} :catch_avnr
+
+    :catch_avnr
+    :cond_chk_stab
+    :try_start_avstab
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoStabilizationMode()I
+
+    move-result v0
+
+    if-lez v0, :cond_done
+
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_stab_all_off
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x1
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    goto :cond_done
+
+    :cond_stab_all_off
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+    :try_end_avstab
+    .catch Ljava/lang/Throwable; {:try_start_avstab .. :try_end_avstab} :catch_avstab
+
+    :catch_avstab
+    :cond_chk_aelock
+    :try_start_aelock
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isVideoMode()Z
+
+    move-result v0
+
+    if-nez v0, :cond_chk_ae_lock_state
+
+    goto :cond_done
+
+    :cond_chk_ae_lock_state
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isVideoAeLocked()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_set_ae_false
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_AE_LOCK:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    sget-object v1, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    goto :cond_done
+
+    :cond_set_ae_false
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_AE_LOCK:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    sget-object v1, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+    :try_end_aelock
+    .catch Ljava/lang/Throwable; {:try_start_aelock .. :try_end_aelock} :catch_aelock
+
+    :catch_aelock
+    :cond_done
+    return-void
+.end method
+
+.method public static applyVideoIspToBuilder(Landroid/hardware/camera2/CaptureRequest$Builder;I)V
+    .locals 1
+
+    const/4 v0, 0x3
+
+    if-eq p1, v0, :cond_apply
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isVideoMode()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_ret
+
+    :cond_apply
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->applyVideoIspToBuilder(Landroid/hardware/camera2/CaptureRequest$Builder;)V
+
+    :cond_ret
+    return-void
+.end method
+
+.method public static injectVideoIspParameters(Ljava/util/Set;)V
+    .locals 4
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    :try_start_ivp
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoEdgeMode()I
+
+    move-result v0
+
+    if-ltz v0, :cond_check_nr
+
+    invoke-interface {p0}, Ljava/util/Set;->iterator()Ljava/util/Iterator;
+
+    move-result-object v1
+
+    :cond_edge_loop
+    invoke-interface {v1}, Ljava/util/Iterator;->hasNext()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_edge_add
+
+    invoke-interface {v1}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+
+    move-result-object v2
+
+    instance-of v3, v2, Lvaz;
+
+    if-eqz v3, :cond_edge_loop
+
+    check-cast v2, Lvaz;
+
+    iget-object v2, v2, Lvaz;->a:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    sget-object v3, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-virtual {v3, v2}, Landroid/hardware/camera2/CaptureRequest$Key;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_edge_loop
+
+    invoke-interface {v1}, Ljava/util/Iterator;->remove()V
+
+    goto :cond_edge_loop
+
+    :cond_edge_add
+    sget-object v1, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v0
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v1, v0}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    :cond_check_nr
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoNoiseReductionMode()I
+
+    move-result v0
+
+    if-ltz v0, :cond_check_stab
+
+    invoke-interface {p0}, Ljava/util/Set;->iterator()Ljava/util/Iterator;
+
+    move-result-object v1
+
+    :cond_nr_loop
+    invoke-interface {v1}, Ljava/util/Iterator;->hasNext()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_nr_add
+
+    invoke-interface {v1}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+
+    move-result-object v2
+
+    instance-of v3, v2, Lvaz;
+
+    if-eqz v3, :cond_nr_loop
+
+    check-cast v2, Lvaz;
+
+    iget-object v2, v2, Lvaz;->a:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    sget-object v3, Landroid/hardware/camera2/CaptureRequest;->NOISE_REDUCTION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-virtual {v3, v2}, Landroid/hardware/camera2/CaptureRequest$Key;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_nr_loop
+
+    invoke-interface {v1}, Ljava/util/Iterator;->remove()V
+
+    goto :cond_nr_loop
+
+    :cond_nr_add
+    sget-object v1, Landroid/hardware/camera2/CaptureRequest;->NOISE_REDUCTION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v0
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v1, v0}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    :cond_check_stab
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoStabilizationMode()I
+
+    move-result v0
+
+    if-lez v0, :cond_done
+
+    invoke-interface {p0}, Ljava/util/Set;->iterator()Ljava/util/Iterator;
+
+    move-result-object v1
+
+    :cond_stab_loop
+    invoke-interface {v1}, Ljava/util/Iterator;->hasNext()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_stab_add
+
+    invoke-interface {v1}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+
+    move-result-object v2
+
+    instance-of v3, v2, Lvaz;
+
+    if-eqz v3, :cond_stab_loop
+
+    check-cast v2, Lvaz;
+
+    iget-object v2, v2, Lvaz;->a:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    sget-object v3, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-virtual {v3, v2}, Landroid/hardware/camera2/CaptureRequest$Key;->equals(Ljava/lang/Object;)Z
+
+    move-result v3
+
+    if-nez v3, :cond_stab_rem
+
+    sget-object v3, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-virtual {v3, v2}, Landroid/hardware/camera2/CaptureRequest$Key;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_stab_loop
+
+    :cond_stab_rem
+    invoke-interface {v1}, Ljava/util/Iterator;->remove()V
+
+    goto :cond_stab_loop
+
+    :cond_stab_add
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_stab_session_off
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v0, v1}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x1
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v0, v1}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    goto :cond_done
+
+    :cond_stab_session_off
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v0, v1}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v0, v1}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+    :try_end_ivp
+    .catch Ljava/lang/Throwable; {:try_start_ivp .. :try_end_ivp} :catch_ivp
+
+    :catch_ivp
+    :cond_done
+    return-void
+.end method
+
+.method public static getSharpnessFactor()F
+    .locals 2
+
+    :try_start_gsf
+    const-string v0, "pref_camera_sharpness_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_ret_standard
+
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "soft"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ret_soft
+
+    const-string v1, "0"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_natural
+
+    :cond_ret_soft
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_natural
+    const-string v1, "natural"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_ret_standard
+
+    const/high16 v0, 0x3f000000    # 0.5f
+
+    return v0
+
+    :cond_ret_standard
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    return v0
+    :try_end_gsf
+    .catch Ljava/lang/Throwable; {:try_start_gsf .. :try_end_gsf} :catch_gsf
+
+    :catch_gsf
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    return v0
+.end method
+
+.method public static filterSharpness(F)F
+    .locals 1
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSharpnessFactor()F
+
+    move-result v0
+
+    mul-float/2addr p0, v0
+
+    return p0
+.end method
+
+.method public static filterBrightness(F)F
+    .locals 1
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isMaxBrightnessEnabled()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_orig
+
+    const/high16 p0, 0x3f800000    # 1.0f
+
+    :cond_orig
+    return p0
+.end method
+
+.method public static onSharedPrefChanged(Ljava/lang/String;Z)V
+    .locals 1
+
+    const-string v0, "pref_camera_max_brightness_key"
+
+    invoke-virtual {v0, p0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_skip
+
+    invoke-static {p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->onBrightnessPrefChanged(Z)V
+
+    :cond_skip
+    return-void
+.end method
+
+.method public static onModeChanged(Ljava/lang/Object;)V
+    .locals 1
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    instance-of v0, p0, Ljava/lang/Enum;
+
+    if-eqz v0, :cond_end
+
+    check-cast p0, Ljava/lang/Enum;
+
+    invoke-virtual {p0}, Ljava/lang/Enum;->ordinal()I
+
+    move-result v0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->setCurrentMode(I)V
+
+    :cond_end
+    return-void
+.end method
+
+.method public static applyScreenBrightness(Landroid/app/Activity;)V
+    .locals 3
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    :try_start_0
+    instance-of v0, p0, Lcom/google/android/apps/camera/activity/main/CameraActivity;
+
+    if-eqz v0, :cond_check_secure
+
+    goto :cond_is_viewfinder
+
+    :cond_check_secure
+    instance-of v0, p0, Lcom/google/android/apps/camera/activity/SecureCameraActivity;
+
+    if-eqz v0, :cond_check_capture
+
+    goto :cond_is_viewfinder
+
+    :cond_check_capture
+    instance-of v0, p0, Lcom/google/android/apps/camera/activity/CaptureActivity;
+
+    if-eqz v0, :cond_not_viewfinder
+
+    :cond_is_viewfinder
+    new-instance v0, Ljava/lang/ref/WeakReference;
+
+    invoke-direct {v0, p0}, Ljava/lang/ref/WeakReference;-><init>(Ljava/lang/Object;)V
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentActivity:Ljava/lang/ref/WeakReference;
+
+    invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+
+    move-result-object v0
+
+    if-nez v0, :cond_win_ok
+
+    return-void
+
+    :cond_win_ok
+    invoke-virtual {v0}, Landroid/view/Window;->getAttributes()Landroid/view/WindowManager$LayoutParams;
+
+    move-result-object v1
+
+    if-nez v1, :cond_lp_ok
+
+    return-void
+
+    :cond_lp_ok
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isMaxBrightnessEnabled()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_reset
+
+    const/high16 v2, 0x3f800000    # 1.0f
+
+    iput v2, v1, Landroid/view/WindowManager$LayoutParams;->screenBrightness:F
+
+    invoke-virtual {v0, v1}, Landroid/view/Window;->setAttributes(Landroid/view/WindowManager$LayoutParams;)V
+
+    return-void
+
+    :cond_reset
+    iget v2, v1, Landroid/view/WindowManager$LayoutParams;->screenBrightness:F
+
+    const/4 p0, 0x0
+
+    cmpl-float p0, v2, p0
+
+    if-lez p0, :cond_ret
+
+    const/high16 p0, -0x40800000    # -1.0f
+
+    iput p0, v1, Landroid/view/WindowManager$LayoutParams;->screenBrightness:F
+
+    invoke-virtual {v0, v1}, Landroid/view/Window;->setAttributes(Landroid/view/WindowManager$LayoutParams;)V
+
+    :cond_ret
+    return-void
+
+    :cond_not_viewfinder
+    invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+
+    move-result-object v0
+
+    if-nez v0, :cond_non_vf_win
+
+    return-void
+
+    :cond_non_vf_win
+    invoke-virtual {v0}, Landroid/view/Window;->getAttributes()Landroid/view/WindowManager$LayoutParams;
+
+    move-result-object v1
+
+    if-nez v1, :cond_non_vf_lp
+
+    return-void
+
+    :cond_non_vf_lp
+    const/high16 v2, -0x40800000    # -1.0f
+
+    iput v2, v1, Landroid/view/WindowManager$LayoutParams;->screenBrightness:F
+
+    invoke-virtual {v0, v1}, Landroid/view/Window;->setAttributes(Landroid/view/WindowManager$LayoutParams;)V
+
+    return-void
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    :catchall_0
+    return-void
+.end method
+
+.method public static resetScreenBrightness(Landroid/app/Activity;)V
+    .locals 3
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    :try_start_0
+    invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+
+    move-result-object v0
+
+    if-nez v0, :cond_win_ok
+
+    return-void
+
+    :cond_win_ok
+    invoke-virtual {v0}, Landroid/view/Window;->getAttributes()Landroid/view/WindowManager$LayoutParams;
+
+    move-result-object v1
+
+    if-nez v1, :cond_lp_ok
+
+    return-void
+
+    :cond_lp_ok
+    const/high16 v2, -0x40800000    # -1.0f
+
+    iput v2, v1, Landroid/view/WindowManager$LayoutParams;->screenBrightness:F
+
+    invoke-virtual {v0, v1}, Landroid/view/Window;->setAttributes(Landroid/view/WindowManager$LayoutParams;)V
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    :catchall_0
+    return-void
+.end method
+
+.method public static onBrightnessPrefChanged(Z)V
+    .locals 3
+
+    :try_start_0
+    sget-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentActivity:Ljava/lang/ref/WeakReference;
+
+    if-nez v0, :cond_has_ref
+
+    return-void
+
+    :cond_has_ref
+    invoke-virtual {v0}, Ljava/lang/ref/WeakReference;->get()Ljava/lang/Object;
+
+    move-result-object v0
+
+    check-cast v0, Landroid/app/Activity;
+
+    if-nez v0, :cond_has_act
+
+    return-void
+
+    :cond_has_act
+    instance-of v1, v0, Lcom/google/android/apps/camera/activity/main/CameraActivity;
+
+    if-nez v1, :cond_is_vf
+
+    instance-of v1, v0, Lcom/google/android/apps/camera/activity/SecureCameraActivity;
+
+    if-nez v1, :cond_is_vf
+
+    instance-of v1, v0, Lcom/google/android/apps/camera/activity/CaptureActivity;
+
+    if-nez v1, :cond_is_vf
+
+    return-void
+
+    :cond_is_vf
+    invoke-virtual {v0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+
+    move-result-object v0
+
+    if-nez v0, :cond_has_win
+
+    return-void
+
+    :cond_has_win
+    invoke-virtual {v0}, Landroid/view/Window;->getAttributes()Landroid/view/WindowManager$LayoutParams;
+
+    move-result-object v1
+
+    if-nez v1, :cond_has_lp
+
+    return-void
+
+    :cond_has_lp
+    if-eqz p0, :cond_dim
+
+    const/high16 v2, 0x3f800000    # 1.0f
+
+    iput v2, v1, Landroid/view/WindowManager$LayoutParams;->screenBrightness:F
+
+    goto :cond_apply
+
+    :cond_dim
+    const/high16 v2, -0x40800000    # -1.0f
+
+    iput v2, v1, Landroid/view/WindowManager$LayoutParams;->screenBrightness:F
+
+    :cond_apply
+    invoke-virtual {v0, v1}, Landroid/view/Window;->setAttributes(Landroid/view/WindowManager$LayoutParams;)V
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    :catchall_0
+    return-void
+.end method
+
+.method public constructor <init>()V
+    .locals 0
+
+    .line 9
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    return-void
+.end method
+
+.method public static getEffectiveLookId(I)I
+    .locals 3
+
+    # Check if current mode supports looks
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    # Video = 2, Photo Sphere/Panorama = 4, Landscape(LongExposure) = 14, Action Pan = 15
+    const/4 v1, 0x2
+
+    if-eq v0, v1, :cond_no_looks
+
+    const/4 v1, 0x4
+
+    if-eq v0, v1, :cond_no_looks
+
+    const/16 v1, 0xe
+
+    if-eq v0, v1, :cond_no_looks
+
+    const/16 v1, 0xf
+
+    if-eq v0, v1, :cond_no_looks
+
+    .line 52
+    if-nez p0, :cond_0
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    if-lez v0, :cond_0
+
+    .line 53
+    sget p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v1, "TomteInitHelper.getEffectiveLookId: overriding type 0 with selected lookId="
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object p0
+
+    invoke-virtual {p0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p0
+
+    const-string v0, "PATCH_LOOKS"
+
+    invoke-static {v0, p0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    .line 54
+    sget p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    return p0
+
+    :cond_no_looks
+    # Unsupported mode — return original value without override
+    return p0
+
+    .line 56
+    :cond_0
+    return p0
+.end method
+
+.method public static getShotParamsTomteType(I)I
+    .locals 1
+
+    # Keep ShotParams.tomte_type strictly at 0 across all camera looks to prevent Gcam AE
+    # from forcing t=0.7f ("Highlights will be blown out") and dropping PSL short frames
+    # ("No PSL frames to request for this Tomte type").
+    # This preserves 100% of HDR+ dynamic range and highlight preservation on Tensor G1-G5,
+    # while Look styling is applied by TomteMetadata and nativeProcessRasterImage.
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static setCurrentMode(I)V
+    .locals 2
+
+    sput p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    const/4 v0, 0x0
+
+    sput-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsVideoAeLocked:Z
+
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v1, "TomteInitHelper.setCurrentMode: modeOrdinal="
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object p0
+
+    invoke-virtual {p0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p0
+
+    const-string v0, "PATCH_LOOKS"
+
+    invoke-static {v0, p0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    return-void
+.end method
+
+.method public static declared-synchronized initTomteGrain(J)V
+    .locals 11
+
+    const-class v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;
+
+    monitor-enter v1
+
+    :try_start_grain_check
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isGrainEnabled()Z
+
+    move-result v0
+
+    if-nez v0, :cond_grain_allowed
+
+    const-string v0, "PATCH_LOOKS"
+
+    const-string v2, "TomteInitHelper.initTomteGrain: film grain is DISABLED by user setting."
+
+    invoke-static {v0, v2}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    monitor-exit v1
+
+    return-void
+
+    :cond_grain_allowed
+    :try_end_grain_check
+    .catchall {:try_start_grain_check .. :try_end_grain_check} :catchall_1
+
+    .line 15
+    const-wide/16 v2, 0x0
+
+    cmp-long v0, p0, v2
+
+    if-nez v0, :cond_0
+
+    .line 16
+    :try_start_0
+    const-string p0, "PATCH_LOOKS"
+
+    const-string p1, "TomteInitHelper.initTomteGrain: gcamPtr is 0"
+
+    invoke-static {p0, p1}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_1
+
+    .line 17
+    monitor-exit v1
+
+    return-void
+
+    .line 19
+    :cond_0
+    :try_start_1
+    sget-wide v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastInitGcamPtr:J
+
+    cmp-long v0, v2, p0
+
+    if-nez v0, :cond_1
+
+    .line 20
+    const-string v0, "PATCH_LOOKS"
+
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    invoke-direct {v2}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v3, "TomteInitHelper.initTomteGrain: already initialized for gcamPtr="
+
+    invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v2
+
+    invoke-virtual {v2, p0, p1}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    move-result-object p0
+
+    invoke-virtual {p0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p0
+
+    invoke-static {v0, p0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_1
+
+    .line 21
+    monitor-exit v1
+
+    return-void
+
+    .line 24
+    :cond_1
+    :try_start_2
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_2
+
+    .line 26
+    const-string p0, "PATCH_LOOKS"
+
+    const-string p1, "TomteInitHelper.initTomteGrain: CameraApp.sAppContext is null!"
+
+    invoke-static {p0, p1}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_2
+    .catchall {:try_start_2 .. :try_end_2} :catchall_0
+
+    .line 27
+    monitor-exit v1
+
+    return-void
+
+    .line 29
+    :cond_2
+    :try_start_3
+    const-string v2, "3cdbac706c98421a96e16fdbfd97a35f.tflite.uncompressed"
+
+    .line 30
+    invoke-virtual {v0}, Landroid/content/Context;->getAssets()Landroid/content/res/AssetManager;
+
+    move-result-object v0
+
+    invoke-virtual {v0, v2}, Landroid/content/res/AssetManager;->openFd(Ljava/lang/String;)Landroid/content/res/AssetFileDescriptor;
+
+    move-result-object v0
+
+    .line 31
+    invoke-virtual {v0}, Landroid/content/res/AssetFileDescriptor;->getParcelFileDescriptor()Landroid/os/ParcelFileDescriptor;
+
+    move-result-object v2
+
+    invoke-virtual {v2}, Landroid/os/ParcelFileDescriptor;->getFd()I
+
+    move-result v4
+
+    .line 32
+    invoke-virtual {v0}, Landroid/content/res/AssetFileDescriptor;->getStartOffset()J
+
+    move-result-wide v5
+
+    .line 33
+    invoke-virtual {v0}, Landroid/content/res/AssetFileDescriptor;->getLength()J
+
+    move-result-wide v7
+
+    .line 34
+    const-string v2, "PATCH_LOOKS"
+
+    new-instance v3, Ljava/lang/StringBuilder;
+
+    invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v9, "TomteInitHelper: Calling nativeInitializeTomteGrainFromOpenFile(fd="
+
+    invoke-virtual {v3, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    const-string v9, ", offset="
+
+    invoke-virtual {v3, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    invoke-virtual {v3, v5, v6}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    const-string v9, ", len="
+
+    invoke-virtual {v3, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    invoke-virtual {v3, v7, v8}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    const-string v9, ", gcamPtr="
+
+    invoke-virtual {v3, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    invoke-virtual {v3, p0, p1}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    const-string v9, ")..."
+
+    invoke-virtual {v3, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    invoke-virtual {v3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v3
+
+    invoke-static {v2, v3}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    .line 36
+    new-instance v3, Lcom/google/googlex/gcam/hdrplus/NativeHdrPlusInterface;
+
+    invoke-direct {v3}, Lcom/google/googlex/gcam/hdrplus/NativeHdrPlusInterface;-><init>()V
+
+    .line 37
+    move-wide v9, p0
+
+    invoke-virtual/range {v3 .. v10}, Lcom/google/googlex/gcam/hdrplus/NativeHdrPlusInterface;->nativeInitializeTomteGrainFromOpenFile(IJJJ)V
+
+    .line 38
+    invoke-virtual {v0}, Landroid/content/res/AssetFileDescriptor;->close()V
+
+    .line 39
+    sput-wide v9, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastInitGcamPtr:J
+
+    .line 40
+    const-string p0, "PATCH_LOOKS"
+
+    new-instance p1, Ljava/lang/StringBuilder;
+
+    invoke-direct {p1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v0, "TomteInitHelper: Successfully initialized TomteGrain on gcamPtr="
+
+    invoke-virtual {p1, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object p1
+
+    invoke-virtual {p1, v9, v10}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    move-result-object p1
+
+    invoke-virtual {p1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p1
+
+    invoke-static {p0, p1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_3
+    .catchall {:try_start_3 .. :try_end_3} :catchall_0
+
+    .line 43
+    goto :goto_0
+
+    .line 41
+    :catchall_0
+    move-exception v0
+
+    move-object p0, v0
+
+    .line 42
+    :try_start_4
+    const-string p1, "PATCH_LOOKS"
+
+    const-string v0, "TomteInitHelper: initTomteGrain failed"
+
+    invoke-static {p1, v0, p0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+    :try_end_4
+    .catchall {:try_start_4 .. :try_end_4} :catchall_1
+
+    .line 44
+    :goto_0
+    monitor-exit v1
+
+    return-void
+
+    .line 14
+    :catchall_1
+    move-exception v0
+
+    move-object p0, v0
+
+    :try_start_5
+    monitor-exit v1
+    :try_end_5
+    .catchall {:try_start_5 .. :try_end_5} :catchall_1
+
+    throw p0
+.end method
+
+.method public static onLookSelected(I)V
+    .locals 2
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    if-ne v0, p0, :cond_change
+
+    return-void
+
+    :cond_change
+    sput p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v1, "TomteInitHelper.onLookSelected: lookId="
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object p0
+
+    invoke-virtual {p0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p0
+
+    const-string v0, "PATCH_LOOKS"
+
+    invoke-static {v0, p0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    sget p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->loadFineTuningForLook(I)V
+
+    return-void
+.end method
+
+.method public static onLookObjectSelected(Lqvj;)V
+    .locals 2
+
+    if-eqz p0, :cond_null
+
+    sput-object p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastSelectedLook:Lqvj;
+
+    iget v0, p0, Lqvj;->d:I
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->onLookSelected(I)V
+
+    return-void
+
+    :cond_null
+    return-void
+.end method
+
+.method public static getLastSelectedLook()Lqvj;
+    .locals 1
+
+    sget-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastSelectedLook:Lqvj;
+
+    return-object v0
+.end method
+
+.method public static getEffectiveLookOrFallback(Lqvj;)Lqvj;
+    .locals 2
+
+    # 1. If p0 is non-null, return p0 directly (Original qux has d == 0 and is completely valid)
+    if-eqz p0, :cond_check_fallback
+
+    return-object p0
+
+    :cond_check_fallback
+    # 2. Check sLastSelectedLook
+    sget-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastSelectedLook:Lqvj;
+
+    if-eqz v0, :cond_check_id
+
+    return-object v0
+
+    :cond_check_id
+    # 3. Check sSelectedLookId
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    if-ltz v0, :cond_return_original
+
+    const/16 v1, 0xc
+
+    if-gt v0, v1, :cond_return_original
+
+    invoke-static {v0}, Lqtk;->g(I)Lqvj;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_return_original
+
+    return-object v0
+
+    :cond_return_original
+    sget-object v0, Lqux;->a:Lqux;
+
+    return-object v0
+.end method
+
+.method public static getFlagOverride(Ljava/lang/String;)I
+    .locals 2
+
+    if-nez p0, :cond_check_mantis
+
+    const/4 v0, -0x1
+
+    return v0
+
+    :cond_check_mantis
+    # Issues #94 & #96 Fix: Tensor G5 (Pixel 10 family) requires native Darwinn/TPU session keys for CameraPipe Gouda
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isPixel10Family()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_tpu_legacy
+
+    goto :cond_check_mantis_policy
+
+    :cond_check_tpu_legacy
+    const-string v0, "camera.gouda.use_darwinn_offline_compilation"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_tpu_override_false
+
+    const-string v0, "segmenter_use_darwinn_tpu_delegate"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_tpu_override_false
+
+    const-string v0, "use_tpu"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_mantis_policy
+
+    :cond_tpu_override_false
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_mantis_policy
+    const-string v0, "camera.gouda.mantis"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_lasagna
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_lasagna
+    const-string v0, "camera.lasagna"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_ark_lens
+
+    const-string v0, "camera.lasagna.use_darwinn"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_lasagna_false
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_lasagna_false
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_ark_lens
+    const-string v0, "camera.ark_lens_selector"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_ark
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_ark
+    const-string v0, "camera.ark"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_chameleon
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_chameleon
+    const-string v0, "camera.chameleon"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_cct
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_cct
+    const-string v0, "camera.enable_show_cct"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_freesia
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_freesia
+    const-string v0, "camera.enable_freesia"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_peony
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_peony
+    const-string v0, "camera.enable_peony"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_basil
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_basil
+    const-string v0, "camera.enable_basil"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_creator_granite
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_creator_granite
+    const-string v0, "camera.enable_granite"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_creator_biotite
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_creator_biotite
+    const-string v0, "camera.enable_biotite"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_creator_mica
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_creator_mica
+    const-string v0, "camera.enable_mica"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_creator_slate
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_creator_slate
+    const-string v0, "camera.enable_slate"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_creator_basalt
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_creator_basalt
+    const-string v0, "camera.enable_basalt"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_creator_autoscroll
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_creator_autoscroll
+    const-string v0, "camera.biotite_auto_scroll"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_sauce
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_sauce
+    const-string v0, "camera.sauce"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_qa
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_qa
+    const-string v0, "camera.quick_access"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_dualev_single_knob
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_dualev_single_knob
+    const-string v0, "camera.dualev.singleKnob"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_enable_twilight
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_enable_twilight
+    const-string v0, "camera.enable_twilight"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_dualev_ultrawide
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_dualev_ultrawide
+    const-string v0, "camera.dualev.limitUltrawide"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_dualev_shadowboost
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_dualev_shadowboost
+    const-string v0, "camera.dualev.limitShadowBoost"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_gs
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_gs
+    const-string v0, "camera.getting_started_enabled"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_centaur
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_centaur
+    const-string v0, "camera.enable_centaur"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_boba_eligible
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_boba_eligible
+    const-string v0, "camera.boba_jelly_eligible"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_cpu_seg
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_cpu_seg
+    const-string v0, "segmenter_force_cpu_inference"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_tpu_del
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_tpu_del
+    const-string v0, "segmenter_use_darwinn_tpu_delegate"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_almond
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_almond
+    const-string v0, "camera.almond_use_tpu"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_cyclops
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_cyclops
+    const-string v0, "camera.cyclops_use_tpu"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_offline_comp
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_offline_comp
+    const-string v0, "camera.gouda.use_darwinn_offline_compilation"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_fg_color
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_fg_color
+    const-string v0, "camera.gouda.foreground_color_estimator_use_tpu"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_macro_badging
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_macro_badging
+    const-string v0, "camera.enable_macro_focus_badging"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_boba_jelly
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_boba_jelly
+    const-string v0, "camera.enable_boba_jelly"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_ceftazidime
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_ceftazidime
+    const-string v0, "camera.ceftazidime"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_decepticon
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_decepticon
+    const-string v0, "camera.decepticon"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_use_eclipse
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_use_eclipse
+    const-string v0, "camera.use_eclipse"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_milk
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_milk
+    const-string v0, "camera.milk"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_rear_rgbpd
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_rear_rgbpd
+    const-string v0, "camera.gouda.rear_rgbpd"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_front_learned
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_front_learned
+    const-string v0, "camera.gouda.front_learned"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_physeter
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_physeter
+    const-string v0, "physeter"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_generic_tpu
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_generic_tpu
+    const-string v0, "use_tpu"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_generic_darwinn
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_generic_darwinn
+    const-string v0, "darwinn"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_jellybean_setting
+
+    const-string v0, "camera.lasagna.use_darwinn"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_darwinn_false
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_darwinn_false
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_jellybean_setting
+    const-string v0, "camcorder.jellybean_setting"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_jellybean_feature
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_jellybean_feature
+    const-string v0, "camcorder_jellybean_feature"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_24fps
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_24fps
+    const-string v0, "camcorder.24fps"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_video_smooth_filter
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_smooth_filter
+    const-string v0, "camera.video_smooth_zoom_filter"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_video_smooth_spring
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_smooth_spring
+    const-string v0, "camera.video_smooth_zoom_spring"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_video_prewarm
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_prewarm
+    const-string v0, "camera.video_prewarm"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_scalable_vpipe
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_scalable_vpipe
+    const-string v0, "camcorder.scalable_vpipe"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_surface_share
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_surface_share
+    const-string v0, "camcorder.surface_share"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_peregrine
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_peregrine
+    const-string v0, "camcorder.peregrine"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_osprey
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_camcorder_osprey
+    const-string v0, "camcorder.osprey"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_stokes_dyn
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_camcorder_stokes_dyn
+    const-string v0, "camcorder.stokes_dyn"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_4k60fps
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_4k60fps
+    const-string v0, "camcorder.4k60fps"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_glimmerix
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_glimmerix
+    const-string v0, "camcorder.glimmerix"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_halifax
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is60FpsHdrSupported()Z
+
+    move-result v0
+
+    return v0
+
+    :cond_check_camcorder_halifax
+    const-string v0, "camcorder.halifax"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_amethyst
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is60FpsHdrSupported()Z
+
+    move-result v0
+
+    return v0
+
+    :cond_check_camcorder_amethyst
+    const-string v0, "camcorder.amethyst"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_amethyst_opt
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_amethyst_opt
+    const-string v0, "camcorder.amethyst_opt"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_zenthoria
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_zenthoria
+    const-string v0, "camcorder.zenthoria"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_raw_separate_folder
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_raw_separate_folder
+    const-string v0, "enable_camera_raw_folder_burst"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_gouda_opencl
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isRawSeparateFolderEnabled()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_raw_separate_folder_disabled
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_raw_separate_folder_disabled
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_gouda_opencl
+    const-string v0, "camera.gouda.depth_use_opencl"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_finish_raw_opencl
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_finish_raw_opencl
+    const-string v0, "gcam.enable_finish_raw_opencl"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_gpu_boost
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_gpu_boost
+    const-string v0, "portrait_enable_gpu_boost"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_cpu_boost
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_cpu_boost
+    const-string v0, "portrait_enable_cpu_boost"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_opencl_prewarm
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_opencl_prewarm
+    const-string v0, "gcam.enable_opencl_cache_prewarm"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_power_hint
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_power_hint
+    const-string v0, "power_hint"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_not_found
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_not_found
+    const/4 v0, -0x1
+
+    return v0
+.end method
+
+.method public static interceptFlagQ(Lksf;Lkps;)Z
+    .locals 2
+
+    if-eqz p1, :cond_orig_q
+
+    iget-object v0, p1, Lkpq;->a:Ljava/lang/String;
+
+    if-eqz v0, :cond_orig_q
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getFlagOverride(Ljava/lang/String;)I
+
+    move-result v0
+
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_check_false_q
+
+    return v1
+
+    :cond_check_false_q
+    if-nez v0, :cond_orig_q
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_orig_q
+    :try_start_orig_q
+    invoke-virtual {p0, p1}, Lksf;->original_q(Lkps;)Z
+
+    move-result p0
+
+    return p0
+    :try_end_orig_q
+    .catch Ljava/lang/Throwable; {:try_start_orig_q .. :try_end_orig_q} :catch_orig_q
+
+    :catch_orig_q
+    const/4 p0, 0x1
+
+    return p0
+.end method
+
+.method public static interceptFlagX(Lksf;Lkps;)Z
+    .locals 2
+
+    if-eqz p1, :cond_orig_x
+
+    iget-object v0, p1, Lkpq;->a:Ljava/lang/String;
+
+    if-eqz v0, :cond_orig_x
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getFlagOverride(Ljava/lang/String;)I
+
+    move-result v0
+
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_check_false_x
+
+    return v1
+
+    :cond_check_false_x
+    if-nez v0, :cond_orig_x
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_orig_x
+    :try_start_orig_x
+    invoke-virtual {p0, p1}, Lksf;->original_x(Lkps;)Z
+
+    move-result p0
+
+    return p0
+    :try_end_orig_x
+    .catch Ljava/lang/Throwable; {:try_start_orig_x .. :try_end_orig_x} :catch_orig_x
+
+    :catch_orig_x
+    const/4 p0, 0x1
+
+    return p0
+.end method
+
+.method public static interceptPref(Lrdo;Lrdg;)Ljava/lang/Object;
+    .locals 2
+
+    if-nez p1, :cond_check_pref
+
+    const/4 p0, 0x0
+
+    return-object p0
+
+    :cond_check_pref
+    iget-object v0, p1, Lrdg;->a:Ljava/lang/String;
+
+    if-nez v0, :cond_check_qa_key
+
+    const/4 p0, 0x0
+
+    return-object p0
+
+    :cond_check_qa_key
+    const-string v1, "pref_quick_access_controls_key"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_slot_left
+
+    sget-object p0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+
+    return-object p0
+
+    :cond_check_slot_left
+    const-string v1, "pref_quick_access_slot_left_1_id"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_slot_r1
+
+    invoke-virtual {p0, p1}, Lrdo;->c(Lrdg;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_use_def_left
+
+    check-cast v0, Ljava/lang/Number;
+
+    invoke-virtual {v0}, Ljava/lang/Number;->intValue()I
+
+    move-result v0
+
+    const/4 v1, -0x1
+
+    if-ne v0, v1, :cond_ret_null
+
+    :cond_use_def_left
+    const/4 p0, 0x2
+
+    invoke-static {p0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_check_slot_r1
+    const-string v1, "pref_quick_access_slot_right_1_id"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_slot_r2
+
+    invoke-virtual {p0, p1}, Lrdo;->c(Lrdg;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_use_def_r1
+
+    check-cast v0, Ljava/lang/Number;
+
+    invoke-virtual {v0}, Ljava/lang/Number;->intValue()I
+
+    move-result v0
+
+    const/4 v1, -0x1
+
+    if-ne v0, v1, :cond_ret_null
+
+    :cond_use_def_r1
+    const/16 p0, 0x9
+
+    invoke-static {p0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_check_slot_r2
+    const-string v1, "pref_quick_access_slot_right_2_id"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_ret_null
+
+    invoke-virtual {p0, p1}, Lrdo;->c(Lrdg;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_use_def_r2
+
+    check-cast v0, Ljava/lang/Number;
+
+    invoke-virtual {v0}, Ljava/lang/Number;->intValue()I
+
+    move-result v0
+
+    const/4 v1, -0x1
+
+    if-ne v0, v1, :cond_ret_null
+
+    :cond_use_def_r2
+    const/16 p0, 0x8
+
+    invoke-static {p0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_ret_null
+    const/4 p0, 0x0
+
+    return-object p0
+.end method
+
+.method public static interceptFlagA(Lksf;Lkpr;)Lj$/util/Optional;
+    .locals 3
+
+    if-eqz p1, :cond_orig_a
+
+    # kiy extends kix, which has field a:Ljava/lang/String; (the flag name)
+    iget-object v0, p1, Lkpq;->a:Ljava/lang/String;
+
+    if-eqz v0, :cond_orig_a
+
+    # Check centaur_focus_detection_override → return Optional.of(0)
+    const-string v1, "camera.centaur_focus_detection_override"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_video_zoom_anim_duration
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v1
+
+    return-object v1
+
+    :cond_check_video_zoom_anim_duration
+    const-string v1, "camera.video_zoom_animation_duration"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_zoom_curve_preset
+
+    const/16 v1, 0x17c
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v1
+
+    return-object v1
+
+    :cond_check_zoom_curve_preset
+    const-string v1, "camera.zoom_curve_control_preset"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_try_orig_a
+
+    const/16 v1, 0x8
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v1
+
+    return-object v1
+
+    :cond_try_orig_a
+    # Call original method first; if result is present, return it
+    :try_start_orig_a
+    invoke-virtual {p0, p1}, Lksf;->original_a(Lkpr;)Lj$/util/Optional;
+
+    move-result-object v0
+    :try_end_orig_a
+    .catch Ljava/lang/Throwable; {:try_start_orig_a .. :try_end_orig_a} :catch_orig_a
+
+    # Check if result is present
+    invoke-virtual {v0}, Lj$/util/Optional;->isPresent()Z
+
+    move-result v1
+
+    if-nez v1, :cond_return_result
+
+    # Result is empty — check if we have a binned RAW fallback
+    iget-object v1, p1, Lkpq;->a:Ljava/lang/String;
+
+    if-eqz v1, :cond_return_result
+
+    # Check tele_binned_raw_width fallback
+    const-string v2, "camera.tele_binned_raw_width"
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_check_tbrh
+
+    const/16 v2, 0x7e0
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v2
+
+    invoke-static {v2}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v2
+
+    return-object v2
+
+    # tele_binned_raw_height → 0x5e8 (1512)
+    :cond_check_tbrh
+    const-string v2, "camera.tele_binned_raw_height"
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_check_brs
+
+    const/16 v2, 0x5e8
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v2
+
+    invoke-static {v2}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v2
+
+    return-object v2
+
+    # Check binned_row_start
+    :cond_check_brs
+    const-string v2, "camera.binned_row_start"
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_return_result
+
+    const/4 v2, 0x0
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v2
+
+    invoke-static {v2}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v2
+
+    return-object v2
+
+    :cond_return_result
+    return-object v0
+
+    :cond_orig_a
+    :try_start_orig_a2
+    invoke-virtual {p0, p1}, Lksf;->original_a(Lkpr;)Lj$/util/Optional;
+
+    move-result-object p0
+
+    return-object p0
+    :try_end_orig_a2
+    .catch Ljava/lang/Throwable; {:try_start_orig_a2 .. :try_end_orig_a2} :catch_orig_a
+
+    :catch_orig_a
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+.method public static interceptFlagH(Lksf;Lkps;)Ljava/lang/String;
+    .locals 3
+
+    if-eqz p1, :cond_check_orig_h
+
+    iget-object v0, p1, Lkpq;->a:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_orig_h
+
+    const-string v1, "camera.lasagna.motion_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_lasagna_saliency_model
+
+    const-string v0, "motion-custom_op-p23.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_lasagna_saliency_model
+    const-string v1, "camera.lasagna.saliency_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_panoptic_model
+
+    const-string v0, "saliency-custom_op-p23.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_gouda_panoptic_model
+    const-string v1, "camera.gouda.panoptic_segmenter_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_segmenter_model
+
+    const-string v0, "panoptic_segmenter_61586074_fp16_meta.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_gouda_segmenter_model
+    const-string v1, "camera.gouda.portrait_segmenter_model_name"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_monocular_model
+
+    const-string v0, "1c33c30c31a74d99b66f54c22014a27a/1c33c30c31a74d99b66f54c22014a27a.uncompressed"
+
+    return-object v0
+
+    :cond_check_gouda_monocular_model
+    const-string v1, "camera.gouda.monocular_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_rear_pdlearned_model
+
+    const-string v0, "midasnet_mobilenetv2_dptmqn_dec256_sep_082421_384_384_fp16_opt.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_gouda_rear_pdlearned_model
+    const-string v1, "camera.gouda.rear_pdlearned_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_rear_pdlearned_remosaic_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_rear_pdlearned_remosaic_model
+    const-string v1, "camera.gouda.rear_pdlearned_remosaic_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_front_pdlearned_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_front_pdlearned_model
+    const-string v1, "camera.gouda.front_pdlearned_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_front_rgbpd_v2_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_front_rgbpd_v2_model
+    const-string v1, "camera.gouda.front_rgbpd_v2_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_pdstereo_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_pdstereo_model
+    const-string v1, "camera.gouda.pdstereo_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_pdstereo_remosaic_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_pdstereo_remosaic_model
+    const-string v1, "camera.gouda.pdstereo_remosaic_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_physeter_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_physeter_model
+    const-string v1, "camera.gouda.physeter_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_physeter_v2_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_physeter_v2_model
+    const-string v1, "camera.gouda.physeter_v2_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_physeter_v3_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_physeter_v3_model
+    const-string v1, "camera.gouda.physeter_v3_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_depth_postprocessor_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_depth_postprocessor_model
+    const-string v1, "camera.gouda.depth_postprocessor_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_portrait_matting_model
+
+    const-string v0, ""
+
+    return-object v0
+
+    :cond_check_gouda_portrait_matting_model
+    const-string v1, "camera.gouda.portrait_matting_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_hair_matting_model
+
+    const-string v0, "portrait_matting_mask_1024_768.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_gouda_hair_matting_model
+    const-string v1, "camera.gouda.hair_matting_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_hair_matting_front_model
+
+    const-string v0, "matting_v2_768.f16.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_gouda_hair_matting_front_model
+    const-string v1, "camera.gouda.hair_matting_front_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_gouda_hair_matting_single_pass_model
+
+    const-string v0, "matting_v2_768.f16.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_gouda_hair_matting_single_pass_model
+    const-string v1, "camera.gouda.hair_matting_single_pass_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_cottage_looknet_model
+
+    const-string v0, "matting_v2_768.f16.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_cottage_looknet_model
+    const-string v1, "camera.cottage_looknet_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_cottage_film_blender_model
+
+    const-string v0, "looknet_v2.1_float.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_cottage_film_blender_model
+    const-string v1, "camera.cottage_film_blender_model"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_orig_h
+
+    const-string v0, "all_in_film_blender.tflite.uncompressed"
+
+    return-object v0
+
+    :cond_check_orig_h
+    :try_start_orig_h
+    invoke-virtual {p0, p1}, Lksf;->original_h(Lkps;)Ljava/lang/String;
+
+    move-result-object p0
+
+    return-object p0
+    :try_end_orig_h
+    .catch Ljava/lang/Throwable; {:try_start_orig_h .. :try_end_orig_h} :catch_orig_h
+
+    :catch_orig_h
+    const-string p0, ""
+
+    return-object p0
+.end method
+
+.method public static interceptFlagR(Lksf;Lkps;)Lj$/util/Optional;
+    .locals 2
+
+    if-eqz p1, :cond_check_orig_r
+
+    iget-object v0, p1, Lkpq;->a:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_orig_r
+
+    const-string v1, "camera.boba_jelly_min_active_area_ratio"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_boba_thresh
+
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_boba_thresh
+    const-string v1, "camera.boba_jelly_threshold"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_boba_ext
+
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_boba_ext
+    const-string v1, "camera.boba_jelly_ext_threshold"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_smooth_zoom_min_cutoff
+
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_min_cutoff
+    const-string v1, "camera.video_smooth_zoom_min_cutoff"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_smooth_zoom_beta
+
+    const v0, 0x3f99999a    # 1.2f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_beta
+    const-string v1, "camera.video_smooth_zoom_beta"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_smooth_zoom_deriv
+
+    const v0, 0x3c03126f    # 0.008f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_deriv
+    const-string v1, "camera.video_smooth_zoom_derivative_cutoff"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_orig_r
+
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_orig_r
+    :try_start_orig_r
+    invoke-virtual {p0, p1}, Lksf;->original_r(Lkps;)Lj$/util/Optional;
+
+    move-result-object p0
+
+    return-object p0
+    :try_end_orig_r
+    .catch Ljava/lang/Throwable; {:try_start_orig_r .. :try_end_orig_r} :catch_orig_r
+
+    :catch_orig_r
+    invoke-static {}, Lj$/util/Optional;->empty()Lj$/util/Optional;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+.method public static hookZoomButtons(Lkmo;)V
+    .locals 3
+
+    if-nez p0, :cond_end
+
+    :try_start_0
+    iget-object v0, p0, Lkmo;->Q:Ljava/util/List;
+
+    if-nez v0, :cond_check_5
+
+    return-void
+
+    :cond_check_5
+    const/high16 v1, 0x40a00000    # 5.0f
+
+    invoke-static {v1}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v1
+
+    invoke-interface {v0, v1}, Ljava/util/List;->contains(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_check_10
+
+    return-void
+
+    :cond_check_10
+    const/high16 v1, 0x41200000    # 10.0f
+
+    invoke-static {v1}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v1
+
+    invoke-interface {v0, v1}, Ljava/util/List;->contains(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_add_10
+
+    return-void
+
+    :cond_add_10
+    invoke-interface {v0, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+
+    iget-object v0, p0, Lkmo;->P:Lchy;
+
+    if-eqz v0, :cond_end
+
+    new-instance v1, Lkkl;
+
+    const-string v2, "10"
+
+    invoke-direct {v1, v2}, Lkkl;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v0, v1}, Lchy;->add(Ljava/lang/Object;)Z
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_hook_zoom
+
+    :cond_end
+    return-void
+
+    :catch_hook_zoom
+    return-void
+.end method
+
+.method public static hookSliderStops(Ljava/util/List;)V
+    .locals 2
+
+    if-nez p0, :cond_end
+
+    :try_start_0
+    const/high16 v0, 0x40a00000    # 5.0f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-interface {p0, v0}, Ljava/util/List;->contains(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_check_10
+
+    return-void
+
+    :cond_check_10
+    const/high16 v0, 0x41200000    # 10.0f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-interface {p0, v0}, Ljava/util/List;->contains(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_add_10
+
+    return-void
+
+    :cond_add_10
+    invoke-interface {p0, v0}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_hook_slider
+
+    :cond_end
+    return-void
+
+    :catch_hook_slider
+    return-void
+.end method
+
+.method public static configureGalleryIntent(Landroid/content/Intent;)Landroid/content/Intent;
+    .locals 7
+
+    if-nez p0, :cond_start
+
+    return-object p0
+
+    :cond_start
+    const/4 v0, 0x1
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->addFlags(I)Landroid/content/Intent;
+
+    :try_start_full
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_has_context
+
+    return-object p0
+
+    :cond_has_context
+    invoke-virtual {v0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+
+    move-result-object v1
+
+    if-nez v1, :cond_check_secure
+
+    return-object p0
+
+    :cond_check_secure
+    const/4 v2, 0x0
+
+    invoke-virtual {p0}, Landroid/content/Intent;->getAction()Ljava/lang/String;
+
+    move-result-object v3
+
+    if-eqz v3, :cond_check_km
+
+    const-string v4, "SECURE"
+
+    invoke-virtual {v3, v4}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v4
+
+    if-eqz v4, :cond_check_km
+
+    const/4 v2, 0x1
+
+    :cond_check_km
+    if-nez v2, :cond_check_custom_pref
+
+    :try_start_km
+    const-string v4, "keyguard"
+
+    invoke-virtual {v0, v4}, Landroid/content/Context;->getSystemService(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v4
+
+    check-cast v4, Landroid/app/KeyguardManager;
+
+    if-eqz v4, :cond_check_custom_pref
+
+    invoke-virtual {v4}, Landroid/app/KeyguardManager;->isKeyguardLocked()Z
+
+    move-result v4
+
+    if-eqz v4, :cond_check_custom_pref
+
+    const/4 v2, 0x1
+    :try_end_km
+    .catch Ljava/lang/Throwable; {:try_start_km .. :try_end_km} :catch_km
+
+    :catch_km
+    :cond_check_custom_pref
+    const/4 v4, 0x0
+
+    :try_start_pref
+    invoke-static {v0}, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    const-string v5, "pref_gallery_package_key"
+
+    const/4 v6, 0x0
+
+    invoke-interface {v0, v5, v6}, Landroid/content/SharedPreferences;->getString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_done_pref
+
+    invoke-virtual {v0}, Ljava/lang/String;->isEmpty()Z
+
+    move-result v5
+
+    if-nez v5, :cond_done_pref
+
+    const-string v5, "default"
+
+    invoke-virtual {v0, v5}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v5
+
+    if-nez v5, :cond_done_pref
+
+    const/4 v5, 0x0
+
+    invoke-virtual {v1, v0, v5}, Landroid/content/pm/PackageManager;->getPackageInfo(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;
+
+    move-object v4, v0
+    :try_end_pref
+    .catch Ljava/lang/Throwable; {:try_start_pref .. :try_end_pref} :catch_pref
+
+    :catch_pref
+    :cond_done_pref
+    if-eqz v2, :cond_handle_normal
+
+    const-string v0, "android.provider.action.REVIEW_SECURE"
+
+    if-eqz v4, :cond_test_photos
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v4}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v1}, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_test_photos
+
+    return-object p0
+
+    :cond_test_photos
+    if-nez v4, :cond_query_secure_apps
+
+    if-eqz v3, :cond_try_photos_std
+
+    const-string v2, "com.google.android.apps.photos.mars.api.ACTION_REVIEW_SECURE"
+
+    invoke-virtual {v3, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_try_photos_std
+
+    const-string v2, "com.google.android.apps.photos"
+
+    invoke-virtual {p0, v2}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    const-string v2, "com.google.android.apps.photos.mars.api.ACTION_REVIEW_SECURE"
+
+    invoke-virtual {p0, v2}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v1}, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_try_photos_std
+
+    return-object p0
+
+    :cond_try_photos_std
+    const-string v2, "com.google.android.apps.photos"
+
+    invoke-virtual {p0, v2}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v1}, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+
+    move-result-object v2
+
+    if-eqz v2, :cond_query_secure_apps
+
+    return-object p0
+
+    :cond_query_secure_apps
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    new-instance v2, Landroid/content/Intent;
+
+    invoke-direct {v2, v0}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V
+
+    const-string v0, "image/*"
+
+    invoke-virtual {v2, v0}, Landroid/content/Intent;->setType(Ljava/lang/String;)Landroid/content/Intent;
+
+    const/4 v0, 0x0
+
+    invoke-virtual {v1, v2, v0}, Landroid/content/pm/PackageManager;->queryIntentActivities(Landroid/content/Intent;I)Ljava/util/List;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_query_no_type
+
+    invoke-interface {v0}, Ljava/util/List;->isEmpty()Z
+
+    move-result v2
+
+    if-nez v2, :cond_query_no_type
+
+    goto :goto_pick_match
+
+    :cond_query_no_type
+    new-instance v0, Landroid/content/Intent;
+
+    const-string v2, "android.provider.action.REVIEW_SECURE"
+
+    invoke-direct {v0, v2}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V
+
+    const/4 v2, 0x0
+
+    invoke-virtual {v1, v0, v2}, Landroid/content/pm/PackageManager;->queryIntentActivities(Landroid/content/Intent;I)Ljava/util/List;
+
+    move-result-object v0
+
+    :goto_pick_match
+    if-eqz v0, :cond_secure_fallback
+
+    invoke-interface {v0}, Ljava/util/List;->iterator()Ljava/util/Iterator;
+
+    move-result-object v0
+
+    :cond_iter_matches
+    invoke-interface {v0}, Ljava/util/Iterator;->hasNext()Z
+
+    move-result v1
+
+    if-eqz v1, :cond_secure_fallback
+
+    invoke-interface {v0}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+
+    move-result-object v1
+
+    check-cast v1, Landroid/content/pm/ResolveInfo;
+
+    if-eqz v1, :cond_iter_matches
+
+    iget-object v1, v1, Landroid/content/pm/ResolveInfo;->activityInfo:Landroid/content/pm/ActivityInfo;
+
+    if-eqz v1, :cond_iter_matches
+
+    iget-object v1, v1, Landroid/content/pm/ActivityInfo;->packageName:Ljava/lang/String;
+
+    if-eqz v1, :cond_iter_matches
+
+    const-string v2, "android"
+
+    invoke-virtual {v2, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-nez v2, :cond_iter_matches
+
+    invoke-virtual {p0, v1}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    return-object p0
+
+    :cond_secure_fallback
+    const-string v0, "android.intent.action.VIEW"
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v4}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    return-object p0
+
+    :cond_handle_normal
+    if-eqz v4, :cond_check_photos_installed
+
+    const-string v0, "com.google.android.apps.photos"
+
+    invoke-virtual {v0, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_check_photos_installed
+
+    const-string v0, "android.intent.action.VIEW"
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v4}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    return-object p0
+
+    :cond_check_photos_installed
+    const/4 v0, 0x0
+
+    :try_start_photos_info
+    const-string v2, "com.google.android.apps.photos"
+
+    const/4 v5, 0x0
+
+    invoke-virtual {v1, v2, v5}, Landroid/content/pm/PackageManager;->getPackageInfo(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;
+
+    move-result-object v0
+    :try_end_photos_info
+    .catch Ljava/lang/Throwable; {:try_start_photos_info .. :try_end_photos_info} :catch_photos_info
+
+    :catch_photos_info
+    if-eqz v0, :cond_photos_not_installed
+
+    const-string v0, "com.google.android.apps.photos"
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    if-eqz v3, :cond_use_photos_std_review
+
+    const-string v0, "com.google.android.apps.photos.mars.api.ACTION_REVIEW"
+
+    invoke-virtual {v3, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_use_photos_std_review
+
+    const-string v0, "com.google.android.apps.photos.mars.api.ACTION_REVIEW"
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v1}, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_use_photos_std_review
+
+    return-object p0
+
+    :cond_use_photos_std_review
+    const-string v0, "android.provider.action.REVIEW"
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v1}, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_use_photos_view
+
+    return-object p0
+
+    :cond_use_photos_view
+    const-string v0, "android.intent.action.VIEW"
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    return-object p0
+
+    :cond_photos_not_installed
+    const-string v0, "android.intent.action.VIEW"
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    const/4 v0, 0x0
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    return-object p0
+    :try_end_full
+    .catch Ljava/lang/Throwable; {:try_start_full .. :try_end_full} :catch_all_fallback
+
+    :catch_all_fallback
+    return-object p0
+.end method
+
+.method public static prepareReviewIntent(Landroid/content/Intent;)Landroid/content/Intent;
+    .locals 7
+
+    if-nez p0, :cond_start
+
+    return-object p0
+
+    :cond_start
+    :try_start_0
+    const/4 v0, 0x1
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->addFlags(I)Landroid/content/Intent;
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    invoke-virtual {p0}, Landroid/content/Intent;->getPackage()Ljava/lang/String;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_pkg_default
+
+    invoke-virtual {v1}, Ljava/lang/String;->isEmpty()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_has_target_pkg
+
+    :cond_pkg_default
+    const-string v1, "com.google.android.apps.photos"
+
+    :cond_has_target_pkg
+    const-string v2, "processing_uri_intent_extra"
+
+    invoke-virtual {p0, v2}, Landroid/content/Intent;->getParcelableExtra(Ljava/lang/String;)Landroid/os/Parcelable;
+
+    move-result-object v2
+
+    check-cast v2, Landroid/net/Uri;
+
+    invoke-virtual {p0}, Landroid/content/Intent;->getData()Landroid/net/Uri;
+
+    move-result-object v3
+
+    const-string v4, "com.google.android.apps.photos"
+
+    invoke-virtual {v4, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v4
+
+    if-nez v4, :cond_chk_saved
+
+    goto :cond_remove_proc
+
+    :cond_chk_saved
+    invoke-static {v0, v3}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isMediaSaved(Landroid/content/Context;Landroid/net/Uri;)Z
+
+    move-result v4
+
+    if-eqz v4, :cond_is_photos
+
+    :cond_remove_proc
+    if-eqz v2, :cond_data_clip
+
+    const-string v2, "processing_uri_intent_extra"
+
+    invoke-virtual {p0, v2}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
+
+    const/4 v2, 0x0
+
+    :cond_is_photos
+    if-eqz v2, :cond_data_clip
+
+    const-string v4, "processing_uri"
+
+    invoke-static {v4, v2}, Landroid/content/ClipData;->newRawUri(Ljava/lang/CharSequence;Landroid/net/Uri;)Landroid/content/ClipData;
+
+    move-result-object v4
+
+    if-eqz v3, :cond_set_clip
+
+    new-instance v5, Landroid/content/ClipData$Item;
+
+    invoke-direct {v5, v3}, Landroid/content/ClipData$Item;-><init>(Landroid/net/Uri;)V
+
+    invoke-virtual {v4, v5}, Landroid/content/ClipData;->addItem(Landroid/content/ClipData$Item;)V
+
+    :cond_set_clip
+    invoke-virtual {p0, v4}, Landroid/content/Intent;->setClipData(Landroid/content/ClipData;)V
+
+    if-eqz v0, :cond_check_resolve
+
+    if-eqz v1, :cond_check_resolve
+
+    const/4 v4, 0x1
+
+    :try_start_grant_p
+    invoke-virtual {v0, v1, v2, v4}, Landroid/content/Context;->grantUriPermission(Ljava/lang/String;Landroid/net/Uri;I)V
+    :try_end_grant_p
+    .catch Ljava/lang/Throwable; {:try_start_grant_p .. :try_end_grant_p} :catch_grant_p
+
+    :catch_grant_p
+    if-eqz v3, :cond_check_resolve
+
+    :try_start_grant_d
+    invoke-virtual {v0, v1, v3, v4}, Landroid/content/Context;->grantUriPermission(Ljava/lang/String;Landroid/net/Uri;I)V
+    :try_end_grant_d
+    .catch Ljava/lang/Throwable; {:try_start_grant_d .. :try_end_grant_d} :catch_grant_d
+
+    :catch_grant_d
+    goto :goto_check_resolve
+
+    :cond_data_clip
+    if-eqz v3, :cond_check_resolve
+
+    const-string v2, "media_uri"
+
+    invoke-static {v2, v3}, Landroid/content/ClipData;->newRawUri(Ljava/lang/CharSequence;Landroid/net/Uri;)Landroid/content/ClipData;
+
+    move-result-object v2
+
+    invoke-virtual {p0, v2}, Landroid/content/Intent;->setClipData(Landroid/content/ClipData;)V
+
+    if-eqz v0, :cond_check_resolve
+
+    if-eqz v1, :cond_check_resolve
+
+    const/4 v2, 0x1
+
+    :try_start_grant_only_d
+    invoke-virtual {v0, v1, v3, v2}, Landroid/content/Context;->grantUriPermission(Ljava/lang/String;Landroid/net/Uri;I)V
+    :try_end_grant_only_d
+    .catch Ljava/lang/Throwable; {:try_start_grant_only_d .. :try_end_grant_only_d} :catch_grant_only_d
+
+    :catch_grant_only_d
+    :cond_check_resolve
+    :goto_check_resolve
+    if-eqz v0, :cond_finish
+
+    invoke-virtual {v0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_finish
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+
+    move-result-object v1
+
+    if-nez v1, :cond_finish
+
+    const-string v1, "android.provider.action.REVIEW"
+
+    invoke-virtual {p0, v1}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+
+    move-result-object v1
+
+    if-nez v1, :cond_finish
+
+    const-string v1, "android.intent.action.VIEW"
+
+    invoke-virtual {p0, v1}, Landroid/content/Intent;->setAction(Ljava/lang/String;)Landroid/content/Intent;
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+
+    move-result-object v0
+
+    if-nez v0, :cond_finish
+
+    const/4 v0, 0x0
+
+    invoke-virtual {p0, v0}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    :cond_finish
+    return-object p0
+.end method
+
+.method public static isMediaSaved(Landroid/content/Context;Landroid/net/Uri;)Z
+    .registers 8
+
+    const/4 v0, 0x0
+
+    if-eqz p0, :cond_ret
+
+    if-nez p1, :cond_try
+
+    return v0
+
+    :cond_try
+    :try_start_check_saved
+    invoke-virtual {p0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
+
+    move-result-object v1
+
+    if-nez v1, :cond_open
+
+    return v0
+
+    :cond_open
+    const-string v2, "r"
+
+    invoke-virtual {v1, p1, v2}, Landroid/content/ContentResolver;->openAssetFileDescriptor(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/res/AssetFileDescriptor;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_ret
+
+    invoke-virtual {v1}, Landroid/content/res/AssetFileDescriptor;->getLength()J
+
+    move-result-wide v2
+
+    invoke-virtual {v1}, Landroid/content/res/AssetFileDescriptor;->close()V
+
+    const-wide/16 v4, 0x0
+
+    cmp-long v1, v2, v4
+
+    if-lez v1, :cond_ret
+
+    const/4 v0, 0x1
+    :try_end_check_saved
+    .catch Ljava/lang/Throwable; {:try_start_check_saved .. :try_end_check_saved} :cond_ret
+
+    :cond_ret
+    return v0
+.end method
+
+.method public static openProcessingMediaFallback(Landroid/net/Uri;)Landroid/os/ParcelFileDescriptor;
+    .registers 8
+
+    const/4 v0, 0x0
+
+    if-nez p0, :cond_try
+
+    return-object v0
+
+    :cond_try
+    :try_start_fallback
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v1
+
+    if-nez v1, :cond_has_ctx
+
+    return-object v0
+
+    :cond_has_ctx
+    invoke-static {p0}, Landroid/content/ContentUris;->parseId(Landroid/net/Uri;)J
+
+    move-result-wide v2
+
+    sget-object v4, Landroid/provider/MediaStore$Images$Media;->EXTERNAL_CONTENT_URI:Landroid/net/Uri;
+
+    invoke-static {v4, v2, v3}, Landroid/content/ContentUris;->withAppendedId(Landroid/net/Uri;J)Landroid/net/Uri;
+
+    move-result-object v4
+
+    invoke-static {}, Landroid/os/Binder;->clearCallingIdentity()J
+
+    move-result-wide v2
+
+    :try_start_cr
+    invoke-virtual {v1}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_no_cr
+
+    const-string v5, "r"
+
+    invoke-virtual {v1, v4, v5}, Landroid/content/ContentResolver;->openFileDescriptor(Landroid/net/Uri;Ljava/lang/String;)Landroid/os/ParcelFileDescriptor;
+
+    move-result-object v0
+    :try_end_cr
+    .catchall {:try_start_cr .. :try_end_cr} :catchall_id
+
+    invoke-static {v2, v3}, Landroid/os/Binder;->restoreCallingIdentity(J)V
+
+    return-object v0
+
+    :cond_no_cr
+    invoke-static {v2, v3}, Landroid/os/Binder;->restoreCallingIdentity(J)V
+
+    return-object v0
+
+    :catchall_id
+    move-exception v1
+
+    invoke-static {v2, v3}, Landroid/os/Binder;->restoreCallingIdentity(J)V
+
+    throw v1
+    :try_end_fallback
+    .catch Ljava/lang/Throwable; {:try_start_fallback .. :try_end_fallback} :catch_fallback
+
+    :catch_fallback
+    return-object v0
+.end method
+
+.method public static openProcessingMediaFallback(J)Landroid/os/ParcelFileDescriptor;
+    .registers 6
+
+    const/4 v0, 0x0
+
+    :try_start_fallback_j
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v1
+
+    if-nez v1, :cond_has_ctx_j
+
+    return-object v0
+
+    :cond_has_ctx_j
+    sget-object v1, Landroid/provider/MediaStore$Images$Media;->EXTERNAL_CONTENT_URI:Landroid/net/Uri;
+
+    invoke-static {v1, p0, p1}, Landroid/content/ContentUris;->withAppendedId(Landroid/net/Uri;J)Landroid/net/Uri;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->openProcessingMediaFallback(Landroid/net/Uri;)Landroid/os/ParcelFileDescriptor;
+
+    move-result-object v0
+    :try_end_fallback_j
+    .catch Ljava/lang/Throwable; {:try_start_fallback_j .. :try_end_fallback_j} :catch_fallback_j
+
+    :catch_fallback_j
+    return-object v0
+.end method
+
+.method public static ensureProjection([Ljava/lang/String;)[Ljava/lang/String;
+    .registers 4
+
+    if-eqz p0, :cond_null
+
+    return-object p0
+
+    :cond_null
+    const/4 v0, 0x3
+
+    new-array v0, v0, [Ljava/lang/String;
+
+    const/4 v1, 0x0
+
+    const-string v2, "media_store_id"
+
+    aput-object v2, v0, v1
+
+    const/4 v1, 0x1
+
+    const-string v2, "progress_percentage"
+
+    aput-object v2, v0, v1
+
+    const/4 v1, 0x2
+
+    const-string v2, "progress_status"
+
+    aput-object v2, v0, v1
+
+    return-object v0
+.end method
+
+.method public static isProDevice()Z
+    .locals 3
+
+    :try_start_0
+    sget-object v0, Landroid/os/Build;->MODEL:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_device
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "pro"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_device
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_device
+    sget-object v0, Landroid/os/Build;->DEVICE:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_product
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "husky"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "cheetah"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "raven"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "caiman"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "komodo"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "comet"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "blazer"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "mustang"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "rango"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "pro"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_product
+
+    :cond_is_pro
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_product
+    sget-object v0, Landroid/os/Build;->PRODUCT:Ljava/lang/String;
+
+    if-eqz v0, :cond_ret_false
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "pro"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "husky"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "cheetah"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "raven"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "caiman"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "komodo"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "comet"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "blazer"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "mustang"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "rango"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_ret_false
+
+    :cond_is_pro_prod
+    const/4 v0, 0x1
+
+    return v0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    :cond_ret_false
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static getViewfinderFragmentShader()Ljava/lang/String;
+    .locals 1
+
+    # Retained for compatibility with older patch builds; native Tomte owns look preview.
+    const-string v0, "#extension GL_OES_EGL_image_external : require\nprecision mediump float;\nuniform samplerExternalOES uImgTex;\nvarying vec2 texCoord;\nvoid main() { gl_FragColor = texture2D(uImgTex, texCoord); }"
+
+    return-object v0
+.end method
+
+.method public static filterProPreferences(Ljava/lang/Object;)V
+    .locals 2
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_exit
+
+    const-string v0, "pref_camera_noise_reduction_key"
+
+    invoke-static {p0, v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->removePreferenceFromGroup(Ljava/lang/Object;Ljava/lang/String;)V
+
+    const-string v0, "pref_camera_raw_compression_key"
+
+    invoke-static {p0, v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->removePreferenceFromGroup(Ljava/lang/Object;Ljava/lang/String;)V
+
+    const-string v0, "pref_camera_sharpness_key"
+
+    invoke-static {p0, v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->removePreferenceFromGroup(Ljava/lang/Object;Ljava/lang/String;)V
+
+    :cond_exit
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    return-void
+.end method
+
+.method public static filterProPreferencesForRex(Ljava/lang/Object;)V
+    .locals 1
+
+    if-nez p0, :cond_ret
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_ret
+
+    check-cast p0, Ljava/util/List;
+
+    const-string v0, "pref_camera_noise_reduction_key"
+
+    invoke-interface {p0, v0}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+
+    const-string v0, "pref_camera_raw_compression_key"
+
+    invoke-interface {p0, v0}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+
+    const-string v0, "pref_camera_sharpness_key"
+
+    invoke-interface {p0, v0}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    :cond_ret
+    return-void
+.end method
+
+.method private static removePreferenceFromGroup(Ljava/lang/Object;Ljava/lang/String;)V
+    .locals 1
+
+    :try_start_0
+    check-cast p0, Lgcm;
+
+    invoke-virtual {p0, p1}, Lgcm;->a(Ljava/lang/CharSequence;)Landroidx/preference/Preference;
+
+    move-result-object p0
+
+    if-eqz p0, :cond_done
+
+    iget-object v0, p0, Landroidx/preference/Preference;->A:Landroidx/preference/PreferenceGroup;
+
+    if-eqz v0, :cond_done
+
+    invoke-virtual {v0, p0}, Landroidx/preference/PreferenceGroup;->ag(Landroidx/preference/Preference;)Z
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :cond_done
+    :catch_all
+    return-void
+.end method
+
+.method public static onCameraFacingChanged(Ljava/lang/Object;)V
+    .locals 2
+
+    if-nez p0, :cond_check
+
+    return-void
+
+    :cond_check
+    instance-of v0, p0, Lvhd;
+
+    if-nez v0, :cond_cast
+
+    return-void
+
+    :cond_cast
+    check-cast p0, Lvhd;
+
+    sget-object v0, Lvhd;->a:Lvhd;
+
+    if-ne p0, v0, :cond_set_back
+
+    const/4 v1, 0x1
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsFrontCamera:Z
+
+    return-void
+
+    :cond_set_back
+    const/4 v1, 0x0
+
+    sput-boolean v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsFrontCamera:Z
+
+    return-void
+.end method
+
+.method public static setFrontCameraActive(Z)V
+    .locals 0
+
+    sput-boolean p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsFrontCamera:Z
+
+    return-void
+.end method
+
+.method public static isFrontCameraActive()Z
+    .locals 1
+
+    sget-boolean v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sIsFrontCamera:Z
+
+    return v0
+.end method
+
+.method public static isFrontBacklightFixEnabled()Z
+    .locals 1
+
+    const/4 v0, 0x1
+
+    return v0
+.end method
+
+.method public static isFrontBacklightFixActive()Z
+    .locals 1
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFrontCameraActive()Z
+
+    move-result v0
+
+    return v0
+.end method
+
+.method public static isFocalLengthCyclingEnabled()Z
+    .locals 3
+
+    :try_start_fce
+    const-string v0, "pref_camera_focal_length_cycling_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    const/4 v1, 0x0
+
+    invoke-static {v0, v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->checkPrefValue(Ljava/lang/Object;Z)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_sp
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_sp
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSharedPrefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_ret_false
+
+    const-string v2, "pref_camera_focal_length_cycling_key"
+
+    invoke-interface {v0, v2, v1}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+
+    move-result v0
+    :try_end_fce
+    .catchall {:try_start_fce .. :try_end_fce} :catchall_fce
+
+    return v0
+
+    :catchall_fce
+    :cond_ret_false
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static isRawSeparateFolderEnabled()Z
+    .locals 3
+
+    :try_start_rsf
+    const-string v0, "pref_camera_raw_separate_folder_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_check_sp
+
+    const/4 v1, 0x1
+
+    invoke-static {v0, v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->checkPrefValue(Ljava/lang/Object;Z)Z
+
+    move-result v0
+
+    return v0
+
+    :cond_check_sp
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSharedPrefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_ret_default
+
+    const-string v2, "pref_camera_raw_separate_folder_key"
+
+    const/4 v1, 0x1
+
+    invoke-interface {v0, v2, v1}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+
+    move-result v0
+
+    return v0
+
+    :cond_ret_default
+    const/4 v0, 0x1
+
+    return v0
+    :try_end_rsf
+    .catchall {:try_start_rsf .. :try_end_rsf} :catchall_rsf
+
+    :catchall_rsf
+    const/4 v0, 0x1
+
+    return v0
+.end method
+
+.method public static isManualLensActive(Ljava/lang/Object;)Z
+    .locals 4
+
+    if-eqz p0, :cond_check_pref
+
+    :try_start_field
+    invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    move-result-object v0
+
+    const-string v1, "as"
+
+    invoke-virtual {v0, v1}, Ljava/lang/Class;->getDeclaredField(Ljava/lang/String;)Ljava/lang/reflect/Field;
+
+    move-result-object v0
+
+    const/4 v1, 0x1
+
+    invoke-virtual {v0, v1}, Ljava/lang/reflect/Field;->setAccessible(Z)V
+
+    invoke-virtual {v0, p0}, Ljava/lang/reflect/Field;->get(Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_check_pref
+
+    instance-of v1, v0, Lurt;
+
+    if-eqz v1, :cond_check_pref
+
+    check-cast v0, Lurt;
+
+    invoke-interface {v0}, Lurt;->d()Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_check_pref
+
+    sget-object v1, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+
+    invoke-virtual {v1, v0}, Ljava/lang/Boolean;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_pref
+
+    const/4 v0, 0x1
+
+    return v0
+    :try_end_field
+    .catchall {:try_start_field .. :try_end_field} :catch_field
+
+    :catch_field
+    :cond_check_pref
+    :try_start_pref
+    const-string v0, "pref_manual_lens"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_check_sp
+
+    instance-of v1, v0, Ljava/lang/Integer;
+
+    if-eqz v1, :cond_check_num
+
+    check-cast v0, Ljava/lang/Integer;
+
+    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
+
+    move-result v0
+
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_check_sp
+
+    return v1
+
+    :cond_check_num
+    instance-of v1, v0, Ljava/lang/Number;
+
+    if-eqz v1, :cond_check_str
+
+    check-cast v0, Ljava/lang/Number;
+
+    invoke-virtual {v0}, Ljava/lang/Number;->intValue()I
+
+    move-result v0
+
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_check_sp
+
+    return v1
+
+    :cond_check_str
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ret_true
+
+    const-string v1, "true"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_sp
+
+    :cond_ret_true
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_sp
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSharedPrefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_ret_false
+
+    const-string v1, "pref_manual_lens"
+
+    const/4 v2, 0x0
+
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getInt(Ljava/lang/String;I)I
+
+    move-result v1
+
+    const/4 v3, 0x1
+
+    if-ne v1, v3, :cond_check_sp_str
+
+    return v3
+
+    :cond_check_sp_str
+    const-string v1, "pref_manual_lens"
+
+    const/4 v2, 0x0
+
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_ret_false
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ret_true_sp
+
+    const-string v1, "true"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_ret_false
+
+    :cond_ret_true_sp
+    const/4 v0, 0x1
+
+    return v0
+    :try_end_pref
+    .catchall {:try_start_pref .. :try_end_pref} :catchall_pref
+
+    :catchall_pref
+    :cond_ret_false
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static getManualLensTargetZoom(Ljava/util/List;I)F
+    .locals 3
+
+    # In manual lens mode, every camera sensor (UW index 0, W index 1, T index 2)
+    # operates relative to its native sensor frame, so native target zoom is 1.0f.
+    # Returning 5.0f for telephoto causes 5x digital crop = 23x zoom.
+    const-string v0, "PixelCameraZoom"
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "Manual lens target zoom for index "
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    const-string v2, " -> native 1.0f"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    return v0
+.end method
+
+.method public static saveFocalLength(F)V
+    .locals 4
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFocalLengthCyclingEnabled()Z
+
+    move-result v0
+
+    if-nez v0, :cond_fce_save
+
+    return-void
+
+    :cond_fce_save
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_0
+
+    return-void
+
+    :cond_0
+    const-string v1, "pixel_camera_focal_prefs"
+
+    const/4 v2, 0x0
+
+    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_1
+
+    invoke-interface {v0}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences$Editor;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_1
+
+    const-string v1, "pref_last_focal_length_key"
+
+    invoke-interface {v0, v1, p0}, Landroid/content/SharedPreferences$Editor;->putFloat(Ljava/lang/String;F)Landroid/content/SharedPreferences$Editor;
+
+    move-result-object v0
+
+    invoke-interface {v0}, Landroid/content/SharedPreferences$Editor;->apply()V
+
+    const-string v0, "PixelCameraZoom"
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "Saved focal length: "
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :cond_1
+    :catch_all
+    return-void
+.end method
+
+.method public static getSavedFocalLength(F)F
+    .locals 4
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFocalLengthCyclingEnabled()Z
+
+    move-result v0
+
+    if-nez v0, :cond_fce_active
+
+    return p0
+
+    :cond_fce_active
+    # Guard: only restore focal length if base zoom p0 is around 1.0x (main camera)
+    const v0, 0x3f733333    # 0.95f
+
+    cmpg-float v0, p0, v0
+
+    if-gez v0, :cond_check_upper_base
+
+    return p0
+
+    :cond_check_upper_base
+    const v0, 0x3f933333    # 1.15f
+
+    cmpl-float v0, p0, v0
+
+    if-lez v0, :cond_fce_proceed
+
+    return p0
+
+    :cond_fce_proceed
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_0
+
+    return p0
+
+    :cond_0
+    const-string v1, "pixel_camera_focal_prefs"
+
+    const/4 v2, 0x0
+
+    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-nez v0, :cond_1
+
+    return p0
+
+    :cond_1
+    const-string v1, "pref_last_focal_length_key"
+
+    invoke-interface {v0, v1, p0}, Landroid/content/SharedPreferences;->getFloat(Ljava/lang/String;F)F
+
+    move-result v0
+
+    const v1, 0x3f733333    # 0.95f
+
+    cmpg-float v1, v0, v1
+
+    if-gez v1, :cond_2
+
+    return p0
+
+    :cond_2
+    const v1, 0x3feccccd    # 1.85f
+
+    cmpl-float v1, v0, v1
+
+    if-lez v1, :cond_3
+
+    return p0
+
+    :cond_3
+    const-string v1, "PixelCameraZoom"
+
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    invoke-direct {v2}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v3, "Restored focal length: "
+
+    invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v2, v0}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-static {v1, v2}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    return v0
+
+    :catch_all
+    return p0
+.end method
+
+.method public static is50MPActive()Z
+    .locals 4
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_0
+    const-string v0, "pref_capture_resolution"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_check_prefs
+
+    instance-of v1, v0, Ljava/lang/Integer;
+
+    if-eqz v1, :cond_check_num
+
+    check-cast v0, Ljava/lang/Integer;
+
+    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
+
+    move-result v0
+
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_check_prefs
+
+    return v1
+
+    :cond_check_num
+    instance-of v1, v0, Ljava/lang/Number;
+
+    if-eqz v1, :cond_check_str
+
+    check-cast v0, Ljava/lang/Number;
+
+    invoke-virtual {v0}, Ljava/lang/Number;->intValue()I
+
+    move-result v0
+
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_check_prefs
+
+    return v1
+
+    :cond_check_str
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_50mp
+
+    const-string v1, "HI_RES"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_50mp
+
+    const-string v1, "full"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_prefs
+
+    :cond_is_50mp
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_prefs
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSharedPrefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_non_50mp
+
+    const-string v1, "pref_capture_resolution"
+
+    const/4 v2, 0x0
+
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getInt(Ljava/lang/String;I)I
+
+    move-result v1
+
+    const/4 v3, 0x1
+
+    if-ne v1, v3, :cond_check_str_pref
+
+    return v3
+
+    :cond_check_str_pref
+    const-string v1, "pref_capture_resolution"
+
+    const/4 v2, 0x0
+
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_non_50mp
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ret_true
+
+    const-string v1, "HI_RES"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_non_50mp
+
+    :cond_ret_true
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_non_50mp
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static parseJpegDimensions([B)[I
+    .locals 8
+
+    const/4 v0, 0x2
+
+    new-array v1, v0, [I
+
+    if-eqz p0, :cond_7
+
+    array-length v2, p0
+
+    const/16 v3, 0xa
+
+    if-ge v2, v3, :cond_0
+
+    goto :goto_ret
+
+    :cond_0
+    const/4 v2, 0x0
+
+    aget-byte v3, p0, v2
+
+    and-int/lit16 v3, v3, 0xff
+
+    const/16 v4, 0xff
+
+    if-ne v3, v4, :cond_7
+
+    const/4 v3, 0x1
+
+    aget-byte v5, p0, v3
+
+    and-int/lit16 v5, v5, 0xff
+
+    const/16 v6, 0xd8
+
+    if-eq v5, v6, :cond_1
+
+    goto :goto_ret
+
+    :cond_1
+    array-length v5, p0
+
+    add-int/lit8 v5, v5, -0x8
+
+    const/high16 v6, 0x40000
+
+    if-le v5, v6, :cond_2
+
+    const/high16 v5, 0x40000
+
+    :cond_2
+    :goto_loop
+    if-ge v0, v5, :cond_7
+
+    aget-byte v6, p0, v0
+
+    and-int/lit16 v6, v6, 0xff
+
+    if-ne v6, v4, :cond_6
+
+    add-int/lit8 v6, v0, 0x1
+
+    aget-byte v6, p0, v6
+
+    and-int/lit16 v6, v6, 0xff
+
+    const/16 v7, 0xc0
+
+    if-eq v6, v7, :cond_5
+
+    const/16 v7, 0xc1
+
+    if-eq v6, v7, :cond_5
+
+    const/16 v7, 0xc2
+
+    if-ne v6, v7, :cond_3
+
+    goto :goto_found
+
+    :cond_3
+    const/16 v7, 0xda
+
+    if-eq v6, v7, :cond_7
+
+    const/16 v7, 0xd9
+
+    if-ne v6, v7, :cond_4
+
+    goto :goto_ret
+
+    :cond_4
+    const/16 v7, 0xd8
+
+    if-eq v6, v7, :cond_6
+
+    if-eq v6, v3, :cond_6
+
+    const/16 v7, 0xd0
+
+    if-lt v6, v7, :cond_8
+
+    const/16 v7, 0xd7
+
+    if-gt v6, v7, :cond_8
+
+    goto :goto_inc
+
+    :cond_5
+    :goto_found
+    add-int/lit8 v4, v0, 0x5
+
+    aget-byte v4, p0, v4
+
+    and-int/lit16 v4, v4, 0xff
+
+    shl-int/lit8 v4, v4, 0x8
+
+    add-int/lit8 v5, v0, 0x6
+
+    aget-byte v5, p0, v5
+
+    and-int/lit16 v5, v5, 0xff
+
+    or-int/2addr v4, v5
+
+    aput v4, v1, v3
+
+    add-int/lit8 v3, v0, 0x7
+
+    aget-byte v3, p0, v3
+
+    and-int/lit16 v3, v3, 0xff
+
+    shl-int/lit8 v3, v3, 0x8
+
+    add-int/lit8 v0, v0, 0x8
+
+    aget-byte p0, p0, v0
+
+    and-int/lit16 p0, p0, 0xff
+
+    or-int/2addr p0, v3
+
+    aput p0, v1, v2
+
+    return-object v1
+
+    :cond_8
+    add-int/lit8 v6, v0, 0x2
+
+    aget-byte v6, p0, v6
+
+    and-int/lit16 v6, v6, 0xff
+
+    shl-int/lit8 v6, v6, 0x8
+
+    add-int/lit8 v7, v0, 0x3
+
+    aget-byte v7, p0, v7
+
+    and-int/lit16 v7, v7, 0xff
+
+    or-int/2addr v6, v7
+
+    if-ge v6, v3, :cond_9
+
+    goto :goto_ret
+
+    :cond_9
+    add-int/lit8 v6, v6, 0x2
+
+    add-int/2addr v0, v6
+
+    goto :goto_loop
+
+    :cond_6
+    :goto_inc
+    add-int/lit8 v0, v0, 0x1
+
+    goto :goto_loop
+
+    :cond_7
+    :goto_ret
+    return-object v1
+.end method
+
+.method public static injectSpecialTypeToXmp([BLgyn;Ljava/util/concurrent/atomic/AtomicBoolean;)V
+    .locals 8
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    return-void
+
+    :cond_0
+    if-eqz p0, :cond_6
+
+    if-nez p1, :cond_1
+
+    goto/16 :goto_ret
+
+    :cond_1
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isNightSightActive()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_dims
+
+    const-string v2, "com.google.android.apps.camera.gallery.specialtype.SpecialType-NIGHT"
+
+    invoke-static {p1, v2}, Lvoc;->m(Lgyn;Ljava/lang/String;)V
+
+    if-eqz p2, :cond_log_night
+
+    const/4 v0, 0x1
+
+    invoke-virtual {p2, v0}, Ljava/util/concurrent/atomic/AtomicBoolean;->set(Z)V
+
+    :cond_log_night
+    const-string p0, "PATCH_LOOKS"
+
+    const-string p1, "Injected SpecialTypeID: com.google.android.apps.camera.gallery.specialtype.SpecialType-NIGHT"
+
+    invoke-static {p0, p1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    goto/16 :goto_ret
+
+    :cond_check_dims
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->parseJpegDimensions([B)[I
+
+    move-result-object p0
+
+    const/4 v0, 0x0
+
+    aget v0, p0, v0
+
+    const/4 v1, 0x1
+
+    aget p0, p0, v1
+
+    const/4 v2, 0x0
+
+    if-lez v0, :cond_check_active
+
+    if-lez p0, :cond_check_active
+
+    int-to-long v3, v0
+
+    int-to-long v5, p0
+
+    mul-long/2addr v3, v5
+
+    const-wide/32 v5, 0x1312d00
+
+    cmp-long v3, v3, v5
+
+    if-lez v3, :cond_check_active
+
+    const/4 v2, 0x1
+
+    goto :goto_is_50
+
+    :cond_check_active
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is50MPActive()Z
+
+    move-result v2
+
+    :goto_is_50
+    if-eqz v2, :cond_6
+
+    const-string v2, "com.google.android.apps.camera.gallery.specialtype.SpecialType-HIGH_RESOLUTION"
+
+    invoke-static {p1}, Lvoc;->g(Lgyn;)Ljava/lang/String;
+
+    move-result-object v3
+
+    if-eqz v3, :cond_4
+
+    const-string v4, "PORTRAIT"
+
+    invoke-virtual {v3, v4}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v3
+
+    if-eqz v3, :cond_4
+
+    const-string v2, "com.google.android.apps.camera.gallery.specialtype.SpecialType-PORTRAIT_HIGH_RESOLUTION"
+
+    :cond_4
+    invoke-static {p1, v2}, Lvoc;->m(Lgyn;Ljava/lang/String;)V
+
+    if-eqz p2, :cond_5
+
+    invoke-virtual {p2, v1}, Ljava/util/concurrent/atomic/AtomicBoolean;->set(Z)V
+
+    :cond_5
+    const-string p1, "PATCH_LOOKS"
+
+    new-instance p2, Ljava/lang/StringBuilder;
+
+    invoke-direct {p2}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v3, "Injected SpecialTypeID: "
+
+    invoke-virtual {p2, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p2, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    const-string v2, " ("
+
+    invoke-virtual {p2, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p2, v0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    const-string v0, "x"
+
+    invoke-virtual {p2, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p2, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    const-string p0, ")"
+
+    invoke-virtual {p2, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p0
+
+    invoke-static {p1, p0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    goto :goto_ret
+
+    :catch_all
+    move-exception p0
+
+    const-string p1, "PATCH_LOOKS"
+
+    const-string p2, "injectSpecialTypeToXmp error"
+
+    invoke-static {p1, p2, p0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
+    :cond_6
+    :goto_ret
+    return-void
+.end method
+
+.method public static injectSpecialTypeToXmpDirect([BLgyn;)V
+    .locals 1
+
+    const/4 v0, 0x0
+
+    invoke-static {p0, p1, v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->injectSpecialTypeToXmp([BLgyn;Ljava/util/concurrent/atomic/AtomicBoolean;)V
+
+    return-void
+.end method
+
+.method public static getEffectiveSpecialTypeForJpegBytes(Lmhb;Ljava/lang/Object;)Lmhb;
+    .locals 6
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    return-object p0
+
+    :cond_0
+    sget-object v0, Lmhb;->f:Lmhb;
+
+    if-ne p0, v0, :cond_check_active_night
+
+    return-object p0
+
+    :cond_check_active_night
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isNightSightActive()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_bytes
+
+    sget-object p0, Lmhb;->f:Lmhb;
+
+    return-object p0
+
+    :cond_check_bytes
+    instance-of v0, p1, [B
+
+    if-eqz v0, :cond_4
+
+    check-cast p1, [B
+
+    invoke-static {p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->parseJpegDimensions([B)[I
+
+    move-result-object p1
+
+    const/4 v0, 0x0
+
+    aget v0, p1, v0
+
+    const/4 v1, 0x1
+
+    aget p1, p1, v1
+
+    if-lez v0, :cond_check_active_bytes
+
+    if-lez p1, :cond_check_active_bytes
+
+    int-to-long v0, v0
+
+    int-to-long v2, p1
+
+    mul-long/2addr v0, v2
+
+    const-wide/32 v2, 0x1312d00
+
+    cmp-long p1, v0, v2
+
+    if-lez p1, :cond_check_active_bytes
+
+    goto :goto_is_50_bytes
+
+    :cond_check_active_bytes
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is50MPActive()Z
+
+    move-result p1
+
+    if-eqz p1, :cond_3
+
+    :goto_is_50_bytes
+    sget-object p1, Lmhb;->e:Lmhb;
+
+    if-eq p0, p1, :cond_2
+
+    if-eqz p0, :cond_1
+
+    invoke-virtual {p0}, Lmhb;->name()Ljava/lang/String;
+
+    move-result-object p1
+
+    const-string v0, "PORTRAIT"
+
+    invoke-virtual {p1, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result p1
+
+    if-eqz p1, :cond_1
+
+    goto :goto_port_res
+
+    :cond_1
+    sget-object p0, Lmhb;->p:Lmhb;
+
+    return-object p0
+
+    :cond_2
+    :goto_port_res
+    sget-object p0, Lmhb;->v:Lmhb;
+
+    return-object p0
+
+    :cond_3
+    return-object p0
+
+    :cond_4
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is50MPActive()Z
+
+    move-result p1
+
+    if-eqz p1, :cond_6
+
+    sget-object p1, Lmhb;->e:Lmhb;
+
+    if-eq p0, p1, :cond_5
+
+    if-eqz p0, :cond_7
+
+    invoke-virtual {p0}, Lmhb;->name()Ljava/lang/String;
+
+    move-result-object p1
+
+    const-string v0, "PORTRAIT"
+
+    invoke-virtual {p1, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result p1
+
+    if-eqz p1, :cond_7
+
+    :cond_5
+    sget-object p0, Lmhb;->v:Lmhb;
+
+    return-object p0
+
+    :cond_6
+    return-object p0
+
+    :cond_7
+    sget-object p0, Lmhb;->p:Lmhb;
+
+    return-object p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    return-object p0
+.end method
+
+.method public static resolveSpecialTypeForMediaId(Lyia;J)Lyia;
+    .locals 4
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    return-object p0
+
+    :cond_0
+    if-eqz p0, :cond_check_night
+
+    invoke-virtual {p0}, Lyia;->h()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_night
+
+    invoke-virtual {p0}, Lyia;->c()Ljava/lang/Object;
+
+    move-result-object v0
+
+    check-cast v0, Lmhb;
+
+    sget-object v1, Lmhb;->f:Lmhb;
+
+    invoke-virtual {v0, v1}, Lmhb;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_not_night
+
+    return-object p0
+
+    :cond_not_night
+    sget-object v1, Lmhb;->a:Lmhb;
+
+    invoke-virtual {v0, v1}, Lmhb;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_check_night
+
+    sget-object v1, Lmhb;->t:Lmhb;
+
+    invoke-virtual {v0, v1}, Lmhb;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_check_night
+
+    sget-object v1, Lmhb;->e:Lmhb;
+
+    invoke-virtual {v0, v1}, Lmhb;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_1
+
+    invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isMedia50MP(J)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_1
+
+    sget-object p1, Lmhb;->v:Lmhb;
+
+    invoke-static {p1}, Lyia;->i(Ljava/lang/Object;)Lyia;
+
+    move-result-object p1
+
+    return-object p1
+
+    :cond_1
+    return-object p0
+
+    :cond_check_night
+    invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isMediaNight(J)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_50
+
+    const-string v0, "PATCH_LOOKS"
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "resolveSpecialTypeForMediaId: ID "
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p1, p2}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    const-string v2, " is Night Sight -> NIGHT"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    sget-object p1, Lmhb;->f:Lmhb;
+
+    invoke-static {p1}, Lyia;->i(Ljava/lang/Object;)Lyia;
+
+    move-result-object p1
+
+    return-object p1
+
+    :cond_check_50
+    invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isMedia50MP(J)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_3
+
+    const-string v0, "PATCH_LOOKS"
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "resolveSpecialTypeForMediaId: ID "
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p1, p2}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    const-string v2, " is 50MP -> HIGH_RESOLUTION"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    sget-object p1, Lmhb;->p:Lmhb;
+
+    invoke-static {p1}, Lyia;->i(Ljava/lang/Object;)Lyia;
+
+    move-result-object p1
+
+    return-object p1
+
+    :cond_3
+    return-object p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    move-exception p1
+
+    return-object p0
+.end method
+
+.method public static isMedia50MP(J)Z
+    .locals 8
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_0
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_0
+    sget-object v1, Landroid/provider/MediaStore$Images$Media;->EXTERNAL_CONTENT_URI:Landroid/net/Uri;
+
+    invoke-static {v1, p0, p1}, Landroid/content/ContentUris;->withAppendedId(Landroid/net/Uri;J)Landroid/net/Uri;
+
+    move-result-object v3
+
+    invoke-virtual {v0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
+
+    move-result-object v2
+
+    const-string p0, "width"
+
+    const-string p1, "height"
+
+    filled-new-array {p0, p1}, [Ljava/lang/String;
+
+    move-result-object v4
+
+    const/4 v5, 0x0
+
+    const/4 v6, 0x0
+
+    const/4 v7, 0x0
+
+    invoke-virtual/range {v2 .. v7}, Landroid/content/ContentResolver;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;
+
+    move-result-object p0
+
+    if-eqz p0, :cond_2
+
+    invoke-interface {p0}, Landroid/database/Cursor;->moveToFirst()Z
+
+    move-result p1
+
+    if-eqz p1, :cond_1
+
+    const/4 p1, 0x0
+
+    invoke-interface {p0, p1}, Landroid/database/Cursor;->getInt(I)I
+
+    move-result p1
+
+    const/4 v0, 0x1
+
+    invoke-interface {p0, v0}, Landroid/database/Cursor;->getInt(I)I
+
+    move-result v0
+
+    invoke-interface {p0}, Landroid/database/Cursor;->close()V
+
+    if-lez p1, :cond_2
+
+    if-lez v0, :cond_2
+
+    int-to-long v1, p1
+
+    int-to-long v3, v0
+
+    mul-long/2addr v1, v3
+
+    const-wide/32 v3, 0x1312d00
+
+    cmp-long p0, v1, v3
+
+    if-lez p0, :cond_2
+
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_1
+    invoke-interface {p0}, Landroid/database/Cursor;->close()V
+
+    :cond_2
+    const/4 p0, 0x0
+
+    return p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public static isMediaNight(J)Z
+    .locals 8
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_0
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_0
+    sget-object v1, Landroid/provider/MediaStore$Images$Media;->EXTERNAL_CONTENT_URI:Landroid/net/Uri;
+
+    invoke-static {v1, p0, p1}, Landroid/content/ContentUris;->withAppendedId(Landroid/net/Uri;J)Landroid/net/Uri;
+
+    move-result-object v3
+
+    invoke-virtual {v0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
+
+    move-result-object v2
+
+    const-string p0, "_data"
+
+    const-string p1, "_display_name"
+
+    filled-new-array {p0, p1}, [Ljava/lang/String;
+
+    move-result-object v4
+
+    const/4 v5, 0x0
+
+    const/4 v6, 0x0
+
+    const/4 v7, 0x0
+
+    invoke-virtual/range {v2 .. v7}, Landroid/content/ContentResolver;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;
+
+    move-result-object p0
+
+    if-eqz p0, :cond_3
+
+    invoke-interface {p0}, Landroid/database/Cursor;->moveToFirst()Z
+
+    move-result p1
+
+    if-eqz p1, :cond_2
+
+    const/4 p1, 0x0
+
+    invoke-interface {p0, p1}, Landroid/database/Cursor;->getString(I)Ljava/lang/String;
+
+    move-result-object p1
+
+    const/4 v0, 0x1
+
+    invoke-interface {p0, v0}, Landroid/database/Cursor;->getString(I)Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-interface {p0}, Landroid/database/Cursor;->close()V
+
+    const-string p0, "NIGHT"
+
+    if-eqz p1, :cond_1
+
+    invoke-virtual {p1, p0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result p1
+
+    if-eqz p1, :cond_1
+
+    return v0
+
+    :cond_1
+    if-eqz v1, :cond_3
+
+    invoke-virtual {v1, p0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result p0
+
+    if-eqz p0, :cond_3
+
+    return v0
+
+    :cond_2
+    invoke-interface {p0}, Landroid/database/Cursor;->close()V
+
+    :cond_3
+    const/4 p0, 0x0
+
+    return p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    move-exception p0
+
+    const-string p1, "PATCH_LOOKS"
+
+    const-string v0, "isMediaNight error"
+
+    invoke-static {p1, v0, p0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public static onNightSightSession(J)V
+    .locals 2
+
+    sput-wide p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightTimestamp:J
+
+    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
+
+    move-result-wide v0
+
+    sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightCaptureTime:J
+
+    const-string v0, "PATCH_LOOKS"
+
+    const-string v1, "onNightSightSession: recorded Night Sight session"
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    return-void
+.end method
+
+.method public static isAutoNightOrHiRes(Ljava/lang/Object;)Z
+    .locals 2
+
+    const/4 v0, 0x0
+
+    if-nez p0, :cond_0
+
+    return v0
+
+    :cond_0
+    :try_start_0
+    instance-of v1, p0, Lpcl;
+
+    if-nez v1, :cond_1
+
+    return v0
+
+    :cond_1
+    check-cast p0, Lpcl;
+
+    iget-boolean v1, p0, Lpcl;->l:Z
+
+    if-nez v1, :cond_yes
+
+    iget-boolean p0, p0, Lpcl;->k:Z
+
+    if-eqz p0, :cond_no
+
+    :cond_yes
+    const/4 v0, 0x1
+
+    :cond_no
+    return v0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    return v0
+.end method
+
+.method public static createPhotoCaptureSession(Lrbu;JLjava/lang/Object;Z)Lrbs;
+    .locals 8
+
+    if-nez p0, :cond_0
+
+    const/4 p0, 0x0
+
+    return-object p0
+
+    :cond_0
+    :try_start_0
+    instance-of v0, p3, Lpcl;
+
+    if-eqz v0, :cond_fallback
+
+    check-cast p3, Lpcl;
+
+    iget-boolean v0, p3, Lpcl;->l:Z
+
+    if-eqz v0, :cond_check_hi_res
+
+    iget-boolean v0, p3, Lpcl;->k:Z
+
+    const-string v1, "PATCH_LOOKS"
+
+    const-string v2, "createPhotoCaptureSession: Auto Night Sight active -> calling rbu.j"
+
+    invoke-static {v1, v2}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    invoke-virtual {p0, p1, p2, p4, v0}, Lrbu;->j(JZZ)Lrbs;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_check_hi_res
+    iget-boolean p3, p3, Lpcl;->k:Z
+
+    if-eqz p3, :cond_fallback
+
+    invoke-virtual {p0, p1, p2, p4}, Lrbu;->c(JZ)Lrbs;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_fallback
+    const/4 p0, 0x0
+
+    return-object p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    move-exception p0
+
+    const-string p1, "PATCH_LOOKS"
+
+    const-string p2, "createPhotoCaptureSession error"
+
+    invoke-static {p1, p2, p0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
+    const/4 p0, 0x0
+
+    return-object p0
+.end method
+
+.method public static isNightSightActive()Z
+    .locals 4
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    const/16 v1, 0x9
+
+    if-ne v0, v1, :cond_check_recent
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_recent
+    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
+
+    move-result-wide v0
+
+    sget-wide v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightCaptureTime:J
+
+    sub-long/2addr v0, v2
+
+    const-wide/32 v2, 0xea60
+
+    cmp-long v2, v0, v2
+
+    if-gez v2, :cond_false
+
+    const-wide/16 v2, 0x0
+
+    cmp-long v0, v0, v2
+
+    if-ltz v0, :cond_false
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_false
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static isHighResShot(ZLomw;)Z
+    .locals 2
+
+    if-eqz p0, :cond_check
+
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_check
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_0
+    if-eqz p1, :cond_1
+
+    iget-object v0, p1, Lomw;->a:Lomb;
+
+    if-eqz v0, :cond_1
+
+    iget-boolean v0, v0, Lomb;->f:Z
+
+    if-eqz v0, :cond_1
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_1
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is50MPActive()Z
+
+    move-result v0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    return v0
+
+    :catch_all
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static isHighResShot(Lomw;)Z
+    .locals 1
+
+    const/4 v0, 0x0
+
+    invoke-static {v0, p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isHighResShot(ZLomw;)Z
+
+    move-result v0
+
+    return v0
+.end method
+
+.method public static getEffectiveSpecialType(Lmhb;II)Lmhb;
+    .locals 5
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    return-object p0
+
+    :cond_0
+    const/4 v0, 0x0
+
+    if-lez p1, :cond_2
+
+    if-lez p2, :cond_2
+
+    int-to-long v1, p1
+
+    int-to-long v3, p2
+
+    mul-long/2addr v1, v3
+
+    const-wide/32 v3, 0x1312d00
+
+    cmp-long v1, v1, v3
+
+    if-lez v1, :cond_1
+
+    const/4 v0, 0x1
+
+    goto :goto_res
+
+    :cond_1
+    return-object p0
+
+    :cond_2
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is50MPActive()Z
+
+    move-result v0
+
+    :goto_res
+    if-eqz v0, :cond_4
+
+    sget-object v0, Lmhb;->e:Lmhb;
+
+    if-ne p0, v0, :cond_3
+
+    sget-object v0, Lmhb;->v:Lmhb;
+
+    return-object v0
+
+    :cond_3
+    sget-object v0, Lmhb;->p:Lmhb;
+
+    return-object v0
+
+    :cond_4
+    return-object p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    move-exception v0
+
+    return-object p0
+.end method
+
+.method public static getEffectiveSpecialTypeId(Ljava/lang/String;II)Ljava/lang/String;
+    .locals 5
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    return-object p0
+
+    :cond_0
+    const/4 v0, 0x0
+
+    if-lez p1, :cond_2
+
+    if-lez p2, :cond_2
+
+    int-to-long v1, p1
+
+    int-to-long v3, p2
+
+    mul-long/2addr v1, v3
+
+    const-wide/32 v3, 0x1312d00
+
+    cmp-long v1, v1, v3
+
+    if-lez v1, :cond_1
+
+    const/4 v0, 0x1
+
+    goto :goto_res
+
+    :cond_1
+    return-object p0
+
+    :cond_2
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is50MPActive()Z
+
+    move-result v0
+
+    :goto_res
+    if-eqz v0, :cond_4
+
+    if-eqz p0, :cond_3
+
+    const-string v0, "PORTRAIT"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_3
+
+    sget-object v0, Lmhb;->v:Lmhb;
+
+    invoke-virtual {v0}, Lmhb;->d()Ljava/lang/String;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_3
+    sget-object v0, Lmhb;->p:Lmhb;
+
+    invoke-virtual {v0}, Lmhb;->d()Ljava/lang/String;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_4
+    return-object p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    move-exception v0
+
+    return-object p0
+.end method
+
+.method public static isHighResolutionFinisher(ZLjava/lang/Object;)Z
+    .locals 1
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    return p0
+
+    :cond_0
+    if-eqz p0, :cond_1
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_1
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->is50MPActive()Z
+
+    move-result v0
+
+    return v0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    move-exception v0
+
+    return p0
+.end method
+
+.method public static enforceImmersiveFullscreen(Landroid/app/Activity;)V
+    .locals 3
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    :try_start_enforce
+    invoke-virtual {p0}, Landroid/app/Activity;->isInMultiWindowMode()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_single_window
+
+    return-void
+
+    :cond_single_window
+    new-instance v0, Ljava/lang/ref/WeakReference;
+
+    invoke-direct {v0, p0}, Ljava/lang/ref/WeakReference;-><init>(Ljava/lang/Object;)V
+
+    sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentActivity:Ljava/lang/ref/WeakReference;
+
+    invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+
+    move-result-object p0
+
+    if-nez p0, :cond_have_window
+
+    return-void
+
+    :cond_have_window
+    invoke-virtual {p0}, Landroid/view/Window;->getAttributes()Landroid/view/WindowManager$LayoutParams;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_skip_lp
+
+    const/4 v1, 0x3
+
+    iput v1, v0, Landroid/view/WindowManager$LayoutParams;->layoutInDisplayCutoutMode:I
+
+    iput v1, v0, Landroid/view/WindowManager$LayoutParams;->rotationAnimation:I
+
+    invoke-virtual {p0, v0}, Landroid/view/Window;->setAttributes(Landroid/view/WindowManager$LayoutParams;)V
+
+    :cond_skip_lp
+    const v0, -0x7ffffb00
+
+    invoke-virtual {p0, v0}, Landroid/view/Window;->addFlags(I)V
+
+    const v0, 0x4000800
+
+    invoke-virtual {p0, v0}, Landroid/view/Window;->clearFlags(I)V
+
+    const/4 v0, 0x0
+
+    invoke-virtual {p0, v0}, Landroid/view/Window;->setDecorFitsSystemWindows(Z)V
+
+    invoke-virtual {p0}, Landroid/view/Window;->isNavigationBarContrastEnforced()Z
+
+    move-result v1
+
+    if-eqz v1, :cond_skip_nav_contrast
+
+    invoke-virtual {p0, v0}, Landroid/view/Window;->setNavigationBarContrastEnforced(Z)V
+
+    :cond_skip_nav_contrast
+    invoke-virtual {p0}, Landroid/view/Window;->getInsetsController()Landroid/view/WindowInsetsController;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_skip_insets
+
+    const/4 v1, 0x2
+
+    invoke-interface {v0, v1}, Landroid/view/WindowInsetsController;->setSystemBarsBehavior(I)V
+
+    invoke-static {}, Landroid/view/WindowInsets$Type;->statusBars()I
+
+    move-result v1
+
+    invoke-interface {v0, v1}, Landroid/view/WindowInsetsController;->hide(I)V
+
+    :cond_skip_insets
+    invoke-virtual {p0}, Landroid/view/Window;->peekDecorView()Landroid/view/View;
+
+    move-result-object v0
+
+    if-nez v0, :cond_have_decor
+
+    invoke-virtual {p0}, Landroid/view/Window;->getDecorView()Landroid/view/View;
+
+    move-result-object v0
+
+    :cond_have_decor
+    if-eqz v0, :cond_done
+
+    const/16 p0, 0x1504
+
+    invoke-virtual {v0, p0}, Landroid/view/View;->setSystemUiVisibility(I)V
+    :try_end_enforce
+    .catch Ljava/lang/Throwable; {:try_start_enforce .. :try_end_enforce} :catch_enforce
+
+    :cond_done
+    return-void
+
+    :catch_enforce
+    move-exception v0
+
+    return-void
+.end method
+

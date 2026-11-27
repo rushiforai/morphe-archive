@@ -25,7 +25,7 @@ Actions画面から実行すると、未署名APK3つ、パッチJAR、パッチ
 バージョンメタデータとリリースノートを準備し、MPPを検証してコミットする。そのコミットにバージョンタグをpushするとReleaseが公開される。
 
 ```sh
-python3 scripts/prepare-release.py 0.2.0
+bash scripts/prepare-release.sh 0.2.0
 # docs/releases/v0.2.0.md を作成
 scripts/build-mpp.sh
 git add patches-bundle.json docs/releases/v0.2.0.md

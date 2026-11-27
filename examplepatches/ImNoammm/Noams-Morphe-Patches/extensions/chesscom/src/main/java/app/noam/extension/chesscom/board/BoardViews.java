@@ -14,16 +14,28 @@ import java.util.WeakHashMap;
  */
 public final class BoardViews {
     public static final String CHESS_BOARD_VIEW = "com.chess.chessboard.view.ChessBoardView";
-    public static final String ANIMATED_PIECE = "com.chess.chessboard.view.viewlayers.AnimatedPiece";
-    /** The newer board some screens use, and its piece view (its child). */
+    /** The newer board some screens use. */
     public static final String V2_BOARD = "com.chess.chessboard.v2.ChessBoardView";
-    public static final String V2_PIECES = "com.chess.chessboard.v2.PiecesView";
 
     private static Method hostGetter;
     /** The newer board keeps its orientation behind an obfuscated getter: its setter reports it here. */
     private static final Map<View, Boolean> V2_FLIPPED = new WeakHashMap<>();
 
     private BoardViews() {}
+
+    /** Name of the newer board's piece view class (its child), filled in by the patch. */
+    private static String v2PiecesClass() {
+        return "";
+    }
+
+    /** Name of the older board's moving piece class, filled in by the patch. */
+    private static String animatedPieceClass() {
+        return "";
+    }
+
+    public static boolean isV2Pieces(View view) {
+        return v2PiecesClass().equals(view.getClass().getName());
+    }
 
     /** v2 ChessBoardView.setBoardFlipped. */
     public static void onFlipped(View board, boolean flipped) {
@@ -33,7 +45,7 @@ public final class BoardViews {
     }
 
     public static Object host(ViewGroup pieceView) {
-        if (V2_PIECES.equals(pieceView.getClass().getName())) return pieceView.getParent();
+        if (isV2Pieces(pieceView)) return pieceView.getParent();
         try {
             if (hostGetter == null) {
                 for (Method method : pieceView.getClass().getMethods()) {
@@ -82,7 +94,7 @@ public final class BoardViews {
     /** Index for a layer that must sit above the resting pieces but under the moving ones. */
     public static int indexUnderMovingPieces(ViewGroup pieceView) {
         for (int i = 0; i < pieceView.getChildCount(); i++) {
-            if (ANIMATED_PIECE.equals(pieceView.getChildAt(i).getClass().getName())) return i;
+            if (animatedPieceClass().equals(pieceView.getChildAt(i).getClass().getName())) return i;
         }
         return pieceView.getChildCount();
     }

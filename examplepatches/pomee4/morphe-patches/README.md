@@ -15,7 +15,7 @@ Then patch the app with both Morphe Patches and pomee4 Patches selected.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v3.3.0](https://github.com/pomee4/morphe-patches/releases/tag/v3.3.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**2 patches** across **2 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
+> **[v3.3.2](https://github.com/pomee4/morphe-patches/releases/tag/v3.3.2)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**2 patches** across **2 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
 | # | App | Patches | Version | Package |
 |---|---|---|---|---|

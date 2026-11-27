@@ -19,13 +19,19 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.URI
 import java.net.URL
+import java.net.URLEncoder
 import java.net.UnknownHostException
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
+import javax.net.ssl.SSLSocket
+import javax.net.ssl.SSLSocketFactory
 
 private const val ANALYSIS = "${Constants.EXTENSION_PACKAGE}/stockfish/Analysis;"
 private const val BOARD_STATE = "Lcom/chess/chessboard/vm/movesinput/CBViewModelStateImpl;"
@@ -106,8 +112,8 @@ private var stockfish32Bit: Option<Boolean>? = null
 
 private val stockfishResourcePatch = patch(
     description = "Adds the official Stockfish 19 to the app's native libraries, downloaded (80 MB) from " +
-        "Stockfish's GitHub while patching (mirrors are used when github.com doesn't answer), or taken from " +
-        "an archive picked in this patch's option. The engine goes into the ABI folder the app's own " +
+        "Stockfish's GitHub while patching (mirrors, and DNS over HTTPS when the phone can't find github.com), " +
+        "or taken from an archive picked in this patch's option. The engine goes into the ABI folder the app's own " +
         "libraries already use (64-bit ARM, or 32-bit ARM for a 32-bit APK), so adding it can't switch the " +
         "app to another ABI; the \"32-bit engine\" option covers an APK that carries no libraries of its " +
         "own. The download is kept between patch runs.",
@@ -427,7 +433,7 @@ private fun fetch(archive: File, source: String, build: Build) {
         var written = offset
         var next = percent(written, build) / 10 * 10 + 10
         FileOutputStream(archive, offset > 0L).use { out ->
-            BufferedInputStream(download.connection.inputStream, BUFFER).use { input ->
+            BufferedInputStream(download.body, BUFFER).use { input ->
                 val buffer = ByteArray(BUFFER)
                 while (true) {
                     val n = input.read(buffer)
@@ -446,7 +452,7 @@ private fun fetch(archive: File, source: String, build: Build) {
             throw IOException("The download stopped at $written of ${build.archiveSize} bytes")
         }
     } finally {
-        download.connection.disconnect()
+        download.close()
     }
 }
 
@@ -484,34 +490,248 @@ private fun unpack(archive: File, engine: File, build: Build) {
 private fun open(from: Long, source: String): Download {
     var url = URL(source)
     repeat(5) {
-        val connection = url.openConnection() as HttpURLConnection
-        connection.instanceFollowRedirects = false
-        connection.connectTimeout = CONNECT_TIMEOUT_MS
-        connection.readTimeout = READ_TIMEOUT_MS
-        if (from > 0L) connection.setRequestProperty("Range", "bytes=$from-")
-        val code = try {
-            connection.responseCode
-        } catch (e: IOException) {
-            connection.disconnect()
-            throw e
+        val answer = fetch(url, from)
+        if (answer.code == HttpURLConnection.HTTP_OK || answer.code == HttpURLConnection.HTTP_PARTIAL) {
+            val body = answer.body ?: throw IOException("${url.host} answered ${answer.code} without a body")
+            // The server took the Range request: it is sending the rest of the archive.
+            return Download(body, if (answer.code == HttpURLConnection.HTTP_PARTIAL) from else 0L, answer::close)
         }
-        if (code == HttpURLConnection.HTTP_OK) return Download(connection, 0L)
-        // The server took the Range request: it is sending the rest of the archive.
-        if (code == HttpURLConnection.HTTP_PARTIAL) return Download(connection, from)
-        val location = connection.getHeaderField("Location")
-        connection.disconnect()
-        if (code !in 300..399 || location == null) throw IOException("${url.host} answered $code")
+        val location = answer.location
+        answer.close()
+        if (answer.code !in 300..399 || location == null) throw IOException("${url.host} answered ${answer.code}")
         url = URL(url, location)
         if (url.protocol != "https") throw IOException("${url.host} sent the download to ${url.protocol}")
     }
     throw IOException("Too many redirects from $source")
 }
 
+/**
+ * Asks [url]'s server. When the device can't look the server up (Morphe Manager patches with a
+ * Java runtime whose DNS doesn't work on Android), it is looked up over DNS over HTTPS instead.
+ */
+private fun fetch(url: URL, from: Long): Answer {
+    val connection = url.openConnection() as HttpURLConnection
+    connection.instanceFollowRedirects = false
+    connection.connectTimeout = CONNECT_TIMEOUT_MS
+    connection.readTimeout = READ_TIMEOUT_MS
+    if (from > 0L) connection.setRequestProperty("Range", "bytes=$from-")
+    val code = try {
+        connection.responseCode
+    } catch (e: UnknownHostException) {
+        connection.disconnect()
+        return try {
+            fetchOverResolvedAddress(url, from).also {
+                logger.info("${url.host} couldn't be looked up on this device, so it was looked up over DNS over HTTPS")
+            }
+        } catch (fallback: IOException) {
+            throw Unanswered(url.host, IOException("${describe(e)}, and DNS over HTTPS failed too (${describe(fallback)})", e))
+        }
+    } catch (e: IOException) {
+        connection.disconnect()
+        throw Unanswered(url.host, e)
+    }
+    val body = if (code == HttpURLConnection.HTTP_OK || code == HttpURLConnection.HTTP_PARTIAL) connection.inputStream else null
+    return Answer(code, connection.getHeaderField("Location"), body) { connection.disconnect() }
+}
+
+/** One answer from a server: its status, where a redirect points, and the body of a 200 or 206. */
+private class Answer(val code: Int, val location: String?, val body: InputStream?, private val closeConnection: () -> Unit) {
+    fun close() = closeConnection()
+}
+
 /** A connection and where in the archive it starts: 0 when the server ignored the Range request. */
-private class Download(val connection: HttpURLConnection, val offset: Long)
+private class Download(val body: InputStream, val offset: Long, private val closeConnection: () -> Unit) {
+    fun close() = closeConnection()
+}
+
+/** Cloudflare's and Google's DNS over HTTPS, reached by IP address, so using them needs no lookup. */
+private val DNS_OVER_HTTPS = listOf(
+    "https://1.1.1.1/dns-query?type=A&name=",
+    "https://1.0.0.1/dns-query?type=A&name=",
+    "https://8.8.8.8/resolve?type=A&name=",
+    "https://8.8.4.4/resolve?type=A&name=",
+)
+
+/** The IPv4 addresses of [host], from DNS over HTTPS. */
+private fun lookUpOverHttps(host: String): List<InetAddress> {
+    var failure: IOException = UnknownHostException(host)
+    for (server in DNS_OVER_HTTPS) {
+        try {
+            val connection = URL(server + URLEncoder.encode(host, "UTF-8")).openConnection() as HttpURLConnection
+            connection.connectTimeout = CONNECT_TIMEOUT_MS
+            connection.readTimeout = READ_TIMEOUT_MS
+            connection.setRequestProperty("Accept", "application/dns-json")
+            val answer = try {
+                connection.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+            } finally {
+                connection.disconnect()
+            }
+            val addresses = ipv4Data(answer).map { InetAddress.getByAddress(host, it) }
+            if (addresses.isNotEmpty()) return addresses
+            failure = UnknownHostException("$host has no address at $server")
+        } catch (e: IOException) {
+            failure = e
+        }
+    }
+    throw failure
+}
+
+/** The IPv4 addresses among a DNS JSON answer's "data" values (the others name aliases). */
+private fun ipv4Data(answer: String): List<ByteArray> {
+    val key = "\"data\":\""
+    val found = mutableListOf<ByteArray>()
+    var at = answer.indexOf(key)
+    while (at >= 0) {
+        val start = at + key.length
+        val end = answer.indexOf('"', start)
+        if (end < 0) break
+        val parts = answer.substring(start, end).split('.')
+        val bytes = parts.mapNotNull { part -> part.toIntOrNull()?.takeIf { it in 0..255 && part.isNotEmpty() } }
+        if (parts.size == 4 && bytes.size == 4) found += ByteArray(4) { bytes[it].toByte() }
+        at = answer.indexOf(key, end)
+    }
+    return found
+}
+
+/**
+ * Plain HTTP/1.1 over TLS to an address found over DNS over HTTPS. The TLS session still names and
+ * checks the real server, and the archive's SHA-256 is checked as always.
+ */
+private fun fetchOverResolvedAddress(url: URL, from: Long): Answer {
+    val port = if (url.port == -1) 443 else url.port
+    var failure: IOException = UnknownHostException(url.host)
+    for (address in lookUpOverHttps(url.host)) {
+        val raw = Socket()
+        try {
+            raw.connect(InetSocketAddress(address, port), CONNECT_TIMEOUT_MS)
+            raw.soTimeout = READ_TIMEOUT_MS
+            val socket = (SSLSocketFactory.getDefault() as SSLSocketFactory).createSocket(raw, url.host, port, true) as SSLSocket
+            socket.sslParameters = socket.sslParameters.apply { endpointIdentificationAlgorithm = "HTTPS" }
+            socket.startHandshake()
+            val path = (url.path.ifEmpty { "/" }) + (url.query?.let { "?$it" } ?: "")
+            val range = if (from > 0L) "Range: bytes=$from-\r\n" else ""
+            socket.outputStream.write(
+                ("GET $path HTTP/1.1\r\nHost: ${url.host}\r\nUser-Agent: Quwi's Chess Patches\r\n" +
+                    "Accept: */*\r\n$range" + "Connection: close\r\n\r\n").toByteArray(Charsets.US_ASCII),
+            )
+            socket.outputStream.flush()
+            return readAnswer(socket)
+        } catch (e: IOException) {
+            raw.close()
+            failure = e
+        }
+    }
+    throw failure
+}
+
+/** Reads the status and headers, and hands over the body of a 200 or 206 as it arrives. */
+private fun readAnswer(socket: SSLSocket): Answer {
+    val input = BufferedInputStream(socket.inputStream, BUFFER)
+    val status = readLine(input) ?: throw IOException("${socket.inetAddress.hostAddress} closed the connection")
+    val code = status.split(' ').getOrNull(1)?.toIntOrNull() ?: throw IOException("Unexpected answer: $status")
+    val headers = mutableMapOf<String, String>()
+    while (true) {
+        val line = readLine(input) ?: break
+        if (line.isEmpty()) break
+        val colon = line.indexOf(':')
+        if (colon > 0) headers[line.substring(0, colon).trim().lowercase()] = line.substring(colon + 1).trim()
+    }
+    val body = when {
+        code != HttpURLConnection.HTTP_OK && code != HttpURLConnection.HTTP_PARTIAL -> null
+        headers["transfer-encoding"]?.lowercase()?.contains("chunked") == true -> Chunked(input)
+        else -> headers["content-length"]?.toLongOrNull()?.let { LengthLimited(input, it) } ?: input
+    }
+    return Answer(code, headers["location"], body) { socket.close() }
+}
+
+/** One CRLF-ended header line, or null at the end of the stream. */
+private fun readLine(input: InputStream): String? {
+    val line = StringBuilder()
+    while (true) {
+        val b = input.read()
+        if (b < 0) return if (line.isEmpty()) null else line.toString()
+        if (b == '\n'.code) return line.toString().trimEnd('\r')
+        line.append(b.toChar())
+    }
+}
+
+/** A body sent in chunks, read as one stream. */
+private class Chunked(private val input: InputStream) : InputStream() {
+    private var left = 0L
+    private var ended = false
+
+    private fun nextChunk(): Boolean {
+        if (ended) return false
+        if (left == 0L) {
+            val size = readLine(input)?.substringBefore(';')?.trim()?.toLongOrNull(16) ?: throw IOException("Bad chunk")
+            if (size == 0L) {
+                ended = true
+                return false
+            }
+            left = size
+        }
+        return true
+    }
+
+    private fun chunkDone() {
+        if (left == 0L) readLine(input)
+    }
+
+    override fun read(): Int {
+        if (!nextChunk()) return -1
+        val b = input.read()
+        if (b < 0) throw IOException("The download ended early")
+        left--
+        chunkDone()
+        return b
+    }
+
+    override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+        if (length == 0) return 0
+        if (!nextChunk()) return -1
+        val n = input.read(buffer, offset, minOf(length.toLong(), left).toInt())
+        if (n < 0) throw IOException("The download ended early")
+        left -= n
+        chunkDone()
+        return n
+    }
+}
+
+/** A body of a known length. */
+private class LengthLimited(private val input: InputStream, private var left: Long) : InputStream() {
+    override fun read(): Int {
+        if (left <= 0) return -1
+        val b = input.read()
+        if (b >= 0) left--
+        return b
+    }
+
+    override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+        if (left <= 0) return -1
+        val n = input.read(buffer, offset, minOf(length.toLong(), left).toInt())
+        if (n > 0) left -= n
+        return n
+    }
+}
+
+/** A server that couldn't be reached. */
+private class Unanswered(val host: String, cause: IOException) : IOException(cause.message, cause)
 
 /** "SocketTimeoutException: Connect timed out": an exception's message alone can be just a host. */
-private fun describe(e: IOException): String = "${e.javaClass.simpleName}: ${e.message}"
+private fun describe(e: IOException): String {
+    val cause = if (e is Unanswered) e.cause ?: e else e
+    return "${cause.javaClass.simpleName}: ${cause.message}"
+}
+
+/** Whether [e] is a name that couldn't be looked up, possibly behind an [Unanswered]. */
+private fun isDnsFailure(e: IOException): Boolean {
+    var cause: Throwable? = e
+    while (cause != null) {
+        if (cause is UnknownHostException) return true
+        cause = cause.cause
+    }
+    return false
+}
 
 /**
  * What the log and the manager show when no source answered: every source with the error it gave, so
@@ -523,7 +743,7 @@ private fun failure(failures: Map<String, IOException>, build: Build): String {
     val start = "Couldn't download ${build.name} (github.com and ${STOCKFISH_MIRRORS.size} mirrors, " +
         "${RETRY_PAUSES_MS.size + 1} rounds)"
     val each = failures.entries.joinToString("; ") { "${it.key}: ${describe(it.value)}" }
-    val unknown = failures.values.filterIsInstance<UnknownHostException>()
+    val unknown = failures.values.filter(::isDnsFailure)
     val why = when {
         failures.isNotEmpty() && unknown.size == failures.size ->
             "None of those names could be found in DNS, so something on this phone or network is " +
@@ -676,8 +896,8 @@ val stockfishPatch = bytecodePatch(
         "analysis boards, the game explorer and Game Review (in a Lichess review, on the moves Lichess " +
         "didn't mark), and an eval bar where chess.com has none of its own. It never shows while a game " +
         "is being played or in puzzles. Patching downloads the official Stockfish 19 (80 MB) from " +
-        "Stockfish's GitHub or a mirror, or uses the archive picked in this patch's option, so it needs " +
-        "internet or that file.",
+        "Stockfish's GitHub or a mirror (DNS over HTTPS when the phone can't find github.com), or uses " +
+        "the archive picked in this patch's option, so it needs internet or that file.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

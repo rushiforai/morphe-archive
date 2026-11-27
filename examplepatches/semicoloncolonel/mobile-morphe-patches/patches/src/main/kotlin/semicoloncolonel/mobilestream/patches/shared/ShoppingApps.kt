@@ -6,6 +6,7 @@ import semicoloncolonel.mobilestream.patches.checkout51.shared.Constants as Chec
 import semicoloncolonel.mobilestream.patches.cvs.shared.Constants as Cvs
 import semicoloncolonel.mobilestream.patches.dealnews.shared.Constants as DealNews
 import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants as DealSeek
+import semicoloncolonel.mobilestream.patches.ebay.shared.Constants as Ebay
 import semicoloncolonel.mobilestream.patches.flipp.shared.Constants as Flipp
 import semicoloncolonel.mobilestream.patches.homedepot.shared.Constants as HomeDepot
 import semicoloncolonel.mobilestream.patches.kouponai.shared.Constants as Koupon
@@ -26,6 +27,7 @@ internal val SHOPPING_APPS = arrayOf(
     Walmart.COMPATIBILITY,
     BestBuy.COMPATIBILITY,
     Amazon.COMPATIBILITY,
+    Ebay.COMPATIBILITY,
     Target.COMPATIBILITY,
     Cvs.COMPATIBILITY,
     Checkout51.COMPATIBILITY,

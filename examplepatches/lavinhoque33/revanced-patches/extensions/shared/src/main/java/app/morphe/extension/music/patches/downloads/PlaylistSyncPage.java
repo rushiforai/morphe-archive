@@ -1,9 +1,12 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-17.
  */
 package app.morphe.extension.music.patches.downloads;
+
+import androidx.annotation.Nullable;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
@@ -14,17 +17,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntFunction;
 import java.util.regex.Pattern;
 
 /** Assembles the native first page and the track rows and Elements updates from its continuations. */
 final class PlaylistSyncPage {
     private static final int BROWSE_CONTENTS = 9;
     private static final int BROWSE_CONTINUATION = 10;
-    private static final int SINGLE_COLUMN_BROWSE = 58_173_949;
-    private static final int SECTION_LIST = 49_399_797;
+    static final int SINGLE_COLUMN_BROWSE = 58_173_949;
+    static final int SECTION_LIST = 49_399_797;
     private static final int ITEM_SECTION = 50_195_462;
-    private static final int PLAYLIST_SHELF = 175_617_300;
-    private static final int SHELF_ROW = 161_429_595;
+    static final int PLAYLIST_SHELF = 175_617_300;
+    static final int SHELF_ROW = 161_429_595;
     private static final int SHELF_ROWS = 3;
     private static final int SHELF_CONTINUATIONS = 10;
     private static final int NEXT_CONTINUATION = 52_047_593;
@@ -41,18 +45,26 @@ final class PlaylistSyncPage {
 
     record Snapshot(List<String> tracks, Message page) {
         byte[] browseBytes() throws IOException {
-            byte[] bytes = new byte[page.size];
-            CodedOutputStream output = CodedOutputStream.newInstance(bytes);
-            page.writeTo(output);
-            output.checkNoSpaceLeft();
-            return bytes;
+            return bytesOf(page);
         }
     }
 
     private PlaylistSyncPage() {}
 
+    private static byte[] bytesOf(Message page) throws IOException {
+        byte[] bytes = new byte[page.size];
+        CodedOutputStream output = CodedOutputStream.newInstance(bytes);
+        page.writeTo(output);
+        output.checkNoSpaceLeft();
+        return bytes;
+    }
+
     static Snapshot fetch(String playlistId, Browse browse) throws Exception {
         Parsed first = first(browse.read(null));
+        return assemble(playlistId, first, browse);
+    }
+
+    private static Snapshot assemble(String playlistId, Parsed first, Browse browse) throws Exception {
         if (!playlistId.equals(required(first.shelf, 1).text())) throw invalid();
 
         List<String> tracks = new ArrayList<>();
@@ -73,7 +85,10 @@ final class PlaylistSyncPage {
             page = continued(browse.read(token));
         }
         if (tracks.stream().noneMatch(PlaylistPage::isAvailable)) throw invalid();
+        return new Snapshot(List.copyOf(tracks), render(first, rows, updates));
+    }
 
+    private static Message render(Parsed first, List<Part> rows, @Nullable Message updates) throws IOException {
         Message shelf = rewrite(first.shelf, SHELF_ROWS, SHELF_CONTINUATIONS, rows);
         Message wrapper = replace(first.wrapper, PLAYLIST_SHELF, shelf);
         if (first.itemSection != null) {
@@ -82,22 +97,65 @@ final class PlaylistSyncPage {
         }
         Message section = replaceExact(first.section, first.sectionChild, wrapper, true);
         Message contents = replaceSection(first, section);
+        if (updates == null) return replace(first.root, BROWSE_CONTENTS, contents);
+
         Message root = rewrite(first.root, BROWSE_CONTENTS, UPDATES, List.of(contents.field(BROWSE_CONTENTS)));
         if (updates.size != 0) root.add(updates.field(UPDATES));
-        return new Snapshot(List.copyOf(tracks), root);
+        return root;
     }
 
-    /** A captured online first page may replace the legacy cache only while it agrees with the saved queue. */
-    static boolean matchesSavedPrefix(String playlistId, byte[] response, List<String> saved) {
+    /** A page may answer local detail only if its entire native queue agrees with the committed membership. */
+    static boolean matchesComplete(String playlistId, byte[] response, List<String> saved) {
         try {
             Parsed page = first(response);
-            List<String> tracks = new ArrayList<>();
+            if (page.section.child(2) != null || token(page.shelf) != null || !validFirstPage(playlistId, page)) {
+                return false;
+            }
+
+            List<String> tracks = new ArrayList<>(saved.size());
             appendRows(playlistId, page.shelf, tracks, null);
-            boolean complete = token(page.shelf) == null;
-            return !tracks.isEmpty() && (complete ? tracks.size() == saved.size() : tracks.size() <= saved.size())
-                    && saved.subList(0, tracks.size()).equals(tracks);
-        } catch (IOException ex) {
+            return tracks.equals(saved);
+        } catch (IOException ignored) {
             return false;
+        }
+    }
+
+    private static boolean validFirstPage(String playlistId, Parsed page) throws IOException {
+        return page.root.child(BROWSE_CONTINUATION) == null && playlistId.equals(required(page.shelf, 1).text());
+    }
+
+    /** Only a native page with no track continuation may be persisted as a complete first-page capture. */
+    @Nullable
+    static byte[] completeLegacy(String playlistId, byte[] response, List<String> saved) {
+        return repairLegacy(playlistId, response, saved, null);
+    }
+
+    /** Keep the native header, rows, menus and updates of a matching prefix; supply only the missing saved rows. */
+    @Nullable
+    static byte[] repairLegacy(String playlistId, byte[] response, List<String> saved,
+                               @Nullable IntFunction<byte[]> missingRow) {
+        try {
+            Parsed page = first(response);
+            if (!validFirstPage(playlistId, page)) return null;
+            boolean ongoing = token(page.shelf) != null;
+            if (ongoing && missingRow == null) return null;
+
+            List<String> tracks = new ArrayList<>(saved.size());
+            List<Part> rows = new ArrayList<>(saved.size());
+            appendRows(playlistId, page.shelf, tracks, rows);
+            int prefix = tracks.size();
+            if (prefix > saved.size() || !saved.subList(0, prefix).equals(tracks)) return null;
+            if (prefix < saved.size() && (!ongoing || missingRow == null)) return null;
+
+            for (int position = prefix; position < saved.size(); position++) {
+                byte[] encoded = missingRow.apply(position);
+                Message wrapper = new Message();
+                wrapper.add(new Bytes(encoded, 0, encoded.length));
+                rows.add(wrapper.field(SHELF_ROWS));
+            }
+            return bytesOf(render(page, rows, null));
+        } catch (IOException ignored) {
+            return null;
         }
     }
 
@@ -168,7 +226,10 @@ final class PlaylistSyncPage {
 
             Field video = watch == null ? null : watch.child(1);
             if (video == null) {
-                if (item == null || item.child(1) == null || row.child(3) == null) throw invalid();
+                Field policy = row.child(2);
+                boolean unavailable = (item != null && item.child(1) != null)
+                        || (policy != null && policy.int32() == OfflineBrowsePagesLogic.GREY_OUT);
+                if (!unavailable || row.child(3) == null) throw invalid();
                 tracks.add(PlaylistPage.UNAVAILABLE);
                 if (rows != null) rows.add(wrapper);
                 continue;
@@ -182,6 +243,8 @@ final class PlaylistSyncPage {
                 Message indexed = rewrite(watch, 3, -1, List.of(new Bytes(index, 0, index.length)));
                 Message command = replace(tap, WATCH, indexed);
                 rows.add(replace(wrapper, SHELF_ROW, replace(row, 5, command)).field(SHELF_ROWS));
+            } else if (required(watch, 3).int32() != tracks.size()) {
+                throw invalid();
             }
             tracks.add(videoId);
         }
@@ -289,6 +352,13 @@ final class PlaylistSyncPage {
         String text() throws IOException {
             Bytes data = payload();
             return new String(bytes, data.start, data.length(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+
+        int int32() throws IOException {
+            if (body >= 0) throw invalid();
+            CodedInputStream input = CodedInputStream.newInstance(bytes, start, end - start);
+            if (WireFormat.getTagWireType(input.readTag()) != WireFormat.WIRETYPE_VARINT) throw invalid();
+            return input.readInt32();
         }
 
         List<Field> fields() throws IOException {

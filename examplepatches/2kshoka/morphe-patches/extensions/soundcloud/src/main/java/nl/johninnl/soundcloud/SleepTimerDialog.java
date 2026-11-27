@@ -49,7 +49,8 @@ final class SleepTimerDialog {
     private static final String PREFS = "morphe_sleep_timer";
     private static final String KEY_FAVORITES = "favorites";
     private static final int ACCENT = 0xFFFF5500;
-    private static final int DEFAULT_MINUTES = 30;
+    private static final String KEY_LAST_MINUTES = "last_minutes";
+    private static final int DEFAULT_MINUTES = 30; // only the very first time
     private static final int COLUMNS = 4;
     private static final int VISIBLE_ROWS = 2;
 
@@ -198,12 +199,13 @@ final class SleepTimerDialog {
         scroll.addView(root, new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        dial.setSelectedMinutes(DEFAULT_MINUTES, false);
+        dial.setSelectedMinutes(loadLastMinutes(), false);
         dial.setListener(new SleepTimerDial.Listener() {
             @Override public void onMinutesChanged(int minutes) { updateChipSelection(); }
             @Override public void onLongPressSave(int minutes) { saveFavorite(minutes); }
             @Override public void onCenterTap() {
                 controller.onCenterTap(dial.getSelectedMinutes());
+                rememberSelection();
                 refresh();
             }
             @Override public void onAddTime() {
@@ -233,6 +235,7 @@ final class SleepTimerDialog {
         if (application != null) application.registerActivityLifecycleCallbacks(closeWithActivity);
         // Dismissing only removes this window's own callbacks; the timer itself keeps running.
         dialog.setOnDismissListener(d -> {
+            rememberSelection(); // whatever was set last is what the window opens with next time
             root.removeCallbacks(tick);
             if (application != null) application.unregisterActivityLifecycleCallbacks(closeWithActivity);
             if (showing.get() == dialog) showing.clear();
@@ -242,6 +245,17 @@ final class SleepTimerDialog {
         dialog.show();
         refresh();
         root.postDelayed(tick, 1000);
+    }
+
+    /** The value that was set last time, or the default on the very first open. */
+    private int loadLastMinutes() {
+        int saved = prefs.getInt(KEY_LAST_MINUTES, DEFAULT_MINUTES);
+        return saved >= SleepTimerMath.MIN_MINUTES && saved <= SleepTimerMath.MAX_MINUTES
+            ? saved : DEFAULT_MINUTES;
+    }
+
+    private void rememberSelection() {
+        prefs.edit().putInt(KEY_LAST_MINUTES, dial.getSelectedMinutes()).apply();
     }
 
     private int chipHeight() {
@@ -271,6 +285,7 @@ final class SleepTimerDialog {
         // the countdown handle glides to the new time left.
         dial.setSelectedMinutes(minutes, true);
         controller.onPreset(minutes);
+        rememberSelection();
         refresh();
     }
 

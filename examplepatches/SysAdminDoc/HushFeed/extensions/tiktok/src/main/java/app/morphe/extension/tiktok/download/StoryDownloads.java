@@ -276,6 +276,7 @@ public final class StoryDownloads {
             Utils.showToastShort(L10n.t("Open the story again and try once more"));
             return true;
         }
+        if (PlayableVideo.refusedUpFront(aweme)) return true;
         if (android.os.Build.VERSION.SDK_INT < 29
                 && context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != android.content.pm.PackageManager.PERMISSION_GRANTED) {
@@ -365,6 +366,9 @@ public final class StoryDownloads {
                 } else {
                     savePhotos(app, photoNames, path, photoSnapshot, progress);
                 }
+            } catch (PlayableVideo.Refused refusal) {
+                Logger.printInfo(() -> "The story was left out: " + refusal.getMessage());
+                PlayableVideo.tell(refusal.problem);
             } catch (IOException | RuntimeException exception) {
                 Logger.printException(() -> "Story download failed", exception);
                 Utils.showToastLong(L10n.t("The story couldn't be saved. Try again."));
@@ -413,6 +417,7 @@ public final class StoryDownloads {
         File temp = MediaCache.createTempFile(app, "story-", ".mp4");
         try {
             RemoteMedia.fetch(urls, temp, RemoteMedia.Kind.VIDEO);
+            PlayableVideo.check(temp);
             MediaFileWriter.Saved saved = MediaFileWriter.publishForResult(app, temp,
                     name, "video/mp4", path, true);
             // The sound's word goes on the story's banner. Its own banner went up first and the

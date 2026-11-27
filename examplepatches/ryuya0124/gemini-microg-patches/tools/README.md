@@ -6,7 +6,7 @@
 - Morphe patches 2.3.0（公式パッチと同時に読み込んだ場合の比較用。通常のパッチ生成には不要）
 - Kotlin compiler 2.4.10
 
-JDK 21とPython 3は別途用意します。署名にはAndroid SDK Build Tools 36.0.0が必要です。バイナリはGit対象外です。
+JDK 21とBash、jq、curl、zip、unzip、shasumは別途用意します。署名にはAndroid SDK Build Tools 36.0.0が必要です。バイナリはGit対象外です。
 
 - R8/D8 9.4.17（MPP用、Kotlin 2.4対応）
 

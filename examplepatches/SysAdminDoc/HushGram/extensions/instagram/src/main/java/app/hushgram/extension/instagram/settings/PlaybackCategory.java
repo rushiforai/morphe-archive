@@ -27,7 +27,8 @@ final class PlaybackCategory {
     private PlaybackCategory() { }
 
     static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
-        if (build.contains(PatchFamily.HDR_BOOST) || build.contains(PatchFamily.HDR_PHOTOS) || build.contains(PatchFamily.TAP_TO_PLAY)
+        if (build.contains(PatchFamily.HDR_BOOST) || build.contains(PatchFamily.HDR_PHOTOS)
+                || build.contains(PatchFamily.HDR_VIDEOS) || build.contains(PatchFamily.TAP_TO_PLAY)
                 || build.contains(PatchFamily.RESUME_LONG_VIDEOS) || build.contains(PatchFamily.REEL_TAP_AND_VOLUME)
                 || build.contains(PatchFamily.REEL_SOUND)
                 || build.contains(PatchFamily.PLAYBACK_QUALITY) || build.contains(PatchFamily.DATA_SAVER)
@@ -78,6 +79,10 @@ final class PlaybackCategory {
                 playback.addPreference(toggle(context, Settings.REELS_PIP_SKIP_BUTTONS,
                         L10n.t("Previous and next in the reels window"),
                         L10n.t("Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.")));
+                playback.addPreference(toggle(context, Settings.REELS_PIP_STILLS,
+                        L10n.t("Photos and carousels in the reels window"),
+                        L10n.t("Photo and carousel reels go in Instagram's small window for reels too. "
+                                + "A carousel shows a dot for each page, and Previous and Next go through its pages first.")));
                 playback.addPreference(toggle(context, Settings.STORIES_PICTURE_IN_PICTURE,
                         L10n.t("Picture in picture for stories"),
                         L10n.t("Leaving Instagram while a story plays shrinks it into a small window over your other "
@@ -87,6 +92,9 @@ final class PlaybackCategory {
                 playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS, L10n.t("Resume long videos"),
                         L10n.t("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. "
                                 + "Live videos and ads start as usual.")));
+                playback.addPreference(toggle(context, Settings.RESUME_FEED_VIDEOS, L10n.t("Keep your place in feed videos"),
+                        L10n.t("A feed video you scroll away from picks up where you left it when you scroll back, "
+                                + "until you close Instagram. Reels in the Reels tab start over as usual.")));
                 page.clearPositions = new Row(context);
                 page.clearPositions.setKey("hushgram_clear_resume_points");
                 page.clearPositions.setPersistent(false);
@@ -122,6 +130,12 @@ final class PlaybackCategory {
                 playback.addPreference(toggle(context, Settings.KEEP_HDR_ON_PHOTO_UPLOADS, L10n.t("Keep HDR on photo uploads"),
                         L10n.t("Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, "
                                 + "so it can still show in HDR. Turn it off if a photo you post looks wrong.")));
+            }
+            if (build.contains(PatchFamily.HDR_VIDEOS)) {
+                playback.addPreference(toggle(context, Settings.KEEP_HDR_ON_VIDEO_UPLOADS, L10n.t("Keep HDR on video uploads"),
+                        L10n.t("Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where "
+                                + "Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong "
+                                + "or won't upload.")));
             }
         }
     }

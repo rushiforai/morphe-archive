@@ -1,3 +1,63 @@
+## [1.7.12](https://github.com/6zev/morphe-patches/compare/v1.7.11...v1.7.12) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **patches:** stop emitting a monitor the heartbeat method never took ([e76e665](https://github.com/6zev/morphe-patches/commit/e76e665f9b6569b335866efb309ec8544b74e0bf))
+
+## [1.7.11](https://github.com/6zev/morphe-patches/compare/v1.7.10...v1.7.11) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **patches:** answer the DataStore counter from memory so the mapping never aborts ([c3aaf59](https://github.com/6zev/morphe-patches/commit/c3aaf5947edc9bf9714a619d83f08665d9b022c8))
+
+## [1.7.10](https://github.com/6zev/morphe-patches/compare/v1.7.9...v1.7.10) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **patches:** open the Firebase preference store under the store's own name ([65fb85d](https://github.com/6zev/morphe-patches/commit/65fb85d19d081056b395350550d7e46d050b641c))
+
+## [1.7.9](https://github.com/6zev/morphe-patches/compare/v1.7.8...v1.7.9) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **patches:** keep startup off the DataStore shared counter and the heartbeat store ([b5c6843](https://github.com/6zev/morphe-patches/commit/b5c6843c3ab014940de760748627b250a6d65c32))
+
+## [1.7.8](https://github.com/6zev/morphe-patches/compare/v1.7.7...v1.7.8) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **patches:** find the licence checker by shape and keep patched classes in their own dex ([b5beb3c](https://github.com/6zev/morphe-patches/commit/b5beb3c660fbec615c1027fbcee89103ba9a74bb))
+
+## [1.7.7](https://github.com/6zev/morphe-patches/compare/v1.7.6...v1.7.7) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **patches:** drop the native licence disarm, keep the Java grant only ([ead2419](https://github.com/6zev/morphe-patches/commit/ead2419948d5072f34f79db486f01896786c780e))
+
+## [1.7.6](https://github.com/6zev/morphe-patches/compare/v1.7.5...v1.7.6) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **patches:** land the engine disarm on the branch, not the word after it ([e04781f](https://github.com/6zev/morphe-patches/commit/e04781f1851da2209c3e8879591ec842b35b2693))
+
+## [1.7.5](https://github.com/6zev/morphe-patches/compare/v1.7.4...v1.7.5) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **patches:** disarm every licence refusal in the engine, not just the routine's ([6186676](https://github.com/6zev/morphe-patches/commit/6186676e008220c98061c944dd861a090154230c))
+
+## [1.7.4](https://github.com/6zev/morphe-patches/compare/v1.7.3...v1.7.4) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **patches:** disarm only the engine refusals, never its callers ([71a7df5](https://github.com/6zev/morphe-patches/commit/71a7df5b8e9fad327e977c9bb8de13e33840f3fd))
+
+## [1.7.3](https://github.com/6zev/morphe-patches/compare/v1.7.2...v1.7.3) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **patches:** anchor the arm32 shell-command guard on its decision seats ([bffd0e0](https://github.com/6zev/morphe-patches/commit/bffd0e0a02d8ab629a605266757c5226e1931eb3))
+
 ## [1.7.2](https://github.com/6zev/morphe-patches/compare/v1.7.1...v1.7.2) (2026-11-26)
 
 ### 🐛 Bug Fixes

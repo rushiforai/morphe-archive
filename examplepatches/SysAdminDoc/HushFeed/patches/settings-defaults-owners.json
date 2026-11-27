@@ -60,6 +60,7 @@
       "PUBLISH_DATE_DAY_FIRST",
       "PUBLISH_DATE_MONTH_NAME",
       "PUBLISH_DATE_INSTEAD_OF_AGE",
+      "PUBLISH_DATE_EVERYWHERE",
       "PUBLISH_DATE_ON_GRID",
       "VIDEO_LENGTH_ON_GRID",
       "HIDE_GRID_VIEW_COUNT",
@@ -203,6 +204,9 @@
       "DELETE_WATCHED_OFFLINE_VIDEOS",
       "KEEP_OFFLINE_VIDEOS"
     ],
+    "Dark mode": [
+      "LITE_DARK_MODE"
+    ],
     "Device privacy guard": [
       "BLOCK_CLIPBOARD_READS",
       "HIDE_VPN",
@@ -213,6 +217,7 @@
       "DEBUG",
       "DEBUG_LOG_FILTERS",
       "CAPTURE_JAVA_CRASHES",
+      "FREE_MEMORY_EARLY",
       "DEBUG_STACKTRACE",
       "DEBUG_TOAST_ON_ERROR"
     ],
@@ -444,7 +449,6 @@
       "HIDE_INBOX_GROUP_CHAT_BANNER",
       "HIDE_CHAT_CALL_BUTTONS",
       "HIDE_CHAT_STICKER_BANNER",
-      "HIDE_CHAT_AI_REPLIES",
       "TURN_OFF_CHAT_DOUBLE_TAP",
       "TURN_OFF_CHAT_SWIPE_REPLY",
       "HIDE_INBOX_CUSTOM_TITLES",
@@ -510,6 +514,7 @@
       "INVISIBLE_CONTROLS_KEEP_CAPTION",
       "SEE_THROUGH_BOTTOM_BAR",
       "SEE_THROUGH_VIDEO_IN_WINDOW",
+      "PAGES_UNDER_BOTTOM_BAR",
       "FLOATING_BOTTOM_BAR",
       "LIQUID_GLASS_BOTTOM_BAR",
       "GLASS_TAB_LENS",
@@ -603,6 +608,10 @@
       "SHOW_EXACT_LIVE_VIEWERS",
       "SHOW_EXACT_BATTLE_SCORES",
       "LIVE_ROOM_INFO",
+      "HIDE_LIVE_ROOM_ID",
+      "HIDE_LIVE_PING",
+      "HIDE_LIVE_LATENCY",
+      "HIDE_LIVE_DOWNLOAD_SPEED",
       "LIVE_RUNNING_TIME",
       "LIVE_FOLLOWING_ROW_ORDER",
       "OFFER_LIVE_QUALITY",
@@ -739,6 +748,7 @@
       "SIM_SPOOF_TIME_ZONE",
       "SIMSPOOF_MCCMNC",
       "SIMSPOOF_OP_NAME",
+      "SIM_SPOOF_PRESETS",
       "SIM_SPOOF_FEED_REAL",
       "LIVE_FEED_COUNTRIES"
     ],
@@ -827,6 +837,7 @@
     "Show follow status": [
       "SHOW_FOLLOW_STATUS",
       "SHOW_JOIN_DATE",
+      "SHOW_PROFILE_VIDEO_COUNT",
       "SHOW_PROFILE_CHANGES",
       "LOCAL_PROFILE_COUNTS",
       "LOCAL_PROFILE_VERIFIED_BADGE",
@@ -853,6 +864,7 @@
       "SIM_SPOOF_ISO",
       "SIMSPOOF_MCCMNC",
       "SIMSPOOF_OP_NAME",
+      "SIM_SPOOF_PRESETS",
       "SIM_SPOOF_FEED_REAL"
     ],
     "Skip content warnings": [
@@ -962,6 +974,7 @@
     "REMOTE_CONFIG_STAMP": "Runtime state or legacy migration data; not a configurable feature default.",
     "AUTO_STREAK_STATE": "Runtime state or legacy migration data; not a configurable feature default.",
     "AMOLED_SWITCH_BUILT_IN": "Runtime state or legacy migration data; not a configurable feature default.",
+    "LIVE_ROOM_INFO_COLLAPSED": "Runtime state or legacy migration data; not a configurable feature default.",
     "FEED_NAVIGATION_OBSERVED_TABS": "Runtime state or legacy migration data; not a configurable feature default.",
     "BOTTOM_NAVIGATION_OBSERVED_TABS": "Runtime state or legacy migration data; not a configurable feature default.",
     "COMMENT_TRANSLATE_BUTTON_TURNED_ON": "Runtime state or legacy migration data; not a configurable feature default.",

@@ -1360,6 +1360,15 @@
     <string name="gboard_patches_manual_incognito_error_summary">
         <translation locale="en">The incognito settings screen failed to load. Reopen Gboard settings and try again.</translation>
     </string>
+    <string name="gboard_patches_shift_delete_title">
+        <translation locale="en">Shift + Backspace Forward Delete</translation>
+    </string>
+    <string name="gboard_patches_shift_delete_entry_summary">
+        <translation locale="en">Delete in front of the cursor with Shift and Backspace.</translation>
+    </string>
+    <string name="gboard_patches_shift_delete_summary">
+        <translation locale="en">Hold Shift and tap Backspace to delete the next character.</translation>
+    </string>
     <string name="gboard_patches_long_press_quick_actions_title">
         <translation locale="en">Long-Press Editing Shortcuts</translation>
     </string>
@@ -1391,7 +1400,7 @@
         <translation locale="en">Select all when nothing is selected</translation>
     </string>
     <string name="gboard_patches_long_press_quick_actions_select_all_summary">
-        <translation locale="en">When no text is selected, long-press C/X or drag from Globe to C/X to copy or cut all text in the input field.</translation>
+        <translation locale="en">When no text is selected, the Copy and Cut shortcuts can select all text in the field.</translation>
     </string>
     <string name="gboard_patches_long_press_quick_actions_section_mappings">
         <translation locale="en">Mappings</translation>
@@ -1580,7 +1589,7 @@
         <translation locale="en">Recognise text from an image, and choose the backend engine.</translation>
     </string>
     <string name="gboard_patches_ocr_header_summary">
-        <translation locale="en">The engine ships inside the patch, so nothing is downloaded. Latin text only.</translation>
+        <translation locale="en">Scan Text captures a photo. Use Local AI for Gemma recognition, or keep the bundled Latin recognizer.</translation>
     </string>
     <string name="gboard_patches_ocr_image_section">
         <translation locale="en">Text from an image</translation>
@@ -1589,7 +1598,7 @@
         <translation locale="en">Choose an image</translation>
     </string>
     <string name="gboard_patches_ocr_image_summary">
-        <translation locale="en">Runs the bundled engine on a screenshot or photo and copies the text to the clipboard. Latin text only.</translation>
+        <translation locale="en">Read a screenshot or photo with the selected OCR backend and copy its text to the clipboard.</translation>
     </string>
     <string name="gboard_patches_ocr_image_unreadable">
         <translation locale="en">That file could not be read as an image.</translation>
@@ -2907,7 +2916,7 @@
         <translation locale="en">Features</translation>
     </string>
     <string name="gboard_patches_beta_flags_master_summary">
-        <translation locale="en">Master switch for every feature below. Each one can also be turned on by itself.</translation>
+        <translation locale="en">Turn this on to apply the selected beta features. Turn it off to use Gboard’s own values and keep your selections.</translation>
     </string>
     <string name="gboard_patches_beta_flag_quick_paste_title">
         <translation locale="en">Plain-text quick-paste chip</translation>
@@ -2957,4 +2966,35 @@
     <string name="gboard_patches_hidden_flags_error_summary">
         <translation locale="en">The hidden flags screen failed to load. Reopen Gboard settings and try again.</translation>
     </string>
+    <string name="gboard_patches_shared_model_setup_title"><translation locale="en">Set up shared local model</translation></string>
+    <string name="gboard_patches_shared_model_setup_summary"><translation locale="en">Open Local Model Host for installation, model readiness and Always ready settings.</translation></string>
+    <string name="gboard_patches_shared_model_label"><translation locale="en">Shared local model</translation></string>
+    <string name="gboard_patches_ocr_shared_title"><translation locale="en">Use Local AI for text scanning</translation></string>
+    <string name="gboard_patches_ocr_shared_summary"><translation locale="en">Use Gemma for the Scan Text camera and chosen images. Also enabled by Use Local AI. Enable Images and text scanning in Local Model Host.</translation></string>
+    <string name="gboard_patches_ocr_shared_unavailable"><translation locale="en">Shared OCR is unavailable. Check provider readiness, enable images/OCR, or choose a smaller crop.</translation></string>
+    <string name="gboard_patches_shared_model_install_note"><translation locale="en">Install Local Model Host as a separate optional provider. The APK must match the trusted package, release checksum and signing certificate. Android will ask you to confirm installation.</translation></string>
+    <string name="gboard_patches_shared_model_open"><translation locale="en">Open provider setup</translation></string>
+    <string name="gboard_patches_shared_model_choose_apk"><translation locale="en">Choose provider APK</translation></string>
+    <string name="gboard_patches_shared_model_installed"><translation locale="en">Provider installed. Open it to check model readiness and choose Always ready or Session ready.</translation></string>
+    <string name="gboard_patches_shared_model_missing"><translation locale="en">Local Model Host is not installed. Install from GitLab or choose its matching signed APK.</translation></string>
+    <string name="gboard_patches_shared_model_release_unavailable"><translation locale="en">Trusted provider release information is unavailable in this patch build. Installation cannot be verified.</translation></string>
+    <string name="gboard_patches_shared_model_verifying"><translation locale="en">Verifying the provider APK…</translation></string>
+    <string name="gboard_patches_shared_model_verification_failed"><translation locale="en">This APK does not match the trusted provider release. Installation was not started.</translation></string>
+    <string name="gboard_patches_shared_model_source_required"><translation locale="en">Allow installation from Gboard in Android settings to continue.</translation></string>
+    <string name="gboard_patches_shared_model_install_failed"><translation locale="en">Android could not open the installer. Try choosing the APK again.</translation></string>
+    <string name="gboard_patches_shared_context_title"><translation locale="en">Local AI context and options</translation></string>
+    <string name="gboard_patches_shared_context_summary"><translation locale="en">Your style examples, explicit reply context, saved instructions and experimental typing options.</translation></string>
+    <string name="gboard_patches_shared_model_entry"><translation locale="en">Local AI</translation></string>
+    <string name="gboard_patches_shared_model_entry_summary"><translation locale="en">Install Local Model Host, check readiness and use Gemma for supported writing features.</translation></string>
+    <string name="gboard_patches_shared_model_download"><translation locale="en">Install from GitLab</translation></string>
+    <string name="gboard_patches_shared_model_use"><translation locale="en">Use Local AI</translation></string>
+    <string name="gboard_patches_shared_model_downloading"><translation locale="en">Downloading Local Model Host…</translation></string>
+    <string name="gboard_patches_shared_model_download_failed"><translation locale="en">Download or verification failed. Check your connection and available storage, then try again.</translation></string>
+    <string name="gboard_patches_shared_model_ready"><translation locale="en">Model ready. Choose Use Local AI to route Gboard writing tools and local text actions through Gemma.</translation></string>
+    <string name="gboard_patches_shared_model_loading"><translation locale="en">Loading the model. Local AI will be available when loading finishes.</translation></string>
+    <string name="gboard_patches_shared_model_memory_paused"><translation locale="en">Local AI is paused because memory is low. Open provider setup to check recovery.</translation></string>
+    <string name="gboard_patches_shared_model_model_missing"><translation locale="en">The provider is installed. Open its setup to download or import the model.</translation></string>
+    <string name="gboard_patches_shared_model_stopped"><translation locale="en">Local Model Host is stopped. Open provider setup and choose Start when you want to use it.</translation></string>
+    <string name="gboard_patches_shared_model_enabled"><translation locale="en">Local AI selected for Gboard writing features. Image OCR has a separate vision option; Parakeet voice recognition is unchanged.</translation></string>
+    <string name="gboard_patches_shared_model_untrusted"><translation locale="en">The installed provider signature does not match the trusted release. Local AI has not been enabled.</translation></string>
 </settings-text>

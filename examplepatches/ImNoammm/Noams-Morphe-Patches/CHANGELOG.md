@@ -1,9 +1,31 @@
+# [1.6.0](https://github.com/ImNoammm/Noams-Morphe-Patches/compare/v1.5.2...v1.6.0) (2026-11-27)
+
+### Features
+
+* **Chess.com:** the patches are for chess.com 4.10.29 now, in place of 4.10.18
+* **Chess.com:** AMOLED black also makes the bottom bar black
+* **Gboard:** the patches are for Gboard 18.5.4 now, the version GboardWu moved to. 18.2.4 still works in this release
+* **Gboard:** the mic can open Google voice typing (Speech Services by Google), which works offline, in place of Whisper, once its keyboard is on in Android's settings
+* **Gboard:** the FUTO Voice Input app can be the voice typing engine too, thanks to @yair-654 (#40)
+* **Gboard:** the clipboard can keep items longer than 1 hour, up to forever, and show more than its 5 latest
+* **Gboard:** the space bar's row can be made shorter, so the keyboard takes less of the screen
+
+### Bug Fixes
+
+* **Geocaching:** a new account no longer gets stuck on a blank map after signing in. The screen that suggests a first cache is a Google map, which stays blank without Google's key, so it's skipped, as the app itself does once an account has a few finds
+
+# [1.5.2](https://github.com/ImNoammm/Noams-Morphe-Patches/compare/v1.5.1...v1.5.2) (2026-11-26)
+
+### Bug Fixes
+
+* **Chess.com:** Stockfish analysis patches again in Morphe Manager 2.7. Manager 2.7 runs patches in a new Java runtime that can't look up github.com on some phones, so the Stockfish download failed. When that happens, the patch now looks the address up over DNS over HTTPS, thanks to @quwi26 for finding the cause
+
 # [1.5.1](https://github.com/ImNoammm/Noams-Morphe-Patches/compare/v1.5.0...v1.5.1) (2026-11-07)
 
 ### Bug Fixes
 
 * **Block Blast:** the mods no longer disappear after you close and reopen the game. Its newer updater downloaded a game update in the background and swapped it in at the next start, and it's blocked now
-* **Chess.com:** board coordinates show again with Board colors on. Its two coordinate colours were swapped, so each label took the colour of its own square, thanks to @quwi26
+* **Chess.com:** board coordinates show again with Board colors on. Its two coordinate colors were swapped, so each label took the color of its own square, thanks to @quwi26
 
 # [1.5.0](https://github.com/ImNoammm/Noams-Morphe-Patches/compare/v1.4.3...v1.5.0) (2026-10-29)
 
@@ -99,6 +121,6 @@
 
 ### Features
 
-* **Chess.com:** arrows and marked squares in every game, your own board and accent colours, AMOLED black, the website's Arcade animations, a Home screen and bottom bar you choose, time controls under a minute and Game Review on Lichess, with no ads, rating prompts or Premium upsells
-* **Block Blast:** Classic trays dealt by the iOS game's own code, its colour, block, menu and animation themes and its extra effects, no ads, no revive offer, no impossible trays, a quicker game over and an optional fake best score
+* **Chess.com:** arrows and marked squares in every game, your own board and accent colors, AMOLED black, the website's Arcade animations, a Home screen and bottom bar you choose, time controls under a minute and Game Review on Lichess, with no ads, rating prompts or Premium upsells
+* **Block Blast:** Classic trays dealt by the iOS game's own code, its color, block, menu and animation themes and its extra effects, no ads, no revive offer, no impossible trays, a quicker game over and an optional fake best score
 * **Gboard:** no internet permission and no Google services, voice typing and translation that run on the phone, GIFs from sources you pick through a small helper app, and the keyboard no longer mirrors for right-to-left languages, plus a few features ported from jasonwu1994's Gboard patches

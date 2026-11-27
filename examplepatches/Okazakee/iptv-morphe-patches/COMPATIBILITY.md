@@ -4,14 +4,17 @@ Which IPTV Pro Stream Player builds each patch bundle release supports, and how 
 version was verified. Morphe Manager only offers the versions declared inside the
 bundle; this file is the human-readable history behind that list.
 
-## Supported versions (current: v1.3.0)
+## Supported versions (current: v1.4.0)
 
 | Package | App version | versionCode | Status | Verification |
 |---------|-------------|-------------|--------|--------------|
+| `com.iptvprostreamplayer.v1` | 2.7.28 | 211 | ✅ Supported | 2026-11-26 — dex-level: 6/6 edits, local `.mpp` |
+| `com.iptvprostreamplayer.v1` | 2.7.27 | 210 | ✅ Supported | 2026-11-26 — dex-level: 6/6 edits, local `.mpp` |
 | `com.iptvprostreamplayer.v1` | 2.7.24 | 207 | ✅ Supported | 2026-10-27 — dex-level: 6/6 edits, released `.mpp` |
 | `com.iptvprostreamplayer.v1` | 2.7.21 | 204 | ✅ Supported | 2026-10-19 — dex-level: 6/6 edits |
 | `com.iptvprostreamplayer.v1` | 2.7.17 | — | ⚪ Older target | Not re-verified in recent releases |
 | `com.iptvprostreamplayer.v1` | 1.2.7 | — | ⚪ Older target | Not re-verified in recent releases |
+| `com.iptvprostreamplayer.v1.fr` | 2.7.28 | 211 | ✅ Supported | 2026-11-26 — dex-level: 6/6 edits, local `.mpp` |
 | `com.iptvprostreamplayer.v1.fr` | 2.7.24 | 207 | ✅ Supported | 2026-10-27 — dex-level: 6/6 edits, released `.mpp` |
 | `com.iptvprostreamplayer.v1.fr` | 2.7.21 | 204 | ✅ Supported | 2026-10-19 — dex-level: 6/6 edits |
 
@@ -28,6 +31,7 @@ selected”.
 
 | Bundle | Date | App versions | Notes |
 |--------|------|--------------|-------|
+| [v1.4.0](https://github.com/Okazakee/iptv-morphe-patches/releases/tag/v1.4.0) | 2026-11-26 | 2.7.27 + 2.7.28 (global), 2.7.28 (`.fr`) | Third obfuscation map: gate reader `k53.c`/`j53.c`, entitlement `ei7.l`/`di7.l` |
 | [v1.3.0](https://github.com/Okazakee/iptv-morphe-patches/releases/tag/v1.3.0) | 2026-10-27 | 2.7.24 (global + `.fr`) | Remapped subscription gate to the new coroutine/Remote Config layer (`s43.c`), pro entitlement to `qh7.l` |
 | [v1.2.0](https://github.com/Okazakee/iptv-morphe-patches/releases/tag/v1.2.0) | 2026-10-19 | `.fr` 2.7.21 | Added the French localized build as a second package |
 | [v1.1.0](https://github.com/Okazakee/iptv-morphe-patches/releases/tag/v1.1.0) | 2026-10-19 | 2.7.21 | Re-verified the patch unchanged on the 2.7.21 build |
@@ -43,6 +47,8 @@ out in the release notes.
 
 | App version | Subscription gate | Pro entitlement | Installer-source spoof |
 |-------------|-------------------|-----------------|-----------------------|
+| 2.7.28 | `k53.c(String)Z` — only the `subscription_needed` key is forced to false | `ei7.l(Z, Continuation)` returns `Boolean.TRUE` | shared `changePackageInstallerPatch` (`c55`, `e14`, `zp`, `LicenseClient`) |
+| 2.7.27 | `j53.c(String)Z` — only the `subscription_needed` key is forced to false | `di7.l(Z, Continuation)` returns `Boolean.TRUE` | shared `changePackageInstallerPatch` (`b55`, `d14`, `zp`, `LicenseClient`) |
 | 2.7.24 | `s43.c(String)Z` — only the `subscription_needed` key is forced to false | `qh7.l(Z, Continuation)` returns `Boolean.TRUE` | shared `changePackageInstallerPatch` (`i04`, `c45`, `dq`, `LicenseClient`) |
 | 2.7.21 | `O7/j.A()Z` / `O7/j.B()Z` forced to false | `O7/h.w()` / `O7/h.x()` return `Boolean.TRUE` | shared `changePackageInstallerPatch` |
 | 2.7.17 / 1.2.7 | Earlier mapping (not re-verified) | Earlier mapping (not re-verified) | Earlier mapping (not re-verified) |

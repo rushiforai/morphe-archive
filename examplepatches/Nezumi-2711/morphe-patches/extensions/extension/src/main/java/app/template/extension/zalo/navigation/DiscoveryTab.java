@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -12,7 +13,7 @@ public final class DiscoveryTab {
     private DiscoveryTab() { }
 
     public static boolean isDiscoveryHidden() {
-        return NezumiPrefs.bool(ZaloEnv.appContext(), NezumiPrefs.HIDE_DISCOVERY, true);
+        return NezumiPrefs.bool(ZaloEnv.appContext(Patch.HIDE_DISCOVERY_TAB), NezumiPrefs.HIDE_DISCOVERY, true);
     }
 
     public static void recreateAfterChange(Context context) {
@@ -29,7 +30,7 @@ public final class DiscoveryTab {
             configuration.getClass().getMethod("o").invoke(configuration);
             configuration.getClass().getMethod("q").invoke(configuration);
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
-            NezumiLog.swallowedOnce("NezumiDiscovery", "tab configuration refresh unavailable (y5f)", failure);
+            NezumiLog.swallowedOnce(Patch.HIDE_DISCOVERY_TAB, "DiscoveryTab", "tab configuration refresh unavailable (y5f)", failure);
         }
     }
 }

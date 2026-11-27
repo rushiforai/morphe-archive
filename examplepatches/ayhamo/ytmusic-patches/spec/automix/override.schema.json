@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "override.schema.json",
+  "title": "Transition override",
+  "description": "A user's edit of one pair's transition (editor.md). Stored per pair under the key \"<fromVideoId>><toVideoId>\". A missing field is Auto; an override with nothing but Auto in it is deleted.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "v": { "const": 1, "description": "this schema's version" },
+    "preset": {
+      "enum": ["auto", "smooth", "rise", "blend", "wave", "melt", "slam", "afterglow", "surge", "dissolve", "none", "loop", "custom"],
+      "description": "editor.md §2 (Spotify's presets; smooth is its Fade, none its No transition). echoOut is reserved (§5) and not valid until both apps render it."
+    },
+    "lanes": {
+      "type": "object",
+      "description": "Only with preset custom: each lane a shape of editor.md §3 (fx: §12), or a drawing (§10)",
+      "additionalProperties": false,
+      "required": ["volume", "eq", "effect"],
+      "properties": {
+        "volume": { "oneOf": [
+          { "enum": ["smooth", "crossfade", "overlap", "cutInFadeOut", "fadeInCutOut", "centerCut", "fadeInFadeOut", "fadeInFastOut", "fadeIn1BarCutOut", "overlap1BarCutOut"] },
+          { "type": "object", "additionalProperties": false, "required": ["unit", "out", "in"],
+            "properties": { "unit": { "$ref": "#/$defs/unit" }, "out": { "$ref": "#/$defs/gainCurve" }, "in": { "$ref": "#/$defs/gainCurve" } } }
+        ] },
+        "eq": { "oneOf": [
+          { "enum": ["centerBassSwap", "endBassSwap", "threeBandFade", "quickBassCut", "none", "startBassSwap", "longBassCut", "bassFadeOut"] },
+          { "type": "object", "additionalProperties": false, "required": ["unit", "out", "in"],
+            "properties": { "unit": { "$ref": "#/$defs/unit" }, "out": { "$ref": "#/$defs/eqDeck" }, "in": { "$ref": "#/$defs/eqDeck" } } }
+        ] },
+        "effect": { "oneOf": [
+          { "enum": ["none", "lpOut", "hpIn", "lpBoth", "hpBoth", "lpInHpOut", "hpOut", "lpIn", "hpInLpOut", "hpHalfOut", "noiseOutEnd"] },
+          { "type": "object", "additionalProperties": false, "required": ["unit", "out", "in"],
+            "properties": { "unit": { "$ref": "#/$defs/unit" }, "out": { "$ref": "#/$defs/effectDeck" }, "in": { "$ref": "#/$defs/effectDeck" } } }
+        ] },
+        "fx": { "description": "editor.md §12, the Effects lane: absent is none (a none is not stored)", "oneOf": [
+          { "enum": ["echo1CutEnd", "echo34CutEnd", "echoHalfCutEnd", "echo1OutEnd", "echo34OutEnd", "echoHalfOutEnd", "delay34CutEnd", "delayHalfCutEnd", "reverbCutEnd", "reverbOutEnd", "reverbOutCenter"] },
+          { "type": "object", "additionalProperties": false, "required": ["unit", "out", "in"],
+            "properties": { "unit": { "$ref": "#/$defs/unit" }, "out": { "$ref": "#/$defs/fxDeck" }, "in": { "$ref": "#/$defs/fxDeck" },
+              "echoBeats": { "enum": [1, 0.75, 0.5], "description": "the echo's time in beats; absent: 0.75" },
+              "delayBeats": { "enum": [0.75, 0.5], "description": "the delay's time in beats; absent: 0.5" } } }
+        ] },
+        "looping": { "description": "editor.md §13, the Looping lane: a shape only, absent is none (a none is not stored)",
+          "enum": ["loop1", "loop2", "loop4", "loop8", "loop16"] }
+      }
+    },
+    "bars": { "enum": [2, 4, 8, 16, 32], "description": "the window's length; absent: Auto. Ignored for loop." },
+    "beatMatch": { "enum": ["auto", "sync", "glide", "off"], "description": "editor.md §4; absent: auto" },
+    "window": {
+      "type": "object",
+      "description": "editor.md §6: where the window starts in each song; absent: Auto. Ignored for loop.",
+      "additionalProperties": false,
+      "properties": {
+        "out": { "$ref": "#/$defs/position", "description": "A's mix-out, on A's end grid" },
+        "in": { "$ref": "#/$defs/position", "description": "B's mix-in, on B's opening grid; only here, delaySec (mix-file.md rule 2)" }
+      }
+    },
+    "lock": { "type": "boolean", "description": "kept past the 300-override cap; a lock beyond 300 locked is refused" },
+    "family": {
+      "enum": ["blend", "filter"],
+      "description": "only in picks migrated from {style, bars} (editor.md §1): the planner's own blend or filter mix, forced. The editor never writes it."
+    },
+    "gridBpm": { "type": "number", "minimum": 20, "maximum": 400, "description": "the tempo of A that bars and beat drawings count on (mix-file.md rule 4): an app reading A at half or double it folds the beats; not an edit on its own" },
+    "speed": {
+      "type": "object", "additionalProperties": false, "minProperties": 1,
+      "description": "spotify-mixes.md rule 10: the speed A (out) and B (in) play at in the playlist the mix came from, pitch kept, the whole time each song plays; absent: 1",
+      "properties": { "out": { "type": "number", "minimum": 0.5, "maximum": 2 }, "in": { "type": "number", "minimum": 0.5, "maximum": 2 } }
+    },
+    "engine": { "enum": [2, 3], "description": "the Automix version the user saw when saving (informational)" },
+    "savedAt": { "type": "integer", "description": "ms since the epoch; the cap evicts the oldest unlocked" }
+  },
+  "allOf": [
+    { "if": { "properties": { "preset": { "const": "custom" } }, "required": ["preset"] }, "then": { "required": ["lanes"] }, "else": { "not": { "required": ["lanes"] } } }
+  ],
+  "$defs": {
+    "unit": { "enum": ["beat", "sec"], "description": "editor.md §10 rule 1: x in beats of A from the window's start, or seconds of the mix" },
+    "points": {
+      "type": "array", "maxItems": 128,
+      "description": "[x, v], sorted by x; at most 2 at one x (a step, played as an 8 ms ramp)",
+      "items": { "type": "array", "prefixItems": [{ "type": "number", "minimum": 0 }, { "type": "number" }], "minItems": 2, "maxItems": 2 }
+    },
+    "gainCurve": { "allOf": [{ "$ref": "#/$defs/points" }], "minItems": 1, "items": { "prefixItems": [true, { "minimum": 0, "maximum": 1 }] } },
+    "dbCurve": { "allOf": [{ "$ref": "#/$defs/points" }], "minItems": 1, "items": { "prefixItems": [true, { "minimum": -18, "maximum": 0 }] } },
+    "hzCurve": { "allOf": [{ "$ref": "#/$defs/points" }], "minItems": 1, "items": { "prefixItems": [true, { "minimum": 20, "maximum": 20000 }] } },
+    "eqDeck": { "type": "object", "additionalProperties": false, "properties": { "bass": { "$ref": "#/$defs/dbCurve" }, "mid": { "$ref": "#/$defs/dbCurve" }, "high": { "$ref": "#/$defs/dbCurve" } } },
+    "effectDeck": { "type": "object", "additionalProperties": false, "properties": { "lp": { "$ref": "#/$defs/hzCurve" }, "hp": { "$ref": "#/$defs/hzCurve" }, "noise": { "$ref": "#/$defs/amountCurve" } } },
+    "fxDeck": { "type": "object", "additionalProperties": false, "properties": { "echo": { "$ref": "#/$defs/amountCurve" }, "reverb": { "$ref": "#/$defs/amountCurve" }, "delay": { "$ref": "#/$defs/amountCurve" } } },
+    "amountCurve": { "allOf": [{ "$ref": "#/$defs/points" }], "minItems": 1, "items": { "prefixItems": [true, { "minimum": 0, "maximum": 1 }] } },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sec"],
+      "properties": {
+        "bar": { "type": "integer", "description": "the downbeat index on that song's grid, counted from its first downbeat (0); negative before it. Absent: a position in seconds only (a mix file from another app), played at the song's nearest beat to sec (editor.md §6)" },
+        "beat": { "type": "integer", "minimum": 0, "maximum": 3, "description": "a beat within the bar (snapped to beats); absent: on the downbeat. Only with bar" },
+        "nudgeMs": { "type": "integer", "minimum": -2000, "maximum": 2000, "description": "10 ms steps on top of the snapped position" },
+        "sec": { "type": "number", "description": "the song time this meant when saved: the fallback when a re-analysis moves the grid by more than a beat" },
+        "delaySec": { "type": "number", "minimum": 0.001, "maximum": 60, "description": "window.in only (mix-file.md rule 2 [all]): B's late entry, the seconds after the mix starts that B stays silent before it starts at sec; the curves still run from the mix start. Absent: B starts with the mix. Ignored on window.out" }
+      }
+    }
+  }
+}

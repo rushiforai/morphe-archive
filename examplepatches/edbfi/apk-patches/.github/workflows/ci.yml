@@ -69,18 +69,50 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
           ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
+  reseam:
+    # The release has its own Reseam build and signing jobs. Main CI gates the existing editions.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: { contents: read }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Install just
+        run: |
+          archive="$RUNNER_TEMP/just.tar.gz"
+          curl -fsSL --retry 3 -o "$archive" https://github.com/casey/just/releases/download/1.59.0/just-1.59.0-x86_64-unknown-linux-musl.tar.gz
+          printf '%s  %s\n' 409044617b6f06517c1035e55ca38c8c856ff8b650e41bc2aa1ef82d5903a23e "$archive" | sha256sum -c
+          tar -xzf "$archive" -C "$RUNNER_TEMP" just
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Create and reuse the APK test keystore
+        run: |
+          key=$(just test-keystore)
+          sha256sum "$key" > "$RUNNER_TEMP/test-key.sha256"
+          test "$(just test-keystore)" = "$key"
+          sha256sum -c "$RUNNER_TEMP/test-key.sha256"
+          keytool -importkeystore -noprompt -srcstoretype BKS -srckeystore "$key" \
+            -srcstorepass '' -srcalias 'ReVanced Key' -srckeypass '' \
+            -providerclass org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath "$(just _revanced-cli)" \
+            -deststoretype PKCS12 -destkeystore "$RUNNER_TEMP/test-key.p12" -deststorepass fixture-only
+      - run: just reseam-check
   ci-ok:
     if: always()
-    needs: [checks, revanced, morphe]
+    needs: [checks, revanced, morphe, reseam]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
     steps:
       - env:
           NEEDS: ${{ toJSON(needs) }}
-          ALLOWED_SKIPS: ""
+          EVENT: ${{ github.event_name }}
         run: |
-          jq -e --arg skips "$ALLOWED_SKIPS" '
+          allowed_skips=
+          if [[ "$EVENT" != pull_request ]]; then allowed_skips=reseam; fi
+          jq -e --arg skips "$allowed_skips" '
             ($skips | split(",") | map(select(. != ""))) as $allowed
             | length > 0 and all(to_entries[]; .value.result == "success"
                 or (.value.result == "skipped" and (.key | IN($allowed[]))))

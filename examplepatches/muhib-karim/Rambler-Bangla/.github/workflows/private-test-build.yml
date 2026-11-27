@@ -1,0 +1,130 @@
+# Manual: sign a private maintainer test build with the maintainer key and put
+# it on a DRAFT GitHub Release. Draft releases are visible only to people with
+# write access to this repository, so the APK is never public. The workflow
+# refuses to run against a published (non-draft) release.
+#
+# Input: the maintainer uploads the unsigned or old-key build to the draft
+# release as an asset (default name: input.apk). The workflow strips any old
+# signature, aligns and signs it with the maintainer key, checks the signer
+# against EXPECTED_CERT_SHA256 with apksigner, uploads the signed APK to the
+# same draft and deletes the input asset. Only digests go to the job summary.
+name: Private test build (draft only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      draft_tag:
+        description: Tag of the existing DRAFT release that holds the input APK
+        required: true
+      input_asset:
+        description: Name of the input APK asset on that draft
+        required: true
+        default: input.apk
+      output_name:
+        description: File name for the signed APK
+        required: true
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  sign:
+    name: Sign private test build onto a draft release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_CERT_SHA256: 679cfdec6cef6ab17a9778cde4d3bbf3b8ccfe6ae2380d3da11679aae01e2e78
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      DRAFT_TAG: ${{ inputs.draft_tag }}
+      INPUT_ASSET: ${{ inputs.input_asset }}
+      OUTPUT_NAME: ${{ inputs.output_name }}
+    steps:
+      - name: Check inputs and that the release is a draft
+        run: |
+          set -euo pipefail
+          [[ "$OUTPUT_NAME" =~ ^[A-Za-z0-9._-]+\.apk$ ]] || { echo "::error::output_name must be a plain .apk file name"; exit 1; }
+          [[ "$INPUT_ASSET" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "::error::bad input_asset"; exit 1; }
+          draft="$(gh release view "$DRAFT_TAG" -R "$REPO" --json isDraft --jq .isDraft)"
+          [ "$draft" = "true" ] || { echo "::error::release $DRAFT_TAG is not a draft; refusing"; exit 1; }
+
+      - name: Use preinstalled Temurin 21
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_21_X64/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch input APK from the draft
+        run: |
+          set -euo pipefail
+          gh release download "$DRAFT_TAG" -R "$REPO" -p "$INPUT_ASSET" -O "$RUNNER_TEMP/input.apk"
+          echo "input size: $(stat -c%s "$RUNNER_TEMP/input.apk")"
+
+      - name: Decode maintainer keystore and check its certificate
+        env:
+          RAMBLER_KEYSTORE_BASE64: ${{ secrets.RAMBLER_KEYSTORE_BASE64 }}
+          RAMBLER_KEYSTORE_PASSWORD: ${{ secrets.RAMBLER_KEYSTORE_PASSWORD }}
+          RAMBLER_KEY_ALIAS: ${{ secrets.RAMBLER_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          for v in RAMBLER_KEYSTORE_BASE64 RAMBLER_KEYSTORE_PASSWORD RAMBLER_KEY_ALIAS; do
+            if [ -z "${!v}" ]; then echo "::error::secret $v is not set"; exit 1; fi
+          done
+          umask 077
+          printf '%s' "$RAMBLER_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/rambler-maintainer.keystore"
+          actual="$(keytool -exportcert -keystore "$RUNNER_TEMP/rambler-maintainer.keystore" \
+            -storepass:env RAMBLER_KEYSTORE_PASSWORD -alias "$RAMBLER_KEY_ALIAS" | sha256sum | cut -d' ' -f1)"
+          [ "$actual" = "$EXPECTED_CERT_SHA256" ] || { echo "::error::keystore certificate does not match"; exit 1; }
+
+      - name: Strip old signature, align and sign
+        env:
+          RAMBLER_KEYSTORE_PASSWORD: ${{ secrets.RAMBLER_KEYSTORE_PASSWORD }}
+          RAMBLER_KEY_ALIAS: ${{ secrets.RAMBLER_KEY_ALIAS }}
+          RAMBLER_KEY_PASSWORD: ${{ secrets.RAMBLER_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          sdk="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          bt="$sdk/build-tools/$(ls "$sdk/build-tools" | sort -V | tail -1)"
+          echo "BUILD_TOOLS=$bt" >> "$GITHUB_ENV"
+          cp "$RUNNER_TEMP/input.apk" "$RUNNER_TEMP/stripped.apk"
+          zip -q -d "$RUNNER_TEMP/stripped.apk" 'META-INF/*.SF' 'META-INF/*.RSA' 'META-INF/*.EC' 'META-INF/*.DSA' 'META-INF/MANIFEST.MF' || true
+          "$bt/zipalign" -f -p 4 "$RUNNER_TEMP/stripped.apk" "$RUNNER_TEMP/aligned.apk"
+          "$bt/apksigner" sign \
+            --ks "$RUNNER_TEMP/rambler-maintainer.keystore" \
+            --ks-key-alias "$RAMBLER_KEY_ALIAS" \
+            --ks-pass env:RAMBLER_KEYSTORE_PASSWORD \
+            --key-pass env:RAMBLER_KEY_PASSWORD \
+            --out "$RUNNER_TEMP/$OUTPUT_NAME" \
+            "$RUNNER_TEMP/aligned.apk"
+          rm -f "$RUNNER_TEMP/rambler-maintainer.keystore" "$RUNNER_TEMP/stripped.apk" "$RUNNER_TEMP/aligned.apk"
+
+      - name: Verify signer with apksigner
+        run: |
+          set -euo pipefail
+          "$BUILD_TOOLS/apksigner" verify -v --print-certs "$RUNNER_TEMP/$OUTPUT_NAME" > "$RUNNER_TEMP/verify.txt"
+          digests="$(grep -E 'certificate SHA-256 digest:' "$RUNNER_TEMP/verify.txt" | awk '{print $NF}' | sort -u)"
+          [ "$digests" = "$EXPECTED_CERT_SHA256" ] || { echo "::error::signer digest mismatch: $digests"; exit 1; }
+          badging="$("$BUILD_TOOLS/aapt2" dump badging "$RUNNER_TEMP/$OUTPUT_NAME" 2>/dev/null | head -1 || true)"
+          {
+            echo "## Private test build"
+            echo
+            echo '```'
+            echo "signer certificate SHA-256: $digests"
+            grep -E '^Verified using v[0-9]' "$RUNNER_TEMP/verify.txt" || true
+            echo "apk SHA-256: $(sha256sum "$RUNNER_TEMP/$OUTPUT_NAME" | cut -d' ' -f1)"
+            echo "$badging" | grep -o -E "(name|versionCode|versionName)='[^']*'" | tr '\n' ' '; echo
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload signed APK to the draft and remove the input
+        run: |
+          set -euo pipefail
+          draft="$(gh release view "$DRAFT_TAG" -R "$REPO" --json isDraft --jq .isDraft)"
+          [ "$draft" = "true" ] || { echo "::error::release is no longer a draft; refusing to upload"; exit 1; }
+          gh release upload "$DRAFT_TAG" "$RUNNER_TEMP/$OUTPUT_NAME" -R "$REPO" --clobber
+          if [ "$INPUT_ASSET" != "$OUTPUT_NAME" ]; then
+            gh release delete-asset "$DRAFT_TAG" "$INPUT_ASSET" -R "$REPO" -y
+          fi

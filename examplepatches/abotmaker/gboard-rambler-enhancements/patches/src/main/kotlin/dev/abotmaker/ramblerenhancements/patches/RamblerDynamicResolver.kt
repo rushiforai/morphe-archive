@@ -130,6 +130,51 @@ internal data class VoiceLifecycleTargets(
     val onListeningStopMethod: MutableMethod,
 )
 
+internal data class LearnedFixesTargets(
+    val onAppInputContextChangedMethod: MutableMethod?,
+    val onDeactivateMethod: MutableMethod?,
+)
+
+internal data class AccessPointTargets(
+    val orderFactoryMethod: MutableMethod,
+    val controllerConstructor: MutableMethod,
+    val immutableSetType: String,
+    val controllerClass: String,
+    val controllerOrderHelperField: String,
+    val controllerRegisterMethod: String,
+    val orderHelperClass: String,
+    val orderHelperCatalogField: String,
+    val immutableSetClass: String,
+    val immutableSetCopyMethod: String,
+    val descriptorClass: String,
+    val descriptorBuilderFactoryMethod: String,
+    val builderBaseClass: String,
+    val builderConcreteClass: String,
+    val builderTokenMethod: String,
+    val builderRunnableMethod: String,
+    val builderBuildMethod: String,
+    val builderIconField: String,
+    val builderLabelField: String,
+)
+
+internal data class SpacebarTriggerTargets(
+    val langPickerClass: MutableClass,
+    val consumeEventMethod: MutableMethod,
+    val initialStateMethod: MutableMethod,
+    val softKeyboardViewClass: MutableClass?,
+    val softKeyboardDispatchTouchMethod: MutableMethod?,
+    val eventGetKeyDataMethod: String,
+    val eventActionField: String,
+    val keyDataCodeField: String,
+    val keyDataDataField: String,
+    val extGetContextMethod: String,
+    val agenticIsActiveMethod: String,
+    val agenticTriggerMethod: String,
+    val agenticClassName: String,
+    val agenticUiManagerField: String,
+    val uiManagerGetStateMethod: String,
+)
+
 internal object RamblerDynamicResolver {
     private const val CONTEXT_TYPE = "Landroid/content/Context;"
     private const val INTENT_TYPE = "Landroid/content/Intent;"
@@ -694,6 +739,42 @@ internal object RamblerDynamicResolver {
         return VoiceLifecycleTargets(
             onVoiceStartMethod = onVoiceStart,
             onListeningStopMethod = onListeningStop,
+        )
+    }
+
+    fun resolveLearnedFixesTargets(
+        context: BytecodePatchContext,
+        extensionClass: MutableClass,
+    ): LearnedFixesTargets {
+        var onAppInputContextChanged: MutableMethod? = null
+        context.classDefForEach { cls ->
+            if (onAppInputContextChanged != null) return@classDefForEach
+            val match = cls.methods.firstOrNull { method ->
+                (method.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                    method.parameterTypes.size == 1 &&
+                    method.parameterTypes.first().toString().startsWith("L") &&
+                    method.returnType == "V" &&
+                    method.containsString("onAppInputContextChanged") &&
+                    method.containsString("InputContext cleared due to: %s")
+            }
+            if (match != null) {
+                val mutableCls = context.mutableClassDefBy(cls.type)
+                onAppInputContextChanged = mutableCls.methods.firstOrNull { m ->
+                    m.name == match.name &&
+                        m.parameterTypes.map { it.toString() } == match.parameterTypes.map { it.toString() } &&
+                        m.returnType == match.returnType
+                }
+            }
+        }
+        val onDeactivate = extensionClass.methods.singleOrNull { method ->
+            (method.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                method.parameterTypes.isEmpty() &&
+                method.returnType == "V" &&
+                method.containsString("onDeactivate")
+        }
+        return LearnedFixesTargets(
+            onAppInputContextChangedMethod = onAppInputContextChanged,
+            onDeactivateMethod = onDeactivate,
         )
     }
 
@@ -1389,6 +1470,379 @@ internal object RamblerDynamicResolver {
             }
         }
         return null
+    }
+
+    /**
+     * Dynamically fingerprints Gboard's Toolbar Access Point catalog, controller, and descriptor
+     * builder classes (verified on both Gboard 18.5.4 and 18.8.0) so a draggable "Rambler"
+     * shortcut can be registered cleanly alongside GboardWu.
+     */
+    fun resolveAccessPointTargets(context: BytecodePatchContext): AccessPointTargets? {
+        var orderClassDef: ClassDef? = null
+        var orderHelperDef: ClassDef? = null
+        var controllerDef: ClassDef? = null
+        var descriptorDef: ClassDef? = null
+        var concreteBuilderDef: ClassDef? = null
+
+        context.classDefForEach { cls ->
+            val strings = cls.collectStrings()
+            if (orderClassDef == null &&
+                "AbstractAccessPointOrder.java" in strings &&
+                "pref_key_access_points_showing_order" in strings
+            ) {
+                orderClassDef = cls
+            }
+            if (orderHelperDef == null &&
+                "AccessPointOrderHelper.java" in strings &&
+                "Invalid access points count on bar %d" in strings
+            ) {
+                orderHelperDef = cls
+            }
+            if (controllerDef == null &&
+                "AccessPointsListHolderController.java" in strings &&
+                "No ListHolderControllerDelegate!" in strings
+            ) {
+                controllerDef = cls
+            }
+            if (descriptorDef == null &&
+                "Cannot set shortcuts after calling shortcutsBuilder()" in strings
+            ) {
+                descriptorDef = cls
+            }
+            if (concreteBuilderDef == null &&
+                "Missing required properties:" in strings &&
+                "Null stringId" in strings &&
+                " a11yClickActionLabel" in strings
+            ) {
+                concreteBuilderDef = cls
+            }
+        }
+
+        val orderCls = orderClassDef ?: return null
+        val orderHelperCls = orderHelperDef ?: return null
+        val controllerCls = controllerDef ?: return null
+        val descriptorCls = descriptorDef ?: return null
+        val concreteBuilderCls = concreteBuilderDef ?: return null
+
+        val orderMutable = context.mutableClassDefBy(orderCls.type)
+        val orderFactory = orderMutable.methods.singleOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) != 0 &&
+                m.returnType == orderCls.type &&
+                m.parameterTypes.size == 5 &&
+                m.parameterTypes[0].toString() == CONTEXT_TYPE &&
+                m.parameterTypes[3].toString() == m.parameterTypes[4].toString() &&
+                m.parameterTypes[3].toString().startsWith("L")
+        } ?: return null
+
+        val immutableSetType = orderFactory.parameterTypes[3].toString()
+        val immutableSetDef = context.classDefByOrNull(immutableSetType) ?: return null
+        val immutableSetCopy = immutableSetDef.methods.singleOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) != 0 &&
+                m.returnType == immutableSetType &&
+                m.parameterTypes.map { it.toString() } == listOf("Ljava/util/Collection;")
+        } ?: return null
+
+        val orderHelperCatalogField = orderHelperCls.instanceFields.singleOrNull { f ->
+            f.type == immutableSetType
+        }?.name ?: return null
+
+        val controllerMutable = context.mutableClassDefBy(controllerCls.type)
+        val controllerCtor = controllerMutable.methods.singleOrNull { m ->
+            m.name == "<init>" &&
+                m.parameterTypes.size == 2 &&
+                m.parameterTypes[0].toString() == CONTEXT_TYPE
+        } ?: return null
+        val controllerOrderHelperField = controllerCls.instanceFields.singleOrNull { f ->
+            f.type == orderHelperCls.type
+        }?.name ?: return null
+        val controllerRegisterMethod = controllerCls.methods.singleOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                m.returnType == "V" &&
+                m.parameterTypes.map { it.toString() } == listOf(descriptorCls.type, "Z")
+        }?.name ?: return null
+
+        val builderBaseType = if (concreteBuilderCls.superclass != null &&
+            concreteBuilderCls.superclass != OBJECT_TYPE
+        ) {
+            concreteBuilderCls.superclass!!
+        } else {
+            concreteBuilderCls.type
+        }
+        val builderBaseDef = context.classDefByOrNull(builderBaseType) ?: concreteBuilderCls
+
+        val descriptorBuilderFactory = descriptorCls.methods.singleOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) != 0 &&
+                m.parameterTypes.isEmpty() &&
+                (m.returnType == builderBaseType || m.returnType == concreteBuilderCls.type)
+        }?.name ?: return null
+
+        val builderTokenMethod = concreteBuilderCls.methods.singleOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                m.returnType == "V" &&
+                m.parameterTypes.map { it.toString() } == listOf(STRING_TYPE) &&
+                m.containsString("Null stringId")
+        } ?: return null
+
+        // Determine which String field tokenMethod writes so we identify the other String field (label)
+        val tokenWrittenField = builderTokenMethod.implementation?.instructions
+            ?.firstNotNullOfOrNull { insn ->
+                if (insn.opcode == Opcode.IPUT_OBJECT) {
+                    val ref = (insn as? ReferenceInstruction)?.reference as? FieldReference
+                    if (ref?.definingClass == concreteBuilderCls.type && ref.type == STRING_TYPE) {
+                        ref.name
+                    } else {
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+
+        val builderIconField = concreteBuilderCls.instanceFields.singleOrNull { f ->
+            f.type == "Landroid/graphics/drawable/Icon;"
+        }?.name ?: return null
+
+        val builderLabelField = concreteBuilderCls.instanceFields
+            .filter { f -> f.type == STRING_TYPE && f.name != tokenWrittenField }
+            .singleOrNull()?.name ?: return null
+
+        val builderRunnableMethod = (builderBaseDef.methods + concreteBuilderCls.methods)
+            .firstOrNull { m ->
+                (m.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                    (m.accessFlags and AccessFlags.ABSTRACT.value) == 0 &&
+                    m.returnType == "V" &&
+                    m.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Runnable;")
+            }?.name ?: return null
+
+        // Prefer the non-abstract build() wrapper on the base builder (e.g. aadm.b() on 18.8.0,
+        // mtm.a() on 18.5.4) so actions/params maps are finalized before constructing AccessPointDef.
+        val builderBuildMethod = builderBaseDef.methods.firstOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                (m.accessFlags and AccessFlags.ABSTRACT.value) == 0 &&
+                m.parameterTypes.isEmpty() &&
+                m.returnType == descriptorCls.type
+        }?.name ?: concreteBuilderCls.methods.firstOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                (m.accessFlags and AccessFlags.ABSTRACT.value) == 0 &&
+                m.parameterTypes.isEmpty() &&
+                m.returnType == descriptorCls.type
+        }?.name ?: return null
+
+        return AccessPointTargets(
+            orderFactoryMethod = orderFactory,
+            controllerConstructor = controllerCtor,
+            immutableSetType = immutableSetType,
+            controllerClass = descriptorToJavaName(controllerCls.type),
+            controllerOrderHelperField = controllerOrderHelperField,
+            controllerRegisterMethod = controllerRegisterMethod,
+            orderHelperClass = descriptorToJavaName(orderHelperCls.type),
+            orderHelperCatalogField = orderHelperCatalogField,
+            immutableSetClass = descriptorToJavaName(immutableSetType),
+            immutableSetCopyMethod = immutableSetCopy.name,
+            descriptorClass = descriptorToJavaName(descriptorCls.type),
+            descriptorBuilderFactoryMethod = descriptorBuilderFactory,
+            builderBaseClass = descriptorToJavaName(builderBaseType),
+            builderConcreteClass = descriptorToJavaName(concreteBuilderCls.type),
+            builderTokenMethod = builderTokenMethod.name,
+            builderRunnableMethod = builderRunnableMethod,
+            builderBuildMethod = builderBuildMethod,
+            builderIconField = builderIconField,
+            builderLabelField = builderLabelField,
+        )
+    }
+
+    /**
+     * Dynamically fingerprints Gboard's {@code LanguagePickerExtension} ({@code Lpvd;} in 18.5.4,
+     * {@code Lafzt;} in 18.8.0) and {@code AgenticDictationExtension}'s activation/trigger methods
+     * so long-pressing the Spacebar toggles Rambler dictation with zero conflict against GboardWu.
+     */
+    fun resolveSpacebarTriggerTargets(
+        context: BytecodePatchContext,
+        agenticClass: MutableClass,
+    ): SpacebarTriggerTargets? {
+        var langPickerDef: ClassDef? = null
+        context.classDefForEach { cls ->
+            if (langPickerDef != null) return@classDefForEach
+            val strings = cls.collectStrings()
+            if ("floating_globe" in strings &&
+                "space_long_press_ime_picker" in strings &&
+                "LanguagePicker" in strings
+            ) {
+                langPickerDef = cls
+            }
+        }
+        val foundLangPicker = langPickerDef ?: return null
+        val langPickerClass = context.mutableClassDefBy(foundLangPicker.type)
+
+        val consumeEventMethod = langPickerClass.methods.singleOrNull { m ->
+            m.parameterTypes.size == 1 &&
+                m.returnType == "Z" &&
+                m.containsString("floating_globe") &&
+                m.containsString("space") &&
+                m.hasInstruction { it.literalIntValue() == -10022 }
+        } ?: return null
+
+        val eventType = consumeEventMethod.parameterTypes[0].toString()
+        val eventActionField = context.classDefByOrNull(eventType)?.instanceFields?.firstOrNull { f ->
+            val fieldCls = context.classDefByOrNull(f.type)
+            fieldCls?.superclass == "Ljava/lang/Enum;" && "LONG_PRESS" in fieldCls.collectStrings()
+        }?.name ?: "a"
+        val consumeInsns = consumeEventMethod.implementation?.instructions?.toList() ?: return null
+
+        val keyDataGetterRef = consumeInsns.firstNotNullOfOrNull { insn ->
+            if (insn.opcode != Opcode.INVOKE_VIRTUAL && insn.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {
+                return@firstNotNullOfOrNull null
+            }
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+                ?: return@firstNotNullOfOrNull null
+            if (ref.definingClass == eventType &&
+                ref.parameterTypes.isEmpty() &&
+                ref.returnType.startsWith("L")
+            ) {
+                ref
+            } else {
+                null
+            }
+        } ?: return null
+        val keyDataType = keyDataGetterRef.returnType
+
+        val keyDataCodeField = consumeInsns.firstNotNullOfOrNull { insn ->
+            if (insn.opcode != Opcode.IGET) return@firstNotNullOfOrNull null
+            val ref = (insn as? ReferenceInstruction)?.reference as? FieldReference
+                ?: return@firstNotNullOfOrNull null
+            if (ref.definingClass == keyDataType && ref.type == "I") ref.name else null
+        } ?: return null
+
+        val keyDataDataField = consumeInsns.firstNotNullOfOrNull { insn ->
+            if (insn.opcode != Opcode.IGET_OBJECT) return@firstNotNullOfOrNull null
+            val ref = (insn as? ReferenceInstruction)?.reference as? FieldReference
+                ?: return@firstNotNullOfOrNull null
+            if (ref.definingClass == keyDataType && ref.type == OBJECT_TYPE) ref.name else null
+        } ?: return null
+
+        val extGetContextMethod = consumeInsns.firstNotNullOfOrNull { insn ->
+            if (insn.opcode != Opcode.INVOKE_VIRTUAL && insn.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {
+                return@firstNotNullOfOrNull null
+            }
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+                ?: return@firstNotNullOfOrNull null
+            if ((ref.definingClass == langPickerClass.type ||
+                    ref.definingClass == langPickerClass.superclass) &&
+                ref.parameterTypes.isEmpty() &&
+                ref.returnType == CONTEXT_TYPE
+            ) {
+                ref.name
+            } else {
+                null
+            }
+        } ?: return null
+
+        val initialStateMethod = langPickerClass.methods.singleOrNull { m ->
+            !m.name.startsWith("morpheRambler") &&
+                (m.accessFlags and AccessFlags.PRIVATE.value) == 0 &&
+                m.parameterTypes.size == 2 &&
+                m.parameterTypes[1].toString() == EDITOR_INFO_TYPE &&
+                m.returnType == "J" &&
+                m.hasInstruction { it.literalLongValue() == 0x10000000000L }
+        } ?: return null
+
+        val agenticTriggerMethodObj = agenticClass.methods.singleOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                m.parameterTypes.isEmpty() &&
+                m.returnType == "Z" &&
+                m.containsString("maybeShowOnboardingOrEduAndProceed")
+        } ?: return null
+        val agenticTriggerMethod = agenticTriggerMethodObj.name
+
+        // Extract UI manager field (e.g. `c:Lfkj;` / `c:Lkuh;`) and its state getter (`h()Lfkw;` / `h()Lkvc;`)
+        // from the `c.h() != IDLING` guard right at the top of `agenticTriggerMethod` (`C()Z`).
+        var agenticUiManagerField = "c"
+        var uiManagerGetStateMethod = "h"
+        val triggerInsns = agenticTriggerMethodObj.implementation?.instructions?.toList().orEmpty()
+        for (i in triggerInsns.indices) {
+            val insn = triggerInsns[i]
+            if (insn.opcode != Opcode.IGET_OBJECT) continue
+            val fieldRef = (insn as? ReferenceInstruction)?.reference as? FieldReference ?: continue
+            if (fieldRef.definingClass != agenticClass.type) continue
+            val uiMgrType = fieldRef.type
+            val stateCall = ((i + 1)..minOf(triggerInsns.lastIndex, i + 8)).firstNotNullOfOrNull { j ->
+                val call = triggerInsns[j]
+                if (call.opcode != Opcode.INVOKE_VIRTUAL && call.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {
+                    return@firstNotNullOfOrNull null
+                }
+                val mRef = (call as? ReferenceInstruction)?.reference as? MethodReference
+                    ?: return@firstNotNullOfOrNull null
+                if (mRef.definingClass == uiMgrType &&
+                    mRef.parameterTypes.isEmpty() &&
+                    mRef.returnType.startsWith("L") &&
+                    context.classDefByOrNull(mRef.returnType)?.superclass == "Ljava/lang/Enum;"
+                ) {
+                    mRef.name
+                } else {
+                    null
+                }
+            }
+            if (stateCall != null) {
+                agenticUiManagerField = fieldRef.name
+                uiManagerGetStateMethod = stateCall
+                break
+            }
+        }
+
+        val softKeyboardViewClass = context.classDefByOrNull(
+            "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;",
+        )?.let { skvDef ->
+            context.mutableClassDefBy(skvDef.type)
+        }
+        val softKeyboardDispatchTouchMethod = softKeyboardViewClass?.methods?.singleOrNull { m ->
+            m.name == "dispatchTouchEvent" &&
+                m.parameterTypes.map { it.toString() } == listOf("Landroid/view/MotionEvent;") &&
+                m.returnType == "Z"
+        }
+
+        val agenticConsumeMethod = agenticClass.methods.singleOrNull { m ->
+            (m.accessFlags and AccessFlags.STATIC.value) == 0 &&
+                m.parameterTypes.map { it.toString() } == listOf(eventType) &&
+                m.returnType == "Z"
+        } ?: return null
+
+        val agenticIsActiveMethod = agenticConsumeMethod.implementation?.instructions
+            ?.firstNotNullOfOrNull { insn ->
+                if (insn.opcode != Opcode.INVOKE_VIRTUAL &&
+                    insn.opcode != Opcode.INVOKE_VIRTUAL_RANGE
+                ) {
+                    return@firstNotNullOfOrNull null
+                }
+                val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+                    ?: return@firstNotNullOfOrNull null
+                if ((ref.definingClass == agenticClass.type ||
+                        ref.definingClass == agenticClass.superclass) &&
+                    ref.parameterTypes.isEmpty() &&
+                    ref.returnType == "Z"
+                ) {
+                    ref.name
+                } else {
+                    null
+                }
+            } ?: return null
+
+        return SpacebarTriggerTargets(
+            langPickerClass = langPickerClass,
+            consumeEventMethod = consumeEventMethod,
+            initialStateMethod = initialStateMethod,
+            softKeyboardViewClass = softKeyboardViewClass,
+            softKeyboardDispatchTouchMethod = softKeyboardDispatchTouchMethod,
+            eventGetKeyDataMethod = keyDataGetterRef.name,
+            eventActionField = eventActionField,
+            keyDataCodeField = keyDataCodeField,
+            keyDataDataField = keyDataDataField,
+            extGetContextMethod = extGetContextMethod,
+            agenticIsActiveMethod = agenticIsActiveMethod,
+            agenticTriggerMethod = agenticTriggerMethod,
+            agenticClassName = descriptorToJavaName(agenticClass.type),
+            agenticUiManagerField = agenticUiManagerField,
+            uiManagerGetStateMethod = uiManagerGetStateMethod,
+        )
     }
 
     private fun descriptorToJavaName(descriptor: String): String {

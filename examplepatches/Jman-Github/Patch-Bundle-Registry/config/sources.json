@@ -2830,11 +2830,6 @@
     "integrations": false,
     "disabled": false
   },
-  "gospel-library-patches": {
-    "patches": "https://github.com/rubenaaroncalahorra/gospel-library-patches",
-    "integrations": false,
-    "disabled": false
-  },
   "kyt-patches": {
     "patches": "https://github.com/FinzoYFunzo/kyt-patches",
     "integrations": false,
@@ -4627,6 +4622,26 @@
   },
   "patches": {
     "patches": "https://gitlab.com/yologurt/patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "gboard-patches-2": {
+    "patches": "https://github.com/havaem/Gboard-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "awt-morphe": {
+    "patches": "https://github.com/AWTMODS/AWT-Morphe",
+    "integrations": false,
+    "disabled": false
+  },
+  "birdy-patches-2": {
+    "patches": "https://github.com/BIRDY141/Birdy-Patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "instagram-patches-2": {
+    "patches": "https://github.com/brandonp2412/instagram-patches",
     "integrations": false,
     "disabled": false
   }

@@ -5,4 +5,6 @@ public final class Haiagaru {
     public static boolean hideCopyPaste;
     public static boolean hideCopyPasteAbone(){return hideCopyPaste;}
     public static boolean hideNgWordIdReplies() { return hiddenReplies; }
+    public static boolean posterOptimization=true;
+    public static boolean posterIdChainNgOptimizationEnabled(){return posterOptimization;}
 }

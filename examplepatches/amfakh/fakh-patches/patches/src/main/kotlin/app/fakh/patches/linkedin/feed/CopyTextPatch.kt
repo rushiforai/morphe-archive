@@ -13,11 +13,11 @@ import app.morphe.patcher.patch.patch
 @Suppress("unused")
 val copyTextPatch = patch(
     name = "Copy text",
-    description = "Adds Copy text to the ⋯ menu of posts and comments. Adds a switch in Fakh Patches.",
+    description = "Adds Copy text to the ⋯ menu of posts and comments.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feed")
+    category("Posts")
 
     dependsOn(postMenuPatch)
 

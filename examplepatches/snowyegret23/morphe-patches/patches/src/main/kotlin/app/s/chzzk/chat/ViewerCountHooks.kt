@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -29,8 +30,8 @@ internal fun BytecodePatchContext.addViewerCountHooks() {
         owner.methods.add(replacement)
     }
 
-    val statusType = "${COMMUNITY}data/core/entity/serviceplayable/StreamingLiveStatus;"
-    val detailType = "${COMMUNITY}ui/common/ui/overlayplayerend/live/streaming/StreamingLiveDetail;"
+    val statusType = chzzkType("${COMMUNITY}data/core/entity/serviceplayable/StreamingLiveStatus;")
+    val detailType = chzzkType("${COMMUNITY}ui/common/ui/overlayplayerend/live/streaming/StreamingLiveDetail;")
     val status = classDefBy(statusType)
     fun getter(field: String, type: String) = status.methods.single { method ->
         method.parameterTypes.isEmpty() && method.returnType == type &&
@@ -43,7 +44,7 @@ internal fun BytecodePatchContext.addViewerCountHooks() {
     }
     val count = getter("concurrentUserCount", "I")
     val exposed = getter("cvExposure", "Z")
-    val liveStatus = getter("status", "${statusType.dropLast(1)}${'$'}LiveStatus;")
+    val liveStatus = getter("status", chzzkType("${COMMUNITY}data/core/entity/serviceplayable/StreamingLiveStatus${'$'}LiveStatus;"))
     val channel = classDefBy(detailType).fields.single { it.name == "c" && it.type == "Ljava/lang/String;" }
     bridge("capture", 6, """
         invoke-static {p0, p1}, Lapp/s/chzzk/extension/LocalFollowing;->capture(Ljava/lang/Object;Ljava/lang/Object;)V
@@ -74,12 +75,18 @@ internal fun BytecodePatchContext.addViewerCountHooks() {
     """)
 
     // The live item can be cached; the status in this collector is refreshed every 30 seconds.
-    val app = if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) "tv" else "app"
-    val collector = mutableClassDefBy("${COMMUNITY}$app/ui/overlayplayerend/live/streaming/StreamingLiveEndViewModel${'$'}loadDataIntervalPer30Sec${'$'}8;")
+    val app = if (packageMetadata.versionName in setOf("1.3.0", "1.4.0", "1.5.0")) "tv" else "app"
+    val minified = packageMetadata.versionName == "3.18.0"
+    val collector = mutableClassDefBy(if (minified) "Ly00;" else if (packageMetadata.versionName == "1.5.0") "Lh60;" else "${COMMUNITY}$app/ui/overlayplayerend/live/streaming/StreamingLiveEndViewModel${'$'}loadDataIntervalPer30Sec${'$'}8;")
         .methods.single { it.name == "invokeSuspend" }
     val casts = collector.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.CHECK_CAST }
-    val statusCast = casts.single { it.value.getReference<TypeReference>()?.type == statusType }
-    val detailCast = casts.single { it.value.getReference<TypeReference>()?.type == detailType }
+    // In 3.18 the Triple collector is one branch of a merged coroutine.
+    val statusCasts = casts.filter { it.value.getReference<TypeReference>()?.type == statusType }
+    val detailCasts = casts.filter { it.value.getReference<TypeReference>()?.type == detailType }
+    check(statusCasts.size == if (minified) 2 else 1)
+    check(detailCasts.size == statusCasts.size)
+    val statusCast = statusCasts.first()
+    val detailCast = detailCasts.first()
     check(statusCast.index < detailCast.index)
     val statusRegister = (statusCast.value as OneRegisterInstruction).registerA
     val detailRegister = (detailCast.value as OneRegisterInstruction).registerA
@@ -87,14 +94,14 @@ internal fun BytecodePatchContext.addViewerCountHooks() {
     collector.addInstructions(detailCast.index + 1,
         "invoke-static {v$detailRegister, v$statusRegister}, $OVERLAY->capture(Ljava/lang/Object;Ljava/lang/Object;)V")
 
-    val viewType = "${COMMUNITY}core/feature/feature/player/BasePlayerView;"
-    val modelType = "${COMMUNITY}core/feature/feature/player/BasePlayerViewModel;"
-    val playableType = "${COMMUNITY}data/core/entity/player/StreamingLivePlayableData;"
+    val viewType = chzzkType("${COMMUNITY}core/feature/feature/player/BasePlayerView;")
+    val modelType = chzzkType("${COMMUNITY}core/feature/feature/player/BasePlayerViewModel;")
+    val playableType = chzzkType("${COMMUNITY}data/core/entity/player/StreamingLivePlayableData;")
     val view = mutableClassDefBy(viewType)
     val modelGetter = view.methods.single { it.name == "getViewModel" && it.returnType == modelType }
     val playableField = when (packageMetadata.versionName) {
-        "1.3.0", "1.4.0" -> "j0"
-        "3.16.0", "3.17.0" -> "k0"
+        "1.3.0", "1.4.0", "1.5.0" -> "j0"
+        "3.16.0", "3.17.0", "3.18.0" -> "k0"
         else -> "o0"
     }
     val playable = classDefBy(modelType).fields.single { it.name == playableField && it.type == "Landroidx/lifecycle/MutableLiveData;" }

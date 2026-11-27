@@ -6,7 +6,7 @@ import java.util.*;
 /** URL rules for generic website cards only. Never edits source links or media attachments. */
 final class SiteCardExclusions {
     static final String KEY="siteCardExcludedUrls";
-    static final String DEFAULT="https://imgur.com/";
+    static final String DEFAULT="https://imgur.com/\nhttps://youtube.com/\nhttps://youtu.be/";
     private static final int MAX_LENGTH=8192,MAX_RULES=100;
     static final class Rule {
         final String host,path;

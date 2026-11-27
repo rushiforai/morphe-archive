@@ -24,11 +24,10 @@ done
 mkdir -p "$DIST_DIR"
 cp "$staging/"*.apk "$DIST_DIR/"
 cp "$BUILD_DIR/gemini-patches.jar" "$DIST_DIR/"
-python3 - "$DIST_DIR" <<'PY'
-from pathlib import Path
-import hashlib, sys
-root = Path(sys.argv[1])
-files = sorted([*root.glob('*.apk'), root / 'gemini-patches.jar'])
-(root / 'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest() + '  ' + p.name + '\n' for p in files))
-PY
+(
+  cd "$DIST_DIR"
+  export LC_ALL=C
+  printf '%s\n' ./*.apk ./gemini-patches.jar | cut -c 3- | sort |
+    while IFS= read -r name; do shasum -a 256 -- "$name"; done
+) > "$DIST_DIR/SHA256SUMS"
 printf 'Signed and verified APKs: %s\n' "$DIST_DIR"

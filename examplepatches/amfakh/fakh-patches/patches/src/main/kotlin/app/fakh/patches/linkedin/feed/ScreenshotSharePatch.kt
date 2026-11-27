@@ -34,12 +34,11 @@ private object SduiScreenCaptureFingerprint : Fingerprint(
 @Suppress("unused")
 val screenshotSharePatch = patch(
     name = "Disable screenshot share sheet",
-    description = "Stops the Share sheet from opening when you take a screenshot of a post. " +
-        "Adds a switch in Fakh Patches.",
+    description = "Stops the Share sheet from opening when you take a screenshot of a post.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feed")
+    category("Posts")
     dependsOn(settingsPatch)
 
     execute {

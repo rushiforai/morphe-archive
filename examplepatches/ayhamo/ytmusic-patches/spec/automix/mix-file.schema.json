@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mix-file.schema.json",
+  "title": "Mix file",
+  "description": "One or more song pairs' edits (mix-file.md). What a writer writes; a reader ignores unknown fields (rule 3) and normalizes each override as the editor saves it (rule 4).",
+  "type": "object",
+  "required": ["format", "version", "mixes"],
+  "properties": {
+    "format": { "const": "vivi-mix" },
+    "version": { "const": 1, "description": "a reader refuses a higher version (rule 3)" },
+    "mixes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 300,
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "override"],
+        "properties": {
+          "from": { "$ref": "#/$defs/song", "description": "the playing song, A" },
+          "to": { "$ref": "#/$defs/song", "description": "the next song, B" },
+          "override": {
+            "$ref": "override.schema.json",
+            "description": "as the editor saves it; a writer leaves out engine and savedAt (rule 2)"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "song": {
+      "type": "object",
+      "required": ["videoId"],
+      "properties": {
+        "videoId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{11}$", "description": "the YouTube video id: the pair's key" },
+        "title": { "type": "string", "maxLength": 200, "description": "for the reader only" },
+        "artist": { "type": "string", "maxLength": 200, "description": "for the reader only" }
+      }
+    }
+  }
+}

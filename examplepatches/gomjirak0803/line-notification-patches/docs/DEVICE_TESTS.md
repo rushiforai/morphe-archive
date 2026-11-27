@@ -1,5 +1,28 @@
 # Device & Cross-Environment Test Matrix
 
+## `0.2.1` Mark LINE 26.19.0 target as non-experimental — 2026-11-26
+
+Flipped `AppTarget.isExperimental` from `true` to `false` in `Shared.kt` so Morphe Manager surfaces LINE `26.19.0` (`261900178`) as a standard supported version without requiring **Experimental app versions** or **Pre-release patches**, and enforced `isExperimental` target alignment in `tests/test_bundle_metadata.py`. Runtime extension classes and DEX hook bytecode are unchanged from the live S10e-verified `0.2.0` build (`3bc39f7d7129e81bfbfd26f2c2ac4bf1c81239526465b85fe05323fa4893258b`).
+
+* **Automated checks**: 224 `NotificationPolicy` assertions, 279 `ExtensionRuntimeTest` JVM behavioral checks (45 scenarios), 29 Python unit tests, 5 APK static contract suites: 3,198 (ARM64 all), 3,198 (Universal all), 3,134 (`Mark as read`-only), 3,156 (`More Chat Info`-only), 3,176 (`Not Too Much Silent`-only); `morphe-desktop list-patches` verified `Enabled: true` on all 6 patches.
+* **SHA-256**: local `0.2.1` bundle `ec0744d418dbf160ec2cc942bb92041ccd0fc62a420074deda19e9cdbe5f227d`; prior S10e-verified signed APK `3bc39f7d7129e81bfbfd26f2c2ac4bf1c81239526465b85fe05323fa4893258b`.
+
+## `0.2.0` LINE 26.19.0 (261900178) port & live Galaxy S10e verification — 2026-11-26
+
+Ported all 6 patches, bytecode hooks, reflection bindings, and runtime fakes to LINE `26.19.0` (`261900178`), fixed the 13-parameter `Lti5/a0;<init>` `v16 > v15` register overflow in `SettingsPatch.kt` (plus `Opcode.IPUT_BOOLEAN` tracing), migrated `NativeLine.muted()` to DI `ch8.c`/`eh8.e.b`, updated `Lln3/k$d;->b`, `ReadActions` `q08.b` `onComplete`/`b`, Glide `X(Integer.MIN_VALUE, Integer.MIN_VALUE)`, `Header.setUpButtonVisibility$common_libs` + `duplicateParentState=false`, `Lsm8/c;`, and native action string IDs (`0x7f152a17`/`0x7f152a18`).
+
+* **Automated checks**: 224 `NotificationPolicy` assertions, 279 `ExtensionRuntimeTest` JVM behavioral checks (45 scenarios including `26.19.0` DI mute DAO, `ln3.k$d.b`, `q08.b` `onComplete`/`b`, and Glide option/dimension verification), 29 Python unit tests, 5 APK static contract suites: 3,198 (ARM64 all), 3,198 (Universal all), 3,134 (`Mark as read`-only), 3,156 (`More Chat Info`-only), 3,176 (`Not Too Much Silent`-only); compiled `resources.arsc` checks (77 keys × 7 locales); independent `gpt-6.2-astra` bytecode cross-check; `morphe-desktop list-patches` verified `Enabled: true` on all 6 patches.
+* **SHA-256**: local `0.2.0` bundle `5b7899f2d8367fc6ac6c5fea7d876539f9357c1c0356496d8a34b4f1c9ab5804`; S10e-tested signed APK `3bc39f7d7129e81bfbfd26f2c2ac4bf1c81239526465b85fe05323fa4893258b` *(built from identical DEX and patch code immediately prior to bumping `VERSION` to `0.2.0`)*.
+
+### Physical S10e (`SM-G970N`, Android 12 / API 31 / One UI 4.1) verification
+| Feature / Case | Result |
+| --- | --- |
+| Same-key upgrade & launch | Data-preserving `pm install -r` upgrade to LINE `26.19.0` (`261900178`) succeeded (`firstInstallTime=2026-11-08 20:40:35`, `lastUpdateTime=2026-11-26 16:52:12`), installed `base.apk` SHA-256 matched `3bc39f7d...`, and `MainActivity` launched with existing login retained |
+| Smoke A: `SettingsPatch` (19-reg/`v16`) & `SettingsPage` | Injected settings row appeared directly below Profile; `SettingsPage` opened with working `Header` back button (`setUpButtonVisibility$common_libs`), all 7 feature switches retained enabled states, and all 3 sub-pages (displayed message count dialog, button preset dialog, hidden chats subpage) opened and returned cleanly |
+| Smoke B: `More Chat Info`, Glide, `No reply` & `Mark as read` | 2 short messages + 1 sticker delivered on `NewMessages` in `MessagingStyle` (`unread=3`, 3 chronological messages, `108x108` `largeIcon`, `FileProvider` PNG sticker preview URI loaded, `read` / `snooze_1h` / `reply` actions present, `mAllowSystemGeneratedContextualActions=false`); tapping Mark as read cleared the notification, and a fresh message produced `unread=1` with only the new message |
+| Smoke C: `Not Too Much Silent`, `NativeLine.muted()` & `Lsm8/c;` | Injected Hide notifications completely item appeared in `ChatHistoryMenuFragment`; local silent toggle round-trip and completely-hidden round-trip both succeeded and restored the original state |
+| Stability & logcat audit | Scanned 47,217 logcat lines + `crash` buffer: 0 crashes (`AndroidRuntime`/`FATAL`/`VerifyError`/`NoSuchMethodError`/`NoSuchFieldError`) and 0 extension error matches |
+
 ## `0.1.19-dev` Cross-process slot epoch, READ/privacy/hide hardening & live PC read-sync — 2026-11-25
 
 Added 64-bit non-zero `SLOT_EPOCH` + unified 256-cap `SLOT_LEDGER`, pre-SQL and strict numeric `isVerifiedReadAtOrBefore` READ-boundary checks, `QUIET`/`NORMAL` preservation across hide/unhide and crash recovery (`pending_hide`, `STATE_LOCK` `hideDisposition` without native I/O, worker-based `onHideCompletedAsync` & lock-verified `cancelConfirmedHiddenChats`, `RECONCILING_ACCOUNTS`/`RECONCILED_ACCOUNTS` retry), privacy-OFF redaction of active plaintext/summary/sticker/car/wearable/remote-input extras and rebuilt summary `publicVersion.shortcutId`, standalone `No reply` original contextual-action restoration (`ORIG_CONTEXTUAL_ACTIONS`), and `enqueuedSeq`-ordered shared-summary `PENDING_POSTS`.
@@ -194,4 +217,4 @@ Tested on S10e (API 31) against the user's own Official Account test chat only (
 * Real-account live FCM push & read sync on Android 13–16 / non-Samsung OEMs (Android 16 testing above was diagnostic + unauthenticated boot)
 * Actual inline direct-reply message sending (input field opening verified; sending not executed)
 * Real multi-account switching on the same device
-* Native `ue3.k.p` failure rollback under live server error
+* Native `yl3.e.t` failure rollback under live server error

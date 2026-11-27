@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.shared.ZaloEnv;
 
 /**
@@ -27,7 +28,7 @@ import app.template.extension.zalo.shared.ZaloEnv;
 public final class CallRecorder {
     private CallRecorder() { }
 
-    static final String TAG = "NezumiCallRec";
+    private static final String TAG = "CallRecorder";
     private static final long MIN_DURATION_MS = 2000;
 
     // Obfuscated Zalo 26.11.01 names, kept in one place.
@@ -81,7 +82,7 @@ public final class CallRecorder {
                 start(context);
             }
         } catch (Throwable failure) {
-            NezumiLog.e(TAG, "toggle failed", failure);
+            NezumiLog.e(Patch.CALL_RECORDING, TAG, "toggle failed", failure);
             toast("Không thể ghi âm cuộc gọi");
         }
     }
@@ -105,9 +106,9 @@ public final class CallRecorder {
             wavFile = file;
             startedAt = System.currentTimeMillis();
             recording = true;
-            NezumiLog.i(TAG, "start " + file);
+            NezumiLog.i(Patch.CALL_RECORDING, TAG, "start " + file);
         } catch (Throwable failure) {
-            NezumiLog.e(TAG, "start failed", failure);
+            NezumiLog.e(Patch.CALL_RECORDING, TAG, "start failed", failure);
             toast("Không thể bắt đầu ghi âm");
         }
     }
@@ -129,11 +130,11 @@ public final class CallRecorder {
         try {
             Object peer = peerHandle();
             if (peer != null) nativeRecord(peer, false, "");
-            else NezumiLog.w(TAG, "peer already gone at stop; WAV header may be unfinished");
+            else NezumiLog.w(Patch.CALL_RECORDING, TAG, "peer already gone at stop; WAV header may be unfinished");
         } catch (Throwable failure) {
-            NezumiLog.e(TAG, "native stop failed", failure);
+            NezumiLog.e(Patch.CALL_RECORDING, TAG, "native stop failed", failure);
         }
-        NezumiLog.i(TAG, "stop after " + duration + " ms");
+        NezumiLog.i(Patch.CALL_RECORDING, TAG, "stop after " + duration + " ms");
         final File wav = file;
         final String who = name;
         final boolean isOut = out;
@@ -143,7 +144,7 @@ public final class CallRecorder {
                 Thread.sleep(400); // let the native writer flush
                 RecordingSaver.save(wav, who, isOut, when, MIN_DURATION_MS);
             } catch (Throwable failure) {
-                NezumiLog.e(TAG, "save failed", failure);
+                NezumiLog.e(Patch.CALL_RECORDING, TAG, "save failed", failure);
                 toast("Lưu bản ghi thất bại");
             }
         }, "NezumiCallRecSave");
@@ -159,7 +160,7 @@ public final class CallRecorder {
             Field field = holder.getClass().getField(PEER_FIELD);
             return field.get(holder);
         } catch (Throwable failure) {
-            NezumiLog.e(TAG, "peer lookup failed", failure);
+            NezumiLog.e(Patch.CALL_RECORDING, TAG, "peer lookup failed", failure);
             return null;
         }
     }
@@ -181,7 +182,7 @@ public final class CallRecorder {
             Object model = callModel();
             return model != null && (Boolean) model.getClass().getMethod(CALL_MODEL_CONNECTED).invoke(model);
         } catch (Throwable failure) {
-            NezumiLog.w(TAG, "connected check failed, assuming connected", failure);
+            NezumiLog.w(Patch.CALL_RECORDING, TAG, "connected check failed, assuming connected", failure);
             return true;
         }
     }
@@ -194,11 +195,12 @@ public final class CallRecorder {
                 Object value = model.getClass().getMethod(CALL_MODEL_NAME, Context.class).invoke(model, context);
                 if (value instanceof String && !((String) value).isEmpty()) return (String) value;
             } catch (Throwable failure) {
-                NezumiLog.swallowedOnce(TAG, "caller name lookup failed, using fallback", failure);
+                NezumiLog.swallowedOnce(Patch.CALL_RECORDING, TAG, "caller name lookup failed, using fallback", failure);
             }
             Object value = model.getClass().getMethod(CALL_MODEL_NAME_FALLBACK).invoke(model);
             return value instanceof String ? (String) value : "";
         } catch (Throwable failure) {
+            NezumiLog.swallowedOnce(Patch.CALL_RECORDING, TAG, "caller name unavailable, recording unnamed", failure);
             return "";
         }
     }
@@ -214,14 +216,14 @@ public final class CallRecorder {
                 | android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
             context.startActivity(intent);
         } catch (Throwable failure) {
-            NezumiLog.w(TAG, "open folder failed", failure);
+            NezumiLog.w(Patch.CALL_RECORDING, TAG, "open folder failed", failure);
             Toast.makeText(context, "Thư mục bản ghi: " + RecordingSaver.RELATIVE_PATH, Toast.LENGTH_LONG).show();
         }
     }
 
     static void toast(String message) {
         MAIN.post(() -> {
-            Context context = ZaloEnv.appContext();
+            Context context = ZaloEnv.appContext(Patch.CALL_RECORDING);
             if (context != null) Toast.makeText(context, message, Toast.LENGTH_LONG).show();
         });
     }

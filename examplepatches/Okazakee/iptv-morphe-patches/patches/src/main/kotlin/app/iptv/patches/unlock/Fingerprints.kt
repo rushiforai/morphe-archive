@@ -81,3 +81,58 @@ object ProEntitlement2724Fingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
+
+// ---------------------------------------------------------------------------
+// App target 2.7.27+ (second obfuscation reshuffle)
+// ---------------------------------------------------------------------------
+
+/**
+ * 2.7.27+ moved the Remote Config boolean reader to Lk53; (same
+ * `c(String)Z` shape as the 2.7.24 Ls43; version). The old s43/qh7 classes
+ * still exist but are now coroutine continuation wrappers with no c()/l()
+ * logic methods, so the previous fingerprints no longer match.
+ */
+object RemoteConfigBooleanReader2728Fingerprint : Fingerprint(
+    definingClass = "Lk53;",
+    name = "c",
+    parameters = listOf("Ljava/lang/String;"),
+    returnType = "Z",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+)
+
+/**
+ * RevenueCat "pro" entitlement check in 2.7.27+: moved to Lei7; l(Z,Lfl1;),
+ * same body (entitlements["pro"] -> isActive()) — continuation type is fl1.
+ */
+object ProEntitlement2728Fingerprint : Fingerprint(
+    definingClass = "Lei7;",
+    name = "l",
+    parameters = listOf("Z", "Lfl1;"),
+    returnType = "Ljava/lang/Object;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+)
+
+// ---------------------------------------------------------------------------
+// App target 2.7.27 (intermediate build, its own obfuscation map)
+// ---------------------------------------------------------------------------
+
+/**
+ * 2.7.27 uses Lj53; for the Remote Config boolean reader and Ldi7; for the
+ * RevenueCat entitlement check — same shapes as 2.7.28, different class map.
+ * Kept as separate fingerprints so every declared target stays patchable.
+ */
+object RemoteConfigBooleanReader2727Fingerprint : Fingerprint(
+    definingClass = "Lj53;",
+    name = "c",
+    parameters = listOf("Ljava/lang/String;"),
+    returnType = "Z",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+)
+
+object ProEntitlement2727Fingerprint : Fingerprint(
+    definingClass = "Ldi7;",
+    name = "l",
+    parameters = listOf("Z", "Lfl1;"),
+    returnType = "Ljava/lang/Object;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+)

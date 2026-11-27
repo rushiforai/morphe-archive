@@ -6,6 +6,14 @@ Every HushGram release, newest first.
 
 ### Features
 
+* `Let Instagram close after account checks` is new under Battery. Instagram never answers your phone's account checks, so Android keeps it running up to 15 minutes, even swiped away. This answers at once. Starts off. Reported in #341.
+* `Keep HDR on video uploads` is new under Playback. Instagram makes HDR videos SDR on some phones when it encodes them for upload. This keeps them HLG HDR on Android 13 and up. Experimental. Starts off. Asked for in #532.
+* `Tint color` is new under Tab bar. The glass can take Instagram's colors, light, dark, AMOLED black, your wallpaper's Material You accent or a color you type, and the preview above the sliders shows each pick. Asked for in #875.
+* `Select all in Your activity` is a new patch under Profiles. On a grid in Your activity, like your posts, reels or likes, tap Select and tick one, and a Select all shows beside Select. It ticks the rest one at a time, scrolling down as it goes, and stops if Instagram's own count doesn't go up with each tick. Nothing is deleted or unliked until you press Delete or Unlike yourself. Starts off. Asked for in #762.
+* `Keep Search in the pill` is new under Tab bar. With `Liquid glass look` on, Search stays in the pill with the other tabs, and scrolling shrinks the pill to whichever tab you're on, Search included. Starts off. Asked for in #875.
+* `Date saves by when they were posted` is new under Downloads. Saved photos and videos get their post's time, so your gallery sorts them by when they were posted. Starts off. Asked for in #792.
+* `Keep your place in feed videos` is new under Playback. A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over. Starts off. Asked for in #874.
+* `Photos and carousels in the reels window` is new under Playback. Photo and carousel reels go in the reels window too, with a dot per carousel page. Previous and Next go through those pages first. Starts off. Asked for in #873.
 * `Previous and next in the reels window` is new under Playback. Instagram's small window for reels gets Instagram's own buttons to go back a reel or on to the next one. Starts off. Asked for in #873.
 * `Pause button in the reels window` is new under Playback, below `Picture in picture for reels`. Instagram's small window for reels gets a Pause button, which turns into Play while the reel is paused. Starts off. Asked for in #873.
 * `Full screen stories`, `Full screen Explore` and `Full screen profile` are new under Stories, Explore and Profiles. Like `Full screen Home`, each hides the status and navigation bars on its own screen. All start off. Asked for in #187.
@@ -56,13 +64,19 @@ Every HushGram release, newest first.
 
 ### Bug Fixes
 
+* Importing a big settings file no longer freezes Instagram. The settings page redid its whole list once for every setting in the file, so a file with hundreds of them could make Android offer to close Instagram. Reported in #341.
+* With Add the source on, a saved photo's post time is now marked as UTC. Without that, Android took it for your phone's local time, and the gallery left the photo's date taken empty. Reported in #792.
+* Saves still waiting their turn when Android closes Instagram are no longer lost without a word. Next time you open Instagram, it tells you how many stopped, as it already did for running saves. Reported in #792.
+* With three saves running, their notifications no longer fall behind or stick at an old percentage. Each updates a little less often, so Android stops dropping the updates. Reported in #792.
+* Saving several things in a row no longer loses some of the Saved toasts. Android drops an app's toasts past five waiting, so a Saving toast now makes way and each result waits its turn. Reported in #792.
+* A save on a slow connection now picks up where it stopped each time the download stalls or drops, as long as it's still moving. It used to fall back to the 720p file or fail. Reported in #792.
 * With `Blur the chat behind a held message` on, the chat now blurs as one smooth surface. Each message used to blur on its own, so the chat broke into blocks with hard edges between them. Reported in #684.
 * A settings page left open kept animating its title with Instagram in the background, and `Ambient light` kept checking its post a few times a second. Both now wait until Instagram is back on screen. Reported in #341.
 * `Seek bar on stories` and its time now show the moment a story's video starts. On a reel shared to a story they popped in a quarter of a second late, which looked like the story jumping. Reported in #618.
 * With `Liquid glass look` on, Search's icon shows whole in its circle, and the other tabs sit in the middle of the pill. Instagram's padding on its floating tab bar cut the icon off. Reported in #843.
 * On feed videos with tagged people, the tags button now moves up above the seek bar too, and the button from `Seek bar button on feed videos` sits beside it instead of on it. Reported in #794.
 * With `Start feed videos with sound` on, Home's videos have their sound again when you come back after more than ten minutes away. Instagram resets its sound then, and Home's videos came back muted. Reported in #820.
-* `Reels on Home below the name` shows the whole reel now. It was cut to Instagram's 4:5 post shape, losing its top and bottom. Reported in #788.
+* `Reels on Home below the name` shows the whole reel now. It was cut to Instagram's 4:5 post shape, losing its top and bottom. Reported in #788 and #862.
 * With `Hold the Friends tab to pick friends` on, the Friends tab no longer stops on a gray loading screen when a page has none of your picks. It asks Instagram for the next page instead. Reported in #503.
 * Patching an Instagram APK that HushGram already patched now stops right away with a plain message: patch the original Instagram APK instead. Before, several patches failed with errors that read as if Instagram had changed. Reported in #864.
 * `Double-tap Messages for hidden chats` now shows every hidden chat after Instagram restarts, not only the ones on your inbox's first page. It loads more of the inbox until they're all there. Reported in #661.
@@ -95,6 +109,22 @@ Every HushGram release, newest first.
 * With `Icons in the accent color` on, the back, bell and three-dot icons atop a profile, a follow list's sort arrows and the line under its tab take your color. Reported in #187.
 * With `Filters in the accent color` on, the filters under a search take your color too. The one you're on is filled with it, like Saved's filters. Reported in #187.
 * With `Icons in the accent color` on, the icons in a reel's three-dot menu and Instagram's other menus take your icon color instead of white or black. Reported in #187.
+* With `Icons in the accent color` on, the like, comment and share icons on a story take your color. A heart you've liked stays red. Reported in #187.
+* With `Icons in the accent color` on, the More actions button at the top right of a story takes your color too. It stayed white. Reported in #187.
+* With `Icons in the accent color` on, a profile's Tagged tab takes your color like the tabs beside it. It stayed gray. Reported in #187.
+* With `Icons in the accent color` on, the search icon in the search bar atop your messages takes your color. Reported in #187.
+* With `Filters in the accent color` on, the icon chip before Explore's filters gets your color's outline like the filters do. Reported in #187.
+* With `Backgrounds in the accent color` on and `Material You` or `Custom` picked, your chat list keeps your colors when Instagram starts in the background for a notification. Its rows went black until a force stop. Reported in #187.
+* With `Story rings in the accent color` on, the ring around a story you've already seen takes a soft shade of your color instead of Instagram's gray. Reported in #187.
+* A color picked in `Ring color` now shows on the story rings next to your chats too. They kept Instagram's yellow, orange, pink and purple. Reported in #187.
+* With `Story rings in the accent color` on, the ring around a seen story next to a chat takes the same soft shade of your color as other seen rings. It stayed gray. Reported in #187.
+* With `Story rings in the accent color` on or a `Ring color` picked, the spinning story ring around a group of profile pictures takes your color too. It kept Instagram's gradient. Reported in #187.
+* With `Icons in the accent color` on, a chat's back arrow and header buttons, and the voice, gallery, sticker and + buttons beside its message box, take your color. They stayed white or black. Reported in #187.
+* With `Full screen Messages` hiding the status bar, a chat with a theme no longer keeps a dark band across the top where the bar was. Reported in #187.
+* With `Story rings in the accent color` on, the story rings next to chats in your chat list take your color too. They kept Instagram's own gradient there. Reported in #683.
+* With `Backgrounds in the accent color` on, the outlines around the account switcher's cards and its Accounts Center button take a faint shade of your color, and the Add account button's circle matches your page. They kept Meta's blue gray. Reported in #187.
+* With `Backgrounds in the accent color` on in light mode, your chat list's rows and the band behind its search bar take your color's light shade instead of white, and so do Meta's menus and a chat's page. Reported in #187.
+* With `Glass in chats` on, the message bar's glass takes the color a chat theme gives the bar, as Instagram's own bar does. It stayed white in light mode and black in dark mode. Reported in #683.
 
 ### Improvements
 

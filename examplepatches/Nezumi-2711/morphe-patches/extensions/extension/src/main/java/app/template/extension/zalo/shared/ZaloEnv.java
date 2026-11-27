@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 
 /** Reflection helpers for Zalo's runtime: app context, signed-in account, language, coroutines. */
 public final class ZaloEnv {
@@ -37,22 +38,24 @@ public final class ZaloEnv {
         throw new NoSuchMethodException("launchIn");
     }
 
-    public static String currentAccount() {
+    /** The signed-in Zalo uid; {@code caller} is the patch a lookup failure is logged under. */
+    public static String currentAccount(Patch caller) {
         try {
             Object account = Class.forName("com.zing.zalocore.CoreUtility").getField("i").get(null);
             return account instanceof String ? (String) account : null;
         } catch (ReflectiveOperationException | RuntimeException failure) {
-            NezumiLog.swallowedOnce("NezumiEnv", "current account unavailable (CoreUtility.i)", failure);
+            NezumiLog.swallowedOnce(caller, "ZaloEnv", "current account unavailable (CoreUtility.i)", failure);
             return null;
         }
     }
 
-    public static Context appContext() {
+    /** Zalo's application context; {@code caller} is the patch a lookup failure is logged under. */
+    public static Context appContext(Patch caller) {
         try {
             return (Context) Class.forName("com.zing.zalo.MainApplication")
                 .getMethod("getAppContext").invoke(null);
         } catch (ReflectiveOperationException | RuntimeException failure) {
-            NezumiLog.swallowedOnce("NezumiEnv", "app context unavailable (MainApplication.getAppContext)", failure);
+            NezumiLog.swallowedOnce(caller, "ZaloEnv", "app context unavailable (MainApplication.getAppContext)", failure);
             return null;
         }
     }
@@ -68,13 +71,13 @@ public final class ZaloEnv {
         return current instanceof Activity ? (Activity) current : null;
     }
 
-    public static boolean isVietnamese(Context context) {
+    public static boolean isVietnamese(Patch caller, Context context) {
         try {
             Object language = Class.forName("z0r").getField("b").get(null);
             if ("vi".equals(language)) return true;
             if ("en".equals(language)) return false;
         } catch (ReflectiveOperationException | SecurityException failure) {
-            NezumiLog.swallowedOnce("NezumiEnv", "Zalo language unavailable (z0r.b), using system locale", failure);
+            NezumiLog.swallowedOnce(caller, "ZaloEnv", "Zalo language unavailable (z0r.b), using system locale", failure);
         }
         return "vi".equals(context.getResources().getConfiguration().locale.getLanguage());
     }

@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -39,25 +40,37 @@ internal fun BytecodePatchContext.addAccountFollowingHooks() {
             } == true
     }
 
-    val account = classDefBy("${ACCOUNT_COMMUNITY}core/base/delegate/AccountManagerDelegate${'$'}Companion;")
-        .methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" && AccessFlags.STATIC.isSet(it.accessFlags) }
-    val currentUser = classDefBy("${ACCOUNT_COMMUNITY}data/core/cache/current/CurrentUser;")
-        .methods.single { it.name == "a" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" }
-    bridge("isLoggedIn", 1, """
-        invoke-static {}, ${account.smaliReference}
-        move-result v0
-        return v0
-    """)
+    if (packageMetadata.versionName in setOf("3.18.0", "1.5.0")) {
+        val manager = "Lcom/navercorp/nid/login/NidLoginManager;"
+        val instance = classDefBy(manager).fields.single { it.name == "INSTANCE" && it.type == manager }
+        val loggedIn = classDefBy(manager).methods.single { it.name == "isLoggedIn" && it.parameterTypes.isEmpty() && it.returnType == "Z" }
+        bridge("isLoggedIn", 1, """
+            sget-object v0, ${instance.smaliReference}
+            invoke-virtual {v0}, ${loggedIn.smaliReference}
+            move-result v0
+            return v0
+        """)
+    } else {
+        val account = classDefBy(chzzkType("${ACCOUNT_COMMUNITY}core/base/delegate/AccountManagerDelegate${'$'}Companion;"))
+            .methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" && AccessFlags.STATIC.isSet(it.accessFlags) }
+        bridge("isLoggedIn", 1, """
+            invoke-static {}, ${account.smaliReference}
+            move-result v0
+            return v0
+        """)
+    }
+    val currentUser = classDefBy(chzzkType("${ACCOUNT_COMMUNITY}data/core/cache/current/CurrentUser;"))
+        .methods.single { it.name == (when (packageMetadata.versionName) { "3.18.0" -> "C"; "1.5.0" -> "E"; else -> "a" }) && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" }
     bridge("currentAccount", 1, """
         invoke-static {}, ${currentUser.smaliReference}
         move-result-object v0
         return-object v0
     """)
 
-    val row = "${ACCOUNT_COMMUNITY}data/core/entity/channel/StreamingFollowingChannel;"
-    val micro = "${ACCOUNT_COMMUNITY}data/core/entity/channel/StreamingMicroChannelPersonal;"
-    val personal = "${ACCOUNT_COMMUNITY}data/core/entity/channel/ChannelPersonalData;"
-    val following = "${ACCOUNT_COMMUNITY}data/core/entity/channel/FollowingInfo;"
+    val row = chzzkType("${ACCOUNT_COMMUNITY}data/core/entity/channel/StreamingFollowingChannel;")
+    val micro = chzzkType("${ACCOUNT_COMMUNITY}data/core/entity/channel/StreamingMicroChannelPersonal;")
+    val personal = chzzkType("${ACCOUNT_COMMUNITY}data/core/entity/channel/ChannelPersonalData;")
+    val following = chzzkType("${ACCOUNT_COMMUNITY}data/core/entity/channel/FollowingInfo;")
     val channelGetter = getter(row, "channel", micro)
     val idGetter = getter(micro, "channelId", "Ljava/lang/String;")
     val nameGetter = getter(micro, "channelName", "Ljava/lang/String;")
@@ -106,10 +119,10 @@ internal fun BytecodePatchContext.addAccountFollowingHooks() {
         return-object v0
     """)
 
-    val listType = if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) {
-        "${ACCOUNT_COMMUNITY}data/tv/entity/TvFollowingChannelList;"
+    val listType = if (packageMetadata.versionName in setOf("1.3.0", "1.4.0", "1.5.0")) {
+        chzzkType("${ACCOUNT_COMMUNITY}data/tv/entity/TvFollowingChannelList;")
     } else {
-        "${ACCOUNT_COMMUNITY}data/mobile/entity/following/FollowingChannelList;"
+        chzzkType("${ACCOUNT_COMMUNITY}data/mobile/entity/following/FollowingChannelList;")
     }
     val mutableGetter = mutableClassDefBy(listType).methods.single { method ->
         method.parameterTypes.isEmpty() && method.returnType == "Ljava/util/List;" &&
@@ -128,7 +141,7 @@ internal fun BytecodePatchContext.addAccountFollowingHooks() {
     mutableGetter.addInstructions(listRead.index + 1,
         "invoke-static/range {v$register .. v$register}, $ACCOUNT_FOLLOWING->capture(Ljava/util/List;)V")
 
-    val logout = mutableClassDefBy("${ACCOUNT_COMMUNITY}core/feature/util/account/AccountUtils;")
+    val logout = mutableClassDefBy(chzzkType("${ACCOUNT_COMMUNITY}core/feature/util/account/AccountUtils;"))
         .methods.single { method ->
             AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.isEmpty() && method.returnType == "V" &&
                 method.implementation?.instructions?.any {

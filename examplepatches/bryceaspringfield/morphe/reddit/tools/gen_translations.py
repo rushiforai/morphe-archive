@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""Writes Translations.java from translations/en.txt (the English catalog) and translations/<locale>.json.
-
-Each locale becomes one method returning its strings in catalog order (null where a string has no translation, which
-shows the English); only the locale in use is ever built. Run after strings_catalog.py and after any translation edit:
-
-  python3 tools/gen_translations.py
-"""
 import glob
 import json
 import os

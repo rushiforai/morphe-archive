@@ -18,16 +18,9 @@ import java.util.regex.Pattern;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/**
- * A tap on a live chat message's profile picture opens its author's channel. Each chat message is a row whose
- * description reads "@handle. message" (checked on 2026-11-11 on Lofi Girl's live chat); the picture is the row's
- * first AVATAR_DP. The tap is read before YouTube's own views get it: a tap there (no drag) is cancelled for the row,
- * which otherwise opens the message's menu, and the channel page opens instead. A drag scrolls the chat as before.
- */
 final class ChatAvatar {
 
     private static final Pattern ROW = Pattern.compile("^@([\\w.\\-]{3,40})\\. ");
-    /** The picture's width with its left margin. */
     private static final int AVATAR_DP = 52;
     private static final java.util.Set<Window> HOOKED = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
     private static boolean registered;
@@ -47,7 +40,6 @@ final class ChatAvatar {
         }
     }
 
-    /** The handle of the chat row under the point, when the point is on the row's picture. */
     private static String handleAt(View v, int x, int y, int[] loc, float density) {
         if (v.getVisibility() != View.VISIBLE) return null;
         v.getLocationOnScreen(loc);
@@ -66,7 +58,6 @@ final class ChatAvatar {
         return null;
     }
 
-    /** Returns true when the event was taken (the tap's end, replaced by a cancel). */
     private static boolean onTouch(Activity a, MotionEvent e) {
         if (!XSettings.CHAT_AVATAR_CHANNEL.get()) return false;
         switch (e.getActionMasked()) {
@@ -108,7 +99,6 @@ final class ChatAvatar {
     }
 
     private static void hook(Activity a) {
-        // The main activity only, where the player and its chat live.
         if (!a.getClass().getName().toLowerCase(java.util.Locale.ROOT).contains("watchwhile")) return;
         Window w = a.getWindow();
         if (w == null || !HOOKED.add(w)) return;

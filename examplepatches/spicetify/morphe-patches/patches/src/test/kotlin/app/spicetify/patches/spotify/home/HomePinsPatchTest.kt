@@ -22,9 +22,9 @@ class HomePinsPatchTest {
         assertFalse(isRowsStore(null))
         assertFalse(isRowsStore(storeRows(1, 0)))
         assertFalse(isRowsStore(storeRows(2, 1)))
-        assertFalse(isRowsStore(field(Opcode.IPUT_OBJECT, 2, 0, "Lp/joz0;", "b", "Ljava/lang/String;")))
-        assertFalse(isRowsStore(field(Opcode.IPUT_OBJECT, 2, 0, "Lp/koz0;", "a", ARRAY_LIST)))
-        assertFalse(isRowsStore(field(Opcode.IGET_OBJECT, 2, 0, "Lp/joz0;", "a", ARRAY_LIST)))
+        assertFalse(isRowsStore(field(Opcode.IPUT_OBJECT, 2, 0, "Lp/ypb1;", "b", "Ljava/lang/String;")))
+        assertFalse(isRowsStore(field(Opcode.IPUT_OBJECT, 2, 0, "Lp/zpb1;", "a", ARRAY_LIST)))
+        assertFalse(isRowsStore(field(Opcode.IGET_OBJECT, 2, 0, "Lp/ypb1;", "a", ARRAY_LIST)))
         assertFalse(isRowsStore(ImmutableInstruction10x(Opcode.RETURN_VOID)))
     }
 
@@ -33,9 +33,9 @@ class HomePinsPatchTest {
         assertTrue(settingsPatch in homePinsPatch.dependencies)
     }
 
-    /** `iput-object v[value], v[instance], Lp/joz0;->a`, the section model's constructor storing its rows. */
+    /** `iput-object v[value], v[instance], Lp/ypb1;->a`, the section model's constructor storing its rows. */
     private fun storeRows(value: Int, instance: Int) =
-        field(Opcode.IPUT_OBJECT, value, instance, "Lp/joz0;", "a", ARRAY_LIST)
+        field(Opcode.IPUT_OBJECT, value, instance, "Lp/ypb1;", "a", ARRAY_LIST)
 
     private fun field(opcode: Opcode, value: Int, instance: Int, owner: String, name: String, type: String) =
         ImmutableInstruction22c(opcode, value, instance, ImmutableFieldReference(owner, name, type))

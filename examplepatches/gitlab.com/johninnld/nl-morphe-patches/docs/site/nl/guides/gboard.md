@@ -1,5 +1,9 @@
 # De Gboard-patches gebruiken
 
+## Local AI en gedeelde spraak
+
+[Stel de zelfstandige Local AI-companion in](local-ai.md) voor schrijfhulp in het toetsenbordthema, beeldtekst en gedeeld lokaal dicteren. Kies en download modellen in de companion; Gboard behoudt zijn eigen toetsenbordinterface. Google-backends blijven beschikbaar als expliciete keuzes.
+
 Stel spraakinvoer in, pas het uiterlijk van het toetsenbord aan en test elke functie in een proefnotitie. Deze handleiding gaat over Gboard 18.8. Op de [Gboard-appagina](../apps/gboard.md) staan de uitgebrachte patches, ondersteunde APK’s en standaardkeuzes per uitgave.
 
 Blijft het toetsenbord er ondoorzichtig uitzien met vervaging aan? Ga naar [Frosted Glass](#frosted-glass) voor een korte vergelijking met een transparant paneel.
@@ -29,16 +33,16 @@ Morphe ondertekent de opnieuw opgebouwde app met je lokale sleutel. Deze patch z
 
 | Wat je wilt | Waar je begint | Wat je kunt verwachten |
 | --- | --- | --- |
-| Lokaal dicteren | **Spraakinvoer → Parakeet-spraakinvoer**, daarna **Parakeet** of **Standaard** selecteren | NVIDIA Parakeet draait op de telefoon zodra het model klaar is. |
+| Lokaal dicteren | **Voice typing → Local AI voice typing**, daarna **Use shared local speech** | De geselecteerde hostherkenner draait op de telefoon zodra het spraakmodel Ready meldt. |
 | Tekst laten afwerken en spraakbewerkingen gebruiken | **Spraakinvoer → Rambler** | Rambler stuurt je spraak naar Google en kan tekstcontext gebruiken bij het herschrijven. |
 | De geavanceerde dicteerfuncties van Google | **Patches → AI & Voice → Advanced Voice Typing** | Meegeleverde herkenningsondersteuning, met de geschiktheidscontroles van Google. Er komt geen derde dicteerkeuze bij. |
 | De microfoon van een headset | **Patches → AI & Voice → Use Bluetooth microphone**, daarna **Spraakinvoer → Use Bluetooth microphone** | De eerste schakelaar maakt de tweede zichtbaar. De tweede vraagt Gboard de headset te gebruiken als de routeregels dat toelaten. |
 
 ### Parakeet voice typing
 
-Open **Spraakinvoer → Parakeet-spraakinvoer**, download één model en schakel Parakeet in. **Parakeet Ultra** is de aanbevolen optie van ongeveer 630 MB. **Parakeet TDT 0.6B v3** is het oorspronkelijke NVIDIA-model van ongeveer 670 MB. Houd extra ruimte vrij voor de spraakruntime en spraakdetectie. Wacht tot de download afgerond is.
+Open **Voice typing → Local AI voice typing → Open or install Local AI**. Kies Parakeet TDT v3, Parakeet Ultra, Nemotron Streaming of Whisper Tiny onder **Speech recognition** in de companion. Download het profiel, schakel gedeelde spraak in en wacht op Ready. Zet daarna **Use shared local speech** in Gboard aan. Modelbestanden worden in de host beheerd en niet opnieuw voor iedere app gedownload.
 
-Selecteer **Parakeet** (de standaarddicteerkeuze) en tik in een proefnotitie op de microfoon. Spreek een zin in het Engels en daarna een zin in het Nederlands. Het model herkent ondersteunde talen per zin. Een korte pauze helpt de zinnen te scheiden. Zolang het model ontbreekt of nog niet klaar is, kan de standaardroute terugvallen op de herkenner van Google. Controleer dat het model klaar is voordat je het transcript als bewijs van lokale herkenning gebruikt.
+Tik in een proefnotitie op de microfoon en test een opgegeven taal van het geselecteerde profiel. De meegeleverde Whisper Tiny-integratie gebruikt een Engelse prefix. Tekst-/beeldverwerking mag uit als je alleen spraak nodig hebt. Geselecteerde lokale spraak meldt ontbrekende modellen of geheugenpauzes expliciet en schakelt niet stilzwijgend naar Google. Zie [de volledige instellingen](local-ai.md#lokaal-dicteren-instellen).
 
 ### Rambler voice typing
 
@@ -50,11 +54,11 @@ Voeg onder **Spraakinvoer → Spraakwoordenboek** een ongewone naam toe aan de l
 
 ### Rambler contact names
 
-Deze patch vult dezelfde lijst met spraakcorrecties aan. Zet **Contact names** aan in het spraakwoordenboek en geef Android toegang tot je contacten als je dit wilt gebruiken. Start een nieuwe dicteerbeurt en controleer of een bekende naam in de lijst staat. Namen die je verwijdert blijven verwijderd. Parakeet kan de lijst lokaal gebruiken. Met Rambler kan de lijst naar Google gaan. Houd alleen woorden in de lijst die de actieve herkenner mag zien.
+Deze patch vult dezelfde lijst met spraakcorrecties aan. Zet **Contact names** aan in het spraakwoordenboek en geef Android toegang tot je contacten als je dit wilt gebruiken. Start een nieuwe dicteerbeurt en controleer of een bekende naam in de lijst staat. Namen die je verwijdert blijven verwijderd. De oude ingebouwde Parakeet-decoder kon de lijst lokaal gebruiken. Met Rambler kan de lijst naar Google gaan. Houd alleen woorden in de lijst die de actieve herkenner mag zien.
 
 ### Parakeet personal dictionary
 
-Gebruik deze patch samen met **Parakeet voice typing** en **Rambler personal dictionary**. Zet **Use the Voice dictionary** aan onder **Parakeet-spraakinvoer** en gebruik **Download spelling data** als daarom wordt gevraagd. Dit is een aparte, kleine download naast het grote spraakmodel. De lokale engine geeft woorden uit de lijst voorrang en houdt een klankcorrectie pas aan als een tweede lokale herkenning die bevestigt. Test met een ongewone naam en vergelijk het resultaat met de woordenboekschakelaar uit.
+De akoestische woordenboekintegratie van deze patch hoort bij de oude ingebouwde Parakeet-decoder. Kies voor contactnamen bij gedeelde spraak Local Model Host v0.1.145 of nieuwer, selecteer **Parakeet Ultra**, zet **Contactnamen gebruiken** aan onder **Spraakinvoer → Local AI voice typing** en geef Android toegang tot je contacten. Gboard geeft een beperkt aantal namen mee voor die dicteerbeurt. Parakeet TDT v3, Nemotron en Whisper Tiny gebruiken de gebruikelijke gedeelde spraakherkenning.
 
 ### Rambler custom instructions
 
@@ -118,9 +122,15 @@ Open **Patches → Keys, Layout & Symbols → Rounded Keyboard Panel**. Zet het 
 
 Open **Thema** in Gboard om een geschikt ZIP-thema te importeren, of open de galerij onder **Patches → Keys, Layout & Symbols → Custom Theme**. Laat de patch voor compatibiliteit met de apphandtekening toegepast. Importeer of download een vertrouwd thema, selecteer het en tik op **Toepassen**. Galerijthema’s worden op aanvraag opgehaald. Een download verandert je thema pas wanneer je het toepast. Wordt een ZIP geweigerd, probeer dan een bekend werkend bestand en behoud intussen het vorige thema.
 
+### Top Toolbar Item Count
+
+Selecteer **Top Toolbar Item Count** bij het patchen in Morphe. Zet bij **Patches → Keys, Layout & Symbols → Top Toolbar Item Count** de optie **Enable** aan, stel **Count** in op 3 tot 8 en herstart Gboard wanneer daarom wordt gevraagd. Controleer de werkbalk in een normaal invoerveld. Het aantal beschikbare items hangt af van het invoerveld en de ingeschakelde functies. Stel eerst het aantal in en gebruik daarna het potlood in het werkbalkmenu om items naar de bovenste balk te slepen.
+
 ### G Logo on Spacebar
 
 Open **Patches → Keys, Layout & Symbols → G logo**. Kies de ingebouwde G, een ander teken of een eigen PNG, WebP of JPEG. Pas formaat en kleur aan. Laat de taalnaam eerst zichtbaar tot het logo naar wens staat. Open het toetsenbord opnieuw en bekijk de spatiebalk in je eigen thema en toetsenbordtaal.
+
+Vanaf v1.107.1 blijft het logo zichtbaar wanneer je met **G logo** ingeschakeld wisselt tussen QWERTY, Handwriting en Morse code. Dit is op een OnePlus 15 gecontroleerd. De oorspronkelijke melding staat in [issue #13](https://gitlab.com/johninnld/nl-morphe-patches/-/work_items/13).
 
 ### Key Shape Selection
 
@@ -131,6 +141,22 @@ Open **Thema**, selecteer een ondersteund thema en zoek **Key shape** in de deta
 Pas **AMOLED dark keyboard** toe in Morphe. Kies daarna in Gboard **Instellingen → Thema → Dynamic Color → Toepassen** en schakel Androids **donkere thema** in. Open een tekstveld. Het paneel achter en tussen de toetsen hoort puur zwart te zijn. De toetsen zelf en de accentkleuren kunnen grijs of gekleurd blijven. Ga terug naar het lichte Android-thema en open het toetsenbord opnieuw om het verschil te controleren. Er is geen aparte AMOLED-tegel.
 
 ## Schrijven, scannen en bewerken
+
+### Shift + Backspace Forward Delete
+
+Selecteer de patch in Morphe en zet de schakelaar aan bij **Patches → Toetsenbordhulpmiddelen → Shift + Backspace Forward Delete**. Start Gboard opnieuw als daarom wordt gevraagd. Plaats de cursor vlak voor een teken. Houd Shift op het scherm ingedrukt en tik op Backspace om het teken na de cursor te wissen. Backspace zonder Shift wist het teken vóór de cursor.
+
+### Long-Press Editing Shortcuts
+
+Stel bij **Patches → Toetsenbordhulpmiddelen → Long-Press Editing Shortcuts** de standaardpositie in op **Eerst** of **Laatst**. Elke toets kan de standaard volgen of een eigen positie krijgen. Open het toetsenbord opnieuw nadat je de instelling hebt opgeslagen. Houd A ingedrukt om alles te selecteren, Z om ongedaan te maken, C om te kopiëren, X om te knippen, V om te plakken of Y om opnieuw uit te voeren. Ongedaan maken en opnieuw uitvoeren hangen af van de teksteditor. De gebruikelijke accenten en andere opties blijven in het menu staan.
+
+### Custom Symbols
+
+Selecteer de patch in Morphe, schakel over naar een Engelse indeling en open **Custom Symbols** in het hulpmiddelenmenu van het toetsenbord. Kies een categorie en tik op een symbool om het in te voegen. Gboard opent zijn eigen expressiepaneel met 11 aangepaste categorieën. Wissel van categorie via de tabbladen en gebruik de toetsenbordknop om verder te typen.
+
+### Grammar Checker
+
+Kies op Android 12 of nieuwer de gepatchte Gboard als spellingcontrole van Android en zet **Gboard → Tekstcorrectie → Grammaticacontrole** aan. Tik in een teksteditor die Android-spellingcontrole ondersteunt op een onderstreepte tekst om vervangende suggesties te zien. De taal en beschikbaarheid van het grammaticamodel bepalen wat Gboard kan controleren. Wil je Gemma gebruiken voor dezelfde onderstreping en suggestielijst, kies dan Local AI en schakel **Inline grammar** in bij **Writing preferences**. Laat de gepatchte Gboard geselecteerd als Android-spellingcontrole.
 
 ### Enable Inline Autofill Suggestions
 
@@ -146,7 +172,27 @@ De patch opent de client-side rolloutvoorwaarde en toont de instelling. Hij leve
 
 ### AI Writing Tools
 
-Open **Patches → AI & Voice → AI Writing Tools** en zet zo nodig **Enable AI Writing Tools** aan. Selecteer een zin in een gewoon tekstveld en open de chip voor schrijfhulpmiddelen. Probeer de tekst te herschrijven of van toon te veranderen. Lees het resultaat voordat je het overneemt. De beschikbaarheid hangt af van de taal, het tekstveld en de backend van Google. **Proofread / Auto Fix** valt buiten de 18.8-port. Een zichtbare proefleesoptie bewijst niet dat die werkt. Gebruik voorbeeldtekst als de dienst tekst op een server kan verwerken.
+Open **Patches → AI & Voice → AI Writing Tools**. De bestaande backends **GBOARD_SERVER**, **PRIVATE_INFERENCE_AICORE** en **PRIVATE_INFERENCE_ASTREA** blijven beschikbaar, met hun oorspronkelijke voorwaarden voor Google-accounts, modellen en services. Alleen het installeren van de optionele lokale provider verandert de gekozen backend niet.
+
+#### Optionele Local AI instellen
+
+Neem **AI Writing Tools** op bij het patchen van Gboard in Morphe. Open **Patches → AI & Voice → Local AI** en kies **Get Local Model Host** of **Update Local Model Host**. Open na de installatie via Android **Model setup**, stel een tekstmodel in en wacht op **Model ready**. Zet daarna **Use Local AI** aan in Gboard. De lokale backend meldt wanneer de host gestopt of onbeschikbaar is. [Volledige Local AI-installatie](local-ai.md#de-companion-installeren)
+
+#### Lokaal schrijven en spraakbewerkingen
+
+Selecteer tekst of zet de cursor in een concept en open de oorspronkelijke **Writing Tools** via de werkbalk. Probeer **Proofread**, **Rephrase** of **Professional**. Controleer het voorstel in het huidige toetsenbordthema voordat je het toepast. Als je het tekstveld of de selectie wijzigt, vervalt het lopende resultaat.
+
+Stel **Use shared local speech** in, kies **Voice Edit** in de werkbalk, tik op de microfoon en spreek een instructie uit, bijvoorbeeld “make this friendlier”. Gboard gebruikt het spraakmodel dat je in Local Model Host hebt gekozen. Pas de bewerking toe vanuit het voorbeeld. [Lokaal dicteren instellen](local-ai.md#lokaal-dicteren-instellen)
+
+Geef voor **AI Reply** of **My Style** toestemming in Androids schermopnamevenster en ga terug naar het oorspronkelijke gesprek. Controleer de schermafbeelding en tik op **Read this screen** om die als context te gebruiken. Voeg voor **My Style** je eigen voorbeelden of voorkeuren toe onder **Local AI → Writing preferences → Your style**. Controleer het concept voordat je op **Apply** tikt. Verstuur het zelf vanuit het gesprek wanneer je klaar bent.
+
+#### Tekstaanvulling, grammatica en afbeeldingen
+
+Het contextscherm heeft afzonderlijke experimentele schakelaars voor **Shared Smart Compose** en **Shared inline grammar**. Shared-tekstaanvulling gebruikt Gboard's inline-weergave als het tekstveld bruikbare cursorinformatie levert. Grammatica geeft native correcties terug met bereiken die uit de oorspronkelijke tekst worden afgeleid. Voor beide moeten native kwaliteit, snelheid en het verwerpen van verouderde resultaten nog afzonderlijk worden gevalideerd. Een zichtbare schakelaar bewijst niet dat het modelpad werkt. Gewoon typen, vegen en woordvoorspelling behouden hun native paden.
+
+Kies bij afbeeldingsselectie onder **Scan text** de gedeelde OCR-optie en schakel vision in de provider in. De bestaande gebundelde OCR blijft beschikbaar. Shared OCR levert letterlijke tekst en verzint geen tekstvakken of betrouwbaarheidsscores. De provider vereist geen camera- of microfoontoestemming.
+
+Na gecontroleerde installatie gebeurt de inferentie op het toestel. Het downloaden van APK en model vereist verbinding. Laden, geheugendruk en Stop blijven echte toestanden; alleen een geïnstalleerde APK betekent nog geen gebruiksklaar model.
 
 ### Enable OCR / Scan Text
 
@@ -184,7 +230,7 @@ Je browser maakt via het lokale netwerk verbinding met de telefoon. Werkt het ad
 
 ### Beta features (18.8)
 
-Open **Patches → More settings → Beta features**. Laat de hoofdschakelaar aan en wijzig één functie tegelijk om het effect te kunnen onderscheiden.
+Open **Patches → More settings → Beta features**. De hoofdschakelaar moet aanstaan om deze wijzigingen toe te passen. Zet alleen de gewenste functies aan en herstart Gboard wanneer daarom wordt gevraagd. Zet je de hoofdschakelaar uit, dan gebruikt Gboard weer zijn eigen flagwaarden en blijven je keuzes bewaard.
 
 | Functie | Hoe je het controleert |
 | --- | --- |

@@ -16,6 +16,33 @@ public final class GboardLongPressQuickActionsSettings {
     public static final boolean DEFAULT_GLOBE_DRAG_ENABLED = false;
     public static final boolean DEFAULT_SELECT_ALL_WHEN_UNSELECTED = false;
 
+    static final String PREF_KEY_PLACEMENT = "pref_long_press_quick_actions_placement";
+    static final String INHERIT_PLACEMENT = "inherit";
+
+    static String placementKey(GboardEditingShortcutPolicy.Shortcut shortcut) {
+        return shortcut == null ? PREF_KEY_PLACEMENT : PREF_KEY_PLACEMENT + "_" + shortcut.latinKey;
+    }
+
+    static String readPlacement(SharedPreferences preferences,
+            GboardEditingShortcutPolicy.Shortcut shortcut) {
+        String value = preferences == null ? null
+                : preferences.getString(placementKey(shortcut), null);
+        if (GboardLongPressShortcutPlacement.FIRST.equals(value)
+                || GboardLongPressShortcutPlacement.LAST.equals(value)) {
+            return value;
+        }
+        return shortcut == null ? GboardLongPressShortcutPlacement.LAST : INHERIT_PLACEMENT;
+    }
+
+    static boolean placeFirst(Context context, GboardEditingShortcutPolicy.Shortcut shortcut) {
+        SharedPreferences preferences = context == null ? null : GboardPatchesSettings.preferences(context);
+        String placement = readPlacement(preferences, shortcut);
+        if (INHERIT_PLACEMENT.equals(placement)) {
+            placement = readPlacement(preferences, null);
+        }
+        return GboardLongPressShortcutPlacement.FIRST.equals(placement);
+    }
+
     private GboardLongPressQuickActionsSettings() {
     }
 

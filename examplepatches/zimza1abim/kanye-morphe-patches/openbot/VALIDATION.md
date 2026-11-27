@@ -175,3 +175,23 @@ The 1.4.12 adapter files were replaced by the 1.4.13 set, and the resource-table
 encoder again fell back to a full rebuild for `res/raw/keep.xml` (`tools:keep`)
 before completing. On-device checks for the new bundle are still open.
 
+## 1.4.13 delta adapter
+
+Recorded on 2026-11-26 (Asia/Seoul).
+
+- The bundle was rebuilt with the React Native Gradle release flags
+  (`hermesc -O -output-source-map`): debug info 36 bytes, like the official bundle,
+  instead of 3.5 MB.
+- Patched Hermes SHA-256:
+  `e4afc6d10426553f94a70a0ba4aca32bea0fcf53706f107db10ba3a52b727b47`.
+- `1.4.13.bdelta` (2.08 MB) replaces the 30 MB `1.4.13.bundle`; it rebuilds the
+  bundle above from the original embedded bundle.
+- `1.4.13.assets.zip` shrank from 7.7 MB to 147 KB: 54 files identical to the APK are
+  left out and 56 web files are stored as deltas against APK files.
+
+| Check | Result |
+| --- | --- |
+| Official APK patch application | `PATCH OpenBot custom font: OK` |
+| Rewritten DEX verification | `SMOKE_OK`; 4 DEX files; the 5 baseline issues only |
+| Device | Font menu, font change and DOM pages checked on a device |
+

@@ -151,7 +151,6 @@ A tap on Home or on the For You tab while For You is showing no longer reloads i
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.,Video bạn tạm dừng sẽ tiếp tục ở trạng thái dừng khi bạn quay lại ứng dụng thay vì phát lại từ đầu. Video đang phát dở sẽ phát bình thường. Tính năng này hoạt động trên Android 10 trở lên.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.,Địa chỉ web do ai đó để lại trong bình luận có thể được chạm vào thay vì phải sao chép thủ công. Chạm vào bất kỳ vị trí nào khác trong bình luận vẫn thực hiện chức năng ban đầu của nó.
 AI Self,AI tự thân
-AI Tako,AI Tako
 AI chat,Trò chuyện AI
 AI-generated posts,Bài đăng do AI tạo
 About,Giới thiệu
@@ -340,6 +339,7 @@ Caption text size,Cỡ chữ phụ đề
 Captions,Phụ đề
 "Captions, gestures and on-screen controls","Phụ đề, cử chỉ và điều khiển trên màn hình"
 Capture crash reports locally,Lưu cục bộ báo cáo sự cố
+Free memory early,Giải phóng bộ nhớ sớm
 Capture the feed,Thu thập bảng tin
 "Capturing. Find the problem, then come back to stop.","Đang ghi lại. Hãy tìm sự cố, sau đó quay lại để dừng."
 Changes in Hushfeed %1$s,Thay đổi trong Hushfeed %1$s
@@ -348,7 +348,8 @@ Check for already-saved videos,Kiểm tra các video đã lưu trước đó
 Check the brackets and quotes in this JSON,Kiểm tra dấu ngoặc và dấu nháy trong JSON này
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.,Chọn từ %1$d đến %2$d video. Giá trị ngoài phạm vi này sẽ sử dụng giới hạn hợp lệ gần nhất. Khởi động lại TikTok để áp dụng.
 Choose a backup file. Your current settings are kept for Undo.,Chọn tệp sao lưu. Các cài đặt hiện tại của bạn được giữ lại để hoàn tác.
-Choose a preset to fill the SIM details.,Chọn một cấu hình sẵn có để điền thông tin SIM.
+"Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts.","Đánh dấu một cấu hình sẵn có để điền thông tin SIM, hoặc nhiều cấu hình để dùng một cấu hình khác mỗi lần TikTok khởi động."
+"A different preset each time TikTok starts, in this order: %1$s","Một cấu hình sẵn có khác mỗi lần TikTok khởi động, theo thứ tự này: %1$s"
 Choose a subfolder under %1$s.,Chọn một thư mục con dưới %1$s.
 Choose counts for this signed-in account. Leave a field empty to use TikTok's count. Zero shows zero. Choices stay on this phone.,Chọn số lượng cho tài khoản đã đăng nhập này. Để trống để sử dụng số lượng mặc định của TikTok. Số 0 hiển thị là 0. Lựa chọn được lưu trên điện thoại này.
 Choose what reaches your feed,Chọn nội dung hiển thị trong bảng tin của bạn
@@ -555,6 +556,7 @@ Double tap,Chạm đúp
 Double tap by corner,Chạm đúp theo góc màn hình
 "Download lists the qualities this video comes in, with the size TikTok gives for each, and saves the one you pick. The quality above stays as it is for the next save.","Tải xuống hiển thị danh sách các chất lượng video có sẵn kèm dung lượng do TikTok cung cấp cho mỗi loại, và lưu chất lượng bạn chọn. Chất lượng ở trên được giữ nguyên cho lần lưu tiếp theo."
 Download original photos,Tải xuống ảnh gốc
+Download speed,Tốc độ tải xuống
 Downloads,Tải xuống
 "Drag to move, release to place","Kéo để di chuyển, thả ra để đặt"
 Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.,Kéo lên hoặc xuống dọc theo cạnh trái hoặc phải của video để thay đổi thiết lập của dải cạnh đó. Mặc định bên trái là độ sáng màn hình và bên phải là âm lượng. Vuốt ở bất kỳ vị trí nào khác vẫn thực hiện cuộn bảng tin.
@@ -797,6 +799,7 @@ Hide new follower notifications,Ẩn thông báo người theo dõi mới
 Hide new followers,Ẩn người theo dõi mới
 Hide online status,Ẩn trạng thái trực tuyến
 Hide paid partnerships,Ẩn nội dung hợp tác trả phí
+Hide parts of the room line,Ẩn các phần của dòng phòng
 Hide people and options by name,Ẩn người dùng và tùy chọn theo tên
 Hide photo posts,Ẩn bài đăng dạng ảnh
 Hide photo posts from the feed.,Ẩn bài đăng dạng ảnh khỏi bảng tin.
@@ -835,7 +838,6 @@ Hide stories from the feed.,Ẩn tin khỏi bảng tin.
 Hide stories tray,Ẩn khay chứa tin
 Hide subscriber-only videos,Ẩn video dành riêng cho người đăng ký kênh
 Hide suggested accounts,Ẩn tài khoản được đề xuất
-Hide suggested replies,Ẩn phản hồi được gợi ý
 Hide suggestions on the search page,Ẩn gợi ý trên trang tìm kiếm
 Hide surveys,Ẩn khảo sát
 Hide tabs TikTok adds later unless you allow them.,Ẩn các thẻ mà TikTok thêm vào sau trừ khi bạn cho phép.
@@ -1112,6 +1114,7 @@ Last change put back. The Feature Gate Lab rules were for another TikTok version
 Last original value,Giá trị gốc cuối cùng
 Last recording: %1$d gates.,Lần ghi gần nhất: %1$d cổng.
 Last recording: 1 gate.,Lần ghi gần nhất: 1 cổng.
+Latency,Độ trễ
 Later,Để sau
 Latest first on Following,Mới nhất xếp trước trên thẻ Đang theo dõi
 Layout,Bố cục
@@ -1275,6 +1278,9 @@ No folder picker here. Type the folder in the row.,Không có trình chọn thư
 No font is imported,Chưa nhập phông chữ nào
 "No full file at this quality, so TikTok saves it","Không có tệp đầy đủ ở chất lượng này, TikTok sẽ lưu"
 No full file for this video. Try again later.,Video này không có tệp đầy đủ. Hãy thử lại sau.
+Subscriber-only posts can't be saved,Không thể lưu bài đăng dành riêng cho người đăng ký
+Copy-protected videos can't be saved,Không thể lưu video được bảo vệ chống sao chép
+Not saved. The file wasn't a playable video.,Chưa lưu. Tệp không phải video phát được.
 No gate data is available. Refresh values from the menu to try again.,Dữ liệu cổng không khả dụng. Làm mới các giá trị từ menu để thử lại.
 No gate reads were recorded. Use a TikTok feature while recording.,Chưa ghi lại được dữ liệu đọc cổng nào. Hãy sử dụng một tính năng của TikTok trong khi ghi hình.
 No gates match this filter.,Không có cổng nào khớp với bộ lọc này.
@@ -1469,6 +1475,7 @@ Pick the buttons to take off the column. The rest stay where they are.,Chọn c�
 "Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked.","Chọn các cửa sổ bật lên (popup) muốn chặn. Danh sách lưu các popup mà TikTok đã thử hiển thị trên điện thoại này, do đó popup sẽ xuất hiện tại đây sau lần hiển thị đầu tiên. Màn hình xác thực CAPTCHA, xác minh, đăng nhập, độ tuổi, lệnh cấm và đồng ý pháp lý không bao giờ bị liệt kê hoặc bị chặn."
 "Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Chọn các lối tắt cần loại bỏ khỏi hàng dưới tiểu sử trang cá nhân, chẳng hạn như TikTok Studio hoặc Đơn hàng của bạn. Khởi động lại TikTok để áp dụng."
 Pick videos to save from profile grids,Chọn video cần lưu từ lưới trang cá nhân
+Pick what to leave off the small line with the room ID and your connection. The rest stays on it.,Chọn những gì cần bỏ khỏi dòng nhỏ có ID phòng và kết nối của bạn. Phần còn lại vẫn giữ nguyên.
 "Picked %1$s. Save, then tap Pick all for more.","Đã chọn %1$s. Lưu, rồi chạm Chọn tất cả để tiếp tục."
 Picked videos,Các video đã chọn
 Picks the older H.264 video format when TikTok also offers a newer one (HEVC or ByteVC2). It helps phones that stutter or run hot. Videos without an H.264 version still play.,Ưu tiên chọn định dạng video H.264 cũ hơn khi TikTok cung cấp định dạng mới hơn (HEVC hoặc ByteVC2). Tùy chọn này giúp giảm giật lag hoặc nóng máy trên một số điện thoại. Các video không có bản H.264 vẫn sẽ phát bình thường.
@@ -1636,6 +1643,7 @@ Reviewed presets for TikTok %1$s,Các cấu hình sẵn đã xét duyệt cho Ti
 Right away,Ngay lập tức
 Right column,Cột bên phải
 Right edge strip,Dải cạnh phải
+Room ID,ID phòng
 Rounder,Bo tròn hơn
 Rows,Các hàng
 "Run the progress bar from one screen edge to the other, without the gap TikTok leaves at each end.","Hiển thị thanh tiến trình kéo dài từ cạnh này sang cạnh kia của màn hình, loại bỏ khoảng trống mà TikTok để lại ở hai đầu."
@@ -1714,6 +1722,7 @@ Saved videos put back,Đã khôi phục lại các video đã lưu
 "Saved, override off","Đã lưu, tắt ghi đè"
 Saved. Restart TikTok to apply this.,Đã lưu. Khởi động lại TikTok để áp dụng.
 Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.,Lưu báo cáo sự cố mới nhất của TikTok trên điện thoại này để đưa vào báo cáo chẩn đoán.
+Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.,Yêu cầu TikTok xóa bộ nhớ đệm khi bộ nhớ của nó gần đến ngưỡng mà Android đóng màn hình chính và bảng tin bắt đầu lại từ đầu.
 Saves at once,Số lượt lưu đồng thời
 Saves right now,Các lượt lưu đang thực hiện
 "Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.","Lưu tệp phụ đề (SRT) cùng với video. Tệp sẽ lưu vào thư mục Phim (Movies) trên Android 11 trở lên, thư mục Tải xuống (Download) trên Android 10 và thư mục video của bạn trên các bản cũ hơn. Trên Android 11 trở lên nếu bật Lưu chi tiết, video sẽ chuyển sang Tải xuống hoặc Tài liệu còn phụ đề vẫn ở thư mục Phim."
@@ -1891,6 +1900,8 @@ Show video length on profile grids,Hiển thị thời lượng video trên lư�
 Show what is left of the budget,Hiển thị phần ngân sách còn lại
 "Show when a video was posted down to the second, with your time zone, in place of TikTok's short date by the creator's name.","Hiển thị thời điểm video được đăng chính xác đến từng giây kèm múi giờ của bạn, thay cho mốc ngày định dạng ngắn của TikTok bên cạnh tên nhà sáng tạo."
 Show when an account was made,Hiển thị thời điểm tạo tài khoản
+Show how many videos a profile has,Hiển thị số video trên trang cá nhân
+"Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them.","Hiển thị số video theo cách TikTok đếm bên dưới @username trên trang cá nhân, kể cả trang của chính bạn."
 Show what changed since your last visit,Hiện những gì đã thay đổi kể từ lần ghé thăm trước
 "Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.","Bên dưới @tên người dùng trên hồ sơ, hiện số người theo dõi, đang theo dõi, lượt thích và video đã thay đổi thế nào kể từ lần cuối bạn mở. Các con số chỉ được lưu trên điện thoại này."
 Since %1$s: %2$s,Từ %1$s: %2$s
@@ -2301,7 +2312,6 @@ TikTok's messages didn't start in time. It tries again at %1$s.,Tin nhắn của
 TikTok's own name,Tên gốc của TikTok
 TikTok's own value,Giá trị gốc của TikTok
 TikTok's size,Kích thước của TikTok
-TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.,Các ô trả lời gợi ý của TikTok và biểu ngữ giới thiệu sẽ ngừng hiển thị trong khung chat. Tin nhắn bạn nhập hoặc nhận không bị ảnh hưởng.
 TikTok's total: %1$s. Filtered accounts: %2$s.,Tổng số của TikTok: %1$s. Tài khoản bị lọc: %2$s.
 Timed logging stopped,Đã dừng ghi nhật ký theo thời gian
 Times you can open the feed anyway,Số lần bạn vẫn có thể mở bảng tin
@@ -2615,7 +2625,7 @@ Read receipts shown,Đã hiện xác nhận đã đọc
 Compact long-press menu everywhere,Menu nhấn giữ gọn ở mọi nơi
 "A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.","Nhấn giữ một video sẽ mở bảng chia sẻ nhỏ của TikTok cả ở Dành cho bạn, giống video của nhà sáng tạo. Nó được ưu tiên hơn hai công tắc menu đầy đủ ở trên. Cần đặt Nhấn giữ ở mặc định của TikTok."
 Hide streak pop-ups,Ẩn cửa sổ bật lên chuỗi
-Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,Chặn các cảnh báo chuỗi trượt vào trên TikTok cùng tin nhắn và mẹo về chuỗi mà nó thêm vào cuộc trò chuyện của bạn.
+"Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats.","Chặn các cảnh báo chuỗi trượt vào trên TikTok, lời mời Streak Pet trong Hộp thư và tin nhắn cùng mẹo về chuỗi mà nó thêm vào cuộc trò chuyện của bạn."
 Long press on For You opens my watch history,Nhấn giữ Dành cho bạn sẽ mở lịch sử xem của tôi
 Instead of these settings. The list has a button that brings you back here.,Thay cho phần cài đặt này. Danh sách có nút đưa bạn quay lại đây.
 Long press on Profile opens my watch history,Nhấn giữ Trang cá nhân sẽ mở lịch sử xem của tôi
@@ -2710,7 +2720,9 @@ Close with Back or a tap outside,Đóng bằng nút Quay lại hoặc chạm ra 
 dialog popup greeting,hộp thoại cửa sổ bật lên lời chào
 Don't show again,Không hiện lại
 Stop the blink under the bar,Hết nhấp nháy dưới thanh
+Pages under the bar,Trang dưới thanh
 "If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.","Nếu video nhấp nháy khi bạn vuốt lúc bật Thanh dưới cùng trong suốt, tùy chọn này vẽ video ngay trong TikTok thay vì trên một lớp riêng. Có thể tốn pin hơn một chút. Yêu cầu bật Thanh dưới cùng trong suốt."
+"Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.","Cho lưới Cộng đồng ở Trang chủ và các trang khác kết thúc phía trên các thẻ chạy tiếp xuống dưới thanh trong suốt, để chúng hiện qua thanh thay cho dải màu đen hoặc trắng. Hàng cuối vẫn cuộn lên được phía trên các thẻ. Yêu cầu bật Thanh dưới cùng trong suốt."
 Bend the video at the edges,Bẻ cong video ở viền
 "The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.","Viền của thanh hình viên thuốc bằng kính bẻ cong phần video bị làm mờ phía sau, giống mép kính thật, và màu sắc hiện lên đậm hơn một chút. Yêu cầu bật Làm mờ video phía sau thanh điều hướng và thiết bị chạy Android 13 trở lên."
 Hide On this day,Ẩn Ngày này năm xưa (On this day)
@@ -2740,6 +2752,8 @@ Show the controls,Hiện các điều khiển
 Hide Send to new group,Ẩn Gửi tới nhóm mới
 Hides the button that turns the people you picked into a new group chat. Send separately stays.,Ẩn nút biến những người bạn đã chọn thành một nhóm chat mới. Gửi riêng vẫn giữ nguyên.
 AMOLED dark mode,Chế độ tối AMOLED
+Dark mode,Chế độ tối
+Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.,Bật giao diện tối có sẵn trong TikTok Lite nhưng không bao giờ cho chọn. Khởi động lại TikTok Lite để thấy thay đổi.
 "Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.","Tô chế độ tối bằng màu đã chọn khi vá, đen tuyền trừ khi chọn màu khác. Tắt đi để dùng các sắc xám tối của chính TikTok. Chế độ sáng không thay đổi. Khởi động lại TikTok để xem thay đổi."
 Check for Hushfeed updates,Kiểm tra bản cập nhật Hushfeed
 "Once a day when TikTok opens, ask GitHub if a newer Hushfeed is out and show a card when it is. The request carries your Hushfeed version and nothing else.","Mỗi ngày một lần khi mở TikTok, hỏi GitHub xem đã có Hushfeed mới hơn chưa và hiện một thẻ nếu có. Yêu cầu chỉ gửi kèm phiên bản Hushfeed của bạn."
@@ -2768,6 +2782,7 @@ Taller,Rất cao
 Friends in the top tabs,Bạn bè ở các thẻ trên cùng
 "Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.","Bạn bè chuyển lên các thẻ ở đầu bảng tin, cạnh Đang theo dõi, và Khám phá thay chỗ nó ở thanh dưới cùng, giống cách TikTok sắp xếp ở một số quốc gia. Khu vực và bảng tin của bạn vẫn giữ nguyên."
 Pin more chats,Ghim thêm cuộc trò chuyện
+Ping,Ping
 "Lifts the app's limit on pinned chats in the Inbox, usually 5, so you can pin more.","Bỏ giới hạn của ứng dụng đối với các cuộc trò chuyện được ghim trong hộp thư, thường là 5, để bạn ghim được nhiều hơn."
 Hide voice comments,Ẩn bình luận bằng giọng nói
 Hide comments made of a voice recording instead of words.,Ẩn các bình luận chỉ chứa bản ghi âm giọng nói thay vì văn bản chữ.
@@ -2994,7 +3009,8 @@ SecUID,SecUID
 Unknown (TikTok didn't send it),Không rõ (TikTok không gửi)
 "A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Bảng chia sẻ của trang cá nhân có thêm nút Thông tin tài khoản. Nút này hiển thị những gì TikTok đã cung cấp về tài khoản đó: thời gian tham gia, khu vực và ngôn ngữ, cấp độ người tặng quà và SecUID, số bài đăng, video đã thích, mục yêu thích và bài đăng lại, lần thay đổi tên người dùng và tên hiển thị gần nhất, tài khoản có phải riêng tư hay không và danh sách video đã thích có công khai hay không. Không có dữ liệu bổ sung nào được tải thêm."
 Show the room ID and your connection,Hiện ID phòng và kết nối của bạn
-"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.","Thêm một dòng nhỏ vào phòng LIVE với ID phòng và tình trạng kết nối của chính bạn tới luồng phát, theo đo đạc của trình phát TikTok: ping, độ trễ và tốc độ tải xuống. Nhấn vào dòng để sao chép ID phòng."
+Show the room line,Hiện dòng phòng
+"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.","Thêm một dòng nhỏ vào phòng LIVE với ID phòng và tình trạng kết nối của chính bạn tới luồng phát, theo đo đạc của trình phát TikTok: ping, độ trễ và tốc độ tải xuống. Nhấn vào dòng để thu nhỏ thành một chấm, và nhấn vào chấm để hiện lại. Nhấn giữ dòng để sao chép ID phòng."
 Room ID %1$s,ID phòng %1$s
 Ping %1$s ms,Ping %1$s ms
 Latency %1$s s,Độ trễ %1$s giây
@@ -3025,7 +3041,7 @@ Smaller text sizes,Cỡ chữ nhỏ hơn
 UI size,Kích thước giao diện
 "Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.","Thu nhỏ toàn bộ giao diện TikTok, cả chữ lẫn nút, để màn hình chứa được nhiều hơn. Mức 100 giữ nguyên như cũ. Khởi động lại TikTok để xem thay đổi."
 Show how long a LIVE has been on,Hiện LIVE đã phát được bao lâu
-"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.","Thêm một dòng nhỏ vào phòng LIVE cho biết chủ phòng đã phát trực tiếp bao lâu, tính từ lúc phòng bắt đầu. Nếu ID phòng cũng đang bật, dòng này nằm bên dưới."
+"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot.","Thêm một dòng nhỏ vào phòng LIVE cho biết chủ phòng đã phát trực tiếp bao lâu, tính từ lúc phòng bắt đầu. Nếu ID phòng cũng đang bật, dòng này nằm bên dưới. Nhấn vào dòng để thu nhỏ thành một chấm."
 LIVE for %1$s,Đã LIVE %1$s
 Show exact LIVE battle scores,Hiện điểm đấu LIVE chính xác
 "In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.","Trong một trận đấu LIVE, TikTok giới hạn điểm số lớn mà người xem thấy, còn chủ phòng thấy con số đầy đủ. Tùy chọn này hiện điểm đầy đủ trên thanh trận đấu và trong cửa sổ đồng chủ phòng."
@@ -3053,6 +3069,8 @@ Fade the controls out,Làm mờ dần điều khiển
 "The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.","Các nút, chú thích và thẻ mờ dần thay vì biến mất ngay, và một lần chạm trong lúc mờ dần sẽ hiển thị lại chúng. Khi tắt hiệu ứng động của Android, chúng vẫn biến mất ngay."
 Date instead of age,Ngày thay cho thời gian
 "Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.","Video mới hiện ngày đăng cạnh tên nhà sáng tạo, như 10-12, thay cho thời gian như 2 ngày trước. Ngày trước tháng và Viết tháng bằng chữ cũng đổi nó theo cùng cách."
+Use this date format everywhere,Dùng định dạng ngày này ở mọi nơi
+"Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.","Viết ngày ở bình luận, tiêu đề ngày trong chat và ngày ở kết quả tìm kiếm giống cách ba hàng ở trên viết ngày cạnh tên nhà sáng tạo."
 Keep your place in chats,Giữ vị trí trong cuộc trò chuyện
 A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.,Cuộc trò chuyện bạn đã cuộn lên sẽ giữ nguyên chỗ khi bạn quay lại từ video hoặc gửi câu trả lời. Gửi tin nhắn thường hoặc chạm vào mũi tên xuống vẫn đưa bạn đến tin mới nhất.
 Fill wide videos too,Lấp đầy màn hình cả với video ngang

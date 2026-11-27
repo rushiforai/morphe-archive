@@ -6,17 +6,16 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Append-only bug-log file for one process, rotated as {@code <name>.log} + {@code <name>.1.log}.
  * Lines are queued and written by a daemon thread so callers on the UI thread never touch disk;
  * {@link #appendNow} drains the queue synchronously for the crash path, where the process is about to die.
+ * Lines dropped because the queue was full are counted and reported on the next write.
  */
 final class LogStore {
     static final long MAX_FILE_BYTES = 1024 * 1024;
@@ -26,29 +25,47 @@ final class LogStore {
         String header();
     }
 
-    private static final class Entry {
+    /** A rendered line (everything after the timestamp) and when it was logged. */
+    static final class Line {
         final long time;
         final String body;
 
-        Entry(long time, String body) {
+        Line(long time, String body) {
             this.time = time;
             this.body = body;
         }
     }
 
+    private static final class Entry {
+        final long time;
+        final String body;
+        /** Non-null for the session header, built on the writer thread to keep it off app startup. */
+        final HeaderSource session;
+
+        Entry(long time, String body) {
+            this(time, body, null);
+        }
+
+        Entry(long time, String body, HeaderSource session) {
+            this.time = time;
+            this.body = body;
+            this.session = session;
+        }
+    }
+
     private final File dir;
     private final String baseName;
-    private final HeaderSource headerSource;
     private final LinkedBlockingQueue<Entry> queue = new LinkedBlockingQueue<>(4096);
     private final Object lock = new Object();
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US);
+    private final AtomicInteger dropped = new AtomicInteger();
     private Writer writer;
     private long size;
+    /** The current session's header, repeated at the top of the file after a rotation. */
+    private String sessionHeader;
 
-    LogStore(File dir, String baseName, HeaderSource headerSource) {
+    LogStore(File dir, String baseName) {
         this.dir = dir;
         this.baseName = baseName;
-        this.headerSource = headerSource;
         Thread thread = new Thread(this::drainLoop, "NezumiBugLog");
         thread.setDaemon(true);
         thread.start();
@@ -58,16 +75,26 @@ final class LogStore {
         return dir;
     }
 
-    /** Queues a line; drops it when the queue is full rather than blocking the caller. */
-    void append(long time, String body) {
-        queue.offer(new Entry(time, body));
+    /** Queues the session header block; it is written without a timestamp prefix. */
+    void startSession(HeaderSource header) {
+        queue.offer(new Entry(System.currentTimeMillis(), null, header));
     }
 
-    /** Writes everything queued plus this line before returning. Used when the process is dying. */
-    void appendNow(long time, String body) {
+    /** Queues a line; drops (and counts) it when the queue is full rather than blocking the caller. */
+    void append(long time, String body) {
+        if (!queue.offer(new Entry(time, body))) dropped.incrementAndGet();
+    }
+
+    /** Queues several lines in order. */
+    void appendAll(List<Line> lines) {
+        for (Line line : lines) append(line.time, line.body);
+    }
+
+    /** Writes everything queued plus these lines before returning. Used when the process is dying. */
+    void appendNow(List<Line> lines) {
         synchronized (lock) {
             drainLocked();
-            writeLocked(new Entry(time, body));
+            for (Line line : lines) writeLocked(new Entry(line.time, line.body));
             flushLocked();
         }
     }
@@ -83,6 +110,7 @@ final class LogStore {
     void clearAll() {
         synchronized (lock) {
             queue.clear();
+            dropped.set(0);
             closeLocked();
             File[] files = dir.listFiles();
             if (files != null) {
@@ -123,7 +151,20 @@ final class LogStore {
             if (size >= MAX_FILE_BYTES) {
                 rotateLocked();
             }
-            String line = format.format(new Date(entry.time)) + ' ' + entry.body + '\n';
+            int lost = dropped.getAndSet(0);
+            if (lost > 0) {
+                String note = LogLine.full(entry.time, LogLine.body('W', Patch.CORE.id, "BugLog",
+                    Thread.currentThread().getName(), "dropped " + lost + " lines", null)) + '\n';
+                writer.write(note);
+                size += note.getBytes(StandardCharsets.UTF_8).length;
+            }
+            String line;
+            if (entry.session != null) {
+                sessionHeader = header(entry.session);
+                line = sessionHeader + '\n';
+            } else {
+                line = LogLine.full(entry.time, entry.body) + '\n';
+            }
             writer.write(line);
             size += line.getBytes(StandardCharsets.UTF_8).length;
         } catch (IOException | RuntimeException failure) {
@@ -149,14 +190,18 @@ final class LogStore {
         openLocked();
     }
 
-    private void writeHeaderLocked() throws IOException {
-        String header;
+    private static String header(HeaderSource source) {
         try {
-            header = headerSource.header();
+            return source.header();
         } catch (RuntimeException failure) {
-            header = "header unavailable: " + failure;
+            return "===== session header unavailable: " + failure + " =====";
         }
-        String text = "===== Nezumi bug log =====\n" + header + "\n==========================\n";
+    }
+
+    private void writeHeaderLocked() throws IOException {
+        String text = "===== Nezumi bug log =====\n";
+        // After a rotation the new file still says which session it belongs to.
+        if (sessionHeader != null) text += sessionHeader.replaceFirst(" start =====", " continued =====") + '\n';
         writer.write(text);
         size += text.getBytes(StandardCharsets.UTF_8).length;
     }

@@ -171,6 +171,9 @@ public final class HissiMenuController extends ToolScreenController {
             kyodemoTarget = KyodemoRouting.wacchoiSearchUrl(sourceHost, sourceBoard,
                     initialWacchoiQuery);
             target = kyodemoTarget;
+        } else if (incoming!=null&&NukoArchive.accepts(incoming.toString())) {
+            currentUsesKyodemo=false;hissiTarget=null;kyodemoTarget=null;
+            target=incoming.toString();
         } else if (isKyodemoBoardSearch(incoming)) {
             currentUsesKyodemo = true;
             hissiTarget = null;
@@ -256,7 +259,7 @@ public final class HissiMenuController extends ToolScreenController {
         TextView title = new TextView(this);
         boolean compactCheckerBackHeader = !eddiArchiveMode && !wacchoiSearchLaunch && !currentUsesKyodemo;
         title.setText(eddiArchiveMode
-                ? "‹   エッヂ過去ログ  ·  ChMateビュー"
+                ? "‹   過去ログ  ·  ChMateビュー"
                 : wacchoiSearchLaunch ? "‹   ワッチョイ全文検索  ·  Kyodemo"
                 : currentUsesKyodemo
                         ? "‹   ID検索  ·  Kyodemoビュー"

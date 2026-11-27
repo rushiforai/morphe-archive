@@ -25,23 +25,15 @@ import java.util.Map;
 
 import app.morphe.extension.shared.Logger;
 
-/**
- * The channel filters as a list of channels, each edited with checkboxes, length menus, and word fields, in place of
- * typed rules. The rules stay saved as text in {@link XSettings#CHANNEL_RULES} (one line a channel, read by
- * {@link ChannelRules}), so rules typed before keep working and "Edit as text" still shows them; lines starting with #
- * are kept. The channels of the older "Channels to hide" list join the list as "Every video" at the first save.
- */
 @SuppressWarnings("deprecation")
 final class ChannelFilterUi {
 
-    /** Length menu choices in seconds (0 is Off). */
     private static final int[] SHORTER = {0, 60, 120, 180, 300, 600, 900, 1200, 1800, 2700, 3600};
     private static final int[] LONGER = {0, 300, 600, 900, 1200, 1800, 2700, 3600, 5400, 7200, 10800};
 
     private ChannelFilterUi() {
     }
 
-    /** One channel's filters. */
     static final class Entry {
         String channel = "";
         boolean all, live, shorts, playlists;
@@ -49,8 +41,6 @@ final class ChannelFilterUi {
         final List<String> words = new ArrayList<>();
         final List<String> comments = new ArrayList<>();
     }
-
-    // ---- The text format.
 
     static List<Entry> read(String text, List<String> notes) {
         Map<String, Entry> byChannel = new LinkedHashMap<>();
@@ -138,7 +128,6 @@ final class ChannelFilterUi {
         return p.isEmpty() ? Strings.get("cf_nothing") : String.join(" · ", p);
     }
 
-    /** The channel's name and handle when a feed showed them, for the list's titles. */
     private static String display(String channel) {
         String c = channel.trim();
         for (String[] s : Channels.seen()) {
@@ -149,13 +138,10 @@ final class ChannelFilterUi {
         return c;
     }
 
-    // ---- The dialogs.
-
     private static int dp(Context ctx, float v) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, ctx.getResources().getDisplayMetrics()));
     }
 
-    /** The list of channels, with Add channel and Edit as text. */
     static void showList(Context ctx, Runnable onChange) {
         try {
             List<String> notes = new ArrayList<>();
@@ -233,7 +219,6 @@ final class ChannelFilterUi {
         }
     }
 
-    /** The rules as text, for typing many at once. */
     private static void showText(Context ctx, Runnable onSaved) {
         EditText edit = new EditText(ctx);
         edit.setText(XSettings.CHANNEL_RULES.get());
@@ -299,7 +284,6 @@ final class ChannelFilterUi {
         return out;
     }
 
-    /** One channel's editor: its name with suggestions, what to hide, and Save, Cancel, or Delete. */
     static void showEditor(Context ctx, Entry e, boolean isNew, Runnable onSave, Runnable onDelete) {
         LinearLayout box = new LinearLayout(ctx);
         box.setOrientation(LinearLayout.VERTICAL);
@@ -310,7 +294,6 @@ final class ChannelFilterUi {
         channel.setHint(Strings.get("cf_channel_hint"));
         channel.setSingleLine(true);
         channel.setText(e.channel);
-        // Suggestions: the playing video's channel first, then channels the feeds showed, newest first.
         List<String> shown = new ArrayList<>();
         List<String> ids = new ArrayList<>();
         try {
@@ -389,7 +372,6 @@ final class ChannelFilterUi {
         commentsEdit.setText(String.join(", ", e.comments));
         box.addView(commentsEdit);
 
-        // "Every video" covers the video options, which grey out while it is checked.
         View[] videoOptions = {live, shorts, playlists, shorterLabel, shorter, longerLabel, longer, wordsLabel, wordsEdit};
         Runnable greyOut = () -> {
             for (View v : videoOptions) {
@@ -415,7 +397,6 @@ final class ChannelFilterUi {
                 channel.setError(Strings.get("cf_channel_needed"));
                 return;
             }
-            // A link becomes its @handle or channel ID; a name keeps its case.
             e.channel = new ChannelRules.Channel(c).label();
             e.all = all.isChecked();
             e.live = live.isChecked();

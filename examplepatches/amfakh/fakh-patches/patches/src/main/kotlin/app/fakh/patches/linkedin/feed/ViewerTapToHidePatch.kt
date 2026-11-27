@@ -29,12 +29,11 @@ private object StateManagerConstructorFingerprint : Fingerprint(
 @Suppress("unused")
 val viewerTapToHidePatch = patch(
     name = "Tap to hide controls in viewers",
-    description = "Tap a video or document in full screen to hide its caption and buttons, like photos. " +
-        "Adds a switch in Fakh Patches.",
+    description = "Tap a video or document in full screen to hide its caption and buttons, like photos.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feed")
+    category("Video & viewers")
 
     // The video viewer is edited in the SDUI component hook.
     dependsOn(sduiComponentFilterPatch)

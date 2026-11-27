@@ -142,7 +142,9 @@ public final class MetadataRepair extends Fragment {
                     currentCompleted = count;
                     currentTotal = total;
                     recordProgress(stage, count, total);
-                    setProgress("reading".equals(stage) ? label("reading") : label("progress_" + stage, count, total));
+                    setProgress("reading".equals(stage)
+                            ? (total > 0 ? label("reading") + " " + count + " / " + total : label("reading"))
+                            : label("progress_" + stage, count, total));
                 });
                 deliver(() -> { busy = false; service = active; scan = result; screen = Screen.LIST; render(); });
             } catch (CancellationException exception) { finishWith(label("scan_stopped")); }

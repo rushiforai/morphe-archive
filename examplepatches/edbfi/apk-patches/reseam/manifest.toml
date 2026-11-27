@@ -1,0 +1,6 @@
+[bundle]
+name = "edbfi-patches"
+author = "edbfi"
+description = "Patches by edbfi for Android apps"
+license = "AGPL-3.0-or-later"
+format_version = 1

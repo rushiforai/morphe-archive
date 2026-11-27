@@ -2,7 +2,7 @@
 
 # MergenV1 Patches
 
-**Real-time Liquid Glass (`Kyant0`) & Swiss-Kinetic Obsidian UI overhaul with a 120Hz physical spring engine for TikTok & TikTok You** — *built for use with Morphe.*
+**Modern UI & interaction enhancer for TikTok & TikTok You — 120Hz spring animations, gesture shortcuts, radial action menu, quick controls, Danmaku comments, and switchable visual themes** — *built for use with Morphe.*
 
 [![Android 13+](https://img.shields.io/badge/Android-13%2B%20(API%2033%2B)-000000?style=flat-square&logo=android&logoColor=white)](https://developer.android.com)
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-000000?style=flat-square)](LICENSE)
@@ -37,24 +37,24 @@ Add manually in **Morphe Manager** / **Morphe Desktop**: `https://github.com/d0r
 
 ## ✨ What Changes Inside the App?
 
-### 1. Dual Theme Architecture (Instant Live Switch)
-- **Kyant0 Liquid Glass:** Custom AGSL `RuntimeShader` refractive pill navigation bar, dynamic edge dispersion lens (toggleable), frosted glass bottom sheets, and live backdrop capture optimization at 120Hz.
-- **Mergen Swiss-Kinetic Obsidian:** Zero-radius `0dp` brutalist black-and-white panels, 1px hairline dividers, high-contrast inverted CTAs, and monospace telemetry typography.
+### 1. 120Hz Spring Animations 2.0 & Motion Profiles
+- Driven by a centralized `Choreographer` spring solver (`MergenSpringEngine`) with live mid-flight interruption, velocity handoff, momentum projection, and boundary rubber-banding across sheets, drawers, and overlays.
+- **3 Selectable Profiles in Settings:** `FLUID` (silky natural overshoot), `SNAPPY` (tight high-response feel), and `REDUCED` (accessible gentle fades, minimal motion).
 
-### 2. 120Hz Spring Animations 2.0 & Animation Profiles
-- Driven by a centralized `Choreographer` spring solver (`MergenSpringEngine`) with live mid-flight interruption, velocity handoff, momentum projection, and boundary rubber-banding.
-- **3 Selectable Profiles in Settings:** `FLUID` (Apple-style silky overshoot), `SNAPPY` (tight high-response feel), and `REDUCED` (accessible gentle fades, zero blur).
-
-### 3. Gestures, Radial Menu & Panels
+### 2. Gestures, Radial Menu & Smart Overlays
 | Action | Gesture / Trigger | Result |
 | --- | --- | --- |
-| **Quick Controls Sheet** | Swipe **UP** from bottom bar | Volume & brightness glass sliders, Clean Screen toggle, Auto-Scroll, instant theme flip |
+| **Quick Controls Sheet** | Swipe **UP** from bottom bar | Volume & brightness sliders, Clean Screen toggle, Auto-Scroll, instant theme flip |
 | **Creator Peek Drawer** | Swipe **LEFT** from creator avatar | Right-docked creator stats (`Following / Followers / Likes / Videos`), Bio, Follow, Share, Sound, `@Copy`, Not Interested |
 | **Radial Action Menu** | **Long-press** center of video | 6-node rotary dial (Like, Bookmark, Share, Download, Speed, Clean Screen) with magnetic hub lean & haptic snap |
-| **Kinetic Seekbar & Ring** | Above bar / Top-right corner | Elastic Kyant0 scrub slider + live player telemetry ring (auto-hides during comment sheets) |
+| **Kinetic Seekbar & Ring** | Above bar / Top-right corner | Responsive scrub slider + live player telemetry ring (auto-hides during comment sheets) |
 | **Dynamic Notch Alerts** | Front camera punch-hole | Zero-footprint alerts that bloom directly from your calibrated camera position |
 | **Danmaku Comments** | Top overlay lanes | Live scrolling video comments with `LOW / MID / HIGH` density & **1:1 reversible finger scrub** on vertical feed swipes |
-| **MergenV1 Settings** | App Settings → `MERGENV1` pill | Animated Welcome onboarding on first tap + full live customization panel |
+| **MergenV1 Settings** | App Settings → `MERGENV1` pill | Animated Welcome onboarding on first tap + full live UI & motion customization panel |
+
+### 3. Switchable Visual Themes (Instant Live Toggle)
+- **Mergen Swiss-Kinetic Obsidian:** Clean zero-radius `0dp` high-contrast black-and-white panels, 1px hairline dividers, inverted CTAs, and crisp telemetry typography.
+- **Kyant0 Liquid Glass:** Optional hardware AGSL `RuntimeShader` refractive bottom navigation bar, frosted overlays, and toggleable edge dispersion lens.
 
 ---
 
@@ -73,7 +73,7 @@ Add manually in **Morphe Manager** / **Morphe Desktop**: `https://github.com/d0r
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.0.0](https://github.com/d0r4nn/mergenv1-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**2 patches** across **2 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
+> **[v1.0.2](https://github.com/d0r4nn/mergenv1-patches/releases/tag/v1.0.2)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**2 patches** across **2 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
 | # | App | Patches | Version | Package |
 |---|---|---|---|---|

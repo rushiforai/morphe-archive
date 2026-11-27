@@ -21,13 +21,6 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.StringSetting;
 
-/**
- * Adds the bundle's preferences to Morphe's own screens (Settings > Morphe): Feed, Player, Video, DeArrow, Return
- * YouTube Dislike, and Miscellaneous. Called by the patch at the end of Morphe's
- * YouTubePreferenceFragment.initialize, once Morphe's screens exist. Switches, text fields, and
- * lists keep the setting's key, so Morphe's preference listener saves them; the two multiple-choice lists save
- * through their own listener, since Morphe's listener handles no multiple choice.
- */
 @SuppressWarnings({"deprecation", "unused"})
 public final class SettingsUi {
 
@@ -36,7 +29,6 @@ public final class SettingsUi {
 
     private static java.lang.ref.WeakReference<Object> fragmentRef = new java.lang.ref.WeakReference<>(null);
 
-    /** Saved at the start of initialize, since the compiled method may reuse the register of this before it returns. */
     public static void setFragment(Object fragment) {
         fragmentRef = new java.lang.ref.WeakReference<>(fragment);
     }
@@ -111,7 +103,6 @@ public final class SettingsUi {
             toggle(ctx, watchedWhere, XSettings.WATCHED_CHANNEL, "apply_channel", null);
             toggle(ctx, watchedWhere, XSettings.WATCHED_SEARCH, "apply_search", null);
             toggle(ctx, watchedWhere, XSettings.WATCHED_RELATED, "apply_related", null);
-            // A typed number, as Morphe's custom playback speeds are typed.
             EditTextPreference resuggested = new EditTextPreference(ctx);
             resuggested.setKey(XSettings.RESUGGESTED_LIMIT.key);
             resuggested.setTitle(Strings.get("resuggested"));
@@ -186,14 +177,6 @@ public final class SettingsUi {
         }
     }
 
-    /**
-     * Morphe's own screen, found at any depth by its name. A screen's key is morphe_settings_screen_NN_name plus a
-     * suffix for how its patch sorts the screen (_sort_by_title, _sort_by_key, or _sort_by_unsorted). The number
-     * belongs to the key and differs from the number in the screen's title string (the player's key is 06_player,
-     * its title 05_player_title), so a key built from the title's number matched nothing and left the Player,
-     * Return YouTube Dislike, and Miscellaneous rows loose at the end of the main screen (0.3.10). The name alone is
-     * matched, whatever the number. The root screen is the last resort.
-     */
     private static PreferenceGroup screenOf(PreferenceScreen root, String name) {
         PreferenceGroup g = find(root, java.util.regex.Pattern.compile("morphe_settings_screen_\\d+_" + name + "(_sort_.*)?"));
         if (g != null) return g;

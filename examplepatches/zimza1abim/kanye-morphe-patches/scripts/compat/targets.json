@@ -35,7 +35,7 @@
     "sha256Asset": null,
     "locator": null,
     "versionsFile": "patches/src/main/kotlin/app/template/patches/notesnook/Compatibility.kt",
-    "adapterPath": "patches/src/main/resources/notesnook/adapters/{version}.bundle",
+    "adapterPath": "patches/src/main/resources/notesnook/adapters/{version}.properties",
     "patches": [
       "Notesnook custom font"
     ]
@@ -49,7 +49,7 @@
     "sha256Asset": null,
     "locator": null,
     "versionsFile": null,
-    "adapterPath": "patches/src/main/resources/joplin/adapters/{version}.bundle",
+    "adapterPath": "patches/src/main/resources/joplin/adapters/{version}.properties",
     "patches": [
       "Joplin zero-flash custom font"
     ]
@@ -102,7 +102,7 @@
     "sha256Asset": null,
     "locator": null,
     "versionsFile": "openbot/patches/OpenBotCompatibility.kt",
-    "adapterPath": "openbot/resources/openbot/adapters/{version}.bundle",
+    "adapterPath": "openbot/resources/openbot/adapters/{version}.properties",
     "patches": [
       "OpenBot custom font"
     ]
@@ -118,6 +118,6 @@
     "patches": [
       "Orca font and bot pictures"
     ],
-    "adapterPath": "patches/src/main/resources/orca/adapters/{version}.bundle"
+    "adapterPath": "patches/src/main/resources/orca/adapters/{version}.properties"
   }
 }

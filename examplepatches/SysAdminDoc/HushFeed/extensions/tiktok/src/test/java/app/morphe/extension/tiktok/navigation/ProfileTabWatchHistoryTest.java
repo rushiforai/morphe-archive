@@ -63,13 +63,13 @@ public class ProfileTabWatchHistoryTest {
         bar.addView(profile, new FrameLayout.LayoutParams(216, 138));
         content.addView(bar, new FrameLayout.LayoutParams(-1, 138, Gravity.BOTTOM));
         activity.setContentView(content);
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.9.3:oxl", PROFILE_ID);
+        FeedVisibility.resolveForTests(activity.getPackageName(), "48.0.2:osg", PROFILE_ID);
     }
 
     @After public void tearDown() {
         PausedProcess.set(false);
         HomeTabSettingsShortcut.resetForTests();
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.9.3:oxl", 0);
+        FeedVisibility.resolveForTests(activity.getPackageName(), "48.0.2:osg", 0);
         ReflectionHelpers.setStaticField(SettingsStatus.class, "feedNavigationEnabled", false);
         Settings.PROFILE_TAB_OPENS_WATCH_HISTORY.resetToDefault();
         Settings.PROFILE_TAB_SWITCHES_ACCOUNTS.resetToDefault();
@@ -160,7 +160,11 @@ public class ProfileTabWatchHistoryTest {
         assertNotNull("nothing was opened", opened);
         assertEquals(Intent.ACTION_VIEW, opened.getAction());
         assertEquals(ProfileTabWatchHistory.WATCH_HISTORY_URI, String.valueOf(opened.getData()));
-        assertTrue(opened.getDataString().contains("pns_product_poseidon%2Fwatch_history"));
+        // The page TikTok's own Watch history chip opens (48.0.2): the poseidon page it replaced
+        // stays white, its stylesheet gone from TikTok's servers (Login2, 2026-11-26).
+        assertTrue(opened.getDataString().contains(
+                "pns_product_activity_center%2Fac%2Fwatch_history.html%3Fenable_biometrics%3Dtrue"));
+        assertFalse(opened.getDataString().contains("pns_product_poseidon"));
         assertEquals("the page could open in another TikTok", activity.getPackageName(), opened.getPackage());
         assertEquals("a long press also counted as a tap", 0, taps.get());
         assertTrue("a tap on Profile stopped reaching TikTok", profile.performClick());

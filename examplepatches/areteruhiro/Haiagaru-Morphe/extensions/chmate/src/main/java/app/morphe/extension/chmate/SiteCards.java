@@ -13,6 +13,8 @@ import java.util.regex.*;
 final class SiteCards {
     static final String MAX_PER_RESPONSE_KEY="siteCardsMaxPerResponse";
     static final String CACHE_HOURS_KEY="siteCardsCacheHours";
+    static final String EXPLICIT_ONLY="siteCardsExplicitUrlsOnly", COMPACT="siteCardsCompact", LONG_PRESS="siteCardsLongPressMenu";
+    static boolean option(String key,boolean fallback){android.content.Context c=Haiagaru.applicationContextForExtension();return c==null?fallback:SettingsProfiles.prefs(c).getBoolean(key,fallback);}
     private static final Handler MAIN=new Handler(Looper.getMainLooper());
     private static final ThreadPoolExecutor WORKER=new ThreadPoolExecutor(2,2,30,TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(32),new ThreadPoolExecutor.AbortPolicy());
@@ -60,12 +62,12 @@ final class SiteCards {
         if(!preview.isEmpty())searchText.add(preview);
         searchText.add(XPostPreview.originalText(unwrapped));
         for(String text:searchText){
-            for(String candidate:PreviewUrls.extract(text,32)){
+            for(String candidate:PreviewUrls.extract(text,32,option(EXPLICIT_ONLY,true))){
                 String url=SiteCardMetadata.safeUrl(candidate);
                 if(url==null||SiteCardExclusions.excluded(ignored,url))continue;
                 android.net.Uri uri=android.net.Uri.parse(url);String host=uri.getHost().toLowerCase(Locale.ROOT),path=uri.getPath();
                 if(host.equals("x.com")||host.endsWith(".x.com")||host.equals("twitter.com")||host.endsWith(".twitter.com")
-                        ||host.equals("youtu.be")||host.endsWith("youtube.com")||host.endsWith("5ch.io")||host.endsWith("5ch.net")
+                        ||host.endsWith("5ch.io")||host.endsWith("5ch.net")
                         ||path!=null&&path.matches("(?i).+\\.(gif|jpe?g|png|webp|mp4|webm|mp3|pdf|zip|apk)(/.*)?"))continue;
                 result.add(url);
                 if(result.size()>=maximum)break;
@@ -122,6 +124,28 @@ final class SiteCards {
     }
     static final class SiteLink extends XPostPreviewTouch.PostLink {
         SiteLink(String url){super(url);}
+        void showMenu(android.view.View view){
+            Entry entry=CACHE.get(getURL());if(entry==null||entry.data==null)return;
+            SiteCardMetadata.Data data=entry.data;
+            android.app.Activity activity=NativeToolTabs.activity(view.getContext());if(activity==null)return;
+            java.util.ArrayList<String> actions=new java.util.ArrayList<>();
+            actions.add("カードのタイトルをコピー");actions.add("URLをコピー");
+            if(!data.image.isEmpty()){actions.add("サムネイルをビューアで表示");actions.add("サムネイルを端末に保存");}
+            new HaiagaruDialog.Builder(activity).setTitle(data.title).setItems(actions.toArray(new String[0]),(dialog,which)->{
+                if(which<2){android.content.ClipboardManager clipboard=(android.content.ClipboardManager)activity.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    if(clipboard!=null)clipboard.setPrimaryClip(android.content.ClipData.newPlainText("リンクカード",which==0?data.title:getURL()));
+                }else if(which==2){
+                    java.util.ArrayList<String> links=new java.util.ArrayList<>();links.add(data.image);
+                    activity.startActivity(new android.content.Intent().setClassName(activity,"jp.syoboi.a2chMate.activity.ImagesViewer2Activity").putStringArrayListExtra("links",links).putExtra("index",0));
+                }else try{
+                    String image=SiteCardMetadata.safeUrl(data.image);if(image==null)return;
+                    android.app.DownloadManager manager=(android.app.DownloadManager)activity.getSystemService(android.content.Context.DOWNLOAD_SERVICE);
+                    android.app.DownloadManager.Request request=new android.app.DownloadManager.Request(android.net.Uri.parse(image));
+                    request.setTitle(data.title).setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    manager.enqueue(request);Toast.makeText(activity,"サムネイルのダウンロードを開始しました",Toast.LENGTH_SHORT).show();
+                }catch(RuntimeException error){Toast.makeText(activity,"画像を保存できませんでした",Toast.LENGTH_SHORT).show();}
+            }).setNegativeButton("閉じる",null).show();
+        }
         @Override public void onClick(android.view.View view){
             if(!Haiagaru.siteCardsEnabled() || GigaFilePosting.openLink(view.getContext(),getURL()))return;
             try{view.getContext().startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse(getURL()))

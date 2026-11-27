@@ -167,11 +167,18 @@ public final class GboardOcrSettingsFeature
                     new ArrayList<GboardPatchesSettingsContract.Section>();
             sections.add(new GboardPatchesSettingsContract.Section(
                     imageSection,
-                    Collections.singletonList(new GboardPatchesSettingsContract.CommandRow(
-                            imageTitle,
-                            imageSummary,
-                            true,
-                            () -> pickImage(host)))));
+                    java.util.Arrays.asList(
+                            new GboardPatchesSettingsContract.ToggleRow(
+                                    GboardSettingsText.get(context, R.string.gboard_patches_ocr_shared_title),
+                                    GboardSettingsText.get(context, R.string.gboard_patches_ocr_shared_summary),
+                                    !dev.jason.gboardpatches.extension.sharedmodel.GboardSharedWritingRuntime.selected(context),
+                                    dev.jason.gboardpatches.extension.sharedmodel.SharedCameraOcr.selected(context),
+                                    value -> preferences.edit().putBoolean(GboardOcrSettings.PREF_KEY_SHARED_IMAGE_OCR, value).apply()),
+                            new GboardPatchesSettingsContract.CommandRow(
+                                    imageTitle,
+                                    imageSummary,
+                                    true,
+                                    () -> pickImage(host)))));
             sections.add(new GboardPatchesSettingsContract.Section(engineTitle, engineRows));
 
             return new GboardPatchesSettingsContract.Screen(
@@ -203,6 +210,13 @@ public final class GboardOcrSettingsFeature
         Bitmap bitmap = null;
         try {
             byte[] data = document.getData();
+            if (dev.jason.gboardpatches.extension.sharedmodel.SharedCameraOcr.selected(context)) {
+                BitmapFactory.Options bounds = new BitmapFactory.Options(); bounds.inJustDecodeBounds = true;
+                BitmapFactory.decodeByteArray(data, 0, data.length, bounds);
+                if (bounds.outWidth <= 0 || bounds.outHeight <= 0 || bounds.outWidth * (long) bounds.outHeight > 8000000L) {
+                    toastOnMain(context, GboardSettingsText.get(context, R.string.gboard_patches_ocr_shared_unavailable));return;
+                }
+            }
             bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
         } catch (Throwable failure) {
             logFailure("Failed to decode the selected OCR image", failure);
@@ -213,8 +227,14 @@ public final class GboardOcrSettingsFeature
         }
         String text;
         try {
-            text = GboardOcrBundledBridge.recognizeText(bitmap);
+            text = dev.jason.gboardpatches.extension.sharedmodel.SharedCameraOcr.selected(context)
+                    ? dev.jason.gboardpatches.extension.sharedmodel.SharedOcrRuntime.recognize(context, bitmap)
+                    : GboardOcrBundledBridge.recognizeText(bitmap);
         } catch (Throwable failure) {
+            if (dev.jason.gboardpatches.extension.sharedmodel.SharedCameraOcr.selected(context)) {
+                toastOnMain(context, GboardSettingsText.get(context, R.string.gboard_patches_ocr_shared_unavailable));
+                return;
+            }
             logFailure("Bundled OCR failed on the selected image", failure);
             text = "";
         } finally {

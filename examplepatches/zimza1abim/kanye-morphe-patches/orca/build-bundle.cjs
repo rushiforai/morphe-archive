@@ -4,6 +4,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const crypto = require('node:crypto')
 const { execFileSync } = require('node:child_process')
+const adapter = require('../scripts/delta/adapter.cjs')
 
 const [sourceArg, apkArg] = process.argv.slice(2)
 if (!sourceArg || !apkArg) throw Error('Supply the Orca android source directory and original APK')
@@ -57,14 +58,18 @@ const bundle = path.join(output, 'assets', 'index.android.bundle')
 const nativeAssets = path.join(output, 'res')
 fs.mkdirSync(path.dirname(bundle), { recursive: true })
 const expo = path.join(mobile, 'node_modules', 'expo', 'bin', 'cli')
+// Same steps as the React Native Gradle plugin: unminified JS, then hermesc with the
+// release flags. expo's --bytecode keeps ~4 MB of debug info the official bundle lacks.
+const js = path.join(output, 'index.android.js')
 execFileSync(process.execPath, [expo, 'export:embed', '--platform', 'android', '--dev', 'false',
   '--entry-file', 'index.js',
-  '--bundle-output', bundle, '--assets-dest', nativeAssets,
-  '--bytecode', '--minify', 'true', '--max-workers', '2'], {
+  '--bundle-output', js, '--assets-dest', nativeAssets,
+  '--minify', 'false', '--max-workers', '2'], {
   cwd: mobile, stdio: 'inherit',
   env: { ...process.env, NODE_ENV: 'production', EXPO_PUBLIC_APP_ENV: 'production', CI: '1' },
 })
-const patched = fs.readFileSync(bundle)
+const patched = adapter.compile(path.join(mobile, 'node_modules', 'react-native'), js, bundle)
+adapter.assertStripped(patched, `Orca ${version}`)
 const hermesMagic = Buffer.from([0xc6, 0x1f, 0xbc, 0x03, 0xc1, 0x03, 0x19, 0x1f])
 if (!original.subarray(0, 8).equals(hermesMagic)) throw Error('The APK bundle is not Hermes bytecode')
 if (!patched.subarray(0, 8).equals(hermesMagic) || patched.readUInt32LE(8) !== original.readUInt32LE(8))
@@ -98,10 +103,10 @@ if (fs.readdirSync(overlay).length > 0) {
   // An empty zip is just its end-of-central-directory record; the patch reads no entries.
   fs.writeFileSync(assetsZip, Buffer.from([0x50, 0x4b, 0x05, 0x06, ...new Array(18).fill(0)]))
 }
-fs.copyFileSync(bundle, path.join(adapters, `${version}.bundle`))
+const deltaSha256 = adapter.writeDelta(original, patched, path.join(adapters, version))
 
 // Keep the registered identity keys; only the adapter's own checksums are ours to write.
-const updates = { patchedSha256: sha256(patched), assetsSha256: sha256(fs.readFileSync(assetsZip)) }
+const updates = { patchedSha256: sha256(patched), deltaSha256, assetsSha256: sha256(fs.readFileSync(assetsZip)) }
 const lines = []
 const seen = new Set()
 for (const [name, value] of properties) {

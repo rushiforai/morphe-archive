@@ -37,8 +37,12 @@ after a fix.
   unversioned card/catalog tasks run these). Retained 1.1.1: `verifyMonetDisplayedCards111`
   and `verifyMonetCatalog111` (+`Runtime`/`Bundle`/`Apk`).
 - Pillo 0.6.27: `verifyPillo627Runtime`, `verifyPillo627Bundle`, feature `*Bundle` tasks.
-- Car Scanner 2.2.42: `verifyCarScanner242`, `verifyCarScanner242Bundle`.
-- Fylo 2.6: `verifyFylo`, `verifyFyloBundle`, `verifyFyloApk`. TFD: `verifyFirstDescendant*`.
+- Car Scanner 2.2.52: `verifyCarScanner252`, `verifyCarScanner252Bundle` (both alternatives),
+  `verifyCarScannerGeneric` (the experimental structural fallback must reproduce the exact
+  2.2.52 output byte for byte and fail safe on malformed input). Retained 2.2.42:
+  `verifyCarScanner242`, `verifyCarScanner242Bundle`. `verifyCarScanner221Bundle` needs
+  `Car_Scanner-2.2.21.apk`, which is not in the workspace.
+- Fylo 2.9: `verifyFylo`, `verifyFyloBundle`, `verifyFyloApk`. TFD: `verifyFirstDescendant*`.
 - Release: `verifyAndroidBundle`. `verifyMorpheDesktopImport` uses the newest
   `E:\Morphe\morphe-desktop-*-all.jar` (logged as `Morphe Desktop JAR: ...`);
   `-PmorpheDesktopJar=<jar>` overrides it. Report the Desktop version used.

@@ -28,26 +28,37 @@ final class States {
     private States() {
     }
 
-    /** Subscribes the composable being composed to changes of handle and of the settings. */
-    static void observe(String handle) {
-        if (broken) return;
+    /**
+     * Subscribes the composable being composed to changes of key (a handle, or another key
+     * of ours) and of the settings. Returns the key's state for {@link #changedState}, or
+     * null when Compose state is unavailable.
+     */
+    static Object observe(String key) {
+        if (broken) return null;
         try {
             Object g, h;
             synchronized (handles) {
                 if (global == null) global = ComposeBridge.intState(0);
                 g = global;
-                h = handles.get(handle);
+                h = handles.get(key);
                 if (h == null) {
                     h = ComposeBridge.intState(0);
-                    handles.put(handle, h);
+                    handles.put(key, h);
                 }
             }
             ComposeBridge.readIntState(g);
             ComposeBridge.readIntState(h);
+            return h;
         } catch (Throwable t) {
             broken = true;
             Log.e(Hooks.TAG, "Compose state is unavailable; badges won't update until scrolled", t);
+            return null;
         }
+    }
+
+    /** Recomposes what observed a state, even after it left the map. */
+    static void changedState(Object state) {
+        if (state != null) write(state);
     }
 
     /** Recomposes what shows handle. */

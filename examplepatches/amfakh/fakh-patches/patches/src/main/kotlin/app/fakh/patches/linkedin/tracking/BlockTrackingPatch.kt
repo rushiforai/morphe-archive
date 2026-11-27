@@ -30,11 +30,11 @@ private object QueueMetricFingerprint : Fingerprint(
 @Suppress("unused")
 val blockTrackingPatch = patch(
     name = "Disable analytics",
-    description = "Stops most LinkedIn analytics events from being sent. Adds a switch in Fakh Patches.",
+    description = "Stops most LinkedIn analytics events from being sent.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Privacy")
+    category("Chat & privacy")
     dependsOn(settingsPatch)
 
     execute {

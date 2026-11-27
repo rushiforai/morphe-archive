@@ -515,7 +515,7 @@ val gboardSymbolsFooterOrderPatch = gboardPublicResourcePatch(
     description = "自訂 Gboard「Emojis, stickers & GIFs」底部 tabs 的排序，支援拖曳調整\nCustomize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering.",
         default = true
 ) {
-    compatibleWith(COMPATIBILITY_GBOARD)
+    compatibleWith(gboardCompatibility18_8())
 
     dependsOn(
         gboardPatchesSettingsPatch,

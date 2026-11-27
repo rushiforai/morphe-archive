@@ -6,12 +6,12 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 
 /**
- * The Firebase Installations (FIS) request builder — obfuscated `ct.c.c(URL, String)`.
+ * The Firebase Installations (FIS) request builder — obfuscated `sz.c.c(URL, String)` in 26.19.0.
  *
  * This in-app method assembles the HTTPS request that LINE's bundled Firebase Installations
  * SDK sends to `firebaseinstallations.googleapis.com` to mint an installation / FCM token. It
  * self-reports the app's signing-certificate SHA-1 in the `X-Android-Cert` header (computed
- * from `PackageManager.GET_SIGNATURES` via `rl.a.a` → SHA-1 → uppercase hex in `rl.h.b`).
+ * from `PackageManager.GET_SIGNATURES` via `fs.a.a` → SHA-1 → uppercase hex in `fs.g.b`).
  * Google's API-key "Android apps" restriction validates the `X-Android-Package` +
  * `X-Android-Cert` pair against LINE's official cert, and does not prove key possession. Thus
  * Google rejects a re-signed build (`FisError: BAD CONFIG`), and the build never gets a push

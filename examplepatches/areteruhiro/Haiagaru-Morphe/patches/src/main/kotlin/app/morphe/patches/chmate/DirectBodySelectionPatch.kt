@@ -16,6 +16,26 @@ internal fun BytecodePatchContext.patchDirectBodySelection(version: String) {
         else -> return
     }
     val owner = mutableClassDefBy(type)
+    if (version == "0.8.10.242 dev") {
+        val start = owner.methods.single { it.name == "d" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+        start.addInstructions(0,"invoke-static {p0}, Lapp/morphe/extension/chmate/CardTextSelection;->begin(Ljava/lang/Object;)V")
+        check(owner.methods.none { it.name == "requestRectangleOnScreen" })
+        val rectangle=MutableMethod(ImmutableMethod(type,"requestRectangleOnScreen",
+            listOf(ImmutableMethodParameter("Landroid/graphics/Rect;",emptySet(),null),ImmutableMethodParameter("Z",emptySet(),null)),
+            "Z",AccessFlags.PUBLIC.value,emptySet(),emptySet(),ImmutableMethodImplementation(4,emptyList(),emptyList(),emptyList())))
+        rectangle.addInstructions(0,"""
+            invoke-static {p0}, Lapp/morphe/extension/chmate/CardTextSelection;->suppressScroll(Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :native_rectangle
+            const/4 v0, 0x0
+            return v0
+            :native_rectangle
+            invoke-super {p0, p1, p2}, ${owner.superclass}->requestRectangleOnScreen(Landroid/graphics/Rect;Z)Z
+            move-result v0
+            return v0
+        """.trimIndent())
+        owner.methods.add(rectangle)
+    }
     val original = owner.methods.single { it.name == "dispatchTouchEvent" &&
         it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/MotionEvent;") }
     val delegate = MutableMethod(ImmutableMethod(type, "haiagaruDirectSelectionNativeDispatch", original.parameters,

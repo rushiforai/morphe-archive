@@ -8,6 +8,11 @@ import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.Region;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
+import android.graphics.drawable.shapes.RectShape;
+import android.graphics.drawable.shapes.RoundRectShape;
+import android.graphics.drawable.shapes.Shape;
 import android.net.Uri;
 import android.os.Build;
 import android.os.SystemClock;
@@ -524,6 +529,7 @@ public final class Settings {
         owners.put(ChatJump.PAGES, ChatJump.KEY);
         owners.put(InvisibleButtonsPick.KEY, InvisibleButtons.KEY);
         owners.put(TabSlide.KEY, TabSwipe.KEY);
+        owners.put(TabFollow.KEY, TabSwipe.KEY);
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
     }
 
@@ -1263,6 +1269,30 @@ public final class Settings {
     }
 
     /**
+     * A user tile's photo mask as Messenger sets it. A tile with no badge to cut around, like your picture on the Menu
+     * tab, gets no clip path, just an oval, so here the oval becomes a square or rounded square too (#207). Any other
+     * shape was Messenger's own pick and stays.
+     */
+    public static void avatarTileShape(ShapeDrawable tile, Shape shape) {
+        tile.setShape(avatarTileMask(shape));
+    }
+
+    static Shape avatarTileMask(Shape shape) {
+        if (!(shape instanceof OvalShape)) return shape;
+        try {
+            int held = avatarShape();
+            if (held == AVATAR_CIRCLE) return shape;
+            if (held == AVATAR_SQUARE) return new RectShape();
+            float[] corners = new float[8];
+            Arrays.fill(corners, avatarCornerPx());
+            return new RoundRectShape(corners, null, null);
+        } catch (RuntimeException error) {
+            hookFailed(AVATAR_SHAPE, "Can't change the profile picture shape", error);
+            return shape;
+        }
+    }
+
+    /**
      * The area a clip path covers. computeBounds measures curve control points, which for a plain oval is the oval's box,
      * but the arcs around a badge cutout (online people in the story tray) push it about a fifth past the tile on each side.
      */
@@ -1405,25 +1435,37 @@ public final class Settings {
 
     /**
      * The message object itself, handed over right after its id and before its text, for the photo or voice clip its
-     * attachment points at. Only the address is read here, on Messenger's own thread; the fetch happens off it.
+     * attachment points at and the address it shared. Only addresses are read here, on Messenger's own thread; the
+     * fetch happens off it.
      */
     private static final ThreadLocal<MessageLogAttachment.Found> INCOMING_MEDIA = new ThreadLocal<>();
+    private static final ThreadLocal<String> INCOMING_LINK = new ThreadLocal<>();
 
     public static void incomingMessageMedia(Object message) {
-        // Only the log keeps attachments. With the hook on for hidden words alone, nothing here is read.
+        // Only the log keeps attachments and links. With the hook on for hidden words alone, nothing here is read.
         if (!wouldUse(MessageLog.KEY)) {
             INCOMING_MEDIA.remove();
+            INCOMING_LINK.remove();
             return;
         }
         MessageLogAttachment.Found found = MessageLogAttachment.found(message);
         if (found == null) INCOMING_MEDIA.remove();
         else INCOMING_MEDIA.set(found);
+        String link = MessageLogLink.shared(message);
+        if (link == null) INCOMING_LINK.remove();
+        else INCOMING_LINK.set(link);
     }
 
     static MessageLogAttachment.Found takeIncomingMessageMedia() {
         MessageLogAttachment.Found found = INCOMING_MEDIA.get();
         INCOMING_MEDIA.remove();
         return found;
+    }
+
+    static String takeIncomingMessageLink() {
+        String link = INCOMING_LINK.get();
+        INCOMING_LINK.remove();
+        return link;
     }
 
     /**
@@ -1433,8 +1475,9 @@ public final class Settings {
     public static void recordReceivedMessage(String text, String thread) {
         String id = takeIncomingMessageId();
         MessageLogAttachment.Found media = takeIncomingMessageMedia();
+        String link = takeIncomingMessageLink();
         HiddenWords.received(text, id);
-        if (wouldUse(MessageLog.KEY)) MessageLog.record(text, thread, id, media);
+        if (wouldUse(MessageLog.KEY)) MessageLog.record(text, thread, id, media, link);
     }
 
     /** The same notification hook asks this for an auto reply: on, not paused, and with at least one reply written. */
@@ -1818,6 +1861,24 @@ public final class Settings {
         } catch (RuntimeException error) {
             hookFailed(APPEAR_OFFLINE, "Can't hold back your active status", error);
             return true;
+        }
+    }
+
+    /**
+     * The status Messenger's presence stream writes for you, one of its own PresenceStatus values (#243). Some accounts
+     * report through that stream instead of the hooks above. With the switch on, ACTIVE goes out as IDLE, which is what
+     * the stream writes itself once Messenger is in the background. Any other status, or the switch off, goes out as it
+     * was.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static Object presenceToOthers(Object status) {
+        if (!(status instanceof Enum) || !"ACTIVE".equals(((Enum<?>) status).name())) return status;
+        if (availableToOthers(true)) return status;
+        try {
+            return Enum.valueOf((Class) ((Enum<?>) status).getDeclaringClass(), "IDLE");
+        } catch (IllegalArgumentException error) {
+            hookFailed(APPEAR_OFFLINE, "Can't hold back your active status", error);
+            return status;
         }
     }
 
@@ -2978,6 +3039,8 @@ public final class Settings {
     public static List addLegacyDrawerEntry(Object fragment, List sections) {
         if (fragment == null || sections == null) return sections;
         try {
+            // The rows picked under Menu rows leave the side menu too (#207).
+            sections = MenuRows.drawer(sections);
             if (menuRowHidden()) return sections;
             java.lang.reflect.Method getContext = fragment.getClass().getMethod("getContext");
             getContext.setAccessible(true);
@@ -3373,6 +3436,9 @@ public final class Settings {
 
     /** Whether Write longer notes is on. */
     public static boolean longerNotes() { return enabled("longer_notes"); }
+
+    /** Whether Show Remove contact is on. */
+    public static boolean removeContact() { return enabled("remove_contact"); }
 
     private Settings() { }
 }

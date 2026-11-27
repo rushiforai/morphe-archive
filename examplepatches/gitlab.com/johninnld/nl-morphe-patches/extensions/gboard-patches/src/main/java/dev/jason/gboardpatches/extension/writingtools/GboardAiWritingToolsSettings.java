@@ -10,6 +10,7 @@ public final class GboardAiWritingToolsSettings {
             "pref_ai_writing_tools_all_keyboards_enabled";
     public static final String PREF_KEY_BACKEND_TYPE =
             "pref_ai_writing_tools_backend_type";
+    public static final String BACKEND_SHARED_LOCAL = "SHARED_LOCAL_MODEL";
     public static final String BACKEND_GBOARD_SERVER = "GBOARD_SERVER";
     public static final String BACKEND_PRIVATE_INFERENCE_AICORE =
             "PRIVATE_INFERENCE_AICORE";
@@ -139,7 +140,7 @@ public final class GboardAiWritingToolsSettings {
     }
 
     public static String sanitizeBackendType(String backendType) {
-        if (BACKEND_PRIVATE_INFERENCE_AICORE.equals(backendType)
+        if (BACKEND_SHARED_LOCAL.equals(backendType) || BACKEND_PRIVATE_INFERENCE_AICORE.equals(backendType)
                 || BACKEND_PRIVATE_INFERENCE_ASTREA.equals(backendType)) {
             return backendType;
         }

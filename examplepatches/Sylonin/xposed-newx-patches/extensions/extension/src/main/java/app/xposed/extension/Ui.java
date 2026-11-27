@@ -72,19 +72,25 @@ final class Ui {
 
     /** A pill like X's buttons: filled (primary) or outlined. */
     TextView pill(CharSequence label, boolean filled, View.OnClickListener onClick) {
-        TextView b = text(label, 15, true, filled ? background : text);
+        return filled ? pill(label, text, background, onClick) : pill(label, Color.TRANSPARENT, text, onClick);
+    }
+
+    /** A filled pill in X's red, for an action that deletes something. */
+    TextView destructivePill(CharSequence label, View.OnClickListener onClick) {
+        return pill(label, 0xFFF4212E, Color.WHITE, onClick);
+    }
+
+    private TextView pill(CharSequence label, int fill, int textColor, View.OnClickListener onClick) {
+        TextView b = text(label, 15, true, textColor);
         b.setGravity(Gravity.CENTER);
         b.setSingleLine(true);
         b.setPadding(dp(16), 0, dp(16), 0);
-        b.setMinHeight(dp(40));
+        // The 48dp touch target Android recommends.
+        b.setMinHeight(dp(48));
         GradientDrawable shape = new GradientDrawable();
-        shape.setCornerRadius(dp(20));
-        if (filled) {
-            shape.setColor(text);
-        } else {
-            shape.setColor(Color.TRANSPARENT);
-            shape.setStroke(dp(1), divider);
-        }
+        shape.setCornerRadius(dp(24));
+        shape.setColor(fill);
+        if (fill == Color.TRANSPARENT) shape.setStroke(dp(1), divider);
         b.setBackground(new RippleDrawable(ColorStateList.valueOf(pressed), shape, shape));
         b.setOnClickListener(onClick);
         return b;

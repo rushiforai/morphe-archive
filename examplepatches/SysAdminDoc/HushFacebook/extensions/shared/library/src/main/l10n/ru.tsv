@@ -898,7 +898,7 @@ A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	�
 # context: switch title under Comments and writing; on, a tap on Like under a comment asks first
 Ask before liking a comment	Спрашивать перед отметкой «Нравится» для комментария
 # context: summary of that switch
-A tap on Like under a comment asks first, and only Continue likes or unlikes it.	Нажатие на «Нравится» под комментарием сначала спрашивает, и только «Продолжить» ставит или снимает отметку.
+A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only Continue goes ahead.	Нажатие на «Нравится» под комментарием или реакция, выбранная долгим нажатием на комментарий, сначала спрашивает, и только «Продолжить» её отправляет.
 # context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
 Like or unlike this post?	Поставить или снять отметку «Нравится» для этой публикации?
 # context: the same question for a reel
@@ -1900,6 +1900,10 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	Кнопка «Картинка в картинке»
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Показывает небольшую кнопку у левого края Reels или видео, чтобы быстро открыть плавающее окно. Нажмите ее, чтобы сразу открыть окно. Работает при включенной функции «Картинка в картинке».
+# context: switch title under Picture-in-picture on the Playback page; on, when a reel ends in the small picture-in-picture window, the next reel plays there
+Next reel in the window	Следующий ролик Reels в окне
+# context: summary of that switch; "the window" is the small picture-in-picture window
+When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window instead of the same one again. Works with Picture-in-picture on.	Когда ролик Reels в окне «Картинка в картинке» заканчивается, вместо повтора в окне включается следующий ролик из Reels. Работает при включенной функции «Картинка в картинке».
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Продолжать воспроизведение в фоне
 Next reel in the background	Следующий ролик Reels в фоне
@@ -2029,8 +2033,8 @@ Hides the stacked reaction icons in the corner of a comment. The space stays, so
 Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	Скрывает число рядом со значками реакций у комментария. Значки остаются, и нажатие на них по-прежнему открывает список реакций.
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	Перемещать скачивание в начало меню публикаций
-# context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
-Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.	Перемещает пункты «Скачать на телефон» и «Сохранить фото» из конца меню публикации (три точки) в начало списка параметров. Собственные верхние пункты Facebook остаются выше них (в публикациях с фото список находится на странице «Дополнительные параметры»). Если сохранять нечего, эти пункты не отображаются.
+# context: summary of that switch; "Download to phone", "Save photo" and "Playback speed" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
+Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.	Перемещает пункты «Скачать на телефон» и «Сохранить фото» со страницы «Дополнительные параметры» на первую страницу меню публикации (три точки), над пунктом «Скорость воспроизведения». Если сохранять нечего, эти пункты не отображаются.
 # context: row title under Menu; opens a list of the Menu's tiles to hide, such as Marketplace and Gaming
 Menu tiles to hide	Плитки меню для скрытия
 # context: title of the list of Menu tiles to hide
@@ -2151,6 +2155,10 @@ A saved video that ends stays on screen instead of opening the next one. Swipe u
 Show saved posts in the row	Показывать сохранённые публикации в очереди
 # context: summary of that switch
 A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	Сохранённая публикация в очереди остаётся на экране, а не пропускается. Проведите вверх в её конце, чтобы открыть следующее сохранённое видео, или вниз в её начале, чтобы вернуться к предыдущему.
+# context: switch title under Reels and Watch; on, a reel opened from a Reels row in the news feed (the strip of reels you scroll sideways) goes on to the next reel in that row instead of a suggested reel
+Play the feed's Reels row in order	Воспроизводить ряд Reels в ленте по порядку
+# context: summary of that switch; the feed is Facebook's News Feed, so use Facebook's name for it in your language if you know it
+A reel you open from a Reels row in your feed goes on to the next one in that row when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	Ролик, открытый из ряда Reels в вашей ленте, по окончании или при свайпе вверх переходит к следующему ролику этого ряда, а не к рекомендованному. Свайп вниз возвращает к предыдущему.
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	Пропускать «Вы ещё смотрите?»
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2192,6 +2200,9 @@ Hides the For you searches Facebook suggests when you open search. Your recent s
 Hide "People you may know" in search	Скрывать «Возможно, вы знакомы» в поиске
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	Скрывает строку «Возможно, вы знакомы», которую Facebook показывает при открытии поиска. Недавние запросы и подсказки при вводе остаются.
+# context: switch title under News feed; People you may know is the list of friend suggestions Facebook shows in its Friends tab below your friend requests, as in Hide "People you may know"
+Hide "People you may know" in the Friends tab	Скрывать «Возможно, вы знакомы» на вкладке «Друзья»
+Hides the People you may know list in the Friends tab. Your friend requests stay.	Скрывает список «Возможно, вы знакомы» на вкладке «Друзья». Запросы на добавление в друзья остаются.
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	Не сохранять историю поиска
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
@@ -2745,6 +2756,34 @@ Digits only, up to 10. Your own profile shows this number on this phone. Leave i
 Facebook's real number shows. Type digits to show your own.	Показывается реальное число Facebook. Введите цифры, чтобы указать свое значение.
 # context: summary of that row; %1$s is the number typed, already grouped for the language
 Your profile shows %1$s on this phone.	В вашем профиле на этом телефоне отображается %1$s.
+# context: switch title under News feed; on, your own Facebook friends list is kept on this phone each time you scroll it to the end, so you can see who is no longer on it
+Keep track of your friends list	Следить за списком друзей
+# context: summary of that switch; Profile > Friends > All friends is the path to the list in Facebook, so use Facebook's own names for those screens in your language
+Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on this phone and tells you who's no longer on it since the time before. Someone who unfriended you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.	Каждый раз, когда вы прокручиваете свой список в разделе Профиль > Друзья > Все друзья до конца, на этом телефоне сохраняется его копия, и вы узнаёте, кого в нём больше нет с прошлого раза. Тот, кто удалил вас из друзей, тот, кого удалили вы, и закрытый аккаунт выглядят одинаково. Ничто не покидает ваш телефон.
+# context: row title and list title; the people who were on your Facebook friends list and aren't any more
+Friends no longer on your list	Друзья, которых больше нет в списке
+# context: summary of that row
+People who were on your friends list one time you scrolled it to the end and weren't the next. Tap one to open their profile.	Люди, которые были в вашем списке друзей, когда вы однажды прокрутили его до конца, и которых не было в следующий раз. Нажмите на человека, чтобы открыть его профиль.
+# context: toast the first time your friends list is kept; %1$d is how many friends are on it
+Hushfacebook kept a copy of your %1$d friends. Next time you scroll the list to its end, it tells you who's no longer on it.	Hushfacebook сохранил копию списка ваших друзей (%1$d). Когда вы в следующий раз прокрутите список до конца, он скажет, кого в нём больше нет.
+# context: toast; %1$s is one person's name
+%1$s is no longer on your friends list.	%1$s больше нет в вашем списке друзей.
+# context: toast; %1$s is two or three people's names separated by commas
+No longer on your friends list: %1$s.	Больше нет в вашем списке друзей: %1$s.
+# context: toast; %1$s is three people's names separated by commas, %2$d how many other people
+No longer on your friends list: %1$s and %2$d more.	Больше нет в вашем списке друзей: %1$s и ещё %2$d.
+# context: toast when tapping a person in that list doesn't open their profile
+Their profile can't open here.	Этот профиль здесь не открывается.
+# context: shown in place of a person's name when Facebook gave none
+Someone without a name	Кто-то без имени
+# context: second line of a person in that list; %1$s is the date they were last seen on your list, %2$s the date they were first missing
+Gone between %1$s and %2$s	Пропал между %1$s и %2$s
+# context: line above that list before your friends list was ever kept
+No copy of your friends list yet.	Копии вашего списка друзей пока нет.
+# context: line above that list; %1$s is a date, %2$d how many friends were on the list then
+Your list was last read to its end on %1$s, with %2$d friends.	Последний раз ваш список прочитан до конца %1$s, друзей: %2$d.
+# context: shown while that list is empty; Keep track of your friends list is the switch's title
+Nobody yet. With Keep track of your friends list on, scroll Profile > Friends > All friends to its end now and then. Anyone who drops off between two of those reads shows up here.	Пока никого. Когда включено «Следить за списком друзей», время от времени прокручивайте Профиль > Друзья > Все друзья до конца. Любой, кто пропадёт между двумя такими прочтениями, появится здесь.
 # context: switch title under Stories; the stories row at the top of Home shown as round pictures
 Round stories tray	Круглая панель Историй
 # context: summary of that switch
@@ -2815,6 +2854,10 @@ Switches that are on	Включённые переключатели
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	Все включённые вами переключатели в одном списке. Выключите один здесь, и он выключится везде.
 No switches are on yet.	Пока ни один переключатель не включён.
 Turned off lately	Недавно выключенные
+# context: one of three order choices above the Switches that are on list; lists the switches in the order the settings page has them (the other two are A to Z and Newest)
+Page order	Как на странице
+# context: the second order choice there; lists the switches alphabetically by their titles
+A to Z	От А до Я
 Emoji after the logo	Эмодзи после логотипа
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	Эмодзи сразу после логотипа Facebook вверху Главной, в собственных цветах. Оставьте поле пустым, если он не нужен.
 No emoji after the logo. Type one to show it there.	Эмодзи после логотипа нет. Введите его, чтобы он появился там.
@@ -2926,12 +2969,26 @@ Bar opacity	Непрозрачность панелей
 How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	Сколько своего цвета сохраняют прозрачные панели, в процентах, от %1$s до %2$s. Чем меньше, тем лучше видны Лента и её размытие. Оставьте поле пустым, чтобы использовать %3$s, или %4$s поверх размытия.
 The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	Панели сохраняют %1$s процентов своего цвета, или %2$s процентов поверх размытия. Введите число, чтобы изменить.
 The see-through bars keep %1$s percent of their color.	Прозрачные панели сохраняют %1$s процентов своего цвета.
+# context: row title under Appearance, right under Bar opacity; picks how strongly the see-through top bar and tab bar blur the feed behind them
+Blur strength	Сила размытия
+# context: message of that row's number box; %1$s is 0 (no blur), %2$s the most, %3$s the usual amount
+How much the see-through bars blur the feed behind them, in percent of the usual blur, from %1$s, no blur, to %2$s. Leave it blank for %3$s. The blur needs Android 12 or newer.	Насколько прозрачные панели размывают Ленту за собой, в процентах от обычного размытия, от %1$s, без размытия, до %2$s. Оставьте поле пустым, чтобы использовать %3$s. Размытию нужен Android 12 или новее.
+# context: summary of that row while it's blank
+The see-through bars blur the feed behind them the usual amount. Type a number to change it.	Прозрачные панели размывают Ленту за собой как обычно. Введите число, чтобы изменить.
+# context: summary of that row when it's 0
+The see-through bars show the feed behind them sharp, with no blur.	Прозрачные панели показывают Ленту за собой чётко, без размытия.
+# context: summary of that row; %1$s is the number typed
+The see-through bars blur the feed behind them %1$s percent of the usual amount.	Прозрачные панели размывают Ленту за собой на %1$s процентов от обычного.
 Tab bar width	Ширина панели вкладок
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Процент ширины экрана, от %1$s до %2$s. Значки увеличиваются и уменьшаются вместе с ней. Оставьте поле пустым, чтобы использовать %3$s.
 The rounded tab bar is %1$s percent of the screen wide.	Ширина скруглённой панели вкладок: %1$s процентов ширины экрана.
 Tab bar height	Высота панели вкладок
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	Сколько процентов полной высоты сохраняет скруглённая панель вкладок, от %1$s до %2$s, с обрезкой сверху и снизу от значков. Больше 100 делает её выше, в основном к нижнему краю экрана. Оставьте поле пустым, чтобы использовать %3$s.
 The rounded tab bar keeps %1$s percent of its height.	Скруглённая панель вкладок сохраняет %1$s процентов своей высоты.
+# context: switch title under Appearance, right under Tab bar height; gives the rounded tab bar a glass look
+Glass tab bar	Стеклянная панель вкладок
+# context: description of that switch; Rounded tab bar is the switch a few rows above it, the pill is that rounded tab bar, and the highlight is the faint pill behind the selected tab's icon
+With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the highlight behind the tab you're on slides over when you pick another tab.	Когда включена Скруглённая панель вкладок, у панели появляется светлый стеклянный край и мягкая тень, а подсветка за открытой вкладкой плавно переезжает на вкладку, которую вы выберете.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	Отмечать новые настройки
 # context: choice in that row; the dot goes once the page holding the setting is left
@@ -3255,7 +3312,23 @@ Hide hashtags in reel captions	Скрывать хештеги в подпися
 Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	Убирает хештеги из подписей Reels, например блок тегов в конце. Хештег, который входит в предложение, остаётся. Изменение применяется начиная со следующего Reels.
 Keep the keyboard closed when comments open	Не открывать клавиатуру при открытии комментариев
 Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	Комментарии открываются без всплывающей клавиатуры, даже у публикации, где ещё нет комментариев. Нажмите на поле комментария, когда захотите написать.
+Post text doesn't open comments	Текст публикации не открывает комментарии
+A tap on a post's text no longer opens its comments. The Comment button still does.	Нажатие на текст публикации больше не открывает её комментарии. Кнопка «Комментировать» по-прежнему их открывает.
 Settings language	Язык настроек
 Same as Facebook	Как в Facebook
 Show feed reels uncropped	Показывать Reels в Ленте без обрезки
 Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Reels в Ленте показывают всё изображение в своих пропорциях, а не обрезаются под рамку Facebook. Изменение применяется к Reels, отображенным после его внесения.
+Remix this reel	Сделать ремикс этого ролика
+Hold the profile tab for Activity log	Удерживайте вкладку профиля для журнала действий
+Press and hold the profile tab to open your Activity log instead of switching accounts. On accounts with a Menu tab in its place, that tab does it. You can still switch accounts from the Menu.	Удерживайте вкладку профиля, чтобы открыть журнал действий вместо смены аккаунта. В аккаунтах, где на её месте вкладка «Меню», это делает она. Сменить аккаунт по-прежнему можно в Меню.
+React to this comment?	Отреагировать на этот комментарий?
+Hide reactions on a held comment	Скрывать реакции при удержании комментария
+Hide Reply on a held comment	Скрывать «Ответить» при удержании комментария
+Hide Copy on a held comment	Скрывать «Копировать» при удержании комментария
+Hide Report on a held comment	Скрывать «Пожаловаться» при удержании комментария
+Hide the Hide comment option	Скрывать пункт «Скрыть комментарий»
+Holding a comment no longer shows the row of reactions above it. Like under the comment still works.	При удержании комментария над ним больше не появляется строка реакций. «Нравится» под комментарием по-прежнему работает.
+Holding a comment no longer offers Reply. The Reply under the comment stays.	При удержании комментария больше не предлагается «Ответить». Кнопка «Ответить» под комментарием остаётся.
+Holding a comment no longer offers Copy.	При удержании комментария больше не предлагается «Копировать».
+Holding a comment no longer offers Report comment or Report to group admins.	При удержании комментария больше не предлагаются «Пожаловаться на комментарий» и «Пожаловаться администраторам группы».
+Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.	При удержании комментария больше не предлагается «Скрыть комментарий». Если у комментария не осталось ни одного пункта, удержание ничего не делает.

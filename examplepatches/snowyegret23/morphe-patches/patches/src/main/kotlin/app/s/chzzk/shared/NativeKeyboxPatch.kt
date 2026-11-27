@@ -7,8 +7,25 @@ private data class KeyboxLibrary(val sha256: String, val offset: Int, val return
 
 internal val nativeKeyboxPatch = resourcePatch {
     execute {
-        if (packageMetadata.versionName !in setOf("3.16.0", "3.17.0", "1.3.0", "1.4.0")) return@execute
-        val libraries = mapOf(
+        if (packageMetadata.versionName !in setOf("3.16.0", "3.17.0", "3.18.0", "1.3.0", "1.4.0", "1.5.0")) return@execute
+        val libraries = if (packageMetadata.versionName in setOf("3.18.0", "1.5.0")) mapOf(
+            "arm64-v8a" to KeyboxLibrary(
+                "ac26c3ac4e3678d67b1ec0afc7a5309703ceeae8cf39cf4afb719590fb0cb836", 0x10fc,
+                byteArrayOf(0x20, 0x00, 0x80.toByte(), 0x52, 0xc0.toByte(), 0x03, 0x5f, 0xd6.toByte()),
+            ),
+            "armeabi-v7a" to KeyboxLibrary(
+                "72a5f29cad759a83ab03847181196846aa7ff766e91e451be6ecd5ff43ab41ba", 0x920,
+                byteArrayOf(0x01, 0x20, 0x70, 0x47),
+            ),
+            "x86" to KeyboxLibrary(
+                "4043406a7df66d092b200ef454c599cb6a538f14655eba3ad078cd19c3ab3137", 0xd30,
+                byteArrayOf(0xb8.toByte(), 0x01, 0x00, 0x00, 0x00, 0xc3.toByte()),
+            ),
+            "x86_64" to KeyboxLibrary(
+                "789593dcff043dcc46140d357121b9c5fb122a150782b5544dd4904d098c045d", 0xf80,
+                byteArrayOf(0xb8.toByte(), 0x01, 0x00, 0x00, 0x00, 0xc3.toByte()),
+            ),
+        ) else mapOf(
             "arm64-v8a" to KeyboxLibrary(
                 "8ba589b0409164e0e89fa27d285e73a3e0f2b410a164d925fdbc7482af56543c", 0x111c,
                 byteArrayOf(0x20, 0x00, 0x80.toByte(), 0x52, 0xc0.toByte(), 0x03, 0x5f, 0xd6.toByte()),

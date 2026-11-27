@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Morphe patch bundle
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Verify Morphe GitHub Packages credentials
+        env:
+          MORPHE_PACKAGES_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: |
+          if [ -z "$MORPHE_PACKAGES_TOKEN" ]; then
+            echo "::error::Missing repository secret MORPHE_PACKAGES_TOKEN (GitHub PAT with read:packages scope)."
+            exit 1
+          fi
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build Morphe Android patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: ./gradlew :patches:buildAndroid
+
+      - name: Resolve version & generate SHA-256
+        id: bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(awk -F= '/^[[:space:]]*version[[:space:]]*=/ { value=$2; sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]*#.*/, "", value); sub(/[[:space:]]+$/, "", value); print value; exit }' gradle.properties)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          bundle="patches/build/libs/patches-${version}.mpp"
+          test -s "$bundle"
+          (cd patches/build/libs && sha256sum "patches-${version}.mpp" > SHA256SUMS)
+
+      - name: Upload Morphe patch bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SBrowserX-MPP-${{ steps.bundle.outputs.version }}
+          path: |
+            patches/build/libs/*.mpp
+            patches/build/libs/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 90

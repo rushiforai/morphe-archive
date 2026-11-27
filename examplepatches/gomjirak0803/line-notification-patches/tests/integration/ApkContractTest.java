@@ -27,45 +27,59 @@ public final class ApkContractTest {
         for (String entry : dex.getDexEntryNames()) for (ClassDef type : dex.getEntry(entry).getDexFile().getClasses()) {
             if (classes.put(type.getType(), type) != null) throw new AssertionError("Duplicate DEX class: " + type.getType());
         }
-        field("Lap3/b;", "k0", "Lap3/b$a;");
-        field("Ldp3/a;", "b", "Ljava/lang/String;");
-        field("Lig3/k;", "b", "Ljava/lang/String;");
-        field("Lig3/k;", "m", "Ljava/lang/String;");
-        field("Lig3/k;", "n", "Lig3/k$d;");
-        field("Lig3/k$d;", "c", "I");
-        field("Lip8/g;", "p", "Landroid/os/Bundle;");
-        field("Lcom/linecorp/chathistory/menu/ChatHistoryMenuFragment;", "e", "Lz50/t2;");
-        field("Lz50/t2;", "a", "Ljava/lang/String;");
-        field("Lz50/t2;", "m", "Z");
-        field("Lbt8/j;", "a", "Lbt8/j;");
-        field("Lig3/t$c;", "a", "Lig3/t$c;");
-        field("Lvs8/i0;", "a", "Lvs8/i0;");
-        method("Lsc0/f;", "a", "Landroid/content/Context;Lsc0/a;", "Ljava/lang/Object;");
-        method("Lap3/b;", "getProfile", "", "Ldp3/a;");
-        method("Lnn8/i;", "c", "", "Z");
-        method("Lnn8/c;", "<init>", "Z", "V");
-        method("Lnn8/c;", "a", "Ljava/lang/String;", "Lpn8/c;");
-        method("Lpn8/c;", "c", "", "Z");
-        method("Lwk8/a2;", "a", "Landroid/content/Context;Z", "Lwk8/l0;");
-        method("Lwk8/l0;", "r", "", "Lue3/k;");
-        method("Lwk8/l0;", "x", "Ljava/lang/String;", "Z");
-        method("Lue3/k;", "u1", "Ljava/lang/String;", "Lig3/k;");
-        method("Lue3/k;", "p", "Ljava/lang/String;ZLkotlin/coroutines/Continuation;", "Ljava/lang/Object;");
+        field("Ldw3/b;", "M1", "Ldw3/b$a;");
+        field("Lgw3/a;", "b", "Ljava/lang/String;");
+        field("Lln3/k;", "b", "Ljava/lang/String;");
+        field("Lln3/k;", "m", "Ljava/lang/String;");
+        field("Lln3/k;", "n", "Lln3/k$d;");
+        field("Lln3/k$d;", "b", "I");
+        field("Lyi8/e;", "p", "Landroid/os/Bundle;");
+        field("Lcom/linecorp/chathistory/menu/ChatHistoryMenuFragment;", "e", "Li60/a4;");
+        field("Li60/a4;", "a", "Ljava/lang/String;");
+        field("Li60/a4;", "l", "Z");
+        field("Lqm8/i;", "a", "Lqm8/i;");
+        field("Lln3/u$c;", "a", "Lln3/u$c;");
+        field("Llm8/i0;", "a", "Llm8/i0;");
+        method("Lbd0/f;", "a", "Landroid/content/Context;Lbd0/a;", "Ljava/lang/Object;");
+        method("Ldw3/b;", "getProfile", "", "Lgw3/a;");
+        method("Lch8/i;", "c", "", "Z");
+        field("Lch8/c$a;", "c", "Lch8/c$a;");
+        check("Lbd0/a;".equals(classes.get("Lch8/c$a;").getSuperclass()),
+                "ChatNotificationDao DI key extends bd0.a");
+        method("Lch8/c;", "a", "Ljava/lang/String;", "Leh8/e;");
+        field("Leh8/e;", "b", "Z");
+        method("Lke8/o1;", "a", "Landroid/content/Context;Z", "Lke8/z;");
+        method("Lke8/z;", "t", "", "Lyl3/e;");
+        method("Lke8/z;", "z", "Ljava/lang/String;", "Z");
+        method("Lyl3/e;", "y1", "Ljava/lang/String;", "Lln3/k;");
+        method("Lyl3/e;", "t", "Ljava/lang/String;ZLkotlin/coroutines/Continuation;", "Ljava/lang/Object;");
         method("Lcom/linecorp/chathistory/menu/t$a$b;", "<init>", "Z", "V");
         method("Lcom/linecorp/chathistory/menu/e;", "invoke", "Ljava/lang/Object;", "Ljava/lang/Object;");
-        method("Ld60/z;", "<init>", "IIIZZLnt8/l;", "V");
-        method("Lnt8/l;", "invoke", "Ljava/lang/Object;", "Ljava/lang/Object;");
+        method("Lm60/y;", "<init>", "IIIZZLcn8/l;", "V");
+        method("Lcn8/l;", "invoke", "Ljava/lang/Object;", "Ljava/lang/Object;");
+        field("Lco/l;", "b", "Lco/l$c;");
+        method("Lcom/bumptech/glide/c;", "c", "Landroid/content/Context;", "Lqo/l;");
+        method("Lqo/l;", "f", "Landroid/content/Context;", "Lcom/bumptech/glide/o;");
+        method("Lcom/bumptech/glide/o;", "j", "", "Lcom/bumptech/glide/n;");
+        method("Lcom/bumptech/glide/o;", "n", "Luo/i;", "V");
+        method("Lcom/bumptech/glide/n;", "W", "Ljava/lang/Object;", "Lcom/bumptech/glide/n;");
+        method("Lcom/bumptech/glide/n;", "X", "II", "Lto/c;");
+        method("Lto/a;", "g", "Lco/l;", "Lto/a;");
+        method("Lto/a;", "d", "", "Lto/a;");
+        method("Lto/a;", "r", "Z", "Lto/a;");
+        method("Lto/a;", "t", "II", "Lto/a;");
+        method("Lx55/e;", "<init>", "Ljava/lang/String;Ljava/lang/String;Z", "V");
         nativeReadContracts();
         String header = "Ljp/naver/line/android/common/view/header/Header;";
         method(header, "<init>", "Landroid/content/Context;", "V");
         method(header, "getTitleTextView", "", "Landroid/widget/TextView;");
         method(header, "getUpButtonBackgroundLayout", "", "Landroid/widget/LinearLayout;");
         method(header, "setUpButtonImageResource", "I", "V");
-        method(header, "setUpButtonVisibility$LINE_Android_migrant_common_libs", "Z", "V");
+        method(header, "setUpButtonVisibility$common_libs", "Z", "V");
         String ext = "Lapp/linenotifications/extension/";
-        method("Ldt8/d;", "<init>", "Lkotlin/coroutines/Continuation;", "V");
+        method("Lsm8/c;", "<init>", "Lkotlin/coroutines/Continuation;", "V");
         ClassDef continuationBridge = classes.get(ext + "NotificationContinuation;");
-        check(continuationBridge != null && "Ldt8/d;".equals(continuationBridge.getSuperclass()),
+        check(continuationBridge != null && "Lsm8/c;".equals(continuationBridge.getSuperclass()),
                 "Continuation bridge is an instance of native optimized setter's required base");
         Method bridgeConstructor = null;
         Method declaredInvokeSuspend = null;
@@ -103,13 +117,13 @@ public final class ApkContractTest {
                         && ((FiveRegisterInstruction) bridgeInit.get(1)).getRegisterC() == 0
                         && ((FiveRegisterInstruction) bridgeInit.get(1)).getRegisterD() == 1
                         && superInitRef != null
-                        && superInitRef.getDefiningClass().equals("Ldt8/d;")
+                        && superInitRef.getDefiningClass().equals("Lsm8/c;")
                         && superInitRef.getName().equals("<init>")
                         && superInitRef.getParameterTypes().size() == 1
                         && superInitRef.getParameterTypes().get(0).toString().equals("Lkotlin/coroutines/Continuation;")
                         && superInitRef.getReturnType().equals("V")
                         && bridgeInit.get(2).getOpcode() == com.android.tools.smali.dexlib2.Opcode.RETURN_VOID,
-                "Continuation bridge delegates {p0, p1} directly to Ldt8/d;-><init>(Lkotlin/coroutines/Continuation;)V and returns void");
+                "Continuation bridge delegates {p0, p1} directly to Lsm8/c;-><init>(Lkotlin/coroutines/Continuation;)V and returns void");
         check(declaredInvokeSuspend != null && AccessFlags.PUBLIC.isSet(declaredInvokeSuspend.getAccessFlags())
                         && declaredInvokeSuspend.getImplementation() != null
                         && declaredInvokeSuspend.getImplementation().getRegisterCount() == 2,
@@ -155,7 +169,86 @@ public final class ApkContractTest {
                 "Optional chat-list attachment label hook");
         check(calls.getOrDefault("allowMuted", 0) == (hasSilent ? 2 : 0), "Optional native per-room notification gates");
         check(calls.getOrDefault("interceptNotificationMute", 0) == 0, "No duplicate old service dispatch hook");
-        Method saved = find("Luq8/z2;", "f", "Lts8/od;JLtq8/r;Ljava/lang/String;Lso8/m;ZZJ", "V");
+        Method rowsHelper = find("Lun5/s1;", "lineNotificationRows", "Ljava/util/List;", "Ljava/util/List;");
+        check(rowsHelper != null && rowsHelper.getImplementation() != null
+                        && rowsHelper.getImplementation().getRegisterCount() == 19,
+                "lineNotificationRows helper keeps exact 19-register frame");
+        List<Instruction> rowsBody = new ArrayList<>();
+        rowsHelper.getImplementation().getInstructions().forEach(rowsBody::add);
+        int ctorPos = callPosition(rowsBody, "Lti5/a0;", "<init>");
+        check(ctorPos >= 2 && rowsBody.get(ctorPos) instanceof RegisterRangeInstruction,
+                "lineNotificationRows invokes Lti5/a0;-><init> via invoke-direct/range");
+        RegisterRangeInstruction ctorCall = (RegisterRangeInstruction) rowsBody.get(ctorPos);
+        check(ctorCall.getStartRegister() == 4 && ctorCall.getRegisterCount() == 14,
+                "Lti5/a0;-><init> consumes exact range {v4..v17}");
+        boolean loadedV1 = false;
+        boolean copiedV16 = false;
+        for (int idx = 0; idx < ctorPos; idx++) {
+            Instruction insn = rowsBody.get(idx);
+            if (insn.getOpcode() == com.android.tools.smali.dexlib2.Opcode.IGET_OBJECT
+                    && insn instanceof TwoRegisterInstruction
+                    && ((TwoRegisterInstruction) insn).getRegisterA() == 1
+                    && ((TwoRegisterInstruction) insn).getRegisterB() == 3) {
+                FieldReference f = (FieldReference) ((ReferenceInstruction) insn).getReference();
+                if ("Lti5/g0;".equals(f.getDefiningClass()) && "j".equals(f.getName()) && "Lcn8/p;".equals(f.getType())) {
+                    loadedV1 = true;
+                }
+            }
+            if (loadedV1 && insn.getOpcode() == com.android.tools.smali.dexlib2.Opcode.MOVE_OBJECT_FROM16
+                    && insn instanceof TwoRegisterInstruction
+                    && ((TwoRegisterInstruction) insn).getRegisterA() == 16
+                    && ((TwoRegisterInstruction) insn).getRegisterB() == 1) {
+                copiedV16 = true;
+                break;
+            }
+        }
+        check(loadedV1 && copiedV16,
+                "lineNotificationRows loads Lti5/g0;->j:Lcn8/p; into v1 and copies via move-object/from16 to v16");
+        int profileSgetPos = -1;
+        for (int idx = ctorPos + 1; idx < rowsBody.size(); idx++) {
+            Instruction insn = rowsBody.get(idx);
+            if (insn.getOpcode() == com.android.tools.smali.dexlib2.Opcode.SGET_OBJECT
+                    && ((ReferenceInstruction) insn).getReference() instanceof FieldReference) {
+                FieldReference f = (FieldReference) ((ReferenceInstruction) insn).getReference();
+                if ("Lun5/a;".equals(f.getDefiningClass()) && "Profile".equals(f.getName())) {
+                    profileSgetPos = idx;
+                    break;
+                }
+            }
+        }
+        boolean resetV1BeforeProfile = false;
+        if (profileSgetPos > ctorPos) {
+            for (int idx = profileSgetPos + 1; idx < rowsBody.size(); idx++) {
+                Instruction insn = rowsBody.get(idx);
+                if (insn.getOpcode() == com.android.tools.smali.dexlib2.Opcode.CONST_4
+                        && insn instanceof NarrowLiteralInstruction
+                        && ((OneRegisterInstruction) insn).getRegisterA() == 1
+                        && ((NarrowLiteralInstruction) insn).getNarrowLiteral() == 0) {
+                    resetV1BeforeProfile = true;
+                    break;
+                }
+                if (insn.getOpcode() == com.android.tools.smali.dexlib2.Opcode.IF_GE) {
+                    break;
+                }
+            }
+        }
+        check(resetV1BeforeProfile,
+                "lineNotificationRows resets scratch v1 to 0 before the :profile loop");
+        Method suppressTarget = find("Lh34/f;", "b", "Ljava/lang/String;IILyi8/e;Z", "V");
+        check(suppressTarget != null && suppressTarget.getImplementation() != null
+                        && suppressTarget.getImplementation().getRegisterCount() == 9,
+                "suppressBuilder target retains 9-register frame");
+        List<Instruction> suppressHooks = callsTo(suppressTarget, ext + "Notifications;", "suppressBuilder");
+        check(suppressHooks.size() == 1, "suppressBuilder target contains one suppression hook");
+        Instruction suppressInsn = suppressHooks.get(0);
+        boolean passesV7 = (suppressInsn instanceof RegisterRangeInstruction
+                && ((RegisterRangeInstruction) suppressInsn).getStartRegister() == 7
+                && ((RegisterRangeInstruction) suppressInsn).getRegisterCount() == 1)
+                || (suppressInsn instanceof FiveRegisterInstruction
+                && ((FiveRegisterInstruction) suppressInsn).getRegisterCount() == 1
+                && ((FiveRegisterInstruction) suppressInsn).getRegisterC() == 7);
+        check(passesV7, "suppressBuilder hook passes register v7 (p4)");
+        Method saved = find("Lkk8/c3;", "f", "Ljm8/nd;JLjk8/r;Ljava/lang/String;Lhi8/o;ZZJ", "V");
         List<Instruction> storedHooks = callsTo(saved, ext + "Notifications;", "onMessageStored");
         check(storedHooks.size() == 1 && storedHooks.get(0) instanceof FiveRegisterInstruction,
                 "Local persistence has one notification refresh hook");
@@ -167,11 +260,11 @@ public final class ApkContractTest {
         check(storedIndex == 35 && savedBody.get(storedIndex - 1).getOpcode() == com.android.tools.smali.dexlib2.Opcode.IF_EQZ
                         && ((OneRegisterInstruction) savedBody.get(storedIndex - 1)).getRegisterA() == 14,
                 "Only a successful native save result triggers refresh");
-        check(callsTo(saved, "Lrw8/h;", "a").size() == 1
-                        && callPosition(savedBody, "Lrw8/h;", "a") == 30,
+        check(callsTo(saved, "Liq8/g;", "a").size() == 1
+                        && callPosition(savedBody, "Liq8/g;", "a") == 30,
                 "Refresh follows the original blocking save completion");
-        check(callsTo(saved, "Lip8/c;", "d").size() == 1
-                        && callPosition(savedBody, "Lip8/c;", "d") > storedIndex,
+        check(callsTo(saved, "Lyi8/a;", "d").size() == 1
+                        && callPosition(savedBody, "Lyi8/a;", "d") > storedIndex,
                 "Original fetched-message notification dispatch is preserved after refresh");
         Method notificationAction = find("Ljp/naver/line/android/access/remote/LineAccessServiceForNotification;",
                 "onStartCommand", "Landroid/content/Intent;II", "I");
@@ -182,13 +275,13 @@ public final class ApkContractTest {
         check(actionHook.getStartRegister() == 27 && actionHook.getRegisterCount() == 2,
                 "Notification action receives original service and intent");
         if (hasSilent) {
-        Method registrant = find("Lgw3/i;", "c", "Landroid/content/Context;Lfw3/d;", "V");
+        Method registrant = find("Lk34/i;", "b", "Landroid/content/Context;Lj34/d;", "V");
         check(callsTo(registrant, ext + "Notifications;", "allowMuted").size() == 1,
                 "Message registrant retains its scoped mute hook");
-        Method fetched = find("Lip8/c;", "d", "Ltq8/r;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;"
-                + "Lts8/od;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lpn8/b;ZZLjava/lang/String;Ljava/lang/String;", "V");
+        Method fetched = find("Lyi8/a;", "d", "Ljk8/r;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;"
+                + "Ljm8/nd;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Leh8/b;ZZLjava/lang/String;Ljava/lang/String;", "V");
         List<Instruction> fetchedHooks = callsTo(fetched, ext + "Notifications;", "allowMuted");
-        List<Instruction> nativeThreadChecks = callsTo(fetched, "Lwk8/l0;", "x");
+        List<Instruction> nativeThreadChecks = callsTo(fetched, "Lke8/z;", "z");
         check(fetchedHooks.size() == 1 && fetchedHooks.get(0) instanceof FiveRegisterInstruction,
                 "Fetched-message path contains one scoped extension gate");
         FiveRegisterInstruction fetchedHook = (FiveRegisterInstruction) fetchedHooks.get(0);
@@ -199,12 +292,12 @@ public final class ApkContractTest {
         FiveRegisterInstruction threadCheck = (FiveRegisterInstruction) nativeThreadChecks.get(0);
         check(threadCheck.getRegisterC() == 6 && threadCheck.getRegisterD() == 2,
                 "OpenChat thread-parent gate still receives the resolved parent ID");
-        check(hasField(fetched, "Ltq8/r;", "PREVENT_NOTIFICATION"), "Prevent-notification state gate retained");
+        check(hasField(fetched, "Ljk8/r;", "PREVENT_NOTIFICATION"), "Prevent-notification state gate retained");
         check(hasField(fetched, "Ljp/naver/line/android/db/generalkv/dao/a;", "NOTI_ENABLE"),
                 "Global notification setting gate retained");
         check(hasField(fetched, "Ljp/naver/line/android/db/generalkv/dao/a;", "NOTI_MUTE_EXPIRED_TIME"),
                 "Global temporary mute gate retained");
-        Method toggle = find("Lz50/y0;", "invoke", "", "Ljava/lang/Object;");
+        Method toggle = find("Li60/w1;", "invoke", "", "Ljava/lang/Object;");
         List<Instruction> toggleHooks = callsTo(toggle, ext + "Settings;", "interceptToggle");
         check(toggleHooks.size() == 1 && toggleHooks.get(0) instanceof FiveRegisterInstruction,
                 "Only the native chat-menu toggle is intercepted");
@@ -215,46 +308,68 @@ public final class ApkContractTest {
                 "Native ordinary-chat toggle remains available when interception is disabled");
         check(callsTo(toggle, "Lcom/linecorp/chathistory/menu/v;", "<init>").size() == 1,
                 "Native OpenChat toggle remains available");
-        Method menuData = find("Lz50/t2;", "<init>",
+        Method menuData = find("Li60/a4;", "<init>",
                 "Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;"
-                + "Ljp/naver/line/android/model/ChatData$a;Lz50/i4;ZZLz50/r3;ILjava/lang/String;ZZ"
-                + "Ljava/lang/Boolean;Landroid/net/Uri;Landroid/net/Uri;Lc60/b;Lc60/a;", "V");
+                + "Ljp/naver/line/android/model/ChatData$a;Li60/q5;ZLi60/x4;ILjava/lang/String;ZZ"
+                + "Ljava/lang/Boolean;Landroid/net/Uri;Landroid/net/Uri;Ll60/b;Ll60/a;", "V");
         List<Instruction> menuStateHooks = callsTo(menuData, ext + "Settings;", "menuNotifiable");
         check(menuStateHooks.size() == 1 && menuStateHooks.get(0) instanceof FiveRegisterInstruction,
                 "Local quiet state is applied only to menu presentation data");
         FiveRegisterInstruction menuStateHook = (FiveRegisterInstruction) menuStateHooks.get(0);
-        check(menuStateHook.getRegisterC() == 1 && menuStateHook.getRegisterD() == 13,
+        check(menuStateHook.getRegisterC() == 1 && menuStateHook.getRegisterD() == 12,
                 "Menu-state hook receives the chat ID and native notifiable flag");
+        List<Instruction> menuBody = new ArrayList<>();
+        menuData.getImplementation().getInstructions().forEach(menuBody::add);
+        int menuHookPos = callPosition(menuBody, ext + "Settings;", "menuNotifiable");
+        check(menuHookPos >= 0 && menuHookPos + 2 < menuBody.size(),
+                "menuNotifiable hook is followed by move-result and iput-boolean");
+        Instruction menuMove = menuBody.get(menuHookPos + 1);
+        Instruction menuPut = menuBody.get(menuHookPos + 2);
+        FieldReference menuField = menuPut instanceof ReferenceInstruction
+                && ((ReferenceInstruction) menuPut).getReference() instanceof FieldReference
+                ? (FieldReference) ((ReferenceInstruction) menuPut).getReference() : null;
+        check(menuMove.getOpcode() == com.android.tools.smali.dexlib2.Opcode.MOVE_RESULT
+                        && menuMove instanceof OneRegisterInstruction
+                        && ((OneRegisterInstruction) menuMove).getRegisterA() == 12
+                        && menuPut.getOpcode() == com.android.tools.smali.dexlib2.Opcode.IPUT_BOOLEAN
+                        && menuPut instanceof TwoRegisterInstruction
+                        && ((TwoRegisterInstruction) menuPut).getRegisterA() == 12
+                        && ((TwoRegisterInstruction) menuPut).getRegisterB() == 0
+                        && menuField != null
+                        && "Li60/a4;".equals(menuField.getDefiningClass())
+                        && "l".equals(menuField.getName())
+                        && "Z".equals(menuField.getType()),
+                "menuNotifiable(v1, v12) stores move-result v12 into Li60/a4;->l:Z");
         field("Lcom/linecorp/rxeventbus/d;", "a", "Lcom/linecorp/rxeventbus/d$a;");
         method("Lcom/linecorp/rxeventbus/d;", "b", "Ljava/lang/Object;", "V");
-        field("Lxe8/b;", "CHAT_LIST", "Lxe8/b;");
-        Method chatListItem = find("Lf22/i;", "<init>",
+        field("Ln88/b;", "CHAT_LIST", "Ln88/b;");
+        Method chatListItem = find("Lu52/i;", "<init>",
                 "Ljava/lang/String;Ljava/lang/String;ZZZZLjp/naver/line/android/model/ChatData$c;"
-                + "Ljava/lang/String;Lyk8/z;Ljava/lang/Long;IZZZZZ", "V");
+                + "Ljava/lang/String;Lne8/z;Ljava/lang/Long;IZZZZZ", "V");
         List<Instruction> chatListStateHooks = callsTo(chatListItem, ext + "Settings;", "menuNotifiable");
         check(chatListStateHooks.size() == 1 && chatListStateHooks.get(0) instanceof FiveRegisterInstruction,
                 "Local quiet state is applied to chat-list UI model");
         FiveRegisterInstruction chatListStateHook = (FiveRegisterInstruction) chatListStateHooks.get(0);
         check(chatListStateHook.getRegisterC() == 1 && chatListStateHook.getRegisterD() == 6,
                 "Chat-list state hook receives the chat ID and native notifiable flag");
-        Method chatListToggle = find("Ld42/d;", "u3", "Lf22/l;", "V");
+        Method chatListToggle = find("Lt72/c;", "E5", "Lu52/l;", "V");
         List<Instruction> chatListToggleHooks = callsTo(chatListToggle, ext + "Settings;", "interceptChatListToggle");
         check(chatListToggleHooks.size() == 1 && chatListToggleHooks.get(0) instanceof FiveRegisterInstruction,
                 "Chat-list long-press ordinary-chat mute toggle is intercepted");
         FiveRegisterInstruction chatListToggleHook = (FiveRegisterInstruction) chatListToggleHooks.get(0);
         check(chatListToggleHook.getRegisterC() == 0,
                 "Chat-list toggle hook receives the ordinary chat ID");
-        check(callsTo(chatListToggle, "Ld42/l;", "<init>").size() == 1,
+        check(callsTo(chatListToggle, "Lt72/k;", "<init>").size() == 1,
                 "Native ordinary chat-list toggle remains available when interception is disabled");
-        check(callsTo(chatListToggle, "Ld42/n;", "<init>").size() == 1,
+        check(callsTo(chatListToggle, "Lt72/m;", "<init>").size() == 1,
                 "Native OpenChat chat-list toggle remains available");
-        check(callsTo(chatListToggle, "Ld42/m;", "<init>").size() == 1,
+        check(callsTo(chatListToggle, "Lt72/l;", "<init>").size() == 1,
                 "Native ServiceChat chat-list toggle remains available");
         }
         if (hasInfo) {
-        Method chatListItem = find("Lf22/i;", "<init>",
+        Method chatListItem = find("Lu52/i;", "<init>",
                 "Ljava/lang/String;Ljava/lang/String;ZZZZLjp/naver/line/android/model/ChatData$c;"
-                + "Ljava/lang/String;Lyk8/z;Ljava/lang/Long;IZZZZZ", "V");
+                + "Ljava/lang/String;Lne8/z;Ljava/lang/Long;IZZZZZ", "V");
         List<Instruction> chatListLastMsgHooks = callsTo(chatListItem, ext + "Settings;", "chatListLastMessage");
         check(chatListLastMsgHooks.size() == 1 && chatListLastMsgHooks.get(0) instanceof FiveRegisterInstruction,
                 "Chat-list attachment preview uses verified UI model constructor");
@@ -266,23 +381,23 @@ public final class ApkContractTest {
                 "Ljp/naver/line/android/common/LineCommonFileProvider$a;");
         method("Ljp/naver/line/android/common/LineCommonFileProvider$a;", "d",
                 "Landroid/content/Context;Ljava/io/File;", "Landroid/net/Uri;");
-        field("Lj31/a;", "I4", "Lj31/a$b;");
-        method("Lj31/a;", "e", "Lj31/c;", "Ljava/io/File;");
-        method("Lj31/a;", "k", "Lj31/c;Lj31/e;", "Ljava/io/File;");
-        method("Lj31/c;", "<init>", "Ljava/lang/String;J", "V");
-        field("Lj31/e;", "IMAGE_STANDARD", "Lj31/e;");
-        field("Lj31/e;", "IMAGE_ORIGINAL", "Lj31/e;");
-        method("Le80/d;", "<init>",
-                "Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Llg1/a$c;Ljava/lang/String;Z", "V");
-        field("Lsu5/d;", "sa", "Lsu5/d$a;");
-        method("Lsu5/d;", "n", "JJ", "Ljava/io/File;");
-        method("Lsu5/d;", "k", "JJ", "Ljava/io/File;");
-        method("Lsu5/d;", "m", "JJ", "Ljava/io/File;");
-        field("Lsu5/o;", "va", "Lsu5/o$a;");
-        method("Lsu5/o;", "h", "Lzu5/d;", "Ljava/lang/String;");
-        method("Lzu5/d;", "<init>", "JJJLzu5/e;Ljava/lang/String;", "V");
-        field("Lkn/l;", "d", "Lkn/l$e;");
-        method("Llg1/a$c;", "<init>", "Ljava/lang/String;Ljava/lang/String;Ljava/util/List;", "V");
+        field("Lq41/a;", "C8", "Lq41/a$b;");
+        method("Lq41/a;", "a", "Lq41/c;", "Ljava/io/File;");
+        method("Lq41/a;", "j", "Lq41/c;Lq41/e;", "Ljava/io/File;");
+        method("Lq41/c;", "<init>", "Ljava/lang/String;J", "V");
+        field("Lq41/e;", "IMAGE_STANDARD", "Lq41/e;");
+        field("Lq41/e;", "IMAGE_ORIGINAL", "Lq41/e;");
+        method("Lp80/e;", "<init>",
+                "Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Lfi1/a$c;Ljava/lang/String;Z", "V");
+        field("Lf16/d;", "W2", "Lf16/d$a;");
+        method("Lf16/d;", "p", "JJ", "Ljava/io/File;");
+        method("Lf16/d;", "k", "JJ", "Ljava/io/File;");
+        method("Lf16/d;", "o", "JJ", "Ljava/io/File;");
+        field("Lf16/p;", "Z2", "Lf16/p$a;");
+        method("Lf16/p;", "o", "Ln16/e;", "Ljava/lang/String;");
+        method("Ln16/e;", "<init>", "JJJLn16/f;Ljava/lang/String;", "V");
+        field("Lco/l;", "d", "Lco/l$e;");
+        method("Lfi1/a$c;", "<init>", "Ljava/lang/String;Ljava/lang/String;Ljava/util/List;", "V");
         }
         ClassDef click = classes.get(ext + "SettingsClick;");
         check(click != null && click.getInterfaces().size() == 3, "Settings callback has native function interfaces + Serializable");
@@ -300,55 +415,57 @@ public final class ApkContractTest {
         System.out.println("APK static contracts (" + (all ? "all features" : mode) + "): " + assertions + " assertions passed (Android execution not tested)");
     }
     private static void nativeReadContracts() {
-        field("Ln30/d;", "a", "Ln30/d$a;");
-        field("Lue3/y0;", "a", "Lqg3/e;");
-        field("Lfw3/h;", "c", "Lfw3/h$a;");
-        method("Ln30/d;", "b", "", "Lue3/y0;");
-        method("Lqg3/e;", "e", "Ljava/lang/String;", "Li78/w;");
-        method("La78/a;", "a", "La78/b;", "V");
-        method("La78/b;", "b", "", "V");
-        method("La78/b;", "c", "Lb78/b;", "V");
-        method("La78/b;", "onError", "Ljava/lang/Throwable;", "V");
-        method("Lb78/b;", "dispose", "", "V");
-        method("Lfw3/l$a;", "<init>", "Ljava/lang/String;", "V");
-        method("Lfw3/l$c;", "<init>", "Ljava/lang/String;", "V");
-        method("Lfw3/h;", "c", "[Lfw3/l;", "V");
-        check("La78/a;".equals(classes.get("Li78/w;").getSuperclass()), "Native whole-chat operation is a Completable");
-        check(AccessFlags.INTERFACE.isSet(classes.get("La78/b;").getAccessFlags()), "Native observer supports a proxy");
-        Method menu = find("Ld42/i;", "invokeSuspend", "Ljava/lang/Object;", "Ljava/lang/Object;");
-        check(callsTo(menu, "Lqg3/e;", "e").size() == 1, "Same native whole-chat update used by chat-list menu");
-        check(callsTo(menu, "Lfw3/h;", "c").size() == 1, "Same native scoped notification cleanup used by menu");
-        check(callsTo(menu, "Lfw3/l$a;", "<init>").size() == 1
-                && callsTo(menu, "Lfw3/l$c;", "<init>").size() == 1, "Native cleanup uses chat and group selectors");
+        field("Lx30/d;", "a", "Lx30/d$a;");
+        field("Lyl3/s0;", "a", "Ltn3/e;");
+        field("Lj34/h;", "c", "Lj34/h$a;");
+        method("Lx30/d;", "b", "", "Lyl3/s0;");
+        method("Ltn3/e;", "e", "Ljava/lang/String;", "Ly08/w;");
+        method("Lq08/a;", "a", "Lq08/b;", "V");
+        method("Lq08/b;", "onComplete", "", "V");
+        method("Lq08/b;", "b", "Lr08/b;", "V");
+        method("Lq08/b;", "onError", "Ljava/lang/Throwable;", "V");
+        method("Lr08/b;", "dispose", "", "V");
+        method("Lj34/l$a;", "<init>", "Ljava/lang/String;", "V");
+        method("Lj34/l$c;", "<init>", "Ljava/lang/String;", "V");
+        method("Lj34/h;", "c", "[Lj34/l;", "V");
+        check("Lq08/a;".equals(classes.get("Ly08/w;").getSuperclass()), "Native whole-chat operation is a Completable");
+        check(AccessFlags.INTERFACE.isSet(classes.get("Lq08/b;").getAccessFlags()), "Native observer supports a proxy");
+        Method menu = find("Lt72/h;", "invokeSuspend", "Ljava/lang/Object;", "Ljava/lang/Object;");
+        check(callsTo(menu, "Ltn3/e;", "e").size() == 1, "Same native whole-chat update used by chat-list menu");
+        check(callsTo(menu, "Lj34/h;", "c").size() == 1, "Same native scoped notification cleanup used by menu");
+        check(callsTo(menu, "Lj34/l$a;", "<init>").size() == 1
+                && callsTo(menu, "Lj34/l$c;", "<init>").size() == 1, "Native cleanup uses chat and group selectors");
         boolean cachedMenuProvider = false;
-        for (Method m : classes.get("Ld42/d;").getMethods()) {
-            if (m.getName().equals("<init>") && callsTo(m, "Ln30/d;", "b").size() == 1 && hasField(m, "Lue3/y0;", "a"))
+        for (Method m : classes.get("Lt72/c;").getMethods()) {
+            if (m.getName().equals("<init>") && callsTo(m, "Lx30/d;", "b").size() == 1 && hasField(m, "Lyl3/s0;", "a"))
                 cachedMenuProvider = true;
         }
         check(cachedMenuProvider, "Menu obtains cached read updater from the same native provider");
-        Method worker = find("Lqg3/c;", "run", "", "V");
-        check(callsTo(worker, "Lqg3/e;", "a").size() == 1 && callsTo(worker, "Lqg3/e;", "d").size() == 1,
+        Method worker = find("Ltn3/c;", "run", "", "V");
+        check(callsTo(worker, "Ltn3/e;", "a").size() == 1 && callsTo(worker, "Ltn3/e;", "d").size() == 1,
                 "Native worker resolves latest message when executed");
         List<Instruction> workerBody = new ArrayList<>();
         worker.getImplementation().getInstructions().forEach(workerBody::add);
-        int update = callPosition(workerBody, "Lqg3/e;", "d");
+        int update = callPosition(workerBody, "Ltn3/e;", "d");
         check(update == 9 && workerBody.get(update - 1) instanceof NarrowLiteralInstruction
                 && ((NarrowLiteralInstruction)workerBody.get(update - 1)).getNarrowLiteral() == 1,
                 "Native worker retains whole-chat unread clearing flag");
-        Method mute = find("Lip8/p;", "b", "Landroid/content/Context;Ljava/lang/String;", "Landroidx/core/app/h$a;");
-        Method reply = find("Lip8/p;", "c", "Landroid/content/Context;Ljava/lang/String;", "Landroidx/core/app/h$a;");
+        Method mute = find("Lyi8/n;", "b", "Landroid/content/Context;Ljava/lang/String;", "Landroidx/core/app/h;");
+        Method reply = find("Lyi8/n;", "c", "Landroid/content/Context;Ljava/lang/String;", "Landroidx/core/app/h;");
         check(hasString(mute, "jp.naver.line.android.access.remote.action.MUTE_CURRENT_CHAT_ACTION"),
                 "Native mute action identity remains available for restoration");
         check(hasString(reply, "jp.naver.line.android.access.remote.action.SEND_MESSAGE_ACTION"),
                 "Native direct reply action identity is untouched");
-        check(hasLiteral(mute, 0x7f152825) && hasLiteral(reply, 0x7f152826),
+        check(hasLiteral(mute, 0x7f152a17) && hasLiteral(reply, 0x7f152a18),
                 "Native action builders retain verified localized mute/reply labels");
         check(callsTo(mute, "Landroid/app/PendingIntent;", "getService").size() == 1
                 && callsTo(reply, "Landroid/app/PendingIntent;", "getService").size() == 1,
                 "Both original service PendingIntents remain intact");
-        check(callsTo(mute, "Landroidx/core/app/h$a$a;", "a").isEmpty(), "Mute action has no RemoteInput");
-        check(callsTo(reply, "Landroidx/core/app/h$a$a;", "a").size() == 1
-                && callsTo(reply, "Landroidx/core/app/u$a;", "a").size() == 1,
+        check(callsTo(mute, "Landroidx/core/app/z;", "<init>").isEmpty()
+                && !hasField(mute, "Landroidx/core/app/h$a;", "f"),
+                "Mute action has no RemoteInput");
+        check(callsTo(reply, "Landroidx/core/app/z;", "<init>").size() == 1
+                && hasField(reply, "Landroidx/core/app/h$a;", "f"),
                 "Manual reply keeps native RemoteInput construction and attachment");
     }
     private static boolean hasString(Method method, String value) {

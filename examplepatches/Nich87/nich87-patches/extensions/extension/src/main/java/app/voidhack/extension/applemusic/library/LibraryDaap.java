@@ -25,13 +25,25 @@ final class LibraryDaap {
     private static final String BASE = "https://librarydaap.itunes.apple.com/WebObjects/MZDaap.woa/daap";
     private static final String DATA = "com.apple.android.mediaservices.javanative.common.Data$DataPtr";
     private static final String VECTOR = "com.apple.android.mediaservices.javanative.common.StringVector$StringVectorNative";
-    private static final int PAGE_SIZE = 250;
     private static final int MAX_TRACKS = 100000;
+    private static final int MAX_PAGES = 100;
+    private static final int MAX_PAGINATION_RESTARTS = 2;
+    private static final int DEFAULT_TIMEOUT_SECONDS = 25;
+    private static final int ITEMS_TIMEOUT_SECONDS = 120;
+    private static final int MAX_RETRIES = 3;
     private final AtomicBoolean cancelled;
     private final Identity identity;
     private Session session;
     private volatile int lastRawTrackCount = -1;
     private volatile int lastLibraryTrackCount = -1;
+
+    interface PageSource {
+        DaapCodec.Node fetch(byte[] paginationToken) throws IOException;
+    }
+
+    interface ItemsProgress {
+        void update(int loaded, int total);
+    }
 
     int lastRawTrackCount() { return lastRawTrackCount; }
     int lastLibraryTrackCount() { return lastLibraryTrackCount; }
@@ -43,18 +55,56 @@ final class LibraryDaap {
     }
 
     synchronized List<Track> tracks() throws IOException {
+        return tracks(null);
+    }
+
+    synchronized List<Track> tracks(ItemsProgress progress) throws IOException {
+        List<Track> raw = readTracks(identity, cancelled,
+                token -> daap("items", "POST", itemsUrl(), DaapCodec.itemsRequest(token), "adbs", true),
+                progress);
+        lastRawTrackCount = raw.size();
+        List<Track> library = new ArrayList<>(raw.size());
+        for (Track track : raw) {
+            if (track.inLibrary) library.add(track);
+        }
+        lastLibraryTrackCount = library.size();
+        return Collections.unmodifiableList(library);
+    }
+
+    static List<Track> readTracks(Identity identity, AtomicBoolean cancelled, PageSource source,
+                                  ItemsProgress progress) throws IOException {
         List<Track> result = new ArrayList<>();
-        Set<Long> seen = new LinkedHashSet<>();
+        Set<Long> seenIds = new LinkedHashSet<>();
+        Set<String> seenTokens = new LinkedHashSet<>();
+        byte[] token = new byte[0];
         long total = -1;
-        do {
-            DaapCodec.Node response = daap("items", "GET", itemsUrl() + "&index=" + result.size() + "-"
-                    + (result.size() + PAGE_SIZE - 1), new byte[0], "adbs", true);
+        int pages = 0;
+        int restarts = 0;
+        while (true) {
+            checkCancelled(cancelled);
+            if (++pages > MAX_PAGES) {
+                throw new Failure(Kind.PROTOCOL, "items:max_pages=" + pages);
+            }
+            DaapCodec.Node response = source.fetch(token);
+            if (response.child("murr") != null) {
+                if (++restarts > MAX_PAGINATION_RESTARTS) {
+                    throw new Failure(Kind.LIBRARY_CHANGED, "items:restart_limit=" + restarts);
+                }
+                result.clear();
+                seenIds.clear();
+                seenTokens.clear();
+                token = new byte[0];
+                total = -1;
+                pages = 0;
+                if (progress != null) progress.update(0, 0);
+                continue;
+            }
             long count = response.required("mtco").unsigned32();
             if (count > MAX_TRACKS || (total >= 0 && count != total)) {
                 throw new Failure(Kind.LIBRARY_CHANGED, "items:count=" + count + ",prev=" + total);
             }
             total = count;
-            List<Track> page = parseTracks(response);
+            List<Track> page = parseTracks(response, identity);
             if (page.size() > total - result.size()) {
                 throw new Failure(Kind.PROTOCOL, "items:overflow=" + page.size() + ",rem=" + (total - result.size()));
             }
@@ -62,16 +112,40 @@ final class LibraryDaap {
                 throw new Failure(Kind.PROTOCOL, "items:empty=" + result.size() + "/" + total);
             }
             for (Track track : page) {
-                if (!seen.add(track.cloudId)) {
+                if (!seenIds.add(track.cloudId)) {
                     throw new Failure(Kind.LIBRARY_CHANGED, "items:duplicate_id=" + result.size() + "/" + total);
                 }
                 result.add(track);
             }
-        } while (result.size() < total);
-        lastRawTrackCount = result.size();
-        result.removeIf(track -> !track.inLibrary);
-        lastLibraryTrackCount = result.size();
-        return Collections.unmodifiableList(result);
+            if (progress != null && total > 0) {
+                progress.update(result.size(), (int) total);
+            }
+            DaapCodec.Node nextTokenNode = response.child("mpag");
+            byte[] nextToken = nextTokenNode == null ? new byte[0] : nextTokenNode.bytes();
+            if (nextToken.length == 0) {
+                if (result.size() != total) {
+                    throw new Failure(Kind.PROTOCOL, "items:incomplete=" + result.size() + "/" + total);
+                }
+                break;
+            }
+            if (result.size() >= total) {
+                break;
+            }
+            if (!seenTokens.add(tokenKey(nextToken))) {
+                throw new Failure(Kind.PROTOCOL, "items:repeat_token=" + result.size() + "/" + total);
+            }
+            token = nextToken;
+        }
+        return result;
+    }
+
+    private static String tokenKey(byte[] token) {
+        StringBuilder out = new StringBuilder(token.length * 2);
+        for (byte b : token) {
+            out.append(Character.forDigit((b >>> 4) & 0xf, 16));
+            out.append(Character.forDigit(b & 0xf, 16));
+        }
+        return out.toString();
     }
 
     synchronized Track track(long cloudId) throws IOException { return track(cloudId, true); }
@@ -167,6 +241,10 @@ final class LibraryDaap {
     }
 
     private List<Track> parseTracks(DaapCodec.Node response) throws IOException {
+        return parseTracks(response, identity);
+    }
+
+    private static List<Track> parseTracks(DaapCodec.Node response, Identity identity) throws IOException {
         List<DaapCodec.Node> nodes = response.required("mlcl").children();
         long returned = response.required("mrco").unsigned32();
         if (returned != nodes.size()) {
@@ -214,6 +292,7 @@ final class LibraryDaap {
 
     private byte[] request(String operation, String method, String url, byte[] body, boolean honourCancellation) throws IOException {
         validateUrl(url);
+        int timeoutSeconds = "items".equals(operation) ? ITEMS_TIMEOUT_SECONDS : DEFAULT_TIMEOUT_SECONDS;
         for (int attempt = 0; ; attempt++) {
             if (honourCancellation) checkCancelled();
             try (MusicReflection.Handle data = new MusicReflection.Handle(invoke(DATA, "create", body, body.length, true));
@@ -222,10 +301,10 @@ final class LibraryDaap {
                  MusicReflection.Handle values = new MusicReflection.Handle(create(VECTOR, (Object) new String[]{
                          "1.6/UnknownAndroid", "ja-JP", "application/x-dmap-tagged", "no-cache"}));
                  MusicReflection.Handle response = new MusicReflection.Handle(call(create("com.apple.android.music.X0"),
-                         "a", method, url, "", data.value, keys.value, values.value, 25, false))) {
+                         "a", method, url, "", data.value, keys.value, values.value, timeoutSeconds, false))) {
                 int status = (Integer) call(response.value, "getHttpStatusCode");
-                if ((status == 429 || status == 503) && method.equals("GET") && attempt == 0) {
-                    pause(honourCancellation);
+                if (shouldRetry(operation, method, status, attempt)) {
+                    pause(retryBackoffMs(operation, attempt), honourCancellation);
                     continue;
                 }
                 if (status != 200) throw new Failure(Kind.HTTP, status, operation);
@@ -251,6 +330,20 @@ final class LibraryDaap {
         }
     }
 
+    static boolean shouldRetry(String operation, String method, int status, int attempt) {
+        if (attempt < 0 || attempt >= MAX_RETRIES) return false;
+        if (status == 429 || status == 503) {
+            return "GET".equals(method) || "items".equals(operation);
+        }
+        return status == 403 && "lookup_jp".equals(operation);
+    }
+
+    static long retryBackoffMs(String operation, int attempt) {
+        int clamped = Math.max(0, Math.min(attempt, MAX_RETRIES - 1));
+        long base = "lookup_jp".equals(operation) ? 2000L : 500L;
+        return base << clamped;
+    }
+
     private static void validateUrl(String value) throws IOException {
         try {
             URI uri = new URI(value);
@@ -261,18 +354,31 @@ final class LibraryDaap {
         } catch (URISyntaxException exception) { throw new Failure(Kind.INVALID_URL); }
     }
 
-    private void pause(boolean honourCancellation) {
-        for (int i = 0; i < 5; i++) {
-            if (honourCancellation) checkCancelled();
-            try { Thread.sleep(100); }
+    private void pause(long durationMs, boolean honourCancellation) {
+        pause(cancelled, durationMs, honourCancellation);
+    }
+
+    static void pause(AtomicBoolean cancelled, long durationMs, boolean honourCancellation) {
+        long remaining = Math.max(0L, durationMs);
+        while (remaining > 0L) {
+            if (honourCancellation) checkCancelled(cancelled);
+            long slice = Math.min(100L, remaining);
+            try { Thread.sleep(slice); }
             catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
                 throw new CancellationException();
             }
+            remaining -= slice;
         }
     }
 
-    private void checkCancelled() { if (cancelled.get() || Thread.currentThread().isInterrupted()) throw new CancellationException(); }
+    private void checkCancelled() { checkCancelled(cancelled); }
+
+    private static void checkCancelled(AtomicBoolean cancelled) {
+        if ((cancelled != null && cancelled.get()) || Thread.currentThread().isInterrupted()) {
+            throw new CancellationException();
+        }
+    }
 
     static final class Track {
         final long cloudId;
@@ -315,7 +421,7 @@ final class LibraryDaap {
         Session(long id, Identity identity) { this.id = id; this.identity = identity; }
     }
 
-    private static final class Identity {
+    static final class Identity {
         final long databaseId;
         final byte[] persistentId;
         Identity(long databaseId, byte[] persistentId) { this.databaseId = databaseId; this.persistentId = persistentId.clone(); }

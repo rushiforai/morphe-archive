@@ -1,5 +1,50 @@
 # Changelog
 
+## [1.3.6](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.3.5...v1.3.6) (2026-11-27)
+
+### ✨ Improvements
+
+* **Auto-Learn From My Fixes is now opt-in (Beta):**
+  * Defaults to **OFF** until explicitly enabled under **Voice actions, snippets & replace → Auto-learn from fixes (Beta)**.
+  * Adds a **`BETA`** pill badge next to the **Auto-learn from my fixes** toggle and hides the sub-rows while OFF (unless you already have saved learned fixes to review or clear).
+
+## [1.3.5](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.3.4...v1.3.5) (2026-11-27)
+
+### ✨ New Features
+
+* **Auto "Learn From My Fixes" (adapted from Hex by Anomaly, MIT):**
+  * Silently watches each Rambler dictation locally in memory for 60s using 32-character before/after text anchors (never active in password or incognito/`IME_FLAG_NO_PERSONALIZED_LEARNING` fields).
+  * Detects manual word fixes and quick delete-and-redictate corrections (within 20s, while cleanly ignoring apps clearing the box on Send).
+  * After **2 consistent corrections** with zero contradictions, automatically promotes the 1–3 word pair into an active whole-word replacement rule (preserving casing and yielding to manual **Find & Replace** rules) and best-effort seeds the word into your `MUSE_STATS` voice dictionary when enabled.
+  * Tracks contradictions on untouched dictations to automatically retire false rules.
+  * **Auto-learn Toast notification (ON by default, toggleable):** Shows a brief `Rambler learned: "<heard>" → "<meant>"` toast whenever a new fix is automatically learned.
+  * **Review & Manage UI:** Open **Voice actions, snippets & replace → Auto-learn from fixes → Learned fixes** to view active/paused rules, **Pause / Resume / Delete**, promote pending `1/2` tracked fixes with **Learn now**, or **Clear all**.
+  * Included in portable `.json` Backup & Restore (toggles, learned/tracked records, and paused IDs).
+
+### ✨ Improvements
+
+* **Crisp Morphe patch cards:** Shortened all 7 patch descriptions so Morphe Manager displays clean, scannable cards without crowding.
+
+## [1.3.4](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.3.3...v1.3.4) (2026-11-26)
+
+### ✨ New Features
+
+* **Smart Search Bars (Zero Extra Taps):**
+  * **Auto-strip period in search bars (ON by default):** Automatically removes stray trailing periods in Search bars and browser address bars (while preserving abbreviations like `Dr.`, `U.S.`, `e.g.`, `...`).
+  * **Auto-search on commit (opt-in, pick your own apps):** Dictate into Search bars or browser address bars (Chrome, YouTube, Play Store, Settings, etc.) and submit immediately without tapping Search or saying `"hit search"`. Strictly restricted to your selected apps and safe single-line Search / browser URI fields (never submits normal web forms, chats, or comment boxes).
+  * **How to activate:** **Rambler toolbar icon** (or **Gboard Settings → Voice typing → Rambler voice typing**) → **Voice actions, snippets & replace → Search bars** → toggle **Auto-search on commit** ON and pick your apps.
+  * Included in portable `.json` Backup & Restore.
+
+## [1.3.3](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.3.2...v1.3.3) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **Fix `VerifyError` crash on keyboard open when stacking with GboardWu `v4.5.0+` (`SoftKeyboardView.dispatchTouchEvent`):**
+  * Restores all `v1.3.0`/`v1.3.1` features (Long-press Spacebar for Rambler with Cursor Trackpad compatibility, draggable Rambler Toolbar quick-access button, 1-Tap Fix & Learn, and private Dictation History card).
+  * Upstream GboardWu `v4.5.0` added `GboardClipboardSelectAllPatch`, which wraps `SoftKeyboardView.dispatchTouchEvent(MotionEvent)Z` via `addInstructions` with an internal `:stock` branch label. Prepending a 3-code-unit `invoke-static` at index `0` shifted that branch from `0x4` to `0x7` while its un-rebound label stayed at `0x7`, producing `VerifyError: [0x7] branch offset of zero not allowed`.
+  * `installSpacebarTriggerHooks` now wraps `SoftKeyboardView.dispatchTouchEvent` via a verbatim rename (`morpheRamblerStockDispatchTouch`) plus a branchless 4-instruction wrapper — shifting zero instructions inside any pre-existing wrapper so stacking with GboardWu `v4.5.0+` verifies cleanly in **both** patch orders.
+  * Hardens `LanguagePickerExtension.getInitialKeyboardState`'s wrapper to use `addInstructionsWithLabels` so its internal label also survives any other patch prepending instructions to it.
+
 ## [1.3.2](https://github.com/abotmaker/gboard-rambler-enhancements/compare/v1.3.1...v1.3.2) (2026-11-26)
 
 ### ⏪ Temporary Rollback

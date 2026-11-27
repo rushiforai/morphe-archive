@@ -12,6 +12,7 @@ object SofaScoreLoginCompatibility {
         appIconColor = 0x354BED,
         targets = listOf(
             AppTarget(version = "26.09.21"),
+            AppTarget(version = "26.11.09"),
             AppTarget(
                 version = null,
                 isExperimental = false

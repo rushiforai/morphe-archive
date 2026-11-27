@@ -2,16 +2,16 @@
 .super Ljava/lang/Object;
 
 # Hooks A and B for Play a random song's pill in Home's filter row.
-# A hands over the chips (Lp/ztx;) that the server's feeds became, right after Lp/xqw;->a rewrote
-# them, and B offers each chip tap before its Lp/q8w; reaches Home's loop. HomeChips decides both;
+# A hands over the chips (Lp/fg30;) that the server's feeds became, right after Lp/x820;->a rewrote
+# them, and B offers each chip tap before its Lp/mo10; reaches Home's loop. HomeChips decides both;
 # this only builds Spotify's chip.
 
 # Hook A: the chips with the pill where HomeChips.chips puts it, or the same list if that fails.
-# ztx is (a key, b title, c facet, d sub-chips, e highlight scheme, f highlight color, g animation).
-# The pill's id is its key and its facet. Home iterates d, so it can't be null. e to g may be, as
-# Lp/ocd1;->u leaves them for a plain feed.
+# fg30 is (a key, b title, c facet, d sub-chips, e highlight scheme, f highlight color, g animation,
+# h custom feed, i create-feed chip). The pill's id is its key and its facet. Home iterates d, so it
+# can't be null. e to g may be, as Lp/out1;->h leaves them for a plain feed, and h and i are false.
 .method public static chips(Ljava/util/List;)Ljava/util/List;
-    .locals 8
+    .locals 10
     :try_start
     sget-object v1, Lapp/spicetify/extension/spotify/extensions/HomeChips;->PILL_ID:Ljava/lang/String;
     sget-object v2, Lapp/spicetify/extension/spotify/extensions/HomeChips;->PILL_TITLE:Ljava/lang/String;
@@ -21,8 +21,10 @@
     const/4 v5, 0x0
     const/4 v6, 0x0
     const/4 v7, 0x0
-    new-instance v0, Lp/ztx;
-    invoke-direct/range {v0 .. v7}, Lp/ztx;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lp/ytx;Ljava/lang/String;Lp/xtx;)V
+    const/4 v8, 0x0
+    const/4 v9, 0x0
+    new-instance v0, Lp/fg30;
+    invoke-direct/range {v0 .. v9}, Lp/fg30;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lp/eg30;Ljava/lang/String;Lp/dg30;ZZ)V
     invoke-static {p0, v0}, Lapp/spicetify/extension/spotify/extensions/HomeChips;->chips(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;
     move-result-object v0
     return-object v0

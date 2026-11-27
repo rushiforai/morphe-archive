@@ -1,6 +1,7 @@
 package app.hushmessenger.extension;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Rect;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -8,6 +9,8 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeProvider;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import java.util.ArrayList;
@@ -44,6 +47,8 @@ public class TabSlideTest {
     private Activity activity;
     private TabSwipe.SwipeFrame frame;
     private LinearLayout bar;
+    /** The bar the touches go to, plain or floating. */
+    private View row;
     private final List<Integer> clicks = new ArrayList<>();
     private long down;
 
@@ -252,6 +257,77 @@ public class TabSlideTest {
         assertNull(frame.sliding());
     }
 
+    @Test public void onTheFloatingBarASlideOpensTheTabUnderTheFinger() {
+        slideOn();
+        TabSwipeTest.Home home = new TabSwipeTest.Home();
+        DrawnBar pill = floatingHomeScreen(home, 4, Gravity.BOTTOM);
+
+        press(spot(pill, 0));
+        move(spot(pill, 0) + 60);
+        TabSlide.Bar sliding = frame.sliding();
+        assertNotNull("The floating bar has no tab buttons, and a slide still finds its tabs", sliding);
+        Rect lens = sliding.lens();
+        assertEquals("as wide as one of its tabs", pill.tabWidth(), lens.width());
+        assertEquals("on the bar's row", pill.getTop(), lens.top);
+        assertEquals(BAR_HEIGHT, lens.height());
+        assertEquals("centered on the finger", spot(pill, 0) + 60 - pill.tabWidth() / 2, lens.left);
+
+        move(1070);
+        assertEquals("kept on the bar's last tab, not the edge of the screen",
+            pill.getLeft() + pill.tab(3).right, frame.sliding().lens().right);
+        move(spot(pill, 2));
+        lift(spot(pill, 2));
+        assertSame(TabSwipeTest.Tab.JEWEL, home.picked);
+        assertNull(frame.sliding());
+        idle();
+        assertEquals("The bar's own tap doesn't go off as well", List.of(), clicks);
+        assertTrue(Settings.hookErrors.isEmpty());
+
+        // A tap on the floating bar is still the bar's own.
+        home.picked = null;
+        press(spot(pill, 1));
+        lift(spot(pill, 1));
+        idle();
+        assertEquals(List.of(1), clicks);
+        assertNull(home.picked);
+    }
+
+    @Test public void aDrawnRowThatIsntTheTabBarIsLeftAlone() {
+        slideOn();
+        TabSwipeTest.Home home = new TabSwipeTest.Home();
+        // Three drawn tabs for four.
+        DrawnBar pill = floatingHomeScreen(home, 3, Gravity.BOTTOM);
+        press(spot(pill, 0));
+        move(spot(pill, 2));
+        assertNull(frame.sliding());
+        lift(spot(pill, 2));
+        assertNull(home.picked);
+
+        // Four, but at the top of the screen.
+        screen.close();
+        screen = Robolectric.buildActivity(Activity.class).setup();
+        activity = screen.get();
+        pill = floatingHomeScreen(home, 4, Gravity.TOP);
+        press(spot(pill, 0));
+        move(spot(pill, 2));
+        assertNull(frame.sliding());
+        lift(spot(pill, 2));
+        assertNull(home.picked);
+
+        // Four at the bottom that accessibility numbers some other way, so where each one sits isn't known.
+        screen.close();
+        screen = Robolectric.buildActivity(Activity.class).setup();
+        activity = screen.get();
+        pill = floatingHomeScreen(home, 4, Gravity.BOTTOM);
+        pill.firstId = 100;
+        press(spot(pill, 0));
+        move(spot(pill, 2));
+        assertNull(frame.sliding());
+        lift(spot(pill, 2));
+        assertNull(home.picked);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
     @Test public void theSwitchSitsUnderSwipeBetweenTabsAndGoesInTheBackup() {
         assertEquals(TabSwipe.KEY, Settings.SUB_SWITCHES.get(TabSlide.KEY));
         try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
@@ -262,7 +338,11 @@ public class TabSlideTest {
             assertNotNull(owner);
             ViewGroup meet = (ViewGroup) owner.getParent();
             while (!isAncestor(meet, title)) meet = (ViewGroup) meet.getParent();
-            assertEquals("in the block Swipe between tabs heads, as its one sub-switch", 2, meet.getChildCount());
+            assertEquals("in the block Swipe between tabs heads, beside Page follows your finger", 3, meet.getChildCount());
+            View follow = root.findViewWithTag("title_line_" + TabFollow.KEY);
+            assertNotNull(follow);
+            assertTrue(isAncestor(meet, follow));
+            assertEquals(TabSwipe.KEY, Settings.SUB_SWITCHES.get(TabFollow.KEY));
         }
     }
 
@@ -298,6 +378,28 @@ public class TabSlideTest {
             bar.addView(button, new LinearLayout.LayoutParams(width, -1));
         }
         root.addView(bar, new FrameLayout.LayoutParams(-1, BAR_HEIGHT, edge));
+        row = bar;
+        show(root, home, route);
+    }
+
+    /** The home screen with Messenger 588's floating bar: [tabs] tabs drawn in one view, floating along the [edge]. */
+    private DrawnBar floatingHomeScreen(TabSwipeTest.Home home, int tabs, int edge) {
+        clicks.clear();
+        FrameLayout root = new FrameLayout(activity);
+        View chats = new View(activity) {
+            @Override public boolean onTouchEvent(MotionEvent event) { return true; }
+        };
+        root.addView(chats, new FrameLayout.LayoutParams(-1, -1));
+        DrawnBar pill = new DrawnBar(activity, tabs, clicks);
+        FrameLayout.LayoutParams place = new FrameLayout.LayoutParams(1000, BAR_HEIGHT, edge | Gravity.CENTER_HORIZONTAL);
+        place.topMargin = place.bottomMargin = 40;
+        root.addView(pill, place);
+        row = pill;
+        show(root, home, ROUTE);
+        return pill;
+    }
+
+    private void show(FrameLayout root, TabSwipeTest.Home home, String route) {
         root.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
         View wrapped = TabSwipe.wrap(root, home, route);
         assertTrue(wrapped instanceof TabSwipe.SwipeFrame);
@@ -315,8 +417,71 @@ public class TabSlideTest {
     /** The bar's middle, up and down, on screen. */
     private int barY() {
         int[] at = new int[2];
-        bar.getLocationOnScreen(at);
-        return at[1] + BAR_HEIGHT / 2;
+        row.getLocationOnScreen(at);
+        return at[1] + row.getHeight() / 2;
+    }
+
+    /** The middle of the floating bar's [index]th tab, across, on screen. */
+    private static int spot(DrawnBar pill, int index) {
+        int[] at = new int[2];
+        pill.getLocationOnScreen(at);
+        return at[0] + pill.tab(index).centerX();
+    }
+
+    /**
+     * Messenger 588's floating bar: one view that draws its tabs and handles their taps itself, so it has no tab
+     * buttons, and tells accessibility where each tab is, one virtual node per tab numbered from [firstId].
+     */
+    private static final class DrawnBar extends FrameLayout {
+        private static final int INSET = 10;
+        private final int tabs;
+        private final List<Integer> taps;
+        int firstId;
+
+        DrawnBar(Context context, int tabs, List<Integer> taps) {
+            super(context);
+            this.tabs = tabs;
+            this.taps = taps;
+            setClickable(true);
+        }
+
+        int tabWidth() {
+            return (getWidth() - 2 * INSET) / tabs;
+        }
+
+        /** Tab [index] in the bar's own coordinates. */
+        Rect tab(int index) {
+            return new Rect(INSET + index * tabWidth(), 0, INSET + (index + 1) * tabWidth(), getHeight());
+        }
+
+        @Override public boolean onTouchEvent(MotionEvent event) {
+            super.onTouchEvent(event);
+            if (event.getActionMasked() == MotionEvent.ACTION_UP) taps.add((Math.round(event.getX()) - INSET) / tabWidth());
+            return true;
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override public AccessibilityNodeProvider getAccessibilityNodeProvider() {
+            return new AccessibilityNodeProvider() {
+                @Override public AccessibilityNodeInfo createAccessibilityNodeInfo(int id) {
+                    if (id == View.NO_ID) {
+                        AccessibilityNodeInfo host = AccessibilityNodeInfo.obtain(DrawnBar.this);
+                        for (int i = 0; i < tabs; i++) host.addChild(DrawnBar.this, firstId + i);
+                        return host;
+                    }
+                    int index = id - firstId;
+                    if (index < 0 || index >= tabs) return null;
+                    AccessibilityNodeInfo node = AccessibilityNodeInfo.obtain(DrawnBar.this, id);
+                    int[] at = new int[2];
+                    getLocationOnScreen(at);
+                    Rect place = tab(index);
+                    place.offset(at[0], at[1]);
+                    node.setBoundsInScreen(place);
+                    node.setClickable(true);
+                    return node;
+                }
+            };
+        }
     }
 
     /** The middle of the bar's [index]th button, across, on screen. */

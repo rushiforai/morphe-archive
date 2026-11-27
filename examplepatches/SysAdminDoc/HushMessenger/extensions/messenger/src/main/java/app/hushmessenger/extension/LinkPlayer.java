@@ -26,8 +26,11 @@ final class LinkPlayer {
     private static final Pattern YOUTUBE_ID = Pattern.compile("[A-Za-z0-9_-]{11}");
     /** TikTok numbers its videos. */
     private static final Pattern TIKTOK_ID = Pattern.compile("[0-9]{6,25}");
+    /** The same number in base 36 behind an "e", the way Messenger's own preview cards write it (#246). */
+    private static final Pattern TIKTOK_SHORT_ID = Pattern.compile("e[0-9a-z]{4,13}");
     /** Instagram's shortcode, the part of the address after /p/, /reel/ or /tv/. */
     private static final Pattern INSTAGRAM_CODE = Pattern.compile("[A-Za-z0-9_-]{5,30}");
+    private static final List<String> INSTAGRAM_KINDS = Arrays.asList("p", "reel", "reels", "tv");
     /** Facebook numbers its videos too, and its newer share links use a short code instead. */
     private static final Pattern FACEBOOK_ID = Pattern.compile("[0-9]{6,25}");
     private static final Pattern FACEBOOK_SHARE = Pattern.compile("[A-Za-z0-9_-]{5,40}");
@@ -128,16 +131,31 @@ final class LinkPlayer {
     /** /@someone/video/<number>, and /v/<number>.html as the older shape. */
     private static Embed tiktok(List<String> path) {
         String id = null;
-        if (path.size() >= 3 && path.get(0).startsWith("@") && path.get(1).equals("video")) id = path.get(2);
+        if (path.size() >= 3 && path.get(0).startsWith("@") && path.get(1).equals("video")) id = tiktokNumber(path.get(2));
         else if (path.size() >= 2 && path.get(0).equals("v")) id = path.get(1).replace(".html", "");
         if (!matches(TIKTOK_ID, id)) return null;
         String host = "https://www.tiktok.com";
         return new Embed(TIKTOK, host + "/embed/v2/" + id, host, null, false);
     }
 
-    /** /p/, /reel/, /reels/ and /tv/ each take the embed suffix. A profile or a story doesn't have one. */
+    /** The video's number, from the plain number or from the base 36 one Messenger's cards carry. */
+    private static String tiktokNumber(String id) {
+        if (!matches(TIKTOK_SHORT_ID, id)) return id;
+        try {
+            long number = Long.parseLong(id.substring(1), 36);
+            return number > 0 ? Long.toString(number) : null;
+        } catch (NumberFormatException tooBig) {
+            return null;
+        }
+    }
+
+    /**
+     * /p/, /reel/, /reels/ and /tv/ each take the embed suffix. A profile or a story doesn't have one. Messenger's own
+     * cards put the account first, /someone/reel/<code>/, which is the same post (#246).
+     */
     private static Embed instagram(List<String> path) {
-        if (path.size() < 2 || !Arrays.asList("p", "reel", "reels", "tv").contains(path.get(0))) return null;
+        if (path.size() >= 3 && !INSTAGRAM_KINDS.contains(path.get(0)) && INSTAGRAM_KINDS.contains(path.get(1))) path = path.subList(1, path.size());
+        if (path.size() < 2 || !INSTAGRAM_KINDS.contains(path.get(0))) return null;
         if (!matches(INSTAGRAM_CODE, path.get(1))) return null;
         String kind = path.get(0).equals("reels") ? "reel" : path.get(0);
         String host = "https://www.instagram.com";

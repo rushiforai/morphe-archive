@@ -29,12 +29,13 @@ import java.util.Locale;
 /**
  * Exports the bug log: every process's files are joined into one {@code nezumi-log-<time>.txt}
  * saved to {@code Download/Nezumi/}, where the user can pick it up and send it themselves.
- * Nothing leaves the device.
+ * Nothing leaves the device. The file opens with a {@link ExportSummary} (per-patch errors and
+ * hooks, crashes, the latest session header) so the developer sees the patch at fault first.
  */
 public final class BugLogExport {
     private BugLogExport() { }
 
-    private static final String TAG = "BugLog";
+    private static final String TAG = "BugLogExport";
     private static final String FOLDER = "Nezumi";
 
     public interface Callback {
@@ -50,6 +51,7 @@ public final class BugLogExport {
     }
 
     public static void clear(Context context) {
+        NezumiLog.clearBuffered();
         LogStore store = NezumiLog.store();
         if (store != null) {
             store.clearAll();
@@ -59,7 +61,7 @@ public final class BugLogExport {
                 file.delete();
             }
         }
-        NezumiLog.i(TAG, "log cleared");
+        NezumiLog.i(Patch.CORE, TAG, "log cleared");
     }
 
     public static void export(Context context, Callback callback) {
@@ -67,12 +69,12 @@ public final class BugLogExport {
         Thread thread = new Thread(() -> {
             String path = null;
             try {
-                LogStore store = NezumiLog.store();
-                if (store != null) store.flush();
+                // The in-memory lines (detailed logging off) belong in the export too.
+                NezumiLog.flushBuffered();
                 String stamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date());
                 path = save(context, "nezumi-log-" + stamp + ".txt");
             } catch (IOException | RuntimeException failure) {
-                NezumiLog.e(TAG, "export failed", failure);
+                NezumiLog.e(Patch.CORE, TAG, "export failed", failure);
             }
             String saved = path;
             main.post(() -> callback.done(saved));
@@ -130,12 +132,28 @@ public final class BugLogExport {
         String intro = "Nezumi bug log export " + new Date() + "\n\n";
         stream.write(intro.getBytes(StandardCharsets.UTF_8));
         List<File> files = logFiles(context);
+        List<ExportSummary.LogFile> contents = new ArrayList<>(files.size());
+        for (File file : files) contents.add(new ExportSummary.LogFile(file.getName(), read(file)));
+        String summary;
+        try {
+            summary = ExportSummary.build(contents);
+        } catch (RuntimeException failure) {
+            // A summary bug must not cost the user the export itself.
+            summary = "(summary unavailable: " + failure + ")\n";
+        }
+        stream.write((summary + "\n").getBytes(StandardCharsets.UTF_8));
         if (files.isEmpty()) stream.write("(no log entries yet)\n".getBytes(StandardCharsets.UTF_8));
-        for (File file : files) {
-            stream.write(("----- " + file.getName() + " -----\n").getBytes(StandardCharsets.UTF_8));
-            copy(file, stream);
+        for (ExportSummary.LogFile file : contents) {
+            stream.write(("----- " + file.name + " -----\n").getBytes(StandardCharsets.UTF_8));
+            stream.write(file.text.getBytes(StandardCharsets.UTF_8));
             stream.write('\n');
         }
+    }
+
+    private static String read(File file) throws IOException {
+        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream((int) Math.min(file.length(), LogStore.MAX_FILE_BYTES * 2));
+        copy(file, bytes);
+        return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
     }
 
     /** Main process first; for each process the rotated (older) file before the current one. */

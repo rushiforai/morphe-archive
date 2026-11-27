@@ -1,0 +1,886 @@
+{
+  "about": "Addon track matching: a YouTube Music song (target) against an addon's search rows (candidates). expect is what BitChord's TrackMatcher returns: ranked = accepted rows best first (pick = ranked[0]), scores = each accepted row's score, rejected = rows it refuses. Filled by scripts/addon_matcher_fixtures.mjs --update from BitChord v1.9.2 (a2d886e6) web/app/src/data/match/trackMatcher.ts. Cases named (ours, …) are our rules on top of BitChord a2d886e6 (protocol.md §7), their expect checked by hand.",
+  "cases": [
+    {
+      "name": "exact row wins; a row 45 s longer by the same artist is kept at 0 length points (shared-artist rows may drift up to 90 s)",
+      "target": {
+        "title": "Blinding Lights",
+        "artist": "The Weeknd",
+        "durationSec": 200,
+        "album": "After Hours"
+      },
+      "candidates": [
+        {
+          "id": "remix",
+          "title": "Blinding Lights (Chromatics Remix)",
+          "artist": "The Weeknd",
+          "durationSec": 271,
+          "album": null
+        },
+        {
+          "id": "extended",
+          "title": "Blinding Lights",
+          "artist": "The Weeknd",
+          "durationSec": 245,
+          "album": "After Hours"
+        },
+        {
+          "id": "album",
+          "title": "Blinding Lights",
+          "artist": "The Weeknd",
+          "durationSec": 200.4,
+          "album": "After Hours"
+        }
+      ],
+      "expect": {
+        "pick": "album",
+        "ranked": [
+          "album",
+          "extended"
+        ],
+        "scores": {
+          "extended": 160,
+          "album": 200
+        },
+        "rejected": [
+          "remix"
+        ]
+      }
+    },
+    {
+      "name": "feat in the YouTube title, both credited on the addon",
+      "target": {
+        "title": "Stay (feat. Justin Bieber)",
+        "artist": "The Kid LAROI",
+        "durationSec": 141
+      },
+      "candidates": [
+        {
+          "id": "stay",
+          "title": "Stay",
+          "artist": "The Kid LAROI & Justin Bieber",
+          "durationSec": 141.8,
+          "album": "F*CK LOVE 3"
+        }
+      ],
+      "expect": {
+        "pick": "stay",
+        "ranked": [
+          "stay"
+        ],
+        "scores": {
+          "stay": 150
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "sped-up upload must not take the original",
+      "target": {
+        "title": "Escapism. (Sped Up)",
+        "artist": "RAYE, 070 Shake",
+        "durationSec": 220
+      },
+      "candidates": [
+        {
+          "id": "original",
+          "title": "Escapism.",
+          "artist": "RAYE, 070 Shake",
+          "durationSec": 272,
+          "album": "My 21st Century Blues"
+        },
+        {
+          "id": "sped",
+          "title": "Escapism. - Sped Up",
+          "artist": "RAYE, 070 Shake",
+          "durationSec": 219.6,
+          "album": "Escapism. (Sped Up)"
+        }
+      ],
+      "expect": {
+        "pick": "sped",
+        "ranked": [
+          "sped"
+        ],
+        "scores": {
+          "sped": 165
+        },
+        "rejected": [
+          "original"
+        ]
+      }
+    },
+    {
+      "name": "original must not take the sped-up version",
+      "target": {
+        "title": "Escapism.",
+        "artist": "RAYE, 070 Shake",
+        "durationSec": 272
+      },
+      "candidates": [
+        {
+          "id": "sped",
+          "title": "Escapism. (Sped Up)",
+          "artist": "RAYE, 070 Shake",
+          "durationSec": 219.6,
+          "album": null
+        },
+        {
+          "id": "original",
+          "title": "Escapism.",
+          "artist": "RAYE, 070 Shake",
+          "durationSec": 272.3,
+          "album": "My 21st Century Blues"
+        }
+      ],
+      "expect": {
+        "pick": "original",
+        "ranked": [
+          "original"
+        ],
+        "scores": {
+          "original": 165
+        },
+        "rejected": [
+          "sped"
+        ]
+      }
+    },
+    {
+      "name": "instrumental row is never the sung song",
+      "target": {
+        "title": "Hello",
+        "artist": "Adele",
+        "durationSec": 295
+      },
+      "candidates": [
+        {
+          "id": "inst",
+          "title": "Hello (Instrumental)",
+          "artist": "Adele",
+          "durationSec": 295,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": null,
+        "ranked": [],
+        "scores": {},
+        "rejected": [
+          "inst"
+        ]
+      }
+    },
+    {
+      "name": "cover by another artist is dropped when the right artist is there",
+      "target": {
+        "title": "Hello",
+        "artist": "Adele",
+        "durationSec": 295
+      },
+      "candidates": [
+        {
+          "id": "cover",
+          "title": "Hello",
+          "artist": "Piano Covers Club",
+          "durationSec": 295.2,
+          "album": null
+        },
+        {
+          "id": "adele",
+          "title": "Hello",
+          "artist": "Adele",
+          "durationSec": 296,
+          "album": "25"
+        }
+      ],
+      "expect": {
+        "pick": "adele",
+        "ranked": [
+          "adele"
+        ],
+        "scores": {
+          "cover": 110,
+          "adele": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "unknown credit allowed only within 2 s",
+      "target": {
+        "title": "Hello",
+        "artist": "Adele",
+        "durationSec": 295
+      },
+      "candidates": [
+        {
+          "id": "va-close",
+          "title": "Hello",
+          "artist": "Various Artists",
+          "durationSec": 295.6,
+          "album": null
+        },
+        {
+          "id": "va-far",
+          "title": "Hello",
+          "artist": "Various Artists",
+          "durationSec": 299,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "va-close",
+        "ranked": [
+          "va-close"
+        ],
+        "scores": {
+          "va-close": 110
+        },
+        "rejected": [
+          "va-far"
+        ]
+      }
+    },
+    {
+      "name": "accents fold (foldLatin)",
+      "target": {
+        "title": "Bésame Mucho",
+        "artist": "Andrea Bocelli",
+        "durationSec": 245
+      },
+      "candidates": [
+        {
+          "id": "plain",
+          "title": "Besame Mucho",
+          "artist": "Andrea Bocelli",
+          "durationSec": 245,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "plain",
+        "ranked": [
+          "plain"
+        ],
+        "scores": {
+          "plain": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "closer length beats search order",
+      "target": {
+        "title": "Vaina Loca",
+        "artist": "Ozuna, Manuel Turizo",
+        "durationSec": 176
+      },
+      "candidates": [
+        {
+          "id": "video-cut",
+          "title": "Vaina Loca",
+          "artist": "Ozuna, Manuel Turizo",
+          "durationSec": 190,
+          "album": null
+        },
+        {
+          "id": "audio",
+          "title": "Vaina Loca",
+          "artist": "Ozuna, Manuel Turizo",
+          "durationSec": 176.5,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "audio",
+        "ranked": [
+          "audio",
+          "video-cut"
+        ],
+        "scores": {
+          "video-cut": 140,
+          "audio": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "upload labelling is noise",
+      "target": {
+        "title": "Unethical (Official Audio)",
+        "artist": "Hensonn",
+        "durationSec": 133
+      },
+      "candidates": [
+        {
+          "id": "row",
+          "title": "Unethical",
+          "artist": "Hensonn",
+          "durationSec": 133,
+          "album": "Unethical"
+        }
+      ],
+      "expect": {
+        "pick": "row",
+        "ranked": [
+          "row"
+        ],
+        "scores": {
+          "row": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "music video target: the shared-artist row wins, a same-length row by another artist is refused",
+      "target": {
+        "title": "Lady Gaga - Poker Face (Official Music Video)",
+        "artist": "Lady Gaga",
+        "durationSec": 213,
+        "isVideo": true
+      },
+      "candidates": [
+        {
+          "id": "song",
+          "title": "Poker Face",
+          "artist": "Lady Gaga",
+          "durationSec": 237,
+          "album": "The Fame"
+        },
+        {
+          "id": "other-artist",
+          "title": "Poker Face",
+          "artist": "Glee Cast",
+          "durationSec": 213,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "song",
+        "ranked": [
+          "song"
+        ],
+        "scores": {
+          "song": 140
+        },
+        "rejected": [
+          "other-artist"
+        ]
+      }
+    },
+    {
+      "name": "explicit flags must agree",
+      "target": {
+        "title": "Starboy",
+        "artist": "The Weeknd, Daft Punk",
+        "durationSec": 230,
+        "isExplicit": true
+      },
+      "candidates": [
+        {
+          "id": "clean",
+          "title": "Starboy",
+          "artist": "The Weeknd, Daft Punk",
+          "durationSec": 230,
+          "album": "Starboy",
+          "explicit": false
+        },
+        {
+          "id": "explicit",
+          "title": "Starboy",
+          "artist": "The Weeknd, Daft Punk",
+          "durationSec": 230,
+          "album": "Starboy",
+          "explicit": true
+        }
+      ],
+      "expect": {
+        "pick": "explicit",
+        "ranked": [
+          "explicit"
+        ],
+        "scores": {
+          "explicit": 185
+        },
+        "rejected": [
+          "clean"
+        ]
+      }
+    },
+    {
+      "name": "different song by the same artist",
+      "target": {
+        "title": "Bohemian Rhapsody",
+        "artist": "Queen",
+        "durationSec": 355
+      },
+      "candidates": [
+        {
+          "id": "show",
+          "title": "The Show Must Go On",
+          "artist": "Queen",
+          "durationSec": 263,
+          "album": "Innuendo"
+        }
+      ],
+      "expect": {
+        "pick": null,
+        "ranked": [],
+        "scores": {},
+        "rejected": [
+          "show"
+        ]
+      }
+    },
+    {
+      "name": "CJK: an equal Japanese title wins; its live version and another song are refused",
+      "target": {
+        "title": "夜に駆ける",
+        "artist": "YOASOBI",
+        "durationSec": 261,
+        "album": null
+      },
+      "candidates": [
+        {
+          "id": "live",
+          "title": "夜に駆ける (Live)",
+          "artist": "YOASOBI",
+          "durationSec": 270,
+          "album": null
+        },
+        {
+          "id": "other",
+          "title": "群青",
+          "artist": "YOASOBI",
+          "durationSec": 249,
+          "album": null
+        },
+        {
+          "id": "same",
+          "title": "夜に駆ける",
+          "artist": "YOASOBI",
+          "durationSec": 261,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "same",
+        "ranked": [
+          "same"
+        ],
+        "scores": {
+          "same": 165
+        },
+        "rejected": [
+          "live",
+          "other"
+        ]
+      }
+    },
+    {
+      "name": "CJK: corner brackets read as round ones, punctuation and spaces dropped from the core",
+      "target": {
+        "title": "アイドル",
+        "artist": "YOASOBI",
+        "durationSec": 213,
+        "album": null
+      },
+      "candidates": [
+        {
+          "id": "bracketed",
+          "title": "アイドル「推しの子」",
+          "artist": "YOASOBI",
+          "durationSec": 213,
+          "album": null
+        },
+        {
+          "id": "spaced",
+          "title": "ア イ ド ル",
+          "artist": "YOASOBI",
+          "durationSec": 213,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "bracketed",
+        "ranked": [
+          "bracketed",
+          "spaced"
+        ],
+        "scores": {
+          "bracketed": 165,
+          "spaced": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "romaji: a kana title against its romanised row",
+      "target": {
+        "title": "ハルジオン",
+        "artist": "YOASOBI",
+        "durationSec": 203,
+        "album": null
+      },
+      "candidates": [
+        {
+          "id": "romaji",
+          "title": "Harujion",
+          "artist": "YOASOBI",
+          "durationSec": 203,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "romaji",
+        "ranked": [
+          "romaji"
+        ],
+        "scores": {
+          "romaji": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "translation: a Korean title with its English name against the Korean row and the English one",
+      "target": {
+        "title": "봄날 (Spring Day)",
+        "artist": "BTS",
+        "durationSec": 274,
+        "album": null
+      },
+      "candidates": [
+        {
+          "id": "korean",
+          "title": "봄날",
+          "artist": "BTS",
+          "durationSec": 274,
+          "album": null
+        },
+        {
+          "id": "english",
+          "title": "Spring Day",
+          "artist": "BTS",
+          "durationSec": 274,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "korean",
+        "ranked": [
+          "korean",
+          "english"
+        ],
+        "scores": {
+          "korean": 165,
+          "english": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "Turkish: dotless ı and Ş fold to plain Latin (Şımarık / Simarik), artist case ignored",
+      "target": {
+        "title": "Şımarık",
+        "artist": "Tarkan",
+        "durationSec": 236,
+        "album": null
+      },
+      "candidates": [
+        {
+          "id": "plain",
+          "title": "Simarik",
+          "artist": "TARKAN",
+          "durationSec": 236,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "plain",
+        "ranked": [
+          "plain"
+        ],
+        "scores": {
+          "plain": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "Turkish: dotted İ against plain I",
+      "target": {
+        "title": "İstanbul Ağlıyor",
+        "artist": "Ezhel",
+        "durationSec": 180,
+        "album": null
+      },
+      "candidates": [
+        {
+          "id": "plain",
+          "title": "Istanbul Agliyor",
+          "artist": "Ezhel",
+          "durationSec": 180,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "plain",
+        "ranked": [
+          "plain"
+        ],
+        "scores": {
+          "plain": 165
+        },
+        "rejected": []
+      }
+    },
+    {
+      "name": "casing: \"(LIVE)\" is the live version whatever the case (a Turkish locale must not make it \"lıve\")",
+      "target": {
+        "title": "Kuzu Kuzu (Live)",
+        "artist": "Tarkan",
+        "durationSec": 250,
+        "album": null
+      },
+      "candidates": [
+        {
+          "id": "upper",
+          "title": "Kuzu Kuzu (LIVE)",
+          "artist": "Tarkan",
+          "durationSec": 250,
+          "album": null
+        },
+        {
+          "id": "studio",
+          "title": "Kuzu Kuzu",
+          "artist": "Tarkan",
+          "durationSec": 250,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "upper",
+        "ranked": [
+          "upper"
+        ],
+        "scores": {
+          "upper": 165
+        },
+        "rejected": [
+          "studio"
+        ]
+      }
+    },
+    {
+      "name": "casing: a studio song refuses an upper-case LIVE row",
+      "target": {
+        "title": "Kuzu Kuzu",
+        "artist": "Tarkan",
+        "durationSec": 250,
+        "album": null
+      },
+      "candidates": [
+        {
+          "id": "upper",
+          "title": "Kuzu Kuzu (LIVE)",
+          "artist": "Tarkan",
+          "durationSec": 250,
+          "album": null
+        },
+        {
+          "id": "studio",
+          "title": "KUZU KUZU",
+          "artist": "Tarkan",
+          "durationSec": 250,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "studio",
+        "ranked": [
+          "studio"
+        ],
+        "scores": {
+          "studio": 165
+        },
+        "rejected": [
+          "upper"
+        ]
+      }
+    },
+    {
+      "name": "(ours, mashups) a mashup title: a song inside it is another song, by substring or by the credit override (YouTube 6Edmp3yHv1s against Tidal 445741450)",
+      "target": {
+        "title": "LET ME LOVE YOU x GATA ONLY",
+        "artist": "Moonshine",
+        "durationSec": 172.7
+      },
+      "candidates": [
+        {
+          "id": "other-song",
+          "title": "Let Me Love You",
+          "artist": "Bonnie X Clyde",
+          "durationSec": 172.5,
+          "album": null
+        },
+        {
+          "id": "one-half",
+          "title": "Let Me Love You",
+          "artist": "Moonshine",
+          "durationSec": 172.7,
+          "album": null
+        },
+        {
+          "id": "the-mashup",
+          "title": "Let Me Love You x Gata Only",
+          "artist": "Moonshine",
+          "durationSec": 172.7,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "the-mashup",
+        "ranked": [
+          "the-mashup"
+        ],
+        "scores": {
+          "the-mashup": 165
+        },
+        "rejected": [
+          "other-song",
+          "one-half"
+        ]
+      }
+    },
+    {
+      "name": "(ours, mashups) a mashup or medley word in brackets counts",
+      "target": {
+        "title": "Levitating / Physical (Mashup)",
+        "artist": "Mashup Channel",
+        "durationSec": 210
+      },
+      "candidates": [
+        {
+          "id": "levitating",
+          "title": "Levitating",
+          "artist": "Dua Lipa",
+          "durationSec": 210.5,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": null,
+        "ranked": [],
+        "scores": {},
+        "rejected": [
+          "levitating"
+        ]
+      }
+    },
+    {
+      "name": "(ours, mashups) false-positive guard: \" x \" between the credited artists is a credit, not a mashup; the credit override still holds",
+      "target": {
+        "title": "Sigala x Ella Eyre - Came Here For Love",
+        "artist": "Sigala x Ella Eyre",
+        "durationSec": 200
+      },
+      "candidates": [
+        {
+          "id": "other-credit",
+          "title": "Came Here For Love",
+          "artist": "Someone Else",
+          "durationSec": 200.5,
+          "album": null
+        },
+        {
+          "id": "credited",
+          "title": "Came Here For Love",
+          "artist": "Sigala, Ella Eyre",
+          "durationSec": 200,
+          "album": null
+        }
+      ],
+      "expect": {
+        "pick": "credited",
+        "ranked": [
+          "credited"
+        ],
+        "scores": {
+          "other-credit": 110,
+          "credited": 165
+        },
+        "rejected": []
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "title and primary artist, then the title alone",
+      "target": {
+        "title": "Blinding Lights",
+        "artist": "The Weeknd",
+        "durationSec": 200,
+        "album": null
+      },
+      "expect": [
+        "blinding lights the weeknd",
+        "blinding lights"
+      ]
+    },
+    {
+      "name": "packaging words dropped from the searchable title",
+      "target": {
+        "title": "Shape of You (Official Video)",
+        "artist": "Ed Sheeran",
+        "durationSec": 200,
+        "album": null
+      },
+      "expect": [
+        "shape of you ed sheeran",
+        "shape of you"
+      ]
+    },
+    {
+      "name": "a featured artist: the primary artist only",
+      "target": {
+        "title": "Stay (with Justin Bieber)",
+        "artist": "The Kid LAROI, Justin Bieber",
+        "durationSec": 200,
+        "album": null
+      },
+      "expect": [
+        "stay the kid laroi",
+        "stay"
+      ]
+    },
+    {
+      "name": "CJK title: its romaji added",
+      "target": {
+        "title": "ハルジオン",
+        "artist": "YOASOBI",
+        "durationSec": 200,
+        "album": null
+      },
+      "expect": [
+        "ハルジオン yoasobi",
+        "ハルジオン",
+        "harujion"
+      ]
+    },
+    {
+      "name": "Turkish title kept as written",
+      "target": {
+        "title": "Şımarık",
+        "artist": "Tarkan",
+        "durationSec": 200,
+        "album": null
+      },
+      "expect": [
+        "şımarık tarkan",
+        "şımarık"
+      ]
+    }
+  ]
+}

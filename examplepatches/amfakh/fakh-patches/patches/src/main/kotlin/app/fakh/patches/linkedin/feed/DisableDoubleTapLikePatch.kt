@@ -38,7 +38,7 @@ val disableDoubleTapLikePatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feed")
+    category("Posts")
     dependsOn(settingsPatch)
 
     execute {

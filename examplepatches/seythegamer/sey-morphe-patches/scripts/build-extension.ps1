@@ -1,15 +1,16 @@
 # Compiles the Java extensions of both apps into raw DEX files.
 #
 # KICK (Android TV):
-#   extension\dex\kick-seyttings\classes.dex    - base SEYTTINGS module
-#   extension\dex\kick-emotes\classes.dex       - EMOTES feature module
-#   extension\dex\kick-chatsize\classes.dex     - CHAT SIZE feature module
-#   extension\dex\kick-chattext\classes.dex     - CHAT TEXT SIZE feature module
-#   extension\dex\kick-chatexpand\classes.dex   - EXPAND CHAT feature module
-#   extension\dex\kick-hidepinned\classes.dex   - HIDE PINNED feature module
-#   extension\dex\kick-maturewarning\classes.dex - SKIP 18+ WARNING feature module
+#   extension\dex\kick-seyttings\classes.dex      - base SEYTTINGS module
+#   extension\dex\kick-emotes\classes.dex         - EMOTES feature module
+#   extension\dex\kick-chatsize\classes.dex       - CHAT SIZE feature module
+#   extension\dex\kick-chattext\classes.dex       - CHAT TEXT SIZE feature module
+#   extension\dex\kick-chatexpand\classes.dex     - EXPAND CHAT feature module
+#   extension\dex\kick-hidepinned\classes.dex     - HIDE PINNED feature module
+#   extension\dex\kick-maturewarning\classes.dex  - SKIP 18+ WARNING feature module
 #   extension\dex\kick-stoponminimize\classes.dex - STOP ON MINIMIZE feature module
 #   extension\dex\kick-homedestination\classes.dex - DEFAULT HOME DESTINATION feature module
+#   extension\dex\kick-chatbackground\classes.dex  - CHAT BACKGROUND feature module
 #
 # Twitch (Android TV):
 #   extension\dex\twitch-seyttings\classes.dex  - base SEYTTINGS module
@@ -163,6 +164,8 @@ $kickHidePinnedSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\hidepinned'
 $kickMatureWarningSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\maturewarning'
 $kickStopOnMinimizeSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\stoponminimize'
 $kickHomeDestinationSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\homedestination'
+$kickChatBackgroundSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\chatbackground'
+$kickChatSplitSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\chatsplit'
 
 $twitchBaseSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\base'
 $twitchEmoteSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\emotes'
@@ -264,6 +267,14 @@ Build-Module -Label 'KICK stop on minimize' -SourceDir $kickStopOnMinimizeSrc `
 Build-Module -Label 'KICK home destination' -SourceDir $kickHomeDestinationSrc `
     -ClassesDir (Join-Path $classesRoot 'kick-homedestination') `
     -DexDir (Join-Path $dexRoot 'kick-homedestination') -BaseClasses $kickBaseClasses
+
+Build-Module -Label 'KICK chat background' -SourceDir $kickChatBackgroundSrc `
+    -ClassesDir (Join-Path $classesRoot 'kick-chatbackground') `
+    -DexDir (Join-Path $dexRoot 'kick-chatbackground') -BaseClasses $kickBaseClasses
+
+Build-Module -Label 'KICK chat split' -SourceDir $kickChatSplitSrc `
+    -ClassesDir (Join-Path $classesRoot 'kick-chatsplit') `
+    -DexDir (Join-Path $dexRoot 'kick-chatsplit') -BaseClasses $kickBaseClasses
 
 Build-Module -Label 'Twitch emotes' -SourceDir $twitchEmoteSrc `
     -ClassesDir (Join-Path $classesRoot 'twitch-emotes') `

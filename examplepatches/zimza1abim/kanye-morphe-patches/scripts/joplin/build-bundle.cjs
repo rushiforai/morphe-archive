@@ -38,12 +38,14 @@ fs.writeFileSync(rnEntry, entry);
 run('corepack', ['yarn', 'workspace', '@joplin/app-mobile', 'tsc']);
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'joplin-font-bundle-'));
 const js = path.join(temp, 'index.js');
+// Same steps as the official Gradle build: unminified JS, then hermesc with the release flags.
 run('corepack', ['yarn', 'workspace', '@joplin/app-mobile', 'react-native', 'bundle',
-  '--platform', 'android', '--dev', 'false', '--entry-file', 'packages/app-mobile/index.js',
+  '--platform', 'android', '--dev', 'false', '--minify', 'false', '--entry-file', 'packages/app-mobile/index.js',
   '--bundle-output', js, '--assets-dest', path.join(temp, 'assets'), '--max-workers', '4']);
-const host = process.platform === 'darwin' ? 'osx-bin' : 'linux64-bin';
-const hermesc = path.join(source, 'packages/app-mobile/node_modules/react-native/sdks/hermesc', host, 'hermesc');
-run(hermesc, ['-O', '-w', '-emit-binary', '-out', path.join(repo, 'patches/src/main/resources/joplin/index.android.bundle'), js]);
+const adapter = require('../delta/adapter.cjs');
+const built = adapter.compile(path.join(source, 'packages/app-mobile/node_modules/react-native'), js,
+  path.join(repo, 'patches/src/main/resources/joplin/index.android.bundle'));
+adapter.assertStripped(built, 'Joplin ' + candidate.version);
 fs.writeFileSync(path.join(repo, 'patches/src/main/resources/joplin/target.properties'),
   'version=' + candidate.version + '\ncommit=' + candidate.commit + '\noriginalSha256=' + candidate.originalSha256 + '\n');
 console.log('Built pinned Joplin ' + candidate.version + ' Hermes bundle. Temporary artifacts: ' + temp);

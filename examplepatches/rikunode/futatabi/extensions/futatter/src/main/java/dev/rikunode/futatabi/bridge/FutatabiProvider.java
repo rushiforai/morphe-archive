@@ -49,6 +49,7 @@ public final class FutatabiProvider extends ContentProvider {
     private static final String NEKO = "https://may.2chan.net/27/";
     private static final String IMG = "https://img.2chan.net/b/";
     private static final String MAY = "https://may.2chan.net/b/";
+    private static final String JUN = "https://jun.2chan.net/jun/";
 
     private static void registerBoards(Context context) throws Exception {
         SharedPreferences prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE);
@@ -106,6 +107,8 @@ public final class FutatabiProvider extends ContentProvider {
         // The flag gates only the legacy replacement, not missing default boards.
         change |= ensureBoard(items, "二次元裏（img)", IMG, true);
         change |= ensureBoard(items, "二次元裏（may)", MAY, true);
+        // The stock Futaba parser already recognizes /jun/; no bridge route.
+        change |= ensureBoard(items, "二次元裏（jun)", JUN, false);
         change |= ensureBoard(items, "あいもげ", AIMOGE, false);
         change |= ensureBoard(items, "あにまん", ANIMANCH, false);
         change |= ensureBoard(items, "めぶきちゃんねる", MEBUKI, true);

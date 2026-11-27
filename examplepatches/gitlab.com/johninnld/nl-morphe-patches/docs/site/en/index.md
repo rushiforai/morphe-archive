@@ -38,7 +38,7 @@ hide:
 <button type="button" data-category="other" aria-pressed="false">Other</button>
 </div>
 </div>
-<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">90 apps</span> · Patch bundle: 1.106.0</p>
+<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">90 apps</span> · Patch bundle: 1.108.0</p>
 <div class="dap-app-grid" markdown>
 <article class="dap-app-card" data-category="other" data-search="2dehands be.tweedehands.m 16.19.0 disable threatmetrix disable tracking hide ads skip consent screens" markdown>
 <p class="dap-app-card__category">Other</p>
@@ -705,7 +705,7 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="other" data-search="gboard com.google.android.inputmethod.latin 18.8.0.1022711984-beta-arm64-v8a 18.8.0.1022711984-beta-armeabi-v7a ai writing tools amoled dark keyboard add gboard signature bypass advanced voice typing (nga) beta features (18.8) change package name clipboard enhancements cursor trackpad mode custom theme custom branding enable inline autofill suggestions enable ocr / scan text frosted glass g logo on spacebar hidden flags (18.8) incognito mode toggle key shape selection parakeet personal dictionary parakeet voice typing rambler app context rambler automatic retry (18.8) rambler contact names rambler cursor-aware editing rambler custom instructions rambler personal dictionary rambler stop after silence rambler toolbar &amp; revert extras (18.8) rambler voice typing rounded keyboard panel simple calculator smart compose toolbar editing buttons use bluetooth microphone web clipboard" markdown>
+<article class="dap-app-card" data-category="other" data-search="gboard com.google.android.inputmethod.latin 18.8.0.1022711984-beta-arm64-v8a 18.8.0.1022711984-beta-armeabi-v7a ai writing tools amoled dark keyboard add gboard signature bypass advanced voice typing (nga) beta features (18.8) block gboard telemetry change package name clipboard enhancements cursor trackpad mode custom symbols custom theme custom branding enable inline autofill suggestions enable ocr / scan text frosted glass g logo on spacebar grammar checker hidden flags (18.8) incognito mode toggle key shape selection long-press editing shortcuts parakeet personal dictionary parakeet voice typing rambler app context rambler automatic retry (18.8) rambler contact names rambler cursor-aware editing rambler custom instructions rambler personal dictionary rambler stop after silence rambler toolbar &amp; revert extras (18.8) rambler voice typing rounded keyboard panel shift + backspace forward delete simple calculator smart compose toolbar editing buttons top toolbar item count use bluetooth microphone web clipboard" markdown>
 <p class="dap-app-card__category">Other</p>
 
 ### [Gboard](apps/gboard.md)
@@ -713,25 +713,29 @@ hide:
 <p class="dap-app-card__version">App versions: <span class="dap-data">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></p>
 <p class="dap-app-card__package">com.google.android.inputmethod.latin</p>
 <details class="dap-app-card__patches">
-<summary>34 patches</summary>
+<summary>40 patches</summary>
 <ul>
 <li>AI Writing Tools <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>AMOLED dark keyboard <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Add Gboard Signature Bypass <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Advanced voice typing (NGA) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Beta features (18.8) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Block Gboard telemetry <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a · default off</span></li>
 <li>Change package name <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Clipboard Enhancements <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Cursor trackpad mode <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Custom Symbols <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a · default off</span></li>
 <li>Custom Theme <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Custom branding <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Enable Inline Autofill Suggestions <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Enable OCR / Scan Text <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Frosted Glass <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>G Logo on Spacebar <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Grammar Checker <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a · default off</span></li>
 <li>Hidden flags (18.8) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Incognito Mode Toggle <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Key Shape Selection <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Long-Press Editing Shortcuts <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a · default off</span></li>
 <li>Parakeet personal dictionary <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Parakeet voice typing <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Rambler app context <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
@@ -744,9 +748,11 @@ hide:
 <li>Rambler toolbar &amp; revert extras (18.8) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Rambler voice typing <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Rounded Keyboard Panel <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Shift + Backspace Forward Delete <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a · default off</span></li>
 <li>Simple Calculator <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Smart Compose <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Toolbar Editing Buttons <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Top Toolbar Item Count <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a · default off</span></li>
 <li>Use Bluetooth microphone <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Web Clipboard <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 </ul>

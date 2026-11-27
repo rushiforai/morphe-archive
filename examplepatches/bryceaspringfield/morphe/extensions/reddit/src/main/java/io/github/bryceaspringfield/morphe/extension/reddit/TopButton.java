@@ -20,10 +20,6 @@ import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
-/**
- * A floating return-to-top button over every screen whose list is scrolled down (a profile's Posts, Comments, and
- * other tabs, a community, Home). A tap scrolls that list to its first row. Settings: "Return-to-top button".
- */
 final class TopButton {
     static final String OFF = "top_button_off";
     private static final long TICK_MS = 600;
@@ -37,7 +33,6 @@ final class TopButton {
         return !getBoolean(OFF);
     }
 
-    /** Registers the activity callbacks once; called from the feed filter, which runs as soon as a feed loads. */
     @SuppressLint("PrivateApi")
     static synchronized void start() {
         if (started) return;
@@ -55,7 +50,6 @@ final class TopButton {
                 @Override public void onActivitySaveInstanceState(Activity a, Bundle b) { }
                 @Override public void onActivityDestroyed(Activity a) { }
             });
-            // The activity already resumed (the first feed loads after it) gets its button at once.
             Class<?> thread = Class.forName("android.app.ActivityThread");
             Object current = thread.getMethod("currentActivityThread").invoke(null);
             java.lang.reflect.Field field = thread.getDeclaredField("mActivities");
@@ -107,7 +101,6 @@ final class TopButton {
         }, TICK_MS);
     }
 
-    /** The largest on-screen vertical list which can scroll up, or null. */
     private static View scrolledList(View root) {
         View best = null;
         long bestArea = 0;
@@ -142,7 +135,6 @@ final class TopButton {
             return;
         } catch (Exception ignored) {
         }
-        // A Compose list (Home, profile tabs) has no scroll call: drag it down with synthetic swipes until it stops.
         swipeUp(list, 0);
     }
 

@@ -30,11 +30,11 @@ private object SetTabIconFingerprint : Fingerprint(
 @Suppress("unused")
 val materialNavigationIconsPatch = patch(
     name = "Material icons in the navigation bar",
-    description = "Material icons for the navigation bar tabs. Adds a switch in Fakh Patches.",
+    description = "Material icons for the navigation bar tabs.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Theme")
+    category("Navigation bar")
     dependsOn(settingsPatch)
 
     execute {

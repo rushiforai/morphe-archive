@@ -15,10 +15,6 @@ private const val PLAYER = "$EXT/KickPlayer;"
 private const val SETTINGS_ACTIVITY = "io.github.bryceaspringfield.morphe.extension.kick.KickSettingsActivity"
 private const val VIDEO_PLAYER = "Lcom/kick/mobile/playerv3/player/VideoPlayer;"
 
-/**
- * KICK Extras' settings live inside the KICK app (2026-11-18): no launcher icon of its own. The screen opens from the
- * shortcut "KICK Extras" in the menu of a long press on KICK's icon, and runs in KICK's own task.
- */
 private val kickSettingsActivityPatch = resourcePatch {
     execute {
         val shortcuts = get("res/xml/kick_extras_shortcuts.xml", copy = false).apply { parentFile.mkdirs() }
@@ -80,18 +76,15 @@ val kickExtrasPatch = bytecodePatch(
                 ?: throw PatchException("KICK method $type->$name($params) is missing")
         }
 
-        // Every OkHttp client the app builds gets the filtering interceptor.
         method("Lokhttp3/OkHttpClient\$Builder;", "build", "").addInstructions(
             0, "invoke-static {p0}, $HTTP->onBuild(Lokhttp3/OkHttpClient\$Builder;)V"
         )
-        // Every socket (the chat's) gets the filtering listener.
         method("Lokhttp3/OkHttpClient;", "newWebSocket", "Lokhttp3/Request;Lokhttp3/WebSocketListener;").addInstructions(
             0, """
                 invoke-static {p1, p2}, $HTTP->onWebSocket(Lokhttp3/Request;Lokhttp3/WebSocketListener;)Lokhttp3/WebSocketListener;
                 move-result-object p2
             """
         )
-        // The quality menu's tracks get Audio only, and its choice is read.
         method(VIDEO_PLAYER, "getAvailableVideoTracks", "").hookReturns(
             Opcode.RETURN_OBJECT, """
                 invoke-static {p0, {reg}}, $PLAYER->tracks(Ljava/lang/Object;Ljava/util/List;)Ljava/util/List;

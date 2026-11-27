@@ -16,11 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * KICK Extras' settings screen, opened from the shortcut in the menu of a long press on KICK's icon (KICK has no Morphe settings screen): switches and
- * lists, saved when the screen closes. The app reads them within 2 seconds; the player's menu reads them at its
- * next opening.
- */
 public final class KickSettingsActivity extends Activity {
 
     private final Map<String, Switch> switches = new LinkedHashMap<>();

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -16,7 +17,7 @@ import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.utils.Logger;
 
 /**
- * Debug log of the song-row checks (tag "DownloadedRowLog", only with debug logging on). A line is logged when the
+ * Debug log of row checks (tag "DownloadedRowLog", only with debug logging on). A line is logged when the
  * result of a row differs from the last result logged for that kind of row (a list row or a queue row), so a page of
  * rows with one result is one line and a new result always shows up; there is no budget that a busy page could use
  * up before another page opens. When a row is downloaded but the check could not be placed, the line says why. Main
@@ -29,7 +30,7 @@ final class DownloadedRowLog {
     private final Set<String> skippedClasses = new HashSet<>();
 
     /** A row was evaluated: says why it is, or is not, marked. Nothing is built unless the line is logged. */
-    void decided(DownloadedMarkers.RowState state, String reason, @Nullable String videoId, String outcome) {
+    void decided(DownloadedMarkers.RowState state, String reason, @Nullable String id, String outcome) {
         if (!BaseSettings.DEBUG.get()) return;
 
         String result = reason + "/" + outcome;
@@ -39,7 +40,7 @@ final class DownloadedRowLog {
         boolean skipped = outcome.startsWith("no-");
         Logger.printDebug(() -> (skipped ? "Row end-check skipped: " + outcome + " (" + reason + ")"
                 : "Row " + reason + " -> " + outcome) + " kind=" + state.kind
-                + (videoId == null ? "" : " song=" + videoId));
+                + (id == null ? "" : (state.playlistSourceId == null ? " song=" : " playlist=") + id));
     }
 
     /** A bound view that has no end slot: once per view class, at most a few. */

@@ -1,0 +1,5 @@
+beautifulsoup4==4.14.3
+curl_cffi==0.14.0
+capstone==4.0.2
+pyelftools==0.33
+Pillow==12.1.1

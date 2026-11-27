@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-17.
  * Written by lavinhoque33, 2026-11-07.
@@ -85,7 +86,11 @@ final class OfflineSourceStore {
                 Iterator<String> ids = json.keys();
                 while (ids.hasNext()) {
                     String id = ids.next();
-                    read.put(id, fromJson(id, json.getJSONObject(id)));
+                    try {
+                        read.put(id, fromJson(id, json.getJSONObject(id)));
+                    } catch (JSONException ignored) {
+                        // One malformed source must not hide the rest of the library.
+                    }
                 }
             }
         } catch (IOException | JSONException ex) {
@@ -117,8 +122,9 @@ final class OfflineSourceStore {
         Source previous = sources.get(sourceId);
         SourceHeader kept = header != null && header.hasTitle() ? header : headerOf(previous);
         Map<String, Source> next = new HashMap<>(sources);
+        String page = previous != null && previous.videoIds().equals(videoIds) ? previous.browsePage() : null;
         next.put(sourceId, new Source(sourceId, kept.title(), kept.subtitle(), kept.thumbnailUrl(),
-                List.copyOf(videoIds), now, null, explicitStream));
+                List.copyOf(videoIds), now, page, explicitStream));
         publish(next);
     }
 
@@ -126,7 +132,9 @@ final class OfflineSourceStore {
     File stageBrowsePage(byte[] response) throws IOException {
         ensureLoaded();
         File directory = browseDirectory();
-        if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("No synced pages directory");
+        if (!directory.isDirectory() && !directory.mkdirs() && !directory.isDirectory()) {
+            throw new IOException("No synced pages directory");
+        }
 
         File staged = File.createTempFile("playlist-", ".gz", directory);
         try (FileOutputStream raw = new FileOutputStream(staged);
@@ -146,8 +154,8 @@ final class OfflineSourceStore {
                                          BooleanSupplier allowed) throws IOException, JSONException {
         if (sources.get(expected.id()) != expected) return false;
         Map<String, Source> next = new HashMap<>(sources);
-        next.put(expected.id(), new Source(expected.id(), expected.title(), expected.subtitle(),
-                expected.thumbnailUrl(), tracks, now, staged.getName(), true));
+        next.put(expected.id(), new Source(expected.id(), expected.title(), expected.subtitle(), expected.thumbnailUrl(),
+                List.copyOf(tracks), now, staged.getName(), true));
         return publish(next, allowed);
     }
 
@@ -156,8 +164,7 @@ final class OfflineSourceStore {
         Source source = sources.get(sourceId);
         while (source != null && source.browsePage() != null) {
             try {
-                return OfflineBrowsePagesLogic.gunzip(
-                        Files.readAllBytes(new File(browseDirectory(), source.browsePage()).toPath()));
+                return readBrowsePage(source);
             } catch (IOException ex) {
                 Source current = sources.get(sourceId);
                 if (current == source) throw ex;
@@ -165,6 +172,14 @@ final class OfflineSourceStore {
             }
         }
         return null;
+    }
+
+    /** Read exactly the page belonging to this membership revision, never a newer revision's page. */
+    @Nullable
+    byte[] readBrowsePage(Source source) throws IOException {
+        String page = source.browsePage();
+        return page == null ? null : OfflineBrowsePagesLogic.gunzip(
+                Files.readAllBytes(new File(browseDirectory(), page).toPath()));
     }
 
     private File browseDirectory() {
@@ -227,6 +242,10 @@ final class OfflineSourceStore {
     @Nullable
     Source get(String sourceId) {
         return sources.get(sourceId);
+    }
+
+    boolean loaded() {
+        return loaded;
     }
 
     /**

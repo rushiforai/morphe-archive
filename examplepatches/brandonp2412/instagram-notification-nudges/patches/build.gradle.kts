@@ -3,12 +3,12 @@ group = "app.brandonp2412"
 patches {
     // TODO: Update this section with your project details.
     about {
-        name = "Instagram Notification Prompts"
-        description = "Suppress Instagram notification prompts without disabling notifications"
-        source = "https://github.com/brandonp2412/instagram-notification-nudges"
+        name = "Instagram Patches"
+        description = "Hide unwanted Instagram prompts and follow recommendations"
+        source = "https://github.com/brandonp2412/instagram-patches"
         author = "Brandon Dick"
         contact = "https://github.com/brandonp2412"
-        website = "https://github.com/brandonp2412/instagram-notification-nudges"
+        website = "https://github.com/brandonp2412/instagram-patches"
         license = "GPLv3"
     }
 }

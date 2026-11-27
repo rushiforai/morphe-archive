@@ -11,6 +11,7 @@ import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.PatcherResult
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.resource.CpuArchitecture
+import app.morphe.patcher.dex.BytecodeMode
 import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -34,6 +35,7 @@ fun main(args: Array<String>) {
             temporaryFilesPath = work,
             fileWorkspacePath = File(work, "workspace"),
             keepArchitectures = CpuArchitecture.entries.toSet(),
+            useBytecodeMode = rawBytecodeMode(),
             targetPatcherVersion = "2.1.0",
             validate = true,
         )
@@ -53,6 +55,19 @@ fun main(args: Array<String>) {
 }
 
 private fun createTempDir(): File = kotlin.io.path.createTempDirectory("morphe-run").toFile()
+
+/**
+ * The dex writer mode, overridable with -Dmorphe.bytecodeMode=<FULL|STRIP_FAST|STRIP_SAFE>.
+ *
+ * The harness rewrites the dex in full by default. The stripper modes move every class a patch
+ * touched into a separate segment, which renumbers references the rest of the app still holds,
+ * and tvQuickActions aborts on start when they do; a full rewrite keeps each class in the file
+ * it came from. The override exists so a run can be compared against the stripper's output.
+ */
+private fun rawBytecodeMode(): BytecodeMode =
+    System.getProperty("morphe.bytecodeMode")
+        ?.let { name -> BytecodeMode.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } }
+        ?: BytecodeMode.FULL
 
 private fun loadedPatches(): Set<Patch<*>> {
     // Every patch class in the bundle, so the harness runs the same set the CLI would. The

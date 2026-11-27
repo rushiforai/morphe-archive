@@ -2,7 +2,7 @@ package app.libby.patches
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.addFreeRegisters
 import app.libby.patches.Constants.COMPATIBILITY_LIBBY
 import com.android.tools.smali.dexlib2.Opcode
@@ -25,7 +25,7 @@ private val INTERCEPT = ImmutableMethodReference(
  * themselves. They then register a namespace at runtime through MorpheWebRouter.
  */
 @Suppress("unused")
-val webRoutesPatch = bytecodePatch(
+val webRoutesPatch = patch(
     name = "Shared web routes",
     description = "Internal: installs one /morphe/ request router for extension patches.",
     default = false,

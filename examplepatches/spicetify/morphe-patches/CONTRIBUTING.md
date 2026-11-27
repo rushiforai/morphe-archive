@@ -129,8 +129,10 @@ without modifying your stock APK. Runtime removal still needs a visible ad
 and an on/off comparison on a Free account.
 
 Add `--extensions` for **Spicetify extensions**. Its checker verifies that
-Spotify's `SharedCosmosRouterService` hands itself to the player bridge right
-after its native router starts scheduling, that the song and artist menus pass
+Spotify's cosmos router service, the one class whose constructor starts a
+native router, hands that router to the player bridge right after it starts
+scheduling and again at the start of its shutdown, so the bridge stops sending
+before Spotify destroys it, that the song and artist menus pass
 their frozen item lists and rows through the menu bridge right before building
 the menu, that Home's filter chips pass through the chip bridge right after
 Spotify rewrites them, that each chip tap reaches the chip bridge before Home's
@@ -161,9 +163,9 @@ This command creates temporary APK copies with changed settings code, a
 missing sharing fingerprint, a changed server response field, or a renamed
 theme resource. Each case must report the expected patch failure, exit
 with status 1, and produce no output APK. Temporary copies are deleted
-afterward. The strict settings snapshot also detects the sharing-marker
-mutation because an inspected obfuscated class contains that literal. These
-controlled changes test refusal paths, not compatibility with another Spotify release.
+afterward. The sharing-marker mutation is caught by the share URL fingerprint,
+which then matches nothing. These controlled changes test refusal paths, not
+compatibility with another Spotify release.
 The command never installs an app. Use Java 21 on `PATH` or pass `--java`.
 
 Each pinned class in `patches/src/main/resources/*/*.properties` is checked by

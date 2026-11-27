@@ -14,13 +14,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
 
-/**
- * A "Create post" item at the top of a subreddit's three-dot menu, shown while Morphe's own switch hides the bottom
- * bar's Create button, which otherwise leaves no way to post from the subreddit's page. A tap opens Reddit's post
- * editor with the subreddit chosen, through the app's own submit link.
- */
 final class SubredditMenu {
-    /** The item's id, outside the range of the app's resource ids (0x7f......). */
     static final int CREATE_POST = 0x4D52_4350;
     private static final String ITEM = "com.reddit.subreddit.bottomsheet.SubredditBottomSheetActionMenu$Item";
     private static final String SUBREDDIT = "com.reddit.domain.model.Subreddit";
@@ -29,7 +23,6 @@ final class SubredditMenu {
     private SubredditMenu() {
     }
 
-    /** Whether Morphe's "Hide Create button" switch is on. */
     static boolean createHidden() {
         try {
             Object setting = Class.forName("app.morphe.extension.reddit.settings.Settings")
@@ -40,7 +33,6 @@ final class SubredditMenu {
         }
     }
 
-    /** The name of the subreddit the menu's builder holds, or null. */
     private static String nameOf(Object builder) throws Exception {
         for (Field field : builder.getClass().getDeclaredFields()) {
             field.setAccessible(true);
@@ -61,7 +53,6 @@ final class SubredditMenu {
         return null;
     }
 
-    /** Adds the item to the list a subreddit's menu builder just filled. */
     @SuppressWarnings({"unchecked", "rawtypes"})
     static void add(Object builder, Object items) {
         try {
@@ -84,7 +75,6 @@ final class SubredditMenu {
         }
     }
 
-    /** Whether the tapped item is ours, in which case the post editor opens and the app's own handling is skipped. */
     @SuppressLint("PrivateApi")
     static boolean tapped(int id) {
         if (id != CREATE_POST) return false;

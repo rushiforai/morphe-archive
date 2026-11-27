@@ -1,0 +1,73 @@
+{
+  "note": "Every route is in time order and never moves back, and ends at `end`.",
+  "about": "The points a progress bar's fill goes through, from fillRoute in lib/progress-bar.ts. Glides are [from, to, at, seconds, ceiling] for evenGlide in lib/time-left.ts; times in ms, shares from 0 to 1, compared to 4 decimal places. `first` and `second` are [at, share, easing]; `reaches` is [share, at], the point at that share and when (to the ms); `crawl` is the speed of the last stretch in shares a second, to 5 places; `still` means no points, the fill standing at `end`.",
+  "cases": [
+    {
+      "name": "glides from where it stands now through its end, slows down past it and crawls on to its ceiling",
+      "last": null,
+      "glide": [
+        0.2,
+        0.6,
+        8000,
+        8,
+        0.8
+      ],
+      "now": 10000,
+      "first": [
+        10000,
+        0.3,
+        "linear"
+      ],
+      "allLinear": true,
+      "reaches": [
+        0.6,
+        16000
+      ],
+      "crawl": 0.006,
+      "end": 0.8
+    },
+    {
+      "name": "eases over 0.3 s to a glide that starts ahead of where it stands, then goes on along it",
+      "last": [
+        0.2,
+        0.6,
+        10000,
+        8,
+        0.8
+      ],
+      "glide": [
+        0.5,
+        0.9,
+        11000,
+        10,
+        0.95
+      ],
+      "now": 11000,
+      "first": [
+        11000,
+        0.25,
+        "ease-out"
+      ],
+      "second": [
+        11300,
+        0.512,
+        "linear"
+      ],
+      "end": 0.95
+    },
+    {
+      "name": "stands still at its ceiling when it has nowhere left to go",
+      "last": null,
+      "glide": [
+        0.78,
+        0.78,
+        10000,
+        0,
+        0.78
+      ],
+      "now": 10000,
+      "still": true,
+      "end": 0.78
+    }
+  ]
+}

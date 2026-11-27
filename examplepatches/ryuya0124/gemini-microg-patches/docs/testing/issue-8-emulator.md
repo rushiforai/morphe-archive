@@ -51,7 +51,7 @@ The original system package was restored/enabled after the tests. Full logs, scr
 
 ## Incorrect configuration tests
 
-`scripts/emulator/test-issue8-options.py` built real Gemini fixtures and checked:
+`scripts/emulator/test-issue8-options.mjs` built real Gemini fixtures and checked:
 
 - Unsupported `com.quicksearch.bond`: rejected by package-name validation.
 - `updatePermissions=false`: rejected by custom-permission declaration validation.
@@ -83,8 +83,8 @@ scripts/build-all.sh
 scripts/sign-apks.sh
 scripts/emulator/build-contract-probe.sh
 scripts/emulator/build-issue8-fixtures.sh
-python3 scripts/emulator/test-issue8-options.py
-python3 scripts/emulator/test-issue8.py \
+node scripts/emulator/test-issue8-options.mjs
+node scripts/emulator/test-issue8.mjs \
   --adb "$ANDROID_HOME/platform-tools/adb" --serial emulator-5580 \
   --bad-apk local/issue8/fixtures/bad-signed.apk \
   --baseline-apk local/issue8/fixtures/baseline-signed.apk \

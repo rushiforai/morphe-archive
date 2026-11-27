@@ -13,7 +13,7 @@ here = pathlib.Path(__file__).resolve().parent
 out = here.parents[1] / 'patches/src/main/kotlin/app/smtgpm/patches/belote/shared/NativeData.kt'
 CFLAGS = ['--target=aarch64-linux-android', '-O2', '-ffreestanding', '-fno-builtin', '-fno-stack-protector',
           '-fno-pic', '-mcmodel=small', '-fno-unwind-tables', '-fno-asynchronous-unwind-tables',
-          '-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter']
+          '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter']
 ins = lambda w: struct.pack('<I', w)
 def b_to(src, dst):
     off = dst - src
@@ -51,6 +51,7 @@ HOOKS = {
     'wheel_collect_done':         (0x1e15934, 0xa9bf4ffe),  # stp x30, x19, [sp, #-0x10]!
     'menu_show':                  (0x1e27204, 0xf81d0ffe),  # str x30, [sp, #-0x30]!
     'menu_refresh_daily_bonus':   (0x1e1ffe0, 0xf81d0ffe),  # str x30, [sp, #-0x30]!
+    'menu_refresh_shop':          (0x1e21404, 0xf81d0ffe),  # str x30, [sp, #-0x30]!
 }
 hooks = {k: {'address': a, 'original': o, 'patched': b_to(a, syms['hook_' + k])} for k, (a, o) in HOOKS.items()}
 # Plain instruction edits: (address, original word, replacement word).
@@ -94,6 +95,22 @@ EDITS = {
         (0x1e045b0, 0x1e2e1000, FMOV_S0_ZERO),   # 1 s before album finished screen
         (0x1e045e0, 0x1e2e1000, FMOV_S0_ZERO),   # 1 s before collection complete screen
         (0x1e04624, 0x1e2e1000, FMOV_S0_ZERO),   # 1 s before returning to My packs
+        # Star pack (duplicates exchange). CollectionDuplicatesUIView <ShowRewards>d__53:
+        (0x1dd138c, 0xbd480d00, FMOV_S0_ZERO),   # 0.8 s before the rewards
+        (0x1dd170c, 0x1e2c1000, FMOV_S0_ZERO),   # 0.5 s after the fade-in
+        (0x1dd1a78, 0xbd480d00, FMOV_S0_ZERO),   # 0.8 s
+        (0x1dd1aa8, 0xbd49bd00, FMOV_S0_ZERO),   # 0.4 s
+        # CollectionDuplicatesUIView <AnimateNewPacksToIcon>d__59: new pack flying to My packs
+        (0x1dd0cfc, 0xbd4a9900, FMOV_S0_ZERO),   # 0.3 s
+        (0x1dd0dbc, 0xbd49bd00, FMOV_S0_ZERO),   # 0.4 s
+        (0x1dd0f04, 0xbd482d03, FMOV_S3_EIGHTH), # DOMove pack flight 0.6 s -> 0.125 s
+        (0x1dd0f30, 0xbd49f100, FMOV_S0_ZERO),   # 0.2 s
+        (0x1dd0f6c, 0x1e2c1000, FMOV_S0_ZERO),   # 0.5 s
+        # CollectionDuplicatesUIViewController <ContAnim>d__39: opening the star pack
+        (0x1df9ab4, 0x1e2c1000, FMOV_S0_ZERO),   # 0.5 s before the open trigger
+        (0x1df9b10, 0x1e2c1000, FMOV_S0_ZERO),   # 0.5 s opening animation
+        (0x1df9c08, 0xbd47a100, FMOV_S0_ZERO),   # cards x 0.35 s reveal wait
+        (0x1df9c9c, 0xbd49bd00, FMOV_S0_ZERO),   # 0.4 s after rewards view
     ],
 }
 edits = {k: [{'address': a, 'original': o, 'patched': n} for a, o, n in v] for k, v in EDITS.items()}

@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import com.android.tools.smali.dexlib2.AccessFlags;
 import com.android.tools.smali.dexlib2.DexFileFactory;
 import com.android.tools.smali.dexlib2.Opcode;
@@ -18,6 +20,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction;
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 
 /**
@@ -27,7 +30,14 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 class VerifyExtensionsDex {
     static final String EXTENSIONS = "Lapp/spicetify/extension/spotify/extensions/";
     static final String BRIDGE = EXTENSIONS + "PlayerBridge;";
-    static final String SERVICE = "Lcom/spotify/cosmos/sharedcosmosrouterservice/SharedCosmosRouterService;";
+    static final String SERVICE = "Lp/ggb1;";
+    static final String NATIVE_ROUTER = "Lcom/spotify/cosmos/cosmosimpl/NativeRouter;";
+    static final String TRACK_MENU = "Lp/umj1;";
+    static final String ARTIST_MENU = "Lp/jz6;";
+    static final String MENU_MODEL = "Lp/bjn;";
+    static final String COLLECTION_TRACK = "Lspotify/collection/esperanto/proto/CollectionTrack;";
+    static final String COLLECTION_ARTIST = "Lspotify/collection/esperanto/proto/CollectionArtist;";
+    static final String ARTIST_METADATA = "Lcom/spotify/cosmos/util/proto/ArtistMetadata;";
     static final String MENU_BRIDGE = EXTENSIONS + "nativebridge/MenuBridge;";
     static final String CHIP_BRIDGE = EXTENSIONS + "nativebridge/HomeChipBridge;";
     static final String INSTALLED = "Lapp/spicetify/extension/spotify/settings/InstalledPatches;";
@@ -44,19 +54,19 @@ class VerifyExtensionsDex {
 
     static final Map<String, Filter> FILTERS = Map.of(
         "hideHomeSection", new Filter("Ljava/lang/Object;", "Z",
-            "Lp/mz1;->g0(Lcom/spotify/casita/v1/resolved/Section;)Lp/n920;", -1, null),
+            "Lp/w4u;->k(Lcom/spotify/casita/v1/resolved/Section;)Lp/tj80;", -1, null),
         "filterHomeItems", new Filter("Ljava/util/List;", "Ljava/util/List;",
             "Lcom/spotify/casita/v1/resolved/Provided;->getItemsList()Ljava/util/List;", 0,
-            "Lcom/spotify/casita/v1/resolved/Provided;->items_:Lp/ih40;"),
+            "Lcom/spotify/casita/v1/resolved/Provided;->items_:Lp/r0b0;"),
         "filterHomeChips", new Filter("Ljava/util/List;", "Ljava/util/List;",
-            "Lp/xqw;->a(Ljava/util/List;)Ljava/util/ArrayList;", -1, null),
+            "Lp/x820;->a(Ljava/util/List;)Ljava/util/ArrayList;", -1, null),
         "hideSearchEntity", new Filter("Ljava/lang/Object;", "Z",
-            "Lp/bzw0;->b(Lcom/spotify/searchview/proto/Entity;)Lp/onu;", -1, null),
+            "Lp/ne81;->b(Lcom/spotify/searchview/proto/Entity;)Lp/ruz;", -1, null),
         "filterSearchChips", new Filter("Ljava/util/ArrayList;", "Ljava/util/ArrayList;",
-            "Lp/ipy;-><init>(Ljava/util/ArrayList;)V", -1, "Ljava/lang/Object;-><init>()V"),
+            "Lp/rh40;-><init>(Ljava/util/ArrayList;)V", -1, "Ljava/lang/Object;-><init>()V"),
         "filterLibraryChips", new Filter("Ljava/util/List;", "Ljava/util/List;",
-            "Lp/b90;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", 8,
-            "Lp/k770;->a(ZZLspotify/your_library/esperanto/proto/YourLibraryResponseHeader;Ljava/util/List;Ljava/util/List;)Ljava/util/List;"));
+            "Lp/sfu;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", 9,
+            "Lp/x1e0;->a(ZZLspotify/your_library/esperanto/proto/YourLibraryResponseHeader;Ljava/util/List;Ljava/util/List;)Ljava/util/List;"));
 
     static void require(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
@@ -83,8 +93,9 @@ class VerifyExtensionsDex {
         for (var entry : dex.getDexEntryNames()) {
             for (var definition : dex.getEntry(entry).getDexFile().getClasses()) classes.put(definition.getType(), definition);
         }
-        int bridgeHooks = 0, trackHooks = 0, artistHooks = 0, chipsHooks = 0, tapHooks = 0, shuffleHooks = 0,
-                providersHooks = 0;
+        int bridgeHooks = 0, shutdownHooks = 0, trackHooks = 0, artistHooks = 0, chipsHooks = 0, tapHooks = 0,
+                shuffleHooks = 0, providersHooks = 0;
+        Set<String> routerStarters = new TreeSet<>();
         Map<String, Integer> filterHooks = new HashMap<>();
         for (var definition : classes.values()) {
             // Hooks sit in Spotify's classes. The extension's own, such as its settings, may call any of these.
@@ -92,16 +103,23 @@ class VerifyExtensionsDex {
             for (var method : definition.getMethods()) {
                 if (method.getImplementation() == null) continue;
                 var code = code(method);
+                if (method.getName().equals("<init>")
+                        && code.stream().anyMatch(i -> calls(i, NATIVE_ROUTER, "initializeScheduling"))) {
+                    routerStarters.add(definition.getType());
+                }
                 for (int index = 0; index < code.size(); index++) {
                     if (calls(code.get(index), BRIDGE, "onCosmos")) {
                         bridgeHooks++;
                         verifyBridgeHook(definition, method, code, index);
+                    } else if (calls(code.get(index), BRIDGE, "onShutdown")) {
+                        shutdownHooks++;
+                        verifyShutdownHook(definition, method, code, index);
                     } else if (calls(code.get(index), MENU_BRIDGE, "track")) {
                         trackHooks++;
-                        verifyMenuHook(definition, method, code, index, "Lp/b9p0;", 11);
+                        verifyTrackHook(definition, method, code, index);
                     } else if (calls(code.get(index), MENU_BRIDGE, "artist")) {
                         artistHooks++;
-                        verifyMenuHook(definition, method, code, index, "Lp/lr5;", 1);
+                        verifyArtistHook(definition, method, code, index);
                     } else if (calls(code.get(index), CHIP_BRIDGE, "chips")) {
                         chipsHooks++;
                         verifyChipsHook(definition, method, code, index);
@@ -123,10 +141,13 @@ class VerifyExtensionsDex {
             }
         }
         int expected = enabled ? 1 : 0;
-        require(bridgeHooks == (bridge ? 1 : 0) && trackHooks == expected && artistHooks == expected
-                && chipsHooks == expected && tapHooks == expected && shuffleHooks == expected
+        require(routerStarters.equals(Set.of(SERVICE)),
+                "The cosmos router service must be the only class that starts a native router: " + routerStarters);
+        require(bridgeHooks == (bridge ? 1 : 0) && shutdownHooks == (bridge ? 1 : 0) && trackHooks == expected
+                && artistHooks == expected && chipsHooks == expected && tapHooks == expected && shuffleHooks == expected
                 && providersHooks == expected,
-                "Unexpected hook counts: player bridge " + bridgeHooks + ", track menu " + trackHooks
+                "Unexpected hook counts: player bridge " + bridgeHooks + ", player bridge shutdown " + shutdownHooks
+                        + ", track menu " + trackHooks
                         + ", artist menu " + artistHooks + ", Home chips " + chipsHooks + ", Home chip tap " + tapHooks
                         + ", Now Playing shuffle " + shuffleHooks + ", playlist menu " + providersHooks);
         verifyCapability(classes.get(INSTALLED), enabled);
@@ -134,7 +155,10 @@ class VerifyExtensionsDex {
             require(filterHooks.getOrDefault(name, 0) == expected, "Unexpected Hide podcasts hook count: " + name
                     + " " + filterHooks.getOrDefault(name, 0));
         }
-        if (bridge) requireTarget(classes, BRIDGE, "onCosmos", List.of("Ljava/lang/Object;"), "V");
+        if (bridge) {
+            requireTarget(classes, BRIDGE, "onCosmos", List.of("Ljava/lang/Object;"), "V");
+            requireTarget(classes, BRIDGE, "onShutdown", List.of("Ljava/lang/Object;"), "V");
+        }
         if (enabled) {
             requireTarget(classes, MENU_BRIDGE, "track", List.of("Ljava/util/List;", "Ljava/lang/Object;"), "Ljava/util/List;");
             requireTarget(classes, MENU_BRIDGE, "artist", List.of("Ljava/util/List;", "Ljava/lang/Object;"), "Ljava/util/List;");
@@ -146,7 +170,8 @@ class VerifyExtensionsDex {
         }
         int filters = filterHooks.values().stream().mapToInt(Integer::intValue).sum();
         System.out.println("Spicetify extensions verified: "
-                + (bridgeHooks + trackHooks + artistHooks + chipsHooks + tapHooks + shuffleHooks + providersHooks + filters)
+                + (bridgeHooks + shutdownHooks + trackHooks + artistHooks + chipsHooks + tapHooks + shuffleHooks
+                    + providersHooks + filters)
                 + " hook(s), selected=" + enabled);
     }
 
@@ -237,76 +262,123 @@ class VerifyExtensionsDex {
         return instructions.stream().allMatch(i -> ((OneRegisterInstruction) i).getRegisterA() == register);
     }
 
-    /**
-     * T1 and T2 hand a context menu's frozen item list, v0, and the menu's row to the menu bridge, and put
-     * its answer back in v0 right before the menu model is built from it. The track menu's row is v11; the
-     * artist menu's is v22, which T2 moves to v1 first.
-     */
-    static void verifyMenuHook(ClassDef owner, Method method, List<Instruction> code, int index, String menu, int row) {
-        require(owner.getType().equals(menu) && method.getName().equals("apply")
-                && method.getParameterTypes().equals(List.of("Ljava/lang/Object;")),
-                "Menu hook is outside " + menu + "->apply");
-        require(code.get(index).getOpcode() == Opcode.INVOKE_STATIC
-                && code.get(index) instanceof FiveRegisterInstruction call
-                && call.getRegisterCount() == 2 && call.getRegisterC() == 0 && call.getRegisterD() == row,
-                "Menu hook must pass the frozen list v0 and the menu's row");
-        int frozen = index - 1;
-        if (row == 1) {
-            require(frozen >= 0 && code.get(frozen).getOpcode() == Opcode.MOVE_OBJECT_FROM16
-                    && code.get(frozen) instanceof TwoRegisterInstruction move
-                    && move.getRegisterA() == 1 && move.getRegisterB() == 22,
-                    "Artist menu hook must move the artist from v22 to v1");
-            frozen--;
+    /** The register of a method's parameter {@code position}, counting from 0 after {@code this}: a long or double takes two. */
+    static int parameterRegister(Method method, int position) {
+        List<String> parameters = new ArrayList<>();
+        method.getParameterTypes().forEach(type -> parameters.add(type.toString()));
+        int words = 0, before = 0;
+        for (int i = 0; i < parameters.size(); i++) {
+            int width = parameters.get(i).equals("J") || parameters.get(i).equals("D") ? 2 : 1;
+            words += width;
+            if (i < position) before += width;
         }
-        require(frozen >= 1 && code.get(frozen).getOpcode() == Opcode.MOVE_RESULT_OBJECT
-                && ((OneRegisterInstruction) code.get(frozen)).getRegisterA() == 0
-                && calls(code.get(frozen - 1), "Lp/qte;", "J"),
-                "Menu hook must follow the frozen item list");
-        require(index + 2 < code.size() && code.get(index + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
-                && ((OneRegisterInstruction) code.get(index + 1)).getRegisterA() == 0
-                && code.get(index + 2).getOpcode() == Opcode.NEW_INSTANCE
-                && ((OneRegisterInstruction) code.get(index + 2)).getRegisterA() == 1
-                && ((ReferenceInstruction) code.get(index + 2)).getReference().toString().equals("Lp/krj;"),
-                "Menu hook's list must become the menu model's");
+        return method.getImplementation().getRegisterCount() - words + before;
+    }
+
+    static boolean moves(Instruction instruction, Opcode opcode, int to, int from) {
+        return instruction.getOpcode() == opcode && instruction instanceof TwoRegisterInstruction move
+            && move.getRegisterA() == to && move.getRegisterB() == from;
+    }
+
+    static boolean takesResult(Instruction instruction, int register) {
+        return instruction.getOpcode() == Opcode.MOVE_RESULT_OBJECT && ((OneRegisterInstruction) instruction).getRegisterA() == register;
+    }
+
+    /** Whether {@code instruction} is {@code invoke-static} of two registers, the way the menu hooks pass the list and the row. */
+    static boolean passesTwo(Instruction instruction, int first, int second) {
+        return instruction.getOpcode() == Opcode.INVOKE_STATIC && instruction instanceof FiveRegisterInstruction call
+            && call.getRegisterCount() == 2 && call.getRegisterC() == first && call.getRegisterD() == second;
     }
 
     /**
-     * A hands Home's chips, which Lp/xqw;->a has just rewritten into v1, to the chip bridge and puts its
-     * answer back in v1, right before Home copies them into the new ArrayList it keeps.
+     * T1 hands the track menu's frozen item list, v1, and the menu's CollectionTrack to the menu bridge and
+     * puts its answer back in v1, after the menu's header is built and before the model gets the list. The
+     * track is the method's third parameter, moved to v4 first, which the next instruction overwrites. The
+     * method freezes the list on two paths, which meet before the header is built.
+     */
+    static void verifyTrackHook(ClassDef owner, Method method, List<Instruction> code, int index) {
+        require(owner.getType().equals(TRACK_MENU) && method.getName().equals("e")
+                && method.getParameterTypes().size() == 30 && method.getParameterTypes().get(2).equals(COLLECTION_TRACK),
+                "Track menu hook is outside " + TRACK_MENU + "->e");
+        require(passesTwo(code.get(index), 1, 4), "Track menu hook must pass the frozen list v1 and the track in v4");
+        int track = parameterRegister(method, 2);
+        require(index >= 3 && moves(code.get(index - 1), Opcode.MOVE_OBJECT_FROM16, 4, track),
+                "Track menu hook must move the track from its parameter v" + track + " to v4");
+        require(takesResult(code.get(index - 2), 0) && calls(code.get(index - 3), TRACK_MENU, "f"),
+                "Track menu hook must follow the menu's header");
+        require(index + 3 < code.size() && takesResult(code.get(index + 1), 1)
+                && code.get(index + 2).getOpcode() == Opcode.CONST_4
+                && ((OneRegisterInstruction) code.get(index + 2)).getRegisterA() == 4
+                && ((NarrowLiteralInstruction) code.get(index + 2)).getNarrowLiteral() == 4
+                && calls(code.get(index + 3), MENU_MODEL, "<init>")
+                && code.get(index + 3) instanceof FiveRegisterInstruction build && build.getRegisterCount() == 4
+                && build.getRegisterC() == 3 && build.getRegisterD() == 0 && build.getRegisterE() == 1
+                && build.getRegisterF() == 4,
+                "Track menu hook's list must become the menu model's");
+    }
+
+    /**
+     * T2 hands the artist menu's frozen item list, v0, and the menu's CollectionArtist to the menu bridge and puts
+     * its answer back in v0 right before the menu model is built from it. The artist is a local that the model's
+     * code reads next, moved to v1 first, which the model's new-instance overwrites.
+     */
+    static void verifyArtistHook(ClassDef owner, Method method, List<Instruction> code, int index) {
+        require(owner.getType().equals(ARTIST_MENU) && method.getName().equals("invokeSuspend")
+                && method.getParameterTypes().equals(List.of("Ljava/lang/Object;")),
+                "Artist menu hook is outside " + ARTIST_MENU + "->invokeSuspend");
+        require(passesTwo(code.get(index), 0, 1), "Artist menu hook must pass the frozen list v0 and the artist in v1");
+        require(index >= 3 && takesResult(code.get(index - 2), 0) && calls(code.get(index - 3), "Lp/dju0;", "j"),
+                "Artist menu hook must follow the frozen item list");
+        require(index + 3 < code.size() && takesResult(code.get(index + 1), 0)
+                && code.get(index + 2).getOpcode() == Opcode.NEW_INSTANCE
+                && ((OneRegisterInstruction) code.get(index + 2)).getRegisterA() == 1
+                && ((ReferenceInstruction) code.get(index + 2)).getReference().toString().equals(MENU_MODEL),
+                "Artist menu hook's list must become the menu model's");
+        require(code.get(index + 3).getOpcode() == Opcode.INVOKE_VIRTUAL_RANGE
+                && code.get(index + 3) instanceof RegisterRangeInstruction read && read.getRegisterCount() == 1
+                && ((MethodReference) ((ReferenceInstruction) read).getReference()).getDefiningClass().equals(COLLECTION_ARTIST)
+                && ((MethodReference) ((ReferenceInstruction) read).getReference()).getReturnType().equals(ARTIST_METADATA)
+                && moves(code.get(index - 1), Opcode.MOVE_OBJECT_FROM16, 1, read.getStartRegister()),
+                "Artist menu hook must move the artist that the model's code reads to v1");
+    }
+
+    /**
+     * A hands Home's chips, which Lp/x820;->a has just rewritten into v4, to the chip bridge and puts its
+     * answer back in v4, right before Home copies them into the new ArrayList it keeps.
      */
     static void verifyChipsHook(ClassDef owner, Method method, List<Instruction> code, int index) {
-        require(owner.getType().equals("Lp/qrl;") && method.getName().equals("invokeSuspend")
-                && method.getParameterTypes().equals(List.of("Ljava/lang/Object;")),
-                "Home chips hook is outside Lp/qrl;->invokeSuspend");
+        require(owner.getType().equals("Lp/xh10;") && method.getName().equals("p")
+                && method.getParameterTypes().equals(List.of("Lp/hp50;", "Z", "Lp/gnn;")),
+                "Home chips hook is outside Lp/xh10;->p");
         require(code.get(index).getOpcode() == Opcode.INVOKE_STATIC
                 && code.get(index) instanceof FiveRegisterInstruction call
-                && call.getRegisterCount() == 1 && call.getRegisterC() == 1,
-                "Home chips hook must pass the chips in v1");
+                && call.getRegisterCount() == 1 && call.getRegisterC() == 4,
+                "Home chips hook must pass the chips in v4");
         require(index >= 2 && code.get(index - 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
-                && ((OneRegisterInstruction) code.get(index - 1)).getRegisterA() == 1
-                && calls(code.get(index - 2), "Lp/xqw;", "a"),
+                && ((OneRegisterInstruction) code.get(index - 1)).getRegisterA() == 4
+                && calls(code.get(index - 2), "Lp/x820;", "a"),
                 "Home chips hook must follow Spotify's rewrite of the chips");
         require(index + 2 < code.size() && code.get(index + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
-                && ((OneRegisterInstruction) code.get(index + 1)).getRegisterA() == 1
+                && ((OneRegisterInstruction) code.get(index + 1)).getRegisterA() == 4
                 && code.get(index + 2).getOpcode() == Opcode.NEW_INSTANCE
-                && ((OneRegisterInstruction) code.get(index + 2)).getRegisterA() == 2
+                && ((OneRegisterInstruction) code.get(index + 2)).getRegisterA() == 5
                 && ((ReferenceInstruction) code.get(index + 2)).getReference().toString().equals("Ljava/util/ArrayList;"),
                 "Home chips hook's list must become the copy Home keeps");
     }
 
     /**
-     * B hands a chip tap's id, v1, to the chip bridge right after Home built the tap's Lp/q8w; from it. A true
-     * answer skips to the case's return-object v13; otherwise the tap goes on to Home's loop, Lp/bay;->invoke.
+     * B hands a chip tap's id, v1, to the chip bridge right after Home built the tap's Lp/mo10; from it. A true
+     * answer skips to the case's return-object v11; otherwise the tap goes on to Home's loop, Lp/po50;->invoke.
      */
     static void verifyTapHook(ClassDef owner, Method method, List<Instruction> code, int index) {
-        require(owner.getType().equals("Lp/a4v;") && method.getName().equals("invoke")
+        require(owner.getType().equals("Lp/mex;") && method.getName().equals("invoke")
                 && method.getParameterTypes().equals(List.of("Ljava/lang/Object;", "Ljava/lang/Object;")),
-                "Home chip tap hook is outside Lp/a4v;->invoke");
+                "Home chip tap hook is outside Lp/mex;->invoke");
         require(code.get(index).getOpcode() == Opcode.INVOKE_STATIC
                 && code.get(index) instanceof FiveRegisterInstruction call
                 && call.getRegisterCount() == 1 && call.getRegisterC() == 1,
                 "Home chip tap hook must pass the chip's id in v1");
-        require(index >= 1 && calls(code.get(index - 1), "Lp/q8w;", "<init>")
+        require(index >= 1 && calls(code.get(index - 1), "Lp/mo10;", "<init>")
                 && code.get(index - 1) instanceof FiveRegisterInstruction event
                 && event.getRegisterCount() == 2 && event.getRegisterD() == 1,
                 "Home chip tap hook must follow the tap's event, built from the chip's id");
@@ -314,22 +386,22 @@ class VerifyExtensionsDex {
                 && ((OneRegisterInstruction) code.get(index + 1)).getRegisterA() == 1
                 && code.get(index + 2).getOpcode() == Opcode.IF_NEZ
                 && ((OneRegisterInstruction) code.get(index + 2)).getRegisterA() == 1
-                && calls(code.get(index + 3), "Lp/bay;", "invoke"),
+                && calls(code.get(index + 3), "Lp/po50;", "invoke"),
                 "Home chip tap hook must branch on its answer right before the tap goes to Home's loop");
         int skip = branchTarget(code, index + 2);
         require(skip >= 0 && code.get(skip).getOpcode() == Opcode.RETURN_OBJECT
-                && ((OneRegisterInstruction) code.get(skip)).getRegisterA() == 13,
+                && ((OneRegisterInstruction) code.get(skip)).getRegisterA() == 11,
                 "Home chip tap hook must skip to the case's return");
     }
 
     /**
-     * N1 hands Now Playing's shuffle button, which its constructor has just stored from v2 into field i, to
+     * N1 hands Now Playing's shuffle button, which its constructor has just stored from v2 into field t, to
      * NowPlayingShuffle right before the constructor returns.
      */
     static void verifyShuffleHook(ClassDef owner, Method method, List<Instruction> code, int index) {
-        require(owner.getType().equals("Lp/xkp;") && method.getName().equals("<init>")
+        require(owner.getType().equals("Lp/u3u;") && method.getName().equals("<init>")
                 && method.getParameterTypes().equals(List.of("Landroid/content/Context;")),
-                "Now Playing shuffle hook is outside Lp/xkp;'s constructor");
+                "Now Playing shuffle hook is outside Lp/u3u;'s constructor");
         require(code.get(index).getOpcode() == Opcode.INVOKE_STATIC
                 && code.get(index) instanceof FiveRegisterInstruction call
                 && call.getRegisterCount() == 1 && call.getRegisterC() == 2,
@@ -337,8 +409,7 @@ class VerifyExtensionsDex {
         require(index >= 1 && code.get(index - 1).getOpcode() == Opcode.IPUT_OBJECT
                 && code.get(index - 1) instanceof TwoRegisterInstruction store
                 && store.getRegisterA() == 2 && store.getRegisterB() == 4
-                && ((ReferenceInstruction) store).getReference().toString()
-                    .equals("Lp/xkp;->i:Landroidx/appcompat/widget/AppCompatImageButton;"),
+                && ((ReferenceInstruction) store).getReference().toString().equals("Lp/u3u;->t:Ljava/lang/Object;"),
                 "Now Playing shuffle hook must follow the store of the button");
         require(index + 1 < code.size() && code.get(index + 1).getOpcode() == Opcode.RETURN_VOID,
                 "Now Playing shuffle hook must sit right before the constructor's return");
@@ -346,13 +417,13 @@ class VerifyExtensionsDex {
 
     /**
      * M1 hands the list menu's item providers, v4, to the playlist menu provider and puts its answer back in v4
-     * right before Lp/sv70;'s constructor stores them in its field d.
+     * right before Lp/mve0;'s constructor stores them in its field d.
      */
     static void verifyProvidersHook(ClassDef owner, Method method, List<Instruction> code, int index) {
-        require(owner.getType().equals("Lp/sv70;") && method.getName().equals("<init>")
+        require(owner.getType().equals("Lp/mve0;") && method.getName().equals("<init>")
                 && method.getParameterTypes().equals(
-                    List.of("Lp/y3w0;", "Lp/vz1;", "Ljava/util/List;", "Ljava/util/List;", "Lp/a94;")),
-                "Playlist menu hook is outside Lp/sv70;'s constructor");
+                    List.of("Lp/tf71;", "Lp/y84;", "Ljava/util/List;", "Ljava/util/List;", "Lp/xu4;")),
+                "Playlist menu hook is outside Lp/mve0;'s constructor");
         require(code.get(index).getOpcode() == Opcode.INVOKE_STATIC
                 && code.get(index) instanceof FiveRegisterInstruction call
                 && call.getRegisterCount() == 1 && call.getRegisterC() == 4,
@@ -362,7 +433,7 @@ class VerifyExtensionsDex {
                 && code.get(index + 2).getOpcode() == Opcode.IPUT_OBJECT
                 && code.get(index + 2) instanceof TwoRegisterInstruction store
                 && store.getRegisterA() == 4 && store.getRegisterB() == 0
-                && ((ReferenceInstruction) store).getReference().toString().equals("Lp/sv70;->d:Ljava/util/List;"),
+                && ((ReferenceInstruction) store).getReference().toString().equals("Lp/mve0;->d:Ljava/util/List;"),
                 "Playlist menu hook's providers must be the ones the menu stores");
     }
 
@@ -380,23 +451,50 @@ class VerifyExtensionsDex {
     }
 
     /**
-     * H1 passes the new service, p0, to the bridge right before its constructor returns, once the native
-     * router takes requests.
+     * H1 passes the new service's native router to the bridge right before its constructor returns, once the
+     * router takes requests: it is the receiver of the initializeScheduling call right before the hook.
      */
     static void verifyBridgeHook(ClassDef owner, Method method, List<Instruction> code, int index) {
         require(owner.getType().equals(SERVICE) && method.getName().equals("<init>")
-                && method.getParameterTypes().size() == 2
-                && method.getParameterTypes().get(1).equals("Lcom/spotify/cosmos/servicebasedrouter/RemoteNativeRouter;"),
-                "Player bridge hook is outside SharedCosmosRouterService's constructor");
-        int self = method.getImplementation().getRegisterCount() - 3;
-        require(code.get(index).getOpcode() == Opcode.INVOKE_STATIC_RANGE
-                && code.get(index) instanceof RegisterRangeInstruction call
-                && call.getRegisterCount() == 1 && call.getStartRegister() == self
-                && ((MethodReference) ((ReferenceInstruction) call).getReference()).getParameterTypes()
-                    .equals(List.of("Ljava/lang/Object;")),
-                "Player bridge hook must pass the service");
-        require(index >= 1 && calls(code.get(index - 1), "Lcom/spotify/cosmos/cosmosimpl/NativeRouter;", "initializeScheduling")
+                && method.getParameterTypes().equals(List.of("Lp/pao;")),
+                "Player bridge hook is outside " + SERVICE + "'s constructor");
+        require(index >= 1 && calls(code.get(index - 1), NATIVE_ROUTER, "initializeScheduling")
+                && code.get(index - 1).getOpcode() == Opcode.INVOKE_VIRTUAL
+                && ((FiveRegisterInstruction) code.get(index - 1)).getRegisterCount() == 2
                 && index + 1 < code.size() && code.get(index + 1).getOpcode() == Opcode.RETURN_VOID,
                 "Player bridge hook must sit between initializeScheduling and the constructor's return");
+        int router = ((FiveRegisterInstruction) code.get(index - 1)).getRegisterC();
+        require(code.get(index).getOpcode() == Opcode.INVOKE_STATIC
+                && code.get(index) instanceof FiveRegisterInstruction call
+                && call.getRegisterCount() == 1 && call.getRegisterC() == router
+                && ((MethodReference) ((ReferenceInstruction) call).getReference()).getParameterTypes()
+                    .equals(List.of("Ljava/lang/Object;")),
+                "Player bridge hook must pass the native router");
+    }
+
+    /**
+     * H1's second hook passes the same native router to the bridge at the start of the service's shutdown,
+     * between its load into a register and the call that stops its scheduling, which is Spotify's first step
+     * towards destroying it.
+     */
+    static void verifyShutdownHook(ClassDef owner, Method method, List<Instruction> code, int index) {
+        require(owner.getType().equals(SERVICE) && method.getName().equals("shutdown") && method.getParameterTypes().isEmpty(),
+                "Player bridge shutdown hook is outside " + SERVICE + "->shutdown");
+        require(index == 1 && code.get(0).getOpcode() == Opcode.IGET_OBJECT && code.get(0) instanceof TwoRegisterInstruction load
+                && ((ReferenceInstruction) load).getReference() instanceof FieldReference field
+                && field.getType().equals(NATIVE_ROUTER),
+                "Player bridge shutdown hook must follow the load of the native router");
+        int router = ((TwoRegisterInstruction) code.get(0)).getRegisterA();
+        require(code.get(index).getOpcode() == Opcode.INVOKE_STATIC
+                && code.get(index) instanceof FiveRegisterInstruction call
+                && call.getRegisterCount() == 1 && call.getRegisterC() == router
+                && ((MethodReference) ((ReferenceInstruction) call).getReference()).getParameterTypes()
+                    .equals(List.of("Ljava/lang/Object;")),
+                "Player bridge shutdown hook must pass the native router");
+        require(index + 1 < code.size() && calls(code.get(index + 1), NATIVE_ROUTER, "deinitializeScheduling")
+                && code.get(index + 1).getOpcode() == Opcode.INVOKE_VIRTUAL
+                && ((FiveRegisterInstruction) code.get(index + 1)).getRegisterCount() == 1
+                && ((FiveRegisterInstruction) code.get(index + 1)).getRegisterC() == router,
+                "Player bridge shutdown hook must sit right before the router's scheduling stops");
     }
 }

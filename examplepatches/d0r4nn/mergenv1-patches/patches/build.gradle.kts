@@ -15,7 +15,7 @@ group = "com.d0r4nn.mergenv1"
 patches {
     about {
         name = "MergenV1 Patches"
-        description = "Liquid Glass UI, 120Hz spring engine, radial menu, gestures, and Danmaku comments for TikTok and TikTok You."
+        description = "Modern UI & interaction enhancer for TikTok and TikTok You: 120Hz spring animations, gestures, radial menu, quick controls, Danmaku comments, and switchable visual themes."
         source = "https://github.com/d0r4nn/mergenv1-patches.git"
         author = "d0r4nn"
         contact = "https://github.com/d0r4nn/mergenv1-patches/issues"

@@ -996,6 +996,10 @@ public final class Haiagaru {
         Context appContext = resolvedContext == null ? context : resolvedContext;
         applicationContext = appContext;
         SharedPreferences startupPreferences=preferences(appContext);
+        // Apply once, including existing explicit OFF values. Later manual choices survive.
+        if(!startupPreferences.getBoolean("chtoioDefaultOnMigrationV1",false))
+            startupPreferences.edit().putBoolean("chtoio",true)
+                    .putBoolean("chtoioDefaultOnMigrationV1",true).apply();
         if(!startupPreferences.getBoolean("bottomFilterOpaqueMigrationV1",false))
             startupPreferences.edit().putBoolean(QuickFilterOptions.TRANSPARENT,false)
                     .putBoolean("bottomFilterOpaqueMigrationV1",true).apply();
@@ -4627,6 +4631,12 @@ public final class Haiagaru {
         excludedCards.setOnClickListener(v->showSiteCardExclusions(activity));sites.addView(excludedCards);
         SettingsSection siteDetails=SettingsSection.add(sites,text("リンクカードの詳細", "Link card details"),text("サムネイルと取得設定", "Thumbnails and retrieval"),true);
         siteDetails.available=siteCards::isChecked;siteDetails.unavailableMessage="リンクカードの表示をオンにすると変更できます。";
+        for(String[] option:new String[][]{{SiteCards.LONG_PRESS,"リンクカードの長押しで操作メニューを表示"},{SiteCards.EXPLICIT_ONLY,"ドメインのみの文章からリンクカードを作らない"},{SiteCards.COMPACT,"リンクカードをタイトルだけのコンパクト表示にする"}}){
+            String key=option[0];boolean initial=!SiteCards.COMPACT.equals(key);
+            Switch toggle=addSwitch(siteDetails,activity,option[1],preferences.getBoolean(key,initial));
+            toggle.setOnCheckedChangeListener((button,on)->{preferences.edit().putBoolean(key,on).apply();SiteCards.changed();});
+        }
+        TextView cardOptionsHelp=new TextView(activity);cardOptionsHelp.setText("長押しメニューではタイトル・URLのコピーとサムネイルの表示・保存ができます。ドメイン除外はexample.comだけの文章を対象外にし、https://や省略形のttps://で始まるURLは日本語に続いていても対象にします。コンパクト表示では画像・説明を省き、タイトルを最大2行で表示します。YouTubeのカードを表示したい場合は除外URLからyoutube.comとyoutu.beを削除してください。");siteDetails.addView(cardOptionsHelp);
         Switch siteImages = addSwitch(siteDetails, activity,
                 text("サイトカードにサムネイルを表示", "Show thumbnails in website cards"), siteCardImages());
         EditText siteCardLimit = addTextField(siteDetails, activity,
@@ -4829,6 +4839,16 @@ public final class Haiagaru {
                 text("コピペ省略されたレスを透明あぼーん", "Hide copy-paste abbreviated replies"),
                 preferences.getBoolean(ChainAboneVisibility.COPY_PASTE_KEY, false));
         live.toggle(hideCopyPasteAbone, ChainAboneVisibility.COPY_PASTE_KEY);
+        Switch optimizePosterIdChain = addSwitch(layout, activity,
+                text("NGワードの投稿者ID連鎖判定を高速化", "Speed up poster-ID chain NG scans"),
+                preferences.getBoolean(PosterIdChainNg.PERFORMANCE_KEY, true));
+        live.toggle(optimizePosterIdChain, PosterIdChainNg.PERFORMANCE_KEY);
+        TextView optimizePosterIdChainHelp = new TextView(activity);
+        optimizePosterIdChainHelp.setText(text(
+                "同じNGワードで「連鎖」と「投稿者のIDもNG」を使う場合に、板別のルールをまとめてコンパイルし、同じレス本文の照合結果を別の一覧・ポップアップでも再利用します。NGルールや判定結果は変わりません。初期ON。OFFにすると従来どおり毎回走査します。切替後はスレを開き直してください。",
+                "When one NG word enables both chain and also block poster ID, compiles board-specific rules together and reuses body-match results across thread and popup adapters. NG rules and results stay the same. On by default. Turn it off to use the original per-scan matching. Reopen the thread after changing it."));
+        optimizePosterIdChainHelp.setTextSize(13);
+        layout.addView(optimizePosterIdChainHelp, rowParams(activity));
         Switch hideNgWordIdReplies = addSwitch(layout, activity,
                 text("NGWord-IDへの返信も非表示", "Hide replies to NGWord-ID responses"),
                 preferences.getBoolean("hideNgWordIdReplies", false));
@@ -5961,6 +5981,11 @@ public final class Haiagaru {
     public static boolean hideNgWordIdReplies() {
         SharedPreferences prefs = preferencesOrNull();
         return prefs != null && prefs.getBoolean("hideNgWordIdReplies", false);
+    }
+
+    public static boolean posterIdChainNgOptimizationEnabled() {
+        SharedPreferences prefs = preferencesOrNull();
+        return prefs == null || prefs.getBoolean(PosterIdChainNg.PERFORMANCE_KEY, true);
     }
 
     public static boolean hideShowHiddenNgMenu() {

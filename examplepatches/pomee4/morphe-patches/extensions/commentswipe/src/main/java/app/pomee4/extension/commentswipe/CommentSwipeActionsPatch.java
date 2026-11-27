@@ -104,12 +104,16 @@ public final class CommentSwipeActionsPatch {
 
     private static final class Row {
         final WeakReference<Object> scope;
-        final Object sink;
+        /**
+         * Weak: the rows map is weak by the row's callbacks, and a strong sink can reach them back,
+         * which keeps every comment page ever opened in memory.
+         */
+        final WeakReference<Object> sink;
         final String commentId;
 
         Row(Object scope, Object sink, String commentId) {
             this.scope = new WeakReference<>(scope);
-            this.sink = sink;
+            this.sink = new WeakReference<>(sink);
             this.commentId = commentId;
         }
     }
@@ -504,9 +508,11 @@ public final class CommentSwipeActionsPatch {
             }
             if (event == null) return;
 
-            Method onEvent = findOnEventMethod(row.sink.getClass());
-            if (onEvent == null) throw new IllegalStateException("No onEvent in " + row.sink.getClass());
-            onEvent.invoke(row.sink, event);
+            Object sink = row.sink.get();
+            if (sink == null) return;
+            Method onEvent = findOnEventMethod(sink.getClass());
+            if (onEvent == null) throw new IllegalStateException("No onEvent in " + sink.getClass());
+            onEvent.invoke(sink, event);
             Logger.printDebug(() -> "Swipe action " + action + " on " + id);
         } catch (Exception ex) {
             Logger.printException(() -> "Swipe action failure: " + action, ex);
@@ -617,7 +623,7 @@ public final class CommentSwipeActionsPatch {
                     boolean enabled = isEnabled() || Settings.POST_SWIPE_ACTIONS.get();
                     // Nothing behind an open side menu, sheet, menu, modal or dialog is swiped.
                     boolean covered = enabled && !atEdge && (!activity.hasWindowFocus()
-                            || PostSwipe.isOverlayOpen() || PostSwipe.isDrawerOpen(activity));
+                            || PostSwipe.isOverlayOpen(decor) || PostSwipe.isDrawerOpen(activity));
                     state = !enabled || atEdge || covered ? IGNORED : IDLE;
                     return false;
                 }
@@ -652,7 +658,8 @@ public final class CommentSwipeActionsPatch {
                         int top = Math.round(downY - current.y);
                         // The part of the comment under a bar of the screen is not swiped.
                         Rect visible = PostSwipe.withoutBars(
-                                new Rect(left, top, left + current.width, top + current.height), downY);
+                                new Rect(left, top, left + current.width, top + current.height), downY,
+                                activity.getWindow().getDecorView());
                         if (visible == null) {
                             state = IGNORED;
                             return false;
@@ -662,7 +669,7 @@ public final class CommentSwipeActionsPatch {
                     } else {
                         // A post: the card under the finger.
                         PostSwipe.Target target = Settings.POST_SWIPE_ACTIONS.get()
-                                ? PostSwipe.findTarget(downX, downY) : null;
+                                ? PostSwipe.findTarget(activity, downX, downY) : null;
                         // Only the part on screen slides: a post card can reach past the window.
                         View decor = activity.getWindow().getDecorView();
                         Rect visible = target == null ? null : new Rect(target.bounds);

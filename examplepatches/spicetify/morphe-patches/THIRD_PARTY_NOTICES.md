@@ -25,18 +25,34 @@ reference for these features:
 
 The theme's color map starts from that implementation's resource selection
 and extends it to the colors listed in `patches/src/main/resources/theme/`,
-checked against Spotify 9.1.80.2221. The patch requires each mapped color
+checked against Spotify 9.2.4.2644. The patch requires each mapped color
 exactly once, edits no color values, and declares the mapped colors
 overlayable. It does not import the historical extension, animation hooks, or
 icon assets.
 
-The sharing implementation uses a new fingerprint for Spotify 9.1.80.2221's
+The sharing implementation uses a new fingerprint for Spotify 9.2.4.2644's
 URL builder. Its new Java helper removes named tracking parameters while
 preserving other query parameters and fragments, instead of truncating the
 query. These adaptations were made on September 17, 2026.
 
 No code from binary-only candidates was imported. Spotify APKs and other
 proprietary assets are excluded.
+
+## Home pins and server files
+
+Pin shortcuts on Home and Local files from a server started from
+[ImNoammm/morphe-spotify-patches](https://github.com/cvnfork/morphe-spotify-patches/tree/289d59e2bdae0fa6f16ffa0e2769351be46a94e8)
+by [ImNoammm](https://github.com/ImNoammm), at commit
+`289d59e2bdae0fa6f16ffa0e2769351be46a94e8` (August 23, 2026, GPL-3.0 as stated
+in its README). The original repository is no longer available. The link points
+to the surviving source snapshot in `cvnfork/morphe-spotify-patches`. The patch
+names, the class layout of the `localserver` extension, the `MediaStoreReader`
+hooks that append server tracks to Spotify's local-file scan, the content
+provider that streams them through `openProxyFileDescriptor`, and
+`ProtoWriter.java` come from it.
+Local changes, starting September 18, 2026: ports to newer Spotify versions,
+HTTPS-only connections, Jellyfin, server albums and artists in Your Library, a
+new Home pins hook and picker, and tests.
 
 ## Morphe theme overlay
 

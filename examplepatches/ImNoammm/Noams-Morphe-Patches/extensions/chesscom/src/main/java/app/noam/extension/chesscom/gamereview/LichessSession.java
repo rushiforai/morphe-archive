@@ -58,7 +58,7 @@ final class LichessSession {
         if (!"yes".equals(call("fetch('/', {credentials: 'same-origin'}).then(r => r.text())"
                 + ".then(t => MorpheLichess.answer(t.indexOf('id=\"user_tag\"') >= 0 ? 'yes' : 'no'))"))
                 && !logIn()) {
-            throw new IOException("Log in to Lichess to analyse with Lichess.");
+            throw new IOException("Log in to Lichess to analyze with Lichess.");
         }
         String url = call("(() => { const body = new URLSearchParams(); body.append('pgn', " + JSONObject.quote(pgn)
             + "); fetch('/import', {method: 'POST', body: body, credentials: 'same-origin'})"

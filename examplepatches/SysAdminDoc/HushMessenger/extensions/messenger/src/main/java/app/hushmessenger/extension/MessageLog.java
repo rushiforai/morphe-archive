@@ -148,7 +148,10 @@ public final class MessageLog {
         final String id;
         /** The sender unsent the message after it was logged. */
         public final boolean unsent;
-        /** A photo, sticker or other attachment. Its text is what the notification said about it, empty when none did. */
+        /**
+         * A photo, sticker, share or other attachment. Its text is the address a share linked to, else what the
+         * notification said about it, empty when none did.
+         */
         public final boolean attachment;
         /** The kept picture's or clip's name in {@link MessageLogMedia}, empty when nothing was kept. */
         final String media;
@@ -157,6 +160,11 @@ public final class MessageLog {
          * {@link MessageLogAttachment#VIDEO} for a video.
          */
         public final String mediaType;
+        /**
+         * The address the message shared, held only until the write has named the entry, then put in its words by
+         * {@link #linked}. Empty when it shared none. Never stored on its own.
+         */
+        final String link;
         Entry(long time, String thread, String text) {
             this(time, thread, text, "", "");
         }
@@ -174,6 +182,10 @@ public final class MessageLog {
         }
         Entry(long time, String thread, String text, String sender, String chat, String id, boolean unsent, boolean attachment,
             String media, String mediaType) {
+            this(time, thread, text, sender, chat, id, unsent, attachment, media, mediaType, "");
+        }
+        Entry(long time, String thread, String text, String sender, String chat, String id, boolean unsent, boolean attachment,
+            String media, String mediaType, String link) {
             this.time = time;
             this.thread = thread;
             this.text = text;
@@ -184,15 +196,27 @@ public final class MessageLog {
             this.attachment = attachment;
             this.media = media == null ? "" : media;
             this.mediaType = mediaType == null ? "" : mediaType;
+            this.link = link == null ? "" : link;
         }
 
         Entry markedUnsent() {
-            return new Entry(time, thread, text, sender, chat, id, true, attachment, media, mediaType);
+            return new Entry(time, thread, text, sender, chat, id, true, attachment, media, mediaType, link);
         }
 
         /** The same message pointed at the file [name], which holds a [kind]. */
         Entry withMedia(String name, String kind) {
-            return new Entry(time, thread, text, sender, chat, id, unsent, attachment, name, kind);
+            return new Entry(time, thread, text, sender, chat, id, unsent, attachment, name, kind, link);
+        }
+
+        /**
+         * The same message with the address it shared put in its words: in place of what the notification said about a
+         * message with no words of its own, on a line under the words otherwise. The write calls it once naming is done,
+         * since naming matches the words alone against the notification's lines.
+         */
+        Entry linked() {
+            if (link.isEmpty()) return this;
+            return new Entry(time, thread, MessageLogLink.joined(attachment ? "" : text, link), sender, chat, id, unsent, attachment,
+                media, mediaType);
         }
     }
 
@@ -225,16 +249,16 @@ public final class MessageLog {
      * one write on the log's own thread takes everything queued, so a burst of notifications costs one rewrite.
      */
     static void record(String text, String thread, String id) {
-        // The write waits a moment so Messenger has posted the notification the sender's name is read from.
-        if (queue(text, thread, id)) WRITER.schedule(MessageLog::drain, NAME_DELAY_MS, TimeUnit.MILLISECONDS);
+        record(text, thread, id, null, null);
     }
 
     /**
-     * {@link #record} for a message that came with media at [found]. The message is queued first, so the fetch that
-     * follows finds its entry to point at the file.
+     * {@link #record} for a message that came with media at [found] or shared the address [link]. The message is queued
+     * first, so the fetch that follows finds its entry to point at the file.
      */
-    static void record(String text, String thread, String id, MessageLogAttachment.Found found) {
-        record(text, thread, id);
+    static void record(String text, String thread, String id, MessageLogAttachment.Found found, String link) {
+        // The write waits a moment so Messenger has posted the notification the sender's name is read from.
+        if (queueShared(text, thread, id, link)) WRITER.schedule(MessageLog::drain, NAME_DELAY_MS, TimeUnit.MILLISECONDS);
         if (found != null && id != null && !id.isEmpty()) {
             MessageLogAttachment.keep(clip(thread == null ? "" : thread, MAX_THREAD_CHARS), clip(id, MAX_ID_CHARS), found);
         }
@@ -255,14 +279,19 @@ public final class MessageLog {
         return queue(text, thread, null);
     }
 
+    static boolean queue(String text, String thread, String id) {
+        return queueShared(text, thread, id, null);
+    }
+
     /**
      * Returns true when no write is scheduled for the queue yet. A null [text] is a message with no words of its own, a
-     * photo or another attachment, and is queued as one; the write reads what its notification line says about it.
+     * photo or another attachment, and is queued as one; the write reads what its notification line says about it. A
+     * [link] the message shared rides along, and the write puts it in the words once it has named the entry.
      */
-    static boolean queue(String text, String thread, String id) {
+    static boolean queueShared(String text, String thread, String id, String link) {
         long now = System.currentTimeMillis();
         Entry entry = new Entry(now, clip(thread == null ? "" : thread, MAX_THREAD_CHARS), text == null ? "" : clip(text, MAX_TEXT_CHARS), "", "",
-            clip(id == null ? "" : id, MAX_ID_CHARS), false, text == null, "");
+            clip(id == null ? "" : id, MAX_ID_CHARS), false, text == null, "", "", link);
         synchronized (PENDING) {
             if (repeated(entry.thread, entry.id, entry.text, now)) return false;
             if (PENDING.size() >= MAX_QUEUED) PENDING.removeFirst();
@@ -524,7 +553,7 @@ public final class MessageLog {
             try {
                 List<Entry> entries = load(context);
                 List<Entry> withNames = new ArrayList<>(batch.size());
-                for (Entry entry : batch) withNames.add(named(context, entry));
+                for (Entry entry : batch) withNames.add(named(context, entry).linked());
                 // Naming uses up Auto reply's notes, so a failed write retries these with their names.
                 retry = withNames;
                 entries.addAll(withNames);
@@ -619,7 +648,7 @@ public final class MessageLog {
             if (sender == null && chat == null && text.equals(entry.text) && media.equals(entry.media)) return entry;
             return new Entry(entry.time, entry.thread, text, clip(sender == null ? "" : sender, MAX_NAME_CHARS),
                 clip(chat == null || chat.equals(sender) ? "" : chat, MAX_NAME_CHARS), entry.id, entry.unsent, entry.attachment, media,
-                media.equals(entry.media) ? entry.mediaType : "");
+                media.equals(entry.media) ? entry.mediaType : "", entry.link);
         } catch (RuntimeException unreadable) {
             return entry;
         }

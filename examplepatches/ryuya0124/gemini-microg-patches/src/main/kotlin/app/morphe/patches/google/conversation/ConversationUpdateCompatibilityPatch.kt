@@ -20,7 +20,7 @@ val conversationUpdateCompatibilityPatch = bytecodePatch(
     execute {
         val spec = VersionHookRegistry.requireProfile(packageMetadata).hooks[HookId.CONVERSATION_UPDATE_WARNING]
         if (spec == null) {
-            VersionHookRegistry.logHook(HookId.CONVERSATION_UPDATE_WARNING, "profile", "not needed for ${packageMetadata.versionName}")
+            VersionHookRegistry.logHook(HookId.CONVERSATION_UPDATE_WARNING, "profile", "no verified warning hook for ${packageMetadata.versionName}")
             return@execute
         }
         val runtime = "Lapp/geminipatch/extension/ConversationUpdateCompatibility;"

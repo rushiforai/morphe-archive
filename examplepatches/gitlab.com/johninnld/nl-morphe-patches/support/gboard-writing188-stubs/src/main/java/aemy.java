@@ -1,0 +1,1 @@
+public class aemy { public android.content.Context d; public android.graphics.Rect k; public aegy g; public void morpheSharedClear(){} public boolean r(aegy candidate,boolean reset){return false;} public aegy morpheSharedCurrent(){return null;} public boolean morpheSharedAllowed(){return false;} }

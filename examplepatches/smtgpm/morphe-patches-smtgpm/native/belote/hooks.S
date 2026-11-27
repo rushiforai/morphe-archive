@@ -24,6 +24,11 @@ orig_menu_show:
     str x30, [sp, #-0x30]!
     b   Menu_Show + 4
 
+.global orig_menu_refresh_shop
+orig_menu_refresh_shop:
+    str x30, [sp, #-0x30]!
+    b   Menu_RefreshShop + 4
+
 .global orig_menu_refresh_daily_bonus
 orig_menu_refresh_daily_bonus:
     str x30, [sp, #-0x30]!

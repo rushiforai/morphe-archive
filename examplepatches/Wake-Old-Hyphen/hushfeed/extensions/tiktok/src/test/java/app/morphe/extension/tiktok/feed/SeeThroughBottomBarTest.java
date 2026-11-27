@@ -52,10 +52,10 @@ public class SeeThroughBottomBarTest {
         context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
         VideoOverlayHider.resolveForTests("view_rootview", CELL_ID);
-        VideoOverlayHider.resolveForTests("47.9.3:e0v", SPACER_ID);
-        VideoOverlayHider.resolveForTests("47.9.3:oxr", BAR_ID);
-        VideoOverlayHider.resolveForTests("47.9.3:bwy", ANCHOR_ID);
-        VideoOverlayHider.resolveForTests("47.9.3:occ", LIVE_CAPTION_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:e1z", SPACER_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:osm", BAR_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:byp", ANCHOR_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:o83", LIVE_CAPTION_ID);
         SeeThroughBottomBar.reset();
     }
 
@@ -605,6 +605,39 @@ public class SeeThroughBottomBarTest {
 
         empty.setBackground(new android.graphics.drawable.ColorDrawable(0xff000000));
         assertEquals("a container that draws is still a picture", 75f, SeeThroughBottomBar.iconMiddle(tab), 0f);
+    }
+
+    /**
+     * 48.0.2's Create tab, as Login2's dump has it (#474): two Fresco views as big as the 144x98
+     * cell, the first an empty holder, the second drawing the plate in the cell's upper part, rows
+     * 11 to 66. The + goes in the pill's middle by where it draws, 39 down, not by the views' middle
+     * at 49, which left it 10px high. Before Fresco has the image, the views' middle stands in,
+     * and the next look after the wait finds the plate.
+     */
+    @Test
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void theCreateTabsPlusGoesInThePillsMiddleByWhereItDraws() {
+        FrameLayout tab = new FrameLayout(context);
+        android.widget.ImageView holder = new android.widget.ImageView(context);
+        tab.addView(holder, new FrameLayout.LayoutParams(144, 98));
+        android.widget.ImageView plate = new android.widget.ImageView(context);
+        plate.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        ColorDrawable notYet = new ColorDrawable(Color.TRANSPARENT);
+        plate.setImageDrawable(new android.graphics.drawable.InsetDrawable(notYet, 36, 11, 36, 31));
+        tab.addView(plate, new FrameLayout.LayoutParams(144, 98));
+        tab.measure(View.MeasureSpec.makeMeasureSpec(144, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(98, View.MeasureSpec.EXACTLY));
+        tab.layout(0, 0, 144, 98);
+
+        assertEquals("with nothing drawn yet the views' middle stands in", 49f,
+                SeeThroughBottomBar.iconMiddle(tab), 0f);
+
+        plate.setImageDrawable(new android.graphics.drawable.InsetDrawable(
+                new ColorDrawable(Color.WHITE), 36, 11, 36, 31));
+        // Well past the wait an empty look gets before the next one.
+        org.robolectric.shadows.ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS);
+        assertEquals("the + was placed by its views' middle, not where it draws", 39f,
+                SeeThroughBottomBar.iconMiddle(tab), 0f);
     }
 
     /** HushGram's proportions: 5% of the width each side, at least 16dp, the pill no wider than 420dp. */
@@ -1356,7 +1389,7 @@ public class SeeThroughBottomBarTest {
      */
     @Test
     public void theFollowingFeedsBandUnderTheBarGoesAndComesBack() {
-        VideoOverlayHider.resolveForTests("47.9.3:x57", BAND_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:x17", BAND_ID);
         Settings.SEE_THROUGH_BOTTOM_BAR.save(true);
         try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = controller.get();
@@ -1388,9 +1421,9 @@ public class SeeThroughBottomBarTest {
             VideoOverlayHider.applyTo(activity);
             assertTrue("a page without the band called the overlay hooks broken: "
                             + HookStatus.missing("overlay"),
-                    HookStatus.missing("overlay").stream().noneMatch(line -> line.contains("47.9.3:x57")));
+                    HookStatus.missing("overlay").stream().noneMatch(line -> line.contains("48.0.2:x17")));
         } finally {
-            VideoOverlayHider.resolveForTests("47.9.3:x57", 0);
+            VideoOverlayHider.resolveForTests("48.0.2:x17", 0);
             HookStatus.clear();
         }
     }
@@ -1460,7 +1493,7 @@ public class SeeThroughBottomBarTest {
      */
     @Test
     public void theMainFeedStripGoesAndTheCaptionStaysAboveTheBar() {
-        VideoOverlayHider.resolveForTests("47.9.3:ctn", STRIP_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:cuv", STRIP_ID);
         VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
         VideoOverlayHider.resolveForTests("widget_container", LAYER_ID);
         VideoOverlayHider.resolveForTests("video_seek_bar", SEEK_BAR_ID);
@@ -1554,7 +1587,7 @@ public class SeeThroughBottomBarTest {
         } finally {
             Settings.FLOATING_BOTTOM_BAR.save(false);
             VideoOverlayHider.resolveForTests("video_seek_bar", 0);
-            VideoOverlayHider.resolveForTests("47.9.3:ctn", 0);
+            VideoOverlayHider.resolveForTests("48.0.2:cuv", 0);
             VideoOverlayHider.resolveForTests("viewpager_container", 0);
             VideoOverlayHider.resolveForTests("widget_container", 0);
         }
@@ -1612,7 +1645,7 @@ public class SeeThroughBottomBarTest {
      */
     @Test
     public void aLivePreviewsCardStaysAboveTheBar() {
-        VideoOverlayHider.resolveForTests("47.9.3:ctn", STRIP_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:cuv", STRIP_ID);
         VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
         VideoOverlayHider.resolveForTests("widget_container", LAYER_ID);
         VideoOverlayHider.resolveForTests("tv_live_nickname", LIVE_NAME_ID);
@@ -1666,7 +1699,7 @@ public class SeeThroughBottomBarTest {
             assertEquals(View.VISIBLE, strip.getVisibility());
             assertEquals(0f, info.getTranslationY(), 0f);
         } finally {
-            VideoOverlayHider.resolveForTests("47.9.3:ctn", 0);
+            VideoOverlayHider.resolveForTests("48.0.2:cuv", 0);
             VideoOverlayHider.resolveForTests("viewpager_container", 0);
             VideoOverlayHider.resolveForTests("widget_container", 0);
             VideoOverlayHider.resolveForTests("tv_live_nickname", 0);
@@ -1682,7 +1715,7 @@ public class SeeThroughBottomBarTest {
      */
     @Test
     public void aDramasInfoBesideTheWidgetLayerGoesUpWithIt() {
-        VideoOverlayHider.resolveForTests("47.9.3:ctn", STRIP_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:cuv", STRIP_ID);
         VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
         VideoOverlayHider.resolveForTests("widget_container", LAYER_ID);
         VideoOverlayHider.resolveForTests("tv_drama_tips", DRAMA_TIPS_ID);
@@ -1738,7 +1771,7 @@ public class SeeThroughBottomBarTest {
             assertEquals(0f, infos[0].getTranslationY(), 0f);
             assertEquals(0f, layers[0].getTranslationY(), 0f);
         } finally {
-            VideoOverlayHider.resolveForTests("47.9.3:ctn", 0);
+            VideoOverlayHider.resolveForTests("48.0.2:cuv", 0);
             VideoOverlayHider.resolveForTests("viewpager_container", 0);
             VideoOverlayHider.resolveForTests("widget_container", 0);
             VideoOverlayHider.resolveForTests("tv_drama_tips", 0);
@@ -1754,7 +1787,7 @@ public class SeeThroughBottomBarTest {
      */
     @Test
     public void aCardsSwipeHintGoesUpWithTheRoom() {
-        VideoOverlayHider.resolveForTests("47.9.3:ctn", STRIP_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:cuv", STRIP_ID);
         VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
         VideoOverlayHider.resolveForTests("widget_container", LAYER_ID);
         VideoOverlayHider.resolveForTests("tv_swipe_up", SWIPE_HINT_ID);
@@ -1822,7 +1855,7 @@ public class SeeThroughBottomBarTest {
             assertEquals(0f, cards[0].getTranslationY(), 0f);
             assertEquals(0f, layer.getTranslationY(), 0f);
         } finally {
-            VideoOverlayHider.resolveForTests("47.9.3:ctn", 0);
+            VideoOverlayHider.resolveForTests("48.0.2:cuv", 0);
             VideoOverlayHider.resolveForTests("viewpager_container", 0);
             VideoOverlayHider.resolveForTests("widget_container", 0);
             VideoOverlayHider.resolveForTests("tv_swipe_up", 0);
@@ -1838,7 +1871,7 @@ public class SeeThroughBottomBarTest {
      */
     @Test
     public void aStripTikTokShowsAgainDoesNotEndTheCollapse() {
-        VideoOverlayHider.resolveForTests("47.9.3:ctn", STRIP_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:cuv", STRIP_ID);
         VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
         VideoOverlayHider.resolveForTests("widget_container", LAYER_ID);
         Settings.SEE_THROUGH_BOTTOM_BAR.save(true);
@@ -1887,7 +1920,7 @@ public class SeeThroughBottomBarTest {
             assertEquals(-138f, layer.getTranslationY(), 0f);
             assertTrue(SeeThroughBottomBar.collapseAllowed());
         } finally {
-            VideoOverlayHider.resolveForTests("47.9.3:ctn", 0);
+            VideoOverlayHider.resolveForTests("48.0.2:cuv", 0);
             VideoOverlayHider.resolveForTests("viewpager_container", 0);
             VideoOverlayHider.resolveForTests("widget_container", 0);
         }
@@ -1921,7 +1954,7 @@ public class SeeThroughBottomBarTest {
      */
     @Test
     public void aCellHalfwayThroughASwipeDoesNotEndTheCollapse() {
-        VideoOverlayHider.resolveForTests("47.9.3:ctn", STRIP_ID);
+        VideoOverlayHider.resolveForTests("48.0.2:cuv", STRIP_ID);
         VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
         VideoOverlayHider.resolveForTests("widget_container", LAYER_ID);
         Settings.SEE_THROUGH_BOTTOM_BAR.save(true);
@@ -1981,7 +2014,7 @@ public class SeeThroughBottomBarTest {
                     ((View) anchors[1].getParent().getParent()).getTop() - pager.getScrollY()
                             + anchors[1].getBottom() + layers[1].getTranslationY(), 0f);
         } finally {
-            VideoOverlayHider.resolveForTests("47.9.3:ctn", 0);
+            VideoOverlayHider.resolveForTests("48.0.2:cuv", 0);
             VideoOverlayHider.resolveForTests("viewpager_container", 0);
             VideoOverlayHider.resolveForTests("widget_container", 0);
         }

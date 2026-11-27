@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 35, manifest = Config.NONE)
@@ -61,7 +62,42 @@ public class ComposeThemeTest {
 
     /** Stands in for Encore's raw colors holder, whose slots aren't final. */
     public static final class RawColors {
+        public Object b;
         public Object d;
+    }
+
+    /** A raw color group as R8 left it: final colors, built from a tag, and no constructor that takes them. */
+    public static final class Named {
+        public final long a;
+        public final long b;
+
+        public Named(byte tag) {
+            a = color(tag == 0 ? 0xFFFF0000 : 0xFF000000);
+            b = color(tag == 0 ? 0xFF00FF00 : 0xFF1ED760);
+        }
+    }
+
+    /** Another one, with a constructor that takes nothing. */
+    public static final class Gray {
+        public final long a;
+        public final long b;
+        public final long c;
+
+        public Gray() {
+            a = color(0xFF121212);
+            b = color(0xFF181818);
+            c = color(0xFF282828);
+        }
+    }
+
+    /** A class with state of its own, which a field-by-field copy of its subclass would lose. */
+    public static class Base {
+        public long state;
+    }
+
+    /** A group like {@link Gray} that extends it. */
+    public static final class Derived extends Base {
+        public final long x = color(0xFF121212);
     }
 
     /** {@code *} marks a field that turns see-through while a background image shows. */
@@ -159,6 +195,62 @@ public class ComposeThemeTest {
         assertEquals(color(0xFF203040), ComposeTheme.surface(color(0xFF282828)));
         // Anything but Spotify's #282828 stays.
         assertEquals(color(0xFF2A2A2A), ComposeTheme.surface(color(0xFF2A2A2A)));
+    }
+
+    @Test
+    public void rawGroupsWithoutAFieldConstructorAreCopiedFieldByField() {
+        ComposeTheme.tables = ComposeTheme.parse("a.a=base@FF121212;b.b=accent@FF1ED760,d.a=gray@FF121212,d.b=gray_15@FF181818");
+        RawColors raw = new RawColors();
+        Named named = new Named((byte) 1);
+        Gray gray = new Gray();
+        raw.b = named;
+        raw.d = gray;
+        ComposeTheme.primitives(raw);
+        ComposeTheme.update(values, false);
+
+        Named themedNamed = (Named) raw.b;
+        assertNotSame(named, themedNamed);
+        // a isn't mapped: the copy takes Spotify's value, not the blank group's (a tag 0 group differs).
+        assertEquals(color(0xFF000000), themedNamed.a);
+        assertEquals(color(0xFFFF00AA), themedNamed.b);
+        Gray themed = (Gray) raw.d;
+        assertNotSame(gray, themed);
+        assertEquals(color(0xFF102040), themed.a);
+        assertEquals(color(0xFF203040), themed.b);
+        assertEquals(color(0xFF282828), themed.c);
+        // Spotify's own groups are never written, so the theme can be taken off again.
+        assertEquals(color(0xFF1ED760), named.b);
+        assertEquals(color(0xFF121212), gray.a);
+        assertEquals("Encore raw colors: 3 of 3 colors themed", rawSummary());
+        ComposeTheme.update(Collections.<String, Integer>emptyMap(), false);
+        assertSame(named, raw.b);
+        assertSame(gray, raw.d);
+    }
+
+    @Test
+    public void aRawGroupThatCannotBeCopiedStaysSpotifysAndIsNotCountedAsThemed() {
+        ComposeTheme.tables = ComposeTheme.parse("a.a=base@FF121212;b.x=gray@FF121212,d.a=gray@FF121212");
+        RawColors raw = new RawColors();
+        Derived derived = new Derived();
+        Gray gray = new Gray();
+        raw.b = derived;
+        raw.d = gray;
+        ComposeTheme.primitives(raw);
+        ComposeTheme.update(values, false);
+
+        // The count says what was really themed: the group that could not be copied is not in it.
+        assertEquals("Encore raw colors: 1 of 2 colors themed", rawSummary());
+        assertSame(derived, raw.b);
+        assertNotSame(gray, raw.d);
+    }
+
+    /** The last summary line the raw colors logged. */
+    private static String rawSummary() {
+        String summary = null;
+        for (ShadowLog.LogItem item : ShadowLog.getLogsForTag("Spicetify")) {
+            if (item.msg.startsWith("Encore raw colors:")) summary = item.msg;
+        }
+        return summary;
     }
 
     /** A Compose sRGB color: the ARGB in the high 32 bits. */

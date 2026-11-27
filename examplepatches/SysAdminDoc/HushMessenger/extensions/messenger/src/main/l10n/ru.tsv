@@ -1,0 +1,1082 @@
+# Russian text for the settings screen.
+# One id, a tab, then its text on each line. The build writes this file into SettingsTextRu.java, and SettingsTranslationTest fails the build when an id is missing or a placeholder changed. In a text, \n is a new line, \t a tab and \\ a backslash.
+controls	Функции
+app	Приложение
+inbox	Список чатов
+chat_menu	Меню чата
+navigation	Навигация
+tab_bar	Панель вкладок
+stickers	Стикеры
+conversations	Переписки
+notifications	Уведомления
+calls	Звонки
+photos_videos	Фото и видео
+links_bubbles	Ссылки и всплывающие окна
+privacy	Конфиденциальность
+tracking	Отслеживание
+theme	Тема
+settings	Настройки HushMessenger
+preview_title	Предпросмотр интерфейса HushMessenger
+preview_notice	Предпросмотр интерфейса. Эти функции не меняют Messenger.
+mounted_build_mismatch	Патч сделан для Messenger %1$d, но в Android установлена версия %2$d. Для Root Mount пропатчите %2$d, иначе всплывающие чаты и другие экраны могут вылетать.
+gmscore_without_microg	Поддержка GmsCore встроена в патч, но microG-RE не установлен или выключен, поэтому Messenger не может получать уведомления через push-сервис Google. Установите microG-RE или пропатчите заново без поддержки GmsCore.
+open	Открыть
+open_messenger	Открыть Messenger
+back	Назад
+search_settings	Поиск по настройкам
+show_as_list	Показать все настройки списком
+show_by_category	Показать настройки по категориям
+header_version	Версия %1$s для Messenger %2$s
+header_version_alone	Версия %s
+reopen	Некоторые изменения вступят в силу после «Приложение > Перезапустить Messenger».
+quick_access	Быстрый доступ
+access_help	Нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». Настройки HushMessenger также можно открыть из меню приложений.
+hide_drawer_icon	Скрыть значок в меню приложений
+hide_drawer_icon_help	Доступ останется через «Меню» Messenger или ярлык значка Messenger на главном экране.
+settings_in_recents	Настройки в «Недавних»
+settings_in_recents_help	Выйдите из настроек кнопкой «Домой» или «Недавние», и их карточка останется в «Недавних», чтобы вы могли вернуться туда, где были. Если закрыть их кнопкой «Назад», карточки не останется. Когда это выключено, карточка исчезает, как только вы уходите.
+hide_menu_row	Скрыть строку в «Меню»
+hide_menu_row_help	Убирает строку HushMessenger из вкладки «Меню» и бокового меню Messenger. Чтобы вернуться сюда, нажмите и удерживайте логотип Messenger вверху экрана «Чаты» или нажмите и удерживайте значок Messenger на главном экране и выберите «Patch controls». Если ни одного из этих способов не останется, строка вернётся.
+menu_row_needs_shortcut	Сначала один раз откройте эти настройки через ярлык (нажмите и удерживайте значок Messenger на главном экране, затем «Patch controls»), чтобы у вас был путь назад без этой строки.
+shared_install_help	Если удалить этот пункт, удалится и Messenger вместе с его данными на телефоне. Вместо этого используйте «Скрыть значок в меню приложений».
+access_help_hosted	Нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». При установке через Root Mount отдельного значка настроек в меню приложений нет.
+access_help_hosted_menu	Откройте настройки HushMessenger через их строку во вкладке «Меню» или в боковом меню Messenger либо нажмите и удерживайте логотип Messenger вверху экрана «Чаты». Нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». При установке через Root Mount отдельного значка настроек в меню приложений нет.
+access_help_menu	Откройте настройки из «Меню» Messenger или из меню приложений либо нажмите и удерживайте логотип Messenger вверху экрана «Чаты». Долгое нажатие на значок Messenger на главном экране тоже работает.
+access_help_missing	Нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». В этом наборе патчей нет значка настроек в меню приложений.
+access_help_missing_menu	Откройте HushMessenger через вкладку «Меню» или боковое меню Messenger либо нажмите и удерживайте логотип Messenger вверху экрана «Чаты». Нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». В этом наборе патчей нет значка настроек в меню приложений.
+access_help_logo	Нажмите и удерживайте логотип Messenger вверху экрана «Чаты» или нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». Настройки HushMessenger также можно открыть из меню приложений.
+access_help_hosted_logo	Нажмите и удерживайте логотип Messenger вверху экрана «Чаты» или нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». При установке через Root Mount отдельного значка настроек в меню приложений нет.
+access_help_missing_logo	Нажмите и удерживайте логотип Messenger вверху экрана «Чаты» или нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». В этом наборе патчей нет значка настроек в меню приложений.
+access_help_menu_without_logo	Откройте настройки из «Меню» Messenger или из меню приложений. Долгое нажатие на значок Messenger на главном экране тоже работает.
+access_help_hosted_menu_without_logo	Откройте настройки HushMessenger через их строку во вкладке «Меню» или в боковом меню Messenger. Нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». При установке через Root Mount отдельного значка настроек в меню приложений нет.
+access_help_missing_menu_without_logo	Откройте HushMessenger через вкладку «Меню» или боковое меню Messenger. Нажмите и удерживайте значок Messenger на главном экране, чтобы открыть «Patch controls» или «Restart Messenger». В этом наборе патчей нет значка настроек в меню приложений.
+hide_menu_row_help_without_logo	Убирает строку HushMessenger из вкладки «Меню» и бокового меню Messenger. Чтобы вернуться сюда, нажмите и удерживайте значок Messenger на главном экране и выберите «Patch controls». Если ярлык «Patch controls» пропадёт, строка вернётся.
+hide_icon_shortcuts	Скрыть ярлыки значка
+shortcut_turned_off	Отключено в настройках HushMessenger
+hide_icon_shortcuts_help	Убирает «Patch controls» и «Restart Messenger» из меню, которое открывается долгим нажатием на значок Messenger на главном экране. Копия ярлыка, закреплённая на главном экране, станет серой, пока вы не выключите эту функцию.
+hide_logo_press	Не открывать по долгому нажатию на логотип
+hide_logo_press_help	Долгое нажатие на логотип Messenger вверху экрана «Чаты» или на заголовок вкладки «Меню» больше не открывает эти настройки.
+last_way_in	Это последний включённый способ попасть в эти настройки. Сначала включите другой.
+menu_row_needs_logo	Сначала один раз откройте эти настройки долгим нажатием на логотип Messenger вверху экрана «Чаты», чтобы у вас был путь назад без этой строки.
+menu_row_needs_way	Сначала снова включите ярлыки значка или долгое нажатие на логотип, чтобы у вас был путь назад без этой строки.
+hide_menu_row_help_without_shortcut	Убирает строку HushMessenger из вкладки «Меню» и бокового меню Messenger. Чтобы вернуться сюда, нажмите и удерживайте логотип Messenger вверху экрана «Чаты». Если выключить долгое нажатие на логотип, строка вернётся.
+hide_menu_row_help_plain	Убирает строку HushMessenger из вкладки «Меню» и бокового меню Messenger.
+menu_tab	Вкладка «Меню»
+menu_rows_help	Строки, которые Messenger показывает во вкладке «Меню» или в боковом меню, например «Сообщества» или «Приглашения в каналы». Скройте те, которые вы никогда не открываете. Каждая строка появится здесь, когда Messenger её покажет.
+menu_rows_empty	Откройте вкладку «Меню» или боковое меню в Messenger один раз, и строки появятся здесь, чтобы вы могли их скрыть.
+menu_log_out	Строка «Выйти» во вкладке «Меню»
+menu_log_out_help	Добавляет «Выйти» во вкладку «Меню» Messenger под пунктом «Настройки». Выход происходит так же, как через «Выйти» в самом Messenger.
+way_menu	Откройте настройки HushMessenger через их строку во вкладке «Меню» или в боковом меню Messenger.
+way_logo	Нажмите и удерживайте логотип Messenger вверху экрана «Чаты», чтобы открыть эти настройки.
+way_drawer	Откройте настройки HushMessenger из меню приложений.
+way_shortcuts_hidden	«Patch controls» и «Restart Messenger» убраны из значка Messenger на главном экране.
+drawer_search	Настройки значка в меню приложений
+reset_search	Сброс настроек
+drawer_root	Для Root Mount функция «Скрыть значок в меню приложений» не нужна. Отдельного значка настроек, который можно скрыть, нет.
+drawer_missing	Функция «Скрыть значок в меню приложений» недоступна. В этом наборе патчей нет значка настроек, который можно скрыть.
+drawer_requires_menu	Чтобы скрыть значок в меню приложений, сначала добавьте при патчинге «Open settings from menu», чтобы вы всё ещё могли найти эти настройки. Без этого значок останется.
+restart	Перезапустить Messenger
+restarting	Перезапуск Messenger...
+restart_saving	Сохраняем ваши настройки перед повторным открытием Messenger.
+restart_account	Вы останетесь в своём аккаунте.
+choices	Ваши настройки
+restart_unavailable	Сбой перезапуска. Закройте и откройте Messenger.
+settings_open_failed	Не удалось открыть настройки HushMessenger.
+settings_open_instead	Patch controls: удерживайте значок на главном экране
+restart_save_failed	Не сохранено, Messenger не перезапущен. Повторите.
+paused	Приостановить все изменения
+search	Найти функцию
+empty_title	Нет подходящих функций
+empty_help	Попробуйте другое слово или сбросьте фильтр. Здесь перечислены только функции из этого набора патчей.
+clear	Сбросить фильтры
+unavailable	Недоступно в этой версии Android. Ваш выбор сохранён.
+camera_unsupported	В этой установке нет экрана для открытия приложения камеры телефона, поэтому камера в чате остаётся камерой Messenger. При установке через Root Mount его нельзя добавить. Ваш выбор сохранён.
+gallery_unsupported	На этом телефоне нет приложения, которое может выбрать фото для Messenger, поэтому галерея в чате остаётся галереей Messenger. Ваш выбор сохранён.
+local_search_unsupported	В этой установке нет экрана поиска. При установке через Root Mount его нельзя добавить. Ваш выбор сохранён.
+local_search_open	Искать сообщения, сохранённые на этом телефоне
+local_search_title	Сохранённые сообщения
+local_search_hint	Слова для поиска
+local_search_run	Найти
+local_search_stop	Стоп
+local_search_help	Ищет среди сообщений этого чата, сохранённых на телефоне. Чтобы загрузить более старые, сначала прокрутите чат вверх.
+local_search_running	Поиск...
+local_search_done	Найдено: %1$d. Просмотрено сохранённых сообщений: %2$d, вплоть до %3$s. Чтобы искать дальше в прошлом, прокрутите чат вверх и повторите поиск.
+local_search_stopped	Остановлено. Найдено: %1$d. Просмотрено сохранённых сообщений: %2$d, вплоть до %3$s.
+local_search_full	Показаны последние %1$d. Просмотрено сохранённых сообщений: %2$d, вплоть до %3$s. Добавьте слово, чтобы сузить поиск.
+local_search_nothing	На этом телефоне нет сохранённого текста этого чата. Прокрутите чат вверх, чтобы загрузить более старые сообщения, и повторите поиск.
+local_search_failed	Не удалось прочитать сохранённые сообщения. Попробуйте ещё раз чуть позже.
+local_search_open_failed	Не удалось открыть это сообщение
+local_search_empty	Сначала введите слово для поиска.
+call_recording_unsupported	Нужен Android 10 или новее. Ваш выбор сохранён.
+call_recording_start	Записать
+call_recording_stop_pill	Идёт запись, нажмите, чтобы остановить
+call_recording_stop_time	Стоп %1$s
+call_recording_paused_time	Пауза %1$s
+call_recording_pause	Пауза
+call_recording_resume	Продолжить
+call_recording_on	Этот звонок записывается
+call_recording_stop	Остановить
+call_recording_channel	Запись звонков
+call_recording_saved	Звонок сохранён в %1$s
+call_recording_failed	Не удалось записать этот звонок
+call_recording_scope	Какие звонки записывать
+call_recording_scope_tap	Только когда я нажму «Записать»
+call_recording_scope_all	Все звонки
+call_recording_scope_chosen	Только выбранные чаты
+call_recording_scope_help	Запись начинается сама, как только начинается звонок. «Только выбранные чаты» записывает людей, которых вы включите ниже, а исходящий звонок определяется по имени на экране звонка.
+call_recording_scope_picked	Какие звонки записывать: %1$s
+call_recording_recent_empty	Чаты появятся здесь, когда вам позвонят, сначала новые.
+call_recording_folder	Папка для записей
+call_recording_folder_help	Записи сохраняются в папку Recordings на телефоне, если вы не выберете другую. Выберите папку на SD-карте или в папке облачного приложения, и записи будут сохраняться прямо туда.
+call_recording_folder_default	Папка Recordings на телефоне
+call_recording_folder_choose	Выбрать папку
+call_recording_folder_reset	Использовать стандартную
+call_recording_folder_picked	Папка для записей: %1$s
+call_recording_folder_refused	Не удалось использовать эту папку. Выберите папку, в которую можно записывать.
+call_recording_format	Сохранять звонки как
+call_recording_format_wav	WAV, лучшее качество
+call_recording_format_ogg	OGG Opus, примерно в десять раз меньше
+call_recording_format_help	Час звонка занимает около 115 МБ в WAV и около 10 МБ в Opus, а голоса звучат почти одинаково. WAV воспроизводится везде, а некоторые старые плееры не знают Opus.
+call_recording_format_picked	Сохранять звонки как: %1$s
+call_recording_format_unavailable	На этом телефоне нет кодировщика Opus, поэтому звонки сохраняются в WAV, что бы вы ни выбрали.
+call_recording_tracks	Две стороны
+call_recording_tracks_mixed	Вместе на одной дорожке
+call_recording_tracks_sides	Каждая отдельно, вы слева
+call_recording_tracks_help	Обычная запись идёт на одну дорожку, и оба голоса звучат на ней. «Каждая отдельно» ставит вас слева, а собеседника справа, так что любую сторону можно слушать отдельно. Файл получается в два раза больше.
+call_recording_tracks_picked	Две стороны: %1$s
+call_recording_keep	Хранить записи
+call_recording_keep_all	Хранить все
+call_recording_keep_days	%1$s дней
+call_recording_keep_help	Проверяется после сохранения звонка. Учитываются только записи, сделанные этой функцией, а то, что вы переместили или переименовали, остаётся на месте.
+call_recording_keep_picked	Хранить записи: %1$s
+call_recording_notify	Уведомлять о сохранении звонка
+call_recording_notify_help	Уведомление с именем файла, когда запись сохранена. Нажмите на него, чтобы прослушать запись, «Отправить в чат», чтобы отправить её в один из своих чатов, или «Поделиться», чтобы отправить её куда-то ещё.
+call_recording_saved_channel	Сохранённые записи звонков
+call_recording_saved_title	Запись звонка сохранена
+call_recording_share	Поделиться
+call_recording_send	Отправить в чат
+call_captions_unsupported	Нужен Android 13 или новее. Ваш выбор сохранён.
+call_captions_speak	Читать субтитры вслух
+call_captions_speak_help	Читает каждый субтитр вслух голосом телефона, когда он закончен. Используйте наушники, чтобы собеседники его не слышали.
+call_captions_duck	Приглушать собеседников во время чтения
+call_captions_duck_help	Делает собеседников тише, пока читается субтитр, чтобы вы могли следить за голосом.
+call_captions_heard	Язык собеседников: %1$s
+call_captions_heard_title	На каком языке говорят собеседники
+call_captions_heard_hint	Субтитры распознают этот язык. Язык с пометкой о загрузке телефон сначала скачает, а последняя строка открывает все остальные языки, которые знает ваш телефон.
+call_captions_shown	Язык субтитров: %1$s
+call_captions_shown_title	Язык субтитров
+call_captions_shown_hint	Субтитры переводятся на этот язык прямо на телефоне. В списке то, что, по данным телефона, он умеет, а последняя строка открывает все остальные языки, которые он знает.
+call_captions_phone_language	Язык телефона (%1$s)
+call_captions_untranslated_choice	Как говорят, без перевода
+call_captions_loading	Смотрим, что есть на вашем телефоне
+call_captions_download	%1$s (сначала загрузка)
+call_captions_other	Другой язык…
+call_captions_picked	Субтитры: %1$s
+call_captions_downloading_now	Загрузка: %1$s
+call_captions_cancel	Отмена
+call_captions_no_recognizer	На вашем телефоне нет распознавания речи на устройстве, поэтому субтитры на нём не работают.
+call_captions_no_translator	На вашем телефоне нет перевода на устройстве, поэтому субтитры остаются на том языке, на котором говорят.
+call_captions_untranslated	Ваш телефон не умеет переводить для этой пары языков, поэтому субтитры остаются без перевода.
+call_captions_unavailable	Ваш телефон не распознаёт этот язык. Выберите другой в настройках HushMessenger.
+call_captions_checking	Проверяем %1$s на вашем телефоне
+call_captions_cant_hear	Ваш телефон не может сам делать субтитры на языке «%1$s». Выберите другой язык.
+call_captions_downloading	Ваш телефон загружает этот язык. Субтитры появятся, когда загрузка закончится.
+call_captions_stopped	Субтитры для этого звонка остановлены.
+call_captions_no_voice	На вашем телефоне нет голоса для этого языка, поэтому субтитры не читаются вслух.
+save_voice_menu_row	Сохранить голосовое сообщение
+save_voice_menu_saved	Сохранено в %1$s
+save_voice_menu_failed	Не удалось сохранить это голосовое сообщение
+local_pin_kept	Закреплено на этом телефоне
+local_pin_removed	Откреплено
+hidden_chats_hide	Скрыть из списка чатов
+hidden_chats_show	Показать в списке чатов
+hidden_chats_hidden	Скрыто из списка чатов
+hidden_chats_shown	Снова в списке чатов
+hidden_chats_failed	Не удалось скрыть этот чат
+hidden_chats_empty	Здесь появятся чаты, которые вы скроете из списка чатов.
+hidden_chats_unhide	Показать
+hidden_chats_unnamed	Чат
+chat_preview_taps_open	Открыть чат
+chat_preview_taps_gone	Откройте его из списка чатов
+# context: confirm_strangers_held, the toast after that switch holds a Send, asking for a second tap
+confirm_strangers_held	Вы ещё не друзья. Нажмите «Отправить» ещё раз.
+# context: remove_contact_row, the row this switch adds to the menu you get by holding a person who isn't a friend. Messenger's own old row was called Remove contact.
+remove_contact_row	Удалить контакт
+# context: remove_contact_done, the toast after that row took the person out of your Messenger contacts
+remove_contact_done	Удалено из ваших контактов
+# context: remove_contact_failed, the toast when that row couldn't take the person out of your contacts
+remove_contact_failed	Не удалось удалить этот контакт
+special_contacts_track	Отслеживать этого человека
+special_contacts_untrack	Не отслеживать
+special_contacts_tracked	Теперь вы отслеживаете этого человека
+special_contacts_untracked	Вы больше не отслеживаете этого человека
+special_contacts_full	Можно отслеживать до 50 человек
+special_contacts_failed	Не удалось изменить. Попробуйте ещё раз.
+special_contacts_cleared	История очищена
+special_contacts_empty	Здесь появятся люди, которых вы отслеживаете. Нажмите и удерживайте чат с человеком и выберите «Отслеживать этого человека».
+special_contacts_unnamed	Кто-то
+special_contacts_nothing	Пока ничего не замечено
+special_contacts_history	История
+special_contacts_hide_history	Скрыть историю
+special_contacts_clear	Очистить историю
+special_contacts_online	В сети в %s
+special_contacts_offline	Не в сети в %s
+special_contacts_offline_at	Не в сети в %1$s, последняя активность %2$s
+special_contacts_typing	Печатает в %s
+special_contacts_since	Отслеживается с %s
+special_contacts_renamed	Имя изменено на %2$s в %1$s
+message_actions_sent	Отправленные вами сообщения
+message_actions_got	Полученные сообщения
+message_actions_empty_sent	Нажмите и удерживайте отправленное вами сообщение, и его действия появятся здесь.
+message_actions_empty_got	Нажмите и удерживайте полученное сообщение, и его действия появятся здесь.
+chat_menu_items_empty	Нажмите и удерживайте чат в списке чатов, и пункты его меню появятся здесь.
+profile_menu_items_empty	Нажмите на фото человека рядом с его сообщением в чате, и пункты этого меню появятся здесь.
+invisible_buttons_empty	Попользуйтесь Messenger немного, и каждая кнопка, которую он вам покажет, появится здесь.
+invisible_buttons_level_choice	%1$s для %2$s
+invisible_buttons_invisible	Теперь невидима
+invisible_buttons_visible	Снова как обычно
+invisible_buttons_level	Видимость теперь %1$s
+invisible_buttons_pick	Выбрать кнопки на экране
+invisible_buttons_pick_help	Добавляет маленькую круглую кнопку сбоку на экранах и в меню Messenger. Нажмите на неё, затем на любую кнопку, чтобы выбрать, насколько она прозрачна. Когда закончите, выключите эту функцию.
+invisible_buttons_pick_dot	Выбрать кнопку
+invisible_buttons_pick_now	Теперь нажмите нужную кнопку
+invisible_buttons_pick_none	Здесь нет кнопки для выбора
+invisible_buttons_group_screen	Список чатов и другие экраны
+invisible_buttons_group_header	Верх чата
+invisible_buttons_group_composer	Поле сообщения
+invisible_buttons_group_chat	Внутри чата
+invisible_buttons_group_menu	Меню и панели
+invisible_buttons_group_ours	Кнопки HushMessenger
+invisible_buttons_group_other	Другое
+tab_bar_slide	Скольжение по панели вкладок
+tab_bar_slide_help	Проведите пальцем по панели вкладок внизу, и подсветка будет следовать за ним от вкладки к вкладке. Отпустите палец, чтобы открыть вкладку под ним. Нажатие работает как раньше, и эта функция работает, даже если «Листать между вкладками» выключено. После включения перезапустите Messenger.
+tab_swipe_follow	Страница следует за пальцем
+tab_swipe_follow_help	Пока вы листаете вкладки, страница движется вместе с пальцем, а когда вы его отпускаете, следующая вкладка заезжает сбоку. Короткий свайп возвращает её на место. Панель вкладок остаётся на месте.
+message_actions_hidden_label	%1$s (скрыто)
+message_actions_move_up	Переместить «%1$s» вверх
+message_actions_move_down	Переместить «%1$s» вниз
+message_actions_moved	%1$s, %2$d из %3$d
+message_actions_hide	Скрыть
+message_actions_show	Показать
+message_actions_hidden	Скрыто из меню
+message_actions_shown	Снова в меню
+message_actions_reset	Вернуть порядок Messenger
+message_actions_reset_done	Порядок Messenger восстановлен
+text_style_bold	Жирный
+text_style_italic	Курсив
+text_style_read_only	Жирный и курсив работают только при наборе текста.
+text_style_bold_none	Жирный: только латиница, буквы с диакритикой и цифры.
+text_style_italic_none	Курсив: только латиница и буквы с диакритикой.
+bubble_stock	Как в Messenger
+bubble_chat_heads	Всплывающие чаты
+bubble_native	Всплывающие окна Android
+bubble_changed	Выбрано: %s. Перезапустите.
+bubble_help	«Как в Messenger» оставляет решение за Messenger. Для всплывающих чатов нужен ещё переключатель «Всплывающие чаты» в самом Messenger и разрешение показываться поверх других приложений. Без неограниченного расхода батареи всплывающий чат появляется, только если Messenger был закрыт, когда пришло сообщение, поэтому включите и это ниже. Для всплывающих окон Android разрешите всплывающие окна Messenger в настройках Android ниже. В аккаунтах, которые не поддерживают всплывающие окна, Messenger работает как обычно. «Приостановить все изменения» возвращает всё к собственному выбору Messenger.
+bubble_unsupported	Всплывающие окна Android недоступны в этом наборе патчей, поэтому Messenger работает как обычно. Ваш выбор сохранён.
+bubble_battery_off	Разрешить неограниченный расход батареи
+bubble_battery_on	Расход батареи: без ограничений
+bubble_battery_missing	Экран не найден. Откройте «О приложении», затем «Батарея».
+bubble_permissions	Настройки всплывающих окон Android
+bubble_notifications	Настройки уведомлений Messenger
+bubble_conversations	Настройки разговоров Android
+bubble_settings_missing	Откройте «О приложении», затем «Уведомления».
+facebook_keep_profile	Оставить кнопку «Профиль»
+facebook_keep_profile_help	Оставляет кнопку «Профиль» на странице сведений о чате и кнопку «Посмотреть профиль» вверху нового чата, чтобы вы всё ещё могли открыть профиль человека на Facebook. Остальные ярлыки Facebook остаются скрытыми.
+avatar_shape_rounded	Скруглить углы
+avatar_shape_rounded_help	Делает углы квадратов скруглёнными, а не острыми.
+refresh_rate_hz	%1$s Гц
+refresh_rate_single	Ваш экран работает только с одной частотой, поэтому выбирать здесь нечего.
+refresh_rate_picked	Messenger запрашивает %1$s Гц
+refresh_rate_help	Чем выше частота, тем плавнее прокрутка и тем больше расход батареи. Новая частота заработает, когда вы вернётесь в Messenger.
+see_through_tab_bar_frosted	Матовая
+see_through_tab_bar_standard	Стандартная
+see_through_tab_bar_light	Прозрачнее
+see_through_tab_bar_clear	Самая прозрачная
+see_through_tab_bar_picked	«%1$s» появится после перезапуска Messenger
+see_through_tab_bar_help	Сквозь «Матовую» ваши чаты видны меньше всего, а сквозь «Самую прозрачную» больше всего.
+story_row_size_picked	Размер ряда историй: %1$s
+story_row_size_help	%1$s ближе всего к размеру в Messenger, а %2$s самый маленький.
+hidden_words_words	Слова для скрытия
+hidden_words_hint	До %1$d символов, через запятую
+hidden_words_help	Совпадать должно всё слово, поэтому «ок» не скроет «окей». Заглавные буквы не важны.
+home_header_words	Слова
+home_header_words_hint	До %1$d символов
+home_header_none	Пока нет ни слов, ни картинки, поэтому остаётся надпись Messenger.
+home_header_using_words	Ваши слова показываются вверху списка чатов.
+home_header_picture	Ваша картинка показывается вверху списка чатов вместо слов.
+home_header_copying	Копируем картинку...
+home_header_choose	Выбрать картинку
+home_header_remove	Убрать картинку
+home_header_help	Картинка показывается вместо слов, на высоте надписи. Лучше всего смотрится картинка с прозрачным фоном. Размер картинки до %1$d МБ.
+home_header_saved	Картинка сохранена.
+home_header_removed	Картинка убрана.
+home_header_remove_failed	Не удалось убрать картинку.
+home_header_not_picture	Этот файл не картинка.
+home_header_too_large	Картинка может быть до %1$d МБ.
+home_header_unreadable	Не удалось открыть картинку.
+home_header_not_saved	Не удалось сохранить картинку.
+home_header_busy	Ещё копируется предыдущая.
+home_header_timeout	Картинка грузилась слишком долго. Попробуйте ещё раз.
+home_header_font	Шрифт для слов
+home_header_font_none	Для слов используется жирный шрифт без засечек. Чтобы использовать свой, выберите файл .ttf или .otf размером до %1$d МБ.
+home_header_font_using	Для слов используется %1$s.
+home_header_font_missing	Копия %1$s в HushMessenger пропала, поэтому для слов используется жирный шрифт без засечек. Выберите файл ещё раз.
+home_header_font_choose	Выбрать шрифт для слов
+home_header_font_remove	Убрать шрифт
+home_header_font_help	Этот шрифт используется только для слов в заголовке. Остальной Messenger сохраняет свой.
+home_header_font_saved	Шрифт сохранён.
+home_header_font_removed	Шрифт убран.
+home_header_font_remove_failed	Не удалось убрать шрифт.
+tab_icons_help	Каждая вкладка получает простой контурный значок того цвета, который уже использует Messenger. Выберите картинку для любой вкладки, чтобы поставить туда свою. Лучше всего смотрится квадратная картинка с прозрачным фоном. Размер картинки до %1$d МБ.
+tab_icons_choose	Выбрать
+tab_icons_remove	Убрать
+tab_icons_plain	Простой значок
+tab_icons_yours	Ваша картинка
+tab_icons_copying	Копирование...
+tab_icons_saved	Значок вкладки сохранён. Перезапустите Messenger, чтобы его увидеть.
+tab_icons_removed	Значок вкладки убран.
+tab_icons_remove_failed	Не удалось убрать этот значок вкладки.
+tab_icons_not_picture	Этот файл не картинка.
+tab_icons_too_large	Картинка может быть до %1$d МБ.
+tab_icons_unreadable	Не удалось открыть картинку.
+tab_icons_not_saved	Не удалось сохранить значок вкладки.
+tab_icons_busy	Ещё копируется предыдущая.
+tab_icons_timeout	Картинка грузилась слишком долго. Попробуйте ещё раз.
+tab_icons_tab_inbox	Чаты
+tab_icons_tab_montage	Истории
+tab_icons_tab_people	Люди
+tab_icons_tab_calls	Звонки
+tab_icons_tab_metaai	Meta AI
+tab_icons_tab_jewel	Facebook
+tab_icons_tab_more	Меню
+tab_icons_tab_mesetting	Ваш профиль
+tab_icons_size	Размер значков
+tab_icons_size_help	Ваши картинки и контурные значки рисуются в этом размере. %1$s заполняет всё место, которое Messenger отводит под значок, а %2$s примерно как собственные значки Messenger. Перезапустите Messenger, чтобы увидеть изменение.
+tab_icons_size_picked	Значки будут %1$s после перезапуска Messenger
+own_chat_sounds_help	«Отправка» звучит, когда ваше сообщение уходит, «Отправлено», когда оно дошло, а «Сообщение в приложении», когда приходит сообщение при открытом Messenger. Выберите файл .ogg, .mp3, .m4a или .wav до %1$d МБ для любого из них.
+own_chat_sounds_sound_send	Отправка
+own_chat_sounds_sound_sent	Отправлено
+own_chat_sounds_sound_in_app	Сообщение в приложении
+own_chat_sounds_choose	Выбрать
+own_chat_sounds_remove	Убрать
+own_chat_sounds_stock	Звук Messenger
+own_chat_sounds_yours	Ваш звук
+own_chat_sounds_copying	Копирование...
+own_chat_sounds_saved	Звук сохранён.
+own_chat_sounds_removed	Снова звук Messenger.
+own_chat_sounds_remove_failed	Не удалось убрать этот звук.
+own_chat_sounds_not_sound	Этот файл не играет как звук.
+own_chat_sounds_too_large	Звук может быть до %1$d МБ.
+own_chat_sounds_unreadable	Не удалось открыть файл.
+own_chat_sounds_not_saved	Не удалось сохранить звук.
+own_chat_sounds_busy	Ещё копируется предыдущий.
+own_chat_sounds_timeout	Файл грузился слишком долго. Попробуйте ещё раз.
+quiet_calls_chosen	Только выбранные чаты
+quiet_calls_chosen_help	Звонки из чатов, которые вы включите ниже, приходят без звука. Все остальные звонки звонят как обычно.
+quiet_calls_recent_empty	Здесь появятся чаты, которые вам звонят, сначала новые.
+quiet_mode_daily	Каждую ночь
+quiet_mode_daily_help	Тишина каждую ночь между двумя указанными ниже временами, независимо от того, идёт ли перерыв.
+quiet_mode_break	Сделать перерыв
+quiet_mode_open	Перерыв, пока вы его не закончите
+quiet_mode_until	Перерыв до %1$s
+quiet_mode_no_end	Пока я его не закончу
+quiet_mode_minutes	%1$s мин
+quiet_mode_hour	1 час
+quiet_mode_hours	%1$s ч
+quiet_mode_start	Тишина с %1$s
+quiet_mode_stop	Тишина до %1$s
+quiet_mode_how_long	Как долго?
+quiet_mode_how_long_hint	Сообщения и звонки всё равно приходят. Просто телефон о них молчит.
+quiet_mode_end	Закончить перерыв
+quiet_mode_channel	Тихий режим
+tab_badges_keep_chats	Оставить счётчик на вкладке «Чаты»
+tab_badges_keep_people	Оставить счётчик на вкладке «Люди»
+tab_badges_keep_notifications	Оставить счётчик на вкладке «Уведомления»
+tab_badges_keep_menu	Оставить счётчик на вкладке «Меню»
+tab_badges_keep_facebook	Оставить счётчик на кнопке Facebook
+experimental	Экспериментально
+new_setting	Новое
+choice_on	Включено: %s
+choice_off	Выключено: %s
+appearance	Внешний вид
+material_you_black	Чисто чёрная тёмная тема
+material_you_black_help	Использует чисто чёрный цвет с Material You в Messenger. Светлая тема не меняется.
+material_you_light	Акцент в светлой теме
+material_you_light_help	Окрашивает синие цвета Messenger в светлой теме тоже в ваш акцентный цвет. Серые и белый остаются как есть.
+material_you_light_grays	Серые цвета в светлой теме
+material_you_light_grays_help	Придаёт серым цветам Messenger в светлой теме ещё и оттенок вашей палитры. Белый и чёрный остаются как есть.
+material_you_style	Стиль палитры
+material_you_style_help	Сколько цвета использует Material You, как стили в настройках обоев Android. «По умолчанию» оставляет палитру ваших обоев или вашу тему как есть.
+material_you_style_default	По умолчанию
+material_you_style_tonal_spot	Тональный
+material_you_style_neutral	Нейтральный
+material_you_style_vibrant	Яркий
+material_you_style_expressive	Выразительный
+material_you_style_rainbow	Радуга
+material_you_style_fruit_salad	Фруктовый салат
+material_you_style_monochrome	Монохромный
+material_you_style_changed	Стиль «%s» сохранён
+light	Светлая тема
+light_help	Делает эти настройки светлыми. Сам Messenger не меняется.
+follow_phone_theme	Следовать тёмной теме телефона
+follow_phone_theme_help	Эти настройки становятся тёмными, когда на телефоне включена тёмная тема, и светлыми, когда нет. Сам Messenger не меняется.
+light_follows_phone	Включено «Следовать тёмной теме телефона», поэтому вид выбирает телефон. Ваш выбор сохранён.
+theme_help	По умолчанию тёмная. Ваш выбор остаётся сохранённым.
+theme_status_wallpaper	Material You берёт цвета из ваших обоев. Выберите акцентный цвет или вставьте тему, чтобы использовать свои.
+theme_status_saved	Ваша тема «%s» сохранена. Material You использует её, пока он включён.
+theme_status_unnamed	Ваша тема сохранена. Material You использует её, пока он включён.
+theme_accents	Акцентный цвет
+theme_accent_saved	Акцентный цвет сохранён
+theme_accent_saved_on	Акцентный цвет сохранён и включён
+theme_accent_blue	Синий
+theme_accent_purple	Фиолетовый
+theme_accent_pink	Розовый
+theme_accent_red	Красный
+theme_accent_orange	Оранжевый
+theme_accent_green	Зелёный
+theme_accent_teal	Бирюзовый
+theme_codes	Коды цветов
+theme_code_accent	Акцент
+theme_code_neutral	Фон
+theme_codes_use	Использовать эти цвета
+theme_codes_help	Введите шестизначные коды, например #E1306C. Акцент окрашивает синие цвета Messenger, а фон окрашивает его серые. Оставьте поле пустым, чтобы сохранить цвет Messenger.
+theme_codes_invalid	Это не код цвета. Попробуйте, например, #E1306C.
+theme_codes_empty	Сначала введите код цвета.
+theme_paste	Использовать скопированную тему
+theme_copy	Копировать тему
+theme_clear	Вернуть цвета обоев
+theme_pasted	Тема сохранена
+theme_pasted_on	Тема сохранена и включена
+theme_paste_empty	Нечего вставлять. Сначала скопируйте тему.
+theme_paste_invalid	Это не тема. Ваши цвета не изменились.
+theme_copied	Тема скопирована
+theme_copy_failed	Не удалось скопировать тему. Попробуйте ещё раз.
+theme_file_save	Сохранить тему в файл
+theme_file_open	Открыть файл темы
+theme_file_saved	Файл темы сохранён
+theme_file_save_failed	Не удалось сохранить файл темы. Попробуйте другую папку.
+theme_file_no_picker	На этом телефоне нет средства выбора файлов для этого.
+theme_file_unreadable	Не удалось открыть этот файл. Попробуйте ещё раз.
+theme_file_invalid	Этот файл не тема. Ваши цвета не изменились.
+ai_chat_blocked	Чаты с Meta AI заблокированы в настройках HushMessenger.
+theme_cleared	Снова цвета ваших обоев
+theme_change	изменение темы
+theme_file_help	Тема представляет собой небольшой текст вида {"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418", "pure_black": true}. Accent окрашивает синие цвета Messenger, а neutral окрашивает его серые. Оба сохраняют яркость Messenger, поэтому текст остаётся легко читаемым. «Копировать тему» даёт вам текущие цвета, чтобы изменить их или поделиться ими. «Сохранить тему в файл» сохраняет её как файл .json, а «Открыть файл темы» загружает такой файл.
+about	О HushMessenger
+version	Версия
+installed	Установленные функции
+screen_art_blurry	В этой загрузке Messenger есть значки только для экранов %1$s dpi, а у этого телефона %2$s dpi, поэтому они выглядят размытыми. Чтобы это исправить, пропатчите сборку с APKMirror с пометкой nodpi или сделанную для вашего экрана.
+copy	Копировать конфигурацию
+copy_help	Копирует версии приложения и выбор функций. Без данных аккаунта или чатов. Ничего не отправляется.
+setup_activity_help	Заметки об активности показывают только, что функция сработала. Они не доказывают, что у неё был видимый эффект или что она защитила вашу конфиденциальность.
+usage	Как пользоваться функциями
+save_help	Изменения сохраняются сразу. Настройки списка чатов появятся, когда Messenger в следующий раз построит список чатов, а «Перезапустить Messenger» применяет всё сразу. Вы останетесь в своём аккаунте.
+pause_help	«Приостановить все изменения» на время выключает все функции. Ваши настройки сохраняются.
+account_help	Ваши настройки действуют для всех аккаунтов Messenger в этой установке.
+missing	Не хватает функции?
+missing_help	Выберите её в Morphe Manager и пропатчите Messenger заново. Одно только обновление источника патчей не добавляет новые функции.
+log_out	Выйти
+log_out_help	Выполняет выход из этого аккаунта на этом телефоне так же, как «Выйти» в самом Messenger.
+log_out_unavailable	В этой сборке не найдена кнопка «Выйти» Messenger, поэтому используйте ту, что в меню Messenger.
+log_out_failed	«Выйти» в Messenger не открылось. Кнопка в меню Messenger по-прежнему работает.
+source	Исходный код и лицензии
+licenses_hint	Что HushMessenger берёт из проектов, на которых он построен. Уведомления остаются на английском, как и лицензии, из которых они взяты.
+licenses_source	Исходный код
+no_browser	Браузер на этом телефоне не найден
+page_blocked	Телефон не разрешил открыть эту страницу
+support	Поддержать HushMessenger
+report	Сообщить о проблеме
+report_help	Открывает публичный отчёт на GitHub, где уже заполнены ваши версии и включённые функции. Проверьте его и добавьте, что случилось.
+restart_waiting_one	%d изменение ждёт перезапуска
+restart_waiting_many	Изменений, ждущих перезапуска: %d
+quick_setups	Быстрые наборы
+quick_setups_help	Переключает набор функций одним нажатием. Потом каждую можно изменить отдельно. Нажмите и удерживайте, чтобы скрыть этот раздел.
+quick_setups_hidden	Скрыты. Нажмите «%1$s» в «%2$s».
+quick_setups_home	Быстрые наборы
+quick_setups_home_shown	Показаны. Нажмите, чтобы скрыть.
+quick_setups_home_hidden	Скрыты. Нажмите, чтобы снова показать.
+quick_quiet	Тишина
+quick_quiet_help	Скрывает рекламу, промоакции, предложенных людей и призывы к активности.
+quick_privacy	Конфиденциальность
+quick_privacy_help	Останавливает отправку данных, которые сообщают Meta, как вы пользуетесь Messenger, включая ваш рекламный идентификатор.
+quick_iphone	Вид как на iPhone
+quick_iphone_help	Ставит заголовок «Чаты» вверху списка чатов вместо надписи Messenger, оставляет под ним строку поиска и размывает экран за меню (Android 12 или новее), как Messenger выглядит на iPhone. Перезапустите Messenger, чтобы увидеть.
+quick_iphone_words	Чаты
+quick_defaults	Вернуть по умолчанию
+quick_defaults_help	Выключает все функции. Пауза и тема остаются как есть.
+quick_changed_one	Изменена %d функция
+quick_changed_many	Изменено функций: %d
+quick_unchanged	Нечего менять. Эти функции уже настроены.
+quick_missing	Эти функции не установлены. Ничего не изменилось.
+quick_undone_one	Возвращена %d функция
+quick_undone_many	Возвращено функций: %d
+undo	Отменить
+undo_action	Отменить: %s
+credits	GPL-3.0. Включает наработки Morphe, De-Vanced, ReVanced, Doom и Messenger Cleaner.
+independent	Не связано с Meta и Morphe.
+clipboard	Конфигурация HushMessenger
+copied	Конфигурация скопирована
+copy_failed	Не удалось скопировать конфигурацию. Повторите.
+export	Копировать настройки
+export_help	Копирует ваши настройки как текст. Чтобы вернуть их в другой установке, скопируйте этот текст туда, затем нажмите «Вставить настройки».
+exported	Настройки скопированы
+export_failed	Не удалось скопировать настройки. Повторите.
+choices_file_save_failed	Не удалось сохранить настройки в файл. Повторите.
+import_choices	Вставить настройки
+import_help	Восстанавливает настройки из текста, скопированного через «Копировать настройки». Сначала скопируйте его, затем нажмите здесь.
+imported_one	Восстановлена %d настройка.
+imported_many	Восстановлено настроек: %d.
+imported_partial	Восстановлено: %1$d из %2$d.
+import_same	Настройки уже как в копии.
+import_none_changed	Настройки не изменились.
+import_auto_reply_off	Автоответ выключен. В этой копии нет ответов.
+import_empty	Нечего вставлять. Сначала скопируйте настройки.
+import_invalid	Это не копия настроек. Ничего не изменилось.
+import_too_large	Копия больше 128 КБ. Ничего не изменилось.
+import_zip_too_large	Копия слишком большая. Ничего не изменилось.
+export_too_large	Ваши настройки слишком большие для одной копии.
+export_too_large_detail	Больше всего занимает %s. Ничего не скопировано и не сохранено.
+restore_failed	Файл не читается. Повторите или выберите другой.
+choices_file_no_picker	Не удалось открыть выбор файла на этом телефоне.
+import_unknown_one	Пропущена %d настройка, которую эта версия не знает.
+import_unknown_many	Пропущено настроек, которые эта версия не знает: %d.
+import_unavailable_one	Пропущена %d настройка, патч которой не установлен.
+import_unavailable_many	Пропущено настроек, чьи патчи не установлены: %d.
+import_damaged_one	Пропущен %d файл, который не удалось использовать.
+import_damaged_many	Пропущено файлов, которые не удалось использовать: %d.
+import_no_choices	Нечего восстанавливать. Нет совпадений с патчами.
+save_choices_file	Сохранить настройки в файл
+read_choices_file	Восстановить настройки из файла
+choices_file_help	Сохраняет ваши настройки, включая автоответы и скрытые или закреплённые чаты. Если есть картинка заголовка или вкладки, свой шрифт, картинки автоответов или люди, за которыми следят «Особые контакты», получится файл .zip, в котором они тоже есть. Сообщения в него не попадают, как и ваш аккаунт. Настройки, которых нет в файле, остаются как есть. Если настройки закроются, пока вы выбираете файл, выберите его снова.
+choices_file_saved	Файл настроек сохранён
+choices_file_saving	Сохраняем файл настроек...
+choices_file_reading	Читаем файл настроек...
+cancel_choices_file	Отменить работу с файлом
+choices_file_canceled	Отменено. При сохранении файл может остаться неполным.
+choices_file_canceled_read	Отменено. Ваши настройки не изменились.
+choices_file_timeout	Слишком долго. Файл может быть неполным. Повторите.
+choices_file_timeout_read	Слишком долго. Настройки не изменились. Повторите.
+choices_file_busy	Предыдущие сохранения или восстановления файла ещё завершаются. Попробуйте ещё раз чуть позже.
+choices_file_changed	Настройки менялись при восстановлении. Повторите.
+check_updates	Проверять обновления
+check_updates_help	Ищет новую версию на GitHub, когда вы включаете эту функцию и когда открываются настройки. Последний ответ используется повторно в течение часа. По умолчанию выключено. GitHub может видеть ваш IP-адрес. Данные аккаунта и чатов не отправляются.
+check_now	Проверить сейчас
+update_loading	Проверка обновлений...
+update_available	Доступна версия %s
+update_action	Посмотреть выпуск
+up_to_date	У вас последняя версия.
+update_ahead	Установлена %s. Последняя опубликованная версия: %s.
+update_retry	GitHub пока не ответил. Нажмите «Проверить сейчас» после %s.
+update_error	Не удалось проверить обновления. Проверьте подключение и попробуйте ещё раз.
+active_now	Использовано только что
+active_ago	Использовано %s назад
+seconds_short	%d с
+minutes_short	%d мин
+hours_short	%d ч
+days_short	%d д
+not_active	Включено. Ждём, когда Messenger это использует
+unsent_not_active	Включено. Пока не было сообщений с отменённой отправкой
+restart_pending_on	Начнёт действовать после перезапуска Messenger
+restart_pending_off	Действует до перезапуска Messenger
+meta_ai_tab_pending_on	Вкладка Meta AI скроется после перезапуска Messenger
+meta_ai_tab_pending_off	Вкладка Meta AI вернётся после перезапуска Messenger
+tab_people_pending_on	Вкладка «Люди» скроется после перезапуска Messenger
+tab_people_pending_off	Вкладка «Люди» вернётся после перезапуска Messenger
+tab_people_show_pending_on	Вкладка «Люди» появится после перезапуска Messenger
+tab_people_show_pending_off	Вкладка «Люди» исчезнет после перезапуска Messenger
+tab_settings_show_pending_on	Вкладка настроек появится после перезапуска Messenger
+tab_settings_show_pending_off	Вкладка настроек исчезнет после перезапуска Messenger
+tab_instants_show_pending_on	Вкладка Instants появится после перезапуска Messenger
+tab_instants_show_pending_off	Вкладка Instants исчезнет после перезапуска Messenger
+tab_notifications_pending_on	Вкладка «Уведомления» скроется после перезапуска Messenger
+tab_notifications_pending_off	Вкладка «Уведомления» вернётся после перезапуска Messenger
+tab_stories_pending_on	Вкладка «Истории» скроется после перезапуска Messenger
+tab_stories_pending_off	Вкладка «Истории» вернётся после перезапуска Messenger
+error_now	Только что остановлено из-за ошибки. Подробности в «Копировать конфигурацию» на вкладке «Приложение».
+error_ago	Остановлено из-за ошибки %s назад. Подробности в «Копировать конфигурацию» на вкладке «Приложение».
+changes_paused	Изменения приостановлены
+changes_resumed	Изменения возобновлены
+safe_mode	Безопасный режим
+safe_mode_help	Messenger несколько раз подряд вылетел, поэтому все функции выключены. Ваши настройки по-прежнему сохранены. Нажмите «Возобновить», чтобы снова их включить.
+safe_mode_help_paused	Messenger несколько раз подряд вылетел. Ваши настройки по-прежнему сохранены. Сначала выйдите из безопасного режима. «Приостановить все изменения» останется включённым, пока вы его не выключите.
+resume	Возобновить
+clear_safe_mode	Выйти из безопасного режима
+safe_mode_cleared	Безопасный режим снят. Изменения на паузе.
+safe_mode_save_failed	Безопасный режим не снят. Изменения на паузе.
+enabled_one	Включена %d функция
+enabled_many	Включено функций: %d
+saved_one	Сохранена %d настройка. Выключите «Приостановить все изменения», чтобы она заработала.
+saved_many	Сохранено настроек: %d. Выключите «Приостановить все изменения», чтобы они заработали.
+saved	Ваши настройки сохраняются автоматически.
+none_installed	Функции не установлены. Выберите патчи в Morphe Manager и пропатчите Messenger заново.
+no_matches	Нет подходящих функций.
+results_one	%d из %d установленной функции
+results_many	%d из %d установленных функций
+group_on	%1$d/%2$d
+group_on_help	Включено %1$d из %2$d
+open_help	Откройте Messenger из меню приложений
+message_log_view	Открыть журнал
+search_clear	Очистить
+search_clear_description	Очистить поиск
+camera_missing	Нет приложения камеры, которое может снимать фото.
+camera_failed	Не удалось открыть камеру. Попробуйте ещё раз.
+camera_permission	Разрешите доступ к камере в «О приложении» Messenger.
+camera_photo	Фото
+camera_video	Видео
+system_camera_ask	Спрашивать: фото или видео
+system_camera_ask_help	Кнопка камеры спрашивает, хотите ли вы фото или видео, а затем открывает для этого ваше приложение камеры.
+gallery_missing	Нет приложения галереи, которое может выбрать фото.
+gallery_failed	Галерея не смогла завершить выбор. Попробуйте ещё раз.
+instant_gallery_shutter	Нажмите на затвор, чтобы отправить фото.
+message_log_clear	Очистить журнал
+message_log_close	Закрыть
+message_log_title	Журнал сообщений
+message_log_hint	Хранится только на этом телефоне. Сначала новые.
+message_log_hint_by_chat	Хранится только на этом телефоне. Сначала чаты с самым новым сообщением.
+message_log_retention	Если выключить журнал, новые записи перестанут добавляться. Сохранённые сообщения остаются, пока вы их не очистите или пока не пройдёт выбранный вами срок. Журнал хранит до 20 000 сообщений.
+message_log_loading	Загрузка...
+message_log_empty	Пока нет сохранённых сообщений.
+message_log_empty_on	Здесь появятся новые сообщения с текстом уведомлений. Сообщения, которые уже есть в ваших чатах, не добавляются.
+message_log_empty_off	Включите «Вести журнал сообщений» в разделе «Функции», чтобы сохранять новые сообщения с текстом уведомлений. Сообщения, которые уже есть в ваших чатах, не добавляются.
+message_log_load_failed	Не удалось открыть журнал сообщений
+message_log_load_help	Попробуйте ещё раз. Если ошибка повторяется, «Очистить журнал» удалит сохранённый журнал и его ключ, чтобы новые сообщения могли сохраняться.
+message_log_set_aside	Не удалось прочитать старый журнал
+message_log_set_aside_help	Он отложен в сторону, чтобы новые сообщения продолжали сохраняться. Открыть его теперь нельзя, а его удаление не затронет новые сообщения.
+message_log_set_aside_remove	Удалить старый журнал
+message_log_set_aside_failed	Не удалось удалить старый журнал. Попробуйте ещё раз.
+message_log_clear_failed	Не удалось очистить весь журнал
+message_log_clear_help	Часть сохранённых данных или их ключ удалить не удалось. Нажмите «Очистить журнал» ещё раз.
+retry	Повторить
+message_log_unknown_thread	Неизвестный чат
+message_log_in_group	%s в %s
+message_log_no_text	(без текста)
+message_log_unsent	Отправка отменена
+message_log_unsent_only	Только с отменённой отправкой
+message_log_show_all	Показать все сообщения
+message_log_cleared	Журнал сообщений очищен
+message_log_restored	Журнал сообщений возвращён
+message_log_restore_failed	Не удалось вернуть журнал
+message_log_now	Только что
+message_log_ago	%s назад
+message_log_quiet_chats	Записывать чаты без уведомлений
+message_log_quiet_chats_help	Также записывает сообщения из чатов с выключенными уведомлениями и из чатов, которые вы ограничили, без уведомлений. Ограниченные зашифрованные чаты ничего не присылают на телефон, поэтому они по-прежнему видны, только когда вы ищете этого человека.
+message_log_save_expiring	Сохранять сообщения перед удалением
+message_log_save_expiring_help	Прямо перед тем, как журнал удалит сообщение, оно добавляется в текстовый файл в Download/Messenger, по одному файлу в месяц. Этот файл не зашифрован, поэтому приложения с доступом к вашим файлам могут его прочитать.
+message_log_search	Поиск по сообщениям и именам
+message_log_by_chat	По чатам
+message_log_by_date	Сначала новые
+message_log_all_chats	Все чаты
+message_log_chat_count	Сообщений: %s
+message_log_no_match	Нет подходящих сохранённых сообщений.
+message_log_save_text	Сохранить как текст
+message_log_save_csv	Сохранить как CSV
+message_log_save_help	Сохраняет то, что сейчас показано. Файл не зашифрован.
+message_log_saved	Сообщения сохранены: %s
+message_log_save_failed	Не удалось сохранить файл. Попробуйте ещё раз.
+message_log_keep	Хранить сообщения
+message_log_keep_30	30 дней
+message_log_keep_90	90 дней
+message_log_keep_365	1 год
+message_log_keep_0	Пока я не очищу журнал
+message_log_keep_changed	Сообщения хранятся %s.
+message_log_keep_shorter	Сообщения хранятся %s. Более старые останутся ещё на 10 минут на случай, если вы передумаете.
+message_log_keep_forever	Сообщения хранятся, пока вы не очистите журнал.
+message_log_kind_all	Все
+message_log_kind_direct	Личные
+message_log_kind_groups	Группы
+message_log_rename_hint	Название этого чата
+message_log_rename_save	Сохранить название
+message_log_renamed	Название сохранено
+message_log_rename_removed	Название удалено
+message_log_rename_failed	Не удалось сохранить название. Попробуйте ещё раз.
+message_log_attachment	Фото или вложение
+message_log_photo	Фото
+message_log_photo_missing	Не удалось показать это фото.
+message_log_keep_photos	Хранить фото в полном размере
+message_log_keep_photos_help	Скачивает фото при записи в журнал в том размере, в котором его отправили, чтобы вы могли увидеть его, даже если отправитель отменит отправку. Без этого журнал хранит маленькое превью из уведомления, и только в чатах без сквозного шифрования. Фото занимают гораздо больше места, чем остальной журнал, и удаляются вместе со своим сообщением.
+message_log_keep_videos	Хранить видео
+message_log_keep_videos_help	Скачивает видео при записи в журнал, чтобы вы могли посмотреть его, даже если отправитель отменит отправку. Messenger скачивает видео, только когда вы его открываете, поэтому отмена отправки до этого его забирает. Видео занимают больше всего места в журнале, до 16 МБ каждое, и удаляются вместе со своим сообщением.
+message_log_video_title	Видео
+message_log_video_hint	Воспроизводится из копии журнала, которая остаётся зашифрованной на этом телефоне.
+message_log_video_play	Воспроизвести видео
+message_log_video_missing	Не удалось воспроизвести это видео.
+message_log_keep_voice	Хранить голосовые сообщения
+message_log_keep_voice_help	Скачивает голосовое сообщение при записи в журнал, чтобы вы могли прослушать его, даже если отправитель отменит отправку. Messenger скачивает его, только когда вы его включаете, поэтому отмена отправки до этого его забирает. Записи занимают больше места, чем остальной журнал, и удаляются вместе со своим сообщением.
+message_log_clip_play	Воспроизвести голосовое сообщение
+message_log_clip_stop	Остановить
+message_log_clip_missing	Не удалось воспроизвести это голосовое сообщение.
+message_log_button	Кнопка вверху экрана «Чаты»
+message_log_button_help	Добавляет часы рядом с кнопкой нового сообщения. Нажмите на них, чтобы открыть журнал.
+message_log_menu_row	Строка во вкладке «Меню»
+message_log_menu_row_help	Добавляет «Журнал сообщений» под пунктом «Настройки» во вкладке «Меню» Messenger. Нажмите на него, чтобы открыть журнал.
+message_log_chat_row	Строка в меню чата
+message_log_chat_row_help	Добавляет «Журнал сообщений» в меню, которое появляется, когда вы нажимаете и удерживаете чат. Нажмите на него, чтобы открыть журнал только этого чата.
+auto_reply_edit	Изменить ответы
+auto_reply_title	Автоответы
+auto_reply_hint	Ответы проверяются сверху вниз. Отправляется первый подходящий ответ.
+auto_reply_when	Слова для срабатывания (необязательно)
+auto_reply_when_hint	привет, часы работы
+auto_reply_reply	Отправить этот ответ
+auto_reply_reply_hint	Введите ответ
+auto_reply_any	Разделяйте слова или фразы запятыми. Оставьте пустым, чтобы отвечать на любое сообщение.
+auto_reply_off	Автоответ выключен. Сохраните ответы здесь, затем включите его в разделе «Функции».
+auto_reply_count	%1$s из %2$s ответов
+auto_reply_number	Ответ %s
+auto_reply_remove_number	Удалить ответ %s
+auto_reply_required	Напишите здесь ответ или удалите этот перед сохранением.
+auto_reply_cancel	Отмена
+auto_reply_remove	Удалить
+auto_reply_add	Добавить ответ
+auto_reply_save	Сохранить
+auto_reply_groups	Отвечать и в групповых чатах
+auto_reply_full	Больше ответов сохранить нельзя (%s)
+auto_reply_saved	Сохранено ответов: %s
+auto_reply_saved_none	Ответы не сохранены, поэтому автоответа не будет
+auto_reply_picture	Картинка (необязательно)
+auto_reply_picture_none	Нет картинки. Добавьте её, чтобы отправлять сразу после ответа.
+auto_reply_picture_set	Отправляется сразу после ответа
+auto_reply_picture_missing	Картинка пропала. Выберите её снова или удалите.
+auto_reply_picture_pick	Добавить картинку
+auto_reply_picture_change	Изменить картинку
+auto_reply_picture_clear	Убрать картинку
+auto_reply_picture_thumb	Картинка, которая отправляется с этим ответом
+auto_reply_picture_copying	Копируем картинку...
+auto_reply_picture_failed	Не удалось использовать эту картинку. Попробуйте другую.
+auto_reply_picture_too_big	Эта картинка слишком большая. Выберите поменьше.
+auto_reply_picture_too_slow	Картинка загружалась слишком долго. Попробуйте ещё раз или выберите другую.
+auto_reply_picture_no_picker	Здесь нет приложения для выбора картинки
+font_file_choose	Выбрать файл шрифта
+font_phone	Использовать шрифт телефона
+font_file_help	Даже с выбранным файлом некоторые экраны Messenger всё равно используют шрифт телефона.
+font_file_none	Ничего не выбрано, поэтому используется шрифт телефона. Выберите файл шрифта .ttf или .otf размером до %1$d МБ.
+font_file_none_off	Ничего не выбрано. Включите переключатель, чтобы использовать шрифт телефона, или выберите файл шрифта .ttf или .otf размером до %1$d МБ.
+font_file_using	Используется %1$s. Выберите другой файл, чтобы заменить его.
+font_file_picked_off	Выбран %1$s. Включите переключатель, чтобы использовать его.
+font_file_missing	Копия %1$s в HushMessenger пропала, поэтому используется шрифт телефона. Выберите файл ещё раз.
+font_file_copying	Копируем файл шрифта...
+font_file_set	Шрифт выбран. Перезапустите Messenger, чтобы применить.
+font_file_set_off	Шрифт выбран. Включите переключатель.
+font_file_not_font	Это не шрифт .ttf или .otf. Шрифт не изменился.
+font_file_too_large	Файл шрифта больше %1$d МБ. Шрифт не изменился.
+font_file_wont_load	Android не принимает этот шрифт. Шрифт не изменился.
+font_file_not_saved	Не удалось сохранить шрифт. Проверьте место и повторите.
+font_file_unreadable	Не удалось открыть файл. Шрифт не изменился.
+font_file_no_picker	На этом телефоне нет выбора файлов.
+font_file_picker_failed	Не удалось открыть выбор файлов. Попробуйте ещё раз.
+font_file_busy	Не удалось начать. Попробуйте чуть позже.
+font_file_stop	Остановить копирование
+font_file_stopped	Копирование остановлено. Шрифт не изменился.
+font_file_timeout	Копировалось слишком долго. Шрифт не изменился.
+font_file_finishing	Шрифт уже сохраняется. Это скоро закончится.
+font_file_stuck	Предыдущие копирования всё ещё ждут свои файлы. Вы сможете выбрать другой, когда они прекратят попытки.
+font_phone_set	Снова шрифт телефона. Перезапустите Messenger, чтобы увидеть.
+font_phone_failed	Не удалось вернуть шрифт телефона. Попробуйте ещё раз.
+font_size	Размер текста %1$d%%
+font_size_smaller	Меньше
+font_size_larger	Больше
+font_shift_none	Текст стоит там, где его ставит шрифт
+font_shift_down	Текст сдвинут вниз на %1$d%%
+font_shift_up	Текст сдвинут вверх на %1$d%%
+font_shift_up_button	Вверх
+font_shift_down_button	Вниз
+font_adjust_help	Если шрифт выглядит слишком мелким или стоит слишком высоко или низко в облачке сообщения, измените его размер или сдвиньте его здесь. Каждый сдвиг равен 2%% размера текста. Перезапустите Messenger, чтобы увидеть изменение.
+font_adjust_saved	%1$s. Перезапустите Messenger, чтобы увидеть.
+font_adjust_failed	Не удалось сохранить. Шрифт не изменился.
+hide_delivered	Скрыть «Доставлено»
+hide_delivered_help	Также придерживает отметку «Доставлено», чтобы полученное вами сообщение не показывалось доставленным на телефоне собеседника. Работает в обычных чатах. Зашифрованные чаты отправляют «Доставлено» по-своему и всё равно его показывают.
+mark_read	Отметить как прочитанное
+mark_read_done	Отмечено как прочитанное
+mark_read_nothing	Нечего отмечать как прочитанное
+save_view_once	Кнопка сохранения для одноразового просмотра
+save_view_once_help	Добавляет кнопку «Сохранить» на фото с одноразовым просмотром и Quicksnap, пока включено «Разрешить скриншоты». Одно нажатие сохраняет то, что на экране, в ваши картинки в Pictures/Messenger, чтобы вы не потеряли это, когда фото закроется или его отправку отменят. На видео сохраняется кадр, на который вы смотрите.
+save_view_once_button	Сохранить
+save_view_once_saved	Сохранено в %1$s
+save_view_once_failed	Не удалось сохранить.
+floating_menu	Плавающее меню сообщения
+floating_menu_help	Переносит действия, которые появляются при нажатии и удержании сообщения, с низа экрана в скруглённую карточку прямо под этим сообщением, как на iPhone. Ряд эмодзи остаётся на месте, и все действия по-прежнему принадлежат Messenger.
+story_seen_button	Кнопка «Отметить как просмотренное»
+story_seen_button_help	Добавляет кнопку с глазом на истории, которые вы открываете. Нажмите её, когда хотите, чтобы человек увидел, что вы посмотрели историю на экране. Пока вы этого не сделаете, глаз перечёркнут.
+story_seen	Отметить как просмотренное
+story_seen_done	Отмечено как просмотренное
+story_seen_nothing	Нечего отмечать как просмотренное
+call_confirm_audio	Начать голосовой звонок?
+call_confirm_video	Начать видеозвонок?
+call_confirm_call	Позвонить
+call_confirm_cancel	Отмена
+chat_jump_title	Перейти
+chat_jump_first	К первому сообщению
+chat_jump_date	К дате
+chat_jump_loading	Загружаем более старые сообщения (пока %1$d)
+chat_jump_loading_plain	Загружаем более старые сообщения
+chat_jump_seeking	Ищем этот день
+chat_jump_cancel	Отмена
+pinned_bar_one	Закреплённое сообщение
+pinned_bar_many	Закреплённых сообщений: %1$d
+pinned_bar_attachment	Вложение
+chat_jump_start	Это начало чата
+chat_jump_found	Вот первое сообщение за этот день
+chat_jump_next	В этот день ничего нет, вот следующее сообщение
+chat_jump_none	Нет сообщений в этот день или позже
+chat_jump_no_dates	Не удаётся прочитать даты в этом чате
+chat_jump_no_list	Не удаётся найти сообщения этого чата
+chat_page_buttons	Кнопки прокрутки на страницу вверх и вниз
+chat_page_buttons_help	Добавляет над стрелкой две кнопки, которые прокручивают чат на экран вверх или вниз, чтобы читать длинный чат без бесконечных свайпов.
+chat_page_up	На страницу вверх
+chat_page_down	На страницу вниз
+link_player_play	Воспроизвести
+link_player_pause	Пауза
+link_player_replay	Воспроизвести снова
+link_player_full_screen	Во весь экран
+link_player_open	Открыть в %1$s
+people.title	Скрыть «Люди, которых вы можете знать»
+people.description	Скрывает предложенных людей в чатах, поиске и историях, а также на вкладках «Люди» и «Уведомления». Подойдёт, если вам нужны только знакомые люди.
+friend_requests.title	Скрыть запросы в друзья
+friend_requests.description	Скрывает карточки запросов на добавление в друзья в списке чатов. Никого не принимает и не отклоняет.
+community_inbox.title	Скрыть чаты ваших сообществ
+community_inbox.description	Скрывает чаты сообществ, в которые вы вступили, из основного списка чатов. В поиске и папках сообществ они по-прежнему видны. Список изменится при следующем обновлении.
+growth.title	Скрыть призывы к активности
+growth.description	Скрывает призывы добавить больше людей, подсказки в заметках вроде «Сделать мои заметки общедоступными» и карточку «Поделитесь своей историей».
+inbox_promotions.title	Скрыть промоакции в списке чатов
+inbox_promotions.description	Скрывает рекламные баннеры в списке чатов.
+stories.title	Скрыть истории и заметки
+stories.description	Скрывает ряд историй и заметок над вашими чатами и кольца историй вокруг фото профиля.
+story_create_tile.title	Скрыть «Создать историю»
+story_create_tile.description	Убирает плитку «Создать историю» из начала ряда историй и заметок над вашими чатами. На этой плитке находятся ваша история и заметка, поэтому они исчезают вместе с ней.
+instants_button.title	Скрыть кнопку Instants
+instants_button.description	Скрывает кнопку +, которая выезжает у правого края списка чатов, и такую же под всплывающими чатами. Обе открывают Instants.
+subtabs.title	Скрыть вкладки списка чатов
+subtabs.description	Скрывает вкладки «Все», «Непрочитанные» и «Группы» над вашими чатами.
+inbox_typing.title	Набор текста в списке чатов
+inbox_typing.description	Пишет «печатает» поверх последнего сообщения чата в списке, пока собеседник набирает текст, а не только когда вы в чате. Эта функция уже есть в Messenger, но сервер Meta держит её выключенной. Перезапустите Messenger, чтобы она заработала.
+inbox_search_bar.title	Оставить строку поиска
+inbox_search_bar.description	Возвращает строку поиска вверху списка чатов, если Messenger заменил её значком поиска. Перезапустите Messenger, чтобы увидеть изменение. Если значка у вас не было, ничего не изменится.
+search_suggested.title	Скрыть «Рекомендуемые» в поиске
+search_suggested.description	Скрывает предложенных людей вверху поиска, пока вы ничего не ввели. Люди по-прежнему находятся, когда вы их ищете.
+search_reels.title	Скрыть недавние Reels в поиске
+search_reels.description	Скрывает Reels, которые вы недавно смотрели, из поиска, пока вы ничего не ввели.
+search_strangers.title	Скрывать незнакомых в поиске
+search_strangers.description	Скрывает людей, которые не у вас в друзьях, когда вы вводите запрос в поиске, чтобы вы случайно не написали незнакомцу. Ваши друзья и группы по-прежнему показываются.
+# context: confirm_strangers, the Inbox switch that holds the first Send in a chat with someone who isn't a friend
+confirm_strangers.title	Спрашивать, прежде чем писать незнакомым
+confirm_strangers.description	Задерживает первую отправку в чате с человеком, который не у вас в друзьях, и просит нажать «Отправить» ещё раз. Второе нажатие в течение 5 секунд отправляет сообщение как запрос на переписку. В группах, на страницах и в чатах, где вам уже писали, сообщения уходят сразу.
+longer_notes.title	Писать более длинные заметки
+longer_notes.description	Позволяет вводить в заметку до 600 символов вместо 60. Пропустит ли длинную заметку, решает Facebook.
+chat_preview.title	Предпросмотр чата по долгому нажатию
+chat_preview.description	Нажмите и удерживайте чат, чтобы заглянуть в него в собственном предпросмотре Messenger с меню чата под ним, не открывая чат.
+chat_preview_size.title	Большой предпросмотр чата
+chat_preview_size.description	Даёт чату больше места в предпросмотре, который появляется при нажатии и удержании чата, и позволяет прокручивать его назад прямо там. Меню под ним сохраняет постоянную высоту и прокручивается, если пунктов больше.
+chat_preview_taps.title	Нажатия остаются в предпросмотре чата
+chat_preview_taps.description	Нажатие на чат в предпросмотре, который появляется при нажатии и удержании чата, больше не открывает его. Нажатия попадают в сам чат, поэтому стрелка вниз к новому сообщению работает, а «Открыть чат» вверху меню под ним открывает чат.
+mark_read_action.title	Скрыть «Отметить как прочитанное»
+mark_read_action.description	Скрывает «Отметить как прочитанное» в меню, которое появляется при нажатии и удержании чата в списке чатов, чтобы вы не отметили чат прочитанным случайно. «Отметить как непрочитанное» остаётся.
+pinned_chats.title	Закреплять больше чатов
+pinned_chats.description	Позволяет закреплять чаты сверх лимита Messenger и возвращает «Закрепить» в чаты, где этого пункта нет. Закрепления сверх лимита хранятся на этом телефоне, поэтому на других ваших устройствах их не будет.
+hidden_chats.title	Скрывать выбранные чаты
+hidden_chats.description	Добавляет «Скрыть из списка чатов» в меню, которое появляется при нажатии и удержании чата. Скрытый чат не появляется в списке чатов, когда приходят новые сообщения, но поиск его находит. Скрытие действует на этом телефоне, а вернуть чаты можно в настройках HushMessenger. Уведомления это не отключает, поэтому для этого выключите уведомления чата в Messenger.
+special_contacts.title	Особые контакты
+special_contacts.description	Добавляет «Отслеживать этого человека» в меню, которое появляется при нажатии и удержании чата с одним человеком. Затем HushMessenger ведёт историю того, когда человек появляется в сети, выходит из сети, печатает вам и меняет имя, по тому, что Messenger и так вам показывает. История хранится на этом телефоне, и её можно посмотреть в настройках HushMessenger.
+chat_menu_items.title	Скрыть пункты меню чата
+chat_menu_items.description	Скрывает выбранные вами пункты меню, которое появляется при нажатии и удержании чата в списке чатов. Нажмите и удерживайте любой чат один раз, и пункты этого меню появятся под этим переключателем, чтобы вы могли их выбрать.
+profile_menu_items.title	Скрыть пункты меню профиля
+profile_menu_items.description	Скрывает выбранные вами пункты меню, которое появляется, когда вы нажимаете на фото человека рядом с его сообщением в чате. Нажмите на одно фото один раз, и пункты этого меню появятся под этим переключателем, чтобы вы могли их выбрать.
+# context: remove_contact, the Chat menu switch that adds Remove contact to the menu you get by holding a person who isn't a friend
+remove_contact.title	Показывать «Удалить контакт»
+remove_contact.description	Возвращает пункт «Удалить контакт» в меню, которое появляется, когда вы нажимаете и удерживаете человека на вкладке «Люди», в контактах или в поиске, для тех, кто не у вас в друзьях. Он убирает человека из ваших контактов Messenger, не блокируя его.
+facebook.title	Скрыть ярлыки Facebook
+facebook.description	Скрывает кнопки Facebook, ярлыки профиля и функций «Поделиться», а также разделы «Также от Meta» и «Подписки» во вкладке «Меню». Удобно, если вы пользуетесь только Messenger.
+meta_ai.title	Скрыть Meta AI
+meta_ai.description	Скрывает плавающую кнопку Meta AI, кнопку на панели инструментов, вкладку и пункты меню, ИИ в поиске и в подсказках после @, а также предложение кратко пересказать непрочитанные сообщения чата. Перезапустите Messenger, чтобы вкладка исчезла.
+ai_chat_block.title	Блокировать чаты с Meta AI
+ai_chat_block.description	Не даёт открывать чаты с Meta AI и другими ИИ-ботами из поиска, по ссылке или из списка чатов. Группа, в которой есть ИИ, по-прежнему открывается.
+moments.title	Скрыть «Моменты чата»
+moments.description	Скрывает «Моменты чата» в меню.
+reels_badge.title	Скрыть счётчик Reels
+reels_badge.description	Скрывает значок уведомлений Reels.
+tab_people.title	Скрыть вкладку «Люди»
+tab_people.description	Скрывает вкладку «Люди» на панели внизу. Перезапустите Messenger, чтобы вкладка исчезла.
+tab_people_show.title	Показать вкладку «Люди»
+tab_people_show.description	Возвращает вкладку «Люди» на панель внизу, сразу после «Чатов», в аккаунтах, где Messenger её убрал. Если включены обе функции, действует «Скрыть вкладку „Люди“». Перезапустите Messenger, чтобы увидеть вкладку.
+tab_settings_show.title	Показать вкладку настроек
+tab_settings_show.description	Добавляет собственную вкладку настроек Messenger в конец панели внизу, с вашим фото на ней, чтобы настройки аккаунта были в одном нажатии. Перезапустите Messenger, чтобы увидеть вкладку.
+tab_instants_show.title	Показать вкладку Instants
+tab_instants_show.description	Добавляет Instants в середину панели внизу, где Messenger показывает её в некоторых аккаунтах. Включите ещё «Скрыть кнопку Instants», чтобы убрать + с экрана «Чаты». Перезапустите Messenger, чтобы увидеть вкладку.
+tab_badges.title	Скрыть счётчики на вкладках
+tab_badges.description	Скрывает красные точки и числа на вкладках внизу и на кнопке Facebook вверху. Включите «Оставить» для тех, которые вам нужны. Перезапустите Messenger, чтобы увидеть изменение.
+hide_tab_labels.title	Скрыть подписи вкладок
+hide_tab_labels.description	Убирает слова с вкладок внизу и оставляет только значки. Программы чтения с экрана по-прежнему называют каждую вкладку. Перезапустите Messenger, чтобы увидеть изменение.
+tab_icons.title	Свои значки вкладок
+tab_icons.description	Заменяет значки на панели внизу простыми контурными и позволяет поставить свою картинку на любую вкладку. Перезапустите Messenger, чтобы увидеть изменение.
+tab_stories.title	Скрыть вкладку «Истории»
+tab_stories.description	Скрывает вкладку «Истории» на панели внизу. Перезапустите Messenger, чтобы вкладка исчезла.
+tab_notifications.title	Скрыть вкладку «Уведомления»
+tab_notifications.description	Скрывает вкладку «Уведомления» на панели внизу. Перезапустите Messenger, чтобы вкладка исчезла.
+tab_bar_scroll_away.title	Прятать панель вкладок при прокрутке
+tab_bar_scroll_away.description	Убирает панель вкладок внизу, когда вы прокручиваете чаты вниз, и возвращает её, когда вы прокручиваете вверх. Перезапустите Messenger, чтобы увидеть изменение.
+floating_tab_bar.title	Плавающая панель вкладок
+floating_tab_bar.description	Переключает панель вкладок внизу на плавающий стиль, который тестирует Messenger: она находится поверх ваших чатов, а не под ними. На некоторых экранах Messenger может оставить обычную панель. Перезапустите Messenger, чтобы увидеть изменение.
+tab_swipe.title	Листать между вкладками
+tab_swipe.description	Проведите по чатам в сторону, чтобы перейти к следующей вкладке на панели внизу, вместо того чтобы тянуться к её кнопке. Скрытые вкладки пропускаются, а список, который прокручивается в сторону, сохраняет свой свайп. После включения перезапустите Messenger.
+see_through_tab_bar.title	Прозрачная панель вкладок
+see_through_tab_bar.description	Позволяет вашим чатам просвечивать сквозь плавающую панель вкладок внизу настолько, насколько вы выберете ниже. Текущая вкладка и значки остаются как есть. Нужна «Плавающая панель вкладок» или собственная плавающая панель Messenger. Перезапустите Messenger, чтобы увидеть изменение.
+chat_animation.title	Выдвигать чаты сбоку
+chat_animation.description	Чат выезжает сбоку, когда вы его открываете, и уезжает обратно, когда вы возвращаетесь. Всплывающие чаты и всплывающие окна не затрагиваются.
+story_hold.title	Останавливать истории в конце
+story_hold.description	Оставляет историю на экране, когда она заканчивается, вместо перехода к следующей, так что дальше вы идёте нажатием или свайпом. Ждут и фото, и видео, а последняя история остаётся открытой, пока вы её не закроете.
+ai_stickers.title	Скрыть инструменты ИИ-стикеров
+ai_stickers.description	Скрывает кнопки «Создать» и «Создать ИИ-стикер», вкладку ИИ-стикеров и подсказки ИИ-стикеров. Свои и музыкальные стикеры в меню «Создать» исчезают вместе с ними.
+avatar_stickers.title	Скрыть стикеры с аватаром
+avatar_stickers.description	Скрывает вкладку аватара в клавиатуре стикеров.
+emoji_drawer.title	Вернуть старую панель эмодзи
+emoji_drawer.description	Возвращает прежний вид клавиатуры эмодзи, выключая новый дизайн от Meta. Перезапустите Messenger, чтобы увидеть изменение. Если нового дизайна у вас не было, ничего не изменится.
+emoji_search.title	Оставлять поиск на эмодзи
+emoji_search.description	Если печатать при открытой клавиатуре эмодзи, поиск больше не переключается на стикеры. Клавиатура остаётся на эмодзи.
+chat_promotions.title	Скрыть промоакции в чатах
+chat_promotions.description	Скрывает рекламные баннеры внутри переписок.
+ad_context_banner.title	Скрыть рекламные баннеры в чатах с компаниями
+ad_context_banner.description	В чате, который вы начали из рекламы компании, скрывает баннер с этой рекламой.
+suggested_replies.title	Скрыть подсказки ответов компаниям
+suggested_replies.description	Скрывает предлагаемые ответы в переписках с компаниями.
+business_suggestions.title	Скрыть подсказки компаний при наборе
+business_suggestions.description	Скрывает подсказки от компаний, которые появляются, пока вы печатаете.
+event_prompts.title	Скрыть предложения мероприятий
+event_prompts.description	Скрывает рекламные предложения мероприятий внутри чатов.
+typing.title	Скрыть индикатор набора
+typing.description	Не даёт Messenger показывать другим, что вы печатаете, даже в чатах со сквозным шифрованием.
+use_system_emoji.title	Системные эмодзи
+use_system_emoji.description	Показывает эмодзи в стиле вашего телефона вместо встроенного набора Messenger.
+disappearing_swipe.title	Отключить свайп для исчезающих сообщений
+disappearing_swipe.description	Свайп вверх внизу чата больше не включает исчезающие сообщения. Прокрутка работает как обычно, а включить их по-прежнему можно в настройках чата.
+message_actions.title	Настроить действия с сообщениями
+message_actions.description	Выберите порядок действий, которые появляются при нажатии и удержании сообщения, и скройте ненужные, отдельно для отправленных и полученных сообщений. Первые показываются в ряду под сообщением, а остальные в разделе «Ещё». Нажмите и удерживайте сообщение один раз, и его действия появятся ниже.
+auto_reply.title	Автоответ
+auto_reply.description	Отвечает на сообщение ответом, который вы напишете ниже, если в нём есть выбранные вами слова, или на любое сообщение, если слова не указаны. Ответы уходят через ответ из уведомления самого Messenger, в том числе в зашифрованных чатах, не чаще раза в пять минут на чат. Только личные чаты, если вы не разрешите группы. Для чата с включёнными исчезающими сообщениями Messenger не даёт ответить из уведомления, поэтому на него ответа не будет.
+text_style.title	Жирный текст и курсив
+text_style.description	Выделите набранные слова и выберите «Жирный» или «Курсив» во всплывающем меню (они могут быть за тремя точками). Выберите ещё раз, чтобы отменить. Жирный меняет буквы от A до Z (с диакритикой тоже) и цифры. Курсив меняет только буквы, а другие алфавиты остаются как есть. Это особые символы Юникода, поэтому они видны на любом телефоне, но программы чтения с экрана могут читать их странно.
+quiet_calls.title	Тихие входящие звонки
+quiet_calls.description	Звонки всё равно приходят, но Messenger не звонит, не вибрирует и не показывает звонок поверх экрана. Звонок ждёт в панели уведомлений с кнопками «Ответить» и «Отклонить». Пропущенный звонок по-прежнему виден в чате. «Только выбранные чаты» ограничивает это выбранными вами чатами, а все остальные звонки звонят. Если на телефоне есть приложение Facebook, оно всё ещё может звонить при том же звонке.
+quiet_mode.title	Тихий режим
+quiet_mode.description	Перерыв от Messenger. Выберите 15 минут, час, два часа, восемь часов или пока вы сами его не закончите, и всё это время Messenger не издаёт звуков и не вибрирует. Сообщения и звонки всё равно приходят и ждут в панели уведомлений, поэтому, пока вас нет, ничего не потеряется. «Каждую ночь» под ним делает то же самое между двумя выбранными вами временами. Все из вашего списка «Особые контакты» по-прежнему доходят, пишут ли они вам или звонят.
+car_messages.title	Сообщения в Android Auto
+car_messages.description	Позволяет Android Auto читать ваши сообщения вслух и отправлять ответы, которые вы произносите, на своём экране сообщений. Android Auto показывает только приложения из Google Play. «Неизвестные источники» в его настройках для разработчиков снимают это ограничение в Desktop Head Unit на компьютере, а настоящая машина всё равно может не показать Messenger. Прослушивание сообщения отмечает чат прочитанным и показывает «Просмотрено», даже при включённом «Скрыть уведомления о прочтении».
+local_chat_search.title	Поиск по сохранённым сообщениям
+local_chat_search.description	Добавляет в результаты поиска чата кнопку, которая ищет по сообщениям, сохранённым на этом телефоне. Помогает со старыми чатами, в которых собственный поиск Messenger ничего не находит. Работает в чатах без сквозного шифрования и находит только то, что телефон загрузил, поэтому сначала прокрутите чат вверх.
+chat_jump.title	Переход к первому сообщению или дате
+chat_jump.description	Нажмите и удерживайте название чата вверху, чтобы перейти к его первому сообщению или к выбранному дню. Стрелка внизу слева в чате ведёт к первому сообщению, а долгое нажатие на неё спрашивает день. Нажатие на одну из дат между сообщениями открывает тот же выбор дня на этом дне. Messenger загружает чат по одной странице, поэтому чат прокручивается назад со счётчиком на экране, пока не дойдёт, а «Отмена» это останавливает. Дальше, чем может загрузить Messenger, перейти нельзя.
+pinned_bar.title	Показывать закреплённые сообщения
+pinned_bar.description	Показывает под названием чата полосу с его последним закреплённым сообщением в чатах со сквозным шифрованием. Нажмите на неё, чтобы перейти к сообщению.
+landscape.title	Разрешить горизонтальный режим
+landscape.description	Позволяет Messenger поворачиваться вместе с телефоном, чтобы клавиатура была шире, а фото и видео больше. Учитывает настройку автоповорота телефона. Звонки, камера, платежи и ещё несколько экранов остаются вертикальными. После изменения перезапустите Messenger.
+chat_bar_plus.title	Кнопки панели чата в меню +
+chat_bar_plus.description	Рядом с полем сообщения остаётся только +. Кнопки камеры, галереи и микрофона становятся строками в меню, которое открывает +, и работают оттуда так же. Нужен Android 10 или новее.
+call_recording.title	Запись звонков
+call_recording.description	Добавляет кнопку «Записать» поверх Messenger во время звонка. Звонок записывается в один звуковой файл в Recordings/Messenger Calls на телефоне (Music/Messenger Calls на Android 10 и 11). Пока функция включена, звонки идут через обычный звуковой тракт Android, а не через собственный тракт Messenger, и после изменения Messenger нужно перезапустить. Messenger не сообщает об этом собеседникам, а законы о записи разговоров в разных местах разные, поэтому сначала получите согласие всех.
+call_captions.title	Живые субтитры в звонках
+call_captions.description	Показывает то, что говорят собеседники во время звонка, в виде субтитров поверх Messenger. Телефон создаёт их сам и может переводить их на ваш язык и читать вслух. Нужен Android 13 или новее с распознаванием речи на телефоне. Пока функция включена, звонки идут через обычный звуковой тракт Android, а не через собственный тракт Messenger, и после изменения Messenger нужно перезапустить.
+hide_call_buttons.title	Скрыть кнопки звонков
+hide_call_buttons.description	Убирает кнопки аудио- и видеозвонка с верхней панели чата, из чатов с компаниями и с экрана «Новое сообщение», чтобы вы не нажали их случайно. Звонки по-прежнему приходят, и к идущему звонку всё ещё можно присоединиться.
+call_confirm.title	Спрашивать перед звонком
+call_confirm.description	При нажатии кнопки аудио- или видеозвонка сначала появляется вопрос, чтобы случайное нажатие никому не позвонило. Это касается верхней панели чата, меню на фото человека, чатов с компаниями и экрана «Новое сообщение». «Позвонить» начинает звонок, «Отмена» нет. Входящие звонки не затрагиваются.
+original_photo.title	Отправлять фото в исходном качестве
+original_photo.description	При включённом HD отправляет фото JPEG в полном размере, а не уменьшенную копию. Местоположение всё равно удаляется. Фото больше 20 МБ всё равно уменьшаются.
+original_video.title	Отправлять видео без перекодирования
+original_video.description	Отправляет видео исходным файлом, когда Messenger это позволяет, а не пережатой копией. Видео больше 25 МБ и отредактированные видео всё равно сжимаются.
+xhe_audio.title	Исправить видео, которые не отправляются
+xhe_audio.description	Некоторые видео не отправляются с ошибкой «Не удалось отправить», даже в обычном Messenger, из-за нового формата звука (xHE-AAC) или метки, которую добавляет запись экрана Samsung. Эта функция исправляет звук или убирает метку перед отправкой видео, делитесь ли вы им в Messenger или выбираете в чате. Изображение не затрагивается.
+media_caption.title	Текст над фото
+media_caption.description	Напишите что-нибудь, прикрепите фото или видео, и ваш текст уйдёт первым, отдельным сообщением над ним, а не под ним. Упоминания сохраняются. Если ничего не написано, фото уходит само по себе, как всегда.
+recent_media.title	Скрыть карточку недавнего фото
+recent_media.description	Если открыть чат сразу после скриншота, фото или видео, над полем сообщения больше не появляется карточка с предложением отправить его. Его по-прежнему можно выбрать в галерее.
+save_voice.title	Сохранять прослушанные голосовые
+save_voice.description	Каждое голосовое сообщение, которое вы прослушиваете, также сохраняется в Recordings/Messenger на телефоне (Music/Messenger на Android 10 и 11), где его может открыть файловый менеджер или другой плеер. Повторное прослушивание не сохраняет ещё одну копию.
+save_voice_menu.title	Кнопка сохранения голосовых
+save_voice_menu.description	Удерживайте голосовое сообщение и нажмите «Ещё»: «Сохранить голосовое сообщение» будет там верхней строкой, чтобы сохранить только его. Файл попадает в ту же папку, что и при «Сохранять прослушанные голосовые», а этот переключатель может оставаться выключенным.
+share_story.title	Скрыть «Ваша история» при отправке
+share_story.description	Когда вы делитесь фото, видео или ссылкой в Messenger из другого приложения, меню «Поделиться» телефона больше не предлагает «Вашу историю» Messenger, поэтому всё идёт сразу в «Чаты». Из списка «Отправить» «Ваша история» тоже исчезает, поэтому нажатие «Добавить» не опубликует её по ошибке. Ваши чаты и группы по-прежнему на месте.
+system_camera.title	Приложение камеры телефона
+system_camera.description	Кнопка камеры в чате открывает приложение камеры телефона. Фото открывается в редакторе Messenger, готовое к отправке. Включите «Спрашивать: фото или видео», чтобы снимать и видео.
+external_gallery.title	Открывать приложение галереи
+external_gallery.description	Кнопка галереи в чате открывает приложение галереи телефона. Одно фото или видео открывается в редакторе Messenger для этого чата, готовое к отправке. Если выбрать несколько, откроется панель «Отправить» Messenger со всеми ними и этим чатом вверху.
+gallery_to_chat.title	Выбранное в галерее в поле чата
+gallery_to_chat.description	При включённом «Открывать приложение галереи» выбранное попадает в поле сообщения чата, как из галереи Messenger, а не в редактор или на панель «Отправить». Ничего не отправится, пока вы не нажмёте «Отправить». Чат, который уже был открыт, нужно открыть заново.
+paste_photo.title	Вставка фото в чат
+paste_photo.description	Фото, которое вы вставляете в чат, попадает в поле сообщения, как выбранное из галереи, а не отправляется само. Ничего не отправится, пока вы не нажмёте «Отправить», поэтому можно добавить подпись или передумать. Вставка текста и GIF с клавиатуры работают как раньше. Чат, который уже был открыт, нужно открыть заново.
+instant_gallery.title	Отправлять Instants из галереи
+instant_gallery.description	Нажатие на затвор в Instants открывает приложение галереи телефона вместо съёмки. Выбранное фото уходит как Instant, обрезанное по форме камеры. Если выйти из галереи, ничего не отправится.
+view_once_anywhere.title	Одноразовый просмотр в любом чате
+view_once_anywhere.description	Галерея Messenger показывает переключатель «Одноразовый просмотр» только в некоторых чатах, поэтому в группах его никогда нет. Эта функция предлагает его везде, где открывается галерея. Будет ли Messenger собеседника считать это одноразовым просмотром, по-прежнему решает Meta.
+external_browser.title	Открывать ссылки в браузере
+external_browser.description	Открывает веб-ссылки (http и https) в браузере по умолчанию. Другие типы ссылок работают как раньше.
+link_player.title	Видео по ссылкам в чате
+link_player.description	Видео с YouTube, TikTok, Instagram или Facebook, которым поделились, воспроизводится в окне поверх чата, а не переводит вас в приложение или браузер. Видео идёт из собственного плеера сайта, а окно не хранит файлы cookie. Короткие ссылки (кроме youtu.be), истории Facebook и всё, что не является страницей видео, открываются как всегда.
+bubbles.title	Разрешить всплывающие окна чатов
+bubbles.description	Выберите ниже «Как в Messenger», «Всплывающие чаты» или «Всплывающие окна Android». Для всплывающих окон Android нужен Android 11 или новее, поддерживаемый аккаунт и разрешение на уведомления. После изменения перезапустите Messenger.
+analytics_uploads.title	Остановить отправку аналитики
+analytics_uploads.description	Не даёт фоновым службам Messenger отправлять статистику использования. Он всё равно записывает её на телефоне, и она может отправиться после того, как вы это выключите.
+attribution_uploads.title	Остановить отправку рекламного ID
+attribution_uploads.description	Останавливает задачу, которая читает рекламный идентификатор телефона и отправляет его в Meta вместе с вашей настройкой отслеживания рекламы. Сам идентификатор не меняется.
+ad_events.title	Остановить отчёты о списке чатов и рекламе
+ad_events.description	Останавливает два отчёта, которые записывает Messenger. Один сообщает, какая часть вашего списка чатов была на экране, и Messenger относит его к рекламе в списке чатов. Другой сообщает, какая реклама вас привела, когда ссылка из рекламы открывает чат.
+dwell_tracking.title	Остановить учёт времени просмотра
+dwell_tracking.description	Останавливает отчёт, который Messenger отправляет, когда вы уходите с экрана: в нём сказано, сколько времени вы смотрели на каждый элемент, в каком порядке и как часто возвращались.
+mqtt_telemetry.title	Остановить отчёты постоянного соединения
+mqtt_telemetry.description	Отбрасывает отчёты о состоянии и push-журналы, которые Messenger отправляет через своё постоянное соединение (MQTT). Большую часть трафика Messenger отправляет другим путём, поэтому отбрасывать часто почти нечего. Сообщения, звонки и статус активности продолжают работать.
+nearby_scans.title	Остановить поиск сетей рядом
+nearby_scans.description	Не даёт Messenger читать список сетей Wi-Fi вокруг вас и скрывает название и аппаратный адрес сети, к которой вы подключены, так же, как Android делает это, когда Messenger не видит ваше местоположение. Также останавливает таймер, который он может запускать, пока открыт, чтобы проверять ваше местоположение и искать сети Wi-Fi и устройства Bluetooth.
+phone_id_sync.title	Не передавать список приложений и ID
+phone_id_sync.description	Не даёт Messenger перебирать приложения на телефоне в поисках других приложений Meta и запрашивать у них ID устройства, которым Meta связывает приложения на одном телефоне. Messenger сохраняет ID, который у него уже есть.
+message_log.title	Вести журнал сообщений
+message_log.description	Сохраняет каждое сообщение, когда приходит его уведомление, чтобы вы могли прочитать его после отмены отправки, и отмечает такие сообщения. Работает в зашифрованных чатах. Хранится на телефоне. В чате с включёнными исчезающими сообщениями Messenger не показывает текст в уведомлении, поэтому такие сообщения не записываются.
+allow_screenshot.title	Разрешить скриншоты
+allow_screenshot.description	Позволяет делать скриншоты защищённых медиа в чате, например фото с одноразовым просмотром и Quicksnap, и отключает уведомления о скриншотах. Переключатель под ним добавляет кнопку «Сохранить» в просмотр одноразовых медиа. Повторный просмотр не добавляет.
+secure_chat.title	Запретить скриншоты в чатах
+secure_chat.description	Не даёт сделать скриншот или запись экрана открытого на этом телефоне чата и скрывает чат в превью переключателя приложений. Скриншот запрещает сам Android, поэтому это касается каждого чата, а не только исчезающих. Чат, который уже был открыт, нужно открыть заново. У вашего собеседника всё равно есть свой телефон, на котором можно сделать скриншот.
+appear_offline.title	Казаться не в сети
+appear_offline.description	Не даёт Messenger сообщать людям, что вы в сети, а вы по-прежнему видите, кто ещё в сети. Собственная настройка Messenger «Статус активности» остаётся включённой, поэтому зелёные точки в списке чатов и на вкладке «Люди» работают как всегда, и меняется только то, что Messenger сообщает о вас. Изменение вступает в силу, когда Messenger в следующий раз уходит в фон или возвращается, поэтому перезапуск применяет его сразу.
+hide_read_receipts.title	Скрыть уведомления о прочтении
+hide_read_receipts.description	Открытие чата больше не сообщает людям, что вы прочитали их сообщение, а чат остаётся здесь непрочитанным. Если отметить его прочитанным вручную, ответить или отреагировать на сообщение, чат отмечается прочитанным и показывается «Просмотрено», как в Messenger. Групповые чаты не проверялись. Собственная настройка Messenger «Уведомления о прочтении» в разделе «Конфиденциальность и безопасность» отмечает чаты прочитанными без «Просмотрено».
+mark_read_button.title	Кнопка «Отметить как прочитанное»
+mark_read_button.description	Добавляет значок «Отметить как прочитанное» Messenger на верхнюю панель чата, пока включено «Скрыть уведомления о прочтении». Открытие чата по-прежнему ничего не отправляет. Нажмите на значок, когда хотите, чтобы отправитель увидел «Просмотрено», и чат станет прочитанным и здесь. Если панель заполнена, значок занимает место кнопки сведений о чате (нажатие на название чата открывает ту же страницу) или другой кнопки, не связанной со звонками, если в чате такой нет, поэтому кнопки звонков остаются на месте.
+read_chats_locally.title	Отмечать чаты прочитанными на телефоне
+read_chats_locally.description	Убирает вид непрочитанного у открытого вами чата, пока включено «Скрыть уведомления о прочтении», чтобы в списке чатов он больше не выделялся жирным со счётчиком. В Messenger ничего не отправляется, поэтому собеседник по-прежнему не узнает, что вы прочитали. Новое сообщение в чате возвращает вид непрочитанного.
+mark_read_locally.title	Прочитано только на этом телефоне
+mark_read_locally.description	«Отметить как прочитанное» Messenger на чате в списке сообщает собеседнику, что вы прочитали его сообщение. С этой функцией вид непрочитанного убирается только на этом телефоне, и в Messenger ничего не отправляется. Новое сообщение в чате возвращает вид непрочитанного.
+keep_unsent.title	Сохранять отменённые сообщения
+keep_unsent.description	Оставляет сообщения на экране после того, как отправитель отменил их отправку. В зашифрованных чатах сохраняется текст, который вы уже видели в чате или уведомлении, и он остаётся даже после перезапуска Messenger. Групповые чаты не проверялись. Ваши собственные отмены отправки могут работать не полностью.
+hidden_words.title	Скрывать сообщения с вашими словами
+hidden_words.description	Скрывает сообщения, в которых есть выбранные вами слова. Введите их ниже через запятую. Сообщение, в котором есть одно из них, показывается в чате как [hidden] вместо своего текста, и уведомление о нём не появляется. Ничего не отправляется обратно и ничего не удаляется, поэтому у отправителя сообщение остаётся, а ваши сообщения уходят как всегда. Последняя строка в списке чатов по-прежнему показывает собственное превью сообщения от Messenger.
+anonymous_stories.title	Смотреть истории анонимно
+anonymous_stories.description	Открывает истории других людей, не добавляя вас в список их зрителей. Messenger всё равно отмечает их просмотренными у вас.
+save_stories.title	Сохранять любые истории
+save_stories.description	Добавляет «Сохранить» в меню «Ещё» на историях других людей, чтобы вы могли сохранить фото или видео на телефон.
+blocked_list_pictures.title	Скрыть фото в списке заблокированных
+blocked_list_pictures.description	Скрывает фото профиля людей в списке заблокированных вами, в разделе «Конфиденциальность и безопасность». Их имена и «Разблокировать» остаются.
+restricted_notify.title	Уведомления из ограниченных чатов
+restricted_notify.description	Чаты с людьми, которых вы ограничили, присылают уведомления, как остальные чаты, если они не защищены сквозным шифрованием. Чат с выключенными уведомлениями остаётся тихим. Ограниченные люди по-прежнему не видят, когда вы в сети и когда вы прочитали их сообщения.
+open_chat_sound.title	Звук в открытом чате
+open_chat_sound.description	Воспроизводит звук сообщения Messenger в приложении, когда в открытый чат приходит сообщение. Для лайков и стикеров Messenger уже так делает. Беззвучный режим телефона или собственный переключатель Messenger «Звуки в приложении» всё равно оставляют его тихим.
+own_chat_sounds.title	Свои звуки чата
+own_chat_sounds.description	Воспроизводит выбранные вами звуковые файлы вместо звуков Messenger при отправке сообщения, когда оно доставлено, и для нового сообщения, пока Messenger открыт. Выберите их ниже. Те, что вы не меняли, остаются звуками Messenger, и когда какой звук играть, всё так же решает Messenger.
+passkey_login.title	Не использовать ключ доступа при входе
+passkey_login.description	При входе больше не предлагается ключ доступа с этого телефона, поэтому Facebook переходит к подтверждению входа с другого устройства, где вы уже вошли, как для аккаунта без ключа доступа. Пропатченный Messenger не может пройти проверку ключа доступа Facebook, и из-за этого некоторые входы снова и снова ходят по кругу через проверку в браузере. Пока функция включена, Messenger не может использовать ключ доступа и для своих зашифрованных резервных копий, поэтому не включайте её, если вход не застрял. Нажмите и удерживайте значок Messenger на главном экране, чтобы попасть в эти настройки без входа.
+recovery_code_row.title	Показать вариант с 40-значным кодом
+recovery_code_row.description	Добавляет собственную строку Messenger «Создать 40-значный код» в «Хранение сообщений», если в вашем аккаунте видно только «Другие варианты». Всё остальное на этой странице остаётся как было.
+material_you.title	Тема Material You
+material_you.description	Окрашивает тёмную тему Messenger в цвета ваших обоев на Android 12 и новее и в постоянный синий на Android 11. Сначала включите тёмную тему в Messenger. Светлая тема сохраняет свои цвета, если не включить «Акцент в светлой теме».
+avatar_shape.title	Квадратные фото профиля
+avatar_shape.description	Показывает фото профиля людей квадратами вместо кругов. Включите ниже «Скруглить углы», чтобы квадраты были со скруглёнными углами. Перезапустите Messenger, чтобы увидеть изменение.
+thin_story_rings.title	Тонкие кольца историй
+thin_story_rings.description	Рисует цветное кольцо вокруг фото профиля с историей вдвое тоньше обычного, чтобы оно занимало меньше места.
+story_row_size.title	Уменьшенный ряд историй
+story_row_size.description	Делает ряд историй и заметок над вашими чатами меньше на выбранный ниже размер, чтобы на экране помещалось больше. Нажатие по-прежнему открывает историю или заметку под пальцем.
+home_header.title	Свой заголовок списка чатов
+home_header.description	Ставит ваши слова или картинку вверху списка чатов вместо надписи Messenger. Введите слова или выберите картинку ниже. Если нет ни того, ни другого, надпись остаётся. Перезапустите Messenger, чтобы увидеть изменение.
+custom_font.title	Свой шрифт
+custom_font.description	Показывает текст Messenger шрифтом телефона вместо шрифта Meta или шрифтом из файла .ttf или .otf, который вы выберете ниже. Его также можно увеличить или уменьшить и сдвинуть вверх или вниз. Эмодзи не меняются. Перезапустите Messenger, чтобы увидеть изменение.
+menu_blur.title	Размытие за меню
+menu_blur.description	Размывает экран за меню, которое появляется при нажатии и удержании чата или сообщения, и за другими всплывающими меню и панелями Messenger, как на iPhone. Нужен Android 12 или новее.
+invisible_buttons.title	Невидимые кнопки
+invisible_buttons.description	Делает выбранные ниже кнопки невидимыми или полупрозрачными, но они сохраняют своё место, размер и действие, поэтому нажатие по-прежнему на них попадает. Работает в списке чатов, внутри чатов и в меню, включая кнопки самого HushMessenger. Каждая кнопка, которую вам показывал Messenger, указана под тем названием, которое для неё произносит программа чтения с экрана, поэтому попользуйтесь Messenger немного, чтобы заполнить список.
+ios_bars.title	Полупрозрачные панели чата
+ios_bars.description	Верхняя панель чата и поле сообщения становятся прозрачными, а сообщения прокручиваются под ними и размыто просвечивают, как панели на iPhone. Нужен Android 12 или новее.
+refresh_rate.title	Частота обновления экрана
+refresh_rate.description	Запрашивает у экрана выбранную ниже частоту обновления каждый раз, когда открывается экран Messenger, например 60 Гц для экономии батареи или самую высокую, которую поддерживает экран, для более плавной прокрутки. Телефон всё равно может её переопределить, например в режиме энергосбережения или когда его собственная настройка плавности движений ограничивает частоту.

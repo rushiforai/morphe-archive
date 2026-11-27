@@ -207,6 +207,7 @@ public final class RamblerDictationStats {
         } catch (Throwable throwable) {
             logWarningSafely("onVoiceStart stats hook failed", throwable);
         }
+        RamblerLearnedFixesTracker.onVoiceStart();
     }
 
     /**

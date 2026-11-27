@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer Shield Outline for Material You Dynamic Tinting (Safe Zone: 66dp centered at 54,54) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.0"
+        android:fillColor="#00000000"
+        android:pathData="M54,27C64,29 74,30 74,32L74,53C74,66 65,75 54,81C43,75 34,66 34,53L34,32C34,30 44,29 54,27Z" />
+
+    <!-- Downward Media Arrow Motif (Pure White 100%) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M51,39L57,39L57,51L64,51L54,63L44,51L51,51Z" />
+
+    <!-- Media Cradle Bar (Pure White 100%) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,67L64,67L64,70L44,70Z" />
+</vector>

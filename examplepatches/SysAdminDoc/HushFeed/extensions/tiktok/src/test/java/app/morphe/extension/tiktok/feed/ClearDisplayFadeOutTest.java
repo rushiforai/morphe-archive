@@ -49,8 +49,8 @@ import org.robolectric.util.ReflectionHelpers;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class ClearDisplayFadeOutTest {
-    private static final String[] NAMES = {"view_rootview", "widget_container", "47.9.3:v9j", "47.9.3:oxr",
-            "47.9.3:qzd", "47.9.3:l5i", "47.9.3:ohu"};
+    private static final String[] NAMES = {"view_rootview", "widget_container", "48.0.2:v3t", "48.0.2:osm",
+            "48.0.2:qtf", "48.0.2:l0p", "48.0.2:ocp"};
     /** Long enough for a frame or two, so new content is laid out. */
     private static final Duration LAYOUT = Duration.ofMillis(50);
 

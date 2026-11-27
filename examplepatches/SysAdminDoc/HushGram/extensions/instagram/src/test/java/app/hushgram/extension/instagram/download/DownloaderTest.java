@@ -413,6 +413,138 @@ public class DownloaderTest {
         assertFalse("the short file was kept", into.exists());
     }
 
+    /**
+     * A cut-off goes on from the byte it reached, with a Range request, rather than from the
+     * start: on a slow link a second whole fetch can be cut off just the same (#792). The
+     * progress shown doesn't go back to 0 for it.
+     */
+    @Test
+    public void aFetchCutOffPartwayGoesOnFromWhereItStopped() throws IOException {
+        byte[] body = mp4(200_000);
+        server.serveResumable("/resume.mp4", "video/mp4", body, 70_000);
+        List<Long> shown = new ArrayList<>();
+        File into = temp.newFile();
+        Downloader.Result result = Downloader.fetch(origin + "/resume.mp4", Downloader.Kind.VIDEO, into, policy,
+                Downloader.MAX_BYTES, shownTo(shown));
+        assertEquals(result.toString(), Downloader.Status.OK, result.status);
+        assertEquals(java.util.Arrays.asList("", "bytes=70000-"), server.rangesAsked("/resume.mp4"));
+        assertArrayEquals("the two parts, whole", body, Files.readAllBytes(into.toPath()));
+        for (int i = 1; i < shown.size(); i++) {
+            assertTrue("the progress went back from " + shown.get(i - 1) + " to " + shown.get(i),
+                    shown.get(i) >= shown.get(i - 1));
+        }
+        assertEquals(Long.valueOf(body.length), shown.get(shown.size() - 1));
+    }
+
+    /**
+     * A read that waits out its timeout partway was never tried again, and a save on a slow link
+     * fell back to the 720p file or failed (#792). It goes on from the byte it reached.
+     */
+    @Test
+    public void aReadThatTimesOutPartwayGoesOnFromWhereItStopped() throws Exception {
+        byte[] body = mp4(200_000);
+        server.serveStallingOnce("/stall.mp4", "video/mp4", body, 100_000);
+        File into = temp.newFile();
+        Downloader.readTimeoutMs = 500;
+        Downloader.Result result;
+        try {
+            result = within(15_000, () -> fetch("/stall.mp4", Downloader.Kind.VIDEO, into, Downloader.MAX_BYTES));
+        } finally {
+            Downloader.readTimeoutMs = 20_000;
+        }
+        assertEquals(result.toString(), Downloader.Status.OK, result.status);
+        assertEquals(java.util.Arrays.asList("", "bytes=100000-"), server.rangesAsked("/stall.mp4"));
+        assertArrayEquals(body, Files.readAllBytes(into.toPath()));
+    }
+
+    /**
+     * Each cut goes on again while bytes keep coming. Tries that each get less than the progress
+     * floor further end it at the fourth.
+     */
+    @Test
+    public void aFetchCutOffAgainAndAgainGoesOnWhileItGetsFurther() throws IOException {
+        byte[] body = mp4(200_000);
+        server.serveResumable("/again.mp4", "video/mp4", body, 50_000, 100_000, 150_000);
+        File into = temp.newFile();
+        Downloader.Result result = fetch("/again.mp4", Downloader.Kind.VIDEO, into, Downloader.MAX_BYTES);
+        assertEquals(result.toString(), Downloader.Status.OK, result.status);
+        assertEquals(java.util.Arrays.asList("", "bytes=50000-", "bytes=100000-", "bytes=150000-"),
+                server.rangesAsked("/again.mp4"));
+        assertArrayEquals(body, Files.readAllBytes(into.toPath()));
+
+        server.serveResumable("/worse.mp4", "video/mp4", body, 40_000, 80_000, 120_000, 160_000);
+        File worse = temp.newFile();
+        Downloader.Result failed = fetch("/worse.mp4", Downloader.Kind.VIDEO, worse, Downloader.MAX_BYTES);
+        assertNotEquals(failed.toString(), Downloader.Status.OK, failed.status);
+        assertEquals("tries", 4, hitsOf("/worse.mp4"));
+        assertTrue(failed.reason, failed.reason.contains("on a fourth try after"));
+        assertFalse("the part file was kept", worse.exists());
+    }
+
+    /**
+     * On a slow link that cut a read every half minute, a 1080p track still coming in was given
+     * up after four tries for the 720p file (#792). Tries that keep it moving go on past four.
+     */
+    @Test
+    public void aFetchCutOffSixTimesWhileItKeepsMovingArrivesWhole() throws IOException {
+        byte[] body = mp4(800_000);
+        server.serveResumable("/moving.mp4", "video/mp4", body, 100_000, 200_000, 300_000, 400_000, 500_000, 600_000);
+        File into = temp.newFile();
+        Downloader.Result result = fetch("/moving.mp4", Downloader.Kind.VIDEO, into, Downloader.MAX_BYTES);
+        assertEquals(result.toString(), Downloader.Status.OK, result.status);
+        assertEquals(java.util.Arrays.asList("", "bytes=100000-", "bytes=200000-", "bytes=300000-", "bytes=400000-",
+                "bytes=500000-", "bytes=600000-"), server.rangesAsked("/moving.mp4"));
+        assertArrayEquals("the seven parts, whole", body, Files.readAllBytes(into.toPath()));
+    }
+
+    /** A server that cuts every answer short ends the fetch at the cap, however far each try gets. */
+    @Test
+    public void aFetchCutOffOverAndOverEndsAtTheCap() throws IOException {
+        int step = (int) Downloader.PROGRESS_FLOOR + 1_000;
+        int[] cuts = new int[Downloader.MAX_ALL_TRIES + 1];
+        for (int i = 0; i < cuts.length; i++) cuts[i] = step * (i + 1);
+        byte[] body = mp4(step * (cuts.length + 1));
+        server.serveResumable("/endless-cuts.mp4", "video/mp4", body, cuts);
+        File into = temp.newFile();
+        Downloader.Result result = fetch("/endless-cuts.mp4", Downloader.Kind.VIDEO, into, Downloader.MAX_BYTES);
+        assertNotEquals(result.toString(), Downloader.Status.OK, result.status);
+        assertEquals("tries", Downloader.MAX_ALL_TRIES, hitsOf("/endless-cuts.mp4"));
+        assertTrue(result.reason, result.reason.contains("on try " + Downloader.MAX_ALL_TRIES + " after"));
+        assertFalse("the part file was kept", into.exists());
+    }
+
+    /**
+     * A 206 that doesn't go on from the byte asked for, or names another length, isn't the rest
+     * of this file, and nothing of it is kept.
+     */
+    @Test
+    public void aResumeFromTheWrongPlaceIsNotKept() throws IOException {
+        byte[] body = mp4(200_000);
+        server.serveResumable("/shifted.mp4", "video/mp4", body, 70_000);
+        server.claimRange("/shifted.mp4", "bytes 60000-199999/200000");
+        File into = temp.newFile();
+        Downloader.Result result = fetch("/shifted.mp4", Downloader.Kind.VIDEO, into, Downloader.MAX_BYTES);
+        assertEquals(result.toString(), Downloader.Status.HTTP_ERROR, result.status);
+        assertFalse("the part file was kept", into.exists());
+
+        server.serveResumable("/other.mp4", "video/mp4", body, 70_000);
+        server.claimRange("/other.mp4", "bytes 70000-299999/300000");
+        File other = temp.newFile();
+        result = fetch("/other.mp4", Downloader.Kind.VIDEO, other, Downloader.MAX_BYTES);
+        assertEquals(result.toString(), Downloader.Status.HTTP_ERROR, result.status);
+        assertFalse("the part file was kept", other.exists());
+    }
+
+    @Test
+    public void aContentRangeIsReadOnlyWhenItNamesBytesInOrder() {
+        assertArrayEquals(new long[] { 70_000, 199_999, 200_000 }, Downloader.contentRange("bytes 70000-199999/200000"));
+        assertArrayEquals(new long[] { 5, 9, -1 }, Downloader.contentRange(" Bytes 5-9/* "));
+        for (String bad : new String[] { null, "", "items 0-9/10", "bytes 9-5/10", "bytes 0-10/10", "bytes -5/10",
+                "bytes 0-9", "bytes a-9/10", "bytes */10" }) {
+            assertEquals(bad, null, Downloader.contentRange(bad));
+        }
+    }
+
     /** An answer that isn't the file is never fetched again: only a cut-off is. */
     @Test
     public void anErrorAnswerIsNotTriedAgain() throws IOException {
@@ -659,6 +791,22 @@ public class DownloaderTest {
 
             @Override public void reading(Runnable close) {
                 closers.add(close);
+            }
+
+            @Override public boolean cancelled() {
+                return false;
+            }
+        };
+    }
+
+    /** A progress that keeps each byte count it's told, and never cancels. */
+    private static Downloader.Progress shownTo(List<Long> shown) {
+        return new Downloader.Progress() {
+            @Override public void transferred(long done, long total) {
+                shown.add(done);
+            }
+
+            @Override public void reading(Runnable close) {
             }
 
             @Override public boolean cancelled() {

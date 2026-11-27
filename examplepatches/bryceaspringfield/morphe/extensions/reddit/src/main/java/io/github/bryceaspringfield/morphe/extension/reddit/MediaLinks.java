@@ -30,10 +30,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Shows the media a link post points to (an imgur, Streamable, RedGIFs, Giphy, or v.redd.it address, or a direct
- * image or video file) in a full-screen player inside Reddit, for older posts the app shows as plain links.
- */
 final class MediaLinks {
     private static final String TAG = "RedditKeywordFilter";
     private static final Pattern IMGUR = Pattern.compile(
@@ -57,7 +53,6 @@ final class MediaLinks {
     private MediaLinks() {
     }
 
-    /** The media a link shows: a video or an image address. */
     private static final class Media {
         final String url;
         final boolean video;
@@ -68,10 +63,6 @@ final class MediaLinks {
         }
     }
 
-    /**
-     * Injection point, at the start of the step opening a feed post's link: true when the link's media opened in
-     * the player, which then replaces the browser.
-     */
     static boolean onLinkClick(Object step) {
         try {
             if (!getBoolean(MEDIA_LINKS) || step == null) return false;
@@ -122,11 +113,9 @@ final class MediaLinks {
         return end < 0 ? null : text.substring(start, end);
     }
 
-    /** Whether a link points at media this player shows. */
     static boolean isMediaLink(String url) {
         String lower = url.toLowerCase(Locale.ROOT);
         if (lower.contains("imgur.com/a/") || lower.contains("imgur.com/gallery/")) return false;
-        // RedGIFs (and Gfycat's names, which it serves) is an 18+ host, left to the browser under the master switch.
         boolean adult = REDGIFS.matcher(url).find() || GFYCAT.matcher(url).find();
         if (adult && FilterSettings.noNsfw()) return false;
         return IMGUR.matcher(url).find() || STREAMABLE.matcher(url).find() || adult
@@ -158,7 +147,6 @@ final class MediaLinks {
         }, "MediaLinks").start();
     }
 
-    /** The media address of a link, asking the host's API where the link names a page. */
     static Media resolve(String url) throws Exception {
         Matcher m = IMGUR.matcher(url);
         if (m.find()) {
@@ -183,7 +171,6 @@ final class MediaLinks {
         }
         m = REDGIFS.matcher(url);
         if (m.find()) return redgifs(m.group(1));
-        // Gfycat closed in 2023; RedGIFs keeps many of its clips under the same names.
         m = GFYCAT.matcher(url);
         if (m.find()) return redgifs(m.group(1));
         m = GIPHY.matcher(url);
@@ -234,10 +221,6 @@ final class MediaLinks {
         }
     }
 
-    /**
-     * Whether an address answers with media: imgur sends a removed file to its removed.png placeholder, which the
-     * final address shows.
-     */
     private static boolean available(String url) {
         try {
             HttpURLConnection connection = connect(url, null, "HEAD");
@@ -269,7 +252,6 @@ final class MediaLinks {
         return c instanceof Activity ? c : context;
     }
 
-    /** A full-screen black dialog with the media in a web view, which plays MP4, WebM, and HLS and animates GIFs. */
     private static void show(Context context, Media media) {
         Context host = activityContext(context);
         Dialog dialog = new Dialog(host, android.R.style.Theme_Black_NoTitleBar_Fullscreen);

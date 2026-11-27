@@ -30,6 +30,7 @@ val hideDiscoveryTabPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_DISCOVERY_TAB)
         val matches = mutableListOf<Pair<app.morphe.patcher.util.proxy.mutableTypes.MutableMethod, Int>>()
         classDefForEach { classDef ->
             classDef.methods.filter { it.implementation != null }.forEach { original ->
@@ -71,6 +72,7 @@ val hideDiscoveryTabPatch = bytecodePatch(
         method.replaceInstruction(gateIndex,
             "invoke-static {}, $DISCOVERY_TAB->isDiscoveryHidden()Z")
         method.addInstructions(gateIndex + 1, "move-result v$gateRegister\nxor-int/lit8 v$gateRegister, v$gateRegister, 0x1")
+        registerHooks(PatchId.HIDE_DISCOVERY_TAB, method)
         attachNezumiSettings("attachDiscovery")
     }
 }

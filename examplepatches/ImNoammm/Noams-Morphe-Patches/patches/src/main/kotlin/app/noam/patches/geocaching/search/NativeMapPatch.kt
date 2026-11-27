@@ -83,6 +83,18 @@ internal val nativeMapPatch = bytecodePatch(
                 """,
             )
         }
+
+        // A new account's "suggested cache" screens (right after sign-in, and "Suggest another" after a first find)
+        // are a Google map, blank without the key: skip them, as the app does once an account has a few finds.
+        mutableClassDefBy("Li14;").methods.filter { it.name == "d" || it.name == "e" }.forEach {
+            it.replaceInstructions(
+                0,
+                """
+                    const/4 v0, 0x0
+                    return v0
+                """,
+            )
+        }
     }
 }
 

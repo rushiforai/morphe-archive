@@ -12,18 +12,32 @@ import app.noam.patches.chesscom.home.HomeContentToStringFingerprint
 import app.noam.patches.chesscom.misc.settings.MoreMenuStateToStringFingerprint
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
-import app.noam.patches.chesscom.shared.indexOfFirstOrThrow
+import app.noam.patches.chesscom.shared.fieldForLabel
+import app.noam.patches.chesscom.shared.fieldReference
+import app.noam.patches.chesscom.shared.filterStores
 import app.noam.patches.chesscom.shared.markFeaturePatched
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PREMIUM = "${Constants.EXTENSION_PACKAGE}/premium/Premium;"
+
+/** Where the method casts one of its (object) parameters to the premium offer type, or -1. */
+private fun Method.offerCast(offerType: String): Int {
+    val code = implementation?.instructions?.toList() ?: return -1
+    val firstParameter = implementation!!.registerCount - parameterTypes.size
+    return code.indexOfFirst {
+        it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == offerType &&
+            (it as OneRegisterInstruction).registerA >= firstParameter
+    }
+}
 
 context(context: BytecodePatchContext)
 private fun findMethod(description: String, predicate: (ClassDef, Method) -> Boolean): MutableMethod {
@@ -55,9 +69,8 @@ private fun MutableMethod.nullOffer(index: Int, register: String, offerType: Str
 val hidePremiumPatch = bytecodePatch(
     name = "Hide Premium-only content",
     description = "Free accounts no longer see what only Premium members can use: Premium-only " +
-        "bots are not listed, and the Premium toolbar button, the Home and More banners and the " +
-        "Settings Upgrade row, the Home diamond, the sale banner and More's Membership row are " +
-        "gone. Nothing is unlocked.",
+        "bots are not listed, and the Home diamond and sale banner, the More banner and Membership " +
+        "row and the Settings Upgrade row are gone. Nothing is unlocked.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -66,53 +79,34 @@ val hidePremiumPatch = bytecodePatch(
     execute {
         markFeaturePatched("hidePremiumPatched")
 
-        val offerType = SaleOfferToStringFingerprint.originalClassDef.superclass
-            ?: throw PatchException("The premium offer type was not found")
+        // The premium banner: one of its offers (Sale or WinbackSpringSale, what Home's sale banner
+        // shows) or a plain upsell. More's banner is made from either.
+        val offerBannerType = WinbackBannerToStringFingerprint.originalClassDef.interfaces.single()
+        val bannerType = classDefBy(offerBannerType).interfaces.single()
 
-        // Settings: the Upgrade row leaves the list the only row-building method returns.
+        // Settings: the Upgrade row leaves the rows list the settings adapter builds, before its
+        // constructor stores it.
         val rowType = SettingsRowToStringFingerprint.originalClassDef.type
-        findMethod("settings list builder") { _, method ->
-            method.returnType == "Ljava/util/List;" && method.parameterTypes.isEmpty() &&
-                method.implementation?.instructions?.any {
-                    it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == rowType
-                } == true
+        fun Method.buildsRows() = implementation?.instructions?.any {
+            it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == rowType
+        } == true
+        fun Instruction.storesRows(owner: String) = opcode == Opcode.IPUT_OBJECT &&
+            fieldReference?.let { it.definingClass == owner && it.type == "Ljava/util/ArrayList;" } == true
+        findMethod("settings list builder") { classDef, method ->
+            method.buildsRows() && method.implementation!!.instructions.any { it.storesRows(classDef.type) }
         }.apply {
-            val returnIndex = instructions.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
-            if (returnIndex < 0) throw PatchException("The settings list builder has no return")
-            val list = getInstruction<OneRegisterInstruction>(returnIndex).registerA
-            addInstructions(returnIndex, "invoke-static { v$list }, $PREMIUM->filterSettingsRows(Ljava/util/List;)V")
+            val store = instructions.indexOfLast { it.storesRows(definingClass) }
+            val list = getInstruction<TwoRegisterInstruction>(store).registerA
+            addInstructions(store, "invoke-static/range { v$list .. v$list }, $PREMIUM->filterSettingsRows(Ljava/util/List;)V")
         }
 
-        // Home: HomePlayAdapter.setPremiumOffer(offer, animate).
-        findMethod("Home premium card setter") { classDef, method ->
-            classDef.type == "Lcom/chess/home/play/HomePlayAdapter;" &&
-                method.returnType == "V" && method.parameterTypes.map { it.toString() } == listOf(offerType, "Z")
-        }.nullOffer(0, "p1", offerType)
-
-        // More: buildMenu(int, int, boolean, boolean, offer, continuation).
+        // More: the menu's builder (combining the account, counts and the banner) gets no banner.
         findMethod("More menu builder") { classDef, method ->
-            classDef.type.startsWith("Lcom/chess/home/more/") && method.implementation != null &&
-                method.parameterTypes.map { it.toString() }.let {
-                    it.size == 6 && it.take(5) == listOf("I", "I", "Z", "Z", offerType)
-                }
-        }.nullOffer(0, "p5", offerType)
-
-        // Home toolbar: the placement collector; null = no Premium icon (what members get).
-        ToolbarPremiumIconFingerprint.method.apply {
-            val castIndex = indexOfFirstOrThrow(description = "the icon placement") {
-                it.opcode == Opcode.CHECK_CAST &&
-                    ((it as ReferenceInstruction).reference as TypeReference).type.endsWith("\$ToolbarPremiumIconPlacement;")
-            }
-            val placementRegister = getInstruction<OneRegisterInstruction>(castIndex).registerA
-            val placementType = (getInstruction<ReferenceInstruction>(castIndex).reference as TypeReference).type
-            addInstructions(
-                castIndex + 1,
-                """
-                    invoke-static { v$placementRegister }, $PREMIUM->toolbarIcon(Ljava/lang/Object;)Ljava/lang/Object;
-                    move-result-object v$placementRegister
-                    check-cast v$placementRegister, $placementType
-                """,
-            )
+            classDef.type.startsWith("Lcom/chess/home/more/") && method.parameterTypes.size == 6 &&
+                method.offerCast(bannerType) >= 0
+        }.apply {
+            val cast = offerCast(bannerType)
+            nullOffer(cast + 1, "v${getInstruction<OneRegisterInstruction>(cast).registerA}", bannerType)
         }
 
         // Bots: the bot groups loader drops Premium-only bots, then groups left empty.
@@ -168,26 +162,16 @@ val hidePremiumPatch = bytecodePatch(
             }
         }
 
-        // The redesigned Home: no diamond in its toolbar (LoggedIn(avatar, streak, friend
-        // requests, connection, shouldShowDiamond, ...)) and no sale banner in its content.
-        mutableClassDefBy(HomeToolbarStateToStringFingerprint.originalClassDef).methods.single {
-            it.name == "<init>" && it.parameterTypes.size == 8
-        }.apply {
-            if (parameterTypes[4].toString() != "Z") throw PatchException("Unexpected Home toolbar state")
-            addInstructions(
-                0,
-                """
-                    invoke-static/range { p5 .. p5 }, $PREMIUM->showDiamond(Z)Z
-                    move-result p5
-                """,
-            )
+        // Home: no diamond in its toolbar and no sale banner in its content.
+        mutableClassDefBy(HomeToolbarStateToStringFingerprint.originalClassDef).apply {
+            filterStores(fieldForLabel(", shouldShowPaywallIcon=", "Z"), "$PREMIUM->showDiamond(Z)Z")
         }
-        mutableClassDefBy(HomeContentToStringFingerprint.originalClassDef).methods
-            .filter { it.name == "<init>" }.maxByOrNull { it.parameterTypes.size }!!.apply {
-                val offer = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/features/paywall/Offer;" }
-                if (offer < 0) throw PatchException("The Home sale banner was not found")
-                nullOffer(0, "p${offer + 1}", "Lcom/chess/features/paywall/Offer;")
-            }
+        mutableClassDefBy(HomeContentToStringFingerprint.originalClassDef).methods.filter { constructor ->
+            constructor.name == "<init>" && constructor.parameterTypes.any { it.toString() == offerBannerType }
+        }.single().apply {
+            val offer = parameterTypes.indexOfFirst { it.toString() == offerBannerType }
+            nullOffer(0, "p${offer + 1}", offerBannerType)
+        }
 
         // More: no Membership row.
         mutableClassDefBy(MoreMenuStateToStringFingerprint.originalClassDef).methods.single {

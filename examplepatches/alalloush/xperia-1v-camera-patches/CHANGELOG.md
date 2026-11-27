@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/alalloush/xperia-1v-camera-patches/compare/v1.3.1...v1.3.2) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* support Xperia 1 V user builds and update Morphe builder ([7ce7128](https://github.com/alalloush/xperia-1v-camera-patches/commit/7ce7128dcdc91ebdcd08bace82b9cce24caf681b))
+
 ## [1.3.1](https://github.com/alalloush/xperia-1v-camera-patches/compare/v1.3.0...v1.3.1) (2026-09-14)
 
 ### 🐛 Bug Fixes

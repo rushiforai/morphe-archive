@@ -87,6 +87,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.VIEW_ONLINE_STATUS_PRIVATELY)
         check(OnlineSharingPreference.matchAll(1..1).size == 1)
         val preference = OnlineSharingPreference.method
         check(OnlineSharingSetter.matchAll(1..1).size == 1)
@@ -224,6 +225,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
                 method.replaceInstruction(index,
                     "invoke-static {v$register}, $ONLINE_STATUS->mapOnlineState(I)I")
                 method.addInstructions(index + 1, "move-result v$register\n$originalCall")
+                registerHooks(PatchId.VIEW_ONLINE_STATUS_PRIVATELY, method)
                 stateHooks++
             }
         }
@@ -349,6 +351,8 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
             if-nez v$clearValue, :nezumi_subtitle_retained
             const/16 v$clearValue, 0x8
         """.trimIndent(), ExternalLabel("nezumi_subtitle_retained", setterInstructions[clearIndex + 4]))
+        registerHooks(PatchId.VIEW_ONLINE_STATUS_PRIVATELY, *incomingMethods.map { it.first }.distinct().toTypedArray(),
+            response, friendResponse, lastSeen, refresh, chatArguments, subtitleMethod, subtitleSetter)
         attachNezumiSettings("attachOnlineStatus")
     }
 }

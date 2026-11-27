@@ -17,12 +17,14 @@ import app.smtgpm.patches.belote.shared.resignFixPatch
 /**
  * Hooks (native/belote/hooks.c) after MenuUIViewController.Show and RefreshDailyBonus. Once per
  * launch they send the wheel's own claim (ActivityBonusManager.Claim, source "WHEEL") without
- * opening the wheel, then reload the inventory so the chip counter updates.
+ * opening the wheel, then reload the inventory. A hook after MenuUIViewController.RefreshShop
+ * makes the chip counter count up from the old to the new balance with the game's income
+ * animation, so the claim is visible.
  */
 @Suppress("unused")
 val claimDailyBonusPatch = rawResourcePatch(
     name = "Claim daily bonus automatically",
-    description = "Claims the free daily wheel spin in the background as soon as it is ready, without opening the wheel.",
+    description = "Claims the free daily wheel spin in the background when it is ready; the chip counter counts up.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_BELOTE)
@@ -30,6 +32,12 @@ val claimDailyBonusPatch = rawResourcePatch(
     dependsOn(resignFixPatch, nativeHookPayloadPatch)
 
     execute {
-        applyNativeEdits(listOf(NativeData.HOOK_MENU_SHOW, NativeData.HOOK_MENU_REFRESH_DAILY_BONUS))
+        applyNativeEdits(
+            listOf(
+                NativeData.HOOK_MENU_SHOW,
+                NativeData.HOOK_MENU_REFRESH_DAILY_BONUS,
+                NativeData.HOOK_MENU_REFRESH_SHOP,
+            ),
+        )
     }
 }

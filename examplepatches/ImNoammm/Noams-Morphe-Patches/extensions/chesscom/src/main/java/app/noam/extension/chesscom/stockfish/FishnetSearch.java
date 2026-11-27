@@ -106,7 +106,7 @@ public final class FishnetSearch {
             throw stopped;
         }
         for (Engine.Result result : results) {
-            if (result == null) throw new IOException("Stockfish could not analyse the game");
+            if (result == null) throw new IOException("Stockfish could not analyze the game");
         }
         return results;
     }

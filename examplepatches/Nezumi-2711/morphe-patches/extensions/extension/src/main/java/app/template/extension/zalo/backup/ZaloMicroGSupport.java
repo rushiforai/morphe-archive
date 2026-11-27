@@ -18,6 +18,9 @@ import android.os.Handler;
 import android.os.Looper;
 import java.lang.ref.WeakReference;
 
+import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
+
 public final class ZaloMicroGSupport {
     private static final String PACKAGE = "app.revanced.android.gms";
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
@@ -29,8 +32,10 @@ public final class ZaloMicroGSupport {
         try {
             PackageInfo info = activity.getPackageManager().getPackageInfo(PACKAGE, 0);
             if (info.applicationInfo != null && info.applicationInfo.enabled) return true;
-        } catch (PackageManager.NameNotFoundException ignored) {
-        } catch (RuntimeException ignored) {
+        } catch (PackageManager.NameNotFoundException missing) {
+            NezumiLog.i(Patch.DRIVE_BACKUP_VIA_MICROG, "ZaloMicroGSupport", "microG (" + PACKAGE + ") not installed");
+        } catch (RuntimeException failure) {
+            NezumiLog.w(Patch.DRIVE_BACKUP_VIA_MICROG, "ZaloMicroGSupport", "microG lookup failed, assuming installed", failure);
             return true;
         }
         if (!activity.isFinishing() && !activity.isDestroyed()) {
@@ -43,11 +48,13 @@ public final class ZaloMicroGSupport {
                         try {
                             activity.startActivity(new Intent(Intent.ACTION_VIEW,
                                 Uri.parse("https://morphe.software/microg")));
-                        } catch (ActivityNotFoundException ignored) {
+                        } catch (ActivityNotFoundException failure) {
+                            NezumiLog.w(Patch.DRIVE_BACKUP_VIA_MICROG, "ZaloMicroGSupport", "no browser for the microG page", failure);
                         }
                     })
                     .show();
-            } catch (RuntimeException ignored) {
+            } catch (RuntimeException failure) {
+                NezumiLog.w(Patch.DRIVE_BACKUP_VIA_MICROG, "ZaloMicroGSupport", "microG dialog failed", failure);
             }
         }
         return false;
@@ -62,7 +69,8 @@ public final class ZaloMicroGSupport {
             try {
                 java.lang.reflect.Method refresh = target.getClass().getMethod("R6", String.class);
                 refresh.invoke(target, accountName);
-            } catch (ReflectiveOperationException | RuntimeException ignored) {
+            } catch (ReflectiveOperationException | RuntimeException failure) {
+                NezumiLog.w(Patch.DRIVE_BACKUP_VIA_MICROG, "ZaloMicroGSupport", "account list refresh unavailable (R6)", failure);
             }
         }, 250);
     }

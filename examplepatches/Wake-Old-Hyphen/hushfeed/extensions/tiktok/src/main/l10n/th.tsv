@@ -312,10 +312,12 @@ Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post d
 Captions	คำบรรยาย
 Captions, gestures and on-screen controls	คำบรรยาย ท่าทาง และการควบคุมบนหน้าจอ
 Capture crash reports locally	บันทึกรายงานการขัดข้องไว้ในเครื่อง
+Free memory early	คืนหน่วยความจำล่วงหน้า
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.	เลือกวิดีโอ %1$d ถึง %2$d รายการ ค่าที่อยู่นอกช่วงนี้จะใช้ขีดจำกัดที่ถูกต้องที่ใกล้เคียงที่สุด เริ่มการทำงานของ TikTok ใหม่เพื่อนำการตั้งค่านี้ไปใช้
 Choose a backup file. Your current settings are kept for Undo.	เลือกไฟล์สำรองข้อมูล การตั้งค่าปัจจุบันของคุณจะถูกเก็บไว้สำหรับการเลิกทำ
 Pick a folder on internal storage, not an SD card	เลือกโฟลเดอร์ในที่จัดเก็บข้อมูลภายใน ไม่ใช่การ์ด SD
-Choose a preset to fill the SIM details.	เลือกพรีเซ็ตเพื่อกรอกรายละเอียด SIM
+Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts.	เลือกพรีเซ็ตหนึ่งรายการเพื่อกรอกรายละเอียด SIM หรือเลือกหลายรายการเพื่อใช้รายการที่ต่างกันทุกครั้งที่ TikTok เริ่มทำงาน
+A different preset each time TikTok starts, in this order: %1$s	พรีเซ็ตที่ต่างกันทุกครั้งที่ TikTok เริ่มทำงาน ตามลำดับนี้: %1$s
 Choose a subfolder under %1$s.	เลือกโฟลเดอร์ย่อยภายใต้ %1$s
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.	เลือกการดำเนินการที่จะลบออกจากแผ่นเมนูแชร์ ชื่อที่คุณพิมพ์เองซึ่ง TikTok ยังไม่ได้แสดงจะยังคงอยู่ในรายการด้านบน
 Choose what reaches your feed	เลือกสิ่งที่จะปรากฏในฟีดของคุณ
@@ -470,6 +472,7 @@ Top right double tap	แตะสองครั้งที่ขวาบน
 Bottom left double tap	แตะสองครั้งที่ซ้ายล่าง
 Bottom right double tap	แตะสองครั้งที่ขวาล่าง
 Download original photos	ดาวน์โหลดรูปภาพต้นฉบับ
+Download speed	ความเร็วในการดาวน์โหลด
 Destination updated	อัปเดตปลายทางแล้ว
 Downloads	ดาวน์โหลด
 Drag to move, release to place	ลากเพื่อย้าย ปล่อยเพื่อวาง
@@ -615,6 +618,7 @@ Hide message streaks	ซ่อนสตรีคข้อความ
 Hide new follower notifications	ซ่อนการแจ้งเตือนผู้ติดตามใหม่
 Hide new followers	ซ่อนผู้ติดตามใหม่
 Hide paid partnerships	ซ่อนความร่วมมือแบบชำระเงิน
+Hide parts of the room line	ซ่อนบางส่วนของบรรทัดห้อง
 Hide people and options by name	ซ่อนบุคคลและตัวเลือกตามชื่อ
 Hide photo posts	ซ่อนโพสต์รูปภาพ
 Hide picture comments	ซ่อนความคิดเห็นที่เป็นรูปภาพ
@@ -746,6 +750,7 @@ Larger (1.25x)	ใหญ่ขึ้น (1.25x)
 Last original value	ค่าดั้งเดิมล่าสุด
 Last recording: %1$d gates.	การบันทึกล่าสุด: %1$d เกต
 Last recording: 1 gate.	การบันทึกล่าสุด: 1 เกต
+Latency	ความหน่วง
 Layout	เลย์เอาต์
 Layout, search, profile and system	เลย์เอาต์ การค้นหา โปรไฟล์ และระบบ
 Leave maximum empty to keep it unlimited.	เว้นว่างค่าสูงสุดไว้เพื่อให้ไม่จำกัด
@@ -1006,6 +1011,7 @@ Save media	บันทึกสื่อ
 Saves your Hushfeed settings and Feature Gate Lab rules to a file.	บันทึกการตั้งค่า Hushfeed และกฎ Feature Gate Lab ของคุณลงในไฟล์
 Save subtitles beside videos	บันทึกคำบรรยายควบคู่กับวิดีโอ
 Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.	บันทึกรายงานข้อขัดข้องล่าสุดของ TikTok บนโทรศัพท์เครื่องนี้เพื่อให้สามารถใส่ลงในรายงานการวินิจฉัยได้
+Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.	ขอให้ TikTok ล้างแคชเมื่อหน่วยความจำใกล้ถึงจุดที่ Android ปิดหน้าจอหลักและฟีดเริ่มใหม่ตั้งแต่ต้น
 Save the original sound	บันทึกเสียงต้นฉบับ
 Save the sound as well	บันทึกเสียงด้วยเช่นกัน
 Save videos without sound	บันทึกวิดีโอโดยไม่มีเสียง
@@ -1599,6 +1605,9 @@ Save again	บันทึกอีกครั้ง
 The saved-video choice couldn't open. Try again.	ไม่สามารถเปิดตัวเลือกสำหรับวิดีโอที่บันทึกไว้ได้ โปรดลองอีกครั้ง
 The saved-video choice is still open	ตัวเลือกสำหรับวิดีโอที่บันทึกไว้ยังคงเปิดอยู่
 No full file for this video. Try again later.	ไม่มีไฟล์ฉบับเต็มสำหรับวิดีโอนี้ โปรดลองอีกครั้งในภายหลัง
+Subscriber-only posts can't be saved	บันทึกโพสต์เฉพาะสมาชิกไม่ได้
+Copy-protected videos can't be saved	วิดีโอที่ป้องกันการคัดลอกบันทึกไม่ได้
+Not saved. The file wasn't a playable video.	ไม่ได้บันทึก ไฟล์นี้ไม่ใช่วิดีโอที่เล่นได้
 Saving video to %1$s	กำลังบันทึกวิดีโอไปยัง %1$s
 Video and details saved to %1$s	บันทึกวิดีโอและรายละเอียดไปยัง %1$s แล้ว
 Saved, but a later save may make a second copy	บันทึกแล้ว แต่การบันทึกครั้งหน้าอาจได้สำเนาซ้ำ
@@ -1855,6 +1864,7 @@ Brightness	ความสว่าง
 Volume	ระดับเสียง
 Left edge strip	แถบขอบซ้าย
 Right edge strip	แถบขอบขวา
+Room ID	ID ห้อง
 Stop search results playing on their own	หยุดเล่นผลการค้นหาโดยอัตโนมัติ
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	วิดีโอในผลการค้นหาจะแสดงภาพหน้าปกและเริ่มเล่นเมื่อคุณเปิดดู ส่วนฟีดและวิดีโอที่คุณเปิดจะเล่นตามปกติ
 In a chat	ในการแชท
@@ -1862,8 +1872,6 @@ Hide call buttons	ซ่อนปุ่มการโทร
 The voice and video call buttons leave the top of a chat. Calls still ring, and the chat details button stays.	ปุ่มการโทรด้วยเสียงและวิดีโอคอลจะถูกนำออกจากด้านบนของการแชท สายโทรเข้ายังคงดังตามปกติ และปุ่มรายละเอียดการแชทจะยังคงอยู่
 Hide sticker suggestions	ซ่อนคำแนะนำสติกเกอร์
 The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.	แบนเนอร์แนะนำสติกเกอร์จะไม่แสดงในการแชทอีกต่อไป สติกเกอร์ของคุณเองจะยังคงอยู่ในเครื่องมือเลือกสติกเกอร์
-Hide suggested replies	ซ่อนคำตอบที่แนะนำ
-TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.	กล่องคำตอบที่แนะนำของ TikTok และแบนเนอร์แนะนำจะไม่แสดงในการแชทอีกต่อไป ข้อความที่คุณพิมพ์หรือได้รับจะไม่ได้รับผลกระทบ
 Hide online status	ซ่อนสถานะออนไลน์
 Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.	เพื่อนจะไม่เห็นจุดสีเขียวหรือ "ใช้งานอยู่ตอนนี้" ในขณะที่คุณอยู่ใน TikTok ต้องเปิดโหมด Ghost สถานะของพวกเขาอาจหยุดอัปเดตสำหรับคุณ และสถานะล่าสุดของคุณอาจค้างอยู่ครู่หนึ่ง
 Stop LIVE previews opening by themselves	หยุดการเปิดตัวอย่าง LIVE โดยอัตโนมัติ
@@ -2267,6 +2275,7 @@ The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on 
 Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	วิดีโอแนวนอนที่ TikTok อนุญาตจะมีปุ่มเพิ่มความคิดเห็นบรรทัดเดียวใต้วิดีโอ และมีแถบสำหรับความคิดเห็นเหล่านั้นเมื่อดูแบบเต็มจอ วิดีโออื่นยังคงเหมือนเดิม
 
 Pick videos to save from profile grids	เลือกวิดีโอที่จะบันทึกจากตารางโปรไฟล์
+Pick what to leave off the small line with the room ID and your connection. The rest stays on it.	เลือกส่วนที่จะเอาออกจากบรรทัดเล็กๆ ที่แสดง ID ห้องและการเชื่อมต่อของคุณ ส่วนอื่นยังอยู่
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	วางวงกลมบนแต่ละวิดีโอในตารางโปรไฟล์ วิดีโอที่ถูกใจ หรือรายการโปรด เลือกได้สูงสุด %1$s รายการ จากนั้นแตะ "บันทึก" เพื่อบันทึกทีละรายการอย่างต่อเนื่อง พร้อมตัวนับและปุ่มยกเลิก
 Pick for saving	เลือกเพื่อบันทึก
 You can pick up to %1$s at a time	คุณสามารถเลือกได้สูงสุด %1$s รายการในแต่ละครั้ง
@@ -2522,7 +2531,6 @@ autoplay auto play	เล่นอัตโนมัติ การเล่น
 picture in picture PiP	ภาพซ้อนภาพ PiP
 search suggestions	คำแนะนำการค้นหา
 AI chat	แชท AI
-AI Tako	AI Tako
 save photos	บันทึกรูปภาพ
 download button	ปุ่มดาวน์โหลด ดาวน์โหลด
 It's in %1$s, under %2$s. Tap to go there.	อยู่ใน %1$s ใต้ %2$s แตะเพื่อไปที่นั่น
@@ -2545,6 +2553,8 @@ Leave after no touch	ออกจากแอปเมื่อไม่มี�
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	เลขศูนย์คือปิดใช้งาน หลังจากไม่มีการสัมผัสหน้าจอตามจำนวนนาทีดังกล่าว วิดีโอจะหยุดและ TikTok จะสลับไปทำงานอยู่เบื้องหลัง เผื่อกรณีที่คุณเผลอหลับขณะรับชม การสัมผัสใดๆ จะเริ่มนับเวลารอใหม่
 Left TikTok after no touch	ออกจาก TikTok เนื่องจากไม่มีการสัมผัส
 Show when an account was made	แสดงเวลาที่สร้างบัญชี
+Show how many videos a profile has	แสดงจำนวนวิดีโอของโปรไฟล์
+Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them.	แสดงจำนวนวิดีโอตามที่ TikTok นับไว้ใต้ @ชื่อผู้ใช้ บนโปรไฟล์ รวมถึงโปรไฟล์ของคุณเอง
 Show what changed since your last visit	แสดงสิ่งที่เปลี่ยนไปตั้งแต่คุณเข้าชมครั้งล่าสุด
 Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	ใต้ @ชื่อผู้ใช้ในโปรไฟล์ แสดงว่าผู้ติดตาม การติดตาม ยอดถูกใจ และวิดีโอเปลี่ยนไปอย่างไรตั้งแต่คุณเปิดครั้งล่าสุด ตัวเลขจะเก็บไว้ในโทรศัพท์เครื่องนี้เท่านั้น
 Since %1$s: %2$s	ตั้งแต่ %1$s: %2$s
@@ -2679,7 +2689,7 @@ Read receipts shown	แสดงสถานะการอ่านแล้ว
 Compact long-press menu everywhere	เมนูกะทัดรัดเมื่อแตะค้างทุกที่
 A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.	การแตะค้างที่วิดีโอจะเปิดแผ่นเมนูแชร์ขนาดเล็กของ TikTok บนฟีดสำหรับคุณด้วย เช่นเดียวกับวิดีโอของครีเอเตอร์ โดยจะมีผลเหนือสวิตช์เมนูเต็มรูปแบบสองตัวด้านบน ต้องตั้งค่าการแตะค้างเป็นค่าเริ่มต้นของ TikTok
 Hide streak pop-ups	ซ่อนป๊อปอัป Streak
-Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	ปิดการแจ้งเตือน Streak ที่เลื่อนเข้ามาบน TikTok รวมถึงข้อความและเคล็ดลับ Streak ในแชทของคุณ
+Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats.	ปิดการแจ้งเตือน Streak ที่เลื่อนเข้ามาบน TikTok คำเชิญ Streak Pet ในกล่องข้อความ รวมถึงข้อความและเคล็ดลับ Streak ในแชทของคุณ
 Long press on For You opens my watch history	แตะค้างที่สำหรับคุณเพื่อเปิดประวัติการรับชมของฉัน
 Instead of these settings. The list has a button that brings you back here.	แทนการตั้งค่าเหล่านี้ รายการจะมีปุ่มที่นำคุณกลับมาที่นี่
 Long press on Profile opens my watch history	แตะค้างที่โปรไฟล์เพื่อเปิดประวัติการรับชมของฉัน
@@ -2780,7 +2790,9 @@ dialog popup greeting	ไดอะล็อก ป๊อปอัป ข้อ�
 Don't show again	ไม่ต้องแสดงอีก
 # context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
 Stop the blink under the bar	หยุดการกะพริบใต้แถบ
+Pages under the bar	หน้าใต้แถบ
 If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	หากวิดีโอในฟีดกะพริบขณะที่คุณปัดเมื่อเปิดใช้งาน "แถบด้านล่างแบบโปร่งใส" ตัวเลือกนี้จะเรนเดอร์วิดีโอภายใน TikTok แทนที่จะอยู่บนเลเยอร์แยกต่างหาก อาจใช้แบตเตอรี่เพิ่มขึ้นเล็กน้อย ต้องใช้แถบด้านล่างแบบโปร่งใส
+Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.	ให้ตารางชุมชนในหน้าหลักและหน้าอื่นๆ ที่สิ้นสุดเหนือแท็บต่อลงไปใต้แถบโปร่งใส จึงมองเห็นผ่านแถบแทนแถบสีดำหรือสีขาว แถวสุดท้ายยังเลื่อนขึ้นมาเหนือแท็บได้ ต้องใช้แถบด้านล่างแบบโปร่งใส
 # context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
 Bend the video at the edges	หักเหภาพวิดีโอที่ขอบ
 The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	ขอบของแถบแก้วทรงแคปซูลจะหักเหภาพวิดีโอฟีดที่เบลอด้านหลัง เหมือนกับขอบของแก้วจริง และสีสันจะดูสดใสขึ้นเล็กน้อย ต้องเปิดใช้งาน "เบลอวิดีโอด้านหลังแถบ" และต้องเป็น Android 13 ขึ้นไป
@@ -2833,6 +2845,8 @@ Hide Send to new group	ซ่อน "ส่งไปยังกลุ่มใ�
 Hides the button that turns the people you picked into a new group chat. Send separately stays.	ซ่อนปุ่มที่เปลี่ยนบุคคลที่คุณเลือกให้เป็นแชทกลุ่มใหม่ ปุ่ม "ส่งแยกกัน" จะยังคงอยู่
 # context: Switch in Hushfeed settings > App > Appearance (#372)
 AMOLED dark mode	โหมดมืด AMOLED
+Dark mode	โหมดมืด
+Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.	เปิดธีมมืดที่มีอยู่ใน TikTok Lite แต่ไม่เคยให้เลือก รีสตาร์ท TikTok Lite เพื่อดูการเปลี่ยนแปลง
 # context: Summary under the AMOLED dark mode switch
 Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	เติมเต็มโหมดมืดด้วยสีที่เลือกไว้ขณะทำการแพตช์ ซึ่งจะเป็นสีดำสนิทเว้นแต่จะเลือกสีอื่นไว้ ปิดใช้งานตัวเลือกนี้เพื่อใช้สีเทาเข้มตามปกติของ TikTok โหมดสว่างจะไม่เปลี่ยนแปลง รีสตาร์ท TikTok เพื่อดูการเปลี่ยนแปลง
 # context: Switch in Hushfeed settings > App, under the startup message rows (#377)
@@ -2886,6 +2900,7 @@ Friends in the top tabs	เพื่อนในแท็บด้านบน
 Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	เพื่อนจะย้ายขึ้นไปอยู่ในแท็บที่ด้านบนของฟีด ถัดจากกำลังติดตาม และค้นพบจะเข้ามาแทนที่ในแถบด้านล่าง ตามรูปแบบที่ TikTok จัดวางไว้ในบางประเทศ ภูมิภาคและฟีดของคุณจะยังคงเหมือนเดิม
 # context: Row title of the Inbox switch that lifts the app's cap on pinned chats
 Pin more chats	ปักหมุดแชทได้มากขึ้น
+Ping	ปิง
 # context: Summary under that switch; 5 is the cap TikTok's app usually puts on pinned chats
 Lifts the app's limit on pinned chats in the Inbox, usually 5, so you can pin more.	ยกเลิกขีดจำกัดของแอปสำหรับแชทที่ปักหมุดในกล่องขาเข้า ซึ่งปกติคือ 5 รายการ เพื่อให้คุณปักหมุดได้มากขึ้น
 # context: Row title of the Comments switch that hides voice comments
@@ -3162,7 +3177,8 @@ Unknown (TikTok didn't send it)	ไม่ทราบ (TikTok ไม่ได้
 A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	แผ่นเมนูแชร์ของโปรไฟล์จะมีปุ่ม "ข้อมูลบัญชี" เพิ่มเข้ามา ซึ่งจะแสดงสิ่งที่ TikTok ส่งมาเกี่ยวกับบัญชีอยู่แล้ว ได้แก่ วันที่เข้าร่วม ภูมิภาคและภาษา ระดับผู้ให้ของขวัญและ SecUID จำนวนโพสต์ วิดีโอที่ถูกใจ รายการโปรด และรีโพสต์ เวลาที่ชื่อผู้ใช้และชื่อที่แสดงเปลี่ยนแปลงล่าสุด บัญชีเป็นแบบส่วนตัวหรือไม่ และวิดีโอที่ถูกใจเป็นสาธารณะหรือไม่ ไม่มีการดึงข้อมูลเพิ่มเติมใดๆ
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	แสดง ID ห้องและการเชื่อมต่อของคุณ
-Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	เพิ่มบรรทัดเล็กๆ ในห้อง LIVE ที่แสดง ID ห้องและสถานะการเชื่อมต่อของคุณเองกับสตรีม ตามที่เครื่องเล่นของ TikTok วัดได้ ได้แก่ ปิง ความหน่วง และความเร็วในการดาวน์โหลด แตะที่บรรทัดเพื่อคัดลอก ID ห้อง
+Show the room line	แสดงบรรทัดห้อง
+Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.	เพิ่มบรรทัดเล็กๆ ในห้อง LIVE ที่แสดง ID ห้องและสถานะการเชื่อมต่อของคุณเองกับสตรีม ตามที่เครื่องเล่นของ TikTok วัดได้ ได้แก่ ปิง ความหน่วง และความเร็วในการดาวน์โหลด แตะที่บรรทัดเพื่อย่อให้เหลือจุด และแตะที่จุดเพื่อให้กลับมา แตะค้างที่บรรทัดเพื่อคัดลอก ID ห้อง
 Room ID %1$s	ID ห้อง %1$s
 Ping %1$s ms	ปิง %1$s มิลลิวินาที
 Latency %1$s s	ความหน่วง %1$s วินาที
@@ -3196,7 +3212,7 @@ Adds three stops below the smallest size on TikTok's own Text size slider, in Se
 UI size	ขนาดอินเทอร์เฟซ
 Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.	ทำให้อินเทอร์เฟซทั้งหมดของ TikTok เล็กลง ทั้งข้อความและปุ่ม เพื่อให้หน้าจอแสดงได้มากขึ้น ค่า 100 จะคงไว้ตามเดิม รีสตาร์ท TikTok เพื่อดูการเปลี่ยนแปลง
 Show how long a LIVE has been on	แสดงว่า LIVE ออกอากาศมานานเท่าไร
-Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.	เพิ่มบรรทัดเล็กๆ ในห้อง LIVE ที่แสดงว่าโฮสต์ไลฟ์มานานเท่าไรแล้ว นับตั้งแต่ห้องเริ่ม ถ้าเปิด ID ห้องไว้ด้วย บรรทัดนี้จะอยู่ใต้ ID ห้อง
+Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot.	เพิ่มบรรทัดเล็กๆ ในห้อง LIVE ที่แสดงว่าโฮสต์ไลฟ์มานานเท่าไรแล้ว นับตั้งแต่ห้องเริ่ม ถ้าเปิด ID ห้องไว้ด้วย บรรทัดนี้จะอยู่ใต้ ID ห้อง แตะที่บรรทัดเพื่อย่อให้เหลือจุด
 LIVE for %1$s	LIVE มาแล้ว %1$s
 Show exact LIVE battle scores	แสดงคะแนนแบทเทิล LIVE ที่แน่นอน
 In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.	ในแบทเทิล LIVE นั้น TikTok จำกัดคะแนนสูงที่ผู้ชมเห็น ขณะที่โฮสต์เห็นตัวเลขเต็ม การตั้งค่านี้จะแสดงคะแนนเต็มในแถบแบทเทิลและหน้าต่างโฮสต์ร่วม
@@ -3226,6 +3242,8 @@ The buttons, caption and tabs fade away instead of vanishing at once, and a touc
 # context: #461 Date instead of age, a switch under Write the month as a word
 Date instead of age	วันที่แทนอายุ
 Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.	วิดีโอล่าสุดจะแสดงวันที่โพสต์ข้างชื่อครีเอเตอร์ เช่น 10-12 แทนอายุอย่าง 2 วันที่แล้ว วันก่อนเดือน และ เขียนเดือนเป็นคำ จะเปลี่ยนรูปแบบในแบบเดียวกัน
+Use this date format everywhere	ใช้รูปแบบวันที่นี้ทุกที่
+Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.	เขียนวันที่ของความคิดเห็น หัวข้อวันที่ในแชท และวันที่ในผลการค้นหา แบบเดียวกับที่สามแถวด้านบนเขียนวันที่ข้างชื่อครีเอเตอร์
 # context: #503 Keep your place in chats, an Inbox switch under Show message times; the down arrow is the button that jumps a chat to its newest message
 Keep your place in chats	คงตำแหน่งเดิมในแชท
 A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.	แชทที่คุณเลื่อนขึ้นไปจะอยู่ที่เดิมเมื่อคุณกลับมาจากวิดีโอหรือส่งการตอบกลับ การส่งข้อความปกติหรือแตะลูกศรลงยังพาคุณไปที่ข้อความล่าสุด

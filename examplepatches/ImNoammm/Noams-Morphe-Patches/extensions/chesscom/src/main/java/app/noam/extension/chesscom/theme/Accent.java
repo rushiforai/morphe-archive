@@ -59,10 +59,17 @@ public final class Accent {
         return enabled() ? color() : CHESS_GREEN;
     }
 
-    /** A shade of the green palette (0 = green25, 5 = green300, 11 = green900), as a Compose colour. */
-    public static long palette(long original, int shade) {
-        if (!enabled() || shade < 0 || shade >= SHADES.length) return original;
-        return ((long) shade(shade) & 0xFFFFFFFFL) << 32;
+    /**
+     * A green of the palette as a Compose colour (green25 to green900), swapped for the accent's
+     * shade; the green itself says which shade it is.
+     */
+    public static long palette(long original) {
+        if (!enabled()) return original;
+        int argb = (int) (original >>> 32);
+        for (int shade = 0; shade < GREENS.length; shade++) {
+            if (GREENS[shade] == argb) return ((long) shade(shade) & 0xFFFFFFFFL) << 32;
+        }
+        return original;
     }
 
     static int shade(int shade) {

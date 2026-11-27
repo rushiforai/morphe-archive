@@ -15,12 +15,16 @@ import app.noam.extension.chesscom.Features;
  */
 public final class HomeTabs {
     /** Middle tab choices, by the app's own tab names, with the app's default ones first. */
-    public static final String[] TABS = {"Puzzles", "Learn", "Watch", "Bots", "Train"};
-    public static final String[] TAB_TITLES = {"Puzzles", "Learn", "Watch", "Bots", "Train"};
+    public static final String[] TABS = {"Puzzles", "Learn", "Watch", "Bots", "Train", "Openings"};
+    public static final String[] TAB_TITLES = {"Puzzles", "Learn", "Watch", "Bots", "Train", "Openings"};
     public static final int MAX_MIDDLE_TABS = 4;
 
     private static final String ORDER = "tabs_order";
     private static final String SHOWN = "tabs_shown";
+    private static final String OPENINGS_OFFERED = "openings_offered";
+
+    /** Whether chess.com offers Openings to this account (null until the app has worked it out). */
+    private static volatile Boolean openingsOffered;
 
     private HomeTabs() {}
 
@@ -40,6 +44,7 @@ public final class HomeTabs {
             List result = new ArrayList();
             result.add(byName(all, "Play"));
             for (String name : shownTabs()) {
+                if (name.equals("Openings") && !openingsOffered()) continue;
                 Object tab = byName(all, name);
                 if (tab != null) result.add(tab);
             }
@@ -49,6 +54,36 @@ public final class HomeTabs {
         } catch (Throwable throwable) {
             return tabs;
         }
+    }
+
+    /**
+     * Called with chess.com's place for Openings (NONE, TAB or MORE, from its flags). With a saved bar,
+     * Openings is a tab when picked and in More when not, so it never goes missing; NONE stays.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static Object openings(Object placement) {
+        if (!(placement instanceof Enum)) return placement;
+        boolean offered = !((Enum<?>) placement).name().equals("NONE");
+        SharedPreferences preferences = Features.preferences();
+        if (!Boolean.valueOf(offered).equals(openingsOffered)) {
+            openingsOffered = offered;
+            if (preferences != null) preferences.edit().putBoolean(OPENINGS_OFFERED, offered).apply();
+        }
+        if (!offered || !enabled() || preferences == null || !preferences.contains(SHOWN)) return placement;
+        try {
+            return Enum.valueOf(((Enum) placement).getDeclaringClass(),
+                shownTabs().contains("Openings") ? "TAB" : "MORE");
+        } catch (Throwable throwable) {
+            return placement;
+        }
+    }
+
+    /** The last answer the app gave, kept across starts for the bar's first frame. */
+    private static boolean openingsOffered() {
+        Boolean offered = openingsOffered;
+        if (offered != null) return offered;
+        SharedPreferences preferences = Features.preferences();
+        return preferences != null && preferences.getBoolean(OPENINGS_OFFERED, false);
     }
 
     /** Middle tabs in display order: the saved choice, or the app's defaults. */

@@ -1,3 +1,29 @@
+## [1.2.0](https://github.com/Tomveloper/libby-patches/compare/v1.1.0...v1.2.0) (2026-11-26)
+
+### ✨ New Features
+
+* separate font weight from font family, increasing customizability ([bf56610](https://github.com/Tomveloper/libby-patches/commit/bf5661077cf8195db3fe69c427533b05aa52e210))
+
+### 🐛 Bug Fixes
+
+* **Libby:** replace version-specific activity fingerprint ([67e79cc](https://github.com/Tomveloper/libby-patches/commit/67e79cc534798e20f52d0ee4630c3fb126893971))
+
+### 🚀 Updated App Support
+
+* **Libby:** support 9.6.0 ([8a3461d](https://github.com/Tomveloper/libby-patches/commit/8a3461da9a1584199351c1dddb65ee00765da4e6))
+
+## [1.2.0-dev.3](https://github.com/Tomveloper/libby-patches/compare/v1.2.0-dev.2...v1.2.0-dev.3) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **Libby:** replace version-specific activity fingerprint ([67e79cc](https://github.com/Tomveloper/libby-patches/commit/67e79cc534798e20f52d0ee4630c3fb126893971))
+
+## [1.2.0-dev.2](https://github.com/Tomveloper/libby-patches/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-11-26)
+
+### 🚀 Updated App Support
+
+* **Libby:** support 9.6.0 ([8a3461d](https://github.com/Tomveloper/libby-patches/commit/8a3461da9a1584199351c1dddb65ee00765da4e6))
+
 ## [1.2.0-dev.1](https://github.com/Tomveloper/libby-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-11-01)
 
 ### ✨ New Features

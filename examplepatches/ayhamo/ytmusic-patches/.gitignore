@@ -1,0 +1,13 @@
+# Build outputs, downloaded tools/APKs and caches (1.8 GB)
+work/
+build/
+.gradle/
+node_modules/
+*.apk
+*.mpp
+local.properties
+__pycache__/
+graphify-out/
+
+# agent audit reports (local, never committed)
+agent-audit/

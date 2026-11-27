@@ -17,21 +17,14 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.WebSocketListener;
 
-/**
- * KICK's screens are React Native, so its lists are filtered where their data arrives: every OkHttp client the app
- * builds gets this interceptor, which rewrites the JSON answers of kick.com (streams, clips, categories, chat history)
- * before the screens read them, and every chat socket gets {@link KickChat}'s listener.
- */
 public final class KickHttp implements Interceptor {
 
     private static final KickHttp INSTANCE = new KickHttp();
-    /** Answers larger than this are passed through unread (8 MB). */
     private static final long MAX_BODY = 8L << 20;
 
     private KickHttp() {
     }
 
-    /** Called at the start of OkHttpClient.Builder.build(). */
     public static void onBuild(OkHttpClient.Builder builder) {
         try {
             if (!builder.interceptors().contains(INSTANCE)) builder.addInterceptor(INSTANCE);
@@ -40,7 +33,6 @@ public final class KickHttp implements Interceptor {
         }
     }
 
-    /** Called at the start of OkHttpClient.newWebSocket(Request, WebSocketListener): the listener the socket gets. */
     public static WebSocketListener onWebSocket(Request request, WebSocketListener listener) {
         try {
             Kick.log("socket " + request.url());
@@ -58,8 +50,6 @@ public final class KickHttp implements Interceptor {
         try {
             String host = request.url().host();
             String path = request.url().encodedPath();
-            // Login, sign-up, token, and account answers are never read (2026-11-18: a login failed with the patch on):
-            // only the list answers of kick.com are looked at, and an answer which no filter changes is returned as it came.
             if (!host.endsWith("kick.com") || host.startsWith("id.") || !request.method().equals("GET")
                     || isAccountPath(path)) return response;
             ResponseBody body = response.body();
@@ -106,7 +96,6 @@ public final class KickHttp implements Interceptor {
         return "?";
     }
 
-    /** The answer with hidden streams, channels, categories, and chat messages removed; the same string if none. */
     static String rewrite(String where, String text) {
         Filters f = Filters.now();
         if (f.isEmpty()) return text;
@@ -150,7 +139,6 @@ public final class KickHttp implements Interceptor {
         }
     }
 
-    /** The filters set now. */
     static final class Filters {
         final List<String> words = Kick.list(Kick.HIDDEN_WORDS);
         final List<String> channels = Kick.list(Kick.HIDDEN_CHANNELS);
@@ -177,8 +165,6 @@ public final class KickHttp implements Interceptor {
                     && chatUsers.isEmpty() && !hideTopGifted && !hideRecordings;
         }
 
-        /** Why an item of a list is hidden, or null: a chat message by its sender and text, a stream or clip by its
-         * title, channel, and category. */
         String hides(JSONObject item) {
             if (item.has("content") && item.has("sender")) {
                 JSONObject sender = item.optJSONObject("sender");
@@ -201,8 +187,6 @@ public final class KickHttp implements Interceptor {
             return null;
         }
 
-        /** A recording of a past stream (a VOD): a stream object marked not live with a video or a duration, or a
-         * video object of its own. Clips are no recordings. */
         static boolean isRecording(JSONObject o) {
             if (o.has("clip_id") || o.optString("type").equalsIgnoreCase("clip")) return false;
             String type = o.optString("type").toLowerCase(Locale.ROOT);

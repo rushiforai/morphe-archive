@@ -40,6 +40,10 @@ import java.util.WeakHashMap;
  * The rows take the name and the look of the button they stand for. The menu is a pop-up window Messenger fills from a
  * list of its own, so the rows go in below that list and the window grows upward by their height, keeping its bottom edge
  * on the chat bar. Needs Android 10, the first version that lists an app's windows.
+ *
+ * Messenger 588 draws its chat bar in Litho, where none of those views exist (#241). It has the same move built in,
+ * though, behind a server test with a flag for the test and one each for the gallery and the mic, so on 588 the switch
+ * answers yes to those flags through {@link #menuFlag} and Messenger moves the buttons and adds their rows itself.
  */
 public final class ChatBarPlus {
     static final String KEY = "chat_bar_plus";
@@ -59,6 +63,22 @@ public final class ChatBarPlus {
     private static final Map<View, Boolean> watched = new WeakHashMap<>();
 
     private ChatBarPlus() { }
+
+    /**
+     * Asked with Meta's answer, non-zero for yes, wherever Messenger reads one of the flags that move the chat bar's
+     * buttons into the + menu: the check every chat asks, the menu's builder, the bar's answer for each button and the
+     * mic's composer setup. On, every answer is yes. Off, Pause, safe mode and any failure keep Meta's answer, and a yes
+     * Meta already gave doesn't count as a use.
+     */
+    public static boolean menuFlag(int stock) {
+        if (stock != 0) return true;
+        try {
+            return Settings.enabled(KEY);
+        } catch (Throwable error) {
+            Settings.hookFailedPrivately(KEY, "Can't move the chat bar buttons into the + menu", error);
+            return false;
+        }
+    }
 
     /** The chat fragment's view, on its way in. Called whether the switch is on or off. */
     public static void chatShown(Object fragment, View view) {

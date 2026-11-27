@@ -1,0 +1,15 @@
+{
+  "name": "Rambler Bangla",
+  "description": "Preserve Bengali Unicode (bn-BD, bn-IN, bn-Beng) in Rambler/Jetson Lite cleanup; Romanize only explicit bn-Latn; English stays Latin. Fail-closed: aborts on any fingerprint drift from Gboard 18.3.1.",
+  "patchClass": "com.akshaykadam.pixelboard.patches.gboard.features.ramblerlite.GboardRamblerLiteBengaliScriptPatchKt",
+  "compatibleVersions": ["18.3.1.977415014"],
+  "dependencies": ["gboardPatchesExtensionCarrierPatch"],
+  "options": [
+    {
+      "key": "ramblerLiteLocaleAdmissionExperiment",
+      "title": "Locale-admission experiment (hypothesis, off by default)",
+      "description": "Additionally admit exact bn-BD/bn-IN at the dictation eligibility Set (zh-TW-analog seam). UNPROVEN for Bengali: enable only for device experiments; requires its own 18.3.1 fingerprints captured via the analyzer.",
+      "default": false
+    }
+  ]
+}

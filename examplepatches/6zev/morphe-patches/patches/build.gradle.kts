@@ -59,6 +59,8 @@ val runPatch by tasks.registering(JavaExec::class) {
     doFirst { println("input=${apk.get()} output=${out.get()}") }
     classpath = files(bundle) + configurations.getByName("runtimeClasspath")
     mainClass.set("util.RunPatcherKt")
+    // A full dex rewrite is the default; -PbytecodeMode overrides it for experiments.
+    providers.gradleProperty("bytecodeMode").orNull?.let { systemProperty("morphe.bytecodeMode", it) }
     systemProperty("runPatch.bundle", bundle.get().asFile.absolutePath)
     argumentProviders.add(CommandLineArgumentProvider {
         listOf(apk.get(), out.get())

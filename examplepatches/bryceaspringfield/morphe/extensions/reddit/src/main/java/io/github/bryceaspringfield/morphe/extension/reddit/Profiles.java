@@ -29,22 +29,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Named copies of every setting (this bundle's and Morphe's own), switched by hand or by the Reddit account in use.
- * The settings in force always belong to the profile in use: switching first saves them into it.
- */
 final class Profiles {
     static final String DEFAULT = "Default";
     private static final String FILE = "reddit_keyword_filter_profiles";
-    /** Morphe's own settings file, recorded when its settings page opens. */
     private static final String MORPHE_FILE = "morphe_file";
     private static final String NAMES = "names";
     private static final String ACTIVE = "active";
     private static final String ASSIGNED = "assigned";
-    /** The account signed in at the last check, kept across restarts. */
     private static final String LAST_ACCOUNT = "last_account";
     private static final String DATA = "data_";
-    /** Keys each profile leaves alone: debug logging, migration markers, and the flairs seen so far. */
     private static final Set<String> SHARED_KEYS = new HashSet<>(java.util.Arrays.asList(
             DEBUG, LEGACY_PLACES_VERSION, Scopes.SEEN_FLAIRS, RECENT_COMMUNITIES));
     private static final Pattern ACTIVE_ACCOUNT = Pattern.compile(
@@ -77,7 +70,6 @@ final class Profiles {
         return context == null || name == null ? null : context.getSharedPreferences(name, Context.MODE_PRIVATE);
     }
 
-    /** Records the file of Morphe's own settings, which each profile also keeps. */
     static void morpheFile(String name) {
         SharedPreferences store = store();
         if (store != null && name != null && !name.equals(store.getString(MORPHE_FILE, null))) {
@@ -114,7 +106,6 @@ final class Profiles {
         editor.putString(NAMES, array.toString());
     }
 
-    /** The profile assigned to each account, by lowercase account name. */
     static Map<String, String> assigned() {
         Map<String, String> map = new LinkedHashMap<>();
         SharedPreferences store = store();
@@ -140,8 +131,6 @@ final class Profiles {
         store.edit().putString(ASSIGNED, new JSONObject(map).toString()).commit();
         lastAccount = null;
     }
-
-    // region Snapshots
 
     private static JSONObject snapshot(SharedPreferences preferences, boolean ours) throws Exception {
         JSONObject json = new JSONObject();
@@ -198,7 +187,6 @@ final class Profiles {
         editor.commit();
     }
 
-    /** Saves the settings in force into the profile in use. */
     private static void saveActive() throws Exception {
         SharedPreferences store = store();
         if (store == null) return;
@@ -208,14 +196,6 @@ final class Profiles {
         store.edit().putString(DATA + active(), data.toString()).commit();
     }
 
-    // endregion
-
-    /**
-     * Makes a profile the one in use: saves the settings in force into the current profile, then loads the named
-     * one. A profile never saved starts from the settings in force.
-     *
-     * @return Whether Morphe's own settings changed, which apply after Reddit restarts.
-     */
     static synchronized boolean switchTo(String name) {
         try {
             if (name.equals(active())) return false;
@@ -241,7 +221,6 @@ final class Profiles {
         }
     }
 
-    /** Adds a profile holding a copy of the settings in force, and makes it the one in use. */
     static synchronized boolean create(String name) {
         name = name.trim();
         if (name.isEmpty() || names().contains(name)) return false;
@@ -282,7 +261,6 @@ final class Profiles {
         return true;
     }
 
-    /** Deletes a profile other than Default and the one in use; its accounts go back to no profile. */
     static synchronized boolean delete(String name) {
         if (name.equals(DEFAULT) || name.equals(active())) return false;
         SharedPreferences store = store();
@@ -299,9 +277,6 @@ final class Profiles {
         return true;
     }
 
-    // region Accounts
-
-    /** The account Reddit has signed in, read from its session store, or null when signed out. */
     static String currentAccount() {
         Context context = app();
         if (context == null) return null;
@@ -324,10 +299,6 @@ final class Profiles {
         }
     }
 
-    /**
-     * Switches to the profile assigned to the account signed in, when that account changed since the last check.
-     * Called as feeds load; checks at most every few seconds.
-     */
     static void checkAccount() {
         long now = SystemClock.elapsedRealtime();
         if (now - accountCheckedAt < ACCOUNT_CHECK_MS) return;
@@ -338,7 +309,6 @@ final class Profiles {
             SharedPreferences store = store();
             if (lastAccount == null && store != null) lastAccount = store.getString(LAST_ACCOUNT, null);
             if (account.equals(lastAccount)) return;
-            // A restart signed in to the same account keeps the profile chosen by hand.
             lastAccount = account;
             if (store != null) store.edit().putString(LAST_ACCOUNT, account).apply();
             String profile = assigned().get(account);
@@ -354,7 +324,5 @@ final class Profiles {
             Log.e(TAG, "Could not check the account's profile", ex);
         }
     }
-
-    // endregion
 
 }

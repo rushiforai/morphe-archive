@@ -55,18 +55,17 @@ private object UpdateReadStatusFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val messagingPatch = patch(
-    name = "Messaging",
-    description = "Hides sponsored messages, and adds an optional ghost mode that does not send " +
-        "typing indicators or read status.",
+val hideSponsoredMessagesPatch = patch(
+    name = "Hide sponsored messages",
+    description = "Hides sponsored messages from the chat list.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Privacy")
+    category("Chat & privacy")
     dependsOn(settingsPatch)
 
     execute {
-        register(HIDE_SPONSORED_MESSAGES, GHOST_MODE, MARK_READ_AFTER_REPLY)
+        register(HIDE_SPONSORED_MESSAGES)
 
         // Filter the conversation list before it is transformed. Range form: p1 can be above v15.
         ConversationListInputFingerprint.method.addInstructions(
@@ -76,6 +75,21 @@ val messagingPatch = patch(
                 move-result-object p1
             """
         )
+    }
+}
+
+@Suppress("unused")
+val ghostModePatch = patch(
+    name = "Ghost mode",
+    description = "Stops sending typing indicators and automatic read receipts.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Chat & privacy")
+    dependsOn(settingsPatch)
+
+    execute {
+        register(GHOST_MODE)
 
         // Ghost mode: report success without sending the typing request.
         SendTypingIndicatorFingerprint.method.apply {
@@ -94,12 +108,6 @@ val messagingPatch = patch(
             )
         }
 
-        // Ghost mode: remember a replied conversation, so it can be marked as read.
-        DeliverMessageFingerprint.method.addInstructions(
-            0,
-            "invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->messageSent(Ljava/lang/Object;)V"
-        )
-
         // Ghost mode: opening a chat no longer marks it as read on the server.
         UpdateReadStatusFingerprint.method.apply {
             addInstructionsWithLabels(
@@ -115,5 +123,27 @@ val messagingPatch = patch(
                 ExternalLabel("update", getInstruction(0))
             )
         }
+    }
+}
+
+@Suppress("unused")
+val markReadAfterReplyPatch = patch(
+    name = "Mark as read when you reply",
+    description = "With Ghost mode on, marks a chat you reply to as read.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Chat & privacy")
+    // Without Ghost mode the chat sends its read receipts anyway, and the switch stays off.
+    dependsOn(settingsPatch)
+
+    execute {
+        register(MARK_READ_AFTER_REPLY)
+
+        // Remember a replied conversation, so it can be marked as read.
+        DeliverMessageFingerprint.method.addInstructions(
+            0,
+            "invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->messageSent(Ljava/lang/Object;)V"
+        )
     }
 }

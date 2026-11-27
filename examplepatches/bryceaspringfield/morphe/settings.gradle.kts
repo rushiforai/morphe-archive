@@ -21,8 +21,6 @@ plugins {
     id("app.morphe.patches") version "2.1.0"
 }
 
-// Builds against a local morphe-patcher checkout (MORPHE_PATCHER_DIR, else one beside this folder) when one exists,
-// so a build needs no GitHub Packages credentials for the patcher.
 file(System.getenv("MORPHE_PATCHER_DIR") ?: "../morphe-patcher").let { libDir ->
     if (libDir.exists()) {
         includeBuild(libDir) {

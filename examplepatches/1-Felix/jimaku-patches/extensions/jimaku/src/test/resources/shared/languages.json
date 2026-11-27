@@ -1,0 +1,250 @@
+{
+  "note": "Written by Jimaku's extension/scripts/export-shared-cases.ts. Change the cases there, not here.",
+  "about": "The languages subtitles can be in, each named in its own language, in code order.",
+  "languages": [
+    {
+      "code": "af",
+      "name": "Afrikaans"
+    },
+    {
+      "code": "ar",
+      "name": "العربية"
+    },
+    {
+      "code": "as",
+      "name": "অসমীয়া"
+    },
+    {
+      "code": "az",
+      "name": "Azərbaycan"
+    },
+    {
+      "code": "bg",
+      "name": "Български"
+    },
+    {
+      "code": "bn",
+      "name": "বাংলা"
+    },
+    {
+      "code": "bs",
+      "name": "Bosanski"
+    },
+    {
+      "code": "ca",
+      "name": "Català"
+    },
+    {
+      "code": "cs",
+      "name": "Čeština"
+    },
+    {
+      "code": "da",
+      "name": "Dansk"
+    },
+    {
+      "code": "de",
+      "name": "Deutsch"
+    },
+    {
+      "code": "el",
+      "name": "Ελληνικά"
+    },
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "es",
+      "name": "Español"
+    },
+    {
+      "code": "et",
+      "name": "Eesti"
+    },
+    {
+      "code": "fa",
+      "name": "فارسی"
+    },
+    {
+      "code": "fi",
+      "name": "Suomi"
+    },
+    {
+      "code": "fil",
+      "name": "Filipino"
+    },
+    {
+      "code": "fr",
+      "name": "Français"
+    },
+    {
+      "code": "gl",
+      "name": "Galego"
+    },
+    {
+      "code": "gu",
+      "name": "ગુજરાતી"
+    },
+    {
+      "code": "he",
+      "name": "עברית"
+    },
+    {
+      "code": "hi",
+      "name": "हिन्दी"
+    },
+    {
+      "code": "hu",
+      "name": "Magyar"
+    },
+    {
+      "code": "hy",
+      "name": "Հայերեն"
+    },
+    {
+      "code": "id",
+      "name": "Bahasa Indonesia"
+    },
+    {
+      "code": "is",
+      "name": "Íslenska"
+    },
+    {
+      "code": "it",
+      "name": "Italiano"
+    },
+    {
+      "code": "ja",
+      "name": "日本語"
+    },
+    {
+      "code": "kk",
+      "name": "Қазақ тілі"
+    },
+    {
+      "code": "kn",
+      "name": "ಕನ್ನಡ"
+    },
+    {
+      "code": "ko",
+      "name": "한국어"
+    },
+    {
+      "code": "lt",
+      "name": "Lietuvių"
+    },
+    {
+      "code": "lv",
+      "name": "Latviešu"
+    },
+    {
+      "code": "mk",
+      "name": "Македонски"
+    },
+    {
+      "code": "ml",
+      "name": "മലയാളം"
+    },
+    {
+      "code": "mr",
+      "name": "मराठी"
+    },
+    {
+      "code": "ms",
+      "name": "Bahasa Melayu"
+    },
+    {
+      "code": "nb",
+      "name": "Norsk bokmål"
+    },
+    {
+      "code": "ne",
+      "name": "नेपाली"
+    },
+    {
+      "code": "nl",
+      "name": "Nederlands"
+    },
+    {
+      "code": "or",
+      "name": "ଓଡ଼ିଆ"
+    },
+    {
+      "code": "pa",
+      "name": "ਪੰਜਾਬੀ"
+    },
+    {
+      "code": "pl",
+      "name": "Polski"
+    },
+    {
+      "code": "pt",
+      "name": "Português"
+    },
+    {
+      "code": "ro",
+      "name": "Română"
+    },
+    {
+      "code": "ru",
+      "name": "Русский"
+    },
+    {
+      "code": "sk",
+      "name": "Slovenčina"
+    },
+    {
+      "code": "sl",
+      "name": "Slovenščina"
+    },
+    {
+      "code": "sv",
+      "name": "Svenska"
+    },
+    {
+      "code": "sw",
+      "name": "Kiswahili"
+    },
+    {
+      "code": "ta",
+      "name": "தமிழ்"
+    },
+    {
+      "code": "te",
+      "name": "తెలుగు"
+    },
+    {
+      "code": "th",
+      "name": "ไทย"
+    },
+    {
+      "code": "tr",
+      "name": "Türkçe"
+    },
+    {
+      "code": "uk",
+      "name": "Українська"
+    },
+    {
+      "code": "ur",
+      "name": "اردو"
+    },
+    {
+      "code": "vi",
+      "name": "Tiếng Việt"
+    },
+    {
+      "code": "yue",
+      "name": "粵語"
+    },
+    {
+      "code": "zh-Hans",
+      "name": "中文（简体）"
+    },
+    {
+      "code": "zh-Hant",
+      "name": "中文（繁體）"
+    }
+  ]
+}

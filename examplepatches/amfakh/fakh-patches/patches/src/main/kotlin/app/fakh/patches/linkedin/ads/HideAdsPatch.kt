@@ -34,7 +34,7 @@ val hideAdsPatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Ads")
+    category("Ads & promotions")
 
     dependsOn(sduiComponentFilterPatch)
 

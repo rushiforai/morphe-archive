@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" role="img" aria-label="SBrowserX Banner">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070910"/>
+      <stop offset="55%" stop-color="#0C1020"/>
+      <stop offset="100%" stop-color="#080B14"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="22%" cy="48%" r="42%">
+      <stop offset="0%" stop-color="#5B6CFF" stop-opacity="0.34"/>
+      <stop offset="60%" stop-color="#3B82F6" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="84%" cy="22%" r="36%">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="50%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+    <linearGradient id="cardStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="50%" stop-color="#818CF8" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    </linearGradient>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Base rounded card -->
+  <rect x="2" y="2" width="1196" height="316" rx="28" fill="url(#bg)" stroke="url(#cardStroke)" stroke-width="2"/>
+  <rect x="2" y="2" width="1196" height="316" rx="28" fill="url(#glow1)"/>
+  <rect x="2" y="2" width="1196" height="316" rx="28" fill="url(#glow2)"/>
+
+  <!-- Subtle dot grid on right -->
+  <g fill="#94A3B8" opacity="0.12">
+    <circle cx="940" cy="60" r="2"/><circle cx="972" cy="60" r="2"/><circle cx="1004" cy="60" r="2"/><circle cx="1036" cy="60" r="2"/><circle cx="1068" cy="60" r="2"/><circle cx="1100" cy="60" r="2"/><circle cx="1132" cy="60" r="2"/>
+    <circle cx="940" cy="92" r="2"/><circle cx="972" cy="92" r="2"/><circle cx="1004" cy="92" r="2"/><circle cx="1036" cy="92" r="2"/><circle cx="1068" cy="92" r="2"/><circle cx="1100" cy="92" r="2"/><circle cx="1132" cy="92" r="2"/>
+    <circle cx="940" cy="124" r="2"/><circle cx="972" cy="124" r="2"/><circle cx="1004" cy="124" r="2"/><circle cx="1036" cy="124" r="2"/><circle cx="1068" cy="124" r="2"/><circle cx="1100" cy="124" r="2"/><circle cx="1132" cy="124" r="2"/>
+    <circle cx="940" cy="156" r="2"/><circle cx="972" cy="156" r="2"/><circle cx="1004" cy="156" r="2"/><circle cx="1036" cy="156" r="2"/><circle cx="1068" cy="156" r="2"/><circle cx="1100" cy="156" r="2"/><circle cx="1132" cy="156" r="2"/>
+    <circle cx="940" cy="188" r="2"/><circle cx="972" cy="188" r="2"/><circle cx="1004" cy="188" r="2"/><circle cx="1036" cy="188" r="2"/><circle cx="1068" cy="188" r="2"/><circle cx="1100" cy="188" r="2"/><circle cx="1132" cy="188" r="2"/>
+    <circle cx="940" cy="220" r="2"/><circle cx="972" cy="220" r="2"/><circle cx="1004" cy="220" r="2"/><circle cx="1036" cy="220" r="2"/><circle cx="1068" cy="220" r="2"/><circle cx="1100" cy="220" r="2"/><circle cx="1132" cy="220" r="2"/>
+    <circle cx="940" cy="252" r="2"/><circle cx="972" cy="252" r="2"/><circle cx="1004" cy="252" r="2"/><circle cx="1036" cy="252" r="2"/><circle cx="1068" cy="252" r="2"/><circle cx="1100" cy="252" r="2"/><circle cx="1132" cy="252" r="2"/>
+  </g>
+
+  <!-- App Emblem (Squircle + Orbital Ring + Crisp X) -->
+  <g transform="translate(96, 74)">
+    <rect x="0" y="0" width="172" height="172" rx="44" fill="#101526" stroke="url(#ring)" stroke-width="3.5"/>
+    <ellipse cx="86" cy="86" rx="68" ry="26" transform="rotate(-28 86 86)" fill="none" stroke="url(#ring)" stroke-width="6" opacity="0.92" filter="url(#softGlow)"/>
+    <circle cx="86" cy="86" r="46" fill="#0A0E1B" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="2"/>
+    <!-- Bold geometric X -->
+    <path d="M62 62 L110 110 M110 62 L62 110" stroke="url(#accent)" stroke-width="13" stroke-linecap="round"/>
+    <!-- Orbiting spark -->
+    <circle cx="144" cy="54" r="6.5" fill="#22D3EE" filter="url(#softGlow)"/>
+  </g>
+
+  <!-- Title & Subtitle -->
+  <g transform="translate(314, 134)">
+    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="68" font-weight="800" letter-spacing="-1.5" fill="#F8FAFC">
+      SBrowser<tspan fill="url(#accent)">X</tspan>
+    </text>
+    <text x="2" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="24" font-weight="500" fill="#CBD5E1">
+      Supercharged Samsung Internet for Any Android 11+ Device
+    </text>
+    <!-- Clean pill tags -->
+    <g transform="translate(0, 74)">
+      <rect x="0" y="0" width="184" height="34" rx="17" fill="#1E293B" stroke="#38BDF8" stroke-opacity="0.35" stroke-width="1.2"/>
+      <text x="92" y="22" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#E0F2FE">Chrome Extensions</text>
+
+      <rect x="198" y="0" width="166" height="34" rx="17" fill="#1E293B" stroke="#818CF8" stroke-opacity="0.35" stroke-width="1.2"/>
+      <text x="281" y="22" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#E0E7FF">AMOLED &amp; Glass</text>
+
+      <rect x="378" y="0" width="164" height="34" rx="17" fill="#1E293B" stroke="#22D3EE" stroke-opacity="0.35" stroke-width="1.2"/>
+      <text x="460" y="22" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#CFFAFE">Native Autofill</text>
+
+      <rect x="556" y="0" width="144" height="34" rx="17" fill="#1E293B" stroke="#A855F7" stroke-opacity="0.35" stroke-width="1.2"/>
+      <text x="628" y="22" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#F3E8FF">Gemini AI</text>
+    </g>
+  </g>
+</svg>

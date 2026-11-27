@@ -94,6 +94,7 @@ val chatHeadsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES)
         check(ChatModeFlagsFingerprint.matchAll(1..1).size == 1)
         val initializer = ChatModeFlagsFingerprint.method
         val instructions = initializer.implementation!!.instructions.toList()
@@ -178,6 +179,7 @@ val chatHeadsPatch = bytecodePatch(
                 if-nez v0, :zalo_observe_posture
                 return-void
             """.trimIndent(), ExternalLabel("zalo_observe_posture", postureInstructions[flowIndex]))
+            registerHooks(PatchId.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, initializer, commit, click, service, posture)
             return@execute
     }
 }

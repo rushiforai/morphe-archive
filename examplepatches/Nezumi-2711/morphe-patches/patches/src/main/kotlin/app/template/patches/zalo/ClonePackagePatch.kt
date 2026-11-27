@@ -148,6 +148,10 @@ val clonePackagePatch = bytecodePatch(
     cloneNameOption()
 
     execute {
+        registerApplied(PatchId.CLONE_PACKAGE, mapOf(
+            "packageName" to clonePackageOption.value,
+            "appName" to cloneNameOption.value,
+        ))
         check(cloneIdentities.isNotEmpty()) { "Missing clone manifest identities" }
         check(CloneMainProcess.matchAll(1..1).size == 1)
         check(CloneAccountOwner.matchAll(1..1).size == 1)
@@ -158,6 +162,8 @@ val clonePackagePatch = bytecodePatch(
                 if (((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string != ORIGINAL_PACKAGE) continue
                 val register = (instruction as OneRegisterInstruction).registerA
                 method.replaceInstruction(index, "const-string v$register, \"${clonePackageOption.value!!}\"")
+                // Constant swaps only, no runtime hook: attributed for crashes but gets no breadcrumb.
+                registerTouched(PatchId.CLONE_PACKAGE, method)
             }
         }
         for ((original, replacement) in cloneIdentities) {
@@ -170,6 +176,7 @@ val clonePackagePatch = bytecodePatch(
                     if (value != original) continue
                     val register = (instruction as OneRegisterInstruction).registerA
                     method.replaceInstruction(index, "const-string v$register, \"$replacement\"")
+                    registerTouched(PatchId.CLONE_PACKAGE, method)
                 }
             }
         }

@@ -1,6 +1,6 @@
 # Patches
 
-> Generated from `patches-list.json` — **v1.0.0** (`main`) · **2 patches** across **2 apps** · back to [README](README.md)
+> Generated from `patches-list.json` — **v1.0.2** (`main`) · **2 patches** across **2 apps** · back to [README](README.md)
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Patch | Details |
 |---|---|
-| **MergenV1 Liquid Glass UI** | Brings Kyant0 Liquid Glass &amp; Swiss-Kinetic Obsidian UI, 120Hz spring animations, radial hold menu, creator peek drawer, quick control sheet, camera-notch alerts, kinetic seekbar, and 1:1 scrubbed Danmaku comments to stock TikTok and TikTok You (Android 13+). |
+| **MergenV1 UI Enhancer** | Modern UI &amp; interaction enhancer for stock TikTok and TikTok You (Android 13+): 120Hz spring animations with selectable profiles, swipe gestures, radial action menu, creator peek drawer, quick control sheet, camera-notch alerts, kinetic seekbar, 1:1 scrubbed Danmaku comments, and switchable Obsidian &amp; Liquid Glass themes. |
 
 ---
 
@@ -22,6 +22,6 @@
 
 | Patch | Details |
 |---|---|
-| **MergenV1 Liquid Glass UI** | Brings Kyant0 Liquid Glass &amp; Swiss-Kinetic Obsidian UI, 120Hz spring animations, radial hold menu, creator peek drawer, quick control sheet, camera-notch alerts, kinetic seekbar, and 1:1 scrubbed Danmaku comments to stock TikTok and TikTok You (Android 13+). |
+| **MergenV1 UI Enhancer** | Modern UI &amp; interaction enhancer for stock TikTok and TikTok You (Android 13+): 120Hz spring animations with selectable profiles, swipe gestures, radial action menu, creator peek drawer, quick control sheet, camera-notch alerts, kinetic seekbar, 1:1 scrubbed Danmaku comments, and switchable Obsidian &amp; Liquid Glass themes. |
 
 ---

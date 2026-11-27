@@ -156,16 +156,16 @@ final class Glyphs {
         path.addRoundRect(new RectF(x, y, x + w, y + h), r, r, Path.Direction.CW);
     }
 
-    private static Path circle(float cx, float cy, float r) {
+    static Path circle(float cx, float cy, float r) {
         Path p = new Path();
         p.addCircle(cx, cy, r, Path.Direction.CW);
         return p;
     }
 
-    /** Minimal SVG path parser: M L H V C S Z, absolute and relative. */
+    /** Minimal SVG path parser: M L H V C S A Z, absolute and relative. */
     static Path svg(String d) {
         Path path = new Path();
-        float[] args = new float[6];
+        float[] args = new float[7];
         float x = 0, y = 0, startX = 0, startY = 0, ctrlX = 0, ctrlY = 0;
         char cmd = 0, prev = 0;
         int i = 0, n = d.length();
@@ -188,10 +188,11 @@ final class Glyphs {
             }
             boolean rel = Character.isLowerCase(cmd);
             char op = Character.toUpperCase(cmd);
-            int count = op == 'C' ? 6 : op == 'S' ? 4 : (op == 'H' || op == 'V') ? 1 : 2;
+            int count = op == 'A' ? 7 : op == 'C' ? 6 : op == 'S' ? 4 : (op == 'H' || op == 'V') ? 1 : 2;
             for (int k = 0; k < count; k++) {
                 while (i < n && (Character.isWhitespace(d.charAt(i)) || d.charAt(i) == ',')) i++;
-                int end = numberEnd(d, i);
+                // Arc flags are single digits that may run into the next number ("0 01 2").
+                int end = op == 'A' && (k == 3 || k == 4) ? i + 1 : numberEnd(d, i);
                 args[k] = Float.parseFloat(d.substring(i, end));
                 i = end;
             }
@@ -237,12 +238,61 @@ final class Glyphs {
                     y = oy + args[3];
                     break;
                 }
+                case 'A':
+                    arcTo(path, x, y, args[0], args[1], args[2], args[3] != 0, args[4] != 0, ox + args[5], oy + args[6]);
+                    x = ox + args[5];
+                    y = oy + args[6];
+                    break;
                 default:
                     throw new IllegalArgumentException("Unsupported path command " + cmd);
             }
             prev = op;
         }
         return path;
+    }
+
+    /**
+     * An elliptical arc as cubic curves of at most 90 degrees each, after the SVG
+     * specification's conversion from endpoint to center parameterization (appendix B.2.4).
+     */
+    private static void arcTo(Path path, float x1, float y1, float rxIn, float ryIn, float angle,
+                              boolean largeArc, boolean sweep, float x2, float y2) {
+        if (x1 == x2 && y1 == y2) return;
+        double rx = Math.abs(rxIn), ry = Math.abs(ryIn);
+        if (rx == 0 || ry == 0) {
+            path.lineTo(x2, y2);
+            return;
+        }
+        double phi = Math.toRadians(angle), cos = Math.cos(phi), sin = Math.sin(phi);
+        double dx = (x1 - x2) / 2.0, dy = (y1 - y2) / 2.0;
+        double x1p = cos * dx + sin * dy, y1p = -sin * dx + cos * dy;
+        double lambda = x1p * x1p / (rx * rx) + y1p * y1p / (ry * ry);
+        if (lambda > 1) {
+            rx *= Math.sqrt(lambda);
+            ry *= Math.sqrt(lambda);
+        }
+        double rx2 = rx * rx, ry2 = ry * ry;
+        double radicand = (rx2 * ry2 - rx2 * y1p * y1p - ry2 * x1p * x1p) / (rx2 * y1p * y1p + ry2 * x1p * x1p);
+        double coef = (largeArc == sweep ? -1 : 1) * Math.sqrt(Math.max(0, radicand));
+        double cxp = coef * rx * y1p / ry, cyp = -coef * ry * x1p / rx;
+        double cx = cos * cxp - sin * cyp + (x1 + x2) / 2.0, cy = sin * cxp + cos * cyp + (y1 + y2) / 2.0;
+        double ux = (x1p - cxp) / rx, uy = (y1p - cyp) / ry, vx = (-x1p - cxp) / rx, vy = (-y1p - cyp) / ry;
+        double start = Math.atan2(uy, ux);
+        double delta = Math.atan2(ux * vy - uy * vx, ux * vx + uy * vy);
+        if (!sweep && delta > 0) delta -= 2 * Math.PI;
+        else if (sweep && delta < 0) delta += 2 * Math.PI;
+        int segments = Math.max(1, (int) Math.ceil(Math.abs(delta) / (Math.PI / 2) - 1e-9));
+        double step = delta / segments, t = 4.0 / 3.0 * Math.tan(step / 4);
+        for (int s = 0; s < segments; s++) {
+            double a1 = start + s * step, a2 = a1 + step;
+            double c1 = Math.cos(a1), s1 = Math.sin(a1), c2 = Math.cos(a2), s2 = Math.sin(a2);
+            double p1x = c1 - t * s1, p1y = s1 + t * c1, p2x = c2 + t * s2, p2y = s2 - t * c2;
+            path.cubicTo(
+                    (float) (cx + rx * p1x * cos - ry * p1y * sin), (float) (cy + rx * p1x * sin + ry * p1y * cos),
+                    (float) (cx + rx * p2x * cos - ry * p2y * sin), (float) (cy + rx * p2x * sin + ry * p2y * cos),
+                    s == segments - 1 ? x2 : (float) (cx + rx * c2 * cos - ry * s2 * sin),
+                    s == segments - 1 ? y2 : (float) (cy + rx * c2 * sin + ry * s2 * cos));
+        }
     }
 
     /** End of an SVG number starting at i; handles "-.03-2.5" and ".78.78" style runs. */

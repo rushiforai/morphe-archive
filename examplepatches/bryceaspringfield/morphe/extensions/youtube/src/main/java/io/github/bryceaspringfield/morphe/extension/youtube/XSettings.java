@@ -5,130 +5,87 @@ import static java.lang.Boolean.FALSE;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.StringSetting;
 
-/**
- * The bundle's settings, stored in Morphe's own preferences (morphe_prefs) under keys starting with yx_, so Morphe's
- * import and export include them. Every feature is off, or empty, until the user sets it, except the two DeArrow options.
- */
 public final class XSettings {
 
-    // Channel filters: one rule a line, "CHANNEL: RULE" (see ChannelRules).
     public static final StringSetting CHANNEL_RULES = new StringSetting("yx_channel_rules", "");
 
-    // Video length bounds, as m:ss, h:mm:ss, or minutes; blank is no bound.
     public static final StringSetting MIN_LENGTH = new StringSetting("yx_min_length", "");
     public static final StringSetting MAX_LENGTH = new StringSetting("yx_max_length", "");
 
-    // More feed filters, read from an item's metadata line (see Metadata): views, age, members-only, and upcoming.
-    /** Hide videos with fewer views than this (5000, 5k, 1.5m); blank is no bound; videos under a day old stay. */
     public static final StringSetting MIN_VIEWS = new StringSetting("yx_min_views", "");
-    /** Hide videos older than this (30 days, 8w, 6m, 2y); blank is no bound. */
     public static final StringSetting MAX_AGE = new StringSetting("yx_max_age", "");
-    /** Whether the views filter also hides videos under a day old (it does not by default; they have had little time to gain views). */
     public static final BooleanSetting VIEWS_KEEP_NEW = new BooleanSetting("yx_views_keep_new", FALSE);
     public static final BooleanSetting HIDE_MEMBERS_ONLY = new BooleanSetting("yx_hide_members_only", FALSE);
     public static final BooleanSetting HIDE_UPCOMING = new BooleanSetting("yx_hide_upcoming", FALSE);
 
-    // Where the feed filters of this bundle apply.
     public static final BooleanSetting APPLY_HOME = new BooleanSetting("yx_apply_home", true);
     public static final BooleanSetting APPLY_SUBSCRIPTIONS = new BooleanSetting("yx_apply_subscriptions", true);
     public static final BooleanSetting APPLY_SEARCH = new BooleanSetting("yx_apply_search", true);
     public static final BooleanSetting APPLY_RELATED = new BooleanSetting("yx_apply_related", true);
 
-    // Where Mark watched videos applies (2026-11-16): Home and the videos under the player, as before, by default.
     public static final BooleanSetting WATCHED_HOME = new BooleanSetting("yx_watched_home", true);
     public static final BooleanSetting WATCHED_SUBSCRIPTIONS = new BooleanSetting("yx_watched_subscriptions", false);
     public static final BooleanSetting WATCHED_CHANNEL = new BooleanSetting("yx_watched_channel", false);
     public static final BooleanSetting WATCHED_SEARCH = new BooleanSetting("yx_watched_search", false);
     public static final BooleanSetting WATCHED_RELATED = new BooleanSetting("yx_watched_related", true);
 
-    // Playlists (not mixes) in the home feed.
-    /** Live streams are hidden in the Home feed only; the Subscriptions feed keeps them. */
     public static final BooleanSetting HIDE_HOME_LIVE = new BooleanSetting("yx_hide_home_live", FALSE);
     public static final BooleanSetting HIDE_HOME_PLAYLISTS = new BooleanSetting("yx_hide_home_playlists", FALSE);
-    /** Home suggestions of a never-opened video before it gets Not interested; "0" turns it off. */
     public static final StringSetting RESUGGESTED_LIMIT = new StringSetting("yx_resuggested_limit", "3");
-    /** Seconds between two visits of Home which count a video's suggestion twice (not shown; tests shorten it). */
     public static final StringSetting RESUGGESTED_GAP = new StringSetting("yx_resuggested_gap_s", "600");
     public static final BooleanSetting HIDE_PAST_STREAMS = new BooleanSetting("yx_hide_past_streams", FALSE);
 
-    // Topic presets (comma-separated keys of Topics.KEYS) and the user's own channels to hide.
     public static final StringSetting TOPICS = new StringSetting("yx_topics", "");
     public static final StringSetting HIDDEN_CHANNELS = new StringSetting("yx_hidden_channels", "");
 
-    // YouTube categories to hide (comma-separated category names as YouTube states them, e.g. "News & Politics").
     public static final StringSetting HIDDEN_CATEGORIES = new StringSetting("yx_hidden_categories", "");
 
-    // The panel reached by swiping in a comment section ("Community of <channel> ... Visit").
     public static final BooleanSetting HIDE_COMMENTS_COMMUNITY = new BooleanSetting("yx_hide_comments_community", FALSE);
 
-    // The new-content dots on the avatars of the subscribed channels bar.
     public static final BooleanSetting HIDE_CHANNEL_BAR_DOTS = new BooleanSetting("yx_hide_channel_bar_dots", FALSE);
 
-    // Live chat opens on Live chat (all messages) in place of Top chat.
     public static final BooleanSetting LIVE_CHAT_ALL_MESSAGES = new BooleanSetting("yx_live_chat_all_messages", FALSE);
 
-    // Automatic feedback and likes.
     public static final BooleanSetting AUTO_DISLIKE_FILTERED = new BooleanSetting("yx_auto_dislike_filtered", FALSE);
-    /** After a hand-made Not interested, send I don't like the video when 5 seconds pass with no reason chosen (AutoReason). */
     public static final BooleanSetting AUTO_REASON = new BooleanSetting("yx_auto_reason", FALSE);
-    /** Off, partly (any progress bar), or fully (a progress bar of at least 90%). */
     public static final StringSetting AUTO_WATCHED = new StringSetting("yx_auto_watched", "off");
     public static final BooleanSetting AUTO_LIKE = new BooleanSetting("yx_auto_like", FALSE);
-    /** Channels (one a line: name, @handle, or channel ID) whose every opened video is disliked. */
     public static final StringSetting DISLIKE_CHANNELS = new StringSetting("yx_dislike_channels", "");
-    /** Home's repeated-suggestion count also runs on the videos under the player. */
     public static final BooleanSetting RESUGGESTED_RELATED = new BooleanSetting("yx_resuggested_related", true);
 
-    // The Save button opens the playlist chooser.
     public static final BooleanSetting SAVE_OPENS_CHOOSER = new BooleanSetting("yx_save_opens_chooser", FALSE);
-    /** The Save to... style a feed card's Save opens: "sheet" (thumbnails, as the watch page's) or "list" (text). */
     public static final StringSetting SAVE_STYLE = new StringSetting("yx_save_style", "sheet");
 
-    // DeArrow: a tap on Morphe's title icon switches the title, and a pencil on the open video's title suggests one.
     public static final BooleanSetting DEARROW_TAP = new BooleanSetting("yx_dearrow_tap", true);
     public static final BooleanSetting DEARROW_SUGGEST = new BooleanSetting("yx_dearrow_suggest", true);
-    /** A title the video's top comments correct ("... correct title") is shown in place of its own. */
     public static final BooleanSetting COMMENT_TITLE = new BooleanSetting("yx_comment_title", true);
-    /** The private ID submissions are counted under when Morphe's SponsorBlock has none; never logged or shown. */
     public static final StringSetting DEARROW_USER_ID = new StringSetting("yx_dearrow_user_id_Do_Not_Share", "");
 
-    // Live streams play faster while behind their live edge, until caught up.
     public static final BooleanSetting LIVE_CATCH_UP = new BooleanSetting("yx_live_catch_up", FALSE);
     public static final StringSetting LIVE_CATCH_UP_SPEED = new StringSetting("yx_live_catch_up_speed", "2");
-    /** Seconds behind the live edge before the catch-up speed starts (0 to 15); 0 keeps it on at the edge too. */
     public static final StringSetting LIVE_CATCH_UP_DELAY = new StringSetting("yx_live_catch_up_delay", "5");
 
-    /** Minutes of playback before a pause (0.5, 30, 90); blank is no timer. */
     public static final StringSetting SLEEP_MINUTES = new StringSetting("yx_sleep_minutes", "");
 
-    // Playback with the screen off: a pause right after the screen turns off is undone; the lowest quality while off.
     public static final BooleanSetting KEEP_PLAYING_SCREEN_OFF = new BooleanSetting("yx_keep_playing_screen_off", true);
     public static final BooleanSetting AUDIO_ONLY = new BooleanSetting("yx_audio_only", FALSE);
-    /** An "Audio only" row at the top of the video quality sheet. */
     public static final BooleanSetting AUDIO_ONLY_ROW = new BooleanSetting("yx_audio_only_row", true);
-    /** Audio only also asks for the lowest video quality, so the player fetches the least video it can. */
     public static final BooleanSetting AUDIO_ONLY_LOW_DATA = new BooleanSetting("yx_audio_only_low_data", true);
-    /** Leaving the app with a video playing opens picture in picture. */
     public static final BooleanSetting AUTO_PIP = new BooleanSetting("yx_auto_pip", FALSE);
     public static final BooleanSetting AUDIO_ONLY_SCREEN_OFF = new BooleanSetting("yx_audio_only_screen_off", FALSE);
 
-    /** Like and dislike counts: count, percent, or both. */
     public static final StringSetting VOTE_FORMAT = new StringSetting("yx_vote_format", "count");
 
-    // A tap on a live chat message's profile picture opens the author's channel.
     public static final BooleanSetting CHAT_AVATAR_CHANNEL = new BooleanSetting("yx_chat_avatar_channel", true);
 
-    // Fixes.
     public static final BooleanSetting FIX_NAVIGATION_TAPS = new BooleanSetting("yx_fix_navigation_taps", FALSE);
     public static final BooleanSetting FIX_NETWORK_RECOVERY = new BooleanSetting("yx_fix_network_recovery", FALSE);
 
-    // Logs every feed item's channel, length, and type to logcat (tag morphe), for checking the filters.
     public static final BooleanSetting DEBUG = new BooleanSetting("yx_debug", FALSE);
 
     private XSettings() {
     }
 
-    /** Loads the class, so every setting exists before Morphe's settings screen reads them. */
     public static void load() {
     }
 }

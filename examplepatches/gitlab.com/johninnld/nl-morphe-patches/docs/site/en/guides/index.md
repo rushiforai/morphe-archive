@@ -10,6 +10,8 @@ Additional setup: [Android Auto](android-auto.md), [Shizuku on a phone](shizuku.
 
 ## Gboard
 
+- [Use the standalone Local AI companion for writing, images and shared speech](local-ai.md).
+- [Set up Gboard for private local AI](gboard-privacy.md).
 - [Set up Parakeet, Rambler and the rest of the Gboard patches](gboard.md).
 - [Make Frosted Glass visible and compare blur on and off](gboard.md#frosted-glass).
 

@@ -306,10 +306,12 @@ Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post d
 Captions	Altyazılar
 Captions, gestures and on-screen controls	Altyazılar, hareketler ve ekran kontrolleri
 Capture crash reports locally	Çökme raporlarını yerel olarak kaydet
+Free memory early	Belleği erken boşalt
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.	%1$d ile %2$d arasında bir video sayısı seç. Bu aralığın dışındaki değerler en yakın geçerli sınırı kullanır. Bunu uygulamak için TikTok'u yeniden başlat.
 Choose a backup file. Your current settings are kept for Undo.	Bir yedek dosyası seç. Mevcut ayarların Geri al için saklanır.
 Pick a folder on internal storage, not an SD card	Dahili depolamada klasör seç, SD kart değil
-Choose a preset to fill the SIM details.	SIM bilgilerini doldurmak için bir hazır ayar seç.
+Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts.	SIM bilgilerini doldurmak için bir hazır ayar işaretle ya da TikTok her açıldığında farklı birini kullanmak için birkaçını.
+A different preset each time TikTok starts, in this order: %1$s	TikTok her açıldığında farklı bir hazır ayar, bu sırayla: %1$s
 Choose a subfolder under %1$s.	%1$s altında bir alt klasör seç.
 Choose what reaches your feed	Akışına nelerin ulaşacağını seç
 Choose which bottom tabs stay visible.	Hangi alt sekmelerin görünür kalacağını seç.
@@ -469,6 +471,7 @@ Top right double tap	Sağ üst çift dokunma
 Bottom left double tap	Sol alt çift dokunma
 Bottom right double tap	Sağ alt çift dokunma
 Download original photos	Orijinal fotoğrafları indir
+Download speed	İndirme hızı
 Downloads	İndirilenler
 Drag to move, release to place	Taşımak için sürükle, yerleştirmek için bırak
 Drama and Series	Drama ve Seri
@@ -615,6 +618,7 @@ Hide message streaks	Mesajlaşma serilerini gizle
 Hide new follower notifications	Yeni takipçi bildirimlerini gizle
 Hide new followers	Yeni takipçileri gizle
 Hide paid partnerships	Ücretli ortaklıkları gizle
+Hide parts of the room line	Oda satırının bölümlerini gizle
 Hide people and options by name	Kişileri ve seçenekleri ada göre gizle
 Hide photo posts	Fotoğraf gönderilerini gizle
 Hide photo posts from the feed.	Fotoğraf gönderilerini akıştan gizle.
@@ -763,6 +767,7 @@ Larger (1.25x)	Daha büyük (1.25x)
 Last original value	Son özgün değer
 Last recording: %1$d gates.	Son kayıt: %1$d kapı.
 Last recording: 1 gate.	Son kayıt: 1 kapı.
+Latency	Gecikme
 Layout	Düzen
 Layout, search, profile and system	Düzen, arama, profil ve sistem
 Leave maximum empty to keep it unlimited.	Sınırsız kalması için maksimumu boş bırak.
@@ -1026,6 +1031,7 @@ Save media	Medyayı kaydet
 Saves your Hushfeed settings and Feature Gate Lab rules to a file.	Hushfeed ayarlarını ve Feature Gate Lab kurallarını bir dosyaya kaydeder.
 Save subtitles beside videos	Altyazıları videoların yanına kaydet
 Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.	TikTok'un son çökme raporunu bu telefona kaydeder, böylece tanılama raporuna eklenebilir.
+Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.	TikTok'un belleği, Android'in ana ekranı kapatıp akışın baştan başladığı noktaya yaklaştığında TikTok'tan önbelleklerini temizlemesini ister.
 Save the original sound	Orijinal sesi kaydet
 Save the sound as well	Sesi de kaydet
 Save videos without sound	Videoları sessiz kaydet
@@ -1596,6 +1602,9 @@ Save again	Yeniden kaydet
 The saved-video choice couldn't open. Try again.	Kayıtlı video seçenekleri açılamadı. Yeniden deneyin.
 The saved-video choice is still open	Kayıtlı video seçenekleri hâlâ açık
 No full file for this video. Try again later.	Bu video için tam dosya yok. Sonra tekrar dene.
+Subscriber-only posts can't be saved	Abonelere özel gönderiler kaydedilemez
+Copy-protected videos can't be saved	Kopyalamaya karşı korumalı videolar kaydedilemez
+Not saved. The file wasn't a playable video.	Kaydedilmedi. Dosya oynatılabilir video değil.
 Saving video to %1$s	Video %1$s konumuna kaydediliyor
 Video and details saved to %1$s	Video ve ayrıntılar %1$s konumuna kaydedildi
 Saved, but a later save may make a second copy	Kaydedildi. Tekrar kaydetmek ikinci kopya yapabilir
@@ -1852,6 +1861,7 @@ Brightness	Parlaklık
 Volume	Ses
 Left edge strip	Sol kenar şeridi
 Right edge strip	Sağ kenar şeridi
+Room ID	Oda kimliği
 Stop search results playing on their own	Arama sonuçları kendiliğinden oynatılmasın
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	Arama sonuçlarındaki videolar kapaklarını gösterir ve onları açtığında oynar. Akış ve açtığın videolar her zamanki gibi oynar.
 In a chat	Bir sohbette
@@ -1859,8 +1869,6 @@ Hide call buttons	Arama düğmelerini gizle
 The voice and video call buttons leave the top of a chat. Calls still ring, and the chat details button stays.	Sesli ve görüntülü arama düğmeleri sohbetin üst kısmından kalkar. Aramalar yine çalar, sohbet ayrıntıları düğmesi ise yerinde kalır.
 Hide sticker suggestions	Çıkartma önerilerini gizle
 The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.	Çıkartma önerisi bannerı sohbette artık gösterilmez. Kendi çıkartmaların çıkartma seçicide durur.
-Hide suggested replies	Önerilen yanıtları gizle
-TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.	TikTok'un önerdiği yanıtlar ve bunları tanıtan banner sohbette artık gösterilmez. Yazdığın veya aldığın mesajlara dokunulmaz.
 Hide online status	Çevrimiçi durumunu gizle
 Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.	TikTok'tayken arkadaşların yeşil nokta veya Active now görmez. Ghost mode açık olmalı. Onların durumu sende güncellenmeyebilir, senin son durumun da bir süre görünür kalabilir.
 Stop LIVE previews opening by themselves	LIVE önizlemelerinin kendiliğinden açılmasını durdur
@@ -2264,6 +2272,7 @@ The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on 
 Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	TikTok'un izin verdiği geniş videolarda videonun altında tek satırlık yorum ekleme düğmesi, tam ekranda da bunlar için bir çubuk görünür. Diğer videolar aynı kalır.
 
 Pick videos to save from profile grids	Profil ızgaralarından kaydedilecek videoları seç
+Pick what to leave off the small line with the room ID and your connection. The rest stays on it.	Oda kimliğini ve bağlantını gösteren küçük satırdan neyin çıkacağını seç. Gerisi kalır.
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Profil, Beğenilenler veya Favoriler ızgarasındaki her videoya bir daire koyar. En fazla %1$s tane seç, sonra Kaydet'e dokun. Hepsi sayaç ve İptal ile sırayla kaydedilir.
 Pick for saving	Kaydetmek için seç
 You can pick up to %1$s at a time	Bir seferde en fazla %1$s seçebilirsin
@@ -2519,7 +2528,6 @@ autoplay auto play	otomatik oynatma
 picture in picture PiP	resim içinde resim PiP
 search suggestions	arama önerileri
 AI chat	yapay zeka sohbeti
-AI Tako	yapay zeka Tako
 save photos	fotoğrafları kaydet
 download button	indirme düğmesi indir
 It's in %1$s, under %2$s. Tap to go there.	%1$s içinde, %2$s altında. Oraya gitmek için dokun.
@@ -2542,6 +2550,8 @@ Leave after no touch	Dokunulmazsa uygulamadan çık
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	Sıfır bunu kapatır. Ekrana o kadar dakika dokunulmazsa video durur ve TikTok arka plana geçer, izlerken uyuyakaldığın durumlar için. Herhangi bir dokunuş beklemeyi baştan başlatır.
 Left TikTok after no touch	Dokunulmadığı için TikTok'tan çıkıldı
 Show when an account was made	Hesabın ne zaman açıldığını göster
+Show how many videos a profile has	Bir profilde kaç video olduğunu göster
+Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them.	Bir profilde, kendi profiliniz dahil, @kullanıcı adının altında TikTok'un saydığı video sayısını gösterin.
 Show what changed since your last visit	Son ziyaretinizden beri değişenleri göster
 Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	Bir profilde @kullanıcı adının altında, onu son açışınızdan bu yana takipçilerin, takip edilenlerin, beğenilerin ve videoların nasıl değiştiğini gösterir. Sayılar yalnızca bu telefonda tutulur.
 Since %1$s: %2$s	Son ziyaret %1$s: %2$s
@@ -2676,7 +2686,7 @@ Read receipts shown	Okundu bilgileri gösteriliyor
 Compact long-press menu everywhere	Her yerde kompakt uzun basma menüsü
 A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.	Bir videoya uzun basmak, Sana Özel'de de TikTok'un küçük paylaşım sayfasını açar, bir yaratıcının videolarındakiyle aynı. Yukarıdaki iki tam menü anahtarına üstün gelir. Uzun basma ayarının TikTok varsayılanında olması gerekir.
 Hide streak pop-ups	Seri açılır pencerelerini gizle
-Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	TikTok'un üzerine kayan seri uyarılarını ve sohbetlerinize eklediği seri mesajlarını ve ipuçlarını durdurur.
+Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats.	TikTok'un üzerine kayan seri uyarılarını, Gelen Kutusu'ndaki Streak Pet davetini ve sohbetlerinize eklediği seri mesajlarını ve ipuçlarını durdurur.
 Long press on For You opens my watch history	Senin İçin'e uzun basmak izleme geçmişimi açar
 Instead of these settings. The list has a button that brings you back here.	Bu ayarların yerine. Listede seni buraya geri getiren bir düğme var.
 Long press on Profile opens my watch history	Profil'e uzun basmak izleme geçmişimi açar
@@ -2777,7 +2787,9 @@ dialog popup greeting	iletişim kutusu açılır pencere karşılama
 Don't show again	Bir daha gösterme
 # context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
 Stop the blink under the bar	Çubuğun altındaki titremeyi durdur
+Pages under the bar	Çubuğun altındaki sayfalar
 If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Şeffaf alt çubuk açıkken kaydırırken video yanıp sönüyorsa, bu seçenek videoyu ayrı bir katman yerine TikTok'un içinde çizer. Biraz daha fazla pil kullanabilir. Şeffaf alt çubuk açık olmalıdır.
+Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.	Ana sayfadaki Topluluk ızgarasının ve sekmelerin üstünde biten diğer sayfaların şeffaf çubuğun altına kadar uzanmasını sağlar, böylece siyah veya beyaz şerit yerine çubuğun arkasından görünürler. Son satır yine de sekmelerin üstüne kaydırılabilir. Şeffaf alt çubuk açık olmalıdır.
 # context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
 Bend the video at the edges	Videoyu kenarlarda bük
 The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	Cam hapın kenarları arkasındaki bulanık videoyu gerçek camın kenarı gibi büker ve renkler biraz daha canlı görünür. Çubuğun arkasındaki videoyu bulanıklaştır ve Android 13 veya üstü gerekir.
@@ -2830,6 +2842,8 @@ Hide Send to new group	Yeni gruba gönder düğmesini gizle
 Hides the button that turns the people you picked into a new group chat. Send separately stays.	Seçtiğin kişilerden yeni bir grup sohbeti oluşturan düğmeyi gizler. Ayrı ayrı gönder kalır.
 # context: Switch in Hushfeed settings > App > Appearance (#372)
 AMOLED dark mode	AMOLED karanlık mod
+Dark mode	Karanlık mod
+Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.	TikTok Lite'ın içinde olan ama hiç seçtirmediği karanlık temayı açar. Değişikliği görmek için TikTok Lite'ı yeniden başlat.
 # context: Summary under the AMOLED dark mode switch
 Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	Karanlık modu yama sırasında seçilen renkle doldurur, başka bir renk seçilmediyse tam siyah. TikTok'un kendi koyu grileri için kapat. Aydınlık mod değişmez. Değişikliği görmek için TikTok'u yeniden başlat.
 # context: Switch in Hushfeed settings > App, under the startup message rows (#377)
@@ -2883,6 +2897,7 @@ Friends in the top tabs	Üst sekmelerde Arkadaşlar
 Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	Arkadaşlar, akışın üstündeki sekmelere, Takip Edilenler'in yanına geçer ve Keşfet alt çubukta onun yerini alır, TikTok bazı ülkelerde böyle dizer. Bölgen ve akışın olduğu gibi kalır.
 # context: Row title of the Inbox switch that lifts the app's cap on pinned chats
 Pin more chats	Daha fazla sohbet sabitle
+Ping	Ping
 # context: Summary under that switch; 5 is the cap TikTok's app usually puts on pinned chats
 Lifts the app's limit on pinned chats in the Inbox, usually 5, so you can pin more.	Uygulamanın Gelen kutusundaki sabitlenmiş sohbetlere koyduğu sınırı, genellikle 5, kaldırır, böylece daha fazlasını sabitleyebilirsiniz.
 # context: Row title of the Comments switch that hides voice comments
@@ -3159,7 +3174,8 @@ Unknown (TikTok didn't send it)	Bilinmiyor (TikTok göndermedi)
 A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Bir profilin paylaşma menüsüne Hesap bilgileri düğmesi eklenir. TikTok'un hesap hakkında zaten gönderdiklerini gösterir: ne zaman katıldığını, bölgesini ve dilini, hediye veren seviyesini ve SecUID'sini, kaç gönderisi, beğendiği video, favorisi ve yeniden göndereni olduğunu, kullanıcı adının ve görünen adının en son ne zaman değiştiğini, gizli olup olmadığını ve beğendiği videoların herkese açık olup olmadığını. Fazladan hiçbir şey indirilmez.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Oda kimliğini ve bağlantını göster
-Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	LIVE odalarına, oda kimliğini ve yayına olan kendi bağlantının durumunu TikTok oynatıcısının ölçtüğü şekliyle gösteren küçük bir satır ekler: ping, gecikme ve indirme hızı. Oda kimliğini kopyalamak için satıra dokun.
+Show the room line	Oda satırını göster
+Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.	LIVE odalarına, oda kimliğini ve yayına olan kendi bağlantının durumunu TikTok oynatıcısının ölçtüğü şekliyle gösteren küçük bir satır ekler: ping, gecikme ve indirme hızı. Satırı bir noktaya küçültmek için ona dokun, geri getirmek için noktaya dokun. Oda kimliğini kopyalamak için satıra basılı tut.
 Room ID %1$s	Oda kimliği %1$s
 Ping %1$s ms	Ping %1$s ms
 Latency %1$s s	Gecikme %1$s sn
@@ -3193,7 +3209,7 @@ Adds three stops below the smallest size on TikTok's own Text size slider, in Se
 UI size	Arayüz boyutu
 Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.	TikTok'un tüm arayüzünü, metni de düğmeleri de küçültür, böylece ekrana daha çok şey sığar. 100 onu olduğu gibi bırakır. Değişikliği görmek için TikTok'u yeniden başlat.
 Show how long a LIVE has been on	Bir LIVE'ın ne kadardır yayında olduğunu göster
-Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.	LIVE odalarına, sunucunun ne kadardır canlı yayında olduğunu odanın başladığı andan itibaren sayan küçük bir satır ekler. Oda kimliği de açıksa onun altında durur.
+Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot.	LIVE odalarına, sunucunun ne kadardır canlı yayında olduğunu odanın başladığı andan itibaren sayan küçük bir satır ekler. Oda kimliği de açıksa onun altında durur. Satırı bir noktaya küçültmek için ona dokun.
 LIVE for %1$s	%1$s süredir LIVE
 Show exact LIVE battle scores	Tam LIVE savaş puanlarını göster
 In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.	Bir LIVE savaşında TikTok, izleyicilerin gördüğü yüksek puanları sınırlar, sunucu ise sayının tamamını görür. Bu, tam puanı savaş çubuğunda ve ortak sunucu pencerelerinde gösterir.
@@ -3223,6 +3239,8 @@ The buttons, caption and tabs fade away instead of vanishing at once, and a touc
 # context: #461 Date instead of age, a switch under Write the month as a word
 Date instead of age	Süre yerine tarih
 Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.	Yeni videolar, içerik üreticisinin adının yanında paylaşıldıkları tarihi gösterir, 10-12 gibi, 2 g önce gibi bir süre yerine. Gün aydan önce ve Ayı yazıyla göster bunu da aynı şekilde değiştirir.
+Use this date format everywhere	Bu tarih biçimini her yerde kullan
+Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.	Yorumlardaki tarihleri, sohbetlerdeki tarih başlıklarını ve arama sonuçlarındaki tarihleri, yukarıdaki üç satırın içerik üreticisinin adının yanındaki tarihi yazdığı gibi yazar.
 # context: #503 Keep your place in chats, an Inbox switch under Show message times; the down arrow is the button that jumps a chat to its newest message
 Keep your place in chats	Sohbetlerde yerini koru
 A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.	Yukarı kaydırdığın bir sohbet, bir videodan döndüğünde veya yanıt gönderdiğinde olduğun yerde kalır. Normal bir mesaj göndermek veya aşağı oka dokunmak seni yine en yeniye götürür.

@@ -38,19 +38,11 @@ private object MessagingLinkShimFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;"),
 )
 
-@Suppress("unused")
-val openLinksDirectlyPatch = patch(
-    name = "Open links directly",
-    description = "Opens outside links without LinkedIn's warning page.",
-    default = true
-) {
-    compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Privacy")
+/** Hands every opened link to the extension, which skips the warning page or expands lnkd.in links as switched. */
+private val linkHooksPatch = patch {
     dependsOn(settingsPatch)
 
     execute {
-        register(OPEN_LINKS_DIRECTLY, RESOLVE_SHORT_LINKS)
-
         // Replace the Uri parameter before the constructor stores it. Range form because p1 can be above v15.
         NavigateToUrlActionFingerprint.method.addInstructions(
             0,
@@ -74,4 +66,28 @@ val openLinksDirectlyPatch = patch(
             )
         }
     }
+}
+
+@Suppress("unused")
+val openLinksDirectlyPatch = patch(
+    name = "Open links directly",
+    description = "Opens outside links without LinkedIn's warning page.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Chat & privacy")
+    dependsOn(linkHooksPatch)
+    execute { register(OPEN_LINKS_DIRECTLY) }
+}
+
+@Suppress("unused")
+val expandShortLinksPatch = patch(
+    name = "Expand lnkd.in links",
+    description = "Opens the real address of lnkd.in short links instead of the redirect.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Chat & privacy")
+    dependsOn(linkHooksPatch)
+    execute { register(RESOLVE_SHORT_LINKS) }
 }

@@ -1,3 +1,37 @@
+## [1.29.3](https://github.com/kondratjev/morphe-patches/compare/v1.29.2...v1.29.3) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **lyfta:** note 1.614 as max supported version ([769512d](https://github.com/kondratjev/morphe-patches/commit/769512de0444b187e58f9c24de6ddbfa7f747d16))
+
+### 🚀 Updated App Support
+
+* **lyfta:** update to 1.614 ([969ae57](https://github.com/kondratjev/morphe-patches/commit/969ae57a1e843989f8547380f6f0bff45c5dad1f))
+
+## [1.29.3-dev.2](https://github.com/kondratjev/morphe-patches/compare/v1.29.3-dev.1...v1.29.3-dev.2) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **lyfta:** note 1.614 as max supported version ([769512d](https://github.com/kondratjev/morphe-patches/commit/769512de0444b187e58f9c24de6ddbfa7f747d16))
+
+## [1.29.3-dev.1](https://github.com/kondratjev/morphe-patches/compare/v1.29.2...v1.29.3-dev.1) (2026-11-26)
+
+### 🚀 Updated App Support
+
+* **lyfta:** update to 1.614 ([969ae57](https://github.com/kondratjev/morphe-patches/commit/969ae57a1e843989f8547380f6f0bff45c5dad1f))
+
+## [1.29.2](https://github.com/kondratjev/morphe-patches/compare/v1.29.1...v1.29.2) (2026-11-26)
+
+### 🚀 Updated App Support
+
+* **lyfta:** update to 1.617 ([9de4c53](https://github.com/kondratjev/morphe-patches/commit/9de4c53d0590be1741640490b63654f4f2414d95))
+
+## [1.29.2-dev.1](https://github.com/kondratjev/morphe-patches/compare/v1.29.1...v1.29.2-dev.1) (2026-11-26)
+
+### 🚀 Updated App Support
+
+* **lyfta:** update to 1.617 ([9de4c53](https://github.com/kondratjev/morphe-patches/commit/9de4c53d0590be1741640490b63654f4f2414d95))
+
 ## [1.29.1](https://github.com/kondratjev/morphe-patches/compare/v1.29.0...v1.29.1) (2026-11-25)
 
 ### 🐛 Bug Fixes

@@ -211,6 +211,7 @@ public final class StoryEye {
             if (eye == null) {
                 eye = new Eye(window.getContext());
                 eye.setTag(VIEW_TAG);
+                InvisibleButtons.ownView(eye);
                 eye.setOnClickListener(StoryEye::clicked);
                 float density = window.getResources().getDisplayMetrics().density;
                 int size = Math.round(SIZE_DP * density);

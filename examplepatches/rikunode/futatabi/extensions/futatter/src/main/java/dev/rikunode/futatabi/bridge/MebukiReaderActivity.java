@@ -97,7 +97,7 @@ public final class MebukiReaderActivity extends Activity {
                     }
                     data=result;session=cookie;
                     status.setText("\u8a8d\u8a3c\u6e08\u307f \u2022 "+result.count+" \u6295\u7a3f");
-                    web.loadDataWithBaseURL(BASE,result.html,"text/html","UTF-8",null);
+                    web.loadDataWithBaseURL(BASE,BridgePalette.decorate(result.html,BridgePalette.get(this)),"text/html","UTF-8",null);
                 });
             }catch(Exception ex){
                 final String reason=ex instanceof MebukiSession.ReadFailure?ex.getMessage():"READ_FAILED";
@@ -118,9 +118,12 @@ public final class MebukiReaderActivity extends Activity {
                 byte[] bytes=adapter.readPrivateImage(url);
                 BitmapFactory.Options opt=new BitmapFactory.Options();opt.inJustDecodeBounds=true;
                 BitmapFactory.decodeByteArray(bytes,0,bytes.length,opt);
-                if(opt.outWidth<=0||opt.outHeight<=0||opt.outWidth>16000||opt.outHeight>16000)throw new IllegalArgumentException();
+                if(opt.outWidth<=0||opt.outHeight<=0||opt.outWidth>16000||opt.outHeight>16000||
+                        (long)opt.outWidth*opt.outHeight>40_000_000L)throw new IllegalArgumentException();
                 opt.inJustDecodeBounds=false;opt.inSampleSize=1;
-                while(Math.max(opt.outWidth,opt.outHeight)/opt.inSampleSize>1024)opt.inSampleSize*=2;
+                // Decode original for screen display, sampling only very large bitmaps.
+                while(Math.max(opt.outWidth,opt.outHeight)/opt.inSampleSize>4096||
+                        (long)(opt.outWidth/opt.inSampleSize)*(opt.outHeight/opt.inSampleSize)>8_000_000L)opt.inSampleSize*=2;
                 bitmap=BitmapFactory.decodeByteArray(bytes,0,bytes.length,opt);
             }catch(Exception ignored){}
             final Bitmap value=bitmap;

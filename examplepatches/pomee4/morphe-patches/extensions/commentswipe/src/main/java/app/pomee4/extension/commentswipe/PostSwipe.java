@@ -77,6 +77,12 @@ public final class PostSwipe {
          * The live layout coordinates of the card, from its last position update.
          */
         WeakReference<Object> coordinates;
+        /**
+         * The root view of the window the card is laid out in, found from its layout coordinates. A screen
+         * opened over the feed, like the full screen media viewer, is another window, and the feed cards
+         * under it keep their bounds.
+         */
+        volatile WeakReference<android.view.View> window;
 
         Card(Object section, Object context, Object bounds, int kind) {
             this.section = new WeakReference<>(section);
@@ -257,6 +263,7 @@ public final class PostSwipe {
                 if (card != null) {
                     newCard.positionedAt = card.positionedAt;
                     newCard.coordinates = card.coordinates;
+                    newCard.window = card.window;
                 }
                 cards.put(bounds, newCard);
             }
@@ -278,6 +285,7 @@ public final class PostSwipe {
         card.positionedAt = SystemClock.uptimeMillis();
         if (argument != null && isCoordinates(argument, null)) {
             card.coordinates = new WeakReference<>(argument);
+            setWindow(card, argument);
         }
     }
 
@@ -378,7 +386,10 @@ public final class PostSwipe {
             Card current = card;
             if (current != null) {
                 current.positionedAt = SystemClock.uptimeMillis();
-                if (coordinates != null) current.coordinates = new WeakReference<>(coordinates);
+                if (coordinates != null) {
+                    current.coordinates = new WeakReference<>(coordinates);
+                    setWindow(current, coordinates);
+                }
             }
             return unit();
         }
@@ -447,8 +458,9 @@ public final class PostSwipe {
      * @return The post card at a point of the window, or null if there is none or it has its own
      * horizontal swipes.
      */
-    static Target findTarget(float x, float y) {
+    static Target findTarget(Activity activity, float x, float y) {
         try {
+            android.view.View root = activity.getWindow().getDecorView();
             List<Card> candidates;
             synchronized (cards) {
                 candidates = new ArrayList<>(cards.values());
@@ -460,6 +472,9 @@ public final class PostSwipe {
                 Object section = card.section.get();
                 Object context = card.context.get();
                 if (section == null || context == null || (bounds == null && card.kind == KIND_FEED)) continue;
+                // Only the cards of the touched window: a card of a screen under it is not on screen.
+                android.view.View window = card.window == null ? null : card.window.get();
+                if (window != root) continue;
                 Rect rect = cardRect(card, bounds);
                 if (rect == null) continue;
                 // Cards on screen never overlap. A card that overlaps a card laid out after it has
@@ -475,7 +490,7 @@ public final class PostSwipe {
                 onScreen.add(rect);
                 if (!rect.contains((int) x, (int) y)) continue;
                 // The part under a bar of the screen is not swiped, and a swipe on the bar is the bar's.
-                Rect visible = withoutBars(rect, y);
+                Rect visible = withoutBars(rect, y, root);
                 if (visible == null || !visible.contains((int) x, (int) y)) return null;
                 // A swipe that starts on a gallery or a carousel is left to it.
                 if (card.kind == KIND_FEED && inOwnSwipeArea(section, x, y)) return null;
@@ -483,6 +498,99 @@ public final class PostSwipe {
             }
         } catch (Throwable ex) {
             Logger.printException(() -> "findTarget failure", ex);
+        }
+        return null;
+    }
+
+    /**
+     * The field paths that led from a layout coordinates class to a view of its Compose host (the host
+     * AndroidComposeView, or a view layer in it), by class. A path can go through a field that is only
+     * set sometimes, so every path that worked is kept and tried.
+     */
+    private static final Map<Class<?>, List<Field[]>> viewPaths = Collections.synchronizedMap(new WeakHashMap<>());
+
+    private static final Field[] NO_PATH = new Field[0];
+
+    /**
+     * @return If layout coordinates are laid out in the window of a root view.
+     */
+    private static boolean inWindow(Object coordinates, android.view.View root) {
+        try {
+            android.view.View view = findView(coordinates);
+            return view != null && view.getRootView() == root;
+        } catch (Throwable ex) {
+            Logger.printException(() -> "inWindow failure", ex);
+            return false;
+        }
+    }
+
+    private static void setWindow(Card card, Object coordinates) {
+        try {
+            android.view.View current = card.window == null ? null : card.window.get();
+            if (current != null && current.isAttachedToWindow()) return;
+            android.view.View view = findView(coordinates);
+            if (view != null) card.window = new WeakReference<>(view.getRootView());
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Card window failure", ex);
+        }
+    }
+
+    /**
+     * @return A view of the Compose host of layout coordinates, or null if none was found.
+     */
+    private static android.view.View findView(Object coordinates) throws Exception {
+        Class<?> type = coordinates.getClass();
+        List<Field[]> paths = viewPaths.get(type);
+        if (paths == null) {
+            paths = new java.util.concurrent.CopyOnWriteArrayList<>();
+            viewPaths.put(type, paths);
+        }
+        for (Field[] path : paths) {
+            Object value = coordinates;
+            for (Field field : path) {
+                if (value == null) break;
+                value = field.get(value);
+            }
+            if (value instanceof android.view.View) return (android.view.View) value;
+        }
+        Field[] path = searchViewPath(coordinates, 3);
+        if (path == null) return null;
+        paths.add(path);
+        Object value = coordinates;
+        for (Field field : path) value = field.get(value);
+        return (android.view.View) value;
+    }
+
+    /**
+     * @return The fields from an object to a view, breadth first up to a depth, or null.
+     */
+    private static Field[] searchViewPath(Object start, int depth) throws Exception {
+        List<Object> objects = new ArrayList<>();
+        List<Field[]> paths = new ArrayList<>();
+        objects.add(start);
+        paths.add(NO_PATH);
+        for (int level = 0; level < depth; level++) {
+            List<Object> nextObjects = new ArrayList<>();
+            List<Field[]> nextPaths = new ArrayList<>();
+            for (int i = 0; i < objects.size(); i++) {
+                Object object = objects.get(i);
+                for (Class<?> c = object.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                    for (Field field : c.getDeclaredFields()) {
+                        if (Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()
+                                || field.getType().isArray() || field.getType() == String.class) continue;
+                        field.setAccessible(true);
+                        Object value = field.get(object);
+                        if (value == null) continue;
+                        Field[] path = Arrays.copyOf(paths.get(i), paths.get(i).length + 1);
+                        path[path.length - 1] = field;
+                        if (value instanceof android.view.View) return path;
+                        nextObjects.add(value);
+                        nextPaths.add(path);
+                    }
+                }
+            }
+            objects = nextObjects;
+            paths = nextPaths;
         }
         return null;
     }
@@ -633,7 +741,18 @@ public final class PostSwipe {
      */
     private static final Map<Object, String> overlays = Collections.synchronizedMap(new WeakHashMap<>());
 
+    /**
+     * Parts of a control that opens an overlay, like the label and the arrow of the sort dropdown on a
+     * subreddit (sort_dropdown_label, sort_dropdown_icon). They are on screen while nothing is open.
+     */
+    private static final String[] OVERLAY_OPENER_PARTS = {
+            "icon", "button", "label", "text", "title", "anchor", "trigger"
+    };
+
     private static boolean isOverlayTag(String tag) {
+        for (String part : OVERLAY_OPENER_PARTS) {
+            if (tag.contains(part)) return false;
+        }
         for (String overlay : OVERLAY_TAGS) {
             if (tag.contains(overlay)) return true;
         }
@@ -643,14 +762,14 @@ public final class PostSwipe {
     /**
      * @return If a sheet, a modal or a dialog is open over the screen.
      */
-    static boolean isOverlayOpen() {
+    static boolean isOverlayOpen(android.view.View root) {
         try {
             List<Object> coordinates;
             synchronized (overlays) {
                 coordinates = new ArrayList<>(overlays.keySet());
             }
             for (Object overlay : coordinates) {
-                if (coordinatesRect(overlay) != null) return true;
+                if (inWindow(overlay, root) && coordinatesRect(overlay) != null) return true;
             }
         } catch (Throwable ex) {
             Logger.printException(() -> "isOverlayOpen failure", ex);
@@ -715,7 +834,7 @@ public final class PostSwipe {
      * @return The part of a rect that no bar of the screen is drawn over, or null if the finger is on a bar.
      * A bar above the finger moves the top of the rect down, a bar below it moves the bottom up.
      */
-    static Rect withoutBars(Rect rect, float y) {
+    static Rect withoutBars(Rect rect, float y, android.view.View root) {
         Rect visible = new Rect(rect);
         try {
             List<Object> coordinates;
@@ -723,6 +842,7 @@ public final class PostSwipe {
                 coordinates = new ArrayList<>(bars.keySet());
             }
             for (Object barCoordinates : coordinates) {
+                if (!inWindow(barCoordinates, root)) continue;
                 Rect bar = coordinatesRect(barCoordinates);
                 if (bar == null || !Rect.intersects(bar, visible)) continue;
                 // A bar that holds the whole rect is a screen, not a bar over it.

@@ -8,10 +8,13 @@ package app.template.extension.zalo.buglog;
  * <p>Zalo and its crash SDKs install their own handlers after {@code attachBaseContext}, and one
  * branch of Zalo's handler calls {@code System.exit} without delegating. So the handler is
  * re-wrapped on top whenever an activity is created or resumed, and each throwable is logged once
- * even if it passes through several of our wrappers in the chain.
+ * even if it passes through several of our wrappers in the chain. The info/warning lines buffered
+ * in memory (detailed logging off) are written first, synchronously, so the lead-up survives.
+ *
+ * <p>The crash line names the patches involved: {@code [patched-by: ...]} for patches that modified
+ * a Zalo method on the stack, {@code [nezumi: ...]} for patches whose extension code is on it.
  */
 final class CrashCapture implements Thread.UncaughtExceptionHandler {
-    private static final String EXTENSION_PACKAGE = "app.template.extension.";
     private static volatile Throwable lastLogged;
 
     private final Thread.UncaughtExceptionHandler next;
@@ -35,8 +38,8 @@ final class CrashCapture implements Thread.UncaughtExceptionHandler {
         try {
             if (failure != lastLogged) {
                 lastLogged = failure;
-                String marker = touchesExtension(failure) ? " [nezumi-frame]" : "";
-                NezumiLog.fileNow('E', "Crash", "uncaught exception in thread \"" + thread.getName() + "\"" + marker, failure);
+                String labels = NezumiLog.attribution().labels(Attribution.framesOf(failure));
+                NezumiLog.fileNow('E', Patch.CORE, "CrashCapture", "uncaught exception in thread \"" + thread.getName() + "\"" + labels, failure);
             }
         } catch (Throwable ignored) {
             // Fall through to the original handler no matter what.
@@ -47,16 +50,5 @@ final class CrashCapture implements Thread.UncaughtExceptionHandler {
             android.os.Process.killProcess(android.os.Process.myPid());
             System.exit(10);
         }
-    }
-
-    /** True when any frame of the throwable or its causes runs Nezumi extension code. */
-    private static boolean touchesExtension(Throwable failure) {
-        int depth = 0;
-        for (Throwable current = failure; current != null && depth < 16; current = current.getCause(), depth++) {
-            for (StackTraceElement frame : current.getStackTrace()) {
-                if (frame.getClassName().startsWith(EXTENSION_PACKAGE)) return true;
-            }
-        }
-        return false;
     }
 }

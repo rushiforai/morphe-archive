@@ -15,14 +15,6 @@ import java.util.regex.Pattern;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/**
- * Likes each video the user opens, once, when the video's like status is INDIFFERENT (neither liked nor disliked),
- * so an existing like or dislike stays. The status comes from the next endpoint the watch page reads. The like is a tap
- * on the watch page's own like button, so its icon fills and the app sends its own request; the button is found by
- * the like count its description states in any language ("like this video along with 110,399 other people", "poner Me
- * gusta en este video, al igual que 110,400 personas más"). Where the button is off screen, the like is sent directly
- * (the icon then fills only when the video is opened again).
- */
 @SuppressWarnings("unused")
 public final class AutoLike {
 
@@ -33,7 +25,6 @@ public final class AutoLike {
     private AutoLike() {
     }
 
-    /** Called by the patch when Morphe's VideoInformation loads a new video ID. */
     public static void onVideo(String videoId) {
         try {
             if (videoId == null || videoId.isEmpty() || videoId.equals(lastVideo)) return;
@@ -46,7 +37,6 @@ public final class AutoLike {
             AccountHistory.soon();
             if (!XSettings.DISLIKE_CHANNELS.get().trim().isEmpty()) dislikeSoon(videoId, 0);
             if (!XSettings.AUTO_LIKE.get() && !XSettings.DEBUG.get()) return;
-            // After 3 s, and only for the watch player: an inline preview in a feed or search loads videos too.
             Utils.runOnMainThreadDelayed(() -> {
                 if (!videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getVideoId())) return;
                 if (!app.morphe.extension.youtube.shared.PlayerType.getCurrent().isMaximizedOrFullscreen()) return;
@@ -57,14 +47,8 @@ public final class AutoLike {
         }
     }
 
-    /** Videos already disliked or skipped this session, so each is sent once. */
     private static final java.util.Set<String> DISLIKE_DONE = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
-    /**
-     * A video of a channel in the dislike list gets a dislike once its channel is known: the player states the channel
-     * a moment after the video's ID, so the match is tried every 500 ms for 10 s, and only while the watch player
-     * shows the video. A video already disliked keeps its dislike.
-     */
     private static void dislikeSoon(String videoId, int tries) {
         Utils.runOnMainThreadDelayed(() -> {
             try {
@@ -79,7 +63,6 @@ public final class AutoLike {
                     if (tries < 20) dislikeSoon(videoId, tries + 1);
                     return;
                 }
-                // A list naming handles needs the watch page's data to match; one of names and IDs matches now or never.
                 String list = XSettings.DISLIKE_CHANNELS.get();
                 if (!list.contains("@") && !ChannelRules.listed(list, id, name, Channels.handleOf(id))) return;
                 if (!DISLIKE_DONE.add(videoId)) return;
@@ -92,7 +75,6 @@ public final class AutoLike {
 
     private static final Pattern OWNER_HANDLE = Pattern.compile("\"canonicalBaseUrl\"\\s*:\\s*\"/@([^\"]+)\"");
 
-    /** The watch page's data names the channel's @handle, which the player does not state; a list may name a channel by it. */
     private static void sendDislike(String videoId, String channelId, String channel) {
         try {
             if (!Account.signedIn()) return;
@@ -130,12 +112,9 @@ public final class AutoLike {
             String status = m.find() ? m.group(1) : "UNKNOWN";
             Logger.printDebug(() -> "YouTube Extras: " + videoId + " like status " + status);
             if (!XSettings.AUTO_LIKE.get() || !"INDIFFERENT".equals(status)) return;
-            // A channel in the dislike list is never liked.
             if (ChannelRules.listed(XSettings.DISLIKE_CHANNELS.get(),
                     app.morphe.extension.youtube.patches.VideoInformation.getChannelId(),
                     app.morphe.extension.youtube.patches.VideoInformation.getChannelName(), ownerHandle(text))) return;
-            // The button's description states the count with the like (Big Buck Bunny's, unliked, "along with
-            // 110,399 other people"; another's 959 where likeCountIfIndifferentNumber was 958), so both counts match.
             java.util.Set<String> counts = new java.util.HashSet<>();
             for (Matcher c = LIKE_COUNT.matcher(text); c.find(); ) counts.add(c.group(1));
             Utils.runOnMainThreadDelayed(() -> tapOrSend(videoId, counts, 0), 0);
@@ -144,7 +123,6 @@ public final class AutoLike {
         }
     }
 
-    /** The watch page may still be laying out its buttons: looks again every 500 ms for 6 s, then sends the like. */
     private static void tapOrSend(String videoId, java.util.Set<String> counts, int tries) {
         if (!videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getVideoId())) return;
         View button = counts.isEmpty() ? null : likeButton(videoId, counts);
@@ -173,7 +151,6 @@ public final class AutoLike {
         });
     }
 
-    /** The descriptions of the shown, clickable views stating a number, for the debug log. */
     private static void numbered(View v, StringBuilder out) {
         if (!v.isShown() || out.length() > 1500) return;
         CharSequence d = v.getContentDescription();
@@ -183,10 +160,6 @@ public final class AutoLike {
         }
     }
 
-    /**
-     * The shown, clickable view whose description states the video's like count (its digits alone), on the watch page
-     * of the video still open; the leftmost where two match (the dislike button states the dislike count).
-     */
     private static View likeButton(String videoId, java.util.Set<String> counts) {
         Activity a = ResumedActivity.main();
         if (a == null || !videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getVideoId())) return null;
@@ -209,7 +182,6 @@ public final class AutoLike {
         }
     }
 
-    /** Saves a response in the app's cache folder, for reading with adb when Log feed items is on. */
     static void dump(String name, String text) {
         try (FileOutputStream o = new FileOutputStream(new File(Utils.getContext().getCacheDir(), name))) {
             o.write(text.getBytes(StandardCharsets.UTF_8));

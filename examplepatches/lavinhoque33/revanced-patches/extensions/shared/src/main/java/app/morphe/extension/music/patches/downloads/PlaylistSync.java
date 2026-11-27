@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-19.
  * Written by lavinhoque33, 2026-11-17.
  */
@@ -243,8 +244,72 @@ public final class PlaylistSync {
         scheduleResumeScan(SWEEP_INTERVAL);
     }
 
+    /** The transfer already knows the saved queue; fetch its genuine renderer independently of all media work. */
+    static void captureDownload(OfflineSourceStore.Source source, boolean automatic, BooleanSupplier stopped) {
+        if (!OfflineReplayHooks.usable() || !OfflineReplayHooks.localDetailSupported()
+                || !OfflineBrowsePagesLogic.isPlaylistId(source.id())) return;
+
+        Utils.runOnBackgroundThread(() -> {
+            Network network = automatic ? DownloadNetwork.eligibleWifi() : null;
+            if (automatic && network == null) return;
+
+            BooleanSupplier allowed = () -> !stopped.getAsBoolean()
+                    && !Thread.currentThread().isInterrupted()
+                    && (network == null ? Utils.isInternetReachable() : network.equals(DownloadNetwork.eligibleWifi()));
+            try {
+                if (network == null) captureSavedMembership(source, allowed);
+                else Requester.withConnection(new Requester.ConnectionProvider() {
+                    @Override public boolean cancelled() {
+                        return stopped.getAsBoolean() || Thread.currentThread().isInterrupted();
+                    }
+
+                    @Override public HttpURLConnection openConnection(URL url) throws IOException {
+                        if (!allowed.getAsBoolean()) throw new IOException("Playlist snapshot Wi-Fi is no longer eligible");
+                        return (HttpURLConnection) network.openConnection(url);
+                    }
+                }, () -> {
+                    captureSavedMembership(source, allowed);
+                    return null;
+                });
+            } catch (Exception ex) {
+                Logger.printDebug(() -> "PlaylistSync: could not capture downloaded detail " + source.id(), ex);
+            }
+        });
+    }
+
+    private static void captureSavedMembership(OfflineSourceStore.Source source, BooleanSupplier allowed)
+            throws Exception {
+        if (!allowed.getAsBoolean() || OfflineCopyStore.source(source.id()) != source) return;
+        byte[] existing = OfflineBrowsePages.committed(source);
+        if (existing != null) {
+            OfflineBrowsePages.rememberCover(source.id(), existing, source.thumbnailUrl());
+            return;
+        }
+
+        int saved = -1;
+        try {
+            PlaylistSyncPage.Snapshot fresh = fetchPage(source.id(), allowed);
+            if (source.videoIds().equals(fresh.tracks())) {
+                saved = OfflineBrowsePages.publishCapture(source, fresh.browseBytes(), allowed);
+            }
+            if (saved >= 0) Logger.printDebug(() -> "PlaylistSync: saved native detail for " + source.id());
+        } finally {
+            if (saved < 0 && allowed.getAsBoolean()) {
+                OfflinePlaylistArtwork.rememberCover(source.id(), source.thumbnailUrl());
+            }
+        }
+    }
+
+    private static PlaylistSyncPage.Snapshot fetchPage(String id, BooleanSupplier allowed) throws Exception {
+        return PlaylistSyncPage.fetch(id, token -> {
+            if (!allowed.getAsBoolean()) throw new IOException("Playlist browse was stopped");
+            return MusicBrowseRequest.browseNative(Utils.getContext(), "VL" + id, token);
+        });
+    }
+
     private static boolean enabled() {
-        return syncSupported() && OfflineReplayHooks.usable() && LocalDownloadManager.downloadMode().streamCopy();
+        return (syncSupported() || OfflineReplayHooks.localDetailSupported())
+                && OfflineReplayHooks.usable() && LocalDownloadManager.downloadMode().streamCopy();
     }
 
     private static void cancelBrowsing() {
@@ -387,8 +452,7 @@ public final class PlaylistSync {
     }
 
     private static boolean canRefresh(OfflineSourceStore.Source source) {
-        return source.kind() == OfflineSourceStore.Kind.PLAYLIST && !OfflineReplay.SONGS.equals(source.id())
-                && OfflineBrowsePagesLogic.isFileSafe(source.id()) && !PlaylistDownloads.isRunning(source.id())
+        return OfflineBrowsePagesLogic.isPlaylistId(source.id()) && !PlaylistDownloads.isRunning(source.id())
                 && DownloadedMarkers.completedStreamSource(source);
     }
 
@@ -396,10 +460,20 @@ public final class PlaylistSync {
         String id = source.id();
         if (OfflineCopyStore.source(id) != source || !canRefresh(source)) return;
 
-        PlaylistSyncPage.Snapshot fresh = PlaylistSyncPage.fetch(id,
-                token -> MusicBrowseRequest.browseNative(Utils.getContext(), "VL" + id, token));
+        if (!syncSupported()) {
+            captureSavedMembership(source, run::allowed);
+            return;
+        }
+
+        PlaylistSyncPage.Snapshot fresh = fetchPage(id, run::allowed);
         run.check();
-        if (source.browsePage() != null && source.videoIds().equals(fresh.tracks())) return;
+        if (source.videoIds().equals(fresh.tracks())) {
+            byte[] existing = OfflineBrowsePages.committed(source);
+            if (existing != null) {
+                OfflineBrowsePages.rememberCover(id, existing, source.thumbnailUrl());
+                return;
+            }
+        }
 
         Set<String> additions = PlaylistSyncPlan.additions(source.videoIds(), fresh.tracks());
         if (additions.isEmpty()) {
@@ -441,7 +515,8 @@ public final class PlaylistSync {
         }
 
         if (!run.mayCommit()) throw new IOException("Playlist sync was stopped");
-        File staged = OfflineCopyStore.stagePlaylistPage(fresh.browseBytes());
+        byte[] response = fresh.browseBytes();
+        File staged = OfflineCopyStore.stagePlaylistPage(response);
         boolean committed = false;
         try {
             synchronized (MUTATION) {
@@ -454,8 +529,11 @@ public final class PlaylistSync {
         } finally {
             if (!committed) staged.delete();
         }
-        if (committed) Logger.printInfo(() -> "PlaylistSync: committed " + id + " tracks=" + fresh.tracks().size()
-                + " additions=" + additions.size());
+        if (committed) {
+            Logger.printInfo(() -> "PlaylistSync: committed " + id + " tracks=" + fresh.tracks().size()
+                    + " additions=" + additions.size());
+            OfflineBrowsePages.rememberCover(id, response, source.thumbnailUrl());
+        }
     }
 
     private static String ensureAudio(String id, String copyId, DownloadQuality quality) throws Exception {

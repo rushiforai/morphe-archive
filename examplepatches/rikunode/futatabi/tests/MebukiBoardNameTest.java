@@ -33,9 +33,31 @@ public final class MebukiBoardNameTest {
     public static void main(String[] args) throws Exception {
         String fresh = FutatabiProvider.completeBoards(null, true);
         JSONArray defaults = list(fresh);
-        check(defaults.length() == 5, "five initial boards");
+        check(defaults.length() == 6, "six initial boards");
         mebuki(defaults);
-        System.out.println("PASS fresh registration: five boards, one official Mebuki name");
+        String jun = "https://jun.2chan.net/jun/";
+        int junIndex = -1;
+        for (int i = 0; i < defaults.length(); i++) {
+            JSONObject item = new JSONObject(defaults.getString(i));
+            if (jun.equals(item.optString("url"))) {
+                check(junIndex < 0, "one Jun board");
+                junIndex = i;
+                check("二次元裏（jun)".equals(item.optString("name")), "Jun name");
+            }
+        }
+        check(junIndex >= 0, "Jun uses stock direct URL");
+        JSONArray previous = new JSONArray();
+        for (int i = 0; i < defaults.length(); i++) if (i != junIndex) previous.put(defaults.getString(i));
+        String upgraded = FutatabiProvider.completeBoards(PREFIX + previous.toString(), false);
+        JSONArray upgradeList = list(upgraded);
+        check(upgradeList.length() == 6, "upgrade adds only Jun");
+        for (int i = 0; i < previous.length(); i++) check(previous.getString(i).equals(upgradeList.getString(i)), "upgrade preserves every original entry and order");
+        check(jun.equals(new JSONObject(upgradeList.getString(5)).optString("url")), "upgrade appended Jun");
+        JSONObject customJun = new JSONObject(defaults.getString(junIndex)).put("name", "自分のjun").put("favorite", true).put("resuCount", 9);
+        previous.put(customJun.toString());
+        String preExisting = PREFIX + previous.toString();
+        check(preExisting.equals(FutatabiProvider.completeBoards(preExisting, false)), "preserve existing Jun name, data and order");
+        System.out.println("PASS fresh and upgraded registration: six boards, Jun direct URL, existing Jun preserved");
 
         JSONObject old = mebuki(defaults);
         old.put("name", OLD).put("favorite", true).put("resuCount", 17);
@@ -59,6 +81,18 @@ public final class MebukiBoardNameTest {
             }
         }
         check(migrated.equals(FutatabiProvider.completeBoards(migrated, false)), "idempotent migration");
-        System.out.println("PASS existing migration: same count, fields, other boards and order; idempotent");
+        // The stock backup reads/writes FlutterSharedPreferences.xml as a whole.
+        // Model the restored preference payload, not Android system backup.
+        android.content.Context restored=new android.content.Context();
+        android.content.SharedPreferences prefs=restored.getSharedPreferences("FlutterSharedPreferences",0);
+        prefs.edit().putString("flutter.itaList",migrated).commit();
+        check(BridgePalette.DARK.equals(BridgePalette.get(restored)),"default dark");
+        check(BridgePalette.save(restored,BridgePalette.LIGHT),"light save");
+        check(BridgePalette.LIGHT.equals(prefs.getString(BridgePalette.KEY,"")),"palette in stock backup preference file");
+        check(migrated.equals(FutatabiProvider.completeBoards(prefs.getString("flutter.itaList",null),true)),"restored list survives fresh migration");
+        check(BridgePalette.decorate("<head></head><body></body>",BridgePalette.get(restored)).contains("#fafafa"),"light HTML");
+        check(BridgePalette.decorate("<head></head><body></body>",BridgePalette.DARK).contains("#202124"),"dark HTML");
+        check(!BridgePalette.save(restored,"invalid")&&BridgePalette.LIGHT.equals(BridgePalette.get(restored)),"invalid palette rejected");
+        System.out.println("PASS existing migration: same count, fields, other boards and order; fresh restore, palette in stock preference file, dark/light");
     }
 }

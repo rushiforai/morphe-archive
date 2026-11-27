@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rambler Bangla: Bengali-first voice typing &amp; 59-patch Morphe suite for Gboard 18.5.4</title>
+<meta name="description" content="Rambler Bangla v31.2.0 is a unified 59-patch Morphe suite for Gboard 18.5.4: Bengali-first phonetic voice typing, unconditional Rambler+ activation, SwiftKey-style @mention strip suggestions, AMOLED Dark Keyboard, Rambler Enhancements, and Gboard Patches. GPL-3.0.">
+<meta name="theme-color" content="#0B1F3B">
+<meta name="color-scheme" content="dark">
+<meta name="referrer" content="no-referrer">
+<meta property="og:title" content="Rambler Bangla">
+<meta property="og:description" content="Dictate in Bangla. Get Bangla. Unified 59-patch Morphe suite for Gboard 18.5.4 plus fail-closed legacy 18.3.1 patcher.">
+<meta property="og:image" content="https://muhib-karim.github.io/Rambler-Bangla/assets/1-banner.png">
+<link rel="icon" href="assets/4-favicon.png">
+<style>
+:root{
+  --bg:#0B1F3B;--bg-deep:#07152B;--surface:#10304F;--line:#2B5379;
+  --text:#EEF3FA;--muted:#B3C9E2;--accent:#F6B13E;--on-accent:#0B1F3B;--ok:#9BE0B0;
+  --blue:#2D6FA3;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Bengali","Kohinoor Bangla","Nirmala UI",sans-serif;
+  --bn:"Noto Sans Bengali","Noto Serif Bengali","Kohinoor Bangla","Hind Siliguri","Nirmala UI","Vrinda",var(--sans);
+  --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+  --r:14px;--gut:clamp(16px,4vw,32px);--ease:cubic-bezier(.16,1,.3,1)
+}
+*{box-sizing:border-box}
+html{scrollbar-color:var(--line) var(--bg-deep);-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body{margin:0;font:1rem/1.6 var(--sans);background:var(--bg);color:var(--text);caret-color:var(--accent)}
+::selection{background:var(--accent);color:var(--on-accent)}
+a{color:var(--accent);text-underline-offset:.2em;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:var(--gut);top:-60px;background:var(--accent);color:var(--on-accent);padding:12px 16px;border-radius:8px;font-weight:700;z-index:10}
+.skip:focus{top:12px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 var(--gut)}
+.bn{font-family:var(--bn)}
+img{max-width:100%;height:auto}
+
+/* header */
+.top{border-bottom:1px solid var(--line);background:var(--bg-deep)}
+.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding-top:10px;padding-bottom:10px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none;font-weight:700;margin-right:auto;min-height:44px}
+.brand img{width:32px;height:32px;border-radius:9px}
+.top nav{max-width:100%}
+.top nav ul{display:flex;flex-wrap:wrap;gap:0 4px;list-style:none;margin:0;padding:0}
+.top nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;color:var(--muted);text-decoration:none;font-size:.95rem;border-radius:8px;white-space:nowrap}
+.top nav a:hover{color:var(--text);background:var(--surface)}
+@media (max-width:640px){
+  .top .wrap{gap:2px 8px;padding-top:8px;padding-bottom:8px}
+  .top nav{width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .top nav::-webkit-scrollbar{display:none}
+  .top nav ul{flex-wrap:nowrap;gap:2px}
+  .top nav a{padding:0 9px;font-size:.9rem}
+}
+
+/* hero */
+.hero{padding:clamp(32px,7vw,84px) 0 clamp(32px,6vw,56px)}
+.hero h1{font-size:clamp(2.2rem,6vw,3.6rem);line-height:1.05;letter-spacing:-.025em;margin:0 0 20px}
+.hero .lede{font-size:clamp(1.05rem,2.2vw,1.25rem);color:var(--muted);max-width:60ch;margin:0 0 28px}
+.hero .ctas{margin-bottom:28px}
+.demo{margin:0 0 28px;padding:20px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg-deep);max-width:620px}
+.demo p{margin:0}
+.demo .label{font-size:.8rem;color:var(--muted);letter-spacing:.02em}
+.demo .before{font-family:var(--mono);color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(246,177,62,.7);margin:4px 0 14px}
+.demo .after{font-family:var(--bn);font-size:clamp(1.6rem,5vw,2.25rem);line-height:1.3;color:var(--text);margin-top:4px}
+.demo small{display:block;margin-top:12px;color:var(--muted);font-size:.8rem}
+@media (prefers-reduced-motion:no-preference){
+  .demo .after{animation:reveal .55s var(--ease) .1s both}
+  @keyframes reveal{from{opacity:.82;transform:translateY(4px)}to{opacity:1;transform:none}}
+}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border-radius:999px;font-weight:650;text-decoration:none;transition:background-color .18s var(--ease),color .18s var(--ease)}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:#FFC965}
+.btn.ghost{border:1px solid var(--line);color:var(--text)}
+.btn.ghost:hover{background:var(--surface)}
+@media (min-width:960px){.hero-grid{display:grid;grid-template-columns:7fr 5fr;gap:48px;align-items:center}.hero-grid .ctas,.hero-grid .demo{margin-bottom:0}}
+.banner{margin:40px 0 0;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
+.banner img{display:block;width:100%}
+
+/* sections */
+section{padding:clamp(40px,7vw,72px) 0;border-top:1px solid var(--line);scroll-margin-top:8px}
+h2{font-size:clamp(1.5rem,3.6vw,2.1rem);line-height:1.2;letter-spacing:-.015em;margin:0 0 12px;text-wrap:balance}
+h3{font-size:1.1rem;margin:28px 0 8px}
+section>.wrap>p,.prose p,.prose li{max-width:70ch}
+.sub{color:var(--muted);margin-top:0}
+.split{display:grid;gap:clamp(4px,4vw,48px)}
+@media (min-width:860px){.split{grid-template-columns:5fr 7fr;align-items:start}}
+.callout{margin:20px 0 0;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.callout p{margin:0}
+.callout p+p{margin-top:8px}
+code{font-family:var(--mono);font-size:.9em;background:rgba(0,0,0,.28);padding:1px 6px;border-radius:5px}
+ul.ticks{list-style:none;padding:0;margin:16px 0 0}
+ul.ticks li{padding:10px 0 10px 28px;border-bottom:1px solid var(--line);position:relative}
+ul.ticks li::before{content:"";position:absolute;left:4px;top:19px;width:10px;height:10px;border-radius:3px;background:var(--accent)}
+ul.ticks b{color:var(--text)}
+
+/* features */
+.features{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:0}
+.features li{display:grid;gap:8px 24px;padding:18px 0;border-bottom:1px solid var(--line)}
+@media (min-width:760px){.features li{grid-template-columns:minmax(200px,1fr) 2fr minmax(180px,1fr);gap:4px 24px}}
+.features h3{margin:0;font-size:1.05rem}
+.features p{margin:0;color:var(--muted)}
+.level{font-size:.85rem;color:var(--muted);margin-top:2px}
+@media (min-width:760px){.level{margin-top:0}}
+.level b{display:inline-block;font-size:.75rem;font-weight:650;padding:2px 9px;border-radius:999px;background:rgba(246,177,62,.14);color:var(--accent);margin-bottom:4px}
+.level b.ok{background:rgba(155,224,176,.14);color:var(--ok)}
+
+/* pipeline */
+.pipeline{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:12px;counter-reset:st}
+@media (min-width:860px){.pipeline{grid-template-columns:repeat(4,1fr)}}
+.pipeline li{counter-increment:st;position:relative;padding:18px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg-deep)}
+.pipeline li::before{content:counter(st);display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.pipeline h3{margin:0 0 6px;font-size:1.05rem}
+.pipeline p{margin:0;color:var(--muted);font-size:.95rem}
+.abort{margin:14px 0 0;color:var(--muted);font-size:.95rem}
+.abort b{color:var(--accent)}
+
+/* code + tables */
+pre{margin:16px 0 0;padding:14px 16px;background:var(--bg-deep);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto;font:clamp(.78rem,2.4vw,.86rem)/1.6 var(--mono);color:var(--text);tab-size:2}
+pre code{background:none;padding:0;font-size:inherit}
+pre .c{color:var(--muted)}
+.table{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;font-size:.95rem}
+tr:last-child td{border-bottom:0}
+th{color:var(--accent);font-weight:650;background:var(--surface)}
+td{color:var(--muted)}
+td:first-child{color:var(--text)}
+
+/* faq */
+details{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;min-height:48px;padding:14px 32px 14px 0;font-weight:650;list-style:none;position:relative}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";position:absolute;right:6px;top:22px;width:9px;height:9px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(45deg);transition:transform .2s var(--ease)}
+details[open] summary::after{transform:rotate(-135deg);top:26px}
+details p{margin:0 0 16px;color:var(--muted);max-width:70ch}
+
+/* links */
+.links{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:0 32px}
+@media (min-width:760px){.links{grid-template-columns:1fr 1fr}}
+.links li{padding:14px 0;border-bottom:1px solid var(--line)}
+.links a{font-weight:650}
+.links span{display:block;color:var(--muted);font-size:.93rem}
+.showcase{margin:20px 0 0;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
+.showcase img{display:block;width:100%}
+
+footer{padding:36px 0 56px;border-top:1px solid var(--line);background:var(--bg-deep);color:var(--muted);font-size:.92rem}
+footer p{margin:0 0 8px;max-width:80ch}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+<div class="wrap">
+<a class="brand" href="#main"><img src="assets/2-icon-512.png" alt="" width="32" height="32">Rambler Bangla</a>
+<nav aria-label="Sections">
+<ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#how">How it works</a></li>
+<li><a href="#ci">CI</a></li>
+<li><a href="#build">Build</a></li>
+<li><a href="#safety">Safety</a></li>
+<li><a href="#faq">FAQ</a></li>
+<li><a href="#roadmap">Roadmap</a></li>
+<li><a href="https://github.com/muhib-karim/Rambler-Bangla">GitHub</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<main id="main">
+<div class="hero">
+<div class="wrap">
+<div class="hero-grid">
+<div>
+<h1>Dictate in Bangla.<br> Get Bangla.</h1>
+<p class="lede">A fail-closed, 59-patch Morphe suite for Gboard 18.5.4 (plus the legacy 18.3.1 standalone patcher) that keeps Bengali voice typing in Bengali script, unlocks Rambler+, adds SwiftKey-style @mention suggestions, and bundles AMOLED Dark &amp; Gboard power tools. GPL-3.0.</p>
+<div class="ctas">
+<a class="btn primary" href="#build">Build from source</a>
+<a class="btn ghost" href="https://github.com/muhib-karim/Rambler-Bangla/releases/latest">Release v31.2.0</a>
+<a class="btn ghost" href="https://github.com/muhib-karim/Rambler-Bangla">GitHub</a>
+</div>
+</div>
+<div class="demo" role="group" aria-label="Illustration of the fix">
+<p class="label">Stock voice cleanup</p>
+<p class="before" lang="bn-Latn">ami bhalo achi</p>
+<p class="label">With Rambler Bangla</p>
+<p class="after" lang="bn">আমি ভালো আছি</p>
+<small>Illustration with synthetic text, not a device screenshot.</small>
+</div>
+</div>
+<figure class="banner"><img src="assets/1-banner.png" alt="Rambler Bangla banner: a microphone sound wave landing on keyboard keys" width="1280" height="640"></figure>
+</div>
+</div>
+
+<section id="what" aria-labelledby="what-h">
+<div class="wrap split">
+<div>
+<h2 id="what-h">What it is and why</h2>
+<p class="sub">Three parts, one job: Bangla dictation that stays in Bangla.</p>
+</div>
+<div class="prose">
+<p>Gboard's on-device voice cleanup tends to rewrite Bengali dictation into Latin letters and mangles sentences that mix Bangla and English. Rambler Bangla fixes this for one exact build, Gboard 18.3.1: a <b>fail-closed smali patcher</b> (Python) proves it is looking at the profiled build and inserts two hooks, a <b>pure-Java policy runtime</b> keeps Bangla in Bengali script and picks one language per sentence, and a <b>device-free CI suite</b> builds a synthetic APK, patches it and checks every step, refusals included, on every push.</p>
+<div class="callout"><p><b>Honest status.</b> A maintainer project with private test builds. Host tests and a static CI suite back the engineering claims. On-device results come from the maintainer's own phone. "Design intent" means design, not proof. CI never installs the keyboard on a device.</p></div>
+</div>
+</div>
+</section>
+
+<section id="features" aria-labelledby="features-h">
+<div class="wrap">
+<h2 id="features-h">Features</h2>
+<p class="sub">What the project does today, with the evidence level stated for each.</p>
+<ul class="features">
+<li><h3>Bangla stays Bangla</h3><p>Bengali dictation stays in Bengali Unicode for bn-BD, bn-IN, bn-Beng and phonetic bn-Latn; English stays in Latin.</p><span class="level"><b class="ok">CI + Emulator</b><br>22 end-to-end checks, 59 Morphe patches</span></li>
+<li><h3>Rambler+ &amp; Enhancements</h3><p>Unconditional Rambler+ activation under Voice typing, Hex waveforms, custom per-app instructions, MUSE_STATS dictionary, contacts sync, cursor-aware editing, snippets, stats &amp; toolbar overflow.</p><span class="level"><b class="ok">CI + Emulator</b><br>Verified on Gboard 18.5.4 (API 35 KVM)</span></li>
+<li><h3>@Mention &amp; Email Strip</h3><p>SwiftKey-style suggestion strip that learns typed <code>@handles</code> (<code>@grok</code>, <code>@claude</code>) and email domains on-device, with tap-to-insert chips, long-press to forget, and password/incognito bypass.</p><span class="level"><b class="ok">Unit + DEX Verified</b><br>Live Settings toggle + native email completion</span></li>
+<li><h3>AMOLED Dark &amp; Hidden Flags</h3><p>Pure #000000 Material You AMOLED dark keyboard, one-tap quick-paste clipboard chip, keep-rewritten-on-revert, and live OVERRIDE-store hidden flags.</p><span class="level"><b class="ok">CI + Emulator</b><br>Ported from nl-morphe-patches (GPL-3.0)</span></li>
+<li><h3>46 Gboard Power Features</h3><p>Frosted Glass blur, Custom Themes, Rounded Panel, Key Shape, Clipboard Enhancements, Web Clipboard, LAN FTP, Calculator, OCR, AI Writing Tools, Bluetooth Mic, Backup &amp; Restore.</p><span class="level"><b class="ok">CI + Emulator</b><br>Integrated from Gboard Patches (GPL-3.0)</span></li>
+<li><h3>Bangla and English together</h3><p>One language per sentence on multilingual layouts (abc → <span class="bn" lang="bn">বাংলা</span> and EN/BN pairing) with live Gboard locale handoff.</p><span class="level"><b class="ok">Host + CI</b><br>292-case host corpus + runtime E2E tests</span></li>
+<li><h3>Real Bangla spellings &amp; Protected spans</h3><p>English loanwords inside Bangla come out as <span class="bn" lang="bn">কোম্পানি, টেলিভিশন, বার্লিন</span> while #hashtags, @handles, links, emails, times, and password/incognito fields stay protected.</p><span class="level"><b class="ok">Host + CI</b><br>2,265 Avro pairs + CMUdict loanwords</span></li>
+<li><h3>Own package id</h3><p>Installs side-by-side as <code>com.aidev2024.ramblerbangla</code> beside stock Gboard.</p><span class="level"><b class="ok">Android 15 KVM</b><br>See <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/SIDE-BY-SIDE.md">SIDE-BY-SIDE.md</a></span></li>
+</ul>
+</div>
+</section>
+
+<section id="how" aria-labelledby="how-h">
+<div class="wrap">
+<h2 id="how-h">How it works</h2>
+<p class="sub">The patcher never edits bytes by offset. It disassembles the APK and patches only once every check has passed.</p>
+<ol class="pipeline">
+<li><h3>Fingerprint guard</h3><p>Every SHA-256 string hash in the profile must be found, both method anchors must match exactly, and the enabled-languages register is found by tracing dataflow.</p></li>
+<li><h3>Smali patch</h3><p>Two hook calls go into the cleanup builder. The stock rule string stays as the fail-safe input. Only the touched DEX is rebuilt.</p></li>
+<li><h3>Policy runtime</h3><p>Pure-Java <code>String</code> to <code>String</code> rules, dexed with d8 and added as an extra DEX. No Android or network dependencies.</p></li>
+<li><h3>Verify</h3><p><code>scripts/verify_apk.sh</code> checks the output offline. The patcher never signs: you re-sign with your own key.</p></li>
+</ol>
+<p class="abort"><b>Any miss at step 1:</b> <code>FAIL-CLOSED ABORT</code>, exit status 2, no output written. Full design in <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/ARCHITECTURE.md">ARCHITECTURE.md</a>.</p>
+</div>
+</section>
+
+<section id="ci" aria-labelledby="ci-h">
+<div class="wrap split">
+<div>
+<h2 id="ci-h">Device-free CI</h2>
+<p class="sub">No phone, emulator or Google binary needed to prove the pipeline.</p>
+</div>
+<div class="prose">
+<p>The fixture is a <b>synthetic APK with zero Google content</b> that mirrors the real anchors. On every push and pull request, GitHub Actions builds it from smali sources, patches it with the real patcher and asserts on the result.</p>
+<ul class="ticks">
+<li><b>Python unit tests</b> (stdlib only): the patcher's pure helpers, the loanword table sync, and checks that keep the README and this page honest.</li>
+<li><b>Static suite, 22 checks:</b> 51 policy assertions, fixture build, end-to-end patch, fail-closed negatives (wrong fingerprint, tampered rule, re-patch each exit 2 with no APK), APK Signature Scheme v2 verification, astral-label identity-rename round-trip, verify_apk.sh fixture verification.</li>
+</ul>
+<div class="callout"><p>CI does <b>not</b> prove runtime behaviour inside real Gboard. Phone evidence is dated in <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/VALIDATION.md">VALIDATION.md</a>.</p></div>
+</div>
+</div>
+</section>
+
+<section id="build" aria-labelledby="build-h">
+<div class="wrap">
+<h2 id="build-h">Build from source</h2>
+<p class="sub">JDK 21, Android SDK 35/36, and Python 3. Targets Gboard <code>18.5.4.993608717-release-arm64-v8a</code> via Morphe (59 patches) and legacy Gboard <code>18.3.1.977415014 beta</code> via the standalone smali patcher. Unprofiled builds are refused.</p>
+<pre><code><span class="c"># 1. Build unified 59-patch Morphe bundle (.mpp) for Gboard 18.5.4</span>
+./gradlew :extensions:extension:syncExtension \
+  :extensions:calculator:syncExtension \
+  :extensions:rambler-enhancements:syncExtension \
+  :patches:verifyGboardCapabilityWiring :patches:test \
+  :patches:buildAndroid generatePatchesList
+
+<span class="c"># 2. Legacy 18.3.1 Python unit tests + pinned static suite</span>
+python3 -m unittest discover -s tests/python -v
+python3 -m pip install androguard==4.1.4
+bash scripts/bootstrap_tools.sh &amp;&amp; source tools/tool-env.sh
+bash tests/run_tests.sh  <span class="c"># TEST SUITE: 22 passed, 0 failed</span></code></pre>
+<p>Full Morphe CLI patching, signing, installing and exit codes: <a href="https://github.com/muhib-karim/Rambler-Bangla#build-from-source">README</a> and <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/USER_GUIDE.md">user guide</a>.</p>
+</div>
+</section>
+
+<section id="safety" aria-labelledby="safety-h">
+<div class="wrap split">
+<div>
+<h2 id="safety-h">Safety: fail-closed by design</h2>
+<p class="sub">The patcher would rather do nothing than guess.</p>
+</div>
+<div class="prose">
+<ul class="ticks">
+<li><b>Exact build or nothing.</b> Any fingerprint, anchor or dataflow miss exits 2 and writes no APK.</li>
+<li><b>No double patching.</b> An already patched APK is refused.</li>
+<li><b>Hash-based profile.</b> SHA-256 hashes plus short identifying fragments; the full prompt text is never reproduced.</li>
+<li><b>Never signs, never uploads.</b> Patcher and verifier run offline; you sign with your own key.</li>
+<li><b>No network code</b> in the patch layer, and diagnostics are off by default and stay on your phone.</li>
+<li><b>On-device path only.</b> Bangla is not on Google's cloud rewrite list, so only the on-device cleanup path changes. It does not add Bangla to Google's cloud service.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section id="layouts" aria-labelledby="layouts-h">
+<div class="wrap">
+<h2 id="layouts-h">Which keyboard does what</h2>
+<p class="sub">Design intent for the V29.3 test build, unchanged in V29.4.</p>
+<div class="table" role="region" aria-labelledby="layouts-h" tabindex="0">
+<table>
+<tr><th scope="col">Layout</th><th scope="col">Result</th></tr>
+<tr><td>English (US)</td><td>English only. Rambler changes nothing.</td></tr>
+<tr><td><span class="bn" lang="bn">বাংলা</span> (native)</td><td>Bangla only. Romanized Bangla and English words become Bangla script.</td></tr>
+<tr><td>abc → <span class="bn" lang="bn">বাংলা</span></td><td>Multilingual. Each sentence is Bangla script or English, decided per sentence.</td></tr>
+<tr><td>Bangla (Latin)</td><td>Treated as Bangla: output is Bangla script.</td></tr>
+</table>
+</div>
+</div>
+</section>
+
+<section id="source-only" aria-labelledby="source-h">
+<div class="wrap split">
+<div>
+<h2 id="source-h">Source only, no APKs</h2>
+<p class="sub">Now or later. Any site offering a "Rambler Bangla APK" is not from this project.</p>
+</div>
+<div class="prose">
+<p>A patched keyboard contains Google's proprietary Gboard code, which is not licensed for redistribution. You apply the patch to a Gboard 18.3.1 APK you obtain yourself, for your own device, and sign it with your own key. Releases are tagged source plus notes.</p>
+<div class="callout"><p><b>Legal note.</b> Rambler Bangla is an independent project. Not affiliated with Google, nor endorsed or sponsored by it. Gboard is a trademark of Google LLC, named only to identify the target app. The repository holds no Google binaries, keys, model files or full prompt text; the profile keeps SHA-256 hashes plus short identifying fragments. Modifying software may be restricted by its terms or by local law; checking that is your responsibility, and the software comes with no warranty (GPL-3.0). Details: <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/LICENSING-AUDIT.md">LICENSING-AUDIT.md</a>.</p></div>
+</div>
+</div>
+</section>
+
+<section id="faq" aria-labelledby="faq-h">
+<div class="wrap">
+<h2 id="faq-h">FAQ</h2>
+<details><summary>Can I download a ready-made APK?</summary><p>No. The project is source only; see above.</p></details>
+<details><summary>Why only Gboard 18.3.1?</summary><p>The hooks go into obfuscated code whose names change between builds. Pinning one build and proving it with fingerprints is what makes the patch safe. A new version needs a new, reviewed profile.</p></details>
+<details><summary>What happens with a different version?</summary><p>It refuses: <code>FAIL-CLOSED ABORT</code>, exit status 2, no output. Nothing is half-patched.</p></details>
+<details><summary>Does CI prove it works on my phone?</summary><p>No. CI proves the patching pipeline on a synthetic APK, refusals included. Phone results come from the maintainer's device and are labelled as such.</p></details>
+<details><summary>Does it send my voice or text anywhere?</summary><p>The patch layer has no network code. It only rewrites prompt and rule strings inside Gboard's existing on-device cleanup step. Gboard's own behaviour is outside this project's audit.</p></details>
+<details><summary>Does it translate English into Bangla?</summary><p>No. English words spoken inside Bangla get a Bangla spelling; they are never translated.</p></details>
+<details><summary>Why do I need Linux?</summary><p>The pinned aapt2 used to build the test fixture is the Linux build. The patcher itself is plain Python.</p></details>
+<details><summary>Bangla still came out in Latin letters. Is that Rambler?</summary><p>Turn off Bangla script correction and try again. Same result means it is Gboard's own output. Otherwise, please <a href="https://github.com/muhib-karim/Rambler-Bangla/issues/new/choose">open an issue</a> with the layout you used.</p></details>
+</div>
+</section>
+
+<section id="roadmap" aria-labelledby="roadmap-h">
+<div class="wrap">
+<h2 id="roadmap-h">Roadmap</h2>
+<p class="sub">Latest release: <a href="https://github.com/muhib-karim/Rambler-Bangla/releases/latest">v31.2.0</a> (59-patch Morphe suite for Gboard 18.5.4; supersedes v30.0.0 and legacy standalone <a href="https://github.com/muhib-karim/Rambler-Bangla/releases/tag/v29.4">v29.4</a>).</p>
+<h3>Maintainer builds, October 2026</h3>
+<div class="table" role="region" aria-label="Maintainer builds and evidence levels" tabindex="0">
+<table>
+<tr><th scope="col">Item</th><th scope="col">Level</th></tr>
+<tr><td>Updates signed with the same key install over the existing app</td><td>Confirmed on the maintainer's phone</td></tr>
+<tr><td>Gboard AI writing-tools icon visible again on build 253</td><td>Confirmed on the maintainer's phone; cause not proven</td></tr>
+<tr><td>Build 253 compatibility update (stale ids retargeted, no behaviour flags changed)</td><td>Two static reviews passed, no runtime proof</td></tr>
+<tr><td>Stray "123" labels suppressed on pinned and list items</td><td>Static review only</td></tr>
+<tr><td>Clipboard recents setting, masking default off</td><td>Static review only</td></tr>
+</table>
+</div>
+<h3>Next, not working yet</h3>
+<ul class="ticks">
+<li>Multilingual clause segmentation within a sentence.</li>
+<li>Phonetic typing with an EN/BN toggle, and a proper Bangla (Latin) layout.</li>
+<li>Clipboard drag-to-reorder, still in development.</li>
+<li>Better loanword accuracy than the historical 85 of 200 exact.</li>
+</ul>
+<h3>Limitations</h3>
+<ul class="ticks">
+<li>Exactly one target build, Gboard 18.3.1. Any other build is refused by design.</li>
+<li>CI proves the patching pipeline on a synthetic fixture, not runtime behaviour inside real Gboard.</li>
+<li>Loanword spelling is approximate.</li>
+</ul>
+</div>
+</section>
+
+<section id="links" aria-labelledby="links-h">
+<div class="wrap">
+<h2 id="links-h">Links</h2>
+<ul class="links">
+<li><a href="https://github.com/muhib-karim/Rambler-Bangla">Source on GitHub</a><span>README, issues and pull requests</span></li>
+<li><a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/USER_GUIDE.md">User guide</a><span>Verify, patch, sign, install, exit codes</span></li>
+<li><a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/ARCHITECTURE.md">Architecture</a><span>Pipeline, policy runtime and CI design</span></li>
+<li><a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/README.md">All docs</a><span>Design, evidence, validation and licensing records</span></li>
+<li><a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/CHANGELOG.md">Changelog</a><span>Version history and build evidence levels</span></li>
+<li><a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/CONTRIBUTING.md">Contributing</a><span>Run the suites before a pull request; security reports via <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/SECURITY.md">SECURITY.md</a></span></li>
+</ul>
+<h3 id="brand">Icon and brand</h3>
+<p>The Bangla letter <span class="bn" lang="bn">র</span> with an amber underline on a Rambler Blue to Deep Navy gradient. Deep Navy #0B1F3B, Rambler Blue #2D6FA3, Amber #F6B13E.</p>
+<figure class="showcase"><img src="assets/3-icon-showcase.png" alt="Rambler Bangla icon in circle, squircle and rounded square masks and at launcher sizes" width="1600" height="900"></figure>
+</div>
+</section>
+</main>
+
+<footer>
+<div class="wrap">
+<p>Rambler Bangla v31.2.0 is licensed <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/LICENSE">GPL-3.0</a> and credits <a href="https://github.com/jasonwu1994/Gboard-patches">Gboard Patches</a> (Jason Wu, GPL-3.0), <a href="https://github.com/abotmaker/gboard-rambler-enhancements">Gboard Rambler Enhancements</a> (abotmaker, GPL-3.0), <a href="https://gitlab.com/johninnld/nl-morphe-patches">nl-morphe-patches</a> (johninnld, GPL-3.0), <a href="https://github.com/anomalyco/hex">Hex by Anomaly</a> (MIT), <a href="https://github.com/Akshayykadam/PixelBoard">PixelBoard</a> (GPL-3.0), Morphe (GPL-3.0 + Section 7c), Avro (MPL-2.0), and CMUdict (BSD). Full notices: <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/ATTRIBUTION.md">ATTRIBUTION.md</a> &amp; <a href="https://github.com/muhib-karim/Rambler-Bangla/blob/main/THIRD-PARTY-NOTICES.md">THIRD-PARTY-NOTICES.md</a>.</p>
+<p>Not affiliated with Google. No trackers, no scripts, no cookies on this page.</p>
+</div>
+</footer>
+</body>
+</html>

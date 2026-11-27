@@ -1,0 +1,7 @@
+id/player_additional_view_container
+id/player_subtitle_button
+id/player_overflow_button
+id/timestamps_container
+id/fullscreen_button
+string/bottom_sheet_accessibility_pane_title
+string/bottomsheet_drag_handle_content_description

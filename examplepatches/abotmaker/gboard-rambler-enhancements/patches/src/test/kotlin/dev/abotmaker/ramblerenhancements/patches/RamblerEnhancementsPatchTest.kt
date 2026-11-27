@@ -42,8 +42,8 @@ class RamblerEnhancementsPatchTest {
                 targets.any { it.version == EXPERIMENTAL_GBOARD_VERSION && it.isExperimental },
             )
             assertTrue(
-                "Patch ${patch.name} description should note verified 18.5.4 + unverified newer builds",
-                patch.description.orEmpty().contains("18.5.4"),
+                "Patch ${patch.name} should have a concise non-blank description",
+                patch.description.orEmpty().isNotBlank() && patch.description.orEmpty().length <= 280,
             )
         }
     }
@@ -481,6 +481,808 @@ class RamblerEnhancementsPatchTest {
             "onListeningStop",
             (stopFirst.reference as com.android.tools.smali.dexlib2.iface.reference.MethodReference).name,
         )
+    }
+
+    @Test
+    fun toolbarAccessPointHooksInjectCatalogAndControllerDelegates() {
+        val orderMethod = app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+            com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Laagb;",
+                "m",
+                listOf(
+                    "Landroid/content/Context;",
+                    "Laaiz;",
+                    "Lackz;",
+                    "Lauco;",
+                    "Lauco;",
+                ).map {
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        it,
+                        emptySet(),
+                        null,
+                    )
+                },
+                "Laagb;",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.STATIC.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    21,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n(
+                            com.android.tools.smali.dexlib2.Opcode.CONST_4,
+                            0,
+                            0,
+                        ),
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN_OBJECT,
+                            0,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            ),
+        )
+        val controllerCtor = app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+            com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Laajh;",
+                "<init>",
+                listOf("Landroid/content/Context;", "Laalq;").map {
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        it,
+                        emptySet(),
+                        null,
+                    )
+                },
+                "V",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.CONSTRUCTOR.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    11,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN_VOID,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            ),
+        )
+
+        installToolbarAccessPointHooks(
+            AccessPointTargets(
+                orderFactoryMethod = orderMethod,
+                controllerConstructor = controllerCtor,
+                immutableSetType = "Lauco;",
+                controllerClass = "aajh",
+                controllerOrderHelperField = "g",
+                controllerRegisterMethod = "g",
+                orderHelperClass = "aaia",
+                orderHelperCatalogField = "b",
+                immutableSetClass = "auco",
+                immutableSetCopyMethod = "n",
+                descriptorClass = "aadr",
+                descriptorBuilderFactoryMethod = "m",
+                builderBaseClass = "aadm",
+                builderConcreteClass = "aaej",
+                builderTokenMethod = "q",
+                builderRunnableMethod = "v",
+                builderBuildMethod = "b",
+                builderIconField = "c",
+                builderLabelField = "d",
+            ),
+        )
+
+        val orderInvokes = orderMethod.implementation!!.instructions
+            .filterIsInstance<com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction>()
+            .mapNotNull { it.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference }
+        assertTrue(orderInvokes.any { it.name == "includeOrderCatalog" })
+
+        val ctorInsns = controllerCtor.implementation!!.instructions.toList()
+        assertEquals(com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC_RANGE, ctorInsns[0].opcode)
+        assertEquals(com.android.tools.smali.dexlib2.Opcode.RETURN_VOID, ctorInsns[1].opcode)
+        val ctorRef = (ctorInsns[0] as com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)
+            .reference as com.android.tools.smali.dexlib2.iface.reference.MethodReference
+        assertEquals("afterControllerCreated", ctorRef.name)
+    }
+
+    @Test
+    fun spacebarTriggerHooksWrapInitialStateWithFiveRegistersAndCaptureExtensionSafely() {
+        val agenticCtor = app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+            com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Lkov;",
+                "<init>",
+                listOf("Landroid/content/Context;", "Lagrh;", "Lagrd;", "Lkwy;", "Lkny;").map {
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        it,
+                        emptySet(),
+                        null,
+                    )
+                },
+                "V",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.CONSTRUCTOR.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    7,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c(
+                            com.android.tools.smali.dexlib2.Opcode.INVOKE_DIRECT,
+                            1,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference(
+                                "Ladbc;",
+                                "<init>",
+                                emptyList(),
+                                "V",
+                            ),
+                        ),
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN_VOID,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            ),
+        )
+        val agenticClass = app.morphe.patcher.util.proxy.mutableTypes.MutableClass(
+            com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+                "Lkov;",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                "Ladbc;",
+                emptyList(),
+                null,
+                emptySet(),
+                emptyList(),
+                listOf(agenticCtor),
+            ),
+        )
+        val consumeEvent = app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+            com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Lafzt;",
+                "m",
+                listOf(
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        "Ladan;",
+                        emptySet(),
+                        null,
+                    ),
+                ),
+                "Z",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.FINAL.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    12,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n(
+                            com.android.tools.smali.dexlib2.Opcode.CONST_4,
+                            0,
+                            0,
+                        ),
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN,
+                            0,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            ),
+        )
+        val initialState = app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+            com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Lafzt;",
+                "em",
+                listOf("Laeuj;", "Landroid/view/inputmethod/EditorInfo;").map {
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        it,
+                        emptySet(),
+                        null,
+                    )
+                },
+                "J",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.FINAL.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    3,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction51l(
+                            com.android.tools.smali.dexlib2.Opcode.CONST_WIDE,
+                            0,
+                            0x10000000000L,
+                        ),
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN_WIDE,
+                            0,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            ),
+        )
+        val langPickerClass = app.morphe.patcher.util.proxy.mutableTypes.MutableClass(
+            com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+                "Lafzt;",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                "Ladbc;",
+                emptyList(),
+                null,
+                emptySet(),
+                emptyList(),
+                listOf(consumeEvent, initialState),
+            ),
+        )
+        val dispatchTouch = app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+            com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;",
+                "dispatchTouchEvent",
+                listOf(
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        "Landroid/view/MotionEvent;",
+                        emptySet(),
+                        null,
+                    ),
+                ),
+                "Z",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.FINAL.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    6,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n(
+                            com.android.tools.smali.dexlib2.Opcode.CONST_4,
+                            0,
+                            1,
+                        ),
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN,
+                            0,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            ),
+        )
+        val softKeyboardViewClass = app.morphe.patcher.util.proxy.mutableTypes.MutableClass(
+            com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+                "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                "Landroid/widget/FrameLayout;",
+                emptyList(),
+                null,
+                emptySet(),
+                emptyList(),
+                listOf(dispatchTouch),
+            ),
+        )
+        val agenticTargets = AgenticExtensionTargets(agenticClass, agenticClass.methods.single(), 1)
+        val lpConsume = langPickerClass.methods.single { it.name == "m" }
+        val lpInit = langPickerClass.methods.single { it.name == "em" }
+        val skvDispatch = softKeyboardViewClass.methods.single { it.name == "dispatchTouchEvent" }
+
+        installAgenticCtorStartupHook(agenticTargets)
+        installSpacebarTriggerHooks(
+            agenticTargets,
+            SpacebarTriggerTargets(
+                langPickerClass = langPickerClass,
+                consumeEventMethod = lpConsume,
+                initialStateMethod = lpInit,
+                softKeyboardViewClass = softKeyboardViewClass,
+                softKeyboardDispatchTouchMethod = skvDispatch,
+                eventGetKeyDataMethod = "g",
+                eventActionField = "a",
+                keyDataCodeField = "d",
+                keyDataDataField = "f",
+                extGetContextMethod = "ae",
+                agenticIsActiveMethod = "aj",
+                agenticTriggerMethod = "C",
+                agenticClassName = "kov",
+                agenticUiManagerField = "c",
+                uiManagerGetStateMethod = "h",
+            ),
+        )
+
+        // Agentic.<init> calls onRamblerStart right after super.<init> and onAgenticExtensionCreated before return-void.
+        val ctorInsns = agenticTargets.contextConstructor.implementation!!.instructions.toList()
+        val ctorMethodNames = ctorInsns
+            .filterIsInstance<com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction>()
+            .mapNotNull { (it.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference)?.name }
+        assertEquals(listOf("<init>", "onRamblerStart", "onAgenticExtensionCreated"), ctorMethodNames)
+        assertEquals(com.android.tools.smali.dexlib2.Opcode.RETURN_VOID, ctorInsns.last().opcode)
+
+        // consumeEvent calls maybeHandleSpaceLongPress at entry.
+        val firstConsume = lpConsume.implementation!!.instructions.first()
+            as com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+        assertEquals(
+            "maybeHandleSpaceLongPress",
+            (firstConsume.reference as com.android.tools.smali.dexlib2.iface.reference.MethodReference).name,
+        )
+
+        // SoftKeyboardView.dispatchTouchEvent is wrapped branchlessly and delegates to private morpheRamblerStockDispatchTouch.
+        val wrappedTouch = softKeyboardViewClass.methods.single { it.name == "dispatchTouchEvent" }
+        val stockTouch = softKeyboardViewClass.methods.single { it.name == "morpheRamblerStockDispatchTouch" }
+        assertEquals(3, wrappedTouch.implementation!!.registerCount)
+        assertEquals(6, stockTouch.implementation!!.registerCount)
+        assertTrue((stockTouch.accessFlags and com.android.tools.smali.dexlib2.AccessFlags.PRIVATE.value) != 0)
+        val wrappedTouchInvokes = wrappedTouch.implementation!!.instructions
+            .filterIsInstance<com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction>()
+            .mapNotNull { (it.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference)?.name }
+        assertEquals(listOf("onKeyboardTouchEvent", "morpheRamblerStockDispatchTouch"), wrappedTouchInvokes)
+
+        // getInitialKeyboardState is wrapped with 5 registers and delegates to private morpheRamblerStockInitialState.
+        val wrappedInit = langPickerClass.methods.single { it.name == "em" }
+        val helperInit = langPickerClass.methods.single { it.name == "morpheRamblerStockInitialState" }
+        assertEquals(5, wrappedInit.implementation!!.registerCount)
+        assertEquals(3, helperInit.implementation!!.registerCount)
+        assertTrue((helperInit.accessFlags and com.android.tools.smali.dexlib2.AccessFlags.PRIVATE.value) != 0)
+        val wrappedInvokes = wrappedInit.implementation!!.instructions
+            .filterIsInstance<com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction>()
+            .mapNotNull { (it.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference)?.name }
+        assertEquals(listOf("shouldClearNoImePickerState", "morpheRamblerStockInitialState"), wrappedInvokes)
+    }
+
+    @Test
+    fun spacebarTouchWrapperStacksCleanlyWithGboardWuV450ClipboardSelectAllInBothOrders() {
+        fun makeSoftKeyboardView(): app.morphe.patcher.util.proxy.mutableTypes.MutableClass {
+            val stockDispatch = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;",
+                "dispatchTouchEvent",
+                listOf(
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        "Landroid/view/MotionEvent;",
+                        emptySet(),
+                        null,
+                    ),
+                ),
+                "Z",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.FINAL.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    6,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n(
+                            com.android.tools.smali.dexlib2.Opcode.CONST_4,
+                            0,
+                            1,
+                        ),
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN,
+                            0,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            )
+            return app.morphe.patcher.util.proxy.mutableTypes.MutableClass(
+                com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+                    "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;",
+                    com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                    "Landroid/widget/FrameLayout;",
+                    emptyList(),
+                    null,
+                    emptySet(),
+                    emptyList(),
+                    listOf(stockDispatch),
+                ),
+            )
+        }
+
+        fun applyGboardWuV450ClipboardSelectAllTouchWrapper(
+            skvClass: app.morphe.patcher.util.proxy.mutableTypes.MutableClass,
+        ) {
+            // Reproduces upstream GboardWu v4.5.0 GboardClipboardSelectAllPatch.wrapClipboardSelectAll:
+            // renames dispatchTouchEvent -> jasondevClipboardStockTouch and builds the replacement
+            // via plain addInstructions(0, ...) containing an internal `:stock` label.
+            val target = skvClass.methods.single { it.name == "dispatchTouchEvent" }
+            val stockImpl = target.implementation!!
+            val helper = app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                    skvClass.type,
+                    "jasondevClipboardStockTouch",
+                    target.parameters,
+                    "Z",
+                    com.android.tools.smali.dexlib2.AccessFlags.PRIVATE.value or
+                        com.android.tools.smali.dexlib2.AccessFlags.FINAL.value,
+                    target.annotations,
+                    target.hiddenApiRestrictions,
+                    stockImpl,
+                ),
+            )
+            skvClass.methods.remove(target)
+            skvClass.methods.add(helper)
+            val wrapper = app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                    skvClass.type,
+                    "dispatchTouchEvent",
+                    target.parameters,
+                    "Z",
+                    target.accessFlags,
+                    emptySet(),
+                    emptySet(),
+                    com.android.tools.smali.dexlib2.builder.MutableMethodImplementation(4),
+                ),
+            )
+            app.morphe.patcher.extensions.InstructionExtensions.run {
+                wrapper.addInstructions(
+                    0,
+                    """
+                    invoke-static/range {p0 .. p1}, Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardSelectAllRuntime;->interceptTouch(Ljava/lang/Object;Landroid/view/MotionEvent;)Z
+                    move-result v0
+                    if-eqz v0, :stock
+                    return v0
+                    :stock
+                    invoke-direct/range {p0 .. p1}, ${skvClass.type}->jasondevClipboardStockTouch(Landroid/view/MotionEvent;)Z
+                    move-result v0
+                    return v0
+                    """.trimIndent(),
+                )
+            }
+            skvClass.methods.add(wrapper)
+        }
+
+        fun runRamblerSpacebarHook(
+            skvClass: app.morphe.patcher.util.proxy.mutableTypes.MutableClass,
+        ): app.morphe.patcher.util.proxy.mutableTypes.MutableClass {
+            val agenticCtor = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Lfhv;",
+                "<init>",
+                listOf(
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        "Landroid/content/Context;",
+                        emptySet(),
+                        null,
+                    ),
+                ),
+                "V",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.CONSTRUCTOR.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    3,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN_VOID,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            )
+            val agenticClass = app.morphe.patcher.util.proxy.mutableTypes.MutableClass(
+                com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+                    "Lfhv;",
+                    com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                    "Ljava/lang/Object;",
+                    emptyList(),
+                    null,
+                    emptySet(),
+                    emptyList(),
+                    listOf(agenticCtor),
+                ),
+            )
+            val consumeEvent = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Lpvd;",
+                "m",
+                listOf(
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        "Lohe;",
+                        emptySet(),
+                        null,
+                    ),
+                ),
+                "Z",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.FINAL.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    6,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n(
+                            com.android.tools.smali.dexlib2.Opcode.CONST_4,
+                            0,
+                            0,
+                        ),
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN,
+                            0,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            )
+            val initialState = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                "Lpvd;",
+                "em",
+                listOf("Lfoo;", "Landroid/view/inputmethod/EditorInfo;").map {
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        it,
+                        emptySet(),
+                        null,
+                    )
+                },
+                "J",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or
+                    com.android.tools.smali.dexlib2.AccessFlags.FINAL.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    3,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction51l(
+                            com.android.tools.smali.dexlib2.Opcode.CONST_WIDE,
+                            0,
+                            0x10000000000L,
+                        ),
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN_WIDE,
+                            0,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            )
+            val langPickerClass = app.morphe.patcher.util.proxy.mutableTypes.MutableClass(
+                com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+                    "Lpvd;",
+                    com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                    "Ljava/lang/Object;",
+                    emptyList(),
+                    null,
+                    emptySet(),
+                    emptyList(),
+                    listOf(consumeEvent, initialState),
+                ),
+            )
+            installSpacebarTriggerHooks(
+                AgenticExtensionTargets(agenticClass, agenticClass.methods.single(), 1),
+                SpacebarTriggerTargets(
+                    langPickerClass = langPickerClass,
+                    consumeEventMethod = langPickerClass.methods.single { it.name == "m" },
+                    initialStateMethod = langPickerClass.methods.single { it.name == "em" },
+                    softKeyboardViewClass = skvClass,
+                    softKeyboardDispatchTouchMethod = skvClass.methods.single { it.name == "dispatchTouchEvent" },
+                    eventGetKeyDataMethod = "g",
+                    eventActionField = "a",
+                    keyDataCodeField = "d",
+                    keyDataDataField = "f",
+                    extGetContextMethod = "ae",
+                    agenticIsActiveMethod = "aj",
+                    agenticTriggerMethod = "C",
+                    agenticClassName = "fhv",
+                    agenticUiManagerField = "c",
+                    uiManagerGetStateMethod = "h",
+                ),
+            )
+            return langPickerClass
+        }
+
+        fun serializeAndVerifyBranches(
+            cls: app.morphe.patcher.util.proxy.mutableTypes.MutableClass,
+        ): Map<String, List<Pair<Int, Int>>> {
+            val pool = com.android.tools.smali.dexlib2.writer.pool.DexPool(
+                com.android.tools.smali.dexlib2.Opcodes.getDefault(),
+            )
+            pool.internClass(cls)
+            val store = com.android.tools.smali.dexlib2.writer.io.MemoryDataStore()
+            pool.writeTo(store)
+            val dex = com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile(
+                com.android.tools.smali.dexlib2.Opcodes.getDefault(),
+                com.android.tools.smali.dexlib2.dexbacked.DexBuffer(store.data),
+            )
+            val serializedCls = dex.classes.single()
+            val branchOffsetsByMethod = mutableMapOf<String, List<Pair<Int, Int>>>()
+            for (method in serializedCls.methods) {
+                val impl = method.implementation ?: continue
+                val insns = impl.instructions.toList()
+                val validOffsets = mutableSetOf<Int>()
+                var addr = 0
+                val addrByIdx = IntArray(insns.size)
+                for (i in insns.indices) {
+                    addrByIdx[i] = addr
+                    validOffsets.add(addr)
+                    addr += insns[i].codeUnits
+                }
+                val branches = mutableListOf<Pair<Int, Int>>()
+                for (i in insns.indices) {
+                    val insn = insns[i]
+                    if (insn is com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction) {
+                        val offset = insn.codeOffset
+                        val pc = addrByIdx[i]
+                        assertTrue(
+                            "${method.name} @0x${pc.toString(16)} must not have zero branch offset",
+                            offset != 0,
+                        )
+                        val target = pc + offset
+                        assertTrue(
+                            "${method.name} @0x${pc.toString(16)} target 0x${target.toString(16)} must land on an instruction boundary (valid=$validOffsets)",
+                            target in validOffsets,
+                        )
+                        branches.add(pc to offset)
+                    }
+                }
+                branchOffsetsByMethod[method.name] = branches
+            }
+            return branchOffsetsByMethod
+        }
+
+        // Order 1: GboardWu v4.5.0 runs FIRST, Rambler Enhancements runs SECOND (the reported crash scenario).
+        val skvWuFirst = makeSoftKeyboardView()
+        applyGboardWuV450ClipboardSelectAllTouchWrapper(skvWuFirst)
+        val lpClass = runRamblerSpacebarHook(skvWuFirst)
+        val wuFirstBranches = serializeAndVerifyBranches(skvWuFirst)
+        assertEquals(emptyList<Pair<Int, Int>>(), wuFirstBranches["dispatchTouchEvent"])
+        assertEquals(listOf(4 to 3), wuFirstBranches["morpheRamblerStockDispatchTouch"])
+
+        // Order 2: Rambler Enhancements runs FIRST, GboardWu v4.5.0 runs SECOND.
+        val skvRamblerFirst = makeSoftKeyboardView()
+        runRamblerSpacebarHook(skvRamblerFirst)
+        applyGboardWuV450ClipboardSelectAllTouchWrapper(skvRamblerFirst)
+        val ramblerFirstBranches = serializeAndVerifyBranches(skvRamblerFirst)
+        assertEquals(listOf(4 to 3), ramblerFirstBranches["dispatchTouchEvent"])
+        assertEquals(emptyList<Pair<Int, Int>>(), ramblerFirstBranches["jasondevClipboardStockTouch"])
+
+        // Also verify our hardened getInitialKeyboardState wrapper survives another patch prepending
+        // a 3-unit instruction at index 0 (internal `:rambler_stock_initial_state` label shifts cleanly).
+        val wrappedInit = lpClass.methods.single { it.name == "em" }
+        app.morphe.patcher.extensions.InstructionExtensions.run {
+            wrappedInit.addInstructions(0, "invoke-static {}, Ljava/lang/System;->gc()V")
+        }
+        val lpBranches = serializeAndVerifyBranches(lpClass)
+        assertTrue(lpBranches["em"]!!.isNotEmpty())
+    }
+
+    @Test
+    fun learnedFixesHooksInjectCleanlyAndRoundTripThroughDexPool() {
+        fun makeInputCtxChanged(className: String, regs: Int): app.morphe.patcher.util.proxy.mutableTypes.MutableClass {
+            val m = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+                className,
+                "a",
+                listOf(
+                    com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
+                        "Lpdg;",
+                        emptySet(),
+                        null,
+                    ),
+                ),
+                "V",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                emptySet(),
+                emptySet(),
+                com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                    regs,
+                    listOf(
+                        com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x(
+                            com.android.tools.smali.dexlib2.Opcode.RETURN_VOID,
+                        ),
+                    ),
+                    emptyList(),
+                    emptyList(),
+                ),
+            )
+            return app.morphe.patcher.util.proxy.mutableTypes.MutableClass(
+                com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+                    className,
+                    com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                    "Ljava/lang/Object;",
+                    emptyList(),
+                    null,
+                    emptySet(),
+                    emptyList(),
+                    listOf(m),
+                ),
+            )
+        }
+
+        val lowRegCls = makeInputCtxChanged("Lfhu;", 8)
+        val highRegCls = makeInputCtxChanged("LfhuHigh;", 22)
+        val onDeactivate = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+            "Lfhv;",
+            "hj",
+            emptyList(),
+            "V",
+            com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+            emptySet(),
+            emptySet(),
+            com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+                4,
+                listOf(
+                    com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x(
+                        com.android.tools.smali.dexlib2.Opcode.RETURN_VOID,
+                    ),
+                ),
+                emptyList(),
+                emptyList(),
+            ),
+        )
+        val extCls = app.morphe.patcher.util.proxy.mutableTypes.MutableClass(
+            com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+                "Lfhv;",
+                com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value,
+                "Ljava/lang/Object;",
+                emptyList(),
+                null,
+                emptySet(),
+                emptyList(),
+                listOf(onDeactivate),
+            ),
+        )
+
+        installLearnedFixesHooks(
+            LearnedFixesTargets(
+                onAppInputContextChangedMethod = lowRegCls.methods.single(),
+                onDeactivateMethod = extCls.methods.single(),
+            ),
+        )
+        installLearnedFixesHooks(
+            LearnedFixesTargets(
+                onAppInputContextChangedMethod = highRegCls.methods.single(),
+                onDeactivateMethod = null,
+            ),
+        )
+
+        val lowFirst = lowRegCls.methods.single().implementation!!.instructions.first()
+            as com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+        assertEquals(com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC, lowFirst.opcode)
+        assertEquals(
+            "onAppInputContextChanged",
+            (lowFirst.reference as com.android.tools.smali.dexlib2.iface.reference.MethodReference).name,
+        )
+
+        val highFirst = highRegCls.methods.single().implementation!!.instructions.first()
+            as com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+        assertEquals(com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC_RANGE, highFirst.opcode)
+        assertEquals(
+            "onAppInputContextChanged",
+            (highFirst.reference as com.android.tools.smali.dexlib2.iface.reference.MethodReference).name,
+        )
+
+        val deactFirst = extCls.methods.single().implementation!!.instructions.first()
+            as com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+        assertEquals(com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC, deactFirst.opcode)
+        assertEquals(
+            "onExtensionDeactivate",
+            (deactFirst.reference as com.android.tools.smali.dexlib2.iface.reference.MethodReference).name,
+        )
+
+        val pool = com.android.tools.smali.dexlib2.writer.pool.DexPool(
+            com.android.tools.smali.dexlib2.Opcodes.getDefault(),
+        )
+        pool.internClass(lowRegCls)
+        pool.internClass(highRegCls)
+        pool.internClass(extCls)
+        val store = com.android.tools.smali.dexlib2.writer.io.MemoryDataStore()
+        pool.writeTo(store)
+        val dex = com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile(
+            com.android.tools.smali.dexlib2.Opcodes.getDefault(),
+            com.android.tools.smali.dexlib2.dexbacked.DexBuffer(store.data),
+        )
+        assertEquals(3, dex.classes.size)
     }
 
     private fun parseXml(xml: String) = DocumentBuilderFactory.newInstance().apply {

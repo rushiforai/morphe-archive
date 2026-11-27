@@ -1,0 +1,96 @@
+name: Release
+
+# By hand only (Actions → Release → Run workflow): builds the bundle in bundle/, publishes
+# patches-<version>.mpp as a GitHub release and points the root patches-bundle.json at it.
+# Morphe Manager reads that file from main, so a source added in Manager updates from here.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version, e.g. 0.1.0 (no v)"
+        required: true
+      notes:
+        description: "Release notes (one line is fine)"
+        required: false
+        default: ""
+      prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  packages: read
+
+concurrency: release
+
+jobs:
+  # the same tests as every push (unit, Python, spec/), on this commit: no release from a failing one
+  tests:
+    uses: ./.github/workflows/tests.yml
+
+  release:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Check the version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "version must look like 1.2.3"; exit 1; }
+          if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; then echo "v$VERSION exists already"; exit 1; fi
+
+      - name: Build the bundle
+        working-directory: bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }} # Morphe's Gradle plugin and patcher come from GitHub Packages
+          VERSION: ${{ inputs.version }}
+        run: |
+          sed -i "s/^version = .*/version = $VERSION/" gradle.properties
+          chmod +x gradlew
+          ./gradlew buildAndroid --no-daemon --console=plain
+          ls -la patches/build/libs/
+          test -f "patches/build/libs/patches-$VERSION.mpp"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          NOTES: ${{ inputs.notes }}
+          PRE: ${{ inputs.prerelease }}
+        run: |
+          flag=""; [ "$PRE" = "true" ] && flag="--prerelease"
+          gh release create "v$VERSION" "bundle/patches/build/libs/patches-$VERSION.mpp" \
+            --title "v$VERSION" --notes "${NOTES:-v$VERSION}" --target "$GITHUB_SHA" $flag
+
+      - name: Point patches-bundle.json at it
+        env:
+          VERSION: ${{ inputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          python3 - <<'EOF'
+          import datetime, json, os
+          v = os.environ["VERSION"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          json.dump({
+              "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+              "description": os.environ.get("NOTES") or f"v{v}",
+              "download_url": f"https://github.com/{repo}/releases/download/v{v}/patches-{v}.mpp",
+              "signature_download_url": "",
+              "version": v,
+          }, open("patches-bundle.json", "w"), indent=2)
+          open("patches-bundle.json", "a").write("\n")
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json bundle/gradle.properties
+          git commit -m "chore: release v$VERSION [skip ci]"
+          git push

@@ -1,10 +1,10 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.8.0-dev.2",
+  "version": "1.8.0-dev.5",
   "patches": [
     {
       "name": "AMOLED dark theme",
-      "description": "Use true-black backgrounds in Zalo's dark mode, with slightly lifted popups, sheets and chat bubbles, and a dimmed call screen.",
+      "description": "Use true-black backgrounds in Zalo's dark mode, with slightly lifted popups, sheets and chat bubbles, and a dimmed call screen that can be made true black in Nezumi's Settings.",
       "default": false,
       "category": null,
       "compatiblePackages": [
@@ -30,7 +30,7 @@
     },
     {
       "name": "Bug log",
-      "description": "Adds a Debugging section to Nezumi's Settings that records patch errors, crashes and ANRs to a local log the user can export and share with the developer. Recording is off until the user turns it on.",
+      "description": "Adds a Debugging section to Nezumi's Settings with a local log the user can export and share with the developer. Errors, crashes and ANRs are always recorded and named by patch; detailed logging and turning the log off completely are options.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -542,6 +542,32 @@
       "options": []
     },
     {
+      "name": "Mark as read from notifications",
+      "description": "Adds Mark as read to chat, reaction, message error and missed Zalo call notifications, and Mark all as read when two or more conversations have notifications. Read receipts follow the Hide read receipts setting.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.zing.zalo",
+          "name": "Zalo",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#0068FF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.11.01",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Native signature fix",
       "description": "Allow Zalo 26.11.01 ARM64 to start after patching and re-signing. ARMv7 is not supported.",
       "default": true,
@@ -595,7 +621,7 @@
     },
     {
       "name": "Save media",
-      "description": "Adds Save to Gallery for profile avatar, profile cover, Story and Zalo Video.",
+      "description": "Adds Save to Gallery for profile avatar, profile cover, Story, Zalo Video, feed videos, and post videos and photos.",
       "default": true,
       "category": null,
       "compatiblePackages": [

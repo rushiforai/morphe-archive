@@ -671,6 +671,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_profile_gifts", FALSE);
 
     /**
+     * Keep track of your friends list ({@link app.morphe.extension.facebook.profile.FriendList}, #597):
+     * each time your own All friends list is scrolled to its end, it's kept on this phone, and anyone
+     * on the copy before who isn't on the new one goes on Friends no longer on your list. Starts off.
+     */
+    public static final BooleanSetting FRIEND_LIST_WATCH =
+            new BooleanSetting("hushfacebook_friend_list_watch", FALSE);
+
+    /**
      * Friends, followers and following counts of your own profile that you type yourself, shown on this
      * phone only ({@link app.morphe.extension.facebook.profile.LocalProfileCounts}, #280). Starts off.
      * Read each time Facebook lays the profile out, so a change shows the next time a profile opens.
@@ -1290,6 +1298,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_saved_posts_in_row", FALSE, Setting.parent(SAVED_VIDEOS_IN_ORDER));
 
     /**
+     * A reel opened from a Reels row in the feed goes on to the next tile in that row when it ends or
+     * is swiped up, and back to the one before when swiped down, instead of a suggested reel ({@link
+     * app.morphe.extension.facebook.reels.SavedChain}, #599). Off by default. A change shows on the
+     * next reel opened from a row.
+     */
+    public static final BooleanSetting FEED_REELS_ROW_IN_ORDER =
+            new BooleanSetting("hushfacebook_feed_reels_row_in_order", FALSE);
+
+    /**
      * Reels and videos go on to the next one without Facebook holding it back to ask "Are you still
      * watching?" ({@link app.morphe.extension.facebook.reels.StillWatching}, #427). Off by default.
      * Asked before each next video, so a change shows from the next one.
@@ -1720,12 +1737,44 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_comment_emoji_row", FALSE);
 
     /**
+     * Holding a comment shows it without the row of reactions above it (#607,
+     * {@link app.morphe.extension.facebook.comments.HeldComment}). Off by default. A change shows
+     * on the next comment held, as do the four switches after it.
+     */
+    public static final BooleanSetting HIDE_HELD_COMMENT_REACTIONS =
+            new BooleanSetting("hushfacebook_hide_held_comment_reactions", FALSE);
+
+    /** Holding a comment no longer offers Reply (#607). Off by default. */
+    public static final BooleanSetting HIDE_HELD_COMMENT_REPLY =
+            new BooleanSetting("hushfacebook_hide_held_comment_reply", FALSE);
+
+    /** Holding a comment no longer offers Copy (#607). Off by default. */
+    public static final BooleanSetting HIDE_HELD_COMMENT_COPY =
+            new BooleanSetting("hushfacebook_hide_held_comment_copy", FALSE);
+
+    /** Holding a comment no longer offers Report comment or Report to group admins (#607). Off by default. */
+    public static final BooleanSetting HIDE_HELD_COMMENT_REPORT =
+            new BooleanSetting("hushfacebook_hide_held_comment_report", FALSE);
+
+    /** Holding a comment no longer offers Hide comment (#607). Off by default. */
+    public static final BooleanSetting HIDE_HELD_COMMENT_HIDE =
+            new BooleanSetting("hushfacebook_hide_held_comment_hide", FALSE);
+
+    /**
      * Comments open with the keyboard closed, even where Facebook would open it for the first
      * comment (#594, {@link app.morphe.extension.facebook.comments.CommentSheetOptions#keyboardOnFirstLoad}).
      * A tap on the comment box still opens it. Off by default. A change shows the next time comments open.
      */
     public static final BooleanSetting KEEP_COMMENT_KEYBOARD_CLOSED =
             new BooleanSetting("hushfacebook_keep_comment_keyboard_closed", FALSE);
+
+    /**
+     * A tap on a feed post's text no longer opens its comments (#594,
+     * {@link app.morphe.extension.facebook.comments.CommentSheetOptions#keepsCommentsClosed}). The
+     * Comment button still does. Off by default. A change shows on the next tap.
+     */
+    public static final BooleanSetting KEEP_COMMENTS_CLOSED_ON_TEXT_TAP =
+            new BooleanSetting("hushfacebook_keep_comments_closed_on_text_tap", FALSE);
 
     /**
      * The comment box comes without the thin line along its top (#344,
@@ -2375,6 +2424,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_pip_button", FALSE);
 
     /**
+     * With Picture-in-picture on, a reel that ends in the window hands on to the next reel from
+     * Reels, which plays there in its place (#578,
+     * {@link app.morphe.extension.facebook.media.WindowNextReel}). Starts off. Off, paused or with
+     * Picture-in-picture off, the reel in the window plays over and over, as Facebook has it.
+     */
+    public static final BooleanSetting NEXT_REEL_IN_WINDOW =
+            new BooleanSetting("hushfacebook_next_reel_in_window", FALSE);
+
+    /**
      * A video you started keeps its sound after you leave Facebook, in Facebook's own background
      * player with its notification ({@link app.morphe.extension.facebook.media.BackgroundPlay}). Off
      * by default: it keeps a player going once Facebook is out of sight, which not everyone wants.
@@ -2878,6 +2936,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_search_people_you_may_know", FALSE);
 
     /**
+     * People you may know in the Friends tab (#600): its section header and the person rows under it,
+     * found by the row type names and the header's section type. Friend requests, the friends list
+     * and the Suggestions button stay. Part of Hide suggested and promoted posts, off until picked,
+     * since the Friends tab is where people go to find friends.
+     */
+    public static final BooleanSetting HIDE_FRIENDS_TAB_PEOPLE_YOU_MAY_KNOW =
+            new BooleanSetting("hushfacebook_hide_friends_tab_people_you_may_know", FALSE);
+
+    /**
      * Push notifications Facebook types TOP_TRENDING_VIDEO or PERSONALIZED_REELS: trending videos
      * and reels it picked for you. Off by default, like every notification switch: each one drops a
      * whole kind of notification, so it's yours to turn on.
@@ -3183,9 +3250,9 @@ public class Settings extends BaseSettings {
 
     /**
      * Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of
-     * its options list (issue #151). Facebook's sheet keeps the rows it tags itself above them, and
-     * on photo posts that list is the More options page. The row under a post has no room for a
-     * button, so the menu is where a post's download lives. Off until you turn it on.
+     * its options list (issue #151), and the post menu sheet's hook then moves them out of More
+     * options to the end of the first page, above Playback speed (#603). The row under a post has no
+     * room for a button, so the menu is where a post's download lives. Off until you turn it on.
      */
     public static final BooleanSetting POST_MENU_DOWNLOAD_FIRST =
             new BooleanSetting("hushfacebook_post_menu_download_first", FALSE);
@@ -3424,6 +3491,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_tab_bar_in_groups", FALSE);
 
     /**
+     * A long press on the profile tab, or the Menu tab on accounts that have it there, opens your
+     * Activity log instead of Facebook's account switcher (#605,
+     * {@link app.morphe.extension.facebook.navigation.ProfileTabHold}). Off by default. Asked on
+     * each long press, so a change shows on the next one.
+     */
+    public static final BooleanSetting PROFILE_TAB_ACTIVITY_LOG =
+            new BooleanSetting("hushfacebook_profile_tab_activity_log", FALSE);
+
+    /**
      * The top bar and the tab bar let the feed show through, with a blur of it behind them on
      * Android 12 and newer (#124, {@link app.morphe.extension.facebook.navigation.TranslucentBars}).
      * Asked as each frame of the main screen draws, so a change shows right away. A kept tab bar is
@@ -3441,6 +3517,14 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting SEE_THROUGH_OPACITY =
             new StringSetting("hushfacebook_see_through_opacity", "");
+
+    /**
+     * How strong See-through bars' blur is, a percent of the stock blur, digits only, blank for the
+     * stock blur (#596, {@link app.morphe.extension.facebook.navigation.TranslucentBars#blurPercent}).
+     * Not a switch. Asked as each frame of the main screen draws.
+     */
+    public static final StringSetting SEE_THROUGH_BLUR =
+            new StringSetting("hushfacebook_see_through_blur", "");
 
     /**
      * The tab bar at the bottom is drawn as a pill with round ends, a little smaller than the bar and
@@ -3465,6 +3549,14 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting TAB_BAR_HEIGHT =
             new StringSetting("hushfacebook_tab_bar_height", "");
+
+    /**
+     * Glass tab bar (#596): with Rounded tab bar on, the pill gets a light rim and a soft shadow, and the
+     * selected tab's spot slides over to the next tab ({@link app.morphe.extension.facebook.navigation.GlassLook}).
+     * Asked as each frame of the main screen draws, so a change shows right away.
+     */
+    public static final BooleanSetting GLASS_TAB_BAR =
+            new BooleanSetting("hushfacebook_glass_tab_bar", FALSE);
 
     /**
      * Android's status bar goes from Facebook's main screen, a swipe down from the top edge showing

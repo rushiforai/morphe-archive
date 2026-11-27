@@ -7,8 +7,8 @@ import java.util.zip.ZipFile
 
 // Read-only discovery: deliberately accepts versions not registered for patching.
 fun main(args: Array<String>) {
-    require(args.size == 3 && args[1] in listOf("search", "dump")) {
-        "Usage: inspect-hooks.sh APK search REFERENCE_SUBSTRING | APK dump 'Lclass;->method(Args)Return'"
+    require(args.size == 3 && args[1] in listOf("search", "dump", "class")) {
+        "Usage: inspect-hooks.sh APK search REFERENCE_SUBSTRING | APK dump 'Lclass;->method(Args)Return' | APK class 'Lclass;'"
     }
     val apk = File(args[0])
     val digest = MessageDigest.getInstance("SHA-256")
@@ -21,6 +21,16 @@ fun main(args: Array<String>) {
     ZipFile(apk).use { zip ->
         zip.entries().asSequence().filter { it.name.matches(Regex("classes[0-9]*\\.dex")) }.forEach { entry ->
             val dex = zip.getInputStream(entry).buffered().use { DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it) }
+            if (args[1] == "class") {
+                val cls = dex.classes.singleOrNull { it.type == args[2] } ?: return@forEach
+                matches++
+                println("${entry.name} ${cls.type} extends ${cls.superclass}")
+                cls.fields.forEach { println("field ${it.name}:${it.type}") }
+                cls.methods.forEach {
+                    println("method ${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}")
+                }
+                return@forEach
+            }
             for (cls in dex.classes.sortedBy { it.type }) for (method in cls.methods) {
                 val impl = method.implementation ?: continue
                 val id = "${cls.type}->${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}"

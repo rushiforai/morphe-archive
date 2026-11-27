@@ -4,6 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-19.
  * Modified by lavinhoque33, 2026-11-22.
  *
@@ -354,5 +355,12 @@ val downloadsPatch = bytecodePatch(
         protectLocalStreamFromSpoof?.invoke()
         protectLocalStreamFromSpoof = null
         installAudioFirstCommandHook()
+        if (is_7_25_or_greater) {
+            val commandType = nativeDownloadsCommandResolverFingerprint.method.parameters[1].type
+            // Let Jam discover the stock menu and Smart Shuffle clone the native queue callback first.
+            installOfflineQueueActions(commandType)
+            finishOfflineQueueActions()
+            installOfflinePlayerActions(commandType)
+        }
     }
 }

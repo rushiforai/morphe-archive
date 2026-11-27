@@ -54,6 +54,7 @@ val bypassConversationProtectionPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.BYPASS_CONVERSATION_PROTECTION)
         check(ConversationProtectedFingerprint.matchAll(1..1).size == 1)
         check(ConversationProtectedFlowFingerprint.matchAll(1..1).size == 1)
 
@@ -85,6 +86,7 @@ val bypassConversationProtectionPatch = bytecodePatch(
             return-object v0
         """.trimIndent(), ExternalLabel("nezumi_original_protection_flow", flowFirst))
 
+        registerHooks(PatchId.BYPASS_CONVERSATION_PROTECTION, protectedMethod, flowMethod)
         attachNezumiSettings("attachConversationProtection")
     }
 }

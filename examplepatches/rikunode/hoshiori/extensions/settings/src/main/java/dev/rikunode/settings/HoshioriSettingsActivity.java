@@ -45,6 +45,8 @@ public final class HoshioriSettingsActivity extends Activity {
         toggle("Cookie・Webストレージを保持", "preserveArticleWebStorage", true);
         description("Cookie保持をOFFにすると、次の該当イベントから元の消去処理を使用します。変更後の既存データは即時削除されません。");
         toggle("コメント詳細から記事を開く", "openArticleFromBookmarkCard", true);
+        toggle("Xのアプリ誘導を非表示", "hideXAppPrompts", false);
+        description("Xのポスト閲覧時にアプリへの誘導ポップアップやバナーを非表示にします。");
         group("表示のカスタマイズ");
         TextView drawer = row("ドロワーの項目と並び順");
         drawer.setOnClickListener(v -> openDrawerSettings());

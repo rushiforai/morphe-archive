@@ -56,11 +56,11 @@ private object SeasonalIconFingerprint : Fingerprint(
 @Suppress("unused")
 val darkAppIconPatch = patch(
     name = "Dark app icon",
-    description = "Black app icon with the white \"in\". Adds a switch in Fakh Patches.",
+    description = "Black app icon with the white \"in\".",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Theme")
+    category("Appearance")
     dependsOn(settingsPatch, blackIconBackground)
 
     execute {

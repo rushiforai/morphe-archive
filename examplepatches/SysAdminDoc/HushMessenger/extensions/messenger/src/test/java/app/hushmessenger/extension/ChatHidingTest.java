@@ -91,7 +91,7 @@ public class ChatHidingTest {
         }
     }
 
-    public enum Icons { MUTE, EYE, EYE_CROSS, STAR, STAR_CROSS, CLOCK }
+    public enum Icons { MUTE, EYE, EYE_CROSS, STAR, STAR_CROSS, CLOCK, MESSAGE }
 
     /** Messenger's row builder: a factory, an id, an icon, a title and a description, then a static build. */
     public static final class Builder {
@@ -205,6 +205,7 @@ public class ChatHidingTest {
     /** Messenger's next process: nothing kept in memory, the hidden chats still in its preferences. */
     private static void restart() throws Exception {
         ChatHiding.resetForTests();
+        PreviewTaps.resetForTests();
         ChatHiding.route = ChatHiding.Route.of(ROUTE, ChatHidingTest.class.getClassLoader());
     }
 
@@ -321,6 +322,113 @@ public class ChatHidingTest {
         for (String wrong : Arrays.asList(BUILDER + "->title(Ljava/lang/CharSequence;)V", BUILDER + "->create()" + BUILDER, BUILDER + "->id:I")) {
             assertThrows(wrong, IllegalStateException.class, () -> ChatHiding.Route.of(ROUTE.replace(field, wrong), ChatHidingTest.class.getClassLoader()));
         }
+    }
+
+    /**
+     * Messenger's chat preview: the chat's key and the callbacks it was handed, one of them the way into the chat.
+     * Closing it clears them, and a tap on its layer closes it, then opens the chat with whatever it read first.
+     */
+    public static final class Preview {
+        public Key chat;
+        public kotlin.jvm.functions.Function0<Object> closing;
+        public kotlin.jvm.functions.Function0<Object> open;
+        public View layer;
+
+        Preview(Key chat, int[] opened) {
+            this.chat = chat;
+            closing = () -> null;
+            open = () -> opened[0]++;
+        }
+
+        void dismiss() {
+            closing = null;
+            open = null;
+        }
+
+        void tapped() {
+            kotlin.jvm.functions.Function0<Object> go = open;
+            dismiss();
+            if (go != null) go.invoke();
+        }
+    }
+
+    private static Preview shownPreview(android.app.Activity screen, Key chat, int[] opened) {
+        Preview preview = new Preview(chat, opened);
+        preview.layer = new View(screen);
+        preview.layer.setOnClickListener(tap -> preview.tapped());
+        screen.setContentView(preview.layer);
+        ChatPreviewSize.tapLayer(preview.layer);
+        ChatPreviewSize.preview(preview);
+        return preview;
+    }
+
+    // #247: with taps kept in the preview, Open chat tops the preview's menu and opens the chat the way a tap on the
+    // chat in the preview does. The menu closes the preview first, which clears its way into the chat, so a click on the
+    // layer alone opened nothing on the S22, and starting Messenger's older chat screen instead crashed Messenger.
+    @Test public void openChatTopsThePreviewsMenuAndOpensTheChatThroughThePreviewsOwnTap() {
+        Settings.preferences.edit().putBoolean(ChatHiding.KEY, false).putBoolean(PreviewTaps.KEY, true).commit();
+        Summary chat = new Summary("chat");
+        assertEquals("No preview yet, and Preview chats on long press off", Arrays.asList(mute, null, null), menuRows(chat));
+
+        android.app.Activity screen = Robolectric.buildActivity(android.app.Activity.class).setup().get();
+        int[] opened = {0};
+        Preview preview = shownPreview(screen, chat.key, opened);
+        assertFalse("Taps go through the layer to the chat", preview.layer.isClickable());
+        ArrayList<Object> rows = menuRows(chat);
+        assertEquals("One empty slot made room", 3, rows.size());
+        Built open = (Built) rows.get(0);
+        assertEquals(PreviewTaps.ROW_ID, open.builder.id);
+        assertEquals(text("chat_preview_taps_open"), open.builder.label.toString());
+        assertEquals(Icons.MESSAGE, open.builder.picture);
+        assertEquals("hush_open_chat", open.name);
+        assertSame(mute, rows.get(1));
+        assertNull(rows.get(2));
+        assertTrue(Settings.lastActive(PreviewTaps.KEY) > 0);
+
+        preview.dismiss();
+        assertTrue(ChatHiding.menuTapped(new Menu(chat), PreviewTaps.ROW_ID));
+        idle();
+        assertEquals("The preview's own way into the chat opens it", 1, opened[0]);
+        assertNull("And it's cleared again", preview.open);
+        assertNull(preview.closing);
+        assertNull("No chat screen of our own", shadowOf(screen).getNextStartedActivity());
+        assertNull(shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity());
+        assertNull(ShadowToast.getTextOfLatestToast());
+
+        // That preview is spent, so the same menu again has nothing to open.
+        assertTrue(ChatHiding.menuTapped(new Menu(chat), PreviewTaps.ROW_ID));
+        idle();
+        assertEquals(text("chat_preview_taps_gone"), ShadowToast.getTextOfLatestToast());
+        assertEquals(1, opened[0]);
+
+        // A preview of some other chat never opens for this chat's menu, and keeps its callbacks as they were.
+        Preview other = shownPreview(screen, new Key("other"), opened);
+        assertTrue(ChatHiding.menuTapped(new Menu(chat), PreviewTaps.ROW_ID));
+        assertEquals(1, opened[0]);
+        assertNotNull(other.open);
+
+        // A menu that isn't the chat list's has no chat to open.
+        assertTrue(ChatHiding.menuTapped(new Object(), PreviewTaps.ROW_ID));
+        idle();
+        assertEquals(2, ShadowToast.shownToastCount() - 1);
+        assertEquals(1, opened[0]);
+
+        // With the switch off when the preview opened, nothing is kept for Open chat.
+        Settings.preferences.edit().putBoolean(PreviewTaps.KEY, false).commit();
+        assertEquals(Arrays.asList(mute, null, null), menuRows(chat));
+        Preview off = shownPreview(screen, chat.key, opened);
+        off.dismiss();
+        assertTrue(ChatHiding.menuTapped(new Menu(chat), PreviewTaps.ROW_ID));
+        assertEquals(1, opened[0]);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    @Test public void openChatShowsBeforeAnyPreviewWithPreviewChatsOnLongPressOn() {
+        Settings.preferences.edit().putBoolean(ChatHiding.KEY, false).putBoolean(PreviewTaps.KEY, true).putBoolean("chat_preview", true).commit();
+        ArrayList<Object> rows = menuRows(new Summary("chat"));
+        assertEquals(PreviewTaps.ROW_ID, ((Built) rows.get(0)).builder.id);
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        assertEquals(Arrays.asList(mute, null, null), menuRows(new Summary("chat")));
     }
 
     @Test public void aFullMenuGetsTheRowOnTheEndAndMessengersOwnTapsGoOn() {

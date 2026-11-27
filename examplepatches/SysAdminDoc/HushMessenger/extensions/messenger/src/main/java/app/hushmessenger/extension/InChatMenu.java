@@ -159,11 +159,13 @@ final class InChatMenu implements ViewTreeObserver.OnPreDrawListener, View.OnAtt
         }
         if (!card) return;
         // With a lift the message can move up with the emoji row to make room for the card under it.
-        floating = FloatingMenu.dress(menu, chat, lift == null ? null : lift::raise);
-        if (lift == null || lift.rise <= 0) return;
-        // Messenger's own animation of the row can put it back; it goes straight back up before that frame shows.
+        floating = FloatingMenu.dress(menu, chat, lift == null ? null : lift::raise, this::raisedBy);
+    }
+
+    /** Messenger's own animation of the row can put it back; it goes straight back up before that frame shows. */
+    private void raisedBy(int by) {
         raised = row;
-        raisedTo = row.getTranslationY();
+        raisedTo = -by;
     }
 
     private void keepRaised() {

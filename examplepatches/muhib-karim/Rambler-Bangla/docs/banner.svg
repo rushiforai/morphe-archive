@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-labelledby="title desc">
+  <title id="title">Rambler Bangla</title>
+  <desc id="desc">Banner: Rambler Bangla, a Bengali-first voice typing patch for Gboard 18.3.1. A microphone emits a sound wave that lands on keyboard keys.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07152B"/>
+      <stop offset="0.55" stop-color="#0B1F3B"/>
+      <stop offset="1" stop-color="#173E66"/>
+    </linearGradient>
+    <linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="922" y1="0" x2="1054" y2="0">
+      <stop offset="0" stop-color="#F6B13E"/>
+      <stop offset="1" stop-color="#5FA3DA"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.5" r="0.4">
+      <stop offset="0" stop-color="#2D6FA3" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#2D6FA3" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <rect width="1280" height="320" fill="url(#glow)"/>
+
+  <!-- subtle grid -->
+  <g stroke="#FFFFFF" stroke-opacity="0.04" stroke-width="1">
+    <path d="M0 80H1280M0 160H1280M0 240H1280"/>
+    <path d="M160 0V320M320 0V320M480 0V320M640 0V320M800 0V320M960 0V320M1120 0V320"/>
+  </g>
+
+  <!-- text -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="80" y="140" font-size="68" font-weight="700" fill="#FFFFFF" letter-spacing="-1">Rambler <tspan fill="#F6B13E">Bangla</tspan></text>
+    <rect x="82" y="162" width="96" height="5" rx="2.5" fill="#F6B13E"/>
+    <text x="80" y="212" font-size="28" fill="#D6E4F2">Bengali-first voice typing patch for Gboard 18.3.1</text>
+    <text x="80" y="256" font-size="18" fill="#8FB3D6" letter-spacing="1">FAIL-CLOSED SMALI PATCHER  ·  JAVA POLICY RUNTIME  ·  SOURCE ONLY</text>
+  </g>
+
+  <!-- microphone -->
+  <g transform="translate(860 112)">
+    <rect x="-22" y="0" width="44" height="74" rx="22" fill="#2D6FA3" stroke="#9CC4E8" stroke-width="3"/>
+    <path d="M-34 44 A34 34 0 0 0 34 44" fill="none" stroke="#9CC4E8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M0 78V100M-18 100H18" stroke="#9CC4E8" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <!-- sound wave -->
+  <g stroke="url(#wave)" stroke-width="8" stroke-linecap="round">
+    <path d="M922 150V158"/>
+    <path d="M944 138V170"/>
+    <path d="M966 118V190"/>
+    <path d="M988 132V176"/>
+    <path d="M1010 108V200"/>
+    <path d="M1032 128V180"/>
+    <path d="M1054 142V166"/>
+  </g>
+
+  <!-- keyboard keys -->
+  <g transform="translate(1086 112)">
+    <rect x="0" y="0" width="52" height="40" rx="8" fill="#12304F" stroke="#5FA3DA" stroke-width="2"/>
+    <rect x="62" y="0" width="52" height="40" rx="8" fill="#12304F" stroke="#5FA3DA" stroke-width="2"/>
+    <rect x="0" y="50" width="114" height="40" rx="8" fill="#F6B13E" fill-opacity="0.9"/>
+    <path d="M14 20H38M76 20H100" stroke="#9CC4E8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M24 70H90" stroke="#0B1F3B" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,194 @@
+name: Build & Release M3-Redesign
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths-ignore:
+      - "patches-bundle.json"
+      - "patches-list.json"
+      - "README.md"
+      - "LICENSE"
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version tag (e.g. v3.1.0 for stable, or v3.1.0-dev.1 for pre-release)."
+        required: false
+        default: "v3.1.0"
+      prerelease:
+        description: "Build & publish as a Pre-release (includes pre-release patches like Transparent status bar and updates dev branch)"
+        type: boolean
+        required: false
+        default: false
+      morphe_ref:
+        description: "Upstream MorpheApp/morphe-patches branch or tag (main = stable, dev = pre-release)"
+        required: false
+        default: "main"
+      publish_release:
+        description: "Create/update a GitHub Release and update patches-bundle.json"
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    name: Build Standalone .mpp Bundle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout M3-Redesign
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('build-config/**') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Determine build version, channel, and Morphe ref
+        id: meta
+        shell: bash
+        run: |
+          IS_PRERELEASE="false"
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME}"
+            SHOULD_RELEASE="true"
+            if [[ "$VERSION" == *-* ]]; then
+              IS_PRERELEASE="true"
+            fi
+          elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+            [[ -z "$VERSION" ]] && VERSION="v3.1.0"
+            SHOULD_RELEASE="${{ inputs.publish_release }}"
+            if [[ "${{ inputs.prerelease }}" == "true" || "$VERSION" == *-* ]]; then
+              IS_PRERELEASE="true"
+            fi
+            if [[ "$IS_PRERELEASE" == "true" && "$VERSION" != *-* ]]; then
+              VERSION="${VERSION}-dev.1"
+            fi
+          else
+            VERSION="v3.1.0-dev.${GITHUB_SHA::7}"
+            SHOULD_RELEASE="false"
+            if [[ "${GITHUB_REF_NAME:-}" == "dev" ]]; then
+              IS_PRERELEASE="true"
+            fi
+          fi
+
+          CLEAN_VERSION="${VERSION#v}"
+          MORPHE_REF="${{ inputs.morphe_ref }}"
+          [[ -z "$MORPHE_REF" ]] && MORPHE_REF="main"
+          TARGET_BRANCH="main"
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            TARGET_BRANCH="dev"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "clean_version=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
+          echo "morphe_ref=$MORPHE_REF" >> "$GITHUB_OUTPUT"
+          echo "should_release=$SHOULD_RELEASE" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "target_branch=$TARGET_BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Build M3-Redesign .mpp
+        shell: bash
+        env:
+          BUILD_VERSION: ${{ steps.meta.outputs.clean_version }}
+          ARTIFACT_VERSION: ${{ steps.meta.outputs.version }}
+          MORPHE_REF: ${{ steps.meta.outputs.morphe_ref }}
+          INCLUDE_PRERELEASE: ${{ steps.meta.outputs.is_prerelease }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/build-local.sh
+          ./scripts/build-local.sh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: M3-Redesign-${{ steps.meta.outputs.version }}
+          path: dist/
+
+      - name: Publish GitHub Release
+        if: steps.meta.outputs.should_release == 'true'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.meta.outputs.version }}
+          name: M3-Redesign ${{ steps.meta.outputs.version }}
+          prerelease: ${{ steps.meta.outputs.is_prerelease == 'true' }}
+          generate_release_notes: true
+          files: |
+            dist/*
+
+      - name: Update patches-bundle.json for Morphe Manager
+        if: steps.meta.outputs.should_release == 'true'
+        shell: bash
+        env:
+          TAG_VERSION: ${{ steps.meta.outputs.version }}
+          CLEAN_VERSION: ${{ steps.meta.outputs.clean_version }}
+          TARGET_BRANCH: ${{ steps.meta.outputs.target_branch }}
+          REPO_SLUG: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          MPP_NAME="$(basename "$(ls dist/*.mpp | head -n 1)")"
+          CREATED_AT="$(date -u +"%Y-%m-%dT%H:%M:%S")"
+          DOWNLOAD_URL="https://github.com/${REPO_SLUG}/releases/download/${TAG_VERSION}/${MPP_NAME}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [[ "$TARGET_BRANCH" == "dev" ]]; then
+            if git ls-remote --exit-code --heads origin dev >/dev/null 2>&1; then
+              git fetch origin dev
+              git checkout -B dev origin/dev
+            else
+              git checkout -B dev
+            fi
+          else
+            git fetch origin main
+            git checkout -B main origin/main
+          fi
+
+          python3 - <<'PY' "$CREATED_AT" "$DOWNLOAD_URL" "$CLEAN_VERSION"
+          import json, sys
+          created_at, download_url, version = sys.argv[1:4]
+          bundle = {
+              "created_at": created_at,
+              "description": "Standalone Material 3 Expressive navigation bar and miniplayer redesign add-on for YouTube Music",
+              "download_url": download_url,
+              "signature_download_url": "",
+              "version": version,
+          }
+          with open("patches-bundle.json", "w", encoding="utf-8") as f:
+              json.dump(bundle, f, indent=2)
+              f.write("\n")
+          PY
+
+          if [[ -f dist/patches-list.json ]]; then
+            cp dist/patches-list.json patches-list.json
+          fi
+
+          git add patches-bundle.json
+          [[ -f patches-list.json ]] && git add patches-list.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(release): update patches-bundle.json for ${TAG_VERSION} [skip ci]"
+            git push origin "$TARGET_BRANCH"
+          fi

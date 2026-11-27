@@ -10,12 +10,15 @@ internal object SettingsRowToStringFingerprint : Fingerprint(
     strings = listOf("SettingsMenuItem(id="),
 )
 
-/** toString() of the Home/More sale offer; its superclass is the premium offer type. */
-internal object SaleOfferToStringFingerprint : Fingerprint(
+/**
+ * toString() of the premium banner's spring winback sale. Its interface is the banner's offers
+ * (it and Sale) and the interface above that is the banner itself (an offer or a plain upsell).
+ */
+internal object WinbackBannerToStringFingerprint : Fingerprint(
     name = "toString",
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
-    strings = listOf("SaleItem(sale="),
+    strings = listOf("WinbackSpringSale(offer="),
 )
 
 /** toString() of the app's bot group model. */
@@ -26,29 +29,22 @@ internal object BotGroupToStringFingerprint : Fingerprint(
     strings = listOf("BotGroup(uuid="),
 )
 
-/** Home toolbar: shows the Premium icon in place of the league or bell icon. */
-internal object ToolbarPremiumIconFingerprint : Fingerprint(
-    name = "invokeSuspend",
-    strings = listOf("menuItemPremiumIconR", "menuItemPremiumIconL"),
-)
-
 /** toString() of the redesigned Home's toolbar state for a signed-in player. */
 internal object HomeToolbarStateToStringFingerprint : Fingerprint(
     name = "toString",
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
-    strings = listOf("LoggedIn(userAvatarUrl=", ", shouldShowDiamond="),
+    strings = listOf("LoggedIn(userAvatarUrl=", ", shouldShowPaywallIcon="),
 )
 
 /**
- * SessionStore.K(): the account's PremiumStatus tier, read from the session's premium_status
- * field. Every tier check in the app (c() = "has any premium tier", x() = isAtLeastGold, and
- * any screen that reads the tier directly) goes through this one default method, which
- * SharedPreferencesSessionStore does not override.
+ * SessionStore's one PremiumStatus getter: the account's tier, read from the session's
+ * premium_status field. The app's tier checks ("has any premium tier", isAtLeastGold and the
+ * screens that read the tier) go through this default method, which SharedPreferencesSessionStore
+ * does not override.
  */
 internal object SessionStoreGetPremiumStatusFingerprint : Fingerprint(
     definingClass = "Lcom/chess/net/v1/users/SessionStore;",
-    name = "K",
     parameters = listOf(),
     returnType = "Lcom/chess/entities/PremiumStatus;",
 )

@@ -1,6 +1,22 @@
 package patches.gboard
 
 import app.morphe.patcher.patch.resourcePatch
+import patches.gboard.features.addsymbols.gboardCustomSymbolsFeatureMarkerPatch
+import patches.gboard.features.addsymbols.gboardNativeSymbolsPatch
+import patches.gboard.features.editingaccesspoints.gboardEditingAccessPointsLifecyclePatch
+import patches.gboard.features.featureflags.gboardGrammarCheckerFeatureMarkerPatch
+import patches.gboard.features.featureflags.gboardGrammarCheckerFlagValuePatch
+import patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsFeatureMarkerPatch
+import patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsInputEventPatch
+import patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsPointerOwnerPatch
+import patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsSoftKeyPatch
+import patches.gboard.features.shiftdelete.gboardShiftDeleteBytecodePatch
+import patches.gboard.features.shiftdelete.gboardShiftDeleteFeatureMarkerPatch
+import patches.gboard.shared.accesspoint.gboardAccessPointContributions1803Patch
+import patches.gboard.features.accesspointcount.gboardAccessPointCountFeatureMarkerPatch
+import patches.gboard.features.accesspointcount.gboardAccessPointCountFlagValuePatch
+import patches.gboard.features.sharedmodel.gboardSharedModelPatch
+import patches.gboard.features.sharedmodel.gboardSharedModelManifestPatch
 import patches.gboard.features.ocr.gboardOcrFeatureMarkerPatch
 import patches.gboard.features.ocr.gboardOcrFlagValuePatch
 import patches.gboard.features.ocr.gboardOcrModelAssetsPatch
@@ -22,6 +38,77 @@ import patches.gboard.features.hiddenflags.gboardHiddenFlagsFeatureMarkerPatch
 import patches.gboard.features.featureflags.applyFeatureMarker
 import patches.gboard.features.ramblerextras.gboardRamblerExtrasMarkerPatch
 import patches.gboard.shared.gboardPatchesSettingsPatch
+
+@Suppress("unused")
+val gboardForwardDeletePatch = resourcePatch(
+    name = "Shift + Backspace Forward Delete",
+    description = "Hold Shift and press Backspace to delete the next character.",
+    default = false,
+) {
+    compatibleWith(gboard)
+    dependsOn(gboardPatchesSettingsPatch, gboardShiftDeleteFeatureMarkerPatch, gboardShiftDeleteBytecodePatch)
+}
+
+@Suppress("unused")
+val gboardLongPressEditingShortcutsPatch = resourcePatch(
+    name = "Long-Press Editing Shortcuts",
+    description = "Adds Select all, Undo, Copy, Cut, Paste and Redo to letter menus, with per-key placement.",
+    default = false,
+) {
+    compatibleWith(gboard)
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardLongPressQuickActionsFeatureMarkerPatch,
+        gboardLongPressQuickActionsSoftKeyPatch,
+        gboardLongPressQuickActionsInputEventPatch,
+        gboardLongPressQuickActionsPointerOwnerPatch,
+    )
+}
+
+@Suppress("unused")
+val gboardCustomSymbolsPalettePatch = resourcePatch(
+    name = "Custom Symbols",
+    description = "Adds a themed toolbar palette with 11 symbol categories for English keyboard layouts.",
+    default = false,
+) {
+    compatibleWith(gboard)
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardCustomSymbolsFeatureMarkerPatch,
+        gboardNativeSymbolsPatch,
+        gboardAccessPointContributions1803Patch,
+        gboardEditingAccessPointsLifecyclePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardGrammarCheckerPatch = resourcePatch(
+    name = "Grammar Checker",
+    description = "Enables Gboard's native grammar-check setting and spelling suggestions on Android 12 or later.",
+    default = false,
+) {
+    compatibleWith(gboard)
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardGrammarCheckerFeatureMarkerPatch,
+        gboardGrammarCheckerFlagValuePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardTopToolbarItemCountPatch = resourcePatch(
+    name = "Top Toolbar Item Count",
+    description = "Adds a setting for three to eight items in Gboard's top toolbar.",
+    default = false,
+) {
+    compatibleWith(gboard)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardAccessPointCountFeatureMarkerPatch,
+        gboardAccessPointCountFlagValuePatch,
+    )
+}
 
 /**
  * Gboard's Scan Text (OCR).
@@ -58,18 +145,15 @@ val gboardOcrScanTextPatch = resourcePatch(
  * tuple and repairs the three init points that otherwise throw on a client type the
  * assistant never learns.
  *
- * Auto Fix / proofread is NOT ported to 18.8: 18.6.3 added INTENT_AUTO_FIX to a
- * route-set builder (`wgv.h(Object)`) that no longer exists, and 18.8 builds the
- * routed set from the `voice_command_intent_types_routed_to_writing_tools_v2` flag
- * (`aeam.f`, an `adgn`) instead. The acceptance shim returns immediately on the 18.8
- * binding, so depending on it would report success for behaviour that was never
- * emitted. Rewrite and tone changes are unaffected.
+ * Shared mode restores the confirmed Auto Fix route, disambiguation and native
+ * Proofread dispatch for 18.8. Other backend routes remain stock; actual native
+ * model/editor acceptance is required before this is promoted from review.
  */
 @Suppress("unused")
 val gboardAiWritingToolsPatch = resourcePatch(
     name = "AI Writing Tools",
     description = "Enables Gboard's Writing tools: rewrite and tone changes on selected " +
-        "text, in every language and keyboard. Proofread/Auto Fix is not ported to 18.8.",
+        "text, with an optional shared Gemma provider for Proofread, local writing, completion and grammar.",
     default = true,
 ) {
     compatibleWith(gboard)
@@ -77,6 +161,11 @@ val gboardAiWritingToolsPatch = resourcePatch(
     dependsOn(
         gboardPatchesSettingsPatch,
         gboardAiWritingToolsFeatureMarkerPatch,
+        gboardSharedModelPatch,
+        patches.gboard.features.writingtools.gboardAiWritingTools188AutoFixPatch,
+        patches.gboard.features.sharedmodel.gboardSharedCompletionPatch,
+        patches.gboard.features.sharedmodel.gboardSharedGrammarPatch,
+        gboardSharedModelManifestPatch,
         gboardAiWritingToolsFlagValuePatch,
     )
 }

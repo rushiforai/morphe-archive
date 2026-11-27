@@ -34,8 +34,8 @@ import app.fakh.extension.shared.RowDrag;
 import app.fakh.extension.shared.TabSheet;
 
 /**
- * The Fakh Patches rows of Settings that open a sheet: the landscape bar position and the tabs of the bar. Both are
- * the shared {@link TabSheet}, drawn in the colors of the app's own sheets. The patch tells this class the Settings
+ * The Fakh Patches rows that open a sheet: the tabs of the navigation bar, its landscape position, the tab width and
+ * the download folder. Each is the shared {@link TabSheet}, drawn in the colors of the app's own sheets. The patch tells this class the Settings
  * fragment, and adds a helper to it that sets the summary of a row.
  */
 final class ChoiceSheets {
@@ -43,6 +43,8 @@ final class ChoiceSheets {
     static final String NAV_TABS = "fakh_nav_tabs";
     static final String NAV_POSITION = "fakh_nav_position";
     static final String DOWNLOAD_FOLDER = AssetsDownload.FOLDER_KEY;
+    static final String TAB_WIDTH = "fakh_tab_width";
+    private static final int[] TAB_WIDTHS = {2, 4, 8};
     private static final String SETTINGS_FRAGMENT = "com.github.android.settings.SettingsFragment";
     private static final String TAG = "FakhPatches";
 
@@ -56,7 +58,7 @@ final class ChoiceSheets {
 
     /** Whether the row with this key opens a sheet instead of being a switch. */
     static boolean opens(String key) {
-        return NAV_TABS.equals(key) || NAV_POSITION.equals(key) || DOWNLOAD_FOLDER.equals(key);
+        return NAV_TABS.equals(key) || NAV_POSITION.equals(key) || DOWNLOAD_FOLDER.equals(key) || TAB_WIDTH.equals(key);
     }
 
     /** The Settings fragment, which the sheets are shown from. */
@@ -73,6 +75,7 @@ final class ChoiceSheets {
         try {
             if (NAV_TABS.equals(key)) openTabs();
             else if (DOWNLOAD_FOLDER.equals(key)) openDownloadFolder();
+            else if (TAB_WIDTH.equals(key)) openTabWidth();
             else openPosition();
         } catch (RuntimeException error) {
             Log.w(TAG, "Choice sheet", error);
@@ -168,6 +171,36 @@ final class ChoiceSheets {
                 I18n.tr("Landscape navigation bar position"), null, colors[0], colors[1], colors[2], rows, null);
     }
 
+    /** The sheet of the tab width in code blocks, chosen with a tap, which also closes it. */
+    private static void openTabWidth() {
+        Activity from = activity.get();
+        if (from == null) return;
+        int[] colors = colors(from);
+        String[] labels = new String[TAB_WIDTHS.length];
+        int chosen = 0;
+        for (int i = 0; i < TAB_WIDTHS.length; i++) {
+            labels[i] = spaces(TAB_WIDTHS[i]);
+            if (TAB_WIDTHS[i] == MarkdownSettings.pickedTabWidth()) chosen = i;
+        }
+        TabSheet[] sheet = new TabSheet[1];
+        View rows = TabSheet.radioRows(from, labels, chosen, colors[1], colors[3], colors[2], index -> {
+            boolean changed = TAB_WIDTHS[index] != MarkdownSettings.pickedTabWidth();
+            Features.setText(MarkdownSettings.TAB_WIDTH, String.valueOf(TAB_WIDTHS[index]));
+            if (sheet[0] != null) sheet[0].close();
+            if (!changed) return;
+            refreshSummary(TAB_WIDTH);
+            MaterialYou.showRestartBar(from);
+        });
+        sheet[0] = TabSheet.show(from, from.findViewById(android.R.id.content), I18n.tr("Tab width"),
+                I18n.tr("In code blocks of comments and READMEs. The app uses 8."), colors[0], colors[1], colors[2], rows,
+                null);
+    }
+
+    /** A tab width as the sheet and its row word it. */
+    private static String spaces(int width) {
+        return width + " " + I18n.tr("spaces");
+    }
+
     /**
      * The colors a sheet is drawn in: the raised surface of the app's own sheets, then the primary and secondary text
      * and the accent.
@@ -251,10 +284,11 @@ final class ChoiceSheets {
                 colors[0], text, secondary, content, null);
     }
 
-    /** What a row shows under its title: the position, the download folder, or how many tabs the bar shows; null while unknown. */
+    /** What a row shows under its title: the position, folder, tab width or number of shown tabs; null while unknown. */
     static String summary(String key) {
         if (NAV_POSITION.equals(key)) return I18n.tr(Features.saved(NavigationBar.NAV_RIGHT) ? "Right" : "Left");
         if (DOWNLOAD_FOLDER.equals(key)) return AssetsDownload.location();
+        if (TAB_WIDTH.equals(key)) return spaces(MarkdownSettings.pickedTabWidth());
         if (!NAV_TABS.equals(key) || NavigationBar.allTabs.isEmpty()) return null;
         int shown = 0;
         for (Object tab : NavigationBar.allTabs) {

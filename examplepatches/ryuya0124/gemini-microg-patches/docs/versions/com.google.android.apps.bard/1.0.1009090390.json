@@ -1,0 +1,77 @@
+{
+  "appName": "Gemini launcher",
+  "packageName": "com.google.android.apps.bard",
+  "versionName": "1.0.1009090390",
+  "versionCode": "353",
+  "inputSha256": {
+    "gemini-base.apk": "62f3e9bed2b3d96ac1f32955c76161e49cbd317adf5f75534fe4095b3502ab85"
+  },
+  "validation": [
+    "2026-11-26: Google-signed Play Store base from an arm64 device; five exact package-name strings found",
+    "2026-11-26: default MPP generated a standalone APK; API 37 emulator launched the cloned Google MainActivity"
+  ],
+  "hooks": {
+    "GEMINI_TARGET_REDIRECT": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "com.google.android.googlequicksearchbox"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 5,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Replace five exact-package references with the cloned Google package."
+    },
+    "GEMINI_ERROR_LOGO_FALLBACK": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {
+        "style": "BardErrorLogo",
+        "attribute": "android:src",
+        "fallback": "@android:drawable/ic_dialog_info"
+      },
+      "enabled": true,
+      "description": "Use a framework drawable on the native error screen, whose original logo is supplied only by density splits. Keep the original error checks and actions."
+    },
+    "SPLIT_RESTRICTION_REMOVAL": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Remove requiredSplitTypes, splitTypes and vending.splits metadata."
+    },
+    "APP_LABEL_UPDATE": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Gemini (Morphe)"
+    }
+  }
+}

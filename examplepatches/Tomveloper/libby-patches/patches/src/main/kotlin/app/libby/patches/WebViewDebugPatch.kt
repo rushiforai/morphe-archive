@@ -2,7 +2,7 @@ package app.libby.patches
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.libby.patches.Constants.COMPATIBILITY_LIBBY
 import com.android.tools.smali.dexlib2.Opcode
@@ -17,7 +17,7 @@ private val SET_WEB_CONTENTS_DEBUGGING = ImmutableMethodReference(
 )
 
 @Suppress("unused")
-val enableWebViewDebuggingPatch = bytecodePatch(
+val enableWebViewDebuggingPatch = patch(
     name = "Enable WebView debugging",
     description = "Lets you inspect Libby's WebViews with chrome://inspect.",
     default = false,

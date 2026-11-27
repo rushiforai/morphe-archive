@@ -1,0 +1,9 @@
+/* The connection state is communicated by its text and colour. Avoid idle animation. */
+#root .animate-pulse {
+  animation: none;
+}
+
+/* Keep the portal's hover and keyboard-focus selectors and reveal actions immediately. */
+#root .group-hover\:pointer-events-auto.group-focus-within\:opacity-100 {
+  transition: none;
+}

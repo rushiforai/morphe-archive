@@ -69,8 +69,11 @@ That build needs the app's own source checkout and a separate export toolchain, 
 it happens outside this repository. After renaming a checkout to a new version,
 move `apps/mobile/.expo/metro-cache` aside first: Metro stores absolute file paths
 there and the export otherwise fails on imports from the old folder name.
-Generated DOM assets ship inside the adapter because their filenames depend on the
-source build.
+The bundle ships as a delta against the official one (`<version>.bdelta`), compiled
+with the React Native Gradle release flags. Generated DOM assets ship inside
+`<version>.assets.zip` because their filenames depend on the source build; files
+identical to the APK are left out and web files are stored as deltas against an APK
+file (`overlay.manifest`), each checked by SHA-256 before it is written.
 
 Apply the patch with Morphe Manager by importing the built
 `patches/build/libs/patches-<version>.mpp`, selecting the supported original APK,

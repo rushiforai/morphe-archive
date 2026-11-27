@@ -106,7 +106,7 @@ class ChatPreviewSizeTest {
         assertEquals(setOf(SYNTHETIC_CHAT_PREVIEW_SIZE), found(chatPreviewSizeFixture()))
         validateControls(mirroredControls(chatPreviewSizeFixture()), setOf(CHAT_PREVIEW_SIZE))
         val site = assertNotNull(previewSizeView().chatPreviewSizeSite())
-        assertEquals(listOf(14, 3, 1, 0, 28, 11), listOf(site.stack, site.most, site.height, site.least, site.tapLayer, site.layer))
+        assertEquals(listOf(14, 3, 1, 0, 28, 11, 9), listOf(site.stack, site.most, site.height, site.least, site.tapLayer, site.layer, site.fragment))
     }
 
     @Test fun eachMappingHooksTheFragmentsViewBuilder() {
@@ -159,12 +159,34 @@ class ChatPreviewSizeTest {
         assertEquals(Opcode.INVOKE_STATIC_RANGE, code[33].opcode)
         assertEquals(11, (code[33] as RegisterRangeInstruction).startRegister)
         assertEquals(1, (code[33] as RegisterRangeInstruction).registerCount)
+        // The preview itself follows, with its callbacks in place, for Open chat (#247).
+        assertEquals("$CHAT_PREVIEW_SIZE_HOST->preview(Ljava/lang/Object;)V", code[34].sizeCall())
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, code[34].opcode)
+        assertEquals(9, (code[34] as RegisterRangeInstruction).startRegister)
+        assertEquals(1, (code[34] as RegisterRangeInstruction).registerCount)
         // The tall screen's height still joins at the most, before the new sizing, and nothing lands on the new calls.
         val back = code.indexOfLast { it.opcode == Opcode.GOTO || it.opcode == Opcode.GOTO_16 }
         assertEquals(10, code.branchTarget(back))
-        val inserted = setOf(14, 15, 16, 17, 33)
+        val inserted = setOf(14, 15, 16, 17, 33, 34)
         assertTrue(inserted.none { it in method.jumpTargets() })
         assertStockKept(before, code.filterIndexed { i, _ -> i !in inserted }, "preview view")
+    }
+
+    // Keep taps in the chat preview (#247) reads the same layer, and its Open chat row rides on the chat menu's hooks.
+    // Whichever of the two patches comes first puts the preview's calls in, and the second leaves them be.
+    @Test fun keepTapsInThePreviewSharesTheHookAndItGoesInOnce() {
+        assertEquals(setOf(CHAT_PREVIEW_SIZE), controlHooks.getValue(CHAT_PREVIEW_SIZE))
+        assertEquals(setOf(CHAT_PREVIEW_SIZE, HIDDEN_CHAT_LIST, HIDDEN_CHAT_ROW, HIDDEN_CHAT_TAP), controlHooks.getValue("chat_preview_taps"))
+        val method = previewSizeView()
+        assertTrue(!method.chatPreviewSizeHooked())
+        injectControl(CHAT_PREVIEW_SIZE, mapOf(CHAT_PREVIEW_SIZE to listOf(method)))
+        val once = method.sizeCode().map { "${it.opcode} ${it.sizeCall()}" }
+        assertTrue(method.chatPreviewSizeHooked())
+        assertEquals(1, once.count { it.endsWith("->tapLayer(Landroid/view/View;)V") })
+        assertEquals(1, once.count { it.endsWith("->preview(Ljava/lang/Object;)V") })
+        method.validateChatPreviewSize()
+        method.injectChatPreviewSize()
+        assertEquals(once, method.sizeCode().map { "${it.opcode} ${it.sizeCall()}" })
     }
 
     @Test fun anUnusableMethodRefusesTheSwitchBeforeAnyEdit() {
@@ -205,7 +227,9 @@ class ChatPreviewSizeTest {
             assertEquals(Opcode.NEW_INSTANCE, after[stack + 4].opcode, code)
             assertEquals("$CHAT_PREVIEW_SIZE_HOST->tapLayer(Landroid/view/View;)V", after[handOver].sizeCall(), code)
             assertEquals(site.layer, (after[handOver] as RegisterRangeInstruction).startRegister, code)
-            val inserted = setOf(stack, stack + 1, stack + 2, stack + 3, handOver)
+            assertEquals("$CHAT_PREVIEW_SIZE_HOST->preview(Ljava/lang/Object;)V", after[handOver + 1].sizeCall(), code)
+            assertEquals(site.fragment, (after[handOver + 1] as RegisterRangeInstruction).startRegister, code)
+            val inserted = setOf(stack, stack + 1, stack + 2, stack + 3, handOver, handOver + 1)
             assertTrue(inserted.none { it in method.jumpTargets() }, code)
             assertEquals(before.map { it.opcode }.filter { it != Opcode.NOP },
                 after.filterIndexed { i, _ -> i !in inserted }.map { it.opcode }.filter { it != Opcode.NOP }, code)

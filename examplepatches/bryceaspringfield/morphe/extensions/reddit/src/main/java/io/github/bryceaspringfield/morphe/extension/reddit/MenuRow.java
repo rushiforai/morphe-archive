@@ -9,10 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-/**
- * A settings row with a three-dot button at its end, which opens the row's menu. Where the row's layout has no place
- * for the button, a tap on the row opens the menu.
- */
 @SuppressWarnings("deprecation")
 final class MenuRow extends Preference {
 
@@ -24,7 +20,6 @@ final class MenuRow extends Preference {
         this.onMenu = onMenu;
     }
 
-    /** Whether the row shows its three-dot button, after Android drew the row. */
     boolean dotsShown() {
         return dotsShown;
     }

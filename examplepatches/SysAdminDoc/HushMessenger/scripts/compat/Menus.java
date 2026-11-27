@@ -1458,4 +1458,329 @@ final class Menus {
         }
         return audio.size() == 1 && video.size() == 1 ? List.of(audio.get(0), video.get(0)) : List.of();
     }
+
+    static final String CONTACT_ROWS_NAME = "getContactMenuItem";
+    static final String CONTACT_TAP_NAME = "onContactMenuItemSelected";
+    static final String CONTACT_HIDE_ROW = "messaging.graph.contactinfomenu.hidecontactmenuitem.HideContactMenuItemImplementation";
+    static final String CONTACT_BLOCK_ROW = "messaging.graph.contactinfomenu.blockcontactmenuitem.BlockContactMenuItemImplementation";
+    static final String CONTACT_DELETE_MISSING = "Unable to fetch contact for deletion.";
+    static final String CONTACT_DELETE_PARAMS = "Lcom/facebook/contacts/server/DeleteContactParams;";
+    static final String CONTACT_SINGLE_SET = "Lcom/google/common/collect/SingletonImmutableSet;";
+    static final String CONTACT_FUNCTION = "Lcom/google/common/base/Function;";
+    static final String CONTACT_FUTURE = "Lcom/google/common/util/concurrent/ListenableFuture;";
+    static final String CONTACT_OBJECT = "Ljava/lang/Object;";
+    static final Set<Opcode> CONTACT_SWITCHES = EnumSet.of(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH);
+    static final Set<Opcode> CONTACT_EXITS = EnumSet.of(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.THROW,
+        Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32, Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH);
+
+    static boolean contactLoads(Method m, String value) {
+        for (var i : instructions(m)) if (value.equals(menuString(i))) return true;
+        return false;
+    }
+
+    static boolean contactRows(Method m) {
+        if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"Ljava/util/ArrayList;".equals(m.getReturnType()) || !m.getParameterTypes().isEmpty()) return false;
+        return contactLoads(m, CONTACT_ROWS_NAME) && (contactLoads(m, CONTACT_HIDE_ROW) || contactLoads(m, CONTACT_BLOCK_ROW));
+    }
+
+    static boolean contactTap(Method m) {
+        return !AccessFlags.STATIC.isSet(m.getAccessFlags()) && "V".equals(m.getReturnType()) && params(m).equals(List.of("I")) && contactLoads(m, CONTACT_TAP_NAME);
+    }
+
+    static int[] contactAddresses(List<Instruction> code) {
+        var addresses = new int[code.size() + 1];
+        for (int k = 0; k < code.size(); k++) addresses[k + 1] = addresses[k] + code.get(k).getCodeUnits();
+        return addresses;
+    }
+
+    /** ControlHooks.kt's jumpTargets: indexes a branch, a switch case or a catch handler lands on. */
+    static Set<Integer> contactJumpTargets(Method m) {
+        var code = instructions(m);
+        var addresses = contactAddresses(code);
+        var indexAt = new HashMap<Integer, Integer>();
+        for (int k = 0; k < code.size(); k++) indexAt.put(addresses[k], k);
+        var targets = new HashSet<Integer>();
+        for (int k = 0; k < code.size(); k++) {
+            if (!(code.get(k) instanceof OffsetInstruction o)) continue;
+            int landing = addresses[k] + o.getCodeOffset();
+            if (CONTACT_SWITCHES.contains(code.get(k).getOpcode())) {
+                var at = indexAt.get(landing);
+                if (at != null && code.get(at) instanceof SwitchPayload payload)
+                    for (var e : payload.getSwitchElements()) { var t = indexAt.get(addresses[k] + e.getOffset()); if (t != null) targets.add(t); }
+            } else if (indexAt.get(landing) != null) targets.add(indexAt.get(landing));
+        }
+        for (var block : m.getImplementation().getTryBlocks())
+            for (var handler : block.getExceptionHandlers()) { var t = indexAt.get(handler.getHandlerCodeAddress()); if (t != null) targets.add(t); }
+        return targets;
+    }
+
+    /** RemoveContact.kt's contactRowsSite: one return-object nothing jumps onto or covers, and p0 never written. */
+    static boolean contactRowsSite(Method m) {
+        if (!contactRows(m) || m.getImplementation() == null) return false;
+        var code = instructions(m);
+        int at = -1;
+        for (int k = 0; k < code.size(); k++) if (code.get(k).getOpcode() == Opcode.RETURN_OBJECT) {
+            if (at >= 0) return false;
+            at = k;
+        }
+        if (at < 0) return false;
+        int list = register(code.get(at)), self = m.getImplementation().getRegisterCount() - 1;
+        if (self > 15 || list > 15 || list == self) return false;
+        for (var i : code) if (writes(i, self)) return false;
+        if (contactJumpTargets(m).contains(at)) return false;
+        int address = contactAddresses(code)[at];
+        for (var block : m.getImplementation().getTryBlocks())
+            if (address >= block.getStartCodeAddress() && address < block.getStartCodeAddress() + block.getCodeUnitCount()) return false;
+        return true;
+    }
+
+    /** RemoveContact.kt's contactTapFirst: a local, nothing jumping onto the start, and no merged dispatch. */
+    static boolean contactTapSite(Method m) {
+        if (!contactTap(m) || m.getImplementation() == null) return false;
+        if (m.getImplementation().getRegisterCount() - 2 < 1 || contactJumpTargets(m).contains(0)) return false;
+        var code = instructions(m);
+        for (int k = 0; k < code.size(); k++) {
+            if (!CONTACT_SWITCHES.contains(code.get(k).getOpcode())) continue;
+            int on = register(code.get(k));
+            for (int j = 0; j < k; j++) {
+                var f = menuField(code.get(j));
+                if (code.get(j).getOpcode() == Opcode.IGET && f != null && f.getDefiningClass().equals(m.getDefiningClass()) && writes(code.get(j), on)) return false;
+            }
+        }
+        return true;
+    }
+
+    static int contactWriter(List<Instruction> code, int at, int register) {
+        for (int k = at - 1; k >= 0; k--) if (writes(code.get(k), register)) return k;
+        return -1;
+    }
+
+    static Integer contactLiteral(Instruction i) {
+        var op = i.getOpcode();
+        return op == Opcode.CONST_4 || op == Opcode.CONST_16 || op == Opcode.CONST ? ((NarrowLiteralInstruction) i).getNarrowLiteral() : null;
+    }
+
+    static String contactType(Instruction i) {
+        return i instanceof ReferenceInstruction ri && ri.getReference() instanceof TypeReference t ? t.getType() : null;
+    }
+
+    /** RemoveContact.kt's deletesContactIn: the case's block makes DeleteContactParams before anything leaves it. */
+    static boolean contactDeletes(Method callback, int which) {
+        var code = instructions(callback);
+        var addresses = contactAddresses(code);
+        var indexAt = new HashMap<Integer, Integer>();
+        for (int k = 0; k < code.size(); k++) indexAt.put(addresses[k], k);
+        int sw = -1;
+        for (int k = 0; k < code.size() && sw < 0; k++) if (CONTACT_SWITCHES.contains(code.get(k).getOpcode())) sw = k;
+        if (sw < 0) return false;
+        int read = contactWriter(code, sw, register(code.get(sw)));
+        if (read < 0 || code.get(read).getOpcode() != Opcode.IGET || !callback.getDefiningClass().equals(menuField(code.get(read)).getDefiningClass())) return false;
+        var payloadAt = indexAt.get(addresses[sw] + ((OffsetInstruction) code.get(sw)).getCodeOffset());
+        if (payloadAt == null || !(code.get(payloadAt) instanceof SwitchPayload payload)) return false;
+        int start = sw + 1;
+        for (var e : payload.getSwitchElements()) if (e.getKey() == which) {
+            var t = indexAt.get(addresses[sw] + e.getOffset());
+            if (t == null) return false;
+            start = t;
+        }
+        for (int k = start; k < code.size(); k++) {
+            if (code.get(k).getOpcode() == Opcode.NEW_INSTANCE && CONTACT_DELETE_PARAMS.equals(contactType(code.get(k)))) return true;
+            if (CONTACT_EXITS.contains(code.get(k).getOpcode())) return false;
+        }
+        return false;
+    }
+
+    static boolean contactOpenStaticField(Map<String, ClassDef> byType, FieldReference field, boolean isStatic) {
+        if (!menuOpenClass(byType, field.getDefiningClass())) return false;
+        for (var f : byType.get(field.getDefiningClass()).getFields())
+            if (f.getName().equals(field.getName()) && f.getType().equals(field.getType()) && AccessFlags.PUBLIC.isSet(f.getAccessFlags()) &&
+                AccessFlags.STATIC.isSet(f.getAccessFlags()) == isStatic) return true;
+        return false;
+    }
+
+    /**
+     * RemoveContact.kt's removalStart plus its access checks: the one branch-free method that makes the delete callback
+     * with its case and four kept values, read by which instruction last wrote each register. Its case and whether every
+     * piece the extension's stub names is public (1) or not (0), or null.
+     */
+    static int[] contactRemovalStart(Method m, String callbackType, String callbackInit, Map<String, ClassDef> byType) {
+        if (m.getImplementation() == null || !m.getImplementation().getTryBlocks().isEmpty()) return null;
+        var code = instructions(m);
+        for (var i : code) if (i instanceof OffsetInstruction) return null;
+        int made = -1;
+        for (int k = 0; k < code.size(); k++) if (code.get(k).getOpcode() == Opcode.INVOKE_DIRECT_RANGE && callbackInit.equals(ref(code.get(k)))) {
+            if (made >= 0) return null;
+            made = k;
+        }
+        if (made < 0) return null;
+        var args = callArgs(code.get(made));
+        if (args.size() != 6) return null;
+        int callbackMade = contactWriter(code, made, args.get(0));
+        if (callbackMade < 0 || code.get(callbackMade).getOpcode() != Opcode.NEW_INSTANCE || !callbackType.equals(contactType(code.get(callbackMade)))) return null;
+        int caseAt = contactWriter(code, made, args.get(1));
+        Integer which = caseAt < 0 ? null : contactLiteral(code.get(caseAt));
+        if (which == null) return null;
+
+        String helper = null;
+        int helperWrite = -1, settableAt = -1;
+        var roles = new HashSet<String>();
+        for (int s = 2; s < 6; s++) {
+            int at = contactWriter(code, made, args.get(s));
+            if (at < 0) return null;
+            var wrote = code.get(at);
+            var f = menuField(wrote);
+            String role;
+            if (wrote.getOpcode() == Opcode.IGET_OBJECT && f != null && "Landroid/content/Context;".equals(f.getType())) role = "context";
+            else if (wrote.getOpcode() == Opcode.IGET_OBJECT && f != null && MENU_SESSION.equals(f.getType())) role = "session";
+            else if (wrote.getOpcode() == Opcode.CHECK_CAST) { role = "helper"; helper = contactType(wrote); helperWrite = at; }
+            else if (wrote.getOpcode() == Opcode.MOVE_RESULT_OBJECT && at > 0 && code.get(at - 1).getOpcode() == Opcode.INVOKE_STATIC && menuCall(code.get(at - 1)) != null &&
+                "Lcom/google/common/util/concurrent/SettableFuture;".equals(menuCall(code.get(at - 1)).getReturnType()) && menuCall(code.get(at - 1)).getParameterTypes().isEmpty()) {
+                role = "settable";
+                settableAt = at - 1;
+            } else return null;
+            roles.add(role);
+        }
+        if (roles.size() != 4 || helper == null || settableAt < 0) return null;
+
+        int keyCall = -1;
+        for (int k = 0; k < code.size(); k++) {
+            var c = menuCall(code.get(k));
+            if (code.get(k).getOpcode() == Opcode.INVOKE_STATIC && c != null && "Lcom/facebook/user/model/UserKey;".equals(c.getReturnType()) && refParams(c).equals(List.of("Ljava/lang/String;"))) {
+                if (keyCall >= 0) return null;
+                keyCall = k;
+            }
+        }
+        if (keyCall < 0 || keyCall + 1 >= code.size() || code.get(keyCall + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT) return null;
+        int setMade = -1;
+        for (int k = 0; k < code.size(); k++) if (code.get(k).getOpcode() == Opcode.INVOKE_DIRECT && (CONTACT_SINGLE_SET + "-><init>(" + CONTACT_OBJECT + ")V").equals(ref(code.get(k)))) {
+            if (setMade >= 0) return null;
+            setMade = k;
+        }
+        if (setMade < 0) return null;
+        var setArgs = callArgs(code.get(setMade));
+        if (setArgs.size() != 2 || contactWriter(code, setMade, setArgs.get(1)) != keyCall + 1) return null;
+
+        int fetchAt = -1;
+        for (int k = 0; k < code.size(); k++) {
+            var c = menuCall(code.get(k));
+            if (code.get(k).getOpcode() != Opcode.INVOKE_STATIC || c == null) continue;
+            var p = refParams(c);
+            if (p.size() == 5 && "Lcom/facebook/common/callercontext/CallerContext;".equals(p.get(0)) && "Lcom/google/common/collect/ImmutableSet;".equals(p.get(3)) && "Z".equals(p.get(4))) {
+                if (fetchAt >= 0) return null;
+                fetchAt = k;
+            }
+        }
+        if (fetchAt < 0) return null;
+        var fetch = menuCall(code.get(fetchAt));
+        var fetchArgs = callArgs(code.get(fetchAt));
+        int callerAt = contactWriter(code, fetchAt, fetchArgs.get(0)), fetcherAt = contactWriter(code, fetchAt, fetchArgs.get(1));
+        int modeAt = contactWriter(code, fetchAt, fetchArgs.get(2)), flagAt = contactWriter(code, fetchAt, fetchArgs.get(4));
+        if (callerAt < 0 || fetcherAt < 0 || modeAt < 0 || flagAt < 0 || contactLiteral(code.get(flagAt)) == null) return null;
+        var callerField = menuField(code.get(callerAt));
+        var fetcherField = menuField(code.get(fetcherAt));
+        var modeField = menuField(code.get(modeAt));
+        if (code.get(callerAt).getOpcode() != Opcode.SGET_OBJECT || callerField == null || !"Lcom/facebook/common/callercontext/CallerContext;".equals(callerField.getType())) return null;
+        if (code.get(fetcherAt).getOpcode() != Opcode.IGET_OBJECT || fetcherField == null || !helper.equals(fetcherField.getDefiningClass()) ||
+            !refParams(fetch).get(1).equals(fetcherField.getType()) || contactWriter(code, fetcherAt, ((TwoRegisterInstruction) code.get(fetcherAt)).getRegisterB()) != helperWrite) return null;
+        if (code.get(modeAt).getOpcode() != Opcode.SGET_OBJECT || modeField == null || !refParams(fetch).get(2).equals(modeField.getType())) return null;
+        int setNew = contactWriter(code, setMade, setArgs.get(0));
+        if (setNew < 0 || contactWriter(code, fetchAt, fetchArgs.get(3)) != setNew || !CONTACT_SINGLE_SET.equals(contactType(code.get(setNew)))) return null;
+        if (fetchAt + 1 >= code.size() || code.get(fetchAt + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT) return null;
+
+        int transformAt = -1;
+        for (int k = 0; k < code.size(); k++) {
+            var c = menuCall(code.get(k));
+            if (code.get(k).getOpcode() == Opcode.INVOKE_DIRECT && c != null && c.getName().equals("<init>") && refParams(c).equals(List.of(CONTACT_FUNCTION, CONTACT_FUTURE))) {
+                if (transformAt >= 0) return null;
+                transformAt = k;
+            }
+        }
+        if (transformAt < 0) return null;
+        var transformArgs = callArgs(code.get(transformAt));
+        var transform = menuCall(code.get(transformAt)).getDefiningClass();
+        int transformMade = contactWriter(code, transformAt, transformArgs.get(0)), functionAt = contactWriter(code, transformAt, transformArgs.get(1));
+        if (transformMade < 0 || functionAt < 0 || contactWriter(code, transformAt, transformArgs.get(2)) != fetchAt + 1 ||
+            code.get(transformMade).getOpcode() != Opcode.NEW_INSTANCE || !transform.equals(contactType(code.get(transformMade))) ||
+            code.get(functionAt).getOpcode() != Opcode.SGET_OBJECT) return null;
+
+        int registerAt = -1;
+        for (int k = 0; k < code.size(); k++) {
+            var c = menuCall(code.get(k));
+            if (code.get(k).getOpcode() != Opcode.INVOKE_STATIC || c == null || callArgs(code.get(k)).size() != 3 || !"V".equals(c.getReturnType())) continue;
+            var p = refParams(c);
+            if (p.subList(1, p.size()).equals(List.of(CONTACT_FUTURE, "Ljava/util/concurrent/Executor;"))) {
+                if (registerAt >= 0) return null;
+                registerAt = k;
+            }
+        }
+        if (registerAt < 0 || registerAt < made) return null;
+        var registerArgs = callArgs(code.get(registerAt));
+        if (contactWriter(code, registerAt, registerArgs.get(0)) != callbackMade || contactWriter(code, registerAt, registerArgs.get(1)) != transformMade) return null;
+        int executorAt = contactWriter(code, registerAt, registerArgs.get(2));
+        if (executorAt < 0) return null;
+        var executorField = menuField(code.get(executorAt));
+        if (code.get(executorAt).getOpcode() != Opcode.IGET_OBJECT || executorField == null || !helper.equals(executorField.getDefiningClass()) ||
+            !Set.of("Ljava/util/concurrent/Executor;", "Ljava/util/concurrent/ExecutorService;").contains(executorField.getType()) ||
+            contactWriter(code, executorAt, ((TwoRegisterInstruction) code.get(executorAt)).getRegisterB()) != helperWrite) return null;
+
+        // Everything the stub names, reachable from the extension. Checked after the start is known to be the only one.
+        boolean open = menuOpenConstructor(byType, helper, List.of()) && menuOpenConstructor(byType, transform, List.of(CONTACT_FUNCTION, CONTACT_FUTURE)) &&
+            menuOpenConstructor(byType, CONTACT_SINGLE_SET, List.of(CONTACT_OBJECT));
+        for (var at : List.of(settableAt, keyCall, fetchAt, registerAt)) open &= menuOpenMethod(byType, menuCall(code.get(at)), true);
+        open &= contactOpenStaticField(byType, fetcherField, false) && contactOpenStaticField(byType, executorField, false) &&
+            contactOpenStaticField(byType, modeField, true) && contactOpenStaticField(byType, callerField, true) &&
+            contactOpenStaticField(byType, menuField(code.get(functionAt)), true);
+        return new int[] {which, open ? 1 : 0};
+    }
+
+    /**
+     * remove_contact: each contact menu socket's rows and tap methods, taken only when every socket reads as one and
+     * Messenger's removal start resolves with every piece the extension's stub names public. Mirrors RemoveContact.kt.
+     */
+    static List<Method> removeContact(List<ClassDef> classes) {
+        var byType = new HashMap<String, ClassDef>();
+        for (var c : classes) byType.put(c.getType(), c);
+        var sites = new ArrayList<Method>();
+        for (var cls : classes) {
+            boolean socket = false;
+            for (var m : cls.getMethods()) socket |= contactRows(m);
+            if (!socket) continue;
+            if (cls.getInterfaces().size() != 1) return List.of();
+            Method rows = null, tap = null;
+            int rowsCount = 0, tapCount = 0;
+            for (var m : cls.getMethods()) {
+                if (contactRows(m)) { rows = m; rowsCount++; }
+                if (contactTap(m)) { tap = m; tapCount++; }
+            }
+            if (rowsCount != 1 || tapCount != 1) return List.of();
+            for (var type : List.of("Lcom/facebook/user/model/User;", "Landroid/content/Context;", MENU_SESSION)) {
+                int held = 0;
+                for (var f : cls.getFields()) if (!AccessFlags.STATIC.isSet(f.getAccessFlags()) && type.equals(f.getType())) held++;
+                if (held != 1) return List.of();
+            }
+            if (!contactRowsSite(rows) || !contactTapSite(tap)) return List.of();
+            sites.add(rows);
+            sites.add(tap);
+        }
+        if (sites.isEmpty()) return List.of();
+
+        Method callback = null;
+        for (var cls : classes) for (var m : cls.getMethods()) {
+            if (!m.getName().equals("onSuccess") || !params(m).equals(List.of(CONTACT_OBJECT)) || !contactLoads(m, CONTACT_DELETE_MISSING)) continue;
+            if (callback != null) return List.of();
+            callback = m;
+        }
+        if (callback == null) return List.of();
+        var callbackType = callback.getDefiningClass();
+        var callbackInit = callbackType + "-><init>(I" + CONTACT_OBJECT.repeat(4) + ")V";
+        if (!menuOpenConstructor(byType, callbackType, List.of("I", CONTACT_OBJECT, CONTACT_OBJECT, CONTACT_OBJECT, CONTACT_OBJECT))) return List.of();
+        int[] start = null;
+        for (var cls : classes) for (var m : cls.getMethods()) {
+            var found = contactRemovalStart(m, callbackType, callbackInit, byType);
+            if (found == null || !contactDeletes(callback, found[0])) continue;
+            if (start != null) return List.of();
+            start = found;
+        }
+        return start != null && start[1] == 1 ? sites : List.of();
+    }
 }

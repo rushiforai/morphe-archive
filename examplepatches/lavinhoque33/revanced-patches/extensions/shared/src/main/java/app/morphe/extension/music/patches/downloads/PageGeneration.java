@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-10.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -25,6 +26,10 @@ final class PageGeneration {
     /** The page was built, or a refresh of it started, with the copies as they are now. */
     void built() {
         builtAt = changes.get();
+    }
+
+    boolean hasBuilt() {
+        return builtAt != NEVER;
     }
 
     boolean isStale() {

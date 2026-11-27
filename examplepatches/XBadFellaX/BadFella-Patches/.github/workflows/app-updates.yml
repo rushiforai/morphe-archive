@@ -20,9 +20,10 @@ jobs:
           python-version: '3.12'
       - name: Check monitor behavior
         run: python -m unittest discover -s tools -p 'test_app_updates.py'
-      - name: Check upstreams and notify only on changes
+      - name: Compare sources and update the issue dashboard
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           APP_UPDATE_ISSUE: ${{ vars.APP_UPDATE_ISSUE }}
+          APP_UPDATE_SMTP_CONFIG: ${{ secrets.APP_UPDATE_SMTP_CONFIG }}
         run: python tools/app_updates.py --catalog patches-list.json --reviewed-versions tools/app-update-versions.json

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-08.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -9,8 +10,13 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.WireFormat;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class OfflineBrowsePagesLogicTest {
@@ -85,6 +91,70 @@ public class OfflineBrowsePagesLogicTest {
         assertFalse(OfflineBrowsePagesLogic.isFileSafe("../x"));
         assertFalse(OfflineBrowsePagesLogic.isFileSafe("a/b"));
         assertFalse(OfflineBrowsePagesLogic.isFileSafe("x".repeat(65)));
+    }
+
+    @Test public void localPlaylistScopeExcludesSyntheticAndAlbumDestinations() {
+        assertTrue(OfflineBrowsePagesLogic.isPlaylistId("PLsaved"));
+        assertFalse(OfflineBrowsePagesLogic.isPlaylistId("FEmusic_offline"));
+        assertFalse(OfflineBrowsePagesLogic.isPlaylistId("songs"));
+        assertFalse(OfflineBrowsePagesLogic.isPlaylistId("MPREb_album"));
+        assertFalse(OfflineBrowsePagesLogic.isPlaylistId("OLAK5uy_album"));
+    }
+
+    @Test public void metadataOnlyPlaylistUsesNativeRowsWithRealArtworkAndSavedPositions() throws Exception {
+        String id = "PLsaved";
+        String first = "firstSongId";
+        String second = "secondTrack";
+        String cover = "file:///app/files/firstSongId.thumb";
+        byte[] page = OfflineBrowsePagesLogic.fallback(id, "My playlist", "By Artist", "",
+                List.of(first, PlaylistPage.UNAVAILABLE, second, first),
+                track -> track.equals(first)
+                        ? new OfflineBrowsePagesLogic.TrackMetadata("First title", "Artist", 187_000, cover)
+                        : null, "Unavailable offline");
+
+        byte[] header = at(page, 13, 173_602_558);
+        assertEquals("My playlist", string(at(header, 1, 1, 1)));
+        assertEquals("By Artist", string(at(header, 13, 1, 1)));
+        assertEquals(cover, string(at(header, 5, 164_480_666, 1, 1, 1)));
+        byte[] shelf = at(page, 9, 58_173_949, 1, 58_174_010, 4, 49_399_797, 1, 175_617_300);
+        assertEquals(id, string(at(shelf, 1)));
+
+        List<byte[]> rows = fields(shelf, 3);
+        assertEquals(4, rows.size());
+        byte[] row = at(rows.get(0), 161_429_595);
+        assertEquals("First title", string(at(row, 3, 1, 1)));
+        assertEquals(OfflineLibraryLogic.songSubtitle("Artist", 187_000), string(at(row, 4, 1, 1)));
+        assertEquals(cover, string(at(row, 1, 164_480_666, 1, 1, 1)));
+        byte[] unavailable = at(rows.get(1), 161_429_595);
+        assertEquals("Unavailable offline", string(at(unavailable, 3, 1, 1)));
+        assertTrue(fields(unavailable, 5).isEmpty());
+        assertArrayEquals(OnlineWatchCommand.build(second, id, 2), at(rows.get(2), 161_429_595, 5));
+        assertArrayEquals(OnlineWatchCommand.build(first, id, 3), at(rows.get(3), 161_429_595, 5));
+        assertFalse(OfflineBrowsePagesLogic.isContinuation(page));
+    }
+
+    private static String string(byte[] data) {
+        return new String(data, StandardCharsets.UTF_8);
+    }
+
+    private static byte[] at(byte[] bytes, int... path) throws IOException {
+        for (int field : path) bytes = fields(bytes, field).get(0);
+        return bytes;
+    }
+
+    private static List<byte[]> fields(byte[] bytes, int field) throws IOException {
+        var matches = new ArrayList<byte[]>();
+        CodedInputStream input = CodedInputStream.newInstance(bytes);
+        while (!input.isAtEnd()) {
+            int tag = input.readTag();
+            if (WireFormat.getTagFieldNumber(tag) == field
+                    && WireFormat.getTagWireType(tag) == WireFormat.WIRETYPE_LENGTH_DELIMITED) {
+                matches.add(input.readByteArray());
+            } else {
+                if (!input.skipField(tag)) throw new IOException("Unexpected end group");
+            }
+        }
+        return matches;
     }
 
     @Test public void theFrameworkUpdatesAreMeasuredInTheResponse() {

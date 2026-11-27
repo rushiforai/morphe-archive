@@ -10,13 +10,16 @@ final class MebukiNewThreadDraft {
     final byte[] image;
 
     MebukiNewThreadDraft(StockReplyRequest request) {
-        title = request.get("sub").trim();
-        body = request.get("com").replace("\r\n","\n").replace('\r','\n');
+        // Stock main text is the requested thread title. Preserve any optional
+        // stock subject as an editable initial body; normally the official body starts empty.
+        title = request.get("com").trim();
+        body = request.get("sub").replace("\r\n","\n").replace('\r','\n');
         if (!request.get("name").isEmpty() || !request.get("email").isEmpty())
             throw new IllegalArgumentException("めぶきの名前・メール欄は空欄にしてください。");
-        if (title.codePointCount(0,title.length()) > 100 || body.trim().isEmpty() ||
+        if (title.isEmpty() || title.indexOf('\n')>=0 || title.indexOf('\r')>=0 ||
+                title.codePointCount(0,title.length()) > 100 ||
                 body.codePointCount(0,body.length()) > 5000 || body.split("\n",-1).length > 100)
-            throw new IllegalArgumentException("めぶきの題名・本文の長さを確認してください。");
+            throw new IllegalArgumentException("めぶきでは純正の本文欄にスレタイ（1行・100文字以内）を入力してください。");
         if (request.image == null || request.image.length == 0 || request.image.length > 8_000_000)
             throw new IllegalArgumentException("めぶきのスレ画は1枚（8MB以下）必要です。");
         if (request.mime == null || !request.mime.matches("image/(jpeg|png|gif|webp)"))
@@ -37,15 +40,31 @@ final class MebukiNewThreadDraft {
         return "(function(){"+GUARD+
                 "const t=document.querySelector('input[name=name]'),b=document.querySelector('textarea[name=content]');"+
                 "if(!t||!b||!b.closest('section')||!t.closest('form')||t.closest('form')!==b.closest('form')||!document.querySelector('input[name=attachments]'))return false;"+
-                "function fill(el,proto,val){Object.getOwnPropertyDescriptor(proto,'value').set.call(el,val);el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}"+
+                "function fill(el,proto,val){if(el.value===val)return;Object.getOwnPropertyDescriptor(proto,'value').set.call(el,val);el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}"+
                 "fill(t,HTMLInputElement.prototype,"+q(title)+");fill(b,HTMLTextAreaElement.prototype,"+q(body)+");"+
                 "window["+q(key)+"]=[];return true;})()";
     }
     static String chunkScript(String key,String chunk) {
         return "(function(){"+GUARD+"const a=window["+q(key)+"];if(!Array.isArray(a))return false;a.push("+q(chunk)+");return true;})()";
     }
+    private String filename() {
+        return "attachment."+("image/jpeg".equals(mime)?"jpg":mime.substring(6));
+    }
+    // The official attachment hook renames every incoming File to upload_<random>.<ext>
+    // before placing it in React state. Its preview uses that normalized name as alt.
+    // Restrict the check to the attachment fieldset and its single blob preview.
+    String imageReadyScript() {
+        String extension=filename().substring(filename().lastIndexOf('.'));
+        return "(function(){"+GUARD+
+                "const b=document.querySelector('textarea[name=content]'),f=b&&b.closest('form');"+
+                "const a=f&&f.querySelector('input[type=hidden][name=attachments]'),s=a&&a.closest('fieldset');"+
+                "if(!s)return false;const images=Array.from(s.querySelectorAll('img[alt]'));"+
+                "return images.length===1&&images[0].src.startsWith('blob:')&&"+
+                "/^upload_[a-z0-9]{0,6}$/.test(images[0].alt.slice(0,-"+extension.length()+"))&&"+
+                "images[0].alt.endsWith("+q(extension)+");})()";
+    }
     String finishScript(String key) {
-        String filename = "attachment."+("image/jpeg".equals(mime)?"jpg":mime.substring(6));
+        String filename = filename();
         return "(function(){"+GUARD+
                 "const a=window["+q(key)+"],b=document.querySelector('textarea[name=content]'),s=b&&b.closest('section');"+
                 "if(!Array.isArray(a)||!s)return false;delete window["+q(key)+"];"+

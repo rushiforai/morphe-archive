@@ -38,7 +38,7 @@ private val FEED_CLASSES = setOf(
 @Suppress("unused")
 val keepFeedPatch = patch(
     name = "Keep feed on reopen",
-    description = "Keeps your place in the feed when you come back to LinkedIn. Adds a switch in Fakh Patches.",
+    description = "Keeps your place in the feed when you come back to LinkedIn.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

@@ -1,0 +1,422 @@
+{
+ "notes": {
+  "_about": "offset-map.md, Window check: what the phone measured on 2026-11-20 (YT Clients chat, scratchpad offset-test/result.txt), as numbers; the audio is not kept. Per song: YouTube's copy and the copy the user's addons gave, both decoded to mono 22 050 Hz; a 12 s addon window every 30 s from 15 s, read at YouTube's position (the audition's same-position read).",
+  "expect": "A port running the window check on the same two copies must give each window's verdict (match or refuse) and, for a match, offsetMs within 1 ms. coarse and fine are the scores measured then, for reference: the phone's run compared YouTube's span against the window; the rule now slides the window over YouTube's copy (it holds for offsets of seconds), which can move a score by a little but not across 0.8 on these copies.",
+  "copies": "Escapism (A7Zlgi2FMUE) and the Stereo Love smashup (exHJb5t-6e8): the addons' copies are other recordings or edits (the full fit refuses them too), so every window must refuse. Poker Face (oG-4Uvhm4lI): the lossless copy is -117.2 ms off YouTube's in every window.",
+  "rebuild": "Local only, git-ignored, never in CI; nothing is downloaded without the user's word. YouTube's side: ffmpeg -i .cache/analysis/<id>.wav -ac 1 -ar 22050 -f f32le .cache/addons/<id>.yt.f32 (the analysis cache's decode). The addon side: the song's lossless copy from the user's addons (scripts/addon_window_fetch.mjs <file of addon links> .cache/addons), then ffmpeg -i .cache/addons/<id>.audio -ac 1 -ar 22050 -f f32le .cache/addons/<id>.ad.f32. Run: node scripts/addon_window_cases.mjs."
+ },
+ "windowCount": 51,
+ "songs": [
+  {
+   "id": "2mUTNSMcezg",
+   "title": "MONTAGEM FAMA (Super Slowed)",
+   "fullFit": {
+    "offsetMs": 0.0
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 1.0,
+     "fine": 0.997,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 45,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 75,
+     "coarse": 0.999,
+     "fine": 0.997,
+     "expect": "match",
+     "offsetMs": 0.0
+    }
+   ]
+  },
+  {
+   "id": "A7Zlgi2FMUE",
+   "title": "Escapism. (Sped Up)",
+   "fullFit": {
+    "none": "no match"
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 0.24,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 45,
+     "coarse": 0.726,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 75,
+     "coarse": 0.55,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 105,
+     "coarse": 0.629,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 135,
+     "coarse": 0.583,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 165,
+     "coarse": 0.529,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 195,
+     "coarse": 0.905,
+     "fine": 0.104,
+     "expect": "refuse"
+    }
+   ]
+  },
+  {
+   "id": "exHJb5t-6e8",
+   "title": "Stereo Love X Where Have You Been (smashup)",
+   "fullFit": {
+    "none": "no match"
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 0.616,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 45,
+     "coarse": 0.441,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 75,
+     "coarse": 0.62,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 105,
+     "coarse": 0.365,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 135,
+     "coarse": 0.618,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 165,
+     "coarse": 0.616,
+     "expect": "refuse"
+    },
+    {
+     "posSec": 195,
+     "coarse": 0.722,
+     "expect": "refuse"
+    }
+   ]
+  },
+  {
+   "id": "JBbSlADtG-g",
+   "title": "UNETHICAL",
+   "fullFit": {
+    "offsetMs": 0.0
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 1.0,
+     "fine": 0.999,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 45,
+     "coarse": 0.999,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 75,
+     "coarse": 0.997,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 105,
+     "coarse": 0.998,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 135,
+     "coarse": 0.996,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 165,
+     "coarse": 0.996,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 195,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    }
+   ]
+  },
+  {
+   "id": "ndHnHIgQxys",
+   "title": "Базовый минимум",
+   "fullFit": {
+    "offsetMs": 0.01
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 45,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 75,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 105,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    }
+   ]
+  },
+  {
+   "id": "oG-4Uvhm4lI",
+   "title": "Poker Face",
+   "fullFit": {
+    "offsetMs": -117.22
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 0.953,
+     "fine": 0.995,
+     "expect": "match",
+     "offsetMs": -117.2
+    },
+    {
+     "posSec": 45,
+     "coarse": 0.972,
+     "fine": 0.995,
+     "expect": "match",
+     "offsetMs": -117.2
+    },
+    {
+     "posSec": 75,
+     "coarse": 0.971,
+     "fine": 0.996,
+     "expect": "match",
+     "offsetMs": -117.2
+    },
+    {
+     "posSec": 105,
+     "coarse": 0.97,
+     "fine": 0.995,
+     "expect": "match",
+     "offsetMs": -117.2
+    },
+    {
+     "posSec": 135,
+     "coarse": 0.957,
+     "fine": 0.996,
+     "expect": "match",
+     "offsetMs": -117.2
+    },
+    {
+     "posSec": 165,
+     "coarse": 0.973,
+     "fine": 0.995,
+     "expect": "match",
+     "offsetMs": -117.2
+    },
+    {
+     "posSec": 195,
+     "coarse": 0.922,
+     "fine": 0.995,
+     "expect": "match",
+     "offsetMs": -117.2
+    }
+   ]
+  },
+  {
+   "id": "sGgMHiRiklo",
+   "title": "Midnight Sun",
+   "fullFit": {
+    "offsetMs": 0.02
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 1.0,
+     "fine": 0.999,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 45,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 75,
+     "coarse": 0.999,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 105,
+     "coarse": 1.0,
+     "fine": 0.999,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 135,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 165,
+     "coarse": 0.998,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    }
+   ]
+  },
+  {
+   "id": "vNQjKyEMJxk",
+   "title": "SI NO ES CONTIGO",
+   "fullFit": {
+    "offsetMs": 0.01
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 0.999,
+     "fine": 0.999,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 45,
+     "coarse": 0.999,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 75,
+     "coarse": 0.999,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 105,
+     "coarse": 0.999,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 135,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    }
+   ]
+  },
+  {
+   "id": "weaRBsTrSkM",
+   "title": "Vaina Loca",
+   "fullFit": {
+    "offsetMs": 0.0
+   },
+   "windows": [
+    {
+     "posSec": 15,
+     "coarse": 0.999,
+     "fine": 0.997,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 45,
+     "coarse": 0.999,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 75,
+     "coarse": 0.999,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 105,
+     "coarse": 0.999,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    },
+    {
+     "posSec": 135,
+     "coarse": 1.0,
+     "fine": 0.998,
+     "expect": "match",
+     "offsetMs": 0.0
+    }
+   ]
+  }
+ ]
+}

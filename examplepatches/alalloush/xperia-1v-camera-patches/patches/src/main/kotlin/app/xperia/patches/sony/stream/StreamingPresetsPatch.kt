@@ -7,7 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.intOption
 import app.xperia.patches.sony.SONY_CAMERA
 import com.android.tools.smali.dexlib2.Opcode
@@ -29,7 +29,7 @@ private const val RECORDING_PROFILE = "Ljp/co/sony/mc/camera/recorder/RecordingP
  * encoder bitrate/GOP for the chosen mode.
  */
 @Suppress("unused")
-val streamingPresetsPatch = bytecodePatch(
+val streamingPresetsPatch = patch(
     name = "[WIP] Streaming presets",
     default = false,
     description = "Work in progress, crashes the app on launch (v1.3.0). Unlocks 1080p60/120 and 4K30/60 in " +
@@ -70,7 +70,7 @@ val streamingPresetsPatch = bytecodePatch(
                             it.definingClass == CAPTURING_MODE && it.name == "isStreaming"
                         }
                 }
-                if (call < 0) throw PatchException("isStreaming() not found in ${fingerprint.definingClass}")
+                if (call < 0) throw PatchException("isStreaming() not found in $definingClass")
                 val result = getInstruction(call + 1)
                 if (result.opcode != Opcode.MOVE_RESULT) throw PatchException("Unexpected ${result.opcode} after isStreaming()")
                 val register = (result as OneRegisterInstruction).registerA

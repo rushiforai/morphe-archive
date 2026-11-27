@@ -8,12 +8,6 @@ import java.util.List;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/**
- * Audio only, through YouTube's own audio-only playback mode (its PlaybackModality class, which YouTube Premium's
- * audio-only playback uses): the player drops the video surface and plays the audio stream alone. The patch hooks
- * the class's constructors and names its two methods, enable (boolean userInduced, boolean) and disable (boolean
- * userInduced), since the names change with each YouTube version.
- */
 public final class AudioOnly {
 
     private static final List<WeakReference<Object>> MODALITIES = new ArrayList<>();
@@ -24,7 +18,6 @@ public final class AudioOnly {
     private AudioOnly() {
     }
 
-    /** Injection point, at the end of each constructor of YouTube's playback modality. */
     public static void setModality(Object modality, String names) {
         try {
             String[] n = names.split("\\|");
@@ -52,7 +45,6 @@ public final class AudioOnly {
         return on;
     }
 
-    /** Turns YouTube's audio-only mode on or off on every live player; false when no player was found. */
     static boolean set(boolean audioOnly, String why) {
         List<Object> live = new ArrayList<>();
         synchronized (MODALITIES) {

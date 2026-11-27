@@ -710,7 +710,7 @@ val removeGapsAndDividersPatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Theme")
+    category("Appearance")
     dependsOn(settingsPatch, removeGapsResourcePatch, sharedColorsPatch)
 
     execute {
@@ -889,7 +889,7 @@ val materialYouPatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Theme")
+    category("Appearance")
     dependsOn(settingsPatch, materialYouResourcePatch, materialYouBackgroundsResourcePatch, colorHooksPatch)
 
     execute {
@@ -944,7 +944,7 @@ val amoledBlackPatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Theme")
+    category("Appearance")
     dependsOn(settingsPatch, amoledResourcePatch, colorHooksPatch)
 
     execute {

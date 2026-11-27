@@ -38,8 +38,11 @@ public class ToastLengthTest {
         "home_header_not_picture", "home_header_unreadable", "home_header_not_saved", "home_header_busy", "home_header_timeout",
         "home_header_font_saved", "home_header_font_removed", "home_header_font_remove_failed",
         "special_contacts_tracked", "special_contacts_untracked", "special_contacts_full", "special_contacts_failed", "special_contacts_cleared",
+        "chat_preview_taps_gone", StrangerSend.HELD, RemoveContact.DONE, RemoveContact.FAILED,
         "invisible_buttons_invisible", "invisible_buttons_visible", "invisible_buttons_pick_now", "invisible_buttons_pick_none",
         "theme_accent_saved", "theme_accent_saved_on", "theme_pasted", "theme_pasted_on",
+        "own_chat_sounds_saved", "own_chat_sounds_removed", "own_chat_sounds_remove_failed", "own_chat_sounds_not_sound",
+        "own_chat_sounds_unreadable", "own_chat_sounds_not_saved", "own_chat_sounds_busy", "own_chat_sounds_timeout",
     };
 
     @Test public void everyToastFitsOnTwoLinesInEveryLanguage() {
@@ -59,6 +62,7 @@ public class ToastLengthTest {
         check(cut, "quick_setups_hidden", words.get("quick_setups_hidden", words.format("quick_setups_home"), words.format("choices")));
         check(cut, "font_file_too_large", words.get("font_file_too_large", FontFile.MAX_MEGABYTES));
         check(cut, "home_header_too_large", words.get("home_header_too_large", HomeHeaderPicture.MAX_MEGABYTES));
+        check(cut, "own_chat_sounds_too_large", words.get("own_chat_sounds_too_large", OwnChatSounds.MAX_MEGABYTES));
         check(cut, "auto_reply_saved", words.get("auto_reply_saved", 12));
         check(cut, "call_recording_saved", words.get("call_recording_saved", "Recordings/" + CallRecording.FOLDER));
         check(cut, "save_voice_menu_saved", words.get("save_voice_menu_saved", "Recordings/" + VoiceMessages.FOLDER));
@@ -86,10 +90,17 @@ public class ToastLengthTest {
             check(cut, "see_through_tab_bar_picked " + level, words.get("see_through_tab_bar_picked", words.get(SeeThroughTabBar.KEY + "_" + level)));
         for (String level : StoryRowSize.LEVELS)
             check(cut, "story_row_size_picked " + level, words.get("story_row_size_picked", words.percent(Integer.parseInt(level))));
+        for (String size : TabIcons.SIZES)
+            check(cut, "tab_icons_size_picked " + size, words.get("tab_icons_size_picked", words.percent(Integer.parseInt(size))));
         // A switch's toast names it the way its row does, so a translated row puts its translated name in the toast.
         for (String[] control : SettingsActivity.CONTROLS) {
             check(cut, "choice_on " + control[0], words.get("choice_on", words.control(control, 1)));
             check(cut, "choice_off " + control[0], words.get("choice_off", words.control(control, 1)));
+        }
+        // The App tab's own switches toast the same way.
+        for (String key : new String[] {SettingsActivity.IN_RECENTS}) {
+            check(cut, "choice_on " + key, words.get("choice_on", words.get(key)));
+            check(cut, "choice_off " + key, words.get("choice_off", words.get(key)));
         }
     }
 

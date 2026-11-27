@@ -61,6 +61,7 @@ val chatReactionPickerPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.CHAT_REACTION_PICKER)
         check(ChatReactionEntitlementFingerprint.matchAll(1..1).size == 1)
         check(ZaloSettingsFingerprint.matchAll(1..1).size == 1)
         val method = ChatReactionEntitlementFingerprint.method
@@ -77,11 +78,12 @@ val chatReactionPickerPatch = bytecodePatch(
             return v${first.registerA}
         """.trimIndent(), ExternalLabel("nezumi_original_reaction", branch))
 
+        registerHooks(PatchId.CHAT_REACTION_PICKER, method)
         attachNezumiSettings("attachReaction")
     }
 }
 
-context(_: BytecodePatchContext)
+context(context: BytecodePatchContext)
 internal fun attachNezumiSettings(methodName: String) {
     check(ZaloSettingsFingerprint.matchAll(1..1).size == 1)
     val settings = ZaloSettingsFingerprint.method
@@ -102,4 +104,6 @@ internal fun attachNezumiSettings(methodName: String) {
     check(settings.getInstruction<OneRegisterInstruction>(privacyIndex + 4).opcode == Opcode.IF_EQZ)
     check(settings.getInstruction<OneRegisterInstruction>(privacyIndex + 4).registerA == privacy.registerA)
     settings.addInstructions(privacyIndex + 5, "invoke-static {v${lookup.registerC}, v${privacy.registerA}}, $NEZUMI_SETTINGS->$methodName(Landroid/view/View;Landroid/view/View;)V")
+    // Shared by every patch with a settings row, so attributed to shared code rather than one patch.
+    context.registerTouched(PatchId.CORE, settings)
 }

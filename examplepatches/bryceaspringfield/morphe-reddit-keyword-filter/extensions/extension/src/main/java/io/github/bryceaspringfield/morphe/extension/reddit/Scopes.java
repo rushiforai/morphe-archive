@@ -18,11 +18,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-/**
- * Filters of one community ("r/name") or one account ("u/name"), the scope. Keyword rules of a scope stay lines of the
- * rule lists, written "r/name: rule"; post types, flairs, and ranges of each scope are kept as JSON under {@link #KEY}.
- * An account's filters apply to that account's posts anywhere.
- */
 final class Scopes {
 
     static final String KEY = "scopes";
@@ -34,9 +29,6 @@ final class Scopes {
     static final String FLAIRS = "flairs";
     static final String BOUNDS = "bounds";
 
-    /**
-     * One scope's settings. A type or flair absent from its map is shown; ranges are stored as typed.
-     */
     static final class Entry {
         final Map<String, String> types = new TreeMap<>();
         final Map<String, String> flairs = new TreeMap<>();
@@ -85,7 +77,6 @@ final class Scopes {
             read(json.optJSONObject(TYPES), entry.types);
             Map<String, String> flairs = new TreeMap<>();
             read(json.optJSONObject(FLAIRS), flairs);
-            // Flairs saved before 1.1.3 kept their case and emoji.
             for (Map.Entry<String, String> flair : flairs.entrySet()) {
                 String key = Rules.flairKey(flair.getKey());
                 if (!key.isEmpty()) entry.flairs.put(key, flair.getValue());
@@ -117,9 +108,6 @@ final class Scopes {
     private Scopes() {
     }
 
-    /**
-     * Every scope with stored settings (an added scope with none included), sorted by key.
-     */
     static Map<String, Entry> all() {
         String raw = getString(KEY, "{}");
         if (raw.equals(source)) return entries;
@@ -139,17 +127,11 @@ final class Scopes {
         return entries;
     }
 
-    /**
-     * A copy of a scope's settings to edit, empty when it has none.
-     */
     static Entry edit(String scope) {
         Entry entry = all().get(scope);
         return entry == null ? new Entry() : entry.copy();
     }
 
-    /**
-     * Saves a scope's settings; null removes the scope.
-     */
     static void save(String scope, Entry entry) {
         Map<String, Entry> copy = new TreeMap<>(all());
         if (entry == null) copy.remove(scope);
@@ -163,11 +145,6 @@ final class Scopes {
         }
     }
 
-    // region Filtering
-
-    /**
-     * The reason a post is hidden by the filters of its communities or its poster, or null.
-     */
     static String hidePost(PostInfo post, boolean[] has) {
         Map<String, Entry> all = all();
         if (all.isEmpty()) return null;
@@ -217,10 +194,6 @@ final class Scopes {
         return null;
     }
 
-    // endregion
-
-    // region Flairs seen
-
     private static volatile Map<String, Set<String>> seenFlairs;
 
     private static Map<String, Set<String>> seenFlairs() {
@@ -243,9 +216,6 @@ final class Scopes {
         return loaded;
     }
 
-    /**
-     * Records the flairs of a post's community, for the community's settings screen.
-     */
     static void noteFlairs(PostInfo post) {
         if (post.flairs.isEmpty() || post.communities.isEmpty()) return;
         String community = post.communities.get(0);
@@ -273,9 +243,6 @@ final class Scopes {
         }
     }
 
-    /**
-     * The flairs seen in a community and those with a setting, sorted.
-     */
     static List<String> flairsOf(String community, Entry entry) {
         Set<String> flairs = new TreeSet<>(entry.flairs.keySet());
         Set<String> seen = seenFlairs().get(community);
@@ -287,14 +254,6 @@ final class Scopes {
         return new ArrayList<>(flairs);
     }
 
-    // endregion
-
-    // region Rule lines by scope
-
-    /**
-     * A rule list split by scope: key "" holds the lines without a scope, "r/name" and "u/name" the lines of each
-     * scope without its prefix. A line naming several scopes goes to each.
-     */
     static Map<String, List<String>> splitRules(String text) {
         Map<String, List<String>> parts = new LinkedHashMap<>();
         parts.put("", new ArrayList<>());
@@ -329,9 +288,6 @@ final class Scopes {
         return lines == null ? Collections.emptyList() : lines;
     }
 
-    /**
-     * Replaces a scope's lines (scope "" for the lines without one); a typed line naming its own scope goes there.
-     */
     static void setRulesOf(String listKey, String scope, String text) {
         Map<String, List<String>> parts = splitRules(getString(listKey, ""));
         parts.put(scope, new ArrayList<>());
@@ -352,9 +308,6 @@ final class Scopes {
         putString(listKey, joinRules(parts));
     }
 
-    /**
-     * Whether the global post rules hide the whole community or account ("r/name" or "u/name" alone).
-     */
     static boolean hiddenWhole(String scope) {
         for (String line : rulesOf(POST_RULES, "")) {
             if (line.equalsIgnoreCase(scope)) return true;
@@ -371,9 +324,6 @@ final class Scopes {
         setRulesOf(POST_RULES, "", String.join("\n", lines));
     }
 
-    /**
-     * Every scope of a kind ("r/" or "u/") with any filter: stored settings, rule lines, or a whole-scope rule.
-     */
     static Set<String> scopes(String kind) {
         Set<String> scopes = new TreeSet<>();
         for (String scope : all().keySet()) if (scope.startsWith(kind)) scopes.add(scope);
@@ -389,9 +339,6 @@ final class Scopes {
         return scopes;
     }
 
-    /**
-     * Removes every filter of a scope.
-     */
     static void clear(String scope) {
         setRulesOf(POST_RULES, scope, "");
         setRulesOf(COMMENT_RULES, scope, "");
@@ -399,5 +346,4 @@ final class Scopes {
         save(scope, null);
     }
 
-    // endregion
 }

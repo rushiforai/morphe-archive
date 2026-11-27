@@ -28,12 +28,7 @@ public final class Premium {
         return enabled() ? null : offer;
     }
 
-    /** Home toolbar: no Premium icon in place of the league or bell icon. */
-    public static Object toolbarIcon(Object placement) {
-        return enabled() ? null : placement;
-    }
-
-    /** The redesigned Home's toolbar: no diamond. */
+    /** Home's toolbar: no diamond. */
     public static boolean showDiamond(boolean show) {
         return show && !enabled();
     }

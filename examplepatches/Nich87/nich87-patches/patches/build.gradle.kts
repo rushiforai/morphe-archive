@@ -67,7 +67,8 @@ tasks.named<JavaCompile>("compileTestJava") {
         include("LrclibModels.java", "LrclibMatcher.java", "LrclibParser.java", "LrclibApiClient.java",
             "LocalLrcParser.java", "LocalLrcMatcher.java", "LyricsLrcExporter.java",
             "OfficialLyricsTtml.java", "LyricsEditTtml.java", "LyricsEditorModel.java", "LyricsInterludes.java",
-            "LyricsFeatures.java", "TimedPronunciation.java", "LyricsScrollHost.java", "LyricsScrollSyncPolicy.java")
+            "LyricsFeatures.java", "TimedPronunciation.java", "LyricsScrollHost.java", "LyricsScrollSyncPolicy.java",
+            "LyricsPillVisibilityPolicy.java")
     })
     source(project(":extensions:extension").fileTree("src/main/java/app/voidhack/extension/applemusic/font") {
         include("FontInspector.java")

@@ -21,7 +21,7 @@ public final class PinnedChatPrefs {
 
     private static final String PREFS_NAME = "morphe_kicktv";
     private static final String KEY_HIDE_PINNED_ENABLED = "hide_pinned_enabled";
-    private static final boolean DEFAULT_ENABLED = false;
+    private static final boolean DEFAULT_ENABLED = true;
 
     private static SharedPreferences prefs;
     private static volatile Boolean cachedEnabled;

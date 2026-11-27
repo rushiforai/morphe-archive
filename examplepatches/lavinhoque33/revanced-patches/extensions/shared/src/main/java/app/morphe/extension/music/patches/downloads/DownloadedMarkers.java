@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-19.
  * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-17.
@@ -35,11 +36,10 @@ import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
 /**
- * Green "downloaded" checks for the stream copies of Play downloads locally: a small check at the end of every song
- * row of a list (next to its menu) that has a stream copy, and one on the Download button of a playlist or album
- * page whose every track has one. A song that was only saved as a local file has no stream copy and no check. The
- * checks are our own views, driven by an in-memory {@link DownloadedRegistry} of the stream copies: nothing is read
- * from disk or MediaStore while a row or header binds.
+ * Green checks for stream copies of Play downloads locally: a small check at the end of a song row or a completed
+ * playlist card in Downloads, and one on the Download button of a completed playlist or album page. A song that
+ * was only saved as a local file has no stream copy and no check. The checks use an in-memory
+ * {@link DownloadedRegistry}: nothing is read from disk or MediaStore while a row or header binds.
  */
 @SuppressWarnings("unused")
 public final class DownloadedMarkers {
@@ -70,7 +70,9 @@ public final class DownloadedMarkers {
 
         /** The end slot of the row's layout, see {@link RowEndCheck#slotKind}. */
         final String kind;
-        WeakReference<Object> model = new WeakReference<>(null);
+        @Nullable WeakReference<Object> model;
+        /** Null for other rows or until decoded; empty for an ineligible Downloads playlist card. */
+        @Nullable String playlistSourceId;
         final RowEndCheck end = new RowEndCheck();
         String lastOutcome = "";
 
@@ -128,8 +130,14 @@ public final class DownloadedMarkers {
     public static void onRowBound(View view, Object model) {
         try {
             RowState state = rows.get(view);
-            // Switched off: only a row that shows a check has anything to do (hide it).
-            if (!enabled() && (state == null || !state.end.isShown())) return;
+            if (!enabled()) {
+                if (state != null && state != RowState.NOT_A_ROW) {
+                    state.model = null;
+                    state.playlistSourceId = null;
+                    state.end.hide();
+                }
+                return;
+            }
 
             if (state == null) {
                 String kind = RowEndCheck.slotKind(view);
@@ -140,10 +148,12 @@ public final class DownloadedMarkers {
             if (state == RowState.NOT_A_ROW) return;
 
             state.model = new WeakReference<>(model);
-            if (enabled()) ensureLoaded();
+            state.playlistSourceId = null;
+            ensureLoaded();
             applyRow(view, state);
+            if (state.playlistSourceId != null && !state.playlistSourceId.isEmpty()) revalidateLater();
         } catch (Exception ex) {
-            Logger.printException(() -> "Could not mark a downloaded song", ex);
+            Logger.printException(() -> "Could not mark a downloaded row", ex);
         }
     }
 
@@ -176,32 +186,52 @@ public final class DownloadedMarkers {
     }
 
     private static void applyRow(View view, RowState state) {
-        Object model = state.model.get();
-        byte[] bytes = null;
-        String videoId = null;
+        Object model = state.model == null ? null : state.model.get();
+        byte[] bytes;
+        String id = null;
         String reason;
         if (!enabled()) {
             reason = "setting-off";
+        } else if (state.playlistSourceId != null) {
+            applyPlaylistCard(view, state);
+            return;
         } else if (model == null) {
             reason = "model-gone";
-        } else if (!registry.hasTracks()) {
+        } else if (!registry.hasTracks() && (loaded || !DownloadsPage.hasBuilt())) {
             reason = "registry-empty";
         } else if ((bytes = DownloadedModels.serialize(model)) == null) {
             reason = "model-has-no-proto";
         } else {
-            videoId = registry.findDownloaded(bytes);
-            if (videoId == null) videoId = registry.findDownloadedLoose(bytes);
-            reason = videoId == null ? "id-not-downloaded" : "downloaded";
+            state.playlistSourceId = DownloadsPageLogic.playlistCardSourceId(bytes);
+            if (state.playlistSourceId != null) {
+                applyPlaylistCard(view, state);
+                return;
+            }
+
+            id = registry.findDownloaded(bytes);
+            if (id == null) id = registry.findDownloadedLoose(bytes);
+            reason = id == null ? "id-not-downloaded" : "downloaded";
         }
 
+        showRowCheck(view, state, id, reason);
+    }
+
+    private static void applyPlaylistCard(View view, RowState state) {
+        String id = state.playlistSourceId;
+        boolean saved = id != null && !id.isEmpty() && !NativeDownloads.deviceLibrary()
+                && OfflineCopyStore.source(id) != null && isSourceDownloaded(id);
+        showRowCheck(view, state, saved ? id : null, saved ? "playlist-downloaded" : "playlist-not-downloaded");
+    }
+
+    private static void showRowCheck(View view, RowState state, @Nullable String id, String reason) {
         String outcome;
-        if (videoId == null) {
+        if (id == null) {
             state.end.hide();
             outcome = "hidden";
         } else {
             outcome = state.end.show(view);
         }
-        rowLog.decided(state, reason, videoId, outcome);
+        rowLog.decided(state, reason, id, outcome);
     }
 
     /** Called when a stream copy was kept: the track has one from now on. */
@@ -450,7 +480,7 @@ public final class DownloadedMarkers {
             try {
                 applyRow(view, row.getValue());
             } catch (Exception ex) {
-                Logger.printException(() -> "Could not refresh a downloaded song", ex);
+                Logger.printException(() -> "Could not refresh a downloaded row", ex);
             }
         }
         for (Map.Entry<ViewGroup, DownloadedHeaders.State> header : new ArrayList<>(headers.entrySet())) {

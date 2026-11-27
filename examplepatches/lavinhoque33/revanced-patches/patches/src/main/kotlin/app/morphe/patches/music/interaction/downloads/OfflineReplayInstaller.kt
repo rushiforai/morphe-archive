@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-19.
  * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-14.
@@ -13,11 +14,15 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.music.video.information.ModernVideoEndFingerprint
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
+import app.morphe.patches.shared.misc.fix.proto.parseByteArrayWithRegistryMethodRef
 import app.morphe.util.Utils.printInfo
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -48,6 +53,7 @@ private const val PAGE_RESPONSE = $$"Lapp/morphe/extension/music/patches/downloa
 private const val NEXT_REQUEST = $$"Lapp/morphe/extension/music/patches/downloads/OfflineReplay$NextRequest;"
 private const val STREAM_RESPONSE = $$"Lapp/morphe/extension/music/patches/downloads/StreamSwap$Response;"
 private const val BROWSE_BYTES = $$"Lapp/morphe/extension/music/patches/downloads/OfflineBrowsePages$Bytes;"
+private const val DETAIL_PAGE = $$"Lapp/morphe/extension/music/patches/downloads/OfflineReplay$DetailPage;"
 private const val SHEET_CONTROLLER = $$"Lapp/morphe/extension/music/patches/downloads/NoConnectionSheet$Controller;"
 private const val ON_SHEET_SHOWN = "$REPLAY->noConnectionSheetShown(Ljava/lang/Object;)V"
 private const val OBJECT = "Ljava/lang/Object;"
@@ -76,6 +82,9 @@ private const val PAGE_REQUEST_NAME = "OfflineBrowsePageGenerationService"
 
 /** The message the failure method of the page fragment (the base class of playlist and album pages) logs. */
 private const val DETAIL_ERROR = "AbstractDetailPageFragment onEntityError."
+private const val BROWSE_CACHE_FAILURE = "Failed to load response from PersistentBrowseService"
+private const val BROWSE_METADATA = "BrowseResponseMetadata{responseTimeMs="
+private val PLAYLIST_SYNC_VERSIONS = setOf("9.45.51", "9.40.51", "9.15.51", "8.30.54")
 
 /** Message of the failure the stock player lookup ends with when a song was not downloaded the stock way. */
 private const val UNPLAYABLE = "Unplayable Video"
@@ -100,13 +109,10 @@ internal fun BytecodePatchContext.installOfflineReplay() {
         val supported = mutableClassDefBy(REPLAY).methods.single { it.name == "supported" }
         val installGate = prepareReplayGate(commandType)
         val (requestType, installTail) = prepareReplayTail()
-        val installNext = prepareReplayNext(requestType, commandType)
+        val (shuffleAvailable, installNext) = prepareReplayNext(requestType, commandType)
 
         val installPage = prepareDownloadsPage()
-        // Keep the existing browse-page range; older versions gain player/next replay, not a new browse model.
-        val installBrowse = if (packageMetadata.versionName in setOf("9.45.51", "9.40.51", "9.15.51", "8.30.54")) {
-            prepareBrowsePages()
-        } else null
+        val installBrowse = prepareBrowsePages(shuffleAvailable)
         val installSeek = prepareSeekSnap()
         val installSheet = prepareNoConnectionSheet()
 
@@ -118,10 +124,10 @@ internal fun BytecodePatchContext.installOfflineReplay() {
         installSeek?.invoke()
         installSheet?.invoke()?.let(::printInfo)
         supported.returnEarly(true)
-        if (installBrowse != null) {
+        if (installBrowse != null && packageMetadata.versionName in PLAYLIST_SYNC_VERSIONS) {
             mutableClassDefBy(PLAYLIST_SYNC).methods.single { it.name == "syncSupported" }.returnEarly(true)
         } else {
-            printWarn("Playlist sync skipped: native offline browse is not installed on this Music version.")
+            printWarn("Playlist sync skipped: its native browse integration is not supported on this Music version.")
         }
         printInfo(
             "OfflineReplay: gate, player lookup and watch-next hooked; " +
@@ -366,25 +372,10 @@ private fun BytecodePatchContext.serializerOf(message: String): String {
 }
 
 /**
- * The pages the app shows in its page fragment (a playlist, an album): the stock page is recorded online and answered
- * again offline, so a downloaded list opens as its own page. The fragment is the base class of the playlist and album
- * pages (`Lglh` in 9.40.51), found by the message its failure method logs, [DETAIL_ERROR]. Its two sibling methods
- * take the page's request state (the base class of the browse request, which also holds the browse id): the failure
- * `(State, Throwable)V` and the success `(State, Object)V` that renders the response model. Two hooks that go in
- * together or not at all:
- *
- * - capture: the success hands the request's browse id and the response model to [REPLAY]. The model class gets
- *   [BROWSE_BYTES] and a bridge that serializes the message it holds.
- * - replay: the failure asks [REPLAY] for a stored page before anything else. With one it parses the bytes into a
- *   model, the way the controller does, and gives it to the success method of the same fragment, which renders it
- *   and sets the state of the request. Without one the stock body runs unchanged.
- *
- * The request class is the subclass of the state class the fragment tests; its browse id is its only
- * no-argument string method. The model class is the one the success method tests (`instance-of`); its message is the
- * field its one-argument constructor takes.
- * Optional: a version where the shape is not found opens a downloaded list as before.
+ * Captures the native detail model at success and retains existing album failure replay on its original versions.
+ * Playlist requests use the first-load bridge when available instead of waiting for the stock error callback.
  */
-private fun BytecodePatchContext.prepareBrowsePages(): (() -> Unit)? {
+private fun BytecodePatchContext.prepareBrowsePages(shuffleAvailable: Boolean): (() -> Unit)? {
     try {
         val failureMatch = Fingerprint(
             returnType = "V",
@@ -401,9 +392,7 @@ private fun BytecodePatchContext.prepareBrowsePages(): (() -> Unit)? {
             !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
                 it.parameterTypes.map(CharSequence::toString) == listOf(stateType, OBJECT)
         }
-        // Both hooks use v0 at the entry and call a method on `this` with the state and one more register.
-        check(success.implementation!!.registerCount - 3 >= 1) { "browse: success registers" }
-        check(failure.implementation!!.registerCount - 3 in 1..13) { "browse: failure registers" }
+        check(success.implementation!!.registerCount - 3 in 2..13) { "browse: success registers" }
 
         val requestTypes = page.methods.flatMap { it.implementation?.instructions ?: emptyList() }
             .filter { it.opcode == Opcode.INSTANCE_OF }
@@ -419,10 +408,7 @@ private fun BytecodePatchContext.prepareBrowsePages(): (() -> Unit)? {
         check(idAccessors.size == 1) { "browse: found ${idAccessors.size} id accessors" }
         val idName = idAccessors.single().name
 
-        val models = success.implementation!!.instructions.filter { it.opcode == Opcode.INSTANCE_OF }
-            .mapNotNull { it.getReference<TypeReference>()?.type }.distinct()
-        check(models.size == 1) { "browse: found ${models.size} model classes" }
-        val modelType = models.single()
+        val modelType = detailModelType(success)
         val modelClass = mutableClassDefBy(modelType)
         val modelInit = modelClass.methods.singleOrNull { it.name == "<init>" && it.parameterTypes.size == 1 }
         check(modelInit != null) { "browse: model constructor" }
@@ -434,12 +420,19 @@ private fun BytecodePatchContext.prepareBrowsePages(): (() -> Unit)? {
             it.type == messageType && AccessFlags.STATIC.isSet(it.accessFlags)
         }
         val serialize = serializerOf(messageType)
-        val parserOwner = parseByteArrayMethodRef.get()!!.definingClass
-        val parser = mutableClassDefBy(parserOwner).methods.single {
-            it.name == "parseFrom" && it.parameterTypes == listOf(parserOwner, "[B", REGISTRY)
+        val keepLegacy = packageMetadata.versionName in PLAYLIST_SYNC_VERSIONS
+        val legacyParser = if (keepLegacy) checkNotNull(parseByteArrayWithRegistryMethodRef.get()) else null
+        val installInitial = try {
+            prepareInitialDetail(page, success, stateType, requestType, modelInit, default, shuffleAvailable)
+        } catch (ex: Exception) {
+            printWarn("OfflineReplay: initial playlist detail load not hooked: ${ex.message}")
+            if (!keepLegacy) return null
+            null
         }
-
-        val stock = ExternalLabel("rvx_page_stock", failure.getInstruction<Instruction>(0))
+        val stock = if (keepLegacy) {
+            check(failure.implementation!!.registerCount - 3 in 1..13) { "browse: failure registers" }
+            ExternalLabel("rvx_page_stock", failure.getInstruction<Instruction>(0))
+        } else null
 
         return {
             modelClass.interfaces.add(BROWSE_BYTES)
@@ -460,38 +453,225 @@ private fun BytecodePatchContext.prepareBrowsePages(): (() -> Unit)? {
                 const/4 v0, 0x0
                 return-object v0
             """)
-            page.addDownloadsBridge("rvxPageModel", listOf("[B"), OBJECT, 4, """
-                sget-object v0, $messageType->${default.name}:${default.type}
-                invoke-static {}, $REGISTRY->getGeneratedRegistry()$REGISTRY
-                move-result-object v1
-                invoke-static {v0, p1, v1}, $parser
-                move-result-object v0
-                check-cast v0, $messageType
-                new-instance v1, $modelType
-                invoke-direct {v1, v0}, $modelType-><init>($messageType)V
-                return-object v1
-            """)
             success.addInstructions(0, """
                 invoke-virtual {p0, p1}, ${page.type}->rvxPageId($stateType)$STRING
                 move-result-object v0
-                invoke-static {v0, p2}, $REPLAY->onBrowseResponse($STRING$OBJECT)V
+                const/4 v1, ${if (keepLegacy) 1 else 0}
+                invoke-static {v0, p2, v1}, $REPLAY->onBrowseResponse($STRING${OBJECT}Z)V
             """)
-            failure.addInstructionsWithLabels(0, """
-                invoke-virtual {p0, p1}, ${page.type}->rvxPageId($stateType)$STRING
-                move-result-object v0
-                invoke-static {v0, p2}, $REPLAY->answerBrowse($STRING$THROWABLE)[B
-                move-result-object v0
-                if-eqz v0, :rvx_page_stock
-                invoke-virtual {p0, v0}, ${page.type}->rvxPageModel([B)$OBJECT
-                move-result-object v0
-                invoke-virtual {p0, p1, v0}, ${page.type}->${success.name}($stateType$OBJECT)V
-                return-void
-            """, stock)
+            if (stock != null && legacyParser != null) {
+                page.addDownloadsBridge("rvxPageModel", listOf("[B"), OBJECT, 4, """
+                    sget-object v0, $default
+                    invoke-static {}, $REGISTRY->getGeneratedRegistry()$REGISTRY
+                    move-result-object v1
+                    invoke-static {v0, p1, v1}, $legacyParser
+                    move-result-object v0
+                    check-cast v0, $messageType
+                    new-instance v1, $modelType
+                    invoke-direct {v1, v0}, $modelInit
+                    return-object v1
+                """)
+                failure.addInstructionsWithLabels(0, """
+                    invoke-virtual {p0, p1}, ${page.type}->rvxPageId($stateType)$STRING
+                    move-result-object v0
+                    invoke-static {v0, p2}, $REPLAY->answerBrowse($STRING$THROWABLE)[B
+                    move-result-object v0
+                    if-eqz v0, :rvx_page_stock
+                    invoke-virtual {p0, v0}, ${page.type}->rvxPageModel([B)$OBJECT
+                    move-result-object v0
+                    invoke-virtual {p0, p1, v0}, ${page.type}->${success.name}($stateType$OBJECT)V
+                    return-void
+                """, stock)
+            }
+            installInitial?.invoke()
         }
     } catch (ex: Exception) {
         printWarn("OfflineReplay: browse pages not hooked; a downloaded list opens as before: ${ex.message}")
         return null
     }
+}
+
+/** Before 8.30 the success method leaves the model untyped; resolve the native browse-result envelope instead. */
+private fun BytecodePatchContext.detailModelType(success: Method): String {
+    val checkedModels = success.implementation!!.instructions.filter { it.opcode == Opcode.INSTANCE_OF }
+        .mapNotNull { it.getReference<TypeReference>()?.type }.distinct()
+    if (checkedModels.isNotEmpty()) return checkedModels.single()
+
+    val metadata = Fingerprint(strings = listOf(BROWSE_METADATA)).matchSingle().classDef
+    val types = setOf(metadata.type, metadata.superclass).filterNotNull()
+    val fallback = Fingerprint(returnType = FUTURE, strings = listOf(BROWSE_CACHE_FAILURE)).matchSingle().method
+    return fallback.implementation!!.instructions.mapNotNull { it.getReference<MethodReference>() }
+        .single { it.name == "<init>" && it.parameterTypes.size == 2 && it.parameterTypes[1].toString() in types }
+        .parameterTypes.first().toString()
+}
+
+/**
+ * The fragment's onCreate and deferred first-load entry both call its abstract request issuer. Replacing those
+ * invocations (rather than the issuer itself) leaves button and mutation refreshes alone. Stock onDestroy cancels
+ * the request state; stock success sets it to LOADED. The worker's delivery checks the same identity and INITIAL
+ * phase, so it cannot render a replaced, refreshed, or destroyed request.
+ */
+private fun BytecodePatchContext.prepareInitialDetail(
+    page: MutableClass, success: MutableMethod, stateType: String, requestType: String,
+    modelInit: MethodReference, default: FieldReference,
+    shuffleAvailable: Boolean,
+): () -> Unit {
+    val state = classDefByOrNull(stateType) ?: error("browse: no request state class")
+    val onCreate = page.methods.single {
+        it.name == "onCreate" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/os/Bundle;")
+    }
+    val createCode = onCreate.implementation!!.instructions.toList()
+    check(createCode.any { it.getReference<StringReference>()?.string == "defer_entity_loading" }) {
+        "browse: no fragment first-load gate"
+    }
+    val issuers = page.methods.filter {
+        AccessFlags.ABSTRACT.isSet(it.accessFlags) && it.returnType == "V" &&
+            it.parameterTypes.map(CharSequence::toString) == listOf(stateType)
+    }
+    val issuer = issuers.single { method ->
+        createCode.any { it.getReference<MethodReference>() == method }
+    }
+    val current = createCode.filter { it.opcode == Opcode.IGET_OBJECT }
+        .mapNotNull { it.getReference<FieldReference>() }
+        .distinct().single { it.definingClass == page.type && it.type == stateType }
+    val phase = state.fields.single { classDefByOrNull(it.type)?.superclass == "Ljava/lang/Enum;" }
+    val initial = state.methods.single { it.name == "<init>" && it.parameterTypes.isEmpty() }
+        .implementation!!.instructions.filter { it.opcode == Opcode.SGET_OBJECT }
+        .mapNotNull { it.getReference<FieldReference>() }
+        .single { it.definingClass == phase.type && it.type == phase.type }
+    val flags = state.methods.single {
+        !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" &&
+            it.parameterTypes.map(CharSequence::toString) == listOf("I")
+    }
+    val context = state.fields.single { it.type == MAP && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    val deferred = page.methods.single {
+        it.parameterTypes.isEmpty() && it.returnType == "V" &&
+            it.implementation?.instructions?.any { instruction ->
+                instruction.getReference<MethodReference>() == issuer
+            } == true
+    }
+    val sites = listOf(onCreate, deferred).map { method ->
+        val instructions = method.implementation!!.instructions.toList()
+        val site = instructions.indices.single { index ->
+            instructions[index].getReference<MethodReference>() == issuer
+        }
+        val invoke = instructions[site]
+        check(invoke.opcode == Opcode.INVOKE_VIRTUAL && invoke is FiveRegisterInstruction &&
+            invoke.registerCount == 2) { "browse: first-load invocation registers" }
+        Triple(method, site, invoke)
+    }
+    val hook = mutableClassDefBy(REPLAY).methods.single { it.name == "localDetailSupported" }
+    val shuffleHook = if (shuffleAvailable) {
+        mutableClassDefBy(REPLAY).methods.single { it.name == "localPlaylistShuffleSupported" }
+    } else null
+    val (onlinePage, service) = stockDetailPage(issuer, requestType)
+    val installSavedModel = prepareSavedPlaylistModel(onlinePage, service, modelInit, default)
+
+    return {
+        installSavedModel()
+        onlinePage.interfaces.add(DETAIL_PAGE)
+        page.addDownloadsBridge("rvxOwnsInitialBrowse", listOf(OBJECT), "Z", 4, """
+            instance-of v0, p1, $requestType
+            if-eqz v0, :rvx_other_request
+            iget-object v0, p0, $current
+            if-ne v0, p1, :rvx_other_request
+            check-cast p1, $stateType
+            iget-object v0, p1, $phase
+            sget-object v1, $initial
+            if-ne v0, v1, :rvx_other_request
+            const/4 v0, 0x1
+            return v0
+            :rvx_other_request
+            const/4 v0, 0x0
+            return v0
+        """)
+        page.addDownloadsBridge("rvxInitialBrowseId", listOf(OBJECT), STRING, 4, """
+            invoke-virtual {p0, p1}, ${page.type}->rvxOwnsInitialBrowse($OBJECT)Z
+            move-result v0
+            if-eqz v0, :rvx_no_initial
+            check-cast p1, $stateType
+            const/4 v0, 0x2
+            invoke-virtual {p1, v0}, $flags
+            move-result v0
+            if-nez v0, :rvx_no_initial
+            invoke-virtual {p0, p1}, ${page.type}->rvxPageId($stateType)$STRING
+            move-result-object v0
+            iget-object v1, p1, $context
+            invoke-static {v0, v1}, $REPLAY->initialDetailId($STRING$MAP)$STRING
+            move-result-object v0
+            return-object v0
+            :rvx_no_initial
+            const/4 v0, 0x0
+            return-object v0
+        """)
+        page.addDownloadsBridge("rvxFinishInitialBrowse", listOf(OBJECT, OBJECT), "Z", 4, """
+            invoke-virtual {p0, p1}, ${page.type}->rvxOwnsInitialBrowse($OBJECT)Z
+            move-result v0
+            if-eqz v0, :rvx_not_delivered
+            check-cast p1, $stateType
+            if-eqz p2, :rvx_issue_stock
+            invoke-virtual {p0, p1, p2}, ${page.type}->${success.name}($stateType$OBJECT)V
+            const/4 v0, 0x1
+            return v0
+            :rvx_issue_stock
+            invoke-virtual {p0, p1}, $issuer
+            :rvx_not_delivered
+            const/4 v0, 0x0
+            return v0
+        """)
+        page.addDownloadsBridge("rvxLoadInitialBrowse", listOf(stateType), "V", 3, """
+            invoke-static {p0, p1}, $REPLAY->openInitialBrowse($OBJECT$OBJECT)Z
+            move-result v0
+            if-nez v0, :rvx_initial_handled
+            invoke-virtual {p0, p1}, $issuer
+            :rvx_initial_handled
+            return-void
+        """)
+        for ((method, index, invoke) in sites) {
+            method.replaceInstruction(index,
+                "invoke-virtual {v${invoke.registerC}, v${invoke.registerD}}, " +
+                    "${page.type}->rvxLoadInitialBrowse($stateType)V")
+        }
+        hook.returnEarly(true)
+        shuffleHook?.returnEarly(true)
+        printInfo("OfflineReplay: local first playlist detail load hooked in ${page.type} (${onlinePage.type})")
+    }
+}
+
+/**
+ * The native playlist fragment's bridge delegates to a public final typed method which issues the browse future.
+ * The stock offline/media-provider fragment has a protected issuer and must keep using its own data.
+ */
+private fun BytecodePatchContext.stockDetailPage(
+    issuer: MethodReference, requestType: String,
+): Pair<MutableClass, FieldReference> {
+    val match = Fingerprint(
+        accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+        returnType = "V",
+        parameters = listOf(requestType),
+        custom = { method, owner ->
+            val bridge = owner.methods.singleOrNull {
+                it.name == issuer.name && it.returnType == issuer.returnType &&
+                    it.parameterTypes == issuer.parameterTypes
+            }
+            bridge?.implementation?.instructions?.any {
+                it.getReference<MethodReference>() == method
+            } == true && method.implementation?.instructions?.any(::isBrowseServiceCall) == true
+        },
+    ).matchSingle()
+    val page = mutableClassDefBy(match.classDef.type)
+    val code = match.method.implementation!!.instructions.toList()
+    val service = code.single(::isBrowseServiceCall).getReference<MethodReference>()!!.definingClass
+    val field = code.filter { it.opcode == Opcode.IGET_OBJECT }.mapNotNull { it.getReference<FieldReference>() }
+        .distinct().single { it.definingClass == page.type && it.type == service }
+    return page to field
+}
+
+private fun isBrowseServiceCall(instruction: Instruction): Boolean {
+    val call = instruction.getReference<MethodReference>() ?: return false
+    return instruction.opcode == Opcode.INVOKE_VIRTUAL && call.returnType == FUTURE &&
+        call.parameterTypes.size == 2 && call.parameterTypes[0].startsWith("L") &&
+        call.parameterTypes[1] == "Ljava/util/concurrent/Executor;"
 }
 
 /**
@@ -856,7 +1036,9 @@ private fun BytecodePatchContext.prepareReplayTail(): Pair<String, () -> Unit> {
  * stock future of an offline watch of ours is answered with the queue built from the stored list. The request class
  * gets two bridges: its watch command, and the stock response object of a response's bytes.
  */
-private fun BytecodePatchContext.prepareReplayNext(requestType: String, commandType: String): () -> Unit {
+private fun BytecodePatchContext.prepareReplayNext(
+    requestType: String, commandType: String,
+): Pair<Boolean, () -> Unit> {
     val match = Fingerprint(
         returnType = FUTURE,
         parameters = listOf(requestType, "Z"),
@@ -892,14 +1074,22 @@ private fun BytecodePatchContext.prepareReplayNext(requestType: String, commandT
     val parser = mutableClassDefBy(parserOwner).methods.single {
         it.name == "parseFrom" && it.parameterTypes == listOf(parserOwner, "[B", REGISTRY)
     }
+    val shuffle = prepareSavedPlaylistShuffle(response, requestType, protoType)
+    val attachShuffle = shuffle?.let {
+        """
+            iput-boolean p2, v1, ${it.marker}
+            iput-object p3, v1, ${it.continuation}
+        """
+    }.orEmpty()
 
-    return {
+    return (shuffle != null) to {
+        shuffle?.install?.invoke()
         requestClass.interfaces.add(NEXT_REQUEST)
         requestClass.addDownloadsBridge("rvxCommand", emptyList(), OBJECT, 2, """
             iget-object v0, p0, ${commandField.definingClass}->${commandField.name}:${commandField.type}
             return-object v0
         """)
-        requestClass.addDownloadsBridge("rvxNextResponse", listOf("[B"), OBJECT, 4, """
+        requestClass.addDownloadsBridge("rvxNextResponse", listOf("[B", "Z", OBJECT), OBJECT, 6, """
             sget-object v0, $protoDefault
             invoke-static {}, $REGISTRY->getGeneratedRegistry()$REGISTRY
             move-result-object v1
@@ -908,6 +1098,7 @@ private fun BytecodePatchContext.prepareReplayNext(requestType: String, commandT
             check-cast v0, $protoType
             new-instance v1, $responseType
             invoke-direct {v1, v0}, $responseType-><init>($protoType)V
+            $attachShuffle
             return-object v1
         """)
         method.addInstructions(returnIndex, """

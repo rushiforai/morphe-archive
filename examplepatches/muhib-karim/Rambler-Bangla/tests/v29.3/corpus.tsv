@@ -1,0 +1,293 @@
+# id	class	input
+cs1	codeswitch	ami meeting e jabo tomorrow
+cs2	codeswitch	amar phone ta charge dite hobe please
+cs3	codeswitch	first e ami office jabo, but traffic onek beshi
+cs4	codeswitch	ei project er deadline next week
+cs5	codeswitch	amake ekta email pathao
+cs6	codeswitch	ami office theke late e ashbo
+cs7	codeswitch	tomar laptop ta ki kaj korche
+cs8	codeswitch	aj amar interview ache
+cs9	codeswitch	ei file ta download kore dao
+cs10	codeswitch	bus stop e wait korchi
+cs11	codeswitch	amar internet slow cholche
+cs12	codeswitch	doctor er appointment kalke
+cs13	codeswitch	ami tomake message dibo
+cs14	codeswitch	password ta change korte hobe
+cs15	codeswitch	class shesh hole call korbo
+cs16	codeswitch	team meeting ta cancel hoye geche
+cs17	codeswitch	ami ekhon busy, pore kotha bolbo
+cs18	codeswitch	okay ami ashchi
+cs19	codeswitch	thank you bhai
+cs20	codeswitch	sorry ami bhule gechilam
+cs21	codeswitch	ei weekend e plan ki
+cs22	codeswitch	amar battery low
+cs23	codeswitch	update ta install korecho
+cs24	codeswitch	restaurant e table book koro
+cs25	codeswitch	ami gym e jacchi
+cs26	codeswitch	shop ta ki open ache
+cs27	codeswitch	ticket ta confirm hoyeche
+cs28	codeswitch	amar boss khub angry
+cs29	codeswitch	ei month er salary pai nai
+cs30	codeswitch	video call e join koro
+cs31	codeswitch	please ektu wait koro
+cs32	codeswitch	tumi ki free acho tonight
+cs33	codeswitch	report ta friday er moddhe submit korbo
+cs34	codeswitch	amar flight delay hoyeche
+cs35	codeswitch	hospital e jete hobe emergency
+cs36	codeswitch	camera ta kharap hoye geche
+cs37	codeswitch	online e order korechi
+cs38	codeswitch	ami exam er jonno study korchi
+cs39	codeswitch	birthday party te ashbe to
+cs40	codeswitch	amar mood ta ajke good na
+url1	url	amar website holo https://github.com/ai-dev-2024/Rambler-Bangla dekho
+url2	url	mail koro rahim@example.com e
+url3	url	link ta holo www.example.com
+url4	url	amake contact@example.com e pathao
+url5	url	ei site e jao example.org
+url6	url	https://youtu.be/abc123 ta dekho
+dig1	digits	ami 5 ta boi kinechi 2026 e
+dig2	digits	meeting 10:30 e shuru hobe
+dig3	digits	amar number 01712345678
+dig4	digits	ami 3 din por ashbo
+dig5	digits	dam holo 500 taka
+dig6	digits	train chare 7 tay
+dig7	digits	room number 204
+dig8	digits	amar boyosh 25
+dig9	digits	5pm e dekha hobe
+dig10	digits	flat 4B te thaki
+dig11	digits	+8801712345678 e call koro
+dig12	digits	15 minute lagbe
+dig13	digits	2 ta ticket lagbe
+dig14	digits	ajke 30 degree gorom
+dig15	digits	bill holo 1,250 taka
+hd1	handle	@rahim ke tag koro
+hd2	handle	amar id holo @mk_2024
+hd3	handle	#bangladesh hashtag ta dao
+nm1	names	rahim ar karim ashbe
+nm2	names	ami dhaka te thaki
+nm3	names	google e search koro
+nm4	names	whatsapp e message dao
+nm5	names	facebook e post korechi
+nm6	names	samsung phone ta valo
+nm7	names	chittagong jabo kalke
+nm8	names	netflix e movie dekhbo
+cv1	convert	ami tomake bhalobashi
+cv2	convert	ajke amar mon bhalo nei
+cv3	convert	tumi kemon acho
+cv4	convert	ami bhat khabo
+cv5	convert	tumi kothay jaccho
+cv6	convert	amra kalke dekha korbo
+cv7	convert	ami bari jacchi
+cv8	convert	ki korcho ekhon
+cv9	convert	amar khub khide peyeche
+cv10	convert	tomar nam ki
+cv11	convert	ami janina
+cv12	convert	eta onek sundor
+cv13	convert	ma ke bolo ami ashchi
+cv14	convert	brishti hocche baire
+cv15	convert	chhele ta khub bhalo
+cv16	convert	amra shobai mile jabo
+cv17	convert	tumi ki amake chino
+cv18	convert	ami kichu bujhte parchi na
+cv19	convert	dhonnobad apnake
+cv20	convert	shuprobhat
+cv21	convert	ami kinechi ekta notun jama
+cv22	convert	o boleche ashbe
+cv23	convert	amader school ta boro
+cv24	convert	pani khete hobe
+cv25	convert	shondhay dekha hobe
+cv26	convert	tumi kno ashle na
+cv27	convert	amar bhai er biye
+cv28	convert	shob thik ache
+cv29	convert	chinta koro na
+cv30	convert	kal raate ghum hoy nai
+bn1	bangla	আমি তোমাকে ভালোবাসি
+bn2	bangla	আজকে আবহাওয়া খুব ভালো
+bn3	bangla	তুমি কোথায় যাচ্ছ?
+bn4	bangla	আমার নাম রহিম।
+bn5	bangla	কাল ১০টায় মিটিং আছে
+bn6	bangla	ঠিক আছে, দেখা হবে
+mx1	mixedscript	আমি meeting এ যাব
+mx2	mixedscript	ami আসছি
+mx3	mixedscript	ok ঠিক আছে
+en1	english	I will call you later tonight
+en2	english	Please send the report by Friday
+en3	english	Can you check the file
+en4	english	The meeting is at 10:30
+en5	english	Thanks, see you tomorrow
+en6	english	Send it to rahim@example.com
+en7	english	My number is 01712345678
+en8	english	OK
+en9	english	I am on my way
+en10	english	Let me know when you are free
+en11	english	Happy birthday
+en12	english	What time is the flight
+en13	english	Check https://example.com for details
+en14	english	I bought 5 books in 2026
+en15	english	Good morning everyone
+pn1	punct	ami ashchi!
+pn2	punct	tumi kemon acho?
+pn3	punct	"ami jabo" boleche
+pn4	punct	ha, ami jani.
+pn5	punct	na... thak
+pn6	punct	ami, tumi, o shobai
+cp1	case	Ami Ashchi
+cp2	case	AMI ASHCHI
+cp3	case	NASA er rocket
+cp4	case	iPhone ta notun
+cp5	case	PDF ta pathao
+cp6	case	USA te thake
+ed1	edge	a
+ed2	edge	
+ed3	edge	   
+ed4	edge	ami
+ed5	edge	ok
+ed6	edge	hmm
+ed7	edge	ami  ashchi
+ed8	edge	I
+ad1	adjacent	send koro 01712345678 number e
+ad2	adjacent	call me at 01712345678 please
+ad3	adjacent	ami ekhon https://example.com open korchi
+ad4	adjacent	email rahim@example.com ke pathao
+ad5	adjacent	10:30 e meeting ache
+os1	onetoken	I am going to the office, tarpor dekha hobe
+os2	onetoken	this is ekta test for the keyboard
+os3	onetoken	I think ami jabo
+os4	onetoken	please call me, ami wait korchi
+cap1	capital	Dekhi ki hoy
+cap2	capital	Tumi ki ashbe
+cap3	capital	Ami bujhlam na
+ap1	apostrophe	it doesn't work
+ap2	apostrophe	ami jani it's okay
+ap3	apostrophe	don't worry, ami achi
+mk1	mkpair	ami typing korchi
+mk2	mkpair	o ashtese
+mk3	mkpair	kisu bujhi na
+mk4	mkpair	ekta okkhor bhul
+mk5	mkpair	bus asche
+mk6	mkpair	tarpor ki holo
+mk7	mkpair	keyboard ta bhalo
+lk1	leak	retweet koro
+lk2	leak	I will retweet it
+em1	emoji	ami ashchi 😀
+em2	emoji	thank you 🙏
+em3	emoji	😂😂 ki bolo
+amb1	english	I have to go
+amb2	ambiguous	ma ke bolo ami ashchi
+amb3	ambiguous	hole e dhukbo na
+amb4	english	we will mile together
+amb5	english	take it or leave it
+amb6	ambiguous	o ki bollo
+amb7	ambiguous	na ami jabo na
+amb8	english	the bus is late
+amb9	ambiguous	ha ami ashchi
+amb10	ambiguous	age ami jabo
+amb11	english	what is your age
+amb12	ambiguous	se kothay
+r1a	english	I will retweet it on netflix
+r1b	english	Rahim is coming to the office
+r1c	english	check whatsapp later
+r1d	english	Samsung released a new phone
+r1e	english	Karim sent the PDF to NASA
+r2a	onetoken	I need ekta pen
+r2b	onetoken	the meeting is kalke
+r3din	collision	what a din it was
+r3dinb	collision	din ta bhalo gelo
+r3por	collision	por ami jabo
+r3mon	collision	mon is short for monday
+r3monb	collision	amar mon kharap
+r3nam	collision	nam ki tomar
+r3ma	collision	Ma said no
+r3mab	collision	ma khete dao
+r3mile	collision	I ran a mile
+r3mileb	collision	amra mile kaj korbo
+r3hole	collision	there is a hole in the wall
+r3holeb	collision	tumi ashle hole bhalo hoy
+r3to	collision	I want to go home
+r3tob	collision	tumi to ashbe
+r3ke	collision	ke ashche
+r3te	collision	te amar kono dosh nai
+r4a	short	ami jabo
+r4b	short	jabo
+r4c	short	thanks
+r4d	short	ok ashchi
+r4e	short	see you
+pp1	postpos	google e dekho
+pp2	postpos	10:30 e ashbo
+pp3	postpos	PDF ta dao
+pp4	postpos	rahim@example.com e pathao
+pp5	postpos	www.example.com e jao
+ms1	multisent	I am coming. ami ashchi.
+ms2	multisent	ami ashchi. See you soon.
+ms3	multisent	tumi kothay? I am here.
+ms4	multisent	Thanks a lot! tomake onek dhonnobad.
+ms5	multisent	meeting ta kalke. Please confirm.
+hs1	handle	#throwback chobi ta dekho
+co1	collision	tomar mon aj office problem stress
+co2	collision	amar ma aj hospital appointment done
+co3	collision	ami ek din gym trainer class
+ho1	heldout	kal raate onek brishti hoyeche
+ho2	heldout	tumi ki amake ekta call dite parbe?
+ho3	heldout	Please send me the report by Friday.
+ho4	heldout	ami ashchi. Wait for me at the gate.
+ho5	heldout	Can you hear me? ami tomake shunte pacchi na.
+ho6	heldout	ei shoptahe amar exam ache
+ho7	heldout	The weather is really nice today.
+ho8	heldout	bhai tomar laptop ta ektu dao
+ho9	heldout	meeting ta kalke shokal dosh tay
+ho10	heldout	I am tired, ghumate jacchi
+ho11	heldout	amar website www.example.com e dekho
+ho12	heldout	Thank you so much for your help.
+f1a	english	Take care
+f1b	english	Go to sleep
+f1c	english	Back to work
+f1d	english	Time to go
+f1e	english	Ready to go
+f1f	english	Go to school
+f1g	english	Say hi to Rahim
+f1h	english	Take this
+f1i	english	Talk to Rahim
+f1j	english	Up to you
+f1k	english	Welcome to Dhaka
+f1l	english	Call me
+f1m	english	Go home
+f1n	english	What is your age
+f1o	english	Clean every pore
+f1p	english	The road has fresh tar
+f1q	english	Re the meeting, see you there
+f1r	english	Take it easy, see you tomorrow.
+sl1	english	lol
+sl2	english	omg
+sl3	english	brb
+cx1	context	tumi to ashbe
+cx2	context	age ami jabo
+cx3	context	take bolo ashte
+cx4	context	tar kotha shuno
+cx5	context	pore kotha bolbo
+cx6	context	se kal ashbe
+cx7	context	ora o jabe
+cx8	context	tomar ki mone hoy re
+cx9	context	tomra ra ki korcho
+f2a	codeswitch	onek sundor photo
+f2b	codeswitch	ektu beshi gorom lagche
+f2c	codeswitch	shobai kotha bolche
+f2d	codeswitch	thak tarpor dekhi
+f2e	codeswitch	onek valo laglo
+f2f	codeswitch	onek beshi traffic
+f2g	codeswitch	ektu wait koro
+sl4	english	lol idk tbh brb
+sl5	english	Rahim
+sl6	english	Zara Rahim
+n1a	english	One mile to go
+n1b	english	Dam to the sea
+n1c	english	Not a mile to go, ma
+n2a	codeswitch	sob kichu thik ache
+sb1	english	Don't sob, it's fine
+sb2	english	Sob story
+hs2	handle	ami #tbt post korlam
+hs3	handle	valo laglo #blessed
+hs4	handle	#Dhaka #rain ajke onek
+nz1	bangla	আমি কোথায় যাবো
+hd4	handle	@karim.hasan ke message dao
+hd5	handle	amar handle @Rambler_BD, follow koro
+hd6	handle	rahim@example.com e mail koro ar @rahim ke tag koro

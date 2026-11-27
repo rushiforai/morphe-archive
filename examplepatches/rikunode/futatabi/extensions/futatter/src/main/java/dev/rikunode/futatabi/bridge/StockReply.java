@@ -11,11 +11,11 @@ final class StockReply {
     private final AnimanchAdapter animanch;
     private final ExtensionApi api;
     interface MebukiHandoff { String open(MebukiNewThreadDraft draft); }
-    interface AnimanchHandoff { String open(AnimanchNewThreadDraft draft); }
+    interface AnimanchHandoff { BridgeServer.BridgeResponse open(AnimanchNewThreadDraft draft); }
     private final MebukiHandoff handoff;
     private final AnimanchHandoff categoryPicker;
     StockReply(AimogeAdapter a,AnimanchAdapter b,ExtensionApi e){this(a,b,e,draft->"めぶきの確認画面を開けません。未送信です。");}
-    StockReply(AimogeAdapter a,AnimanchAdapter b,ExtensionApi e,MebukiHandoff h){this(a,b,e,h,draft->"カテゴリ選択画面を開けません。未送信です。");}
+    StockReply(AimogeAdapter a,AnimanchAdapter b,ExtensionApi e,MebukiHandoff h){this(a,b,e,h,draft->error("カテゴリ選択画面を開けません。未送信です。"));}
     StockReply(AimogeAdapter a,AnimanchAdapter b,ExtensionApi e,MebukiHandoff h,AnimanchHandoff picker){aimoge=a;animanch=b;api=e;handoff=h;categoryPicker=picker;}
     static boolean isPath(String path){
         return "/aimoge/futaba.php?guid=on".equals(path)||"/animanch/futaba.php?guid=on".equals(path)
@@ -46,8 +46,8 @@ final class StockReply {
             try{payload=request.payload(board,creating?"":a?source:id);}
             catch(IllegalArgumentException ex){return error(ex.getMessage());}
             if(creating&&!a) {
-                try { return error(categoryPicker.open(new AnimanchNewThreadDraft(payload,
-                        selected->send(false,true,"","",selected)))); }
+                try { return categoryPicker.open(new AnimanchNewThreadDraft(payload,
+                        selected->send(false,true,"","",selected))); }
                 catch(IllegalArgumentException ex){return error(ex.getMessage());}
             }
             return send(a,creating,source,id,payload);
@@ -60,9 +60,15 @@ final class StockReply {
             BridgeServer.BridgeResponse upstream=a?api.submit(payload):animanch.post(payload);
             if(upstream.status!=201){
                 if(upstream.status==409 && !a){
-                    try{if(new JSONObject(new String(upstream.bytes,StandardCharsets.UTF_8)).optBoolean("postAccepted"))
-                        return error("\u672c\u6587\u53d7\u7406\u6e08\u307f\u3002\u753b\u50cf\u306e\u9001\u4fe1\u5931\u6557\u3002\u518d\u6295\u7a3f\u305b\u305a\u66f4\u65b0\u3057\u3066\u304f\u3060\u3055\u3044\u3002");}
-                    catch(Exception ignored){}
+                    try{
+                        JSONObject partial=new JSONObject(new String(upstream.bytes,StandardCharsets.UTF_8));
+                        if(creating&&partial.optBoolean("newThreadError"))return error(partial.getString("error"));
+                        if(partial.optBoolean("postAccepted")){
+                            int status=partial.optInt("uploadHttpStatus",0);
+                            String detail=status>0?"（HTTP "+status+"）":"（HTTPステータス未取得）";
+                            return error("本文受理済み。画像の送信結果を確認できません"+detail+"。再投稿せずスレを更新して確認してください。");
+                        }
+                    }catch(Exception ignored){}
                 }
                 return error("\u6295\u7a3f\u3092\u78ba\u8a8d\u3067\u304d\u307e\u305b\u3093 (HTTP "+upstream.status+")\u3002\u518d\u9001\u524d\u306b\u30b9\u30ec\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
             }

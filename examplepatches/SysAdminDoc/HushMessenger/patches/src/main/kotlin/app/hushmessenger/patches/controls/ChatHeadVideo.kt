@@ -2,10 +2,13 @@ package app.hushmessenger.patches.controls
 
 import app.hushmessenger.patches.MessengerTarget
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -111,6 +114,83 @@ internal fun MutableMethod.injectChatHeadVideo() {
     """.trimIndent())
 }
 
+/**
+ * Videos sent in a chat (#104). 588 plays those through Messenger's newer player, which never reaches the constructor
+ * above. That player gets its drawing surface from one of two static siblings, both taking (VideoPlayerParams, the
+ * player, its config): one returns a SurfaceView controller behind an interface, the other a controller holding a
+ * TextureView that implements the same interface, which Messenger itself uses when it reuses a TextureView. The hook
+ * sends the SurfaceView one to its sibling while the extension says so.
+ */
+internal const val GROOT_TEXTURE = "groot_texture_view"
+internal const val GROOT_TEXTURE_CALL = "$CHAT_HEAD_VIDEO_HOST->grootTextureView()Z"
+/** Unrenamed by Redex, like the player settings class. */
+internal const val VIDEO_PLAYER_PARAMS = "Lcom/facebook/video/engine/api/VideoPlayerParams;"
+private const val TEXTURE_VIEW = "Landroid/view/TextureView;"
+
+private fun Method.grootParams() = parameterTypes.map { it.toString() }
+
+/** The class's static (VideoPlayerParams, the class itself, a config) methods with code. */
+private fun ClassDef.grootMakers(): List<Method> = methods.filter { method ->
+    val params = method.grootParams()
+    AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null && params.size == 3 &&
+        params[0] == VIDEO_PLAYER_PARAMS && params[1] == type && params[2].startsWith("L") && !params[2].startsWith("Ljava/")
+}
+
+/**
+ * The sibling that makes the TextureView controller for [surface]: the class's other maker with the same parameters and
+ * a different return type, while there's exactly one.
+ */
+internal fun ClassDef.grootTextureSibling(surface: Method): Method? =
+    grootMakers().filter { it.name != surface.name && it.grootParams() == surface.grootParams() && it.returnType != surface.returnType }
+        .singleOrNull()
+
+/**
+ * The SurfaceView maker, taken only while exactly one class has the pair: the maker returns an interface, its sibling
+ * returns a class that implements it and holds a TextureView, and the maker has a register of its own for the hook.
+ */
+internal fun findGrootTexture(classes: Iterable<ClassDef>): List<Method> {
+    val owners = classes.filter { it.grootMakers().size >= 2 }
+    if (owners.isEmpty()) return emptyList()
+    val types = classes.associateBy { it.type }
+    val makers = owners.flatMap { owner ->
+        owner.grootMakers().filter { surface ->
+            val texture = owner.grootTextureSibling(surface) ?: return@filter false
+            val face = types[surface.returnType] ?: return@filter false
+            val made = types[texture.returnType] ?: return@filter false
+            AccessFlags.INTERFACE.isSet(face.accessFlags) && surface.returnType in made.interfaces &&
+                made.fields.any { it.type == TEXTURE_VIEW && !AccessFlags.STATIC.isSet(it.accessFlags) } &&
+                surface.implementation!!.registerCount > 3
+        }
+    }
+    return listOfNotNull(makers.singleOrNull())
+}
+
+private fun grootTextureChanged(method: Method): Nothing =
+    throw PatchException("Messenger controls: the video player's SurfaceView maker in ${method.hookId()} no longer matches the tested build")
+
+/** The sibling to call, or a refusal when [owner] no longer has the shape the finder took. */
+internal fun Method.validateGrootTexture(owner: ClassDef): Method {
+    if (owner.grootMakers().none { it.name == name && it.grootParams() == grootParams() }) grootTextureChanged(this)
+    if ((implementation?.registerCount ?: 0) <= 3) grootTextureChanged(this)
+    return owner.grootTextureSibling(this) ?: grootTextureChanged(this)
+}
+
+/** At the entry: while the extension says so, return what the TextureView sibling makes, from the same three arguments. */
+internal fun MutableMethod.injectGrootTexture(texture: Method) {
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $GROOT_TEXTURE_CALL
+            move-result v0
+            if-eqz v0, :groot_stock
+            invoke-static/range {p0 .. p2}, ${texture.hookId()}
+            move-result-object v0
+            return-object v0
+        """.trimIndent(),
+        ExternalLabel("groot_stock", getInstruction(0)),
+    )
+}
+
 @Suppress("unused")
 val chatHeadVideoPatch = patch(
     name = "Fix videos in chat heads",
@@ -121,9 +201,13 @@ val chatHeadVideoPatch = patch(
     compatibleWith(MessengerTarget.COMPATIBILITY)
     dependsOn(settingsExtension)
     execute {
-        validateControls(discoveredControls, setOf(CHAT_HEAD_VIDEO))
+        validateControls(discoveredControls, setOf(CHAT_HEAD_VIDEO, GROOT_TEXTURE))
         val original = discoveredControls.getValue(CHAT_HEAD_VIDEO).single()
         original.validateChatHeadVideo()
         mutableClassDefBy(original.definingClass).methods.single { it.hookId() == original.hookId() }.injectChatHeadVideo()
+        val surface = discoveredControls.getValue(GROOT_TEXTURE).single()
+        val owner = mutableClassDefBy(surface.definingClass)
+        val texture = surface.validateGrootTexture(owner)
+        owner.methods.single { it.hookId() == surface.hookId() }.injectGrootTexture(texture)
     }
 }

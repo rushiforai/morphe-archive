@@ -1,9 +1,9 @@
 .class public final Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuAction;
-.super Lp/qf60;
-.implements Lkotlin/jvm/functions/Function1;
+.super Ljava/lang/Object;
+.implements Lp/sn50;
 
-# The click of one Spicetify item in Spotify's track, artist or playlist menu. Lp/ipj; check-casts
-# its Function1 to Lp/qf60; (Kotlin's Lambda), hence the superclass, as in ModelFactory.
+# The click of one Spicetify item in Spotify's track, artist or playlist menu. Lp/xgn; keeps its action as
+# a Kotlin Function2, which the menu calls with an event and a logging context that this ignores.
 
 .field private final id:Ljava/lang/String;
 .field private final target:Ljava/lang/Object;
@@ -11,18 +11,17 @@
 .field private final menu:I
 
 .method public constructor <init>(Ljava/lang/String;Ljava/lang/Object;I)V
-    .locals 1
-    const/4 v0, 0x1
-    invoke-direct {p0, v0}, Lp/qf60;-><init>(I)V
+    .locals 0
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
     iput-object p1, p0, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuAction;->id:Ljava/lang/String;
     iput-object p2, p0, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuAction;->target:Ljava/lang/Object;
     iput p3, p0, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuAction;->menu:I
     return-void
 .end method
 
-# Returns null, not Kotlin's Unit (Lp/x181;->a in this build): every caller of Lp/ipj;->d drops
-# the result, the menu click at Lp/o1;->invokeSuspend index 797 and five others.
-.method public invoke(Ljava/lang/Object;)Ljava/lang/Object;
+# Returns null, not Kotlin's Unit (Lp/zel1;->a in this build): every caller of Lp/xgn;->d drops
+# the result, the menu click at Lp/dt;->invokeSuspend index 590 and five others.
+.method public invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
     .locals 4
     :try_start
     iget-object v0, p0, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuAction;->id:Ljava/lang/String;

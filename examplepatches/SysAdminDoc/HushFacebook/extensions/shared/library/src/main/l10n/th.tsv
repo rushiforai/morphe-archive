@@ -876,7 +876,7 @@ A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	�
 # context: switch title under Comments and writing; on, a tap on Like under a comment asks first
 Ask before liking a comment	ถามก่อนถูกใจความคิดเห็น
 # context: summary of that switch
-A tap on Like under a comment asks first, and only Continue likes or unlikes it.	การแตะ "ถูกใจ" ใต้ความคิดเห็นจะถามก่อน และจะถูกใจหรือเลิกถูกใจก็ต่อเมื่อคุณแตะ "ดำเนินการต่อ" เท่านั้น
+A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only Continue goes ahead.	การแตะ "ถูกใจ" ใต้ความคิดเห็น หรือการเลือกความรู้สึกหลังจากกดค้างที่ความคิดเห็น จะถามก่อน และจะทำต่อก็ต่อเมื่อคุณแตะ "ดำเนินการต่อ" เท่านั้น
 # context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
 Like or unlike this post?	ยืนยันการถูกใจหรือเลิกถูกใจโพสต์นี้
 # context: the same question for a reel
@@ -1858,6 +1858,10 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	ปุ่มการแสดงภาพซ้อนภาพ
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	แสดงปุ่มเล็กๆ ที่ขอบซ้ายของ Reel หรือวิดีโอที่มีหน้าต่างพร้อมใช้งาน แตะเพื่อเปิดหน้าต่างทันที ใช้งานได้เมื่อเปิด "การแสดงภาพซ้อนภาพ"
+# context: switch title under Picture-in-picture on the Playback page; on, when a reel ends in the small picture-in-picture window, the next reel plays there
+Next reel in the window	Reel ถัดไปในหน้าต่าง
+# context: summary of that switch; "the window" is the small picture-in-picture window
+When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window instead of the same one again. Works with Picture-in-picture on.	เมื่อ Reel ในหน้าต่างภาพซ้อนภาพจบ Reel ถัดไปจาก Reels จะเล่นในหน้าต่างแทนการเล่นซ้ำ Reel เดิม ใช้งานได้เมื่อเปิด "การแสดงภาพซ้อนภาพ"
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	เล่นต่อในเบื้องหลัง
 Next reel in the background	Reel ถัดไปในเบื้องหลัง
@@ -1985,8 +1989,8 @@ Hides the stacked reaction icons in the corner of a comment. The space stays, so
 Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	ซ่อนตัวเลขข้างไอคอนความรู้สึกในความคิดเห็น โดยไอคอนจะยังคงอยู่ และการแตะไอคอนจะยังคงเปิดรายการความรู้สึก
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	ดาวน์โหลดเป็นอันดับแรกในเมนูโพสต์
-# context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
-Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.	ย้าย "ดาวน์โหลดลงโทรศัพท์" และ "บันทึกรูปภาพ" จากส่วนท้ายของเมนูจุดสามจุดของโพสต์มาไว้ที่จุดเริ่มต้นของรายการตัวเลือก โดยแถวด้านบนสุดของ Facebook จะยังคงอยู่เหนือรายการเหล่านั้น (ในโพสต์รูปภาพ รายการดังกล่าวคือหน้า "ตัวเลือกเพิ่มเติม") โพสต์ที่ไม่มีสิ่งใดให้บันทึกจะไม่มีทั้งสองตัวเลือกนี้
+# context: summary of that switch; "Download to phone", "Save photo" and "Playback speed" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
+Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.	ย้าย "ดาวน์โหลดลงโทรศัพท์" และ "บันทึกรูปภาพ" จากหน้า "ตัวเลือกเพิ่มเติม" มาไว้ที่หน้าแรกของเมนูจุดสามจุดของโพสต์ เหนือ "ความเร็วในการเล่น" โพสต์ที่ไม่มีสิ่งใดให้บันทึกจะไม่มีทั้งสองตัวเลือกนี้
 # context: row title under Menu; opens a list of the Menu's tiles to hide, such as Marketplace and Gaming
 Menu tiles to hide	ไทล์เมนูที่ต้องการซ่อน
 # context: title of the list of Menu tiles to hide
@@ -2105,6 +2109,10 @@ A saved video that ends stays on screen instead of opening the next one. Swipe u
 Show saved posts in the row	แสดงโพสต์ที่บันทึกไว้ในลำดับ
 # context: summary of that switch
 A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	โพสต์ที่บันทึกไว้ในลำดับจะอยู่บนหน้าจอแทนที่จะถูกข้าม ปัดขึ้นเมื่อถึงท้ายโพสต์เพื่อไปวิดีโอที่บันทึกไว้ถัดไป หรือปัดลงเมื่ออยู่บนสุดเพื่อกลับไปรายการก่อนหน้า
+# context: switch title under Reels and Watch; on, a reel opened from a Reels row in the news feed (the strip of reels you scroll sideways) goes on to the next reel in that row instead of a suggested reel
+Play the feed's Reels row in order	เล่นแถว Reels ในฟีดตามลำดับ
+# context: summary of that switch; the feed is Facebook's News Feed, so use Facebook's name for it in your language if you know it
+A reel you open from a Reels row in your feed goes on to the next one in that row when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	Reel ที่คุณเปิดจากแถว Reels ในฟีดจะเล่นต่อไปยัง Reel ถัดไปในแถวนั้นเมื่อเล่นจบหรือเมื่อคุณปัดขึ้น แทนที่จะเป็น Reel แนะนำ ปัดลงเพื่อย้อนกลับไป Reel ก่อนหน้า
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	ข้าม "คุณยังดูอยู่หรือไม่"
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2146,6 +2154,9 @@ Hides the For you searches Facebook suggests when you open search. Your recent s
 Hide "People you may know" in search	ซ่อน "คนที่คุณอาจรู้จัก" ในการค้นหา
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	ซ่อนแถว "คนที่คุณอาจรู้จัก" ที่ Facebook แสดงเมื่อคุณเปิดการค้นหา การค้นหาล่าสุดของคุณและคำแนะนำขณะพิมพ์จะยังคงอยู่
+# context: switch title under News feed; People you may know is the list of friend suggestions Facebook shows in its Friends tab below your friend requests, as in Hide "People you may know"
+Hide "People you may know" in the Friends tab	ซ่อน "คนที่คุณอาจรู้จัก" ในแท็บเพื่อน
+Hides the People you may know list in the Friends tab. Your friend requests stay.	ซ่อนรายการ "คนที่คุณอาจรู้จัก" ในแท็บเพื่อน คำขอเป็นเพื่อนของคุณจะยังคงอยู่
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	ไม่บันทึกประวัติการค้นหา
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
@@ -2689,6 +2700,34 @@ Digits only, up to 10. Your own profile shows this number on this phone. Leave i
 Facebook's real number shows. Type digits to show your own.	แสดงตัวเลขจริงของ Facebook พิมพ์ตัวเลขเพื่อแสดงตัวเลขที่คุณกำหนดเอง
 # context: summary of that row; %1$s is the number typed, already grouped for the language
 Your profile shows %1$s on this phone.	โปรไฟล์ของคุณจะแสดง %1$s บนโทรศัพท์เครื่องนี้
+# context: switch title under News feed; on, your own Facebook friends list is kept on this phone each time you scroll it to the end, so you can see who is no longer on it
+Keep track of your friends list	ติดตามรายชื่อเพื่อนของคุณ
+# context: summary of that switch; Profile > Friends > All friends is the path to the list in Facebook, so use Facebook's own names for those screens in your language
+Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on this phone and tells you who's no longer on it since the time before. Someone who unfriended you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.	ทุกครั้งที่คุณเลื่อนรายชื่อของคุณเองใน โปรไฟล์ > เพื่อน > เพื่อนทั้งหมด จนสุด จะเก็บสำเนาไว้ในโทรศัพท์เครื่องนี้และบอกคุณว่าใครไม่อยู่ในรายชื่อแล้วตั้งแต่ครั้งก่อน คนที่เลิกเป็นเพื่อนกับคุณ คนที่คุณเลิกเป็นเพื่อนด้วย และบัญชีที่ปิดไปแล้วจะแสดงแบบเดียวกันทั้งหมด ไม่มีข้อมูลใดออกจากโทรศัพท์ของคุณ
+# context: row title and list title; the people who were on your Facebook friends list and aren't any more
+Friends no longer on your list	เพื่อนที่ไม่อยู่ในรายชื่อของคุณแล้ว
+# context: summary of that row
+People who were on your friends list one time you scrolled it to the end and weren't the next. Tap one to open their profile.	คนที่อยู่ในรายชื่อเพื่อนของคุณครั้งหนึ่งที่คุณเลื่อนจนสุด แต่ไม่อยู่ในครั้งถัดไป แตะเพื่อเปิดโปรไฟล์ของคนนั้น
+# context: toast the first time your friends list is kept; %1$d is how many friends are on it
+Hushfacebook kept a copy of your %1$d friends. Next time you scroll the list to its end, it tells you who's no longer on it.	Hushfacebook เก็บสำเนาเพื่อน %1$d คนของคุณไว้แล้ว ครั้งหน้าที่คุณเลื่อนรายชื่อจนสุด จะบอกว่าใครไม่อยู่ในรายชื่อแล้ว
+# context: toast; %1$s is one person's name
+%1$s is no longer on your friends list.	%1$s ไม่อยู่ในรายชื่อเพื่อนของคุณแล้ว
+# context: toast; %1$s is two or three people's names separated by commas
+No longer on your friends list: %1$s.	ไม่อยู่ในรายชื่อเพื่อนของคุณแล้ว: %1$s
+# context: toast; %1$s is three people's names separated by commas, %2$d how many other people
+No longer on your friends list: %1$s and %2$d more.	ไม่อยู่ในรายชื่อเพื่อนของคุณแล้ว: %1$s และอีก %2$d คน
+# context: toast when tapping a person in that list doesn't open their profile
+Their profile can't open here.	เปิดโปรไฟล์ของคนนี้ที่นี่ไม่ได้
+# context: shown in place of a person's name when Facebook gave none
+Someone without a name	คนที่ไม่มีชื่อ
+# context: second line of a person in that list; %1$s is the date they were last seen on your list, %2$s the date they were first missing
+Gone between %1$s and %2$s	หายไประหว่าง %1$s ถึง %2$s
+# context: line above that list before your friends list was ever kept
+No copy of your friends list yet.	ยังไม่มีสำเนารายชื่อเพื่อนของคุณ
+# context: line above that list; %1$s is a date, %2$d how many friends were on the list then
+Your list was last read to its end on %1$s, with %2$d friends.	อ่านรายชื่อของคุณจนสุดครั้งล่าสุดเมื่อ %1$s มีเพื่อน %2$d คน
+# context: shown while that list is empty; Keep track of your friends list is the switch's title
+Nobody yet. With Keep track of your friends list on, scroll Profile > Friends > All friends to its end now and then. Anyone who drops off between two of those reads shows up here.	ยังไม่มีใคร เมื่อเปิด ติดตามรายชื่อเพื่อนของคุณ ไว้ ให้เลื่อน โปรไฟล์ > เพื่อน > เพื่อนทั้งหมด จนสุดเป็นครั้งคราว ใครที่หายไประหว่างการอ่านสองครั้งจะแสดงที่นี่
 # context: switch title under Stories; the stories row at the top of Home shown as round pictures
 Round stories tray	ถาดสตอรี่แบบวงกลม
 # context: summary of that switch
@@ -2759,6 +2798,10 @@ Switches that are on	สวิตช์ที่เปิดใช้งาน�
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	สวิตช์ทั้งหมดที่คุณเปิดใช้งาน รวมอยู่ในรายการเดียว ปิดสวิตช์ที่นี่แล้วสวิตช์นั้นจะปิดทุกที่
 No switches are on yet.	ยังไม่มีสวิตช์ใดเปิดใช้งานอยู่
 Turned off lately	ปิดไปเมื่อเร็วๆ นี้
+# context: one of three order choices above the Switches that are on list; lists the switches in the order the settings page has them (the other two are A to Z and Newest)
+Page order	ตามลำดับในหน้า
+# context: the second order choice there; lists the switches alphabetically by their titles
+A to Z	ตามตัวอักษร
 Emoji after the logo	อิโมจิหลังโลโก้
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	อิโมจิที่แสดงอยู่ด้านหลังโลโก้ Facebook ที่ด้านบนของหน้าหลัก โดยใช้สีดั้งเดิมของอิโมจิ เว้นว่างไว้หากไม่ต้องการแสดง
 No emoji after the logo. Type one to show it there.	ไม่มีอิโมจิหลังโลโก้ พิมพ์อิโมจิเพื่อแสดงตรงนั้น
@@ -2870,12 +2913,26 @@ Bar opacity	ความทึบแสงของแถบ
 How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	สัดส่วนสีที่แถบโปร่งแสงจะคงไว้ เป็นเปอร์เซ็นต์ตั้งแต่ %1$s ถึง %2$s ค่ายิ่งต่ำจะยิ่งแสดงฟีดและความเบลอมากขึ้น เว้นว่างไว้สำหรับ %3$s หรือ %4$s เหนือความเบลอ
 The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	แถบจะคงสีไว้ %1$s เปอร์เซ็นต์ หรือ %2$s เปอร์เซ็นต์เหนือความเบลอ พิมพ์ตัวเลขเพื่อเปลี่ยน
 The see-through bars keep %1$s percent of their color.	แถบโปร่งแสงจะคงสีไว้ %1$s เปอร์เซ็นต์
+# context: row title under Appearance, right under Bar opacity; picks how strongly the see-through top bar and tab bar blur the feed behind them
+Blur strength	ความแรงของความเบลอ
+# context: message of that row's number box; %1$s is 0 (no blur), %2$s the most, %3$s the usual amount
+How much the see-through bars blur the feed behind them, in percent of the usual blur, from %1$s, no blur, to %2$s. Leave it blank for %3$s. The blur needs Android 12 or newer.	แถบโปร่งแสงจะเบลอฟีดด้านหลังมากแค่ไหน เป็นเปอร์เซ็นต์ของความเบลอปกติ ตั้งแต่ %1$s คือไม่เบลอ ถึง %2$s เว้นว่างไว้สำหรับ %3$s ความเบลอต้องใช้ Android 12 ขึ้นไป
+# context: summary of that row while it's blank
+The see-through bars blur the feed behind them the usual amount. Type a number to change it.	แถบโปร่งแสงเบลอฟีดด้านหลังตามปกติ พิมพ์ตัวเลขเพื่อเปลี่ยน
+# context: summary of that row when it's 0
+The see-through bars show the feed behind them sharp, with no blur.	แถบโปร่งแสงแสดงฟีดด้านหลังคมชัด ไม่เบลอ
+# context: summary of that row; %1$s is the number typed
+The see-through bars blur the feed behind them %1$s percent of the usual amount.	แถบโปร่งแสงเบลอฟีดด้านหลัง %1$s เปอร์เซ็นต์ของความเบลอปกติ
 Tab bar width	ความกว้างของแถบแท็บ
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	เปอร์เซ็นต์ของความกว้างหน้าจอ ตั้งแต่ %1$s ถึง %2$s โดยไอคอนจะขยายและย่อขนาดตามไปด้วย เว้นว่างไว้สำหรับ %3$s
 The rounded tab bar is %1$s percent of the screen wide.	แถบแท็บแบบโค้งมนมีความกว้าง %1$s เปอร์เซ็นต์ของหน้าจอ
 Tab bar height	ความสูงของแถบแท็บ
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	เปอร์เซ็นต์ความสูงเต็มที่แถบแท็บแบบโค้งมนจะคงไว้ ตั้งแต่ %1$s ถึง %2$s โดยจะตัดขอบด้านบนและด้านล่างของไอคอนออก ค่าที่มากกว่า 100 จะทำให้แถบสูงขึ้น โดยส่วนใหญ่จะขยายไปทางด้านล่างของหน้าจอ เว้นว่างไว้สำหรับ %3$s
 The rounded tab bar keeps %1$s percent of its height.	แถบแท็บแบบโค้งมนจะคงความสูงไว้ %1$s เปอร์เซ็นต์
+# context: switch title under Appearance, right under Tab bar height; gives the rounded tab bar a glass look
+Glass tab bar	แถบแท็บแบบกระจก
+# context: description of that switch; Rounded tab bar is the switch a few rows above it, the pill is that rounded tab bar, and the highlight is the faint pill behind the selected tab's icon
+With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the highlight behind the tab you're on slides over when you pick another tab.	เมื่อเปิดแถบแท็บแบบโค้งมน แถบจะมีขอบกระจกสว่างและเงานุ่มนวล และไฮไลต์ด้านหลังแท็บที่คุณกำลังใช้งานจะเลื่อนไปยังแท็บที่คุณเลือก
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	ทำเครื่องหมายการตั้งค่าใหม่
 # context: choice in that row; the dot goes once the page holding the setting is left
@@ -3197,7 +3254,23 @@ Hide hashtags in reel captions	ซ่อนแฮชแท็กในคำบ�
 Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	นำแฮชแท็กออกจากคำบรรยาย Reels เช่น กลุ่มแท็กท้ายคำบรรยาย แฮชแท็กที่เป็นส่วนหนึ่งของประโยคยังอยู่ การเปลี่ยนแปลงจะแสดงตั้งแต่ Reel ถัดไป
 Keep the keyboard closed when comments open	ปิดแป้นพิมพ์ไว้เมื่อเปิดความคิดเห็น
 Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	ความคิดเห็นเปิดขึ้นโดยไม่มีแป้นพิมพ์เด้งขึ้นมา แม้ในโพสต์ที่ยังไม่มีความคิดเห็น แตะช่องแสดงความคิดเห็นเมื่อต้องการเขียน
+Post text doesn't open comments	ข้อความโพสต์ไม่เปิดความคิดเห็น
+A tap on a post's text no longer opens its comments. The Comment button still does.	การแตะข้อความของโพสต์จะไม่เปิดความคิดเห็นอีกต่อไป ปุ่มแสดงความคิดเห็นยังเปิดได้ตามเดิม
 Settings language	ภาษาของการตั้งค่า
 Same as Facebook	เหมือนกับ Facebook
 Show feed reels uncropped	แสดง Reels ในฟีดแบบไม่ครอป
 Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Reels ในฟีดของคุณจะแสดงภาพเต็มตามสัดส่วนของตัวเอง แทนที่จะถูกครอปให้พอดีกับกรอบของ Facebook Reels ที่โหลดขึ้นมาหลังจากนี้จะเริ่มใช้การตั้งค่าดังกล่าว
+Remix this reel	รีมิกซ์ Reel นี้
+Hold the profile tab for Activity log	กดแท็บโปรไฟล์ค้างไว้เพื่อเปิดบันทึกกิจกรรม
+Press and hold the profile tab to open your Activity log instead of switching accounts. On accounts with a Menu tab in its place, that tab does it. You can still switch accounts from the Menu.	กดแท็บโปรไฟล์ค้างไว้เพื่อเปิดบันทึกกิจกรรมของคุณแทนการสลับบัญชี ในบัญชีที่มีแท็บเมนูอยู่ตรงนั้นแทน แท็บเมนูจะทำหน้าที่นี้ คุณยังสลับบัญชีได้จากเมนู
+React to this comment?	แสดงความรู้สึกต่อความคิดเห็นนี้ไหม
+Hide reactions on a held comment	ซ่อนรีแอคชั่นเมื่อกดค้างที่ความคิดเห็น
+Hide Reply on a held comment	ซ่อน "ตอบกลับ" เมื่อกดค้างที่ความคิดเห็น
+Hide Copy on a held comment	ซ่อน "คัดลอก" เมื่อกดค้างที่ความคิดเห็น
+Hide Report on a held comment	ซ่อน "รายงาน" เมื่อกดค้างที่ความคิดเห็น
+Hide the Hide comment option	ซ่อนตัวเลือก "ซ่อนความคิดเห็น"
+Holding a comment no longer shows the row of reactions above it. Like under the comment still works.	การกดค้างที่ความคิดเห็นจะไม่แสดงแถวรีแอคชั่นด้านบนอีกต่อไป ปุ่ม "ถูกใจ" ใต้ความคิดเห็นยังใช้ได้
+Holding a comment no longer offers Reply. The Reply under the comment stays.	การกดค้างที่ความคิดเห็นจะไม่มี "ตอบกลับ" ให้เลือกอีกต่อไป ปุ่ม "ตอบกลับ" ใต้ความคิดเห็นยังอยู่
+Holding a comment no longer offers Copy.	การกดค้างที่ความคิดเห็นจะไม่มี "คัดลอก" ให้เลือกอีกต่อไป
+Holding a comment no longer offers Report comment or Report to group admins.	การกดค้างที่ความคิดเห็นจะไม่มี "รายงานความคิดเห็น" หรือ "รายงานไปยังผู้ดูแลกลุ่ม" ให้เลือกอีกต่อไป
+Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.	การกดค้างที่ความคิดเห็นจะไม่มี "ซ่อนความคิดเห็น" ให้เลือกอีกต่อไป หากความคิดเห็นไม่เหลือตัวเลือกใดเลย การกดค้างจะไม่เกิดอะไรขึ้น

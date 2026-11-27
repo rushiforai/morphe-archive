@@ -370,7 +370,7 @@ public class SettingsNavigationTest {
     // #228: Bulgarian's word for Open is twice as long, and the button's fixed width broke it over two lines.
     @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void openStaysOnOneLineInEveryLanguage() {
-        for (String language : new String[] {"en", "bg", "es", "it", "th", "tr", "vi", "zh-rTW"}) {
+        for (String language : new String[] {"en", "bg", "es", "it", "ru", "th", "tr", "vi", "zh-rTW"}) {
             RuntimeEnvironment.setQualifiers(language + "-w411dp-h891dp-xxhdpi");
             try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
                 View root = screen.get().getWindow().getDecorView();

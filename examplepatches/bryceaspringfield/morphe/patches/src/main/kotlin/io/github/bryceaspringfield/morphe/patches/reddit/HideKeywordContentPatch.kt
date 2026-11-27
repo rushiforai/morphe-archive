@@ -34,10 +34,6 @@ import java.util.logging.Logger
 
 private const val EXTENSION_CLASS = "Lio/github/bryceaspringfield/morphe/extension/reddit/HideKeywordContentPatch;"
 
-/**
- * The settings screen Morphe Patches adds to Reddit (Settings > Morphe). This bundle adds its
- * sections to that screen, and adds no screen of its own.
- */
 private const val MORPHE_SETTINGS_FRAGMENT =
     "Lapp/morphe/extension/reddit/settings/preference/RedditPreferenceFragment;"
 
@@ -47,24 +43,17 @@ private const val DRAWER_LIST_BINDER =
     "Lcom/reddit/screens/drawer/community/CommunityDrawerPresenter\$bindListOnView\$2;"
 private const val MENU_BADGE_FLOW =
     "Lcom/reddit/navdrawer/composables/RedditMainNavigationButtonProvider\$mainNavigationIcon\$navIconBadgeVisible\$2\$1;"
-/** The modification steps of the two feed pagers, each calling the modification and returning the modified feed. */
 private val FEED_MODIFICATIONS = listOf(
     "Lcom/reddit/feeds/impl/domain/paging/RedditCachedFeedPager\$applyFeedModification\$2;",
     "Lcom/reddit/feeds/impl/domain/paging/RedditFeedPager\$applyFeedModification\$2\$1;",
 )
 
-/** The suspended call of RedditFeedPager's applyFeedModification, whose constructor takes the pager. */
 private const val FEED_PAGER_MODIFICATION_CALL =
     "Lcom/reddit/feeds/impl/domain/paging/RedditFeedPager\$applyFeedModification\$1;"
 
-/** A suspended call of RedditCachedFeedPager whose constructor takes the pager first. */
 private const val CACHED_PAGER_INNER_CALL =
     "Lcom/reddit/feeds/impl/domain/paging/RedditCachedFeedPager\$handleLoadError\$1;"
 
-/**
- * Whether a method is the app's copy of a collection into an immutable list of the type given: static, taking an
- * Iterable, and returning the Iterable itself when it is already of that type.
- */
 private fun isImmutableCopy(method: Method, type: String) =
     AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == type &&
             method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Iterable;") &&
@@ -81,19 +70,13 @@ private val logger = Logger.getLogger("HideKeywordContentPatch")
 
 private const val USER_SETTINGS_SECTION = "Lcom/reddit/settings/usersettings/UserSettingsSection;"
 
-/** The key of Reddit's privacy policy row, which Morphe Patches renames "Morphe" and opens its settings from. */
 private const val MORPHE_ROW_KEY = "key_pref_privacy_policy"
 
-/** The extension's switch for a patch's settings section, returning true once the patch is applied. */
 private const val FEATURES_CLASS = "Lio/github/bryceaspringfield/morphe/extension/reddit/Features;"
 
 private const val TRENDING_CLASS = "Lio/github/bryceaspringfield/morphe/extension/reddit/TrendingPlaces;"
 private const val MORPHE_TRENDING_CLASS = "Lapp/morphe/extension/reddit/patches/HideTrendingShelvesPatch;"
 
-/**
- * Sends Reddit's reads of Morphe Patches' Hide Trending shelves switch to the extension, with a switch for feeds
- * (the Trending unit, in Reddit's search.feeds package) and one for search suggestions (every other read).
- */
 private fun app.morphe.patcher.patch.BytecodePatchContext.splitTrendingSwitch() {
     fun morpheRead(instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
         instruction.opcode == Opcode.INVOKE_STATIC && instruction.getReference<MethodReference>()?.let {
@@ -128,7 +111,6 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.splitTrendingSwitch() 
     logger.info("Trending switch split: $feeds feed reads and $search search reads")
 }
 
-/** Makes the extension's Features.[name] return true, which shows the patch's section in Settings > Morphe. */
 internal fun app.morphe.patcher.patch.BytecodePatchContext.enableFeature(name: String) {
     val method = mutableClassDefByOrNull(FEATURES_CLASS)?.methods?.firstOrNull { it.name == name }
     if (method == null) {
@@ -138,16 +120,11 @@ internal fun app.morphe.patcher.patch.BytecodePatchContext.enableFeature(name: S
     method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 }
 
-/**
- * The bundle's extension and its settings in Settings > Morphe (the profiles, and each applied patch's section),
- * shared by every patch of the bundle.
- */
 internal val keywordFilterSettingsPatch = bytecodePatch {
     compatibleWith(COMPATIBILITY_REDDIT)
 
     extendWith("extensions/reddit-keyword-filter.mpe")
 
-    // Runs after every selected patch of every bundle, so Morphe Patches' settings screen exists.
     finalize {
         splitTrendingSwitch()
         val fragment = mutableClassDefByOrNull(MORPHE_SETTINGS_FRAGMENT)
@@ -168,8 +145,6 @@ internal val keywordFilterSettingsPatch = bytecodePatch {
         initialize.apply {
             hookReturns(Opcode.RETURN_VOID, "invoke-static { }, $EXTENSION_CLASS->addSettings()V")
 
-            // The screen is saved at the start, since the compiled method reuses the register of
-            // `this` for its own values before it returns.
             addInstruction(0, "invoke-static { p0 }, $EXTENSION_CLASS->setSettingsFragment(Ljava/lang/Object;)V")
         }
     }
@@ -188,21 +163,16 @@ val hideKeywordContentPatch = bytecodePatch(
 
     execute {
         enableFeature("filters")
-        // Filter each page of the paged feeds (Home, Popular, News, communities, search, profiles).
         FeedPagingDataSourceLoadFingerprint.let {
             it.method.apply {
                 val getDataIndex = it.instructionMatches.first().index
                 val index = it.instructionMatches.last().index
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
 
-                // The data source, whose feed type names the place, is the receiver of the getClass() call
-                // the compiled code makes just before getData().
                 val getClassIndex = (getDataIndex - 1 downTo maxOf(0, getDataIndex - 12)).firstOrNull { i ->
                     val reference = getInstruction(i).getReference<MethodReference>()
                     reference?.name == "getClass" && reference.definingClass == "Ljava/lang/Object;"
                 }
-                // The compiled code may reuse the receiver's register after getClass(), keeping the source in a
-                // copy made just before; the first candidate no instruction overwrites before the hook is used.
                 fun keptUntilHook(register: Int, from: Int) = (from..index).none { i ->
                     val instruction = getInstruction(i)
                     instruction.opcode.setsRegister() &&
@@ -239,9 +209,7 @@ val hideKeywordContentPatch = bytecodePatch(
             }
         }
 
-        // Filter the older post listings (search results, profiles).
         ListingFingerprint.method.apply {
-            // Found by scanning, since another bundle's patch may have inserted code here after matching.
             val index = instructions.indexOfFirst {
                 it.opcode == Opcode.IPUT_OBJECT && it.getReference<FieldReference>()?.name == "children"
             }
@@ -257,11 +225,7 @@ val hideKeywordContentPatch = bytecodePatch(
         }
     }
 
-    // Runs after every selected patch of every bundle, so Morphe Patches' own hooks in the same
-    // methods are in place, and Morphe Patches' settings screen exists.
     finalize {
-        // Filter a feed again after a translation rewrites its posts: the result of the pager's modification step, at the
-        // modification call and at the return of a resumed call.
         var listCopyWritten = false
         FEED_MODIFICATIONS.forEach { modificationClass -> run {
             val method = mutableClassDefByOrNull(modificationClass)?.methods?.firstOrNull { it.name == "invokeSuspend" }
@@ -285,7 +249,6 @@ val hideKeywordContentPatch = bytecodePatch(
                 return@run
             }
 
-            // The extension's list copy calls the app's.
             if (!listCopyWritten) stub.addInstructions(
                 0,
                 """
@@ -297,7 +260,6 @@ val hideKeywordContentPatch = bytecodePatch(
 
             method.apply {
                 val thisRegister = implementation!!.registerCount - 2
-                // A return reached before any instruction writes the register of this, which then still holds this.
                 val resumeReturn = instructions.withIndex().firstOrNull { (i, it) ->
                     it.opcode == Opcode.RETURN_OBJECT && (0 until i).none { j ->
                         val previous = getInstruction(j)
@@ -308,7 +270,6 @@ val hideKeywordContentPatch = bytecodePatch(
                 val receiver = call.registerC
                 val result = getInstruction<OneRegisterInstruction>(callIndex + 1).registerA
 
-                // Inserted from the last index to the first, so earlier indices stay valid.
                 val hooks = mutableListOf<Pair<Int, String>>()
                 if (resumeReturn != null) {
                     val value = getInstruction<OneRegisterInstruction>(resumeReturn).registerA
@@ -328,9 +289,6 @@ val hideKeywordContentPatch = bytecodePatch(
             listCopyWritten = true
         } }
 
-        // A requested translation of one post changes the post in place, through the pager's update of one element,
-        // and runs no feed modification. After such an update the extension filters the pager's state again, and the
-        // generated refilterPagerState writes the posts kept with the app's own state copy and compare-and-set.
         fun refilterHooks(pagerType: String?, stubName: String) {
             val pager = pagerType?.let { mutableClassDefByOrNull(it) }
             val update = pager?.methods?.firstOrNull { m ->
@@ -369,7 +327,6 @@ val hideKeywordContentPatch = bytecodePatch(
                 logger.warning("Could not find the element update of feed pager $pagerType; its open feed is not filtered again")
                 return
             }
-            // The mask the app passes: the literal last written to the copy call's last register before the call.
             val range = copyCall.first as RegisterRangeInstruction
             val maskRegister = range.startRegister + range.registerCount - 1
             val copyIndex = update.instructions.indexOf(copyCall.first)
@@ -429,7 +386,6 @@ val hideKeywordContentPatch = bytecodePatch(
                     MutableMethodImplementation(8 + count + 1),
                 ).toMutable().apply {
                     addInstructionsWithLabels(0, body)
-                    // The field reads and the two calls use the app's own references.
                     val reads = instructions.withIndex().filter { it.value.opcode == Opcode.IGET_OBJECT }.map { it.index }
                     listOf(stateField, listFields[0], listFields[1]).zip(reads).forEach { (field, index) ->
                         val read = getInstruction<TwoRegisterInstruction>(index)
@@ -445,7 +401,6 @@ val hideKeywordContentPatch = bytecodePatch(
                 }
             )
             update.addInstruction(0, "invoke-static { p0, p2 }, $EXTENSION_CLASS->onElementEvents(Ljava/lang/Object;Ljava/util/List;)V")
-            // Each pager registers itself, so a settings change filters every open feed again.
             pager.methods.filter { it.name == "<init>" }.forEach { constructor ->
                 constructor.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
                     .sortedDescending().forEach { index ->
@@ -464,8 +419,6 @@ val hideKeywordContentPatch = bytecodePatch(
             "refilterCachedPager",
         )
 
-
-        // Filter each post's comments where the app stores them.
         COMMENT_LISTS.forEach { type ->
             val constructors = mutableClassDefByOrNull(type)?.methods?.filter { method ->
                 method.name == "<init>" && "Ljava/util/List;" in method.parameterTypes &&
@@ -501,7 +454,6 @@ val navigationAndSidebarPatch = bytecodePatch(
 
     finalize {
         enableFeature("navigation")
-        // Skip a hidden bottom bar tab in the loop building the bar's tabs.
         val tabBuilder = mutableClassDefByOrNull(BOTTOM_NAV_SCREEN)?.methods?.firstOrNull { method ->
             method.returnType != "V" && method.parameterTypes.size == 1 && method.implementation != null &&
                     method.instructions.any { it.getReference<MethodReference>()?.name == "hasNext" } &&
@@ -530,23 +482,18 @@ val navigationAndSidebarPatch = bytecodePatch(
             )
         }
 
-        // Remove hidden sidebar rows before the sidebar's adapter gets its list.
         val drawerBinder = mutableClassDefByOrNull(DRAWER_LIST_BINDER)?.methods?.firstOrNull { it.name == "invokeSuspend" }
         val drawerCall = drawerBinder?.instructions?.indexOfFirst {
             val reference = it.getReference<MethodReference>()
             it.opcode == Opcode.INVOKE_VIRTUAL && reference?.returnType == "V" &&
                     reference.parameterTypes.map { type -> type.toString() } == listOf("Ljava/util/List;")
         } ?: -1
-        // The presenter keeps the list it binds and reads a tapped row by its position in that list, so the rows are
-        // removed where the presenter stores the list, keeping each position on the row shown there.
         val drawerListField = drawerBinder?.instructions?.take(maxOf(drawerCall, 0))?.lastOrNull {
             it.opcode == Opcode.IGET_OBJECT && it.getReference<FieldReference>()?.type == "Ljava/util/List;"
         }?.getReference<FieldReference>()
         var drawerStores = 0
         val drawerOwner = drawerListField?.let { mutableClassDefByOrNull(it.definingClass) }
         if (drawerListField != null && drawerOwner != null) {
-            // A helper in the presenter filters the stored list in place after each store; filtering the value before
-            // the store changes the register's type, which the verifier rejects where the method reuses the register.
             val field = "${drawerOwner.type}->${drawerListField.name}:Ljava/util/List;"
             val helper = "morpheFilterSidebar"
             drawerOwner.methods.removeIf { it.name == helper }
@@ -574,7 +521,6 @@ val navigationAndSidebarPatch = bytecodePatch(
                 }
             )
             drawerOwner.methods.forEach { method ->
-                // The constructor stores the empty list only.
                 if (method.implementation == null || method.name == "<init>" || method.name == helper) return@forEach
                 val stores = method.instructions.withIndex().filter { (_, instruction) ->
                     instruction.opcode == Opcode.IPUT_OBJECT && instruction.getReference<FieldReference>().let {
@@ -608,7 +554,6 @@ val navigationAndSidebarPatch = bytecodePatch(
             )
         }
 
-        // End the sidebar button's badge flow before it emits, so the badge stays hidden.
         val badgeFlow = mutableClassDefByOrNull(MENU_BADGE_FLOW)?.methods?.firstOrNull { it.name == "invokeSuspend" }
         val unit = badgeFlow?.instructions?.firstNotNullOfOrNull {
             it.getReference<FieldReference>()?.takeIf { field -> it.opcode == Opcode.SGET_OBJECT && field.type == "Lkotlin/Unit;" }
@@ -637,14 +582,7 @@ val navigationAndSidebarPatch = bytecodePatch(
 private const val SUBREDDIT_VIEW_MODEL = "Lcom/reddit/screens/pager/v2/SubredditPagerViewModel;"
 private const val SUBREDDIT_SCREEN = "Lcom/reddit/screens/pager/v2/SubredditPagerV2Screen;"
 
-/**
- * A "Create post" item in a subreddit's three-dot menu, shown while Morphe's switch hides the bottom bar's Create
- * button: the extension adds the item to the list the menu's builder fills, and takes the item's tap in the screen's
- * handler of menu actions before the app reads the id.
- */
 private fun app.morphe.patcher.patch.BytecodePatchContext.createPostInSubredditMenu() {
-    // The method opening the menu makes the menu's function reference (onOverflowMenuClicked...menu), then calls the
-    // builder with the empty list: the first call of invoke(Object) after it.
     val opener = mutableClassDefByOrNull(SUBREDDIT_VIEW_MODEL)?.methods?.firstOrNull { method ->
         method.implementation != null && method.instructions.any {
             it.opcode == Opcode.NEW_INSTANCE &&
@@ -712,12 +650,6 @@ val mediaOptionsPatch = bytecodePatch(
     }
 }
 
-/**
- * Moves the "Morphe" row of Reddit's settings from About to General, right under Account settings (order 0 in
- * General). The row's class sets its section, order, and key in its constructor; each return of the constructor
- * gets a check of the key, since the class also builds the user agreement row.
- */
-/** Morphe Patches' About dialog, whose page gets this bundle's section (author and source code). */
 private const val MORPHE_ABOUT_PREFERENCE =
     "Lapp/morphe/extension/shared/settings/preference/about/MorpheAboutPreference;"
 
@@ -754,7 +686,6 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.moveMorpheRow() {
         method.name == "<init>" && method.instructions.any { it.getReference<StringReference>()?.string == MORPHE_ROW_KEY }
     }
     val sectionField = row?.fields?.firstOrNull { it.type == USER_SETTINGS_SECTION && !AccessFlags.STATIC.isSet(it.accessFlags) }
-    // The key field is the one the key string is stored to; the order field is the one getOrder() reads.
     val keyField = init?.let { method ->
         val keyIndex = method.instructions.indexOfFirst { it.getReference<StringReference>()?.string == MORPHE_ROW_KEY }
         method.instructions.drop(keyIndex + 1).firstOrNull { it.opcode == Opcode.IPUT_OBJECT }
@@ -795,14 +726,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.moveMorpheRow() {
     }
 }
 
-/** The step of a feed's link tap which opens the post's link, given the context, the link, and the tap event. */
 private const val LINK_OPEN_STEP =
     "Lcom/reddit/feeds/impl/ui/actions/OnClickPostLinkEventHandler\$handleEvent\$5;"
 
-/**
- * Plays the media of a link post (imgur, Streamable, RedGIFs, and others) inside Reddit: the step opening a feed
- * post's link first asks the extension, which opens its player and ends the step when the link is media.
- */
 private fun app.morphe.patcher.patch.BytecodePatchContext.mediaLinksInApp() {
     val step = mutableClassDefByOrNull(LINK_OPEN_STEP)
     val method = step?.methods?.firstOrNull { it.name == "invokeSuspend" && it.implementation != null }
@@ -813,8 +739,6 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.mediaLinksInApp() {
         logger.warning("Could not find the step opening a post's link; media links open in the browser")
         return
     }
-    // The range form, since the step has 32 registers in 2026.45.0 and p0 (v30) is outside the plain form's 16. The
-    // plain form was dropped there, and Android refused the class, so no feed link opened (bundle 0.3.1).
     method.addInstructionsWithLabels(
         0,
         """
@@ -830,13 +754,8 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.mediaLinksInApp() {
     logger.info("Media links: hooked the step opening a post's link")
 }
 
-/** The local key of the blur-mature-media setting, read in the preference repository beside the account's own. */
 private const val NSFW_BLUR_KEY = "nsfw_blur_enabled"
 
-/**
- * Lets the extension turn off the 18+ blur: each read of the blur-mature-media setting, the local key for a
- * logged-out session and the account's getNoProfanity() otherwise, passes its result through the extension.
- */
 private fun app.morphe.patcher.patch.BytecodePatchContext.nsfwBlurSwitch() {
     var total = 0
     val found = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
@@ -887,10 +806,6 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.nsfwBlurSwitch() {
     else logger.info("18+ caution: hooked $total reads in ${found.size} classes")
 }
 
-/**
- * Turns video captions on by default: each read of Reddit's stored captions switch (a boolean preference under the
- * key below) goes through the extension, and each store of the switch first tells the extension the user chose.
- */
 private const val CAPTIONS_KEY = "captions_preferences_captions_enabled"
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.captionsOnByDefault() {
@@ -907,7 +822,6 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.captionsOnByDefault() 
             if (method.implementation == null) return@forEach
             val list = method.instructions.toList()
             val keys = list.withIndex().filter { it.value.getReference<StringReference>()?.string == CAPTIONS_KEY }
-            // Hooks are added from the last instruction back, keeping earlier indexes valid.
             keys.map { (index, instruction) ->
                 val register = (instruction as OneRegisterInstruction).registerA
                 val call = (index + 1 until minOf(index + 8, list.size)).firstOrNull { i ->
@@ -941,11 +855,6 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.captionsOnByDefault() 
     logger.info("Captions switch: hooked $reads reads and $stores stores in ${found.size} classes")
 }
 
-/**
- * Keeps the home screen's top bar and the bottom bar shown while a feed scrolls: every screen told the bars' expanded
- * fraction (the bottom bar, the home pager, and the screens they pass it to) gets 1, fully shown, when the setting is
- * on. The screens implement a one-method interface taking the fraction, found among BottomNavScreen's interfaces.
- */
 private fun app.morphe.patcher.patch.BytecodePatchContext.keepBarsShown() {
     val bottomNav = classDefByOrNull(BOTTOM_NAV_SCREEN)
     val listener = bottomNav?.interfaces?.firstOrNull { name ->

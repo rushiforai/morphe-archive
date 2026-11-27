@@ -71,6 +71,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 || SettingsStatus.notInterestedEnabled
                 || SettingsStatus.feedMuteEnabled
                 || SettingsStatus.advancedDownloadsEnabled
+                || SettingsStatus.hideSoundPageButtonsEnabled
                 || SettingsStatus.automaticClearDisplayEnabled
                 || SettingsStatus.doubleTapEnabled
                 || SettingsStatus.swipeLeftEnabled
@@ -384,6 +385,15 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.",
                     Settings.PUBLISH_DATE_INSTEAD_OF_AGE
             ));
+            // Comments, chats and search cards are TikTok's alone; Lite hooks none of them.
+            if (SettingsStatus.publishDateEverywhereEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Use this date format everywhere",
+                        "Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.",
+                        Settings.PUBLISH_DATE_EVERYWHERE
+                ));
+            }
         }
         // TikTok Lite's Always show publish date has no profile grid hooks (#502).
         if (SettingsStatus.alwaysShowPublishDateEnabled && SettingsStatus.publishDateGridsEnabled) {
@@ -997,6 +1007,13 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Stop the blink under the bar",
                     "If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.",
                     Settings.SEE_THROUGH_VIDEO_IN_WINDOW
+            ));
+            // #436: Community and the other pages that stop at the bar, under it.
+            addPreference(new TogglePreference(
+                    context,
+                    "Pages under the bar",
+                    "Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.",
+                    Settings.PAGES_UNDER_BOTTOM_BAR
             ));
             addPreference(new TogglePreference(
                     context,

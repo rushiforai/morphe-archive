@@ -19,15 +19,24 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * that brings other people's presence in, and it feeds the two places that report ours out, so turning it off in
  * Messenger takes the dots away too. The preference is left alone here and only the outbound half is answered:
  *
- * 1. [APPEAR_OFFLINE], the msys self-report. The presence manager's (boolean)V picks "available" or "unavailable" and
- *    hands it to the mailbox, and it runs when the app comes to the foreground and when it stops.
+ * 1. [APPEAR_OFFLINE], the three ways 588 reports our status as the app comes to the foreground and when it stops,
+ *    which one depending on the account (#243):
+ *    - the msys self-report, the presence manager's (boolean)V that picks "available" or "unavailable" and hands it to
+ *      the mailbox;
+ *    - the msys presence plugin's updateAppState(boolean), which the presence manager calls instead when its self-report
+ *      check says no, with the same answer;
+ *    - every status the distribution gateway's presence stream writes, which PresenceManagerV2 and the presence
+ *      manager's gateway transport both use. Each one is a PresenceWriteRequest, and ACTIVE goes out as IDLE, which is
+ *      what Messenger writes itself once it's in the background.
  * 2. [AVAILABILITY_SETTING], the legacy MQTT client setting. Both preference listeners that publish
  *    /set_client_settings put the same answer in their JSON as make_user_available_when_in_foreground, which is the
  *    only copy of that flag in Java: the connect-time one is built in native code from the same preference.
  *
  * What brings other people's presence in isn't touched, so the chat list, the People tab and the active dots stay as
- * they are. The report only leaves on a foreground or background change, so the switch lands the next time Messenger
- * goes to the background or comes back, and a restart makes it land right away.
+ * they are. Neither is the Active status setting the msys plugin and the gateway stream also send (updatePresenceSetting
+ * and setPresenceUserSettingEnabled), since that one turns the dots off. The report only leaves on a foreground or
+ * background change, so the switch lands the next time Messenger goes to the background or comes back, and a restart
+ * makes it land right away.
  */
 internal const val APPEAR_OFFLINE = "appear_offline"
 internal const val AVAILABILITY_SETTING = "availability_setting"
@@ -40,8 +49,21 @@ internal const val FOREGROUND_AVAILABILITY = "make_user_available_when_in_foregr
 internal const val CLIENT_SETTINGS_TOPIC = "/set_client_settings"
 private const val JSON_PUT_BOOLEAN = "Lorg/json/JSONObject;->put(Ljava/lang/String;Z)Lorg/json/JSONObject;"
 
-/** Both hooks hand over the status Messenger was about to report and take back the one the switch allows. */
+/** The plugin interface method the msys app-state report dispatches, named in its trace. */
+internal const val UPDATE_APP_STATE = "updateAppState"
+/** The msys implementation of that interface, which the dispatcher names before it calls it. */
+internal const val MSYS_PRESENCE_UPDATE = "messaging.presence.msyswritepath.msyspresenceupdate.MsysPresenceUpdateImplementation"
+internal const val PRESENCE_WRITE_REQUEST = "Lcom/facebook/presence/model/upi/PresenceWriteRequest;"
+internal const val PRESENCE_STATUS = "Lcom/facebook/presence/model/upi/PresenceStatus;"
+/** The write request's full constructor, which every status the gateway stream sends is built with. */
+internal val PRESENCE_WRITE_PARAMETERS = listOf("Lcom/facebook/presence/model/upi/AppState;",
+    "Lcom/facebook/presence/model/upi/PresencePollingMode;", PRESENCE_STATUS,
+    "Lcom/facebook/presence/model/upi/PresenceWriteRequestType;", "Ljava/lang/Long;", "Ljava/lang/String;")
+
+/** The boolean hooks hand over the status Messenger was about to report and take back the one the switch allows. */
 internal const val AVAILABLE_CALL = "$SETTINGS->availableToOthers(Z)Z"
+/** The gateway's write request does the same with its status. */
+internal const val PRESENCE_STATUS_CALL = "$SETTINGS->presenceToOthers(Ljava/lang/Object;)Ljava/lang/Object;"
 
 private fun availabilityChanged(detail: String): Nothing =
     throw PatchException("Messenger controls: Messenger's own availability report changed ($detail)")
@@ -59,6 +81,20 @@ internal fun Method.isSelfStatusReport(): Boolean =
     definingClass == PRESENCE_MANAGER && returnType == "V" && implementation != null &&
         !AccessFlags.STATIC.isSet(accessFlags) && parameterTypes.map { it.toString() } == listOf("Z") &&
         REPORT_USER_STATUS in availabilityStrings()
+
+/**
+ * The msys app-state report: the presence plugin's instance (boolean)V dispatcher that traces updateAppState and names
+ * the msys implementation. Its boolean is the status too.
+ */
+internal fun Method.isAppStateReport(): Boolean =
+    returnType == "V" && implementation != null && !AccessFlags.STATIC.isSet(accessFlags) &&
+        parameterTypes.map { it.toString() } == listOf("Z") &&
+        availabilityStrings().containsAll(setOf(UPDATE_APP_STATE, MSYS_PRESENCE_UPDATE))
+
+/** The gateway's write request, built with the status it sends. The hook rewrites the status before it's stored. */
+internal fun Method.isPresenceWrite(): Boolean =
+    definingClass == PRESENCE_WRITE_REQUEST && name == "<init>" && implementation != null &&
+        parameterTypes.map { it.toString() } == PRESENCE_WRITE_PARAMETERS
 
 /**
  * A client-settings publisher: a preference listener that puts the foreground availability flag in the JSON it
@@ -104,10 +140,14 @@ internal fun Method.availabilityPut(): AvailabilityPut {
     return AvailabilityPut(put, register)
 }
 
+/** The parameter a hook at the very start rewrites: p1 for the two boolean reports, the status for the write request. */
+private fun Method.statusParameter() = parameterRegister(if (isPresenceWrite()) 3 else 1)
+
 internal fun MutableMethod.validateAppearOffline() {
     when {
-        isSelfStatusReport() -> {
-            if (parameterRegister(1) > 15) availabilityChanged("the status sits in v${parameterRegister(1)} in ${hookId()}")
+        isSelfStatusReport() || isAppStateReport() || isPresenceWrite() -> {
+            val status = statusParameter()
+            if (status > 15) availabilityChanged("the status sits in v$status in ${hookId()}")
             if (0 in jumpTargets()) availabilityChanged("a jump back to the start of ${hookId()}")
             if (ReadFlow(this).protected(0)) availabilityChanged("${hookId()} starts inside a try")
         }
@@ -117,14 +157,20 @@ internal fun MutableMethod.validateAppearOffline() {
 }
 
 /**
- * The self-report reads its answer from the extension before it picks a status, and each publisher reads it again for
- * the flag it puts in the JSON. Neither changes what Messenger reads about other people, and with the switch off both
- * hand back exactly what Messenger was going to report.
+ * Each report reads its answer from the extension before it picks a status, the write request before it stores one,
+ * and each publisher reads it again for the flag it puts in the JSON. None of them changes what Messenger reads about
+ * other people, and with the switch off all of them hand back exactly what Messenger was going to report.
  */
 internal fun MutableMethod.injectAppearOffline() {
     validateAppearOffline()
-    if (isSelfStatusReport()) {
-        val status = parameterRegister(1)
+    if (isPresenceWrite()) {
+        val status = statusParameter()
+        addInstructions(0, "invoke-static {v$status}, $PRESENCE_STATUS_CALL\nmove-result-object v$status\n" +
+            "check-cast v$status, $PRESENCE_STATUS")
+        return
+    }
+    if (isSelfStatusReport() || isAppStateReport()) {
+        val status = statusParameter()
         addInstructions(0, "invoke-static {v$status}, $AVAILABLE_CALL\nmove-result v$status")
         return
     }

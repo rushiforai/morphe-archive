@@ -1,6 +1,5 @@
 package app.noam.patches.chesscom.timecontrol
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -16,7 +15,7 @@ import app.noam.patches.chesscom.shared.indexOfLast
 import app.noam.patches.chesscom.shared.markFeaturePatched
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -25,12 +24,16 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val TIME_CONTROLS = "${Constants.EXTENSION_PACKAGE}/timecontrol/TimeControls;"
 
-private val CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
-
+/** SliderRow(titleRes, valueText, max, value, onValueChange, composer, flags). */
 private fun MethodReference.isSliderRow() =
-    parameterTypes.size == 8 && returnType == "V" &&
-        parameterTypes.take(6).map { it.toString() } ==
-        listOf("I", "Ljava/lang/String;", "I", "I", "I", "Lkotlin/jvm/functions/Function1;")
+    parameterTypes.size == 7 && returnType == "V" &&
+        parameterTypes.take(5).map { it.toString() } ==
+        listOf("I", "Ljava/lang/String;", "I", "I", "Lkotlin/jvm/functions/Function1;")
+
+private fun Instruction.isGameTimeGetter() = opcode == Opcode.INVOKE_VIRTUAL &&
+    ((this as ReferenceInstruction).reference as MethodReference).let {
+        it.definingClass == "Lcom/chess/entities/GameTime;" && it.name.startsWith("get") && it.parameterTypes.isEmpty()
+    }
 
 private fun MethodReference.isQuantityString() =
     returnType == "Ljava/lang/String;" &&
@@ -65,41 +68,46 @@ val shortTimeControlsPatch = bytecodePatch(
             addInstructions(
                 maxIndex,
                 """
-                    invoke-static { v$positionRegister }, $TIME_CONTROLS->minutesForPosition(I)F
+                    invoke-static/range { v$positionRegister .. v$positionRegister }, $TIME_CONTROLS->minutesForPosition(I)F
                     move-result v$minutesRegister
                 """,
             )
         }
 
-        // The minutes slider: SliderRow(titleRes, valueText, min, max, value, onValueChange, ...).
-        CustomTimeSelectorFingerprint.method.apply {
-            val sliderIndex = indexOfFirstOrThrow(description = "the minutes slider") {
-                it.opcode == Opcode.INVOKE_STATIC_RANGE &&
-                    ((it as ReferenceInstruction).reference as MethodReference).isSliderRow()
+        // The minutes slider: SliderRow(titleRes, valueText, max, value, onValueChange, ...); it
+        // always starts at 0, so the minutes move right to make room for the sub-minute stops. Of
+        // the two SliderRow calls (minutes, increment), the one fed by getMinPerGame().
+        val sliders = mutableListOf<Triple<String, String, Int>>()
+        classDefForEach { classDef ->
+            classDef.methods.forEach { method ->
+                val code = method.implementation?.instructions?.toList() ?: return@forEach
+                code.forEachIndexed { index, instruction ->
+                    if (instruction.opcode != Opcode.INVOKE_STATIC_RANGE ||
+                        (instruction as ReferenceInstruction).reference.let { it !is MethodReference || !it.isSliderRow() }
+                    ) return@forEachIndexed
+                    val getter = code.take(index).lastOrNull { it.isGameTimeGetter() }
+                    if (getter?.let { ((it as ReferenceInstruction).reference as MethodReference).name } == "getMinPerGame") {
+                        sliders += Triple(classDef.type, method.name + method.parameterTypes.joinToString("", "(", ")"), index)
+                    }
+                }
             }
-            val firstArgument = getInstruction<RegisterRangeInstruction>(sliderIndex).startRegister
-            val minRegister = firstArgument + 2
-            val valueRegister = firstArgument + 4
+        }
+        val (owner, signature, sliderIndex) = sliders.singleOrNull()
+            ?: throw PatchException("Expected one minutes slider, found ${sliders.size}")
+        mutableClassDefBy(owner).methods.single { it.name + it.parameterTypes.joinToString("", "(", ")") == signature }.apply {
+            val maxRegister = getInstruction<RegisterRangeInstruction>(sliderIndex).startRegister + 2
 
-            // Bottom-up, so earlier indices stay valid. 1) min: the constant 0 -> sliderMin().
-            val minIndex = indexOfLast(sliderIndex) {
-                it.opcode in CONSTANTS && it is NarrowLiteralInstruction &&
-                    (it as OneRegisterInstruction).registerA == minRegister
-            }
-            if (minIndex < 0) throw PatchException("The minutes slider minimum was not found")
-            replaceInstruction(minIndex, "invoke-static { }, $TIME_CONTROLS->sliderMin()I")
-            addInstruction(minIndex + 1, "move-result v$minRegister")
+            // Bottom-up, so earlier indices stay valid. 1) max: one more stop per sub-minute time.
+            addInstructions(
+                sliderIndex,
+                """
+                    invoke-static/range { v$maxRegister .. v$maxRegister }, $TIME_CONTROLS->sliderMax(I)I
+                    move-result v$maxRegister
+                """,
+            )
 
             // 2) value: GameTime.getMinPerGame() -> sliderPosition(gameTime).
-            val valueIndex = indexOfLast(minIndex) {
-                it.opcode == Opcode.INVOKE_VIRTUAL &&
-                    ((it as ReferenceInstruction).reference as MethodReference).let { ref ->
-                        ref.definingClass == "Lcom/chess/entities/GameTime;" && ref.name == "getMinPerGame"
-                    }
-            }
-            if (valueIndex < 0 || getInstruction<OneRegisterInstruction>(valueIndex + 1).registerA != valueRegister) {
-                throw PatchException("The minutes slider value was not found")
-            }
+            val valueIndex = indexOfLast(sliderIndex) { it.isGameTimeGetter() }
             val gameTimeRegister = getInstruction<FiveRegisterInstruction>(valueIndex).registerC
 
             // 3) label: the "N min" string built just before -> "30 sec" below a minute.
@@ -111,7 +119,9 @@ val shortTimeControlsPatch = bytecodePatch(
                 throw PatchException("The minutes slider label was not found")
             }
             val labelRegister = getInstruction<OneRegisterInstruction>(labelIndex + 1).registerA
-            if (labelRegister == gameTimeRegister) throw PatchException("Unexpected slider registers")
+            if (labelRegister == gameTimeRegister || labelRegister > 15 || gameTimeRegister > 15) {
+                throw PatchException("Unexpected slider registers")
+            }
 
             replaceInstruction(
                 valueIndex,

@@ -169,16 +169,18 @@ public class CompatReport {
         PATCHES.put("Hide stories and notes", List.of("stories", "story_ring"));
         PATCHES.put("Hide inbox tabs", List.of("subtabs"));
         PATCHES.put("Typing in your chat list", List.of("inbox_typing"));
-        PATCHES.put("Put your words above the photo", List.of("media_caption"));
+        PATCHES.put("Put your words above the photo", List.of("media_caption", "media_caption_editor", "media_caption_chat", "media_caption_direct", "media_caption_result", "media_caption_chip", "media_caption_chip_send"));
         PATCHES.put("Keep the search bar", List.of("inbox_search_bar"));
         PATCHES.put("Write longer notes", List.of("longer_notes"));
         PATCHES.put("Preview chats on long press", List.of("chat_preview"));
         PATCHES.put("Bigger chat preview", List.of("chat_preview_size"));
+        PATCHES.put("Keep taps in the chat preview", List.of("chat_preview_size", "hidden_chat_list", "hidden_chat_row", "hidden_chat_tap"));
         PATCHES.put("Hide Mark as read", List.of("mark_read_action"));
         PATCHES.put("Pin more chats", List.of("pinned_chats", "pin_rows", "pin_ask", "pin_drop", "pin_full", "pin_list"));
         PATCHES.put("Hide chosen chats", List.of("hidden_chat_list", "hidden_chat_row", "hidden_chat_tap"));
         PATCHES.put("Hide chat menu items", List.of("chat_menu_items"));
         PATCHES.put("Hide profile menu items", List.of("profile_menu_items"));
+        PATCHES.put("Show Remove contact", List.of("remove_contact"));
         PATCHES.put("Hide Facebook shortcuts", List.of("facebook", "facebook_profile", "facebook_profile_header"));
         PATCHES.put("Hide Meta AI", List.of("ai_menu", "ai_fab", "ai_toolbar", "ai_tab", "ai_muse_tab", "ai_search", "ai_search_chip", "ai_mentions", "ai_commands", "ai_search_hint", "ai_search_screen_hint", "ai_mention_rows", "ai_summary", "tab_config", "search_sections", "search_items"));
         PATCHES.put("Hide Chat Moments", List.of("moments"));
@@ -223,6 +225,7 @@ public class CompatReport {
         PATCHES.put("Hide pictures on the Blocked list", List.of("blocked_list_pictures"));
         PATCHES.put("Notify for restricted chats", List.of("restricted_notify"));
         PATCHES.put("Sound in the open chat", List.of("open_chat_sound"));
+        PATCHES.put("Your own chat sounds", List.of("own_chat_sounds"));
         PATCHES.put("Use the phone's camera app", List.of("system_camera"));
         PATCHES.put("Open your gallery app", List.of("external_gallery", "gallery_temp_file"));
         PATCHES.put("Put gallery picks in the chat", List.of("gallery_to_chat"));
@@ -242,6 +245,7 @@ public class CompatReport {
         PATCHES.put("Show the 40-character code option", List.of("recovery_code_row"));
         PATCHES.put("Hide Suggested in search", List.of("search_sections"));
         PATCHES.put("Hide recent reels in search", List.of("search_sections"));
+        PATCHES.put("Hide people you don't know in search", List.of("search_sections", "search_items"));
         PATCHES.put("Block Meta AI chats", List.of("ai_chat_open"));
         PATCHES.put("Hide Create story", List.of("story_create_tile"));
         PATCHES.put("Show pinned messages", List.of("pinned_bar"));
@@ -282,9 +286,10 @@ public class CompatReport {
         PATCHES.put("Bold and italic text", List.of("text_style"));
         PATCHES.put("Open settings from menu", List.of("menu_settings"));
         PATCHES.put("Keep chat pop-ups", List.of("chat_channel_keep", "chat_channel_raise"));
-        PATCHES.put("Fix videos in chat heads", List.of("chat_head_video"));
-        PATCHES.put("Chat bar buttons in the + menu", List.of("chat_bar_plus"));
+        PATCHES.put("Fix videos in chat heads", List.of("chat_head_video", "groot_texture_view"));
+        PATCHES.put("Chat bar buttons in the + menu", List.of("chat_bar_plus", "chat_bar_plus_menu"));
         PATCHES.put("Mark as read stays on this phone", List.of("mark_read_locally", "local_read", "unread_badge"));
+        PATCHES.put("Ask before messaging people you don't know", List.of("confirm_strangers"));
     }
 
     static final Set<String> ORIGINAL_PHOTO_HOOKS = Set.of(
@@ -1086,7 +1091,7 @@ public class CompatReport {
     static final Set<String> NEEDS_A_LOCAL = Set.of("ad_events", "ai_chat_open", "ai_commands", "ai_fab", "ai_mention_rows", "ai_menu", "ai_search",
         "ai_search_chip", "ai_summary", "allow_screenshot", "analytics_uploads", "attribution_uploads", "bubbles", "call_recording", "delta_unsent",
         "disappearing_swipe", "external_gallery", "facebook", "facebook_profile", "font_by_name", "font_repository", "growth_active_status", "growth_notes", "growth_story_card", "instant_gallery", "instants_button", "keep_unsent", "link_player",
-        "mqtt_telemetry", "nearby_scans", "original_photo", "passkey_login", "people_story", "phone_id_sync", "people_tab", "recent_media", "stories", "system_camera",
+        "mqtt_telemetry", "nearby_scans", "original_photo", "passkey_login", "people_story", "phone_id_sync", "people_tab", "recent_media", "remove_contact", "stories", "system_camera",
         "tab_badges", "typing", "unsent_indicator", "unsent_recall");
 
     /** More registers than the parameters take, as ControlHooks.kt's validateScratch asks. */

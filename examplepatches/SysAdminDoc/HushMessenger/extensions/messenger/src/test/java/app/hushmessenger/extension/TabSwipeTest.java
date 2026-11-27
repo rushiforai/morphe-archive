@@ -37,9 +37,15 @@ public class TabSwipeTest {
         Bar bar = new Bar();
         Tab open = Tab.INBOX;
         Tab picked;
+        /** What else opening a tab does, the way Messenger swaps the page shown. Null for nothing. */
+        java.util.function.Consumer<Tab> selected;
 
         Tab current() { return open; }
-        void select(Tab tab) { picked = tab; open = tab; }
+        void select(Tab tab) {
+            picked = tab;
+            open = tab;
+            if (selected != null) selected.accept(tab);
+        }
         static Tab staticCurrent() { return Tab.INBOX; }
         Tab refuses() { throw new IllegalStateException("Messenger refused"); }
     }

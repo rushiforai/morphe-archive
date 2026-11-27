@@ -95,6 +95,18 @@ public class DaapCodecTest {
         assertThrows(IOException.class, () -> DaapCodec.utf8("\ud800"));
     }
 
+    @Test public void buildsItemsRequestWithOptionalPaginationToken() throws Exception {
+        assertArrayEquals(hex("6164737200000000"), DaapCodec.itemsRequest(null));
+        assertArrayEquals(hex("6164737200000000"), DaapCodec.itemsRequest(new byte[0]));
+
+        byte[] token = new byte[]{(byte) 0xc3, 0x28, 0x00, 0x7f};
+        byte[] payload = DaapCodec.itemsRequest(token);
+
+        assertArrayEquals(hex("616473720000000c6d70616700000004c328007f"), payload);
+        DaapCodec.Node root = DaapCodec.root(payload, "adsr");
+        assertArrayEquals(token, root.required("mpag").bytes());
+    }
+
     @Test public void rejectsIdentifiersThatWouldBeTruncatedByTheWireFormat() {
         for (long id : new long[]{-1, 0x100000000L}) {
             assertThrows(IOException.class, () -> DaapCodec.edit(id, 7, 9, Map.of("minm", new byte[]{65})));

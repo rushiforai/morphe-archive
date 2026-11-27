@@ -8,6 +8,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import patches.gboard.features.englishqwerty.GBOARD_ENGLISH_SOFT_KEY_HELPER_NAMES
@@ -331,7 +332,13 @@ internal fun MutableMethod.applySelectedSoftKeyFamily(
     if (after.isNotEmpty()) {
         val returns = returnInstructionIndices()
         check(returns.isNotEmpty()) { "SoftKey after chain requires at least one normal return" }
-        returns.asReversed().forEach { returnIndex -> addInstructions(returnIndex, after) }
+        returns.asReversed().forEach { returnIndex ->
+            val result = (implementation!!.instructions[returnIndex] as OneRegisterInstruction).registerA
+            // Removing the original return moves its labels to the first inserted
+            // instruction. A stock jump to the return must also run the after chain.
+            addInstructions(returnIndex + 1, "$after\nreturn v$result")
+            implementation!!.removeInstruction(returnIndex)
+        }
     }
 }
 

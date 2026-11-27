@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "name": "Local AI – Biên tập truyện convert",
+    "author": "HaoDH",
+    "version": 2,
+    "source": "https://lmstudio.ai",
+    "description": "Biên tập nguyên chương Việt convert bằng model AI chạy trên máy bạn (Ollama, llama.cpp, LM Studio) qua wifi LAN. Miễn phí, riêng tư, không gọi dịch vụ ngoài và không có fallback trả phí; bộ nhớ tên theo truyện, phong cách theo thể loại, tự chia nhỏ chương dài.",
+    "locale": "vi_VN",
+    "regexp": "",
+    "type": "translate",
+    "nsfw": false,
+    "encrypt": false
+  },
+  "script": {
+    "config": "config.js",
+    "action": "action.js",
+    "language": "language.js",
+    "model": "model.js",
+    "style": "style.js",
+    "translate": "translate.js"
+  },
+  "config": {
+    "support_auto_detect": true,
+    "max_line": 0,
+    "max_length": 0,
+    "support_url": "https://lmstudio.ai"
+  }
+}

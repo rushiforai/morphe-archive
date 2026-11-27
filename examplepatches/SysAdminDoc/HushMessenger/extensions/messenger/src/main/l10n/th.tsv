@@ -33,6 +33,8 @@ quick_access	การเข้าถึงด่วน
 access_help	กดค้างที่ไอคอน Messenger บนหน้าจอหลักเพื่อเลือก "Patch controls" หรือ "Restart Messenger" หรือเปิดการตั้งค่า HushMessenger จากหน้ารวมแอป
 hide_drawer_icon	ซ่อนไอคอนในหน้ารวมแอป
 hide_drawer_icon_help	ยังคงเข้าถึงได้ผ่านเมนูของ Messenger หรือปุ่มลัดไอคอนบนหน้าจอหลัก
+settings_in_recents	การตั้งค่าในแอปล่าสุด
+settings_in_recents_help	ออกจากการตั้งค่าด้วยปุ่มหน้าหลักหรือปุ่มแอปล่าสุด แล้วการ์ดจะยังอยู่ในแอปล่าสุด ให้คุณกลับมาที่เดิมได้ ถ้าปิดด้วยปุ่มย้อนกลับ จะไม่มีการ์ดเหลืออยู่ เมื่อปิดตัวเลือกนี้ การ์ดจะหายไปทันทีที่คุณออก
 hide_menu_row	ซ่อนแถวเมนูการตั้งค่า
 hide_menu_row_help	ลบแถว HushMessenger ออกจากแท็บเมนูและเมนูด้านข้างของ Messenger คุณสามารถกดค้างที่โลโก้ Messenger ด้านบนของหน้าแชท หรือกดค้างที่ไอคอน Messenger บนหน้าจอหลักแล้วแตะ Patch controls เพื่อกลับมาที่นี่ หากปิดการเข้าถึงทั้งสองทาง แถวเมนูนี้จะกลับมาแสดงอีกครั้ง
 menu_row_needs_shortcut	เปิดการตั้งค่านี้ผ่านปุ่มลัดกดค้างบนหน้าจอหลักก่อนหนึ่งครั้ง (กดค้างที่ไอคอน Messenger แล้วเลือก Patch controls) เพื่อให้แน่ใจว่าคุณยังมีทางกลับมาที่นี่หลังจากซ่อนแถวเมนู
@@ -60,8 +62,8 @@ menu_row_needs_way	เปิดใช้งานปุ่มลัดบนไ�
 hide_menu_row_help_without_shortcut	ลบแถว HushMessenger ออกจากแท็บเมนูและเมนูด้านข้างของ Messenger กดค้างที่โลโก้ Messenger ด้านบนของหน้าแชทเพื่อกลับมาที่นี่ หากปิดการกดค้างที่โลโก้ แถวเมนูจะกลับมาแสดงอีกครั้ง
 hide_menu_row_help_plain	ลบแถว HushMessenger ออกจากแท็บเมนูและเมนูด้านข้างของ Messenger
 menu_tab	แท็บเมนู
-menu_rows_help	แถวที่ Messenger ใส่ไว้ในแท็บเมนู เช่น คอมมูนิตี้ หรือ คำเชิญเข้าช่อง ซ่อนแถวที่คุณไม่เคยเปิดได้เลย แต่ละแถวจะมาอยู่ที่นี่หลังจากแท็บเมนูแสดงแถวนั้นแล้ว
-menu_rows_empty	เปิดแท็บเมนูของ Messenger หนึ่งครั้ง แล้วแถวต่าง ๆ จะมาอยู่ที่นี่ให้คุณซ่อน
+menu_rows_help	แถวที่ Messenger ใส่ไว้ในแท็บเมนูหรือเมนูด้านข้าง เช่น คอมมูนิตี้ หรือ คำเชิญเข้าช่อง ซ่อนแถวที่คุณไม่เคยเปิดได้เลย แต่ละแถวจะมาอยู่ที่นี่หลังจาก Messenger แสดงแถวนั้นแล้ว
+menu_rows_empty	เปิดแท็บเมนูหรือเมนูด้านข้างของ Messenger หนึ่งครั้ง แล้วแถวต่าง ๆ จะมาอยู่ที่นี่ให้คุณซ่อน
 menu_log_out	แถวออกจากระบบในแท็บเมนู
 menu_log_out_help	ใส่ออกจากระบบไว้ในแท็บเมนูของ Messenger ใต้การตั้งค่า ออกจากระบบด้วยวิธีเดียวกับตัวเลือกออกจากระบบของ Messenger เอง
 way_menu	เปิดการตั้งค่า HushMessenger จากแถวในแท็บเมนูหรือเมนูด้านข้างของ Messenger
@@ -176,6 +178,8 @@ call_captions_no_recognizer	โทรศัพท์ของคุณไม่�
 call_captions_no_translator	โทรศัพท์ของคุณไม่มีการแปลในเครื่อง คำบรรยายจึงแสดงเป็นภาษาที่พูด
 call_captions_untranslated	โทรศัพท์ของคุณแปลคู่ภาษานี้ไม่ได้ คำบรรยายจึงแสดงตามที่พูด
 call_captions_unavailable	โทรศัพท์ของคุณจดจำภาษานี้ไม่ได้ เลือกภาษาอื่นในการตั้งค่า HushMessenger
+call_captions_checking	กำลังตรวจสอบ %1$s ในโทรศัพท์ของคุณ
+call_captions_cant_hear	โทรศัพท์ของคุณสร้างคำบรรยายภาษา %1$s เองไม่ได้ เลือกภาษาอื่น
 call_captions_downloading	โทรศัพท์กำลังดาวน์โหลดภาษานี้ คำบรรยายจะเริ่มเมื่อดาวน์โหลดเสร็จ
 call_captions_stopped	คำบรรยายหยุดทำงานสำหรับการโทรนี้
 call_captions_no_voice	โทรศัพท์ของคุณไม่มีเสียงอ่านสำหรับภาษานี้ จึงไม่อ่านคำบรรยายออกเสียง
@@ -192,6 +196,16 @@ hidden_chats_failed	ไม่สามารถซ่อนแชทนี้ไ
 hidden_chats_empty	แชทที่คุณซ่อนจากรายการแชทจะแสดงขึ้นที่นี่
 hidden_chats_unhide	ยกเลิกการซ่อน
 hidden_chats_unnamed	แชท
+chat_preview_taps_open	เปิดแชท
+chat_preview_taps_gone	เปิดจากรายการแชทของคุณ
+# context: confirm_strangers_held, the toast after that switch holds a Send, asking for a second tap
+confirm_strangers_held	ยังไม่ได้เป็นเพื่อนกัน แตะส่งอีกครั้งเพื่อส่ง
+# context: remove_contact_row, the row this switch adds to the menu you get by holding a person who isn't a friend. Messenger's own old row was called Remove contact.
+remove_contact_row	ลบผู้ติดต่อ
+# context: remove_contact_done, the toast after that row took the person out of your Messenger contacts
+remove_contact_done	ลบออกจากผู้ติดต่อของคุณแล้ว
+# context: remove_contact_failed, the toast when that row couldn't take the person out of your contacts
+remove_contact_failed	ไม่สามารถลบผู้ติดต่อนี้ได้
 special_contacts_track	ติดตามคนนี้
 special_contacts_untrack	หยุดติดตาม
 special_contacts_tracked	กำลังติดตามคนนี้แล้ว
@@ -236,6 +250,8 @@ invisible_buttons_group_ours	ปุ่มของ HushMessenger
 invisible_buttons_group_other	อื่นๆ
 tab_bar_slide	เลื่อนไปตามแถบแท็บ
 tab_bar_slide_help	เลื่อนนิ้วไปตามแถบแท็บด้านล่าง แล้วไฮไลต์จะตามนิ้วไปทีละแท็บ ปล่อยนิ้วเพื่อเปิดแท็บที่อยู่ใต้นิ้ว การแตะยังใช้ได้เหมือนเดิม และใช้ได้แม้ปิดปัดเพื่อเปลี่ยนแท็บไว้ รีสตาร์ท Messenger หลังจากเปิดใช้
+tab_swipe_follow	หน้าเลื่อนตามนิ้ว
+tab_swipe_follow_help	ขณะปัดสลับแท็บ หน้าจะเลื่อนตามนิ้วของคุณ และเมื่อปล่อยนิ้ว แท็บถัดไปจะเลื่อนเข้ามาจากด้านข้าง ถ้าปัดสั้นๆ หน้าจะเด้งกลับที่เดิม แถบแท็บอยู่ที่เดิม
 message_actions_hidden_label	%1$s (ซ่อนอยู่)
 message_actions_move_up	เลื่อน %1$s ขึ้น
 message_actions_move_down	เลื่อน %1$s ลง
@@ -334,6 +350,27 @@ tab_icons_tab_metaai	Meta AI
 tab_icons_tab_jewel	Facebook
 tab_icons_tab_more	เมนู
 tab_icons_tab_mesetting	โปรไฟล์ของคุณ
+tab_icons_size	ขนาดไอคอน
+tab_icons_size_help	รูปของคุณและไอคอนลายเส้นจะวาดตามขนาดนี้ %1$s เต็มพื้นที่ที่ Messenger ให้กับไอคอน และ %2$s ใกล้เคียงกับไอคอนเดิมของ Messenger มีผลหลังจากเริ่มต้น Messenger ใหม่
+tab_icons_size_picked	ไอคอนจะเป็น %1$s หลังจาก Messenger รีสตาร์ท
+own_chat_sounds_help	กำลังส่ง จะดังตอนข้อความของคุณกำลังออกไป ส่งแล้ว จะดังเมื่อข้อความส่งถึง และ ข้อความในแอป จะดังเมื่อมีข้อความเข้ามาขณะเปิด Messenger อยู่ เลือกไฟล์ .ogg, .mp3, .m4a หรือ .wav ขนาดไม่เกิน %1$d MB ให้เสียงไหนก็ได้
+own_chat_sounds_sound_send	กำลังส่ง
+own_chat_sounds_sound_sent	ส่งแล้ว
+own_chat_sounds_sound_in_app	ข้อความในแอป
+own_chat_sounds_choose	เลือก
+own_chat_sounds_remove	เอาออก
+own_chat_sounds_stock	เสียงของ Messenger
+own_chat_sounds_yours	เสียงของคุณ
+own_chat_sounds_copying	กำลังคัดลอก...
+own_chat_sounds_saved	บันทึกเสียงแล้ว
+own_chat_sounds_removed	กลับไปใช้เสียงของ Messenger
+own_chat_sounds_remove_failed	เอาเสียงนั้นออกไม่ได้
+own_chat_sounds_not_sound	ไฟล์นั้นเล่นเป็นเสียงไม่ได้
+own_chat_sounds_too_large	เสียงมีขนาดได้ถึง %1$d MB
+own_chat_sounds_unreadable	เปิดไฟล์นั้นไม่ได้
+own_chat_sounds_not_saved	บันทึกเสียงไม่ได้
+own_chat_sounds_busy	กำลังคัดลอกไฟล์ก่อนหน้านี้อยู่
+own_chat_sounds_timeout	ไฟล์ใช้เวลานานเกินไป โปรดลองอีกครั้ง
 quiet_calls_chosen	เฉพาะแชทที่เลือกเท่านั้น
 quiet_calls_chosen_help	สายโทรเข้าจากแชทที่คุณเปิดไว้ด้านล่างจะโทรเข้าเงียบๆ สายโทรเข้าอื่นๆ จะดังตามปกติ
 quiet_calls_recent_empty	แชทที่โทรหาคุณจะแสดงขึ้นที่นี่ โดยเรียงจากใหม่สุดไปเก่าสุด
@@ -773,6 +810,9 @@ chat_jump_loading	กำลังโหลดข้อความเก่า (
 chat_jump_loading_plain	กำลังโหลดข้อความเก่า
 chat_jump_seeking	กำลังค้นหาวันนั้น
 chat_jump_cancel	ยกเลิก
+pinned_bar_one	ข้อความที่ปักหมุด
+pinned_bar_many	ข้อความที่ปักหมุด %1$d ข้อความ
+pinned_bar_attachment	ไฟล์แนบ
 chat_jump_start	นี่คือจุดเริ่มต้นของการแชท
 chat_jump_found	นี่คือข้อความแรกของวันนั้น
 chat_jump_next	ไม่มีข้อความในวันนั้น นี่คือข้อความถัดไป
@@ -814,12 +854,19 @@ search_suggested.title	ซ่อนรายการแนะนำในกา
 search_suggested.description	ซ่อนคนที่แนะนำด้านบนของการค้นหาก่อนที่คุณจะพิมพ์ คนเหล่านั้นยังขึ้นมาเมื่อคุณค้นหาพวกเขา
 search_reels.title	ซ่อนรีลล่าสุดในการค้นหา
 search_reels.description	ซ่อนรีลที่คุณเพิ่งดูออกจากการค้นหาก่อนที่คุณจะพิมพ์
+search_strangers.title	ซ่อนคนที่คุณไม่รู้จักในการค้นหา
+search_strangers.description	ซ่อนคนที่ไม่ได้เป็นเพื่อนกับคุณเมื่อคุณพิมพ์ในช่องค้นหา เพื่อไม่ให้คุณส่งข้อความหาคนแปลกหน้าโดยไม่ตั้งใจ เพื่อนและกลุ่มของคุณยังคงแสดงอยู่
+# context: confirm_strangers, the Inbox switch that holds the first Send in a chat with someone who isn't a friend
+confirm_strangers.title	ถามก่อนส่งข้อความหาคนที่คุณไม่รู้จัก
+confirm_strangers.description	พักการกดส่งครั้งแรกในแชทกับคนที่ไม่ได้เป็นเพื่อนกับคุณ แล้วขอให้คุณแตะส่งอีกครั้ง การแตะครั้งที่สองภายใน 5 วินาทีจะส่งเป็นคำขอส่งข้อความ กลุ่ม เพจ และแชทที่อีกฝ่ายเคยส่งข้อความถึงคุณจะส่งทันที
 longer_notes.title	เขียนโน้ตให้ยาวขึ้น
-longer_notes.description	ให้พิมพ์โน้ตได้สูงสุด 2000 ตัวอักษรแทน 60 ตัวอักษร Facebook เป็นผู้ตัดสินว่าโน้ตยาวจะโพสต์ได้หรือไม่
+longer_notes.description	ให้พิมพ์โน้ตได้สูงสุด 600 ตัวอักษรแทน 60 ตัวอักษร Facebook เป็นผู้ตัดสินว่าโน้ตยาวจะโพสต์ได้หรือไม่
 chat_preview.title	กดค้างเพื่อดูตัวอย่างแชท
 chat_preview.description	การกดค้างที่แชทจะเป็นการเปิดหน้าต่างดูตัวอย่างของ Messenger พร้อมเมนูแชทด้านล่าง ทำให้คุณสามารถดูแชทได้โดยไม่ต้องเปิดเข้าไป (ทดลอง)
 chat_preview_size.title	ขยายขนาดการดูตัวอย่างแชท
 chat_preview_size.description	การดูตัวอย่างด้วยการกดค้างจะใช้พื้นที่เกือบเต็มหน้าจอและเลื่อนดูข้อความก่อนหน้าได้ เมนูด้านล่างจะมีขนาดกะทัดรัดและเลื่อนดูได้ (ทดลอง)
+chat_preview_taps.title	แตะในตัวอย่างแชทโดยไม่เปิดแชท
+chat_preview_taps.description	การแตะแชทในหน้าต่างดูตัวอย่างที่ขึ้นมาเมื่อกดค้างที่แชทจะไม่เปิดแชทอีกต่อไป การแตะจะไปที่ตัวแชทเอง ลูกศรลงไปยังข้อความล่าสุดจึงใช้งานได้ และ เปิดแชท ที่ด้านบนของเมนูด้านล่างจะเปิดแชทให้
 mark_read_action.title	ซ่อนตัวเลือกทำเครื่องหมายว่าอ่านแล้ว
 mark_read_action.description	ลบตัวเลือก "ทำเครื่องหมายว่าอ่านแล้ว" ออกจากเมนูเมื่อกดค้างที่แชท เพื่อป้องกันการเผลอแตะโดนโดยไม่ได้ตั้งใจ โดยตัวเลือก "ทำเครื่องหมายว่ายังไม่ได้อ่าน" จะยังคงอยู่
 pinned_chats.title	ปักหมุดแชทได้มากขึ้น
@@ -832,6 +879,9 @@ chat_menu_items.title	ซ่อนรายการเมนูของแช�
 chat_menu_items.description	กดค้างที่แชทใดก็ได้หนึ่งครั้ง จากนั้นเลือกรายการเมนูที่ต้องการซ่อนที่นี่ โดย Messenger จะคงไว้อย่างน้อยหนึ่งรายการเสมอ (ทดลอง)
 profile_menu_items.title	ซ่อนรายการเมนูโปรไฟล์
 profile_menu_items.description	ซ่อนรายการที่คุณเลือกจากเมนูที่ขึ้นเมื่อแตะรูปของใครสักคนข้างข้อความของเขาในแชท แตะรูปหนึ่งครั้ง แล้วรายการของเมนูนั้นจะแสดงใต้สวิตช์นี้ให้เลือก
+# context: remove_contact, the Chat menu switch that adds Remove contact to the menu you get by holding a person who isn't a friend
+remove_contact.title	แสดงตัวเลือกลบผู้ติดต่อ
+remove_contact.description	เพิ่มตัวเลือกลบผู้ติดต่อกลับมาในเมนูที่ขึ้นเมื่อกดค้างที่ใครสักคนในแท็บผู้คน รายชื่อติดต่อ หรือการค้นหา สำหรับคนที่ไม่ได้เป็นเพื่อนกับคุณ ตัวเลือกนี้จะนำเขาออกจากผู้ติดต่อใน Messenger โดยไม่บล็อกเขา
 facebook.title	ซ่อนปุ่มลัด Facebook
 facebook.description	ลบแถบเครื่องมือ โปรไฟล์ และปุ่มลัดการแชร์ไปยัง Facebook รวมถึงส่วน "อื่นๆ จาก Meta" และ "การสมัครรับข้อมูล" ในแท็บเมนู
 meta_ai.title	ซ่อน Meta AI
@@ -913,7 +963,7 @@ local_chat_search.description	เพิ่มปุ่มในผลการ�
 chat_jump.title	ข้ามไปยังข้อความแรกหรือตามวันที่
 chat_jump.description	กดค้างที่ชื่อแชทด้านบนแล้วเลือก "ข้อความแรก" หรือ "ระบุวันที่" ลูกศรที่มุมซ้ายล่างของแชทจะพาไปที่ข้อความแรก กดค้างที่ลูกศรเพื่อเลือกวันที่ Messenger จะเลื่อนย้อนกลับพร้อมแสดงจำนวนข้อความจนกว่าจะถึงจุดที่ต้องการ
 pinned_bar.title	แสดงข้อความที่ปักหมุด
-pinned_bar.description	แสดงข้อความที่ปักหมุดของแชทในแถบใต้ชื่อแชท Messenger มีแถบนี้อยู่แล้ว แต่เปิดไว้แค่ในบางแชท
+pinned_bar.description	แสดงแถบใต้ชื่อแชทพร้อมข้อความที่ปักหมุดล่าสุด ในแชทที่เข้ารหัสตั้งแต่ต้นทางถึงปลายทาง แตะแถบเพื่อไปที่ข้อความนั้น
 landscape.title	อนุญาตให้แสดงแนวนอน
 landscape.description	ให้ Messenger หมุนหน้าจอแนวนอนตามการหมุนของโทรศัพท์ เพื่อแป้นพิมพ์ที่กว้างขึ้นและรูปภาพ/วิดีโอที่ใหญ่ขึ้น เริ่มต้น Messenger ใหม่หลังจากเปลี่ยน (ทดลอง)
 chat_bar_plus.title	ปุ่มในแถบแชทไปอยู่ในเมนู +
@@ -1004,6 +1054,8 @@ restricted_notify.title	แจ้งเตือนสำหรับแชท�
 restricted_notify.description	ข้อความจากบุคคลที่คุณจำกัดไว้จะแจ้งเตือนเหมือนแชททั่วไป เว้นแต่คุณจะปิดเสียงแชทนั้นไว้หรือเป็นแชทที่เข้ารหัสแบบต้นทางถึงปลายทาง
 open_chat_sound.title	เสียงในแชทที่เปิดอยู่
 open_chat_sound.description	เล่นเสียงข้อความในแอปของ Messenger เมื่อมีข้อความเข้ามาในแชทที่คุณเปิดอยู่ ซึ่ง Messenger ทำแบบนี้อยู่แล้วกับการกดถูกใจและสติกเกอร์ ถ้าโทรศัพท์ปิดเสียงอยู่หรือปิดเสียงในแอปของ Messenger ไว้ ก็จะยังเงียบเหมือนเดิม
+own_chat_sounds.title	เสียงแชทของคุณเอง
+own_chat_sounds.description	เล่นไฟล์เสียงที่คุณเลือกแทนเสียงของ Messenger ตอนส่งข้อความ ตอนที่ข้อความส่งถึงแล้ว และตอนมีข้อความใหม่ขณะเปิด Messenger อยู่ เลือกได้ที่ด้านล่าง เสียงที่คุณไม่ได้เปลี่ยนจะยังเป็นของ Messenger และ Messenger ยังเป็นผู้ตัดสินใจว่าจะเล่นแต่ละเสียงเมื่อไร
 passkey_login.title	ข้ามการลงชื่อเข้าใช้ด้วยพาสคีย์
 passkey_login.description	การลงชื่อเข้าใช้จะไม่เสนอพาสคีย์จากโทรศัพท์เครื่องนี้อีก ดังนั้น Facebook จะย้อนกลับไปให้คุณอนุมัติการเข้าสู่ระบบจากอุปกรณ์อื่นที่คุณลงชื่อเข้าใช้อยู่ เหมือนกับบัญชีที่ไม่มีพาสคีย์ Messenger ที่แพตช์แล้วไม่สามารถผ่านการตรวจพาสคีย์ของ Facebook ได้ และนั่นคือสาเหตุที่การเข้าสู่ระบบบางครั้งวนอยู่ที่การตรวจสอบผ่านเบราว์เซอร์ ขณะที่เปิดอยู่ Messenger ก็ใช้พาสคีย์สำหรับการสำรองข้อมูลแบบเข้ารหัสไม่ได้ด้วย จึงควรปิดไว้เว้นแต่การเข้าสู่ระบบจะติดค้าง กดไอคอน Messenger บนหน้าจอหลักค้างไว้เพื่อเข้าถึงการตั้งค่านี้โดยไม่ต้องลงชื่อเข้าใช้
 recovery_code_row.title	แสดงตัวเลือกรหัส 40 ตัวอักษร

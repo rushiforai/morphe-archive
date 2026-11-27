@@ -40,7 +40,7 @@
 All patches are enabled by default.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.6](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;44 patches total
+> **[v1.7.7](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;45 patches total
 <details open>
 <summary>📦 Lidl Plus&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
@@ -108,7 +108,7 @@ All patches are enabled by default.
 </details>
 
 <details open>
-<summary>📦 InPost Mobile&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 InPost Mobile&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -120,8 +120,9 @@ All patches are enabled by default.
 |----------|----------------|-----------|
 | [Block telemetry](#block-telemetry) | Blocks app analytics, Firebase Analytics, Crashlytics and Performance, Microsoft Clarity session recording, Adjust, Facebook app events and Synerise event tracking. |  |
 | [Custom Google Maps key](#custom-google-maps-key) | Replaces the app's Google Maps API key. The original key is locked to the developer's signing certificate, so maps stay grey in a re-signed app. Use a key you own that allows the app's package name and the SHA-1 of the key the patched app is signed with. | • Google Maps API key |
+| [Default to parcel tracking](#default-to-parcel-tracking) | Opens the parcel tracking tab instead of the home tab on startup. |  |
 | [Hide Von Halsky](#hide-von-halsky) | Removes Von Halsky shopping: the Kupuj tab, the home search box, and the banners and promotions in parcel lists, details, the cart and the More menu. |  |
-| [Hide promotional banners](#hide-promotional-banners) | Removes the promotional banner carousel from the home screen. |  |
+| [Hide promotional banners](#hide-promotional-banners) | Removes the promotional banner carousel from the home screen, blocks Synerise full-screen in-app ads, and suppresses the animated splash video. |  |
 
 </details>
 

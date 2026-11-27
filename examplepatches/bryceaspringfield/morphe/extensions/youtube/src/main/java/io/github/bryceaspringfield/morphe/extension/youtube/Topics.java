@@ -1,17 +1,10 @@
 package io.github.bryceaspringfield.morphe.extension.youtube;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Videos and channels hidden by topic, as the Reddit bundle hides communities. A video is hidden when its title,
- * text, or channel name contains one of the topic's patterns, unless an opposing word sits right before or after it
- * (anti-, against, debunk, ...) or the match is one of the exceptions. The user's own channels to hide
- * ({@link XSettings#HIDDEN_CHANNELS}) are hidden whatever the topic.
- */
 final class Topics {
 
     static final String[] KEYS = {"zionism", "fascism", "incel", "conspiracy"};
@@ -20,10 +13,6 @@ final class Topics {
     static final String[] LABELS_ES = {"Sionismo", "Fascismo, nazismo y supremacía blanca", "Incels y la blackpill",
             "Teorías de la conspiración"};
 
-    /**
-     * Patterns, each the start of a word or phrase in the lowercase text (a pattern may end inside a word, e.g.,
-     * "zionis" matches zionist and zionism); a space in a pattern also matches a hyphen, an underscore, or nothing.
-     */
     private static final String[][] PATTERNS = {
             {"zionis", "sionis", "stand with israel", "israel first", "greater israel"},
             {"fascis", "fascist", "nazi", "neo nazi", "hitler was right", "1488", "14 words", "fourteen words",
@@ -56,7 +45,6 @@ final class Topics {
         }
     }
 
-    /** Matches never hidden: words sharing a pattern's letters by chance, or about the topic without promoting it. */
     private static final String[] EXCEPTIONS = {"grammar nazi", "grammarnazi", "soup nazi", "feminazi", "nazi hunt",
             "debunk", "desmont", "documentary", "documental", "explained", "explicad", "history of", "historia de"};
 
@@ -103,8 +91,6 @@ final class Topics {
         return channels;
     }
 
-    /** The label of the topic or list hiding the item, or null. */
-    
     static String match(VideoItem item) {
         for (ChannelRules.Channel c : hiddenChannels()) if (item.isChannel(c)) return "hidden channel " + c.label();
         List<Integer> topics = active();

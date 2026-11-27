@@ -17,23 +17,24 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * PR #475: the home top bar's Tako icon. TakoTopIconAssem.onCreate (47.9.3: four registers,
+ * PR #475: the home top bar's Tako icon. TakoTopIconAssem.onCreate (48.0.2: four registers,
  * `this` in v3) calls the assem's own onCreate, then adds its config callback to TikTok's A/B
  * config manager. The guard goes right after that super call, and the builds it refuses go without
  * it, loudly where the build is declared and quietly otherwise.
  */
 class TakoTopIconHookTest {
     private val stock = """
-        invoke-super {p0}, LX/02y2;->onCreate()V
-        invoke-static {}, LX/05lo;->LIZJ()LX/05lo;
+        invoke-super {p0}, LX/02t2;->onCreate()V
+        invoke-static {}, LX/07N8;->LIZLLL()LX/07N8;
         move-result-object v2
-        iget-object v0, p0, $TAKO_TOP_ICON_ASSEM->LL:LX/02ok;
-        invoke-interface {v0}, LX/02ok;->getValue()Ljava/lang/Object;
+        iget-object v0, p0, $TAKO_TOP_ICON_ASSEM->LL:LX/02pq;
+        invoke-interface {v0}, LX/02pq;->getValue()Ljava/lang/Object;
         move-result-object v1
         if-nez v1, :add
+        invoke-virtual {v2}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
         return-void
         :add
-        iget-object v0, v2, LX/05lo;->LJFF:Ljava/util/concurrent/ConcurrentLinkedDeque;
+        iget-object v0, v2, LX/07N8;->LJFF:Ljava/util/concurrent/ConcurrentLinkedDeque;
         invoke-virtual {v0, v1}, Ljava/util/concurrent/ConcurrentLinkedDeque;->add(Ljava/lang/Object;)Z
         return-void
     """
@@ -62,7 +63,7 @@ class TakoTopIconHookTest {
         val target = offsets.indexOf(offsets[3] + branch.codeOffset)
         assertEquals("false lands on the stock second instruction", 5, target)
         assertEquals(Opcode.INVOKE_STATIC, code[target].opcode)
-        assertEquals("LIZJ", ((code[target] as ReferenceInstruction).reference as MethodReference).name)
+        assertEquals("LIZLLL", ((code[target] as ReferenceInstruction).reference as MethodReference).name)
         // Everything after the guard is the stock body, in order.
         assertEquals(before.drop(1), code.drop(5).map { it.opcode })
     }
@@ -70,9 +71,9 @@ class TakoTopIconHookTest {
     @Test
     fun `a build whose onCreate no longer opens with the super call goes without the hook`() {
         val body = """
-            invoke-static {}, LX/05lo;->LIZJ()LX/05lo;
+            invoke-static {}, LX/07N8;->LIZLLL()LX/07N8;
             move-result-object v0
-            invoke-super {p0}, LX/02y2;->onCreate()V
+            invoke-super {p0}, LX/02t2;->onCreate()V
             return-void
         """
         val refused = assertThrows(PatchException::class.java) {
@@ -85,7 +86,7 @@ class TakoTopIconHookTest {
     @Test
     fun `a build with no local for the answer goes without the hook`() {
         val body = """
-            invoke-super {p0}, LX/02y2;->onCreate()V
+            invoke-super {p0}, LX/02t2;->onCreate()V
             return-void
         """
         val refused = assertThrows(PatchException::class.java) {

@@ -58,6 +58,7 @@ val sendPhotoAsFilePatch = bytecodePatch(
     dependsOn(nativeSignaturePatch)
 
     execute {
+        registerApplied(PatchId.SEND_PHOTOS_IN_ORIGINAL_QUALITY)
         check(NativePhotoQualityFingerprint.matchAll(1..1).size == 1)
         val method = NativePhotoQualityFingerprint.method
         val instructions = method.implementation!!.instructions.toList()
@@ -79,10 +80,10 @@ val sendPhotoAsFilePatch = bytecodePatch(
             .filter { it.returnType == "Z" && it.parameterTypes.isEmpty() }
             .distinct()
         check(gates.size == 2) { "Expected 2 entitlement predicates but found ${gates.size}" }
-        gates.forEach { gate ->
+        val gateMethods = gates.map { gate ->
             mutableClassDefBy(gate.definingClass).methods
                 .single { it.name == gate.name && it.parameterTypes.isEmpty() && it.returnType == "Z" }
-                .addInstructions(0, "const/4 v0, 0x1\n return v0")
+                .apply { addInstructions(0, "const/4 v0, 0x1\n return v0") }
         }
 
         // The picker's default quality resolver (static ()I on the same class) is consumed per chat
@@ -127,5 +128,6 @@ val sendPhotoAsFilePatch = bytecodePatch(
             hdIndex,
             "sget-object v$register, ${originalRef.definingClass}->${originalRef.name}:${originalRef.type}",
         )
+        registerHooks(PatchId.SEND_PHOTOS_IN_ORIGINAL_QUALITY, *gateMethods.toTypedArray(), defaultQuality, method)
     }
 }

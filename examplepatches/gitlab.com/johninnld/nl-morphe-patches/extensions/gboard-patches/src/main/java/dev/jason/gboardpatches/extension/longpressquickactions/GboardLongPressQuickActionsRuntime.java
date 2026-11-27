@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class GboardLongPressQuickActionsRuntime {
     private static final String TAG = "GboardPatches";
-    private static final String LOG_PREFIX = "[gboard-long-press-quick-actions-18.5.4] ";
+    private static final String LOG_PREFIX = "[Gboard editing shortcuts] ";
 
     private static final Map<ClassLoader,
             WeakReference<GboardLongPressQuickActionsReflectionHandles>>
@@ -85,14 +85,15 @@ public final class GboardLongPressQuickActionsRuntime {
                     UNPATCHED_METADATA_MARKERS.put(metadata, Boolean.TRUE);
                     return metadata;
                 }
-                Object patched = handles.appendLongPressAction(context, metadata, action);
+                boolean first = GboardLongPressQuickActionsSettings.placeFirst(context, action.shortcut);
+                Object patched = handles.appendLongPressAction(context, metadata, action, first);
                 if (patched == null) {
                     UNPATCHED_METADATA_MARKERS.put(metadata, Boolean.TRUE);
                     return metadata;
                 }
                 rememberPatchedMetadata(metadata, patched);
                 logInfo(PATCH_LOG_COUNT, 30,
-                        "appended keycode=" + action.actionCode
+                        "added keycode=" + action.actionCode
                                 + ", name=" + action.debugName
                                 + ", icon=0x" + Integer.toHexString(action.iconResId));
                 return patched;

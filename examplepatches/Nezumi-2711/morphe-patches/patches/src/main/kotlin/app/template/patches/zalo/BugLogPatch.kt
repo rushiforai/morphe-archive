@@ -15,8 +15,9 @@ private const val MAIN_APPLICATION = "Lcom/zing/zalo/MainApplication;"
 @Suppress("unused")
 val bugLogPatch = bytecodePatch(
     name = "Bug log",
-    description = "Adds a Debugging section to Nezumi's Settings that records patch errors, crashes and ANRs " +
-        "to a local log the user can export and share with the developer. Recording is off until the user turns it on.",
+    description = "Adds a Debugging section to Nezumi's Settings with a local log the user can export and share " +
+        "with the developer. Errors, crashes and ANRs are always recorded and named by patch; detailed logging " +
+        "and turning the log off completely are options.",
     default = true,
 ) {
     compatibleWith(Compatibility(
@@ -31,13 +32,12 @@ val bugLogPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.BUG_LOG, selfReportedHook = true)
+        // A dependency, so always applied with this patch; it is a raw resource patch and cannot register itself.
+        registerApplied(PatchId.NATIVE_SIGNATURE_FIX)
+
         // Bake the bundle version into the log header.
-        val version = nezumiBundleVersion().replace("\\", "").replace("\"", "")
-        val bundleVersion = mutableClassDefBy(NEZUMI_LOG).methods.single { it.name == "bundleVersion" }
-        repeat(bundleVersion.implementation!!.instructions.size) {
-            bundleVersion.implementation!!.removeInstruction(0)
-        }
-        bundleVersion.addInstructions(0, "const-string v0, \"$version\"\nreturn-object v0")
+        bakeStringStub(NEZUMI_LOG, "bundleVersion", nezumiBundleVersion())
 
         // Install as early as possible in every process, right after the base context is attached,
         // so crashes during Application.onCreate are captured too.
@@ -50,8 +50,16 @@ val bugLogPatch = bytecodePatch(
         }
         check(superIndex >= 0) { "MainApplication.attachBaseContext super call not found" }
         attach.addInstructions(superIndex + 1, "invoke-static {p0}, $NEZUMI_LOG->install(Landroid/content/Context;)V")
+        // install() logs this patch's breadcrumb itself; a crash in this method is still attributed.
+        registerTouched(PatchId.BUG_LOG, attach)
 
         attachNezumiSettings("attachBugLog")
+    }
+
+    // Runs after every patch's execute block: bake which patches were applied, which Zalo methods
+    // they modified, and their hook breadcrumbs.
+    finalize {
+        bakeBugLogRegistry()
     }
 }
 

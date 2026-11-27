@@ -1,0 +1,158 @@
+{
+  "$schema": "gboard-port-product-catalog.schema.json",
+  "format": "gboard-port-product-catalog.v1",
+  "catalog_version": "1.21.0",
+  "composition": {
+    "selected_only_call_chain": true,
+    "runtime_feature_mask": false
+  },
+  "binding_contracts": {},
+  "anchor_families": [
+    "dedicated_bytecode",
+    "flag_bool_getter",
+    "gesture_dispatch",
+    "pointer_lifecycle",
+    "resource_only",
+    "soft_key_bind"
+  ],
+  "features": [
+    {
+      "feature_id": "thicc_top_bar",
+      "public_patch_name": "Thicc Top Bar",
+      "feature_marker": "dev.srwi.gintype.feature.thicc_top_bar",
+      "target_family_ids": [
+        "thicctopbar"
+      ],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/thicctopbar/GboardThiccTopBarBytecodePatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/thicctopbar/GboardThiccTopBarFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/registry/GboardPatchRegistry.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "thicc_top_bar.candidates",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1965,
+          "required_bindings": [],
+          "runtime_calls": [
+            "THICC_TOP_BAR_RUNTIME_ON_CANDIDATES_UPDATED"
+          ]
+        }
+      ]
+    },
+    {
+      "feature_id": "multiglide",
+      "public_patch_name": "MultiGlide",
+      "feature_marker": "dev.srwi.gintype.feature.multiglide",
+      "target_family_ids": [
+        "multiglide"
+      ],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/multiglide/GboardMultiGlideBytecodePatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/multiglide/GboardMultiGlideFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/registry/GboardPatchRegistry.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "multiglide.gesture",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1970,
+          "required_bindings": [],
+          "runtime_calls": [
+            "MULTIGLIDE_RUNTIME_ON_GESTURE_EVENT_ENTRY",
+            "MULTIGLIDE_RUNTIME_SHOULD_START_GESTURE",
+            "MULTIGLIDE_RUNTIME_SHOULD_INTERCEPT_GESTURE_DISPATCH",
+            "MULTIGLIDE_RUNTIME_SHOULD_INTERCEPT_GESTURE_RESET",
+            "MULTIGLIDE_RUNTIME_RESOLVE_LETTER_STARTED",
+            "MULTIGLIDE_RUNTIME_SHOULD_RECEIVE_EVENTS_DURING_OTHER_OWNER",
+            "MULTIGLIDE_RUNTIME_SHOULD_SUPPRESS_BASIC_HANDLER",
+            "MULTIGLIDE_RUNTIME_SHOULD_SUPPRESS_ROLLOVER_COMMIT"
+          ]
+        }
+      ]
+    },
+    {
+      "feature_id": "typing_effects",
+      "public_patch_name": "Typing Effects",
+      "feature_marker": "dev.srwi.gintype.feature.typing_effects",
+      "target_family_ids": [
+        "typingeffects"
+      ],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/typingeffects/GboardTypingEffectsBytecodePatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/typingeffects/GboardTypingEffectsFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/registry/GboardPatchRegistry.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "typing_effects.overlay",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1980,
+          "required_bindings": [],
+          "runtime_calls": [
+            "TYPING_EFFECTS_RUNTIME_ON_KEYBOARD_TOUCH_EVENT",
+            "TYPING_EFFECTS_RUNTIME_ON_KEYBOARD_DETACHED",
+            "TYPING_EFFECTS_RUNTIME_SHOULD_SUPPRESS_STOCK_TRAIL"
+          ]
+        }
+      ]
+    },
+    {
+      "feature_id": "custom_hold_popups",
+      "public_patch_name": "Custom Hold Popups",
+      "feature_marker": "dev.srwi.gintype.feature.custom_hold_popups",
+      "target_family_ids": [
+        "customholdpopups"
+      ],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/customholdpopups/GboardCustomHoldPopupsBytecodePatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/customholdpopups/GboardCustomHoldPopupsFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/registry/GboardPatchRegistry.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "custom_hold_popups.hooks",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1985,
+          "required_bindings": [],
+          "runtime_calls": [
+            "CUSTOM_HOLD_POPUPS_RUNTIME_TRANSFORM_SOFT_KEY_DEF",
+            "CUSTOM_HOLD_POPUPS_RUNTIME_ON_POPUP_SHOWN",
+            "CUSTOM_HOLD_POPUPS_RUNTIME_ON_POPUP_SELECTION_UPDATED",
+            "CUSTOM_HOLD_POPUPS_RUNTIME_ON_POPUP_HIDDEN",
+            "CUSTOM_HOLD_POPUPS_RUNTIME_SHOULD_INTERCEPT_KEY_DATA_DISPATCH"
+          ]
+        }
+      ]
+    },
+    {
+      "feature_id": "package_rename",
+      "public_patch_name": "Package Rename",
+      "feature_marker": null,
+      "target_family_ids": [],
+      "migration_scope": "generic",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/features/packagerename/GboardPackageRenameResourcePatch.kt",
+        "patches/src/main/kotlin/dev/srwi/gintype/patches/gboard/registry/GboardPatchRegistry.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "package_rename.resources",
+          "anchor_family_id": "resource_only",
+          "phase": "resource",
+          "order": 200,
+          "required_bindings": [],
+          "runtime_calls": []
+        }
+      ]
+    }
+  ]
+}

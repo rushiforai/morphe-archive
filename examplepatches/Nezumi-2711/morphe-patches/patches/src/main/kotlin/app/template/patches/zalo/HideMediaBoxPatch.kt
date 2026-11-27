@@ -44,6 +44,7 @@ val hideMediaBoxPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_MEDIA_BOX_IN_MESSAGES)
         check(MediaBoxListFingerprint.matchAll(1..1).size == 1)
         val method = MediaBoxListFingerprint.method
         check(method.implementation!!.registerCount == 16)
@@ -73,6 +74,7 @@ val hideMediaBoxPatch = bytecodePatch(
             invoke-virtual {p6}, $originalCall
         """.trimIndent(), ExternalLabel("nezumi_hide_media_box", instructions[startIndex - 1]))
 
+        registerHooks(PatchId.HIDE_MEDIA_BOX_IN_MESSAGES, method)
         attachNezumiSettings("attachMediaBox")
     }
 }

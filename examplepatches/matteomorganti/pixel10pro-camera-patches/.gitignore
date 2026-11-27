@@ -1,0 +1,31 @@
+# Gradle
+.gradle/
+build/
+local.properties
+
+# Never commit Google's APK or anything derived from it.
+work/
+*.apk
+*.apkm
+*.apks
+*.xapk
+*.dex
+findings.json
+# ...except the helper/controller DEX resources shipped by the ported
+# Akshayykadam patches (see CREDITS.md and CLASSIFICATION.md, decision 4).
+!patches/src/main/resources/*.dex
+
+# Signing material
+*.jks
+*.keystore
+
+# IDE
+*.iml
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log

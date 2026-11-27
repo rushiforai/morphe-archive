@@ -6,6 +6,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.template.patches.shared.applyBundleDelta
+import app.template.patches.shared.loadAdapter
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -55,7 +57,8 @@ private val openbotResources = resourcePatch {
         val bundle = get("assets/index.android.bundle")
         if (!bundle.isFile) throw PatchException("OpenBot embedded bundle not found")
         // Adapters are matched on the original bundle hash, never on a nearby version.
-        val digest = sha256(bundle.readBytes())
+        val original = bundle.readBytes()
+        val digest = sha256(original)
         val registered = adapters()
         val metadata = registered.singleOrNull { it.getProperty("originalSha256") == digest }
             ?: throw PatchException(
@@ -63,10 +66,7 @@ private val openbotResources = resourcePatch {
                     registered.joinToString { it.getProperty("version") }
             )
         val version = metadata.getProperty("version")
-        val adapter = resource("openbot/adapters/$version.bundle")?.use { it.readBytes() }
-            ?: throw PatchException("OpenBot $version Appearance adapter is missing")
-        if (sha256(adapter) != metadata.getProperty("patchedSha256"))
-            throw PatchException("OpenBot $version adapter checksum mismatch")
+        val adapter = loadAdapter("openbot/adapters", version, metadata, original)
         val overlay = resource("openbot/adapters/$version.assets.zip")?.use { it.readBytes() }
             ?: throw PatchException("OpenBot $version adapter assets are missing")
         if (sha256(overlay) != metadata.getProperty("assetsSha256"))
@@ -109,20 +109,42 @@ private val openbotResources = resourcePatch {
             enabled.setAttributeNS(NS, "android:value", "false")
         }
         bundle.writeBytes(adapter)
+        // Overlay entries are full files under assets/www.bundle/ or res/, plus web files
+        // stored as deltas against an APK file (listed in overlay.manifest). Files
+        // identical to the APK are left out at build time. Every result is checked
+        // before anything is written.
+        val entries = linkedMapOf<String, ByteArray>()
         ZipInputStream(ByteArrayInputStream(overlay)).use { zip ->
             while (true) {
                 val entry = zip.nextEntry ?: break
-                if (!entry.isDirectory) {
-                    val name = entry.name.removePrefix("./")
-                    if (name.split('/').any { it == ".." } || name.startsWith('/') ||
-                        !(name.startsWith("assets/www.bundle/") || name.startsWith("res/")))
-                        throw PatchException("Invalid OpenBot adapter asset: $name")
-                    val target = get(name)
-                    target.parentFile.mkdirs()
-                    target.outputStream().use { zip.copyTo(it) }
-                }
+                if (!entry.isDirectory) entries[entry.name.removePrefix("./")] = zip.readBytes()
                 zip.closeEntry()
             }
+        }
+        fun checkedTarget(name: String): String {
+            if (name.split('/').any { it == ".." } || name.startsWith('/') ||
+                !(name.startsWith("assets/www.bundle/") || name.startsWith("res/")))
+                throw PatchException("Invalid OpenBot adapter asset: $name")
+            return name
+        }
+        val writes = linkedMapOf<String, ByteArray>()
+        entries.remove("overlay.manifest")?.toString(Charsets.UTF_8)?.lines()?.filter { it.isNotBlank() }?.forEach { line ->
+            val fields = line.split('\t')
+            if (fields.size != 4 || !fields[2].startsWith("deltas/"))
+                throw PatchException("Invalid OpenBot overlay manifest line: $line")
+            val (target, base, deltaName, expected) = fields
+            val original = get(checkedTarget(base)).takeIf { it.isFile }?.readBytes()
+                ?: throw PatchException("OpenBot asset $base not found")
+            val delta = entries.remove(deltaName) ?: throw PatchException("OpenBot overlay is missing $deltaName")
+            val bytes = applyBundleDelta(original, delta)
+            if (sha256(bytes) != expected) throw PatchException("OpenBot asset $target checksum mismatch")
+            writes[checkedTarget(target)] = bytes
+        }
+        entries.forEach { (name, bytes) -> writes[checkedTarget(name)] = bytes }
+        writes.forEach { (name, bytes) ->
+            val target = get(name)
+            target.parentFile.mkdirs()
+            target.writeBytes(bytes)
         }
         // The DOM pages load this local intercepted stylesheet before first paint.
         val head = Regex("<head(?:\\s[^>]*)?>", RegexOption.IGNORE_CASE)

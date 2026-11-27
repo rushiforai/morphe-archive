@@ -16,8 +16,9 @@ object LiquidGlassBootstrap {
 
     @JvmStatic
     fun init(app: Application) {
-        if (!initialized.compareAndSet(false, true)) return
         val proc = Application.getProcessName()
+        if (proc != null && proc.contains(":")) return
+        if (!initialized.compareAndSet(false, true)) return
         Log.i(TAG, "MergenV1 LiquidGlassBootstrap initialized (direct DEX mode, process=$proc)")
 
         MergenPrefs.addListener {

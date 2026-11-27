@@ -16,31 +16,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import app.morphe.extension.shared.Logger;
 
-/**
- * The reason after a hand-made Not interested (Bryce, 2026-11-23): when the user picks Not interested on a feed video,
- * the feed shows "Video removed" with Undo and Tell us why. With the option on, and 5 seconds gone without the user
- * choosing, the app taps Tell us why and then I don't like the video, as the user would.
- *
- * The notice is an Android view (video_dismissed_entry: success_response_text, undo_text, dismissal_reasons_text) whose
- * presenter reports its view here once (onNotice); the notice is taken out of its frame and put back at every binding,
- * so each showing attaches the view again and starts the wait. The reasons list opens as a dialog whose rows are
- * RadioButtons (dismissal_reason_list_item), each labeled with its reason; after the tap on Tell us why they are found
- * in the app's open windows. The tap is skipped where the notice has left the screen (Undo, a scroll), where Tell us why
- * is no longer shown (a reason was sent), or where the window lost focus (the user opened the reasons themself).
- */
 public final class AutoReason {
 
     private static final long WAIT_MS = 5000;
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final Map<View, Runnable> WAITING = new WeakHashMap<>();
-    /** Notices already answered here, by their text ("Video removed: TITLE"), so a notice scrolled back is left alone. */
     private static final Set<String> ANSWERED = ConcurrentHashMap.newKeySet();
 
     private AutoReason() {
     }
 
-    /** From the constructor of the notice's presenter: its view, kept for every later showing. */
     public static void onNotice(View root) {
         try {
             if (root == null) return;
@@ -98,7 +84,6 @@ public final class AutoReason {
         }
     }
 
-    /** Taps "I don't like the video" among the rows the list showed: by its text in English or Spanish, else the second row. */
     private static void pick(int attempt) {
         try {
             List<RadioButton> shown = new ArrayList<>();
@@ -128,7 +113,6 @@ public final class AutoReason {
         }
     }
 
-    /** "I don't like the video" / "No me gusta el video", and not the already-watched reason. */
     static boolean dontLike(CharSequence reason) {
         if (reason == null) return false;
         String t = reason.toString().toLowerCase(Locale.ROOT);
@@ -146,7 +130,6 @@ public final class AutoReason {
         return id == 0 ? null : root.findViewById(id);
     }
 
-    /** The root views of the app's open windows (the reasons list opens as a dialog, a window of its own). */
     @SuppressWarnings("unchecked")
     private static List<View> windows() {
         try {
@@ -161,7 +144,6 @@ public final class AutoReason {
         }
     }
 
-    /** Every shown RadioButton under a view: the rows of the reasons list. */
     private static void collect(View v, List<RadioButton> out) {
         if (v == null || !v.isShown()) return;
         if (v instanceof RadioButton) {

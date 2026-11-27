@@ -345,6 +345,63 @@
             "options": []
         },
         {
+            "name": "Ask before messaging people you don't know",
+            "description": "Holds the first Send in a chat with someone you aren't friends with and asks you to tap Send again. A second tap within 5 seconds sends it as a message request. Groups, pages and chats where they've written to you send right away. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Inbox",
+            "dependencies": [
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: confirm_strangers",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "588.1.0.66.98",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347617497, 347617499, 347617503, 347617513, 347617515, 347617516, 347617517, 347617519, 347617532, 347617533, 347617535, 347617537, 347617566, 347617569, 347617572, 347617583, 347617586, 347617587, 347617588 and 347617590; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Auto reply",
             "description": "Answers messages with replies you write in HushMessenger settings, when they have words you pick or any message at all. Replies go out through Messenger's own notification reply, encrypted chats too, at most once every five minutes per chat. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
@@ -2838,6 +2895,63 @@
             "options": []
         },
         {
+            "name": "Hide people you don't know in search",
+            "description": "Hides the people you aren't friends with when you type in search, so you don't message a stranger by mistake. Your friends and groups still come up. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Inbox",
+            "dependencies": [
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: search_strangers",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "588.1.0.66.98",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347617497, 347617499, 347617503, 347617513, 347617515, 347617516, 347617517, 347617519, 347617532, 347617533, 347617535, 347617537, 347617566, 347617569, 347617572, 347617583, 347617586, 347617587, 347617588 and 347617590; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Hide pictures on the Blocked list",
             "description": "Hides people's profile pictures on the list of people you've blocked, under Privacy and safety. Their names and Unblock stay. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
@@ -3240,7 +3354,7 @@
             "name": "Hide the Instants button",
             "description": "Hides the + button that slides in at the right edge of your chat list and the one under your chat heads. Both open Instants. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Inbox",
+            "category": "Tab bar",
             "dependencies": [
                 {
                     "type": "Patch",
@@ -3904,6 +4018,63 @@
                     "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: emoji_search",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "588.1.0.66.98",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347617497, 347617499, 347617503, 347617513, 347617515, 347617516, 347617517, 347617519, 347617532, 347617533, 347617535, 347617537, 347617566, 347617569, 347617572, 347617583, 347617586, 347617587, 347617588 and 347617590; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Keep taps in the chat preview",
+            "description": "A tap on the chat in the preview you get when you press and hold a chat no longer opens it. Your taps go to the chat itself, so its arrow down to the newest message works, and Open chat at the top of the menu under it opens the chat. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Chat menu",
+            "dependencies": [
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: chat_preview_taps",
                     "dependencies": [
                         {
                             "type": "Patch",
@@ -5864,8 +6035,65 @@
             "options": []
         },
         {
+            "name": "Show Remove contact",
+            "description": "Adds Remove contact back to the menu for people you aren't friends with. It takes them out of your Messenger contacts without blocking them. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Chat menu",
+            "dependencies": [
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: remove_contact",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "588.1.0.66.98",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347617497, 347617499, 347617503, 347617513, 347617515, 347617516, 347617517, 347617519, 347617532, 347617533, 347617535, 347617537, 347617566, 347617569, 347617572, 347617583, 347617586, 347617587, 347617588 and 347617590; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Show pinned messages",
-            "description": "Shows a chat's pinned messages in a bar under its name. Messenger has that bar already, but only turns it on in some chats. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Shows a bar under the chat's name with its newest pinned message, in end-to-end encrypted chats. Tap it to jump to the message. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Conversations",
             "dependencies": [
@@ -7315,6 +7543,63 @@
                     "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: longer_notes",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "588.1.0.66.98",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347617497, 347617499, 347617503, 347617513, 347617515, 347617516, 347617517, 347617519, 347617532, 347617533, 347617535, 347617537, 347617566, 347617569, 347617572, 347617583, 347617586, 347617587, 347617588 and 347617590; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Your own chat sounds",
+            "description": "Plays sound files you pick instead of Messenger's send, sent and in-app message sounds, and you can change them any time without patching again. Messenger still decides when each one plays. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Notifications",
+            "dependencies": [
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "Patch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "Patch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: own_chat_sounds",
                     "dependencies": [
                         {
                             "type": "Patch",

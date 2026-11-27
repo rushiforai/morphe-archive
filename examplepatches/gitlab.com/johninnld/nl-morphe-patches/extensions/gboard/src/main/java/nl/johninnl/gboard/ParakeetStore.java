@@ -27,6 +27,7 @@ public final class ParakeetStore {
 
     private static final String PREFS = "morphe_parakeet";
     private static final String KEY_ENABLED = "enabled";
+    private static final String KEY_CONTACT_NAMES = "shared_speech_contact_names";
     private static final String KEY_MODEL = "model";
     private static final String MARKER = ".verified";
 
@@ -46,6 +47,14 @@ public final class ParakeetStore {
 
     public static void setEnabled(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_ENABLED, enabled).apply();
+    }
+
+    static boolean contactNamesEnabled(Context context) {
+        return prefs(context).getBoolean(KEY_CONTACT_NAMES, false);
+    }
+
+    static void setContactNamesEnabled(Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_CONTACT_NAMES, enabled).apply();
     }
 
     public static ParakeetCatalog.Model selectedModel(Context context) {
@@ -96,9 +105,7 @@ public final class ParakeetStore {
     /** True when voice typing should use Parakeet right now. Never throws. */
     public static boolean active(Context context) {
         try {
-            if (!unlocked(context) || !enabled(context)) return false;
-            if (!supportsArm64()) return false;
-            return runtimeInstalled(context) && modelInstalled(context, selectedModel(context));
+            return unlocked(context) && enabled(context) && supportsArm64() && SharedSpeechHook.ready(context);
         } catch (RuntimeException e) {
             return false;
         }

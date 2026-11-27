@@ -1,3 +1,23 @@
+# [1.16.4-dev](https://github.com/quwi26/Quwis-Patches/compare/v1.16.3-dev...v1.16.4-dev) (2026-11-27)
+
+### Bug Fixes
+
+* **Arrows in reviews:** chess.com 4.10.31 dropped the badge count from the review bar's button composable, so the patch did not find the bar and fell back to the floating chip over the board. Arrows and Clear sit in Game Review's own bottom bar again
+
+# [1.16.3-dev](https://github.com/quwi26/Quwis-Patches/compare/v1.16.2-dev...v1.16.3-dev) (2026-11-26)
+
+### Features
+
+* **Chess.com:** chess.com 4.10.31 is supported as an experimental version, next to 4.10.29, 4.10.28 and 4.10.27. Turn on **Experimental app versions** for the source in Morphe to pick it
+* **Chess.com 4.10.31:** Unlimited Game Review and its add-ons find the Game Review repository method that gained the report card flag. Lichess Puzzles follows the Rated puzzle screens, the path stats and the settings and stats states 4.10.31 renumbered again
+
+# [1.16.2-dev](https://github.com/quwi26/Quwis-Patches/compare/v1.16.1...v1.16.2-dev) (2026-11-26)
+
+### Features
+
+* **Patching:** the bundle now runs on Morphe patcher 2.6.0 and needs Morphe Manager 2.8.0. The patcher carries the app's baseline profile over to the patched DEX files. The patches themselves are unchanged. This is an experimental build for the new patcher
+* **Stockfish analysis:** when the phone's DNS can't find github.com, the engine download looks it up over DNS over HTTPS (Cloudflare and Google, reached by IP), so patching works where a browser could reach GitHub but the patcher's runtime couldn't. Mirrors and the "Stockfish 19 archive" option stay
+
 # [1.16.1](https://github.com/quwi26/Quwis-Patches/compare/v1.16.0...v1.16.1) (2026-11-25)
 
 ### Performance Improvements

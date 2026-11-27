@@ -119,6 +119,11 @@ final class HushfacebookPages {
             tabs.addPreference(toggle(context, Settings.TAB_BAR_IN_GROUPS,
                     L10n.t("A group you open keeps the tab bar along the bottom, so a tap takes you straight to another "
                             + "tab. Works while the tab bar is at the bottom. Open a group to see the change.")));
+            // Asked on each long press, so a change shows on the next one.
+            tabs.addPreference(toggle(context, Settings.PROFILE_TAB_ACTIVITY_LOG,
+                    L10n.t("Press and hold the profile tab to open your Activity log instead of switching accounts. "
+                            + "On accounts with a Menu tab in its place, that tab does it. You can still switch "
+                            + "accounts from the Menu.")));
             subheading(tabs, L10n.t("Top bar"));
             // Asked each time Facebook moves the top bar, so it takes effect on the next scroll.
             tabs.addPreference(toggle(context, Settings.KEEP_TOP_BAR,
@@ -269,12 +274,17 @@ final class HushfacebookPages {
                             + "On Android 12 and newer the feed behind them is blurred.")));
             // Asked as each frame draws too, so a new number shows when these settings close (#425).
             appearance.addPreference(HushfacebookPreferenceFragment.opacityRow(context));
+            appearance.addPreference(HushfacebookPreferenceFragment.blurRow(context));
             // Asked as each frame of the main screen draws, so a change shows right away (#344).
             appearance.addPreference(toggle(context, Settings.ROUNDED_TAB_BAR,
                     L10n.t("With the tab bar at the bottom, it gets round ends and sits a little smaller, just above "
                             + "the bottom of the screen, with a soft highlight behind the tab you're on.")));
             appearance.addPreference(HushfacebookPreferenceFragment.tabBarWidthRow(context));
             appearance.addPreference(HushfacebookPreferenceFragment.tabBarHeightRow(context));
+            // Asked as each frame of the main screen draws, so a change shows right away (#596).
+            appearance.addPreference(toggle(context, Settings.GLASS_TAB_BAR,
+                    L10n.t("With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the "
+                            + "highlight behind the tab you're on slides over when you pick another tab.")));
             // Asked as the main screen gets its focus back, so a change shows when these settings close.
             appearance.addPreference(toggle(context, Settings.HIDE_STATUS_BAR,
                     L10n.t("Takes the phone's status bar, with the time and battery, off Facebook's main screen, so "
@@ -377,24 +387,32 @@ final class HushfacebookPages {
         }
     }
 
+    /**
+     * Export settings and Import settings, rows of the page itself right under the search box, so a
+     * backup before trying a new switch is one tap from opening the settings (#608).
+     */
+    static void backup(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context) {
+        // Morphe Manager can export the patch choices and the signing key, not these switches.
+        screen.addPreference(mark(new BackupRow(page, context, SettingsBackupPreference.EXPORT,
+                L10n.t("Export settings"),
+                L10n.t("Saves your switches and download choices to a file, to back up or copy to another phone. Pause, "
+                        + "Debug logging and the update check aren't included.")), SettingsIcons.EXPORT));
+        // The preview gives a count of the switches and the download settings' new values, not
+        // each switch by name.
+        screen.addPreference(mark(new BackupRow(page, context, SettingsBackupPreference.IMPORT,
+                L10n.t("Import settings"),
+                L10n.t("Choose a settings file you saved earlier. You'll see how many switches it changes before anything "
+                        + "is applied.")), SettingsIcons.DOWNLOADS));
+    }
+
     /** Pause, backup and diagnostics, in every build. */
     static void pause(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         // Named for its rows: the screen's own title already says Hushfacebook.
         PreferenceCategory hushfacebook = category(screen, L10n.t("Pause, backup and diagnostics"));
         String stays = PatchFamily.staysWhilePausedSummary(build);
+        // Export and Import lead the main list (backup() below). Reset and its undo stay here.
         subheading(hushfacebook, L10n.t("Backup and restore"));
-        // Morphe Manager can export the patch choices and the signing key, not these switches.
-        hushfacebook.addPreference(mark(new BackupRow(page, context, SettingsBackupPreference.EXPORT,
-                L10n.t("Export settings"),
-                L10n.t("Saves your switches and download choices to a file, to back up or copy to another phone. Pause, "
-                        + "Debug logging and the update check aren't included.")), SettingsIcons.EXPORT));
-        // The preview gives a count of the switches and the download settings' new values, not
-        // each switch by name.
-        hushfacebook.addPreference(mark(new BackupRow(page, context, SettingsBackupPreference.IMPORT,
-                L10n.t("Import settings"),
-                L10n.t("Choose a settings file you saved earlier. You'll see how many switches it changes before anything "
-                        + "is applied.")), SettingsIcons.DOWNLOADS));
         // At once and with no dialog, since Undo the reset right below takes it back.
         hushfacebook.addPreference(mark(new BackupRow(page, context, SettingsBackupPreference.RESET,
                 L10n.t("Reset settings"),

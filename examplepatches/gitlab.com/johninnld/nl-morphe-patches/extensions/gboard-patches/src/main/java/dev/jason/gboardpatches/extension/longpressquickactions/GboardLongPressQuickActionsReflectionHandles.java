@@ -17,16 +17,16 @@ public final class GboardLongPressQuickActionsReflectionHandles {
             "com.google.android.libraries.inputmethod.widgets.SoftKeyView";
     private static final String ACTION_SET_CLASS =
             "com.google.android.libraries.inputmethod.metadata.SoftKeyDef";
-    private static final String ACTION_TYPE_CLASS = "qlk";
+    private static final String ACTION_TYPE_CLASS = "agkl";
     private static final String ACTION_DEF_CLASS =
             "com.google.android.libraries.inputmethod.metadata.ActionDef";
-    private static final String ACTION_ENTRY_CLASS = "qmg";
-    private static final String ACTION_BUILDER_CLASS = "qll";
-    private static final String METADATA_BUILDER_CLASS = "qoa";
-    private static final String INTENTION_CLASS = "qmf";
-    private static final String EVENT_CLASS = "osj";
-    private static final String INPUT_METHOD_SERVICE_CLASS = "psx";
-    private static final String POINTER_TRACKER_CLASS = "qts";
+    private static final String ACTION_ENTRY_CLASS = "agmb";
+    private static final String ACTION_BUILDER_CLASS = "agko";
+    private static final String METADATA_BUILDER_CLASS = "agpt";
+    private static final String INTENTION_CLASS = "agma";
+    private static final String EVENT_CLASS = "adan";
+    private static final String INPUT_METHOD_SERVICE_CLASS = "afae";
+    private static final String POINTER_TRACKER_CLASS = "agyw";
 
     private static final int SINGLE_ICON_POPUP_LAYOUT_ATTR_ID = 0x7f040271;
 
@@ -49,6 +49,7 @@ public final class GboardLongPressQuickActionsReflectionHandles {
     private final Method setPopupLabelsMethod;
     private final Field actionBuilderIconsField;
     private final Field actionBuilderPopupLayoutField;
+    private final Field actionBuilderDefaultIndexField;
     private final Method copyActionMethod;
     private final Method buildActionMethod;
     private final Method scheduleLongPressMethod;
@@ -81,42 +82,43 @@ public final class GboardLongPressQuickActionsReflectionHandles {
 
         softKeyBindMethod = softKeyViewClass.getDeclaredMethod(
                 "s", actionSetClass, long.class);
-        inputEventMethod = inputMethodServiceClass.getDeclaredMethod("aw", eventClass);
+        inputEventMethod = inputMethodServiceClass.getDeclaredMethod("ay", eventClass);
         pointerOwnerMethod = pointerTrackerClass.getDeclaredMethod(
-                "B", softKeyViewClass, float.class, float.class, long.class, int.class);
+                "D", softKeyViewClass, float.class, float.class, long.class, int.class);
         validateInputEventBinding(inputMethodServiceClass, inputEventMethod);
 
         softKeyMetadataField = softKeyViewClass.getDeclaredField("e");
-        keyIdField = actionSetClass.getDeclaredField("f");
+        keyIdField = actionSetClass.getDeclaredField("e");
         actionSetClass.getDeclaredField("h").setAccessible(true);
         actionSetClass.getDeclaredField("i").setAccessible(true);
-        exactActionLookupMethod = actionSetClass.getDeclaredMethod("g", actionTypeClass);
+        exactActionLookupMethod = actionSetClass.getDeclaredMethod("a", actionTypeClass);
 
         actionDefClass.getDeclaredField("e").setAccessible(true);
-        actionEntriesField = actionDefClass.getDeclaredField("f");
+        actionEntriesField = actionDefClass.getDeclaredField("e");
         actionDefClass.getDeclaredField("i").setAccessible(true);
-        popupLabelsField = actionDefClass.getDeclaredField("p");
-        popupIconsField = actionDefClass.getDeclaredField("q");
-        entryKeycodeField = actionEntryClass.getDeclaredField("c");
-        entryPayloadField = actionEntryClass.getDeclaredField("e");
+        popupLabelsField = actionDefClass.getDeclaredField("o");
+        popupIconsField = actionDefClass.getDeclaredField("p");
+        entryKeycodeField = actionEntryClass.getDeclaredField("d");
+        entryPayloadField = actionEntryClass.getDeclaredField("f");
         entryConstructor = actionEntryClass.getDeclaredConstructor(
                 int.class, intentionClass, Object.class, int.class);
 
         actionBuilderConstructor = actionBuilderClass.getDeclaredConstructor();
         actionBuilderTypeField = actionBuilderClass.getDeclaredField("a");
-        setActionEntriesMethod = actionBuilderClass.getDeclaredMethod("n",
+        setActionEntriesMethod = actionBuilderClass.getDeclaredMethod("q",
                 Array.newInstance(actionEntryClass, 0).getClass());
-        setPopupLabelsMethod = actionBuilderClass.getDeclaredMethod("t", String[].class);
-        actionBuilderIconsField = actionBuilderClass.getDeclaredField("d");
-        actionBuilderPopupLayoutField = actionBuilderClass.getDeclaredField("g");
-        copyActionMethod = actionBuilderClass.getDeclaredMethod("i", actionDefClass);
-        buildActionMethod = actionBuilderClass.getDeclaredMethod("c");
-        scheduleLongPressMethod = pointerTrackerClass.getDeclaredMethod("y");
+        setPopupLabelsMethod = actionBuilderClass.getDeclaredMethod("v", String[].class);
+        actionBuilderIconsField = actionBuilderClass.getDeclaredField("c");
+        actionBuilderPopupLayoutField = actionBuilderClass.getDeclaredField("f");
+        actionBuilderDefaultIndexField = actionBuilderClass.getDeclaredField("k");
+        copyActionMethod = actionBuilderClass.getDeclaredMethod("l", actionDefClass);
+        buildActionMethod = actionBuilderClass.getDeclaredMethod("b");
+        scheduleLongPressMethod = pointerTrackerClass.getDeclaredMethod("B");
 
         metadataBuilderConstructor = metadataBuilderClass.getDeclaredConstructor();
-        copyMetadataMethod = metadataBuilderClass.getDeclaredMethod("k", actionSetClass);
-        putActionMethod = metadataBuilderClass.getDeclaredMethod("t", actionDefClass);
-        buildMetadataMethod = metadataBuilderClass.getDeclaredMethod("b");
+        copyMetadataMethod = metadataBuilderClass.getDeclaredMethod("l", actionSetClass);
+        putActionMethod = metadataBuilderClass.getDeclaredMethod("s", actionDefClass);
+        buildMetadataMethod = metadataBuilderClass.getDeclaredMethod("d");
 
         eventActionTypeField = eventClass.getDeclaredField("a");
         eventEntriesField = eventClass.getDeclaredField("b");
@@ -141,6 +143,7 @@ public final class GboardLongPressQuickActionsReflectionHandles {
                 setPopupLabelsMethod,
                 actionBuilderIconsField,
                 actionBuilderPopupLayoutField,
+                actionBuilderDefaultIndexField,
                 copyActionMethod,
                 buildActionMethod,
                 scheduleLongPressMethod,
@@ -230,7 +233,7 @@ public final class GboardLongPressQuickActionsReflectionHandles {
     }
 
     public Object appendLongPressAction(Context context, Object metadata,
-            GboardLongPressQuickActionsPolicy.QuickAction action)
+            GboardLongPressQuickActionsPolicy.QuickAction action, boolean first)
             throws Throwable {
         Object existingAction = findExactAction(metadata, longPressActionType);
         Object actionBuilder = actionBuilderConstructor.newInstance();
@@ -250,20 +253,19 @@ public final class GboardLongPressQuickActionsReflectionHandles {
                     actionBuilder, resolvedPopupLayoutResId);
         }
 
-        Object updatedEntries = Array.newInstance(actionEntryClass, existingEntries.length + 1);
-        System.arraycopy(existingEntries, 0, updatedEntries, 0, existingEntries.length);
-        Array.set(updatedEntries, existingEntries.length,
-                entryConstructor.newInstance(
-                        action.actionCode, null, null, Integer.MAX_VALUE));
-        setActionEntriesMethod.invoke(actionBuilder, updatedEntries);
-
-        String[] labels = normalizeLabels(existingLabels, existingEntries.length + 1);
-        labels[existingEntries.length] = null;
-        setPopupLabelsMethod.invoke(actionBuilder, (Object) labels);
-
-        int[] icons = normalizeIcons(existingIcons, existingEntries.length + 1);
-        icons[existingEntries.length] = action.iconResId;
-        actionBuilderIconsField.set(actionBuilder, icons);
+        Object shortcut = entryConstructor.newInstance(
+                action.actionCode, null, null, Integer.MAX_VALUE);
+        int count = existingEntries.length;
+        Object entries = GboardLongPressShortcutPlacement.entries(
+                actionEntryClass, existingEntries, shortcut, first);
+        setActionEntriesMethod.invoke(actionBuilder, entries);
+        setPopupLabelsMethod.invoke(actionBuilder, (Object)
+                GboardLongPressShortcutPlacement.labels(existingLabels, count, first));
+        actionBuilderIconsField.set(actionBuilder,
+                GboardLongPressShortcutPlacement.icons(existingIcons, count, action.iconResId, first));
+        if (first) {
+            actionBuilderDefaultIndexField.setInt(actionBuilder, 0);
+        }
 
         Object patchedAction = buildActionMethod.invoke(actionBuilder);
         if (patchedAction == null) {
@@ -360,7 +362,7 @@ public final class GboardLongPressQuickActionsReflectionHandles {
                 try {
                     cached = owner.getDeclaredField("A");
                     if (!Future.class.isAssignableFrom(cached.getType())) {
-                        throw new NoSuchFieldException("18.5.4 long-press future type drift");
+                        throw new NoSuchFieldException("18.8 long-press future type drift");
                     }
                     cached.setAccessible(true);
                     longPressFutureField = cached;
@@ -383,7 +385,7 @@ public final class GboardLongPressQuickActionsReflectionHandles {
                 try {
                     cached = owner.getDeclaredField("w");
                     if (cached.getType() != int.class) {
-                        throw new NoSuchFieldException("18.5.4 event subtype type drift");
+                        throw new NoSuchFieldException("18.8 event subtype type drift");
                     }
                     cached.setAccessible(true);
                     eventSubtypeField = cached;
@@ -429,30 +431,6 @@ public final class GboardLongPressQuickActionsReflectionHandles {
         return value instanceof int[] ? (int[]) value : new int[0];
     }
 
-    private static String[] normalizeLabels(String[] source, int size) {
-        String[] result = new String[size];
-        if (source != null && source.length == 1 && size > 1) {
-            for (int index = 0; index < size - 1; index++) {
-                result[index] = source[0];
-            }
-        } else if (source != null) {
-            System.arraycopy(source, 0, result, 0, Math.min(source.length, size));
-        }
-        return result;
-    }
-
-    private static int[] normalizeIcons(int[] source, int size) {
-        int[] result = new int[size];
-        if (source != null && source.length == 1 && size > 1) {
-            for (int index = 0; index < size - 1; index++) {
-                result[index] = source[0];
-            }
-        } else if (source != null) {
-            System.arraycopy(source, 0, result, 0, Math.min(source.length, size));
-        }
-        return result;
-    }
-
     private static void validateInputEventBinding(Class<?> owner, Method method) {
         if (!InputMethodService.class.isAssignableFrom(owner)
                 || method.getDeclaringClass() != owner
@@ -460,7 +438,7 @@ public final class GboardLongPressQuickActionsReflectionHandles {
                 || method.getParameterCount() != 1
                 || !Modifier.isPublic(method.getModifiers())
                 || !Modifier.isFinal(method.getModifiers())) {
-            throw new IllegalArgumentException("oup#au(nur) binding shape mismatch");
+            throw new IllegalArgumentException("18.8 input event binding shape mismatch");
         }
     }
 

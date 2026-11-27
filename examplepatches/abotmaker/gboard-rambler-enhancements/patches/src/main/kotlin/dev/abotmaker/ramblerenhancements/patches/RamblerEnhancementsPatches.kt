@@ -11,17 +11,10 @@ import com.android.tools.smali.dexlib2.AccessFlags
 private const val APPEND_COMMIT_HELPER = "ramblerEnhancementsAppendCommit"
 private const val CHAR_SEQUENCE_TYPE = "Ljava/lang/CharSequence;"
 
-private const val VERSION_NOTE =
-    "Verified on Gboard 18.5.4 (current GboardWu target); newer versions are best-effort and unverified."
-
 @Suppress("unused")
 val ramblerWaveformAnimationPatch = bytecodePatch(
     name = "Rambler Waveform Animation",
-    description = "Replaces Gboard Rambler's light bar with Hex by Anomaly's animations. " +
-        "Listening (while you speak): Hex Dot Scope (braided dot oscilloscope), Hex Android Wave (7-row scrolling sine wave), or Gboard Default. " +
-        "Processing (after you stop speaking while transcribing): Flow, Pulse, or Sweep. " +
-        "Includes independent Listening/Processing colors and minimal Hex tuning (Strip trace vs iOS halo, dot spacing, glow, voice response). " +
-        "Works alongside upstream GboardWu (requires Advanced Voice Typing in GboardWu). $VERSION_NOTE",
+    description = "Replaces Rambler's light bar with Hex Dot Scope / Android Wave (listening) and Flow / Pulse / Sweep (processing) animations, custom colors, and glow tuning.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -82,7 +75,7 @@ val ramblerWaveformAnimationPatch = bytecodePatch(
 @Suppress("unused")
 val ramblerCustomInstructionsPatch = bytecodePatch(
     name = "Rambler Custom Instructions",
-    description = "Enables persistent custom style/formatting instructions for Gboard Rambler (credited to nl-morphe-patches) with Per-app custom instructions (named app rules, searchable app picker, and disabled apps) in Gboard Settings -> Voice typing -> Rambler voice typing and Rambler Enhancements. $VERSION_NOTE",
+    description = "Persistent default and per-app custom style rules, searchable app picker, disabled apps, and per-app behavior overrides.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -100,7 +93,7 @@ val ramblerCustomInstructionsPatch = bytecodePatch(
 @Suppress("unused")
 val ramblerPersonalDictionaryPatch = bytecodePatch(
     name = "Rambler Personal Dictionary",
-    description = "Enables Gboard Rambler's UserFeatureCache MUSE_STATS personal voice dictionary (credited to nl-morphe-patches) with a live Use dictionary words toggle plus add, import/export (.txt), remove, and clear controls. $VERSION_NOTE",
+    description = "Live MUSE_STATS personal voice dictionary with add, .txt import/export, remove, and clear controls.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -118,7 +111,7 @@ val ramblerPersonalDictionaryPatch = bytecodePatch(
 @Suppress("unused")
 val ramblerContactNamesPatch = bytecodePatch(
     name = "Rambler Contact Names",
-    description = "Seeds up to 1,000 phone contact names into Rambler's MUSE_STATS voice dictionary (credited to nl-morphe-patches) when Contacts permission is granted, plus manual sync and reset controls. $VERSION_NOTE",
+    description = "Auto-seeds up to 1,000 phone contacts into Rambler's voice dictionary when Contacts permission is granted.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -137,7 +130,7 @@ val ramblerContactNamesPatch = bytecodePatch(
 @Suppress("unused")
 val ramblerCursorEditingPatch = bytecodePatch(
     name = "Rambler Cursor-Aware Editing",
-    description = "Enables cursor-aware editing, selected-text-only spoken edits, optional post-edit reselection (off by default, credited to nl-morphe-patches), and a live Append-only dictation toggle with clean cursor-boundary spacing. $VERSION_NOTE",
+    description = "Cursor-aware & selection-only voice edits, optional re-select after edit (off by default), and Append-only dictation.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -207,7 +200,7 @@ val ramblerCursorEditingPatch = bytecodePatch(
 @Suppress("unused")
 val ramblerAppContextPatch = bytecodePatch(
     name = "Rambler App Context",
-    description = "Enables sharing the active app name, input type, and field hint with Gboard Rambler (credited to nl-morphe-patches) with a live toggle in Rambler Enhancements. $VERSION_NOTE",
+    description = "Shares active app name, input type, and field hint with Rambler so it adapts formatting (live toggle).",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -225,7 +218,7 @@ val ramblerAppContextPatch = bytecodePatch(
 @Suppress("unused")
 val ramblerProductivityToolsPatch = bytecodePatch(
     name = "Rambler Productivity Tools",
-    description = "Adds private On-Device Dictation Stats (words, sessions, avg WPM, cloud latency, time saved vs typing), opt-in hands-free Voice Send & Search suffixes, deterministic Voice Snippets, post-dictation Find & Replace (plain or regex, global or per-app), Strip Trailing Period, Local Dictation History (last 50 entries), Auto Parallel Retry on flaky networks, configurable Longer Dictation Sessions, and one-tap JSON Settings Backup & Restore. $VERSION_NOTE",
+    description = "Long-press Spacebar trigger, Auto-Learn From Fixes (Beta), Smart Search Bars, Rambler toolbar button, Voice Send/Search, Snippets, Find & Replace, private Stats & History with 1-Tap Fix & Learn, Auto Retry, Longer Sessions, and JSON Backup.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)

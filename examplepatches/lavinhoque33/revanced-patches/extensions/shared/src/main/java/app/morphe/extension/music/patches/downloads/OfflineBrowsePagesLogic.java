@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-08.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -14,9 +15,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -33,6 +37,17 @@ final class OfflineBrowsePagesLogic {
     private static final String ALBUM_PAGE_PREFIX = "MPREb_";
     /** The playlist id of an album's audio playlist, which a list of an album is downloaded under. */
     private static final String ALBUM_PLAYLIST_PREFIX = "OLAK5uy_";
+    private static final int MAX_PAGE_BYTES = 32 * 1024 * 1024;
+    private static final int BROWSE_HEADER = 13;
+    private static final int MUSIC_DETAIL_HEADER = 173_602_558;
+    private static final int DETAIL_HEADER_THUMBNAIL = 5;
+    private static final int DETAIL_HEADER_SUBTITLE = 13;
+    private static final int THUMBNAIL = 164_480_666;
+    static final int GREY_OUT = 2;
+    private static final Pattern VIDEO_ID = Pattern.compile("[A-Za-z0-9_-]{11}");
+
+    /** What the actual stream copy recorded. Its URI may point to a thumbnail in the app's files directory. */
+    record TrackMetadata(String title, String artist, long durationMs, @Nullable String thumbnail) {}
 
     private OfflineBrowsePagesLogic() {}
 
@@ -102,6 +117,67 @@ final class OfflineBrowsePagesLogic {
         return true;
     }
 
+    static boolean isPlaylistId(String id) {
+        return isFileSafe(id) && !id.startsWith("FE") && !id.equals("songs")
+                && !id.startsWith(ALBUM_PAGE_PREFIX) && !id.startsWith(ALBUM_PLAYLIST_PREFIX);
+    }
+
+    /** Native two-column song rows in a playlist detail shelf, without fabricated server menus or tracking. */
+    static byte[] fallback(String playlistId, String title, String subtitle, String headerThumbnail,
+                           List<String> tracks, Function<String, TrackMetadata> metadataOf, String unavailableTitle) {
+        ProtoWriter shelf = new ProtoWriter().string(1, playlistId);
+        String cover = headerThumbnail;
+        for (int index = 0; index < tracks.size(); index++) {
+            String id = tracks.get(index);
+            TrackMetadata track = metadataOf.apply(id);
+            if (cover.isEmpty() && track != null && track.thumbnail() != null
+                    && track.thumbnail().startsWith("file:")) cover = track.thumbnail();
+            shelf.message(3, fallbackRow(playlistId, index, id, track, unavailableTitle));
+        }
+        shelf.int32(4, tracks.size());
+
+        byte[] section = message(1, message(PlaylistSyncPage.PLAYLIST_SHELF, shelf.toByteArray()));
+        byte[] content = message(PlaylistSyncPage.SECTION_LIST, section);
+        byte[] column = message(1, message(58_174_010, message(4, content)));
+
+        ProtoWriter header = new ProtoWriter().message(1, text(title));
+        if (!subtitle.isEmpty()) header.message(DETAIL_HEADER_SUBTITLE, text(subtitle));
+        if (!cover.isEmpty()) header.message(DETAIL_HEADER_THUMBNAIL, thumbnail(cover));
+        return new ProtoWriter()
+                .message(9, message(PlaylistSyncPage.SINGLE_COLUMN_BROWSE, column))
+                .message(BROWSE_HEADER, message(MUSIC_DETAIL_HEADER, header.toByteArray()))
+                .toByteArray();
+    }
+
+    /** The payload of one shelf row; also used to fill in the tail of a partially captured legacy page. */
+    static byte[] fallbackRow(String playlistId, int position, String id, @Nullable TrackMetadata track,
+                              String unavailableTitle) {
+        boolean available = VIDEO_ID.matcher(id).matches();
+        String title = !available ? unavailableTitle : track != null && !track.title().isEmpty() ? track.title() : id;
+        ProtoWriter row = new ProtoWriter().message(3, text(title));
+        if (track != null) {
+            String byline = OfflineLibraryLogic.songSubtitle(track.artist(), track.durationMs());
+            if (!byline.isEmpty()) row.message(4, text(byline));
+            if (track.thumbnail() != null && !track.thumbnail().isEmpty()) row.message(1, thumbnail(track.thumbnail()));
+        }
+        if (available) row.message(5, OnlineWatchCommand.build(id, playlistId, position));
+        else row.int32(2, GREY_OUT);
+        return message(PlaylistSyncPage.SHELF_ROW, row.toByteArray());
+    }
+
+    private static byte[] text(String value) {
+        return message(1, new ProtoWriter().string(1, value).toByteArray());
+    }
+
+    private static byte[] thumbnail(String url) {
+        byte[] entry = new ProtoWriter().string(1, url).int32(2, 226).int32(3, 226).toByteArray();
+        return message(THUMBNAIL, message(1, message(1, entry)));
+    }
+
+    private static byte[] message(int field, byte[] value) {
+        return new ProtoWriter().message(field, value).toByteArray();
+    }
+
     /**
      * Whether a browse response is the next rows of a list (a continuation) and not its page. The page is replaced
      * by every later online open of it, so only the page itself is recorded.
@@ -168,8 +244,15 @@ final class OfflineBrowsePagesLogic {
     }
 
     static byte[] gunzip(byte[] bytes) throws IOException {
-        try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(bytes))) {
-            return gzip.readAllBytes();
+        try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(bytes), 8 * 1024)) {
+            ByteArrayOutputStream page = new ByteArrayOutputStream(Math.min(64 * 1024, bytes.length));
+            byte[] buffer = new byte[8 * 1024];
+            int count;
+            while ((count = gzip.read(buffer)) != -1) {
+                if (page.size() + count > MAX_PAGE_BYTES) throw new IOException("Native playlist page exceeds 32 MiB");
+                page.write(buffer, 0, count);
+            }
+            return page.toByteArray();
         }
     }
 }

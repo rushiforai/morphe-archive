@@ -52,9 +52,11 @@ WebView architecture will work unchanged.
 ## Release UI adapters
 
 `joplin/adapters/index.properties` enumerates versions. Each adapter has the
-original bundle hash, its matching modified bundle, source commit, and modified
-bundle checksum. The patch selects by original bundle content, not by guessing
-the nearest version. It verifies the replacement checksum before writing it.
+original bundle hash, its modified bundle stored as a delta against that original
+(`<version>.bdelta`, see `scripts/delta/BundleDelta.java`), source commit, and the
+delta and modified bundle checksums. The patch selects by original bundle content,
+not by guessing the nearest version, rebuilds the modified bundle from the APK's own
+bundle and verifies its checksum before writing it.
 
 The original and replacement bundles belong to the **same release**. An unknown
 bundle is never silently replaced with an older app's JavaScript. Keeping both

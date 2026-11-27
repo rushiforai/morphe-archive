@@ -5,17 +5,24 @@ import android.app.Notification;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.Map;
 
 import app.template.extension.zalo.appearance.CustomFont;
 import app.template.extension.zalo.buglog.BugLogExport;
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.call.CallRecorder;
 import app.template.extension.zalo.chat.OnlineStatus;
+import app.template.extension.zalo.messages.MessagesTab;
 import app.template.extension.zalo.messages.OfficialAccounts;
 import app.template.extension.zalo.navigation.DiscoveryTab;
 import app.template.extension.zalo.shared.ZaloEnv;
@@ -60,6 +67,8 @@ public final class NezumiSettingsPage {
 
     static final int FEATURE_BUG_LOG = 1 << 16;
 
+    static final int FEATURE_CALL_BACKGROUND = 1 << 17;
+
     static void attach(View root, View anchor, int feature) {
         if (root == null || anchor == null || !(anchor.getParent() instanceof ViewGroup)) return;
         ViewGroup parent = (ViewGroup) anchor.getParent();
@@ -98,7 +107,7 @@ public final class NezumiSettingsPage {
     }
 
     private static void show(Context context, boolean darkMode, EntryState state) {
-        boolean vietnamese = ZaloEnv.isVietnamese(context);
+        boolean vietnamese = ZaloEnv.isVietnamese(Patch.CORE, context);
         int features = state.features;
         boolean hasChatFeatures = (features & (FEATURE_ONLINE_STATUS | FEATURE_REACTION |
             FEATURE_TYPING | FEATURE_READ_RECEIPTS | FEATURE_DELIVERY_RECEIPTS |
@@ -119,12 +128,23 @@ public final class NezumiSettingsPage {
         String discoveryLabel = vietnamese ? "Ẩn tab Khám phá" : "Hide Discovery tab";
         String messageAdsLabel = vietnamese ? "Ẩn quảng cáo trong Messages" : "Hide ads in Messages";
         SharedPreferences prefs = NezumiPrefs.of(context);
+        if ((features & FEATURE_CUSTOM_FONT) != 0) CustomFont.trackForRestart(context);
+        Map<String, Object> restartSnapshot = RestartPrompt.snapshot();
         Dialog page = ZaloUi.page(context, "Nezumi's Settings", darkMode);
         boolean[] discoveryChanged = { false };
         page.setOnDismissListener(dialog -> {
-            if (discoveryChanged[0]) DiscoveryTab.recreateAfterChange(context);
+            Runnable rebuildTabs = () -> {
+                if (discoveryChanged[0]) DiscoveryTab.recreateAfterChange(context);
+            };
+            if (RestartPrompt.changedSince(restartSnapshot)) RestartPrompt.ask(context, darkMode, rebuildTabs);
+            else rebuildTabs.run();
         });
         LinearLayout list = page.findViewById(android.R.id.content).findViewWithTag("nezumi-list");
+        if (RestartPrompt.anyPending()) {
+            list.addView(ZaloUi.banner(context,
+                vietnamese ? "Một số thay đổi cần khởi động lại Zalo để áp dụng." : "Some changes need a Zalo restart to apply.",
+                vietnamese ? "Khởi động lại" : "Restart", darkMode, () -> RestartPrompt.restart(context)));
+        }
         if (hasChatFeatures) ZaloUi.addGroup(list, context, vietnamese ? "Trò chuyện" : "Chat", darkMode);
         if ((features & FEATURE_ONLINE_STATUS) != 0) {
             View onlineItem = ZaloUi.toggleRow(list, context, onlineLabel, "user_status",
@@ -146,6 +166,7 @@ public final class NezumiSettingsPage {
                     }
                     OnlineStatus.publishOnlineState(103);
                 } catch (LinkageError | RuntimeException failure) {
+                    NezumiLog.e(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "NezumiSettingsPage", "online status toggle failed, reverted", failure);
                     OnlineStatus.applyOriginalOnlineSharing(originalSharing);
                     prefs.edit().putBoolean(NezumiPrefs.HIDE_ONLINE_STATUS, !checked).apply();
                     button.setChecked(!checked);
@@ -178,7 +199,10 @@ public final class NezumiSettingsPage {
         if ((features & FEATURE_RECALLED_MESSAGES) != 0) {
             ZaloUi.toggleRow(list, context, recalledMessagesLabel, "recall",
                 prefs.getBoolean(NezumiPrefs.KEEP_RECALLED_MESSAGES, false), darkMode,
-                (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.KEEP_RECALLED_MESSAGES, checked).apply());
+                (button, checked) -> {
+                prefs.edit().putBoolean(NezumiPrefs.KEEP_RECALLED_MESSAGES, checked).apply();
+                NezumiLog.i(Patch.KEEP_RECALLED_MESSAGES, "NezumiSettingsPage", "setting keep_recalled_messages=" + checked);
+            });
         }
         if ((features & FEATURE_DISCOVERY) != 0) {
             ZaloUi.addGroup(list, context, vietnamese ? "Điều hướng" : "Navigation", darkMode);
@@ -199,11 +223,17 @@ public final class NezumiSettingsPage {
         }
         if ((features & FEATURE_MEDIA_BOX) != 0) {
             ZaloUi.toggleRow(list, context, mediaBoxLabel, "photo", prefs.getBoolean(NezumiPrefs.HIDE_MEDIA_BOX, false), darkMode,
-                (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.HIDE_MEDIA_BOX, checked).apply());
+                (button, checked) -> {
+                prefs.edit().putBoolean(NezumiPrefs.HIDE_MEDIA_BOX, checked).apply();
+                MessagesTab.refreshList(Patch.HIDE_MEDIA_BOX_IN_MESSAGES);
+            });
         }
         if ((features & FEATURE_BUSINESS_BOX) != 0) {
             ZaloUi.toggleRow(list, context, businessBoxLabel, "business_suite", prefs.getBoolean(NezumiPrefs.HIDE_BUSINESS_BOX, false),
-                darkMode, (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.HIDE_BUSINESS_BOX, checked).apply());
+                darkMode, (button, checked) -> {
+                prefs.edit().putBoolean(NezumiPrefs.HIDE_BUSINESS_BOX, checked).apply();
+                MessagesTab.refreshList(Patch.HIDE_BUSINESS_BOX_IN_MESSAGES);
+            });
         }
         if ((features & FEATURE_OA_MESSAGES) != 0) {
             ZaloUi.toggleRow(list, context, oaMessagesLabel, "hide", prefs.getBoolean(NezumiPrefs.HIDE_OA_MESSAGES, true), darkMode,
@@ -213,15 +243,24 @@ public final class NezumiSettingsPage {
         }
         if ((features & FEATURE_MESSAGE_ADS) != 0) {
             ZaloUi.toggleRow(list, context, messageAdsLabel, "chat_block", prefs.getBoolean(NezumiPrefs.HIDE_MESSAGE_ADS, false),
-                darkMode, (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.HIDE_MESSAGE_ADS, checked).apply());
+                darkMode, (button, checked) -> {
+                prefs.edit().putBoolean(NezumiPrefs.HIDE_MESSAGE_ADS, checked).apply();
+                MessagesTab.refreshList(Patch.HIDE_ADS_IN_MESSAGES);
+            });
         }
         if ((features & FEATURE_CUSTOM_FONT) != 0) {
             ZaloUi.addGroup(list, context, vietnamese ? "Giao diện" : "Appearance", darkMode);
             String fontTitle = vietnamese ? "Phông chữ tùy chọn" : "Custom font";
             View fontItem = ZaloUi.row(context, fontTitle, ZaloUi.zdsIcon(context, "edit_text", darkMode), true, darkMode, null);
             TextView fontLabel = ZaloUi.rowTitle(fontItem);
-            Runnable updateFontLabel = () -> fontLabel.setText(fontTitle + (CustomFont.isSelected(context)
-                ? (vietnamese ? " (đã chọn)" : " (selected)") : ""));
+            Runnable updateFontLabel = () -> {
+                String label = fontTitle + (CustomFont.isSelected(context) ? (vietnamese ? " (đã chọn)" : " (selected)") : "");
+                boolean pending = RestartPrompt.isPending(CustomFont.FONT);
+                String note = pending ? (vietnamese ? "Đang chờ khởi động lại" : "Waiting for restart")
+                    : (vietnamese ? "Cần khởi động lại để áp dụng" : "Restart required to apply");
+                addRowNote(fontLabel, label, note, pending ? (darkMode ? 0xFF3D8BFF : 0xFF0068FF)
+                    : (darkMode ? 0xFFA3A9B1 : 0xFF6B7280));
+            };
             updateFontLabel.run();
             fontItem.setOnClickListener(view -> {
                 if (!CustomFont.pick(context, updateFontLabel)) {
@@ -235,8 +274,6 @@ public final class NezumiSettingsPage {
             resetFont.setOnClickListener(view -> {
                 CustomFont.reset(context);
                 updateFontLabel.run();
-                Toast.makeText(context, vietnamese ? "Mở lại Zalo để cập nhật phông chữ"
-                    : "Restart Zalo to refresh text", Toast.LENGTH_LONG).show();
             });
             list.addView(resetFont);
         }
@@ -247,8 +284,10 @@ public final class NezumiSettingsPage {
             addSoundRows(list, context, CustomSounds.RINGTONE, "call",
                 vietnamese ? "Nhạc chuông cuộc gọi" : "Incoming-call ringtone", darkMode, vietnamese);
         }
-        if ((features & FEATURE_CALL_RECORDING) != 0) {
+        if ((features & (FEATURE_CALL_RECORDING | FEATURE_CALL_BACKGROUND)) != 0) {
             ZaloUi.addGroup(list, context, vietnamese ? "Cuộc gọi" : "Calls", darkMode);
+        }
+        if ((features & FEATURE_CALL_RECORDING) != 0) {
             ZaloUi.toggleRow(list, context, vietnamese ? "Hiện nút ghi âm" : "Show record button", "call",
                 prefs.getBoolean(NezumiPrefs.CALL_RECORDING, true), darkMode,
                 (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.CALL_RECORDING, checked).apply());
@@ -256,6 +295,14 @@ public final class NezumiSettingsPage {
                 ZaloUi.zdsIcon(context, "grid_view", darkMode), true, darkMode, null);
             folder.setOnClickListener(view -> CallRecorder.openFolder(context));
             list.addView(folder);
+        }
+        if ((features & FEATURE_CALL_BACKGROUND) != 0) {
+            String callBackgroundLabel = vietnamese ? "Nền đen cho màn hình cuộc gọi" : "True-black call screen";
+            String callBackgroundNote = vietnamese ? "Chỉ áp dụng khi dùng giao diện tối" : "Dark theme only";
+            View callBackground = ZaloUi.toggleRow(list, context, callBackgroundLabel, "call",
+                prefs.getBoolean(NezumiPrefs.TRUE_BLACK_CALL_SCREEN, false), darkMode,
+                (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.TRUE_BLACK_CALL_SCREEN, checked).apply());
+            addRowNote(ZaloUi.rowTitle(callBackground), callBackgroundLabel, callBackgroundNote);
         }
         if ((features & FEATURE_BUG_LOG) != 0 && NezumiLog.isAvailable()) {
             addBugLogRows(list, context, darkMode, vietnamese);
@@ -267,11 +314,22 @@ public final class NezumiSettingsPage {
 
     private static void addBugLogRows(LinearLayout list, Context context, boolean darkMode, boolean vietnamese) {
         ZaloUi.addGroup(list, context, vietnamese ? "Gỡ lỗi" : "Debugging", darkMode);
-        ZaloUi.toggleRow(list, context, vietnamese ? "Ghi log lỗi" : "Record bug log", "warning",
-            NezumiLog.isEnabled(), darkMode, (button, checked) -> {
-                if (NezumiLog.isEnabled() == checked) return;
-                NezumiLog.setEnabled(context, checked);
+        String detailedLabel = vietnamese ? "Ghi log chi tiết" : "Detailed logging";
+        String detailedNote = vietnamese ? "Lỗi và sự cố luôn được ghi lại" : "Errors and crashes are always recorded";
+        View detailed = ZaloUi.toggleRow(list, context, detailedLabel, "warning",
+            NezumiLog.isDetailed(), darkMode, (button, checked) -> {
+                if (NezumiLog.isDetailed() == checked) return;
+                NezumiLog.setDetailed(context, checked);
             });
+        addRowNote(ZaloUi.rowTitle(detailed), detailedLabel, detailedNote);
+        String offLabel = vietnamese ? "Tắt hoàn toàn log lỗi" : "Turn off bug log completely";
+        String offNote = vietnamese ? "Không ghi lại gì, kể cả sự cố" : "Nothing is recorded, not even crashes";
+        View off = ZaloUi.toggleRow(list, context, offLabel, "hide",
+            NezumiLog.isOff(), darkMode, (button, checked) -> {
+                if (NezumiLog.isOff() == checked) return;
+                NezumiLog.setOff(context, checked);
+            });
+        addRowNote(ZaloUi.rowTitle(off), offLabel, offNote);
         String exportTitle = vietnamese ? "Xuất log" : "Export log";
         View export = ZaloUi.row(context, exportTitle, ZaloUi.zdsIcon(context, "download", darkMode), true, darkMode, null);
         TextView exportLabel = ZaloUi.rowTitle(export);
@@ -296,6 +354,23 @@ public final class NezumiSettingsPage {
             Toast.makeText(context, vietnamese ? "Đã xóa log" : "Log cleared", Toast.LENGTH_SHORT).show();
         });
         list.addView(clear);
+    }
+
+    /** Shows {@code note} as a smaller second line under a row title. */
+    private static void addRowNote(TextView title, String label, String note) {
+        addRowNote(title, label, note, 0);
+    }
+
+    /** As above, with the note drawn in {@code noteColor} (0 keeps the title colour). */
+    private static void addRowNote(TextView title, String label, String note, int noteColor) {
+        SpannableString text = new SpannableString(label + "\n" + note);
+        text.setSpan(new RelativeSizeSpan(0.8f), label.length() + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (noteColor != 0) {
+            text.setSpan(new ForegroundColorSpan(noteColor), label.length() + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        title.setSingleLine(false);
+        title.setMaxLines(2);
+        title.setText(text);
     }
 
     private static String formatSize(long bytes) {

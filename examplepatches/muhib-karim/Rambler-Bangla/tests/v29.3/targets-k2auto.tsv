@@ -1,0 +1,225 @@
+# case	target (k2 AUTO dictation). {a|b} = either accepted until the English-word policy is decided (a = English letters, b = Bangla spelling). Builder-written unless marked in reviewer column later.
+cs1	আমি মিটিং এ যাব {tomorrow|টুমরো}
+cs2	আমার ফোন টা চার্জ দিতে হবে {please|প্লিজ}
+cs3	{first|ফার্স্ট} এ আমি অফিস যাব, {but|বাট} ট্রাফিক অনেক বেশি
+cs4	এই {project|প্রজেক্ট} এর {deadline|ডেডলাইন} {next|নেক্সট} {week|উইক}
+cs5	আমাকে একটা ইমেইল পাঠাও
+cs6	আমি অফিস থেকে {late|লেট} এ আসবো
+cs7	তোমার ল্যাপটপ টা কি কাজ করছে
+cs8	আজ আমার {interview|ইন্টারভিউ} আছে
+cs9	এই ফাইল টা ডাউনলোড করে দাও
+cs10	{bus|বাস} {stop|স্টপ} এ {wait|ওয়েট} করছি
+cs11	আমার {internet|ইন্টারনেট} {slow|স্লো} চলছে
+cs12	{doctor|ডাক্তার} এর {appointment|অ্যাপয়েন্টমেন্ট} কালকে
+cs13	আমি তোমাকে মেসেজ দিবো
+cs14	{password|পাসওয়ার্ড} টা {change|চেঞ্জ} করতে হবে
+cs15	{class|ক্লাস} শেষ হলে {call|কল} করবো
+cs16	টিম মিটিং টা ক্যানসেল হয়ে গেছে
+cs17	আমি এখন {busy|বিজি}, পরে কথা বলবো
+cs18	{okay|ওকে} আমি আসছি
+cs19	{thank you|থ্যাংক ইউ} ভাই
+cs20	{sorry|সরি} আমি ভুলে গেছিলাম
+cs21	এই {weekend|উইকেন্ড} এ {plan|প্ল্যান} কি
+cs22	আমার {battery|ব্যাটারি} {low|লো}
+cs23	আপডেট টা ইনস্টল করেছো
+cs24	{restaurant|রেস্টুরেন্ট} এ {table|টেবিল} {book|বুক} করো
+cs25	আমি {gym|জিম} এ যাচ্ছি
+cs26	শপ টা কি ওপেন আছে
+cs27	{ticket|টিকেট} টা {confirm|কনফার্ম} হয়েছে
+cs28	আমার বস খুব {angry|অ্যাংরি}
+cs29	এই {month|মান্থ} এর {salary|স্যালারি} পাই নাই
+cs30	{video|ভিডিও} {call|কল} এ {join|জয়েন} করো
+cs31	{please|প্লিজ} একটু ওয়েট করো
+cs32	তুমি কি {free|ফ্রি} আছো {tonight|টুনাইট}
+cs33	{report|রিপোর্ট} টা {friday|ফ্রাইডে} এর মধ্যে {submit|সাবমিট} করবো
+cs34	আমার {flight|ফ্লাইট} {delay|ডিলে} হয়েছে
+cs35	{hospital|হাসপাতাল} এ যেতে হবে {emergency|ইমার্জেন্সি}
+cs36	ক্যামেরা টা খারাপ হয়ে গেছে
+cs37	{online|অনলাইন} এ {order|অর্ডার} করেছি
+cs38	আমি {exam|এক্সাম} এর জন্য {study|স্টাডি} করছি
+cs39	{birthday|বার্থডে} {party|পার্টি} তে আসবে তো
+cs40	আমার মুড টা আজকে {good|গুড} না
+url1	আমার ওয়েবসাইট হলো https://github.com/ai-dev-2024/Rambler-Bangla দেখো
+url2	{mail|মেইল} করো rahim@example.com এ
+url3	{link|লিংক} টা হলো www.example.com
+url4	আমাকে contact@example.com এ পাঠাও
+url5	এই {site|সাইট} এ যাও example.org
+url6	https://youtu.be/abc123 টা দেখো
+dig1	আমি 5 টা বই কিনেছি 2026 এ
+dig2	মিটিং 10:30 এ শুরু হবে
+dig3	আমার {number|নাম্বার} 01712345678
+dig4	আমি 3 দিন পর আসবো
+dig5	দাম হলো 500 টাকা
+dig6	{train|ট্রেন} ছাড়ে 7 টায়
+dig7	{room|রুম} {number|নাম্বার} 204
+dig8	আমার বয়স 25
+dig9	5pm এ দেখা হবে
+dig10	{flat|ফ্ল্যাট} 4B তে থাকি
+dig11	+8801712345678 এ {call|কল} করো
+dig12	15 {minute|মিনিট} লাগবে
+dig13	2 টা {ticket|টিকেট} লাগবে
+dig14	আজকে 30 {degree|ডিগ্রি} গরম
+dig15	{bill|বিল} হলো 1,250 টাকা
+hd1	@rahim কে {tag|ট্যাগ} করো
+hd2	আমার {id|আইডি} হলো @mk_2024
+hd3	#bangladesh {hashtag|হ্যাশট্যাগ} টা দাও
+nm1	রহিম আর করিম আসবে
+nm2	আমি ঢাকা তে থাকি
+nm3	{google|গুগল} এ {search|সার্চ} করো
+nm4	{whatsapp|হোয়াটসঅ্যাপ} এ মেসেজ দাও
+nm5	{facebook|ফেসবুক} এ {post|পোস্ট} করেছি
+nm6	{samsung|স্যামসাং} ফোন টা ভালো
+nm7	চট্টগ্রাম যাব কালকে
+nm8	{netflix|নেটফ্লিক্স} এ {movie|মুভি} দেখবো
+cv1	আমি তোমাকে ভালোবাসি
+cv2	আজকে আমার মন ভালো নেই
+cv3	তুমি কেমন আছো
+cv4	আমি ভাত খাবো
+cv5	তুমি কোথায় যাচ্ছো
+cv6	আমরা কালকে দেখা করবো
+cv7	আমি বাড়ি যাচ্ছি
+cv8	কি করছো এখন
+cv9	আমার খুব খিদে পেয়েছে
+cv10	তোমার নাম কি
+cv11	আমি জানি না|আমি জানিনা
+cv12	এটা অনেক সুন্দর
+cv13	মা কে বলো আমি আসছি
+cv14	বৃষ্টি হচ্ছে বাইরে
+cv15	ছেলে টা খুব ভালো
+cv16	আমরা সবাই মিলে যাবো|আমরা সবাই মিলে যাব
+cv17	তুমি কি আমাকে চিনো
+cv18	আমি কিছু বুঝতে পারছি না
+cv19	ধন্যবাদ আপনাকে
+cv20	সুপ্রভাত
+cv21	আমি কিনেছি একটা নতুন জামা
+cv22	ও বলেছে আসবে
+cv23	আমাদের স্কুল টা বড়|আমাদের স্কুল টা বড়ো
+cv24	পানি খেতে হবে
+cv25	সন্ধ্যায় দেখা হবে
+cv26	তুমি কেন আসলে না
+cv27	আমার ভাই এর বিয়ে
+cv28	সব ঠিক আছে
+cv29	চিন্তা করো না
+cv30	কাল রাতে ঘুম হয় নাই
+bn1	আমি তোমাকে ভালোবাসি
+bn2	আজকে আবহাওয়া খুব ভালো
+bn3	তুমি কোথায় যাচ্ছ?
+bn4	আমার নাম রহিম।
+bn5	কাল ১০টায় মিটিং আছে
+bn6	ঠিক আছে, দেখা হবে
+mx1	আমি {meeting|মিটিং} এ যাব
+mx2	আমি আসছি
+mx3	{ok|ওকে} ঠিক আছে
+en1	I will call you later tonight
+en2	Please send the report by Friday
+en3	Can you check the file
+en4	The meeting is at 10:30
+en5	Thanks, see you tomorrow
+en6	Send it to rahim@example.com
+en7	My number is 01712345678
+en8	OK
+en9	I am on my way
+en10	Let me know when you are free
+en11	Happy birthday
+en12	What time is the flight
+en13	Check https://example.com for details
+en14	I bought 5 books in 2026
+en15	Good morning everyone
+pn1	আমি আসছি!
+pn2	তুমি কেমন আছো?
+pn3	"আমি যাবো" বলেছে|"আমি যাব" বলেছে
+pn4	হ্যাঁ, আমি জানি{.|।}|হা, আমি জানি{.|।}
+pn5	না... থাক
+pn6	আমি, তুমি, ও সবাই
+cp1	আমি আসছি
+cp2	{AMI ASHCHI|আমি আসছি}
+cp3	{NASA|নাসা} এর {rocket|রকেট}
+cp4	iPhone টা নতুন
+cp5	{PDF|পিডিএফ} টা পাঠাও
+cp6	{USA|ইউএসএ} {তে|টে} থাকে
+ed1	a
+ed2	
+ed3	   
+ed4	{ami|আমি}
+ed5	{ok|ওকে}
+ed6	{hmm|হুম}
+ed7	আমি  আসছি
+ed8	I
+ad1	{send|সেন্ড} করো 01712345678 {number|নাম্বার} এ
+ad2	call me at 01712345678 please
+ad3	আমি এখন https://example.com {open|ওপেন} করছি
+ad4	{email|ইমেইল} rahim@example.com কে পাঠাও
+ad5	10:30 এ {meeting|মিটিং} আছে
+os1	OPEN (pending maintainer: os1 run-on)
+os2	this is একটা test for the keyboard
+os3	I think আমি যাবো|I think আমি যাব
+os4	please call me, আমি {wait|ওয়েট} করছি
+cap1	দেখি কি হয়
+cap2	তুমি কি আসবে
+cap3	আমি বুঝলাম না
+ap1	it doesn't work
+ap2	আমি জানি it's {okay|ওকে}
+ap3	OPEN (pending maintainer: English phrase + comma + Bangla in one sentence)
+mk1	আমি {typing|টাইপিং} করছি
+mk2	ও আসতেসে
+mk3	কিছু বুঝি না
+mk4	একটা অক্ষর ভুল
+mk5	{bus|বাস} আসছে
+mk6	তারপর কি হলো
+mk7	{keyboard|কিবোর্ড|কীবোর্ড} টা ভালো
+lk1	{retweet|রিটুইট} করো
+lk2	I will retweet it
+em1	আমি আসছি 😀
+em2	{thank you|থ্যাংক ইউ} 🙏
+em3	😂😂 কি বলো
+amb1	I have to go
+amb2	মা কে বলো আমি আসছি
+amb3	হলে এ ঢুকবো না|হলে ঢুকবো না
+amb4	we will mile together
+amb5	take it or leave it
+amb6	ও কি বললো|ও কি বলল
+amb7	না আমি যাবো না|না আমি যাব না
+amb8	the bus is late
+amb9	হ্যাঁ আমি আসছি|হা আমি আসছি
+amb10	আগে আমি যাবো|আগে আমি যাব
+amb11	what is your age
+amb12	সে কোথায়
+r1a	I will retweet it on netflix
+r1b	Rahim is coming to the office
+r1c	check whatsapp later
+r1d	Samsung released a new phone
+r1e	Karim sent the PDF to NASA
+r2a	I need ekta pen
+r2b	the meeting is kalke
+r3din	what a din it was
+r3dinb	দিন টা ভালো গেলো|দিন টা ভালো গেল
+r3por	পর আমি যাবো|পর আমি যাব|পরে আমি যাবো
+r3mon	mon is short for monday
+r3monb	আমার মন খারাপ
+r3nam	নাম কি তোমার
+r3ma	Ma said no
+r3mab	মা খেতে দাও
+r3mile	I ran a mile
+r3mileb	আমরা মিলে কাজ করবো
+r3hole	there is a hole in the wall
+r3holeb	তুমি আসলে হলে ভালো হয়
+r3to	I want to go home
+r3tob	তুমি তো আসবে
+r3ke	কে আসছে
+r3te	তে আমার কোনো দোষ নাই|তে আমার কোন দোষ নাই
+r4a	আমি যাবো|আমি যাব
+r4b	যাবো|যাব
+r4c	thanks
+r4d	{ok|ওকে} আসছি
+r4e	see you
+pp1	{google|গুগল} এ দেখো
+pp2	10:30 এ আসবো
+pp3	{PDF|পিডিএফ} টা দাও
+pp4	rahim@example.com এ পাঠাও
+pp5	www.example.com এ যাও
+ms1	I am coming. আমি আসছি{.|।}
+ms2	আমি আসছি{.|।} See you soon.
+ms3	তুমি কোথায়? I am here.
+ms4	Thanks a lot! তোমাকে অনেক ধন্যবাদ{.|।}
+ms5	{meeting|মিটিং} টা কালকে{.|।} Please confirm.
+hs1	#throwback ছবি টা দেখো

@@ -78,6 +78,7 @@ public final class ExtensionRuntimeTest {
             testPrivacyRefreshSummaryAndAvatarPendingAccountSwitchReconcileAndNoReplyOnly(context);
             testAstraV2BlockersAndLedgerCap(context);
             testAstraV3GroupAStatelessFixes(context);
+            testNativeBindings26190(context);
 
             System.out.println("ExtensionRuntimeTest passed (" + checks + " checks)");
             System.exit(0);
@@ -448,7 +449,7 @@ public final class ExtensionRuntimeTest {
                 "Native mute call should be in flight with desiredEnabled=false");
         check(!Settings.fullyMuted("u_acc_1", chat)
                         && ChatNotifications.isHideInFlight("u_acc_1", chat)
-                        && Notifications.allowMuted(new wk8.l0(), chat),
+                        && Notifications.allowMuted(new ke8.z(), chat),
                 "Persisted hidden flag must wait for native commit while allowMuted lets incoming pushes reach DEFER_HIDE");
         // Incoming push while hide is in flight must be invisibly deferred (not delivered or dropped).
         Notifications.post(manager, MESSAGE_TAG, 502,
@@ -884,14 +885,14 @@ public final class ExtensionRuntimeTest {
         AtomicReference<Boolean> unhideNormal = new AtomicReference<Boolean>();
         ChatNotifications.change(context, chat, ChatNotifications.NORMAL, null, unhideNormal::set);
         check(muteCalled.await(3L, TimeUnit.SECONDS), "Timed out waiting for deferred unhide call");
-        check(Settings.fullyMuted("u_acc_1", chat) && !Notifications.allowMuted(new wk8.l0(), chat),
+        check(Settings.fullyMuted("u_acc_1", chat) && !Notifications.allowMuted(new ke8.z(), chat),
                 "Unhiding room must remain fully hidden in prefs and blocked in allowMuted while native call is in flight");
 
         FakeLineEnv.completeDeferredNativeMute(false);
         awaitCallback(() -> unhideNormal.get() != null);
         check(Boolean.FALSE.equals(unhideNormal.get())
                         && Settings.fullyMuted("u_acc_1", chat)
-                        && !Notifications.allowMuted(new wk8.l0(), chat),
+                        && !Notifications.allowMuted(new ke8.z(), chat),
                 "Failed unhide to NORMAL must keep room completely hidden");
 
         // HIDDEN -> QUIET failure keeps hidden=true, quiet=false; then success flips both cleanly.
@@ -901,7 +902,7 @@ public final class ExtensionRuntimeTest {
         check(muteCalled.await(3L, TimeUnit.SECONDS), "Timed out waiting for deferred HIDDEN->QUIET call");
         check(Settings.fullyMuted("u_acc_1", chat)
                         && !Settings.quiet("u_acc_1", chat)
-                        && !Notifications.allowMuted(new wk8.l0(), chat),
+                        && !Notifications.allowMuted(new ke8.z(), chat),
                 "HIDDEN->QUIET must remain hidden until native unhide succeeds");
         FakeLineEnv.completeDeferredNativeMute(false);
         awaitCallback(() -> unhideQuietFail.get() != null);
@@ -918,7 +919,7 @@ public final class ExtensionRuntimeTest {
         check(Boolean.TRUE.equals(unhideQuietOk.get())
                         && !Settings.fullyMuted("u_acc_1", chat)
                         && Settings.quiet("u_acc_1", chat)
-                        && Notifications.allowMuted(new wk8.l0(), chat),
+                        && Notifications.allowMuted(new ke8.z(), chat),
                 "Successful HIDDEN->QUIET must clear hidden flag, enable quiet, and allow silent notifications");
     }
 
@@ -1539,11 +1540,11 @@ public final class ExtensionRuntimeTest {
         check(Settings.fullyMuted("u_acc_1", roomZ1)
                         && Settings.quiet("u_acc_1", roomZ1)
                         && !Settings.prefs().contains(Settings.pendingHideKey("u_acc_1", roomZ1))
-                        && !Notifications.allowMuted(new wk8.l0(), roomZ1),
+                        && !Notifications.allowMuted(new ke8.z(), roomZ1),
                 "Crash recovery must promote pending_hide to fullyMuted while preserving quietKey");
         check(!Settings.fullyMuted("u_acc_1", roomZ2)
                         && !Settings.prefs().contains(Settings.pendingHideKey("u_acc_1", roomZ2))
-                        && Notifications.allowMuted(new wk8.l0(), roomZ2),
+                        && Notifications.allowMuted(new ke8.z(), roomZ2),
                 "Crash recovery must clear stale pending_hide when native mute did not persist");
     }
 
@@ -2722,14 +2723,14 @@ public final class ExtensionRuntimeTest {
                 FakeLineEnv.activeAccount = "u_acc_2";
             }
         };
-        Notifications.allowMuted(new wk8.l0(), triggerRoom);
+        Notifications.allowMuted(new ke8.z(), triggerRoom);
         Notifications.flushWorkerForTest();
         check(manager.getActiveSlotForTest(MESSAGE_TAG, 11131) != null,
                 "Interrupted async reconcile on account switch A->B must not prune A's notification while on B");
         // Return to Account A and trigger allowMuted again -> reconcile must retry and prune surviving notification!
         FakeLineEnv.onMutedCheck = null;
         FakeLineEnv.activeAccount = "u_acc_1";
-        Notifications.allowMuted(new wk8.l0(), triggerRoom);
+        Notifications.allowMuted(new ke8.z(), triggerRoom);
         Notifications.flushWorkerForTest();
         check(Settings.fullyMuted("u_acc_1", hiddenRoom)
                         && manager.getActiveSlotForTest(MESSAGE_TAG, 11131) == null,
@@ -2900,7 +2901,7 @@ public final class ExtensionRuntimeTest {
                 "Hide cleanup skipped on A->B switch must still run callback and leave A's slot until A returns");
         // Return to A: A must re-reconcile and prune surviving hidden 12041!
         FakeLineEnv.activeAccount = "u_acc_1";
-        Notifications.allowMuted(new wk8.l0(), other3b);
+        Notifications.allowMuted(new ke8.z(), other3b);
         Notifications.flushWorkerForTest();
         check(manager.getActiveSlotForTest(MESSAGE_TAG, 12041) == null,
                 "Returning to Account A after skipped hide cleanup must re-trigger reconcile and prune surviving hidden slot");
@@ -3072,7 +3073,7 @@ public final class ExtensionRuntimeTest {
         check(cb2.get() && manager.getActiveSlotForTest(MESSAGE_TAG, 13021) != null,
                 "Account switch A->B inside getActiveNotifications() must abort cleanup safely while running callback");
         FakeLineEnv.activeAccount = "u_acc_1";
-        Notifications.allowMuted(new wk8.l0(), other2);
+        Notifications.allowMuted(new ke8.z(), other2);
         Notifications.flushWorkerForTest();
         check(manager.getActiveSlotForTest(MESSAGE_TAG, 13021) == null,
                 "Returning to Account A after mid-IPC account switch must re-trigger reconcile and prune surviving 13021");
@@ -3196,7 +3197,7 @@ public final class ExtensionRuntimeTest {
                         && roomA.equals(manager.getActiveSlotForTest(null, summaryId).getNotification().extras.getString("line.chat.id")),
                 "Account switch during 2nd active IPC must abort summary rebuild safely while on Account B");
         FakeLineEnv.activeAccount = "u_acc_1";
-        Notifications.allowMuted(new wk8.l0(), roomB);
+        Notifications.allowMuted(new ke8.z(), roomB);
         Notifications.flushWorkerForTest();
         Notification prunedSummary = manager.getActiveSlotForTest(null, summaryId).getNotification();
         check(prunedSummary != null
@@ -3225,6 +3226,102 @@ public final class ExtensionRuntimeTest {
                         && "LINE".equals(String.valueOf(redactedDiscard.extras.getCharSequence(Notification.EXTRA_TITLE)))
                         && "You have a new message.".equals(String.valueOf(redactedDiscard.extras.getCharSequence(Notification.EXTRA_TEXT))),
                 "refreshActivePreviews with privacy OFF must redact visible plaintext 101 even when transform returns DISCARD");
+    }
+
+    private static void testNativeBindings26190(Context context) {
+        resetAll(context);
+        String chatUnmuted = chatId('u', 1401);
+        String chatMuted = chatId('u', 1402);
+        FakeLineEnv.CHATS.put(chatUnmuted, new FakeLineEnv.ChatRow("Unmuted Room", "90", 3, false));
+        FakeLineEnv.CHATS.put(chatMuted, new FakeLineEnv.ChatRow("Muted Room", "95", 2, true));
+
+        try {
+            AtomicInteger mutedChecks = new AtomicInteger();
+            FakeLineEnv.onMutedCheck = mutedChecks::incrementAndGet;
+            check(!NativeLine.muted(chatUnmuted) && NativeLine.muted(chatMuted) && mutedChecks.get() == 2,
+                    "ch8.c DI lookup and eh8.e.b field read reflect native mute state");
+            FakeLineEnv.onMutedCheck = null;
+
+            NativeLine.Chat chatState = NativeLine.chat(chatUnmuted);
+            check(chatState != null
+                            && "Unmuted Room".equals(chatState.name)
+                            && "90".equals(chatState.readUp)
+                            && chatState.unread == 3,
+                    "ln3.k$d.b field read reflects native unread count");
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("NativeLine 26.19.0 reflection failed", e);
+        }
+
+        Settings.setEnabled(Settings.READ, true);
+        FakeLineEnv.deferNativeReadCallback = true;
+        Intent readIntent = ReadActions.action(context, "u_acc_1", chatUnmuted).actionIntent.getIntentForTest();
+        boolean handled = Settings.interceptNotificationAction(context, readIntent);
+        Handler.drainImmediateForTest();
+        check(handled
+                        && FakeLineEnv.nativeReadSubscribeCalls == 1
+                        && FakeLineEnv.getReadCleanupCallsSnapshot().isEmpty()
+                        && Toast.shownForTest().isEmpty(),
+                "q08.b.b(r08.b) onSubscribe must not trigger read completion cleanup or failure toast");
+
+        FakeLineEnv.completeDeferredNativeRead(null);
+        Handler.drainImmediateForTest();
+        List<j34.l> cleanupCalls = FakeLineEnv.getReadCleanupCallsSnapshot();
+        check(cleanupCalls.size() == 2
+                        && cleanupCalls.get(0) instanceof j34.l.a
+                        && cleanupCalls.get(1) instanceof j34.l.c
+                        && chatUnmuted.equals(cleanupCalls.get(0).chatId)
+                        && chatUnmuted.equals(cleanupCalls.get(1).chatId)
+                        && Toast.shownForTest().isEmpty(),
+                "q08.b.onComplete() must trigger j34.h.c cleanup for chat and group selectors");
+
+        FakeLineEnv.READ_CLEANUP_CALLS.clear();
+        Intent readErrIntent = ReadActions.action(context, "u_acc_1", chatMuted).actionIntent.getIntentForTest();
+        check(Settings.interceptNotificationAction(context, readErrIntent)
+                        && FakeLineEnv.nativeReadSubscribeCalls == 2
+                        && FakeLineEnv.getReadCleanupCallsSnapshot().isEmpty(),
+                "Second read request onSubscribe must stay pending until terminal callback");
+        FakeLineEnv.completeDeferredNativeRead(new RuntimeException("simulated read failure"));
+        Handler.drainImmediateForTest();
+        check(FakeLineEnv.getReadCleanupCallsSnapshot().isEmpty() && Toast.shownForTest().size() == 1,
+                "q08.b.onError() must skip room cleanup and show failure toast");
+
+        resetAll(context);
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        Settings.setEnabled(Settings.INFO, true);
+        Settings.setEnabled(Settings.INFO_MEDIA_PREVIEW, true);
+        String groupGlide = chatId('c', 1403);
+        FakeLineEnv.CONTACTS.put("u_sender_1403", new FakeLineEnv.ContactRow("Carol", "/avatars/carol.jpg"));
+        FakeLineEnv.CHATS.put(groupGlide, new FakeLineEnv.ChatRow("Glide Group", "700", 2, false));
+        FakeLineEnv.addMessage(groupGlide, "701", 5001L, "u_sender_1403", "Hello", null, null);
+        FakeLineEnv.addMessage(groupGlide, "702", 5002L, "u_sender_1403", null, 7, "STKPKGID\t446\tSTKID\t1988");
+        Notification glideNotif = msgNotification(groupGlide, "702", "Glide Group", "sent a sticker");
+        glideNotif.extras.putString("line.sticker.url", "https://example.invalid/sticker.png");
+        Notifications.post(manager, MESSAGE_TAG, 14031, glideNotif);
+        List<FakeLineEnv.GlideRequestRecord> glideReqs = FakeLineEnv.getGlideRequestsSnapshot();
+        FakeLineEnv.GlideRequestRecord avatarReq = null;
+        FakeLineEnv.GlideRequestRecord stickerReq = null;
+        for (FakeLineEnv.GlideRequestRecord req : glideReqs) {
+            if (req.model instanceof x55.e) avatarReq = req;
+            if ("https://example.invalid/sticker.png".equals(req.model)) stickerReq = req;
+        }
+        check(avatarReq != null
+                        && avatarReq.strategy == co.l.b
+                        && Boolean.TRUE.equals(avatarReq.onlyCache)
+                        && avatarReq.overrideWidth == 80
+                        && avatarReq.overrideHeight == 80
+                        && avatarReq.circleCrop
+                        && avatarReq.submitWidth == Integer.MIN_VALUE
+                        && avatarReq.submitHeight == Integer.MIN_VALUE,
+                "Avatar Glide request must pass co.l.b, r(true), t(80,80), d(), and X(MIN_VALUE, MIN_VALUE)");
+        check(stickerReq != null
+                        && stickerReq.strategy == co.l.d
+                        && stickerReq.onlyCache == null
+                        && stickerReq.overrideWidth == 384
+                        && stickerReq.overrideHeight == 384
+                        && !stickerReq.circleCrop
+                        && stickerReq.submitWidth == Integer.MIN_VALUE
+                        && stickerReq.submitHeight == Integer.MIN_VALUE,
+                "Sticker Glide request must pass co.l.d, t(384,384), and X(MIN_VALUE, MIN_VALUE)");
     }
 
     private static void check(boolean condition, String description) {

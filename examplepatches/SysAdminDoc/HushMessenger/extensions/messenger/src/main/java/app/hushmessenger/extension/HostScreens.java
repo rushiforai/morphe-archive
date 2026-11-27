@@ -37,6 +37,8 @@ public final class HostScreens {
     static volatile boolean started;
     /** Starting threw, so safe mode is unknown. Every control stays stock until Messenger restarts, with no retries. */
     static volatile boolean failed;
+    /** How many of Messenger's screens are started, a chat in an Android bubble included. */
+    static volatile int screensShown;
 
     private HostScreens() {}
 
@@ -83,10 +85,14 @@ public final class HostScreens {
     static final class LeavingMessenger implements Application.ActivityLifecycleCallbacks {
         private int shown;
 
-        @Override public void onActivityStarted(Activity activity) { shown++; }
+        @Override public void onActivityStarted(Activity activity) {
+            shown++;
+            screensShown = shown;
+        }
 
         @Override public void onActivityStopped(Activity activity) {
             shown = Math.max(0, shown - 1);
+            screensShown = shown;
             if (shown == 0 && started && !failed && !activity.isChangingConfigurations()) refreshShortcuts(activity);
         }
 
@@ -98,6 +104,11 @@ public final class HostScreens {
     }
 
     /** Restart, remembering [page] so settings come back on it once Messenger is up again. */
+    /** Whether one of Messenger's own screens is up. Chat heads hide while one is, so a video then isn't in one. */
+    static boolean messengerShowing() {
+        return screensShown > 0;
+    }
+
     static void restartInto(Context context, String page) {
         context.startActivity(intentFor(context, RESTART).putExtra(SettingsReopen.EXTRA, SettingsReopen.page(page)));
     }

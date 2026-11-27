@@ -16,6 +16,7 @@ import android.widget.TextView;
 import java.util.Locale;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -94,7 +95,7 @@ public final class CallRecordingUi {
                         label.setText(String.format(Locale.US, "● REC %02d:%02d", seconds / 60, seconds % 60));
                     }
                 } catch (RuntimeException failure) {
-                    NezumiLog.w(CallRecorder.TAG, "ui tick failed", failure);
+                    NezumiLog.w(Patch.CALL_RECORDING, "CallRecordingUi", "ui tick failed", failure);
                 }
                 if (button.isAttachedToWindow()) button.postDelayed(tick[0], 500);
             };
@@ -115,7 +116,7 @@ public final class CallRecordingUi {
             });
             tick[0].run();
         } catch (Throwable failure) {
-            NezumiLog.e(CallRecorder.TAG, "attach failed", failure);
+            NezumiLog.e(Patch.CALL_RECORDING, "CallRecordingUi", "attach failed", failure);
         }
     }
 
@@ -150,12 +151,12 @@ public final class CallRecordingUi {
                     root.postDelayed(() -> install(activity, root, button, label, fallbackButton,
                         fallbackLabel, size, generation, attempt + 1), 100);
                 } else {
-                    NezumiLog.w(CallRecorder.TAG, "cluster not found, using floating placement");
+                    NezumiLog.w(Patch.CALL_RECORDING, "CallRecordingUi", "cluster not found, using floating placement");
                     root.addView(button, fallbackButton);
                     if (label.getParent() == null) root.addView(label, fallbackLabel);
                 }
             } catch (RuntimeException failure) {
-                NezumiLog.e(CallRecorder.TAG, "install failed", failure);
+                NezumiLog.e(Patch.CALL_RECORDING, "CallRecordingUi", "install failed", failure);
             }
         });
     }

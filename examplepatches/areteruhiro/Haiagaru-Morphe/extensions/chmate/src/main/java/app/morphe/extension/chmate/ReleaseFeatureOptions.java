@@ -30,7 +30,7 @@ final class ReleaseFeatureOptions {
         READING_POSITION_CARD_DEFAULT("1.47.0"), EXTRA_QUICK_FILTERS("1.47.0"), KYODEMO_TOOLBAR_PALETTE("1.49.0"),
         ANIMANCH_HEART("1.49.0"), CRASH_REPORTING("1.49.0"), GIGAFILE_BUTTON("1.49.0"), GIGAFILE_LINK_MODE("1.49.0"),
         FUTABA_DIRECT_POSTING("1.49.0"), FUTABA_OFFICIAL_POSTING("1.49.0"), EXPERT_PERFORMANCE("1.49.2"), BACKGROUND_POSTING_OPT_IN("1.50.4"),
-        SHORT_BOARD_THREADS("1.50.0"), THREAD_TAB_GROUPS("1.52.0"), HIDE_IMAGE_BOTTOM_ACTIONS("1.52.0"), DIRECT_COPY_GESTURE("1.52.0"), DIRECT_BOARD("1.54.0"), WIFI_MEDIA_FETCH_OPTIONS("1.54.0");
+        SHORT_BOARD_THREADS("1.50.0"), THREAD_TAB_GROUPS("1.52.0"), HIDE_IMAGE_BOTTOM_ACTIONS("1.52.0"), DIRECT_COPY_GESTURE("1.52.0"), DIRECT_BOARD("1.54.0"), WIFI_MEDIA_FETCH_OPTIONS("1.54.0"), POSTER_ID_CHAIN_OPTIMIZATION("1.55.0");
 
         final String version;
         Option(String version) { this.version = version; }
@@ -52,6 +52,7 @@ final class ReleaseFeatureOptions {
                 case CONDITIONAL_REFRESH:return "スレ更新";
                 case X_POST_TRUNCATION_MODE:return "表示・検索";
                 case WACCHOI_NG_EXPIRY:return "NG・文字列置換";
+                case POSTER_ID_CHAIN_OPTIMIZATION:return "NG・文字列置換";
                 case KEYWORD_NAMES:case GLOBAL_SEARCH_BACKGROUND:case GLOBAL_SEARCH_HISTORY:case GLOBAL_SEARCH_PARTIAL:
                 case HOME_THREAD_ORDER:case KEYWORD_MENU:case HOME_NOTES_MENU:return "表示・検索";
                 case VIEWER_DOUBLE_BACK:case ALWAYS_MOSAIC_GRAY:case ALWAYS_MOSAIC_STRENGTH:
@@ -128,6 +129,7 @@ final class ReleaseFeatureOptions {
                 case EXTERNAL_VIDEO_CACHE:return "専用ビューアを使わないとき、imgpile動画を一時取得して外部プレイヤーへ渡します。";
                 case POST_LIMIT_DISPLAY:return "投稿欄に板ごとのスレタイ・本文・行数・1行あたりの上限と超過位置を表示します。";
                 case FILTER_OPTIMIZATION:return "レスフィルター全体の抽出・位置保持などの処理を任意で最適化します。初期状態はOFFです。";
+                case POSTER_ID_CHAIN_OPTIMIZATION:return "NGワードの連鎖＋投稿者IDもNGの照合を最適化します。同じ板別ルールとレス本文の一致結果を再利用します。判定内容を変えずに処理を軽くする設定で、初期ONです。";
                 case EXPERT_PERFORMANCE:return "起動・スレ読込・投稿・Cookie・履歴・通知・フィルター・画像切替時の処理を個別に切り替えられます。今回追加した設定は初期ONです。";
                 case SHORT_BOARD_THREADS:return "板の一覧で指定以下のレス数のスレを隠します。初期OFFで、上限の初期値は1です。";
                 case DELAYED_POSITION_SNAPSHOT:return "エキスパート設定で遅延位置スナップショットを切り替えられます。初期状態はOFFです。";

@@ -7,6 +7,8 @@ public final class SiteCardExclusionsTest {
     static void rejects(String value){try{SiteCardExclusions.parse(value);throw new AssertionError("accepted "+value);}catch(IllegalArgumentException expected){count++;}}
     public static void main(String[] args){
         var defaults=SiteCardExclusions.parse(SiteCardExclusions.DEFAULT);
+        check(SiteCardExclusions.excluded(defaults,"https://www.youtube.com/watch?v=abc"),"default YouTube");
+        check(SiteCardExclusions.excluded(defaults,"https://youtu.be/abc"),"default short YouTube");
         for(String url:List.of("https://imgur.com/","https://imgur.com/a/abc","http://imgur.com/gallery/abc","https://www.imgur.com/abc","https://m.imgur.com/abc","https://IMGUR.COM/abc?x=1#part","https://i.imgur.com/abc.png"))
             check(SiteCardExclusions.excluded(defaults,url),"default imgur root/descendants "+url);
         for(String url:List.of("https://notimgur.com/","https://imgur.com.example.org/","https://news.yahoo.co.jp/articles/abc","https://example.org/imgur.com/","bad URL"))

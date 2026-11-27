@@ -1,0 +1,182 @@
+package dev.jason.gboardpatches.patches.gboard.registry
+
+import com.google.gson.JsonParser
+import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
+import dev.jason.gboardpatches.patches.shared.Constants.GBOARD_PACKAGE_NAME
+import dev.jason.gboardpatches.patches.shared.Constants.GBOARD_DEFAULT_PATCHED_PACKAGE_NAME
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class GboardPackageRenamePatchContractTest {
+    private val repositoryRoot = findRepositoryRoot()
+
+    @Test
+    fun `public patch keeps exact install time metadata dependency and compatibility`() {
+        val patch = gboardPackageRenamePatch
+
+        assertEquals("Package Rename", patch.name)
+        assertEquals(PACKAGE_RENAME_DESCRIPTION, patch.description)
+        assertTrue(patch.default)
+        assertEquals(setOf(APP_DISPLAY_NAME_OPTION_KEY, PACKAGE_NAME_OPTION_KEY), patch.options.keys)
+        val packageOption = patch.options[PACKAGE_NAME_OPTION_KEY]
+        assertEquals(PACKAGE_NAME_OPTION_TITLE, packageOption.title)
+        assertEquals(PACKAGE_NAME_OPTION_DESCRIPTION, packageOption.description)
+        assertEquals(RAMBLER_BANGLA_PACKAGE_NAME, packageOption.default)
+        assertEquals(RAMBLER_BANGLA_PACKAGE_NAME, packageOption.value)
+        assertTrue(packageOption.required)
+        assertEquals("kotlin.String", packageOption.type.toString())
+        assertEquals(
+            linkedMapOf(
+                RAMBLER_BANGLA_PACKAGE_NAME to RAMBLER_BANGLA_PACKAGE_NAME,
+                GBOARD_DEFAULT_PATCHED_PACKAGE_NAME to GBOARD_DEFAULT_PATCHED_PACKAGE_NAME,
+                GBOARD_PACKAGE_NAME to GBOARD_PACKAGE_NAME,
+            ),
+            packageOption.values,
+        )
+        val option = patch.options[APP_DISPLAY_NAME_OPTION_KEY]
+        assertEquals(APP_DISPLAY_NAME_OPTION_DESCRIPTION, option.description)
+        assertEquals(APP_DISPLAY_NAME_DEFAULT, option.default)
+        assertEquals(APP_DISPLAY_NAME_DEFAULT, option.value)
+        assertTrue(option.required)
+        assertEquals("kotlin.String", option.type.toString())
+        assertEquals(APP_DISPLAY_NAME_PRESETS, option.values)
+        assertEquals(1, patch.dependencies.size)
+        assertEquals(
+            "將套件名稱改成可共存安裝的自訂值，選官方套件名稱時不改；" +
+                "改名時僅支援單一 APK 產物，不可搭配原套件名稱的 split APK。",
+            patch.dependencies.single().description,
+        )
+        assertEquals("com.google.android.inputmethod.latin", GBOARD_PACKAGE_NAME)
+        assertEquals(
+            "dev.jason.com.google.android.inputmethod.latin",
+            GBOARD_DEFAULT_PATCHED_PACKAGE_NAME,
+        )
+
+        val compatibilities = checkNotNull(patch.compatibility)
+        assertEquals(1, compatibilities.size)
+        assertSame(COMPATIBILITY_GBOARD, compatibilities.single())
+        assertEquals(GBOARD_PACKAGE_NAME, compatibilities.single().packageName)
+        assertEquals(
+            listOf(TARGET_VERSION),
+            compatibilities.single().targets.map { target -> target.version },
+        )
+        assertTrue(compatibilities.single().targets.none { target -> target.isExperimental })
+    }
+
+    @Test
+    fun `active inventory matches registrations with package rename exactly once`() {
+        val patches = generatedPublishedPatches()
+
+        assertMatchesPublishedRegistrationCount(patches.size)
+        val rows = patches.filter { row -> row.get("name").asString == "Package Rename" }
+        assertEquals(1, rows.size)
+        val row = rows.single()
+        assertTrue(row.get("use").asBoolean)
+        assertEquals(PACKAGE_RENAME_DESCRIPTION, row.get("description").asString)
+        assertTrue(row.getAsJsonArray("dependencies").isEmpty)
+        val options = row.getAsJsonArray("options")
+        assertEquals(2, options.size())
+        val option = options
+            .single { it.asJsonObject.get("key").asString == APP_DISPLAY_NAME_OPTION_KEY }
+            .asJsonObject
+        val packageOption = options
+            .single { it.asJsonObject.get("key").asString == PACKAGE_NAME_OPTION_KEY }
+            .asJsonObject
+        assertEquals(PACKAGE_NAME_OPTION_TITLE, packageOption.get("title").asString)
+        assertEquals(PACKAGE_NAME_OPTION_DESCRIPTION, packageOption.get("description").asString)
+        assertEquals(RAMBLER_BANGLA_PACKAGE_NAME, packageOption.get("default").asString)
+        assertEquals(
+            listOf(
+                RAMBLER_BANGLA_PACKAGE_NAME to RAMBLER_BANGLA_PACKAGE_NAME,
+                GBOARD_DEFAULT_PATCHED_PACKAGE_NAME to GBOARD_DEFAULT_PATCHED_PACKAGE_NAME,
+                GBOARD_PACKAGE_NAME to GBOARD_PACKAGE_NAME,
+            ),
+            packageOption.getAsJsonObject("values").entrySet().map { entry ->
+                entry.key to entry.value.asString
+            },
+        )
+        assertTrue(packageOption.get("required").asBoolean)
+        assertEquals("kotlin.String", packageOption.get("type").asString)
+        assertEquals(APP_DISPLAY_NAME_OPTION_KEY, option.get("key").asString)
+        assertEquals(APP_DISPLAY_NAME_OPTION_TITLE, option.get("title").asString)
+        assertEquals(APP_DISPLAY_NAME_OPTION_DESCRIPTION, option.get("description").asString)
+        assertEquals(APP_DISPLAY_NAME_DEFAULT, option.get("default").asString)
+        assertTrue(option.get("required").asBoolean)
+        assertEquals("kotlin.String", option.get("type").asString)
+        assertEquals(
+            APP_DISPLAY_NAME_PRESETS.entries.map { entry -> entry.key to entry.value },
+            option.getAsJsonObject("values").entrySet().map { entry ->
+                entry.key to entry.value.asString
+            },
+        )
+        val packages = row.getAsJsonObject("compatiblePackages")
+        assertEquals(setOf(GBOARD_PACKAGE_NAME), packages.keySet())
+        assertEquals(
+            listOf(TARGET_VERSION),
+            packages.getAsJsonArray(GBOARD_PACKAGE_NAME).map { it.asString },
+        )
+    }
+
+    @Test
+    fun `package rename adds no runtime binding family or flag factory`() {
+        val profile = JsonParser.parseString(readSource(BINDINGS_PROFILE_PATH)).asJsonObject
+
+        assertEquals("18.5.4", profile.get("target_version").asString)
+        val bindings = profile.getAsJsonObject("bindings")
+        assertFalse(bindings.has("flag_factory"))
+        assertTrue(bindings.keySet().none { key -> key.contains("package_rename") })
+        assertFalse(GboardPublishedPatchCatalog.publishedInventory("test-version").contains("family_ids"))
+    }
+
+    private fun readSource(relativePath: String): String = Files.readString(
+        repositoryRoot.resolve(relativePath),
+        StandardCharsets.UTF_8,
+    )
+
+    private fun findRepositoryRoot(): Path {
+        var current = Path.of("").toAbsolutePath().normalize()
+        while (true) {
+            if (Files.isRegularFile(current.resolve("settings.gradle.kts"))) return current
+            current = current.parent ?: error("Could not resolve repository root")
+        }
+    }
+
+    private companion object {
+        const val TARGET_VERSION = "18.5.4.993608717-release-arm64-v8a"
+        const val PACKAGE_RENAME_DESCRIPTION =
+            "將套件名稱改成可自訂的值(預設 dev.jason.com...latin)，並可自訂 App 名稱，以便共存安裝\n" +
+                "Rename the package to a configurable name (default dev.jason.com...latin) and " +
+                "allow a custom app name so it can be installed alongside the official Gboard."
+        const val PACKAGE_NAME_OPTION_KEY = "package_name"
+        const val PACKAGE_NAME_OPTION_TITLE = "套件名稱 / Package name"
+        const val PACKAGE_NAME_OPTION_DESCRIPTION =
+            "必須是有效的 Android 套件名稱。選官方套件名稱 com.google.android.inputmethod.latin " +
+                "時只改 App 名稱、不改套件名稱，無法與官方 Gboard 共存安裝；" +
+                "其他工具改過的套件名稱不受支援。\n" +
+                "Must be a valid Android package name. Choosing the official package " +
+                "com.google.android.inputmethod.latin changes only the app name and keeps the " +
+                "package, so it cannot be installed alongside the official Gboard. " +
+                "Packages renamed by other tools are not supported."
+        const val APP_DISPLAY_NAME_OPTION_KEY = "app_display_name"
+        const val APP_DISPLAY_NAME_OPTION_TITLE = "App 名稱 / App name"
+        const val APP_DISPLAY_NAME_OPTION_DESCRIPTION = ""
+        const val RAMBLER_BANGLA_PACKAGE_NAME = "com.aidev2024.ramblerbangla"
+        const val APP_DISPLAY_NAME_DEFAULT = "Rambler Bangla"
+        val APP_DISPLAY_NAME_PRESETS = linkedMapOf(
+            "Rambler Bangla" to "Rambler Bangla",
+            "Gboard" to "Gboard",
+            "Gboard Dev" to "Gboard Dev",
+            "Gboard Patches" to "Gboard Patches",
+            "Gboard Mod" to "Gboard Mod",
+            "GboardWu" to "GboardWu",
+        )
+        const val BINDINGS_PROFILE_PATH =
+            "patches/src/main/resources/gboard/gboard-version-bindings.json"
+    }
+}

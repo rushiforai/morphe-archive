@@ -66,6 +66,8 @@ private const val PATH_STATS_41027 = "Lcom/chess/features/path/ui/t2;"
 private const val PATH_STATS_41028 = "Lcom/chess/features/path/ui/r2;"
 // 4.10.29 gave r2 to an unrelated class and moved the path stats to v2.
 private const val PATH_STATS_41029 = "Lcom/chess/features/path/ui/v2;"
+// 4.10.31 swaps them back around: r2 is the path stats again and v2 is a screen model.
+private const val PATH_STATS_41031 = "Lcom/chess/features/path/ui/r2;"
 private const val RATING_STATS = "Lcom/chess/features/puzzles/db/model/o;"
 private const val RATING_STATS_41027 = "Lcom/chess/features/puzzles/db/model/n;"
 private const val STATS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$q0;"
@@ -101,6 +103,13 @@ private const val HUB_USER_41028 = "Lcom/chess/features/puzzles/home/ui/p0;"
 private const val HUB_STATE_41029 = "Lcom/chess/features/puzzles/home/ui/j0;"
 private const val HUB_PATH_41029 = "Lcom/chess/features/puzzles/home/ui/m0;"
 private const val HUB_USER_41029 = "Lcom/chess/features/puzzles/home/ui/n0;"
+// 4.10.31 renumbered the Rated puzzles screens: the Classic layout state is o0$a, its rating
+// graph r and the graph's points s. The screen states moved from r$m0/r$r0 to t$m0/t$r0.
+private const val CLASSIC_STATE_41031 = "Lcom/chess/features/puzzles/rated/ui/o0\$a;"
+private const val RATING_HISTORY_41031 = "Lcom/chess/features/puzzles/rated/ui/r;"
+private const val RATING_POINT_41031 = "Lcom/chess/features/puzzles/rated/ui/s;"
+private const val SETTINGS_LOADED_41031 = "Lcom/chess/features/puzzles/rated/t\$m0;"
+private const val STATS_LOADED_41031 = "Lcom/chess/features/puzzles/rated/t\$r0;"
 private const val UNIT = "sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;\nreturn-object v0"
 private const val NOTHING = "const/4 v0, 0x0\nreturn-object v0"
 
@@ -158,12 +167,34 @@ val lichessPuzzlesPatch = bytecodePatch(
                 method.parameterTypes[6].toString() == HUB_USER_41029 &&
                 method.parameterTypes[7].toString() == HUB_PATH_41029
         } == true
-        val classicStateType = if (v41027) CLASSIC_STATE_41027 else CLASSIC_STATE
-        val ratingHistoryType = if (v41027) RATING_HISTORY_41027 else RATING_HISTORY
-        val ratingPointType = if (v41027) RATING_POINT_41027 else RATING_POINT
-        val solutionType = if (v41027) SOLUTION_41027 else SOLUTION
-        val ratingStatsType = if (v41027) RATING_STATS_41027 else RATING_STATS
+        // 4.10.31 keeps the 4.10.29 hub state and the 4.10.27 puzzle models, but renumbered the
+        // Rated puzzles screens: t$m0/t$r0 replace r$m0/r$r0, and the Classic layout moved to o0$a
+        // (which in 4.10.29 was the screen state). The short names collide across builds, so the
+        // settings state is identified by its exact constructor: settings, coach, mode, Rive.
+        val v41031 = classDefByOrNull(SETTINGS_LOADED_41031)?.methods?.any { method ->
+            method.name == "<init>" &&
+                method.parameterTypes.map(CharSequence::toString) ==
+                listOf(PUZZLE_SETTINGS, "Lcom/chess/coach/Coach;", MODE, "Lapp/rive/RiveFileSource;")
+        } == true
+        val classicStateType = when {
+            v41031 -> CLASSIC_STATE_41031
+            v41027 -> CLASSIC_STATE_41027
+            else -> CLASSIC_STATE
+        }
+        val ratingHistoryType = when {
+            v41031 -> RATING_HISTORY_41031
+            v41027 -> RATING_HISTORY_41027
+            else -> RATING_HISTORY
+        }
+        val ratingPointType = when {
+            v41031 -> RATING_POINT_41031
+            v41027 -> RATING_POINT_41027
+            else -> RATING_POINT
+        }
+        val solutionType = if (v41031 || v41027) SOLUTION_41027 else SOLUTION
+        val ratingStatsType = if (v41031 || v41027) RATING_STATS_41027 else RATING_STATS
         val pathStatsType = when {
+            v41031 -> PATH_STATS_41031
             v41029 -> PATH_STATS_41029
             v41028 -> PATH_STATS_41028
             v41027 -> PATH_STATS_41027
@@ -589,9 +620,15 @@ val lichessPuzzlesPatch = bytecodePatch(
         val regularMode = enumField(MODE, "REGULAR")
         mutableClassDefBy(MODE).methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" }
             .whileSession("const/4 v0, 0x0\nreturn v0")
-        val settingsLoaded = mutableClassDefByOrNull(SETTINGS_LOADED)
-            ?: mutableClassDefByOrNull(SETTINGS_LOADED_41029)
-            ?: mutableClassDefBy("Lcom/chess/features/puzzles/rated/t\$l0;")
+        // 4.10.31 renamed this state to t$m0; older builds have a same-named class of their own,
+        // so only look it up when the build is 4.10.31.
+        val settingsLoaded = if (v41031) {
+            mutableClassDefBy(SETTINGS_LOADED_41031)
+        } else {
+            mutableClassDefByOrNull(SETTINGS_LOADED)
+                ?: mutableClassDefByOrNull(SETTINGS_LOADED_41029)
+                ?: mutableClassDefBy("Lcom/chess/features/puzzles/rated/t\$l0;")
+        }
         // 4.10.18 has a mode getter; 4.10.23 inlines it, so set the constructor's mode instead.
         val modeGetter = runCatching { settingsLoaded.getterForLabel(", mode=") }.getOrNull()
         if (modeGetter != null) {
@@ -671,9 +708,13 @@ val lichessPuzzlesPatch = bytecodePatch(
         }
 
         // The Classic layout needs path stats, which guest mode never loads.
-        val statsLoaded = mutableClassDefByOrNull(STATS_LOADED)
-            ?: mutableClassDefByOrNull(STATS_LOADED_41029)
-            ?: mutableClassDefBy("Lcom/chess/features/puzzles/rated/t\$q0;")
+        val statsLoaded = if (v41031) {
+            mutableClassDefBy(STATS_LOADED_41031)
+        } else {
+            mutableClassDefByOrNull(STATS_LOADED)
+                ?: mutableClassDefByOrNull(STATS_LOADED_41029)
+                ?: mutableClassDefBy("Lcom/chess/features/puzzles/rated/t\$q0;")
+        }
         val withStats = statsLoaded.methods.singleOrNull { method ->
             method.returnType == pathStats.type && method.parameterTypes.map { it.toString() } == listOf(pathStats.type)
         } ?: throw PatchException("The puzzle screen's stats were not found")

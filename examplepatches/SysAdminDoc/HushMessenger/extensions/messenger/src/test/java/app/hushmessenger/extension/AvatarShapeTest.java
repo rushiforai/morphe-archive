@@ -2,12 +2,18 @@ package app.hushmessenger.extension;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.Region;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
+import android.graphics.drawable.shapes.RectShape;
+import android.graphics.drawable.shapes.Shape;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -416,5 +422,51 @@ public class AvatarShapeTest {
             assertTrue(Settings.preferences.getBoolean(Settings.AVATAR_ROUNDED, false));
             assertTrue(((Switch) root.findViewWithTag(Settings.AVATAR_ROUNDED)).isChecked());
         }
+    }
+
+    /** The user tile's photo mask after Settings sees the shape Messenger set, drawn on 96 pixels. */
+    private static Bitmap tileMask(Shape stock) {
+        ShapeDrawable tile = new ShapeDrawable();
+        Settings.avatarTileShape(tile, stock);
+        tile.getPaint().setColor(Color.BLACK);
+        tile.setBounds(0, 0, 96, 96);
+        Bitmap drawn = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
+        tile.draw(new Canvas(drawn));
+        return drawn;
+    }
+
+    // #207: your picture on the Menu tab has no badge to cut around, so it gets no clip path and Messenger's oval or
+    // rectangle stayed whatever Round the corners said.
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aTileWithNoClipPathGetsTheSameCorners() {
+        int half = Math.round(Settings.avatarCornerPx() / 2);
+        assertTrue(half > 0);
+        Bitmap off = tileMask(new OvalShape());
+        assertEquals("Off keeps the oval", 0, Color.alpha(off.getPixel(0, 0)));
+        assertEquals(0, Color.alpha(off.getPixel(half, half)));
+        assertEquals(255, Color.alpha(off.getPixel(48, 48)));
+        Shape rect = new RectShape();
+        ShapeDrawable plain = new ShapeDrawable();
+        Settings.avatarTileShape(plain, rect);
+        assertSame("Messenger's own rectangle stays", rect, plain.getShape());
+
+        Settings.avatarShape = -1;
+        Settings.preferences.edit().putBoolean(Settings.AVATAR_SHAPE, true).commit();
+        Bitmap square = tileMask(new OvalShape());
+        assertEquals(255, Color.alpha(square.getPixel(0, 0)));
+        assertEquals(255, Color.alpha(square.getPixel(half, half)));
+        Settings.avatarTileShape(plain, rect);
+        assertSame(rect, plain.getShape());
+        assertTrue(Settings.lastActive(Settings.AVATAR_SHAPE) > 0);
+
+        Settings.avatarShape = -1;
+        Settings.preferences.edit().putBoolean(Settings.AVATAR_ROUNDED, true).commit();
+        Bitmap rounded = tileMask(new OvalShape());
+        assertEquals("The very corner is cut", 0, Color.alpha(rounded.getPixel(0, 0)));
+        assertEquals("but only by the corner's radius", 255, Color.alpha(rounded.getPixel(half, half)));
+        assertEquals(255, Color.alpha(rounded.getPixel(48, 48)));
+        assertEquals(255, Color.alpha(rounded.getPixel(48, 0)));
+        Settings.avatarTileShape(plain, rect);
+        assertSame("A rectangle Messenger picked isn't one of the circles", rect, plain.getShape());
     }
 }

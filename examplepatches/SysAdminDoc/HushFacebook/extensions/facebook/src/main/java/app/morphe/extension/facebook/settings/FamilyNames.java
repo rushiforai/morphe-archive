@@ -21,6 +21,8 @@ public final class FamilyNames {
      * guard's reads from the profile section's. Not a patch name: PatchFamily lists the patch once.
      */
     public static final String SUGGESTED_POSTS_PROFILE = "Hide suggested and promoted posts (your profile)";
+    /** The Hook status row of the same patch's hook in the Friends tab (#600). Not a patch name either. */
+    public static final String SUGGESTED_POSTS_FRIENDS_TAB = "Hide suggested and promoted posts (Friends tab)";
     public static final String AI_DETECTED_POSTS = "Hide AI-detected posts";
     /**
      * The Hook status row of the same patch's Reels and Watch hooks, so the report tells the feed
@@ -58,6 +60,7 @@ public final class FamilyNames {
     public static final String SPONSORED_PROFILE_POSTS = "Hide sponsored profile posts";
     public static final String PROFILE_NOTES = "Hide profile notes";
     public static final String LOCAL_PROFILE_COUNTS = "Local profile counts";
+    public static final String FRIEND_LIST = "Friends no longer on your list";
     public static final String POST_ACTION_BUTTONS = "Post action buttons";
     public static final String SPONSORED_MARKETPLACE = "Hide sponsored Marketplace listings";
     public static final String AFFILIATE_LINKS = "Hide affiliate product links";

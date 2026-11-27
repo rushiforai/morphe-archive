@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""Lists the English text of the extension's settings, the keys of every translation.
-
-Collects the English side of each es(...) pair in Strings.java, plus string literals in the other classes which look
-like user-facing text (a capital letter or a %s slot, a space, and no snake_case key, URL, or log call), and prints
-the literals missing from Strings.java, which need a translation in every language.
-
-  python3 tools/strings_catalog.py            the catalog, one string a line, to translations/en.txt
-  python3 tools/strings_catalog.py --missing  the literals of other classes absent from the catalog
-"""
 import json
 import os
 import re
@@ -24,7 +15,6 @@ def unescape(s):
 
 def pairs():
     text = open(os.path.join(SRC, 'Strings.java'), encoding='utf-8').read()
-    # A pair's English may be split over several literals joined by +.
     out = []
     for m in re.finditer(r'\bes\(\s*((?:' + LIT + r'\s*\+?\s*)+),\s*((?:' + LIT + r'\s*\+?\s*)+)\);', text):
         en = ''.join(unescape(x) for x in re.findall(LIT, m.group(1)))
@@ -39,7 +29,6 @@ def literals():
         if not name.endswith('.java') or name == 'Strings.java':
             continue
         text = open(os.path.join(SRC, name), encoding='utf-8').read()
-        # Joined literals ("a " + "b") become one string.
         text = re.sub(r'"\s*\+\s*\n\s*"', '', text)
         for line in text.split('\n'):
             if re.search(r'\bLog\.[a-z]\(|Logger\.|TAG,|throw new|Pattern\.compile|getIdentifier|findPreference|\.matches\(|replaceAll', line):
@@ -59,7 +48,6 @@ def literals():
 def main():
     known = pairs()
     english = [en for en, _ in known]
-    # Count nouns (Strings.count) are keyed "one|many"; each language gives an ICU plural pattern for them.
     for name in sorted(os.listdir(SRC)):
         if name.endswith('.java'):
             text = open(os.path.join(SRC, name), encoding='utf-8').read()

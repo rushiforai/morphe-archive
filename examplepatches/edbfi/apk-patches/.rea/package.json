@@ -3,7 +3,7 @@
   "description": "rea, pinned and bumped by hand: just setup-rea installs it and re-syncs the vendored skill.",
   "dependencies": {
     "node": "24.22.2",
-    "rea-agents": "6.9.0"
+    "rea-agents": "6.10.1"
   },
   "allowScripts": {
     "frida": true,

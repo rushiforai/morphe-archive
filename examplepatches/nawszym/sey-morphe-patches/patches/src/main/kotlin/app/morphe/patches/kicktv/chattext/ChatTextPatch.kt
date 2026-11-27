@@ -3,6 +3,7 @@ package app.morphe.patches.kicktv.chattext
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.fieldAccess
@@ -88,17 +89,17 @@ private object KickApplicationOnCreateFingerprint : Fingerprint(
 )
 
 /**
- * CHAT TEXT SIZE tweak. Replaces the chat message font size and line height
- * with Twitch-like values (13 sp / 20 sp) so KICK fits a similar amount of
- * chat on screen. The Settings menu is provided by the SEYTTINGS base patch
+ * CHAT TEXT SIZE tweak. Replaces the chat message font size, line height,
+ * message gap and font weight with Twitch-like values; Native keeps KICK's
+ * stock typography. The Settings menu is provided by the SEYTTINGS base patch
  * this patch depends on.
  */
 @Suppress("unused")
 val chatTextPatch = patch(
     name = "CHAT TEXT SIZE",
-    description = "Render chat messages with a larger, Twitch-like TV text size " +
-        "and a wider gap between messages. Pick 16 sp (default), 15 sp, 13 sp " +
-        "or the stock 11 sp in SEYTTINGS. Requires the SEYTTINGS patch.",
+    description = "Two options: Native (stock KICK text and spacing) or " +
+        "Twitch-like (larger 16 sp text, a wider 10 dp gap, lighter message text " +
+        "and bolder usernames). Toggle in SEYTTINGS. Requires the SEYTTINGS patch.",
     default = true,
 ) {
     compatibleWith(KICK_TV)
@@ -134,6 +135,26 @@ val chatTextPatch = patch(
 
             method.replaceSpCall(fontSizeIndex, "fontSizeSp")
             method.replaceSpCall(lineHeightIndex, "lineHeightSp")
+
+            // The fv8 (TextStyle) constructor is the instruction right before
+            // the `sput-object vi4.m` write. Its 4th argument register
+            // (start + 5) holds y23.G = 600, KICK's chat font weight.
+            // Redirect only this constructor: the same y23.G register is reused
+            // by a dozen other styles in <clinit>, which must stay untouched.
+            val constructorIndex = instructionMatches[0].index - 1
+            val constructor = method.getInstruction<RegisterRangeInstruction>(constructorIndex)
+            require(constructor.registerCount == 13) {
+                "Unexpected chat TextStyle constructor register count: ${constructor.registerCount}"
+            }
+            val weightRegister = constructor.startRegister + 5
+            method.addInstructions(
+                constructorIndex,
+                """
+                    invoke-static {v$weightRegister}, ${EXTENSION_CLASS}ChatTextPrefs;->messageFontWeight(Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object v$weightRegister
+                    check-cast v$weightRegister, Ly23;
+                """,
+            )
         }
 
         // Widen the gap between chat messages when the tweak is active.

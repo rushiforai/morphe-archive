@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import app.fakh.extension.shared.Features;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -106,7 +108,8 @@ public final class MoreMenu {
      * then its tracking name (nav-more-<id>), then its label.
      */
     static void capture(byte[] payload) {
-        if (!Settings.isMoreMenuIncluded() || payload == null) return;
+        if (payload == null || !(Settings.isMoreMenuIncluded() || Features.has(Settings.MOVE_MORE_ITEMS)
+                || Features.has(Settings.GAMES_SHORTCUT))) return;
         List<String> strings = ProtoScanner.scan(payload).strings;
         JSONArray array = new JSONArray();
         String url = null;

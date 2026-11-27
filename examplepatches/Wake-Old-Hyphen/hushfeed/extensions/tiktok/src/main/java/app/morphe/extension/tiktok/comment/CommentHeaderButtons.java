@@ -44,15 +44,15 @@ public final class CommentHeaderButtons {
      * and the expand chevron, which DefaultCommentPageContainerFragment shows only to accounts in
      * the {@code comment_panel_full_page} experiment.
      */
-    static final String CLOSE_BUTTON_ID = "47.9.3:byi";
-    static final String EXPAND_BUTTON_ID = "47.9.3:i56";
+    static final String CLOSE_BUTTON_ID = "48.0.2:c09";
+    static final String EXPAND_BUTTON_ID = "48.0.2:i4w";
     /**
      * The newer top bar's two banner holders in the comment column, both of the 47.9.3 comment
      * panel layout and kept as ViewGroups by CommentPageActionBarAssem: the top bar's own and the
      * one the suggested search lands in.
      */
-    static final String TOP_BAR_HOLDER_ID = "47.9.3:et_";
-    static final String SUGGESTION_HOLDER_ID = "47.9.3:evc";
+    static final String TOP_BAR_HOLDER_ID = "48.0.2:eu7";
+    static final String SUGGESTION_HOLDER_ID = "48.0.2:ewa";
     /** How many of the bar's ancestors are searched for a button: bar slot, column, container. */
     private static final int DEPTH = 4;
     private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
@@ -68,8 +68,8 @@ public final class CommentHeaderButtons {
             WeakReference<Binding> existing = BINDINGS.get(bar);
             Binding binding = existing == null ? null : existing.get();
             if (binding == null) {
-                // Nothing to hide and nothing hidden yet: leave TikTok's panel without a listener.
-                if (!anyOn()) return;
+                // Bound with every switch off too: TikTok keeps a built panel and never binds it
+                // again, so a switch turned on later is only seen by this panel's next layout.
                 binding = new Binding(bar);
                 BINDINGS.put(bar, new WeakReference<>(binding));
                 bar.addOnAttachStateChangeListener(binding);
@@ -80,11 +80,6 @@ public final class CommentHeaderButtons {
         } catch (Exception error) {
             Logger.printException(() -> "Could not bind the comment header buttons", error);
         }
-    }
-
-    static boolean anyOn() {
-        return Settings.HIDE_COMMENT_CLOSE_BUTTON.get() || Settings.HIDE_COMMENT_EXPAND_BUTTON.get()
-                || Settings.COMMENT_TRANSLATE_BUTTON.get();
     }
 
     static void resolveForTests(String name, int id) {

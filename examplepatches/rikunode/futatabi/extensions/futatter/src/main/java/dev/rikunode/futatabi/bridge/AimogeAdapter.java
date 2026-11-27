@@ -25,6 +25,7 @@ final class AimogeAdapter {
     private static final Charset SJIS = Charset.forName("Shift_JIS");
     private static final long CATALOG_TTL = 90000L;
     private final BridgeIndex ids;
+    private final Context context;
     private final Map<String, Cached> cache = new HashMap<>();
     private long lastApiFetch;
     private volatile boolean policyChecked;
@@ -36,6 +37,7 @@ final class AimogeAdapter {
     }
 
     AimogeAdapter(Context context) {
+        this.context=context;
         ids = new BridgeIndex(context);
     }
 
@@ -45,13 +47,13 @@ final class AimogeAdapter {
             if ("/aimoge/".equals(path) || "/aimoge/futaba.php".equals(path)) {
                 if ("/aimoge/futaba.php".equals(path) && !rawPath.contains("mode=cat"))
                     return BridgeServer.BridgeResponse.text(404, "Unsupported page");
-                return BridgeServer.BridgeResponse.html(catalog());
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog()));
             }
             if (path.matches("^/aimoge/res/[0-9]{13}\\.htm$")) {
                 String id = path.substring("/aimoge/res/".length(), path.length() - 4);
                 String uuid = ids.threadUuid(id);
                 if (uuid == null) return BridgeServer.BridgeResponse.text(404, "Unknown thread");
-                return BridgeServer.BridgeResponse.html(thread(id, uuid));
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,thread(id, uuid)));
             }
             boolean thumb = path.matches("^/aimoge/(thumb|cat)/[0-9]{13}s\\.jpg$");
             boolean original = path.matches("^/aimoge/src/[0-9]{13}\\.jpg$");

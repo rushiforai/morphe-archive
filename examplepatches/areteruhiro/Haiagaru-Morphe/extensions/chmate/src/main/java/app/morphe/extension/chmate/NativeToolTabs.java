@@ -148,7 +148,7 @@ public final class NativeToolTabs {
         // Native pages compare the URL. Distinct search requests must not select
         // an older tab whose serialized launch/form still contains the previous query.
         if(launch!=null&&!"settings".equals(tool))args.putString("_data",args.getString("_data")+"&request="+java.util.UUID.randomUUID());
-        args.putString(Intent.EXTRA_TITLE,"notes".equals(tool)?"メモ":"settings".equals(tool)?"Haiagaru設定":"eddi".equals(tool)?"エッヂ過去ログ検索":"search".equals(tool)?"投稿を探す":"checker".equals(tool)?"投稿検索・結果":"hissi".equals(tool)?"必死チェッカーもどき":"ワッチョイ全文検索");
+        args.putString(Intent.EXTRA_TITLE,"notes".equals(tool)?"メモ":"settings".equals(tool)?"Haiagaru設定":"eddi".equals(tool)?"過去ログ":"search".equals(tool)?"投稿を探す":"checker".equals(tool)?"投稿検索・結果":"hissi".equals(tool)?"必死チェッカーもどき":"ワッチョイ全文検索");
         if(launch!=null)try{args.putString(Intent.EXTRA_TEXT,new org.json.JSONObject().put("launch",launch.toUri(Intent.URI_INTENT_SCHEME)).toString());}catch(org.json.JSONException error){throw new IllegalArgumentException(error);}
         try{
             String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
@@ -393,7 +393,7 @@ public final class NativeToolTabs {
         java.util.ArrayList<String> tools=new java.util.ArrayList<>(),labels=new java.util.ArrayList<>();
         tools.add("settings");labels.add("Haiagaru設定");
         tools.add("notes");labels.add("メモ");
-        tools.add("eddi");labels.add("エッヂ過去ログ検索");
+        tools.add("eddi");labels.add("過去ログ");
         tools.add("search");labels.add("投稿を探す");
         tools.add("checker");labels.add("投稿検索・結果（必死チェッカー／Kyodemo）");
         tools.add("hissi");labels.add("必死チェッカーもどき専用ビュワー");

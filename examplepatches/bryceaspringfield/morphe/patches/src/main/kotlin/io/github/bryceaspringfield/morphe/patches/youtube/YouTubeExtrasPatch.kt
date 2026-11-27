@@ -26,7 +26,6 @@ import java.util.logging.Logger
 private const val EXTENSION = "Lio/github/bryceaspringfield/morphe/extension/youtube"
 private const val FILTER_ARRAY = "[Lapp/morphe/extension/shared/patches/components/Filter;"
 
-/** Morphe Patches' classes this bundle hooks, present when Morphe Patches' YouTube patches are selected too. */
 private const val MORPHE_LITHO_FILTER = "Lapp/morphe/extension/shared/patches/components/LithoFilterPatch;"
 private const val MORPHE_SETTINGS_FRAGMENT =
     "Lapp/morphe/extension/youtube/settings/preference/YouTubePreferenceFragment;"
@@ -45,17 +44,12 @@ private const val MORPHE_RYD = "Lapp/morphe/extension/shared/returnyoutubedislik
 
 private val logger = Logger.getLogger("YouTubeExtras")
 
-/**
- * The bundle's extension, its Litho filters added to Morphe's list, and its screen in Settings > Morphe.
- */
 internal val youtubeExtrasBasePatch = bytecodePatch {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 
     extendWith("extensions/youtube-extras.mpe")
 
     execute {
-        // The like button's count passes through the vote format: the setter of YouTube's animated counts casts its
-        // model, then reads the model's count text; the text is rewritten in the model before the read.
         val setter = RollingNumberSetterFingerprint.method
         val cast = setter.instructions.indexOfFirst { it.opcode == Opcode.CHECK_CAST }
         val model = setter.getInstruction<OneRegisterInstruction>(cast).registerA
@@ -66,7 +60,6 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
                 f.definingClass == modelType && f.type == "Ljava/lang/String;"
             } == true
         }?.getReference<FieldReference>()?.let { "${it.definingClass}->${it.name}:${it.type}" }
-        // A free register: the next instruction writes it without reading it.
         val next = setter.getInstruction(cast + 1)
         val free = (next as? TwoRegisterInstruction)?.takeIf {
             next.opcode == Opcode.IGET_OBJECT && it.registerA != it.registerB && it.registerA != model
@@ -85,8 +78,6 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
             )
         }
 
-        // Audio only: YouTube's playback modality is kept by the extension at the end of each constructor, with the
-        // names of its public enable (boolean, boolean) and disable (boolean) methods, which change with each version.
         val disable = DisableAudioOnlyModeFingerprint.matchOrNull()?.method
         val modality = disable?.let { mutableClassDefByOrNull(it.definingClass) }
         val enable = modality?.methods?.firstOrNull {
@@ -115,14 +106,12 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
         }
     }
 
-    // Runs after every selected patch of every bundle, so Morphe Patches' classes and settings exist.
     finalize {
         val litho = mutableClassDefByOrNull(MORPHE_LITHO_FILTER)
         val clinit = litho?.methods?.firstOrNull { it.name == "<clinit>" }
         if (clinit == null) {
             logger.warning("Morphe Patches' Litho filter is missing, so the filters are off. Also select Morphe Patches.")
         } else clinit.apply {
-            // The static initializer sets the filters field, then registers each filter; ours join before the loop.
             val put = instructions.indexOfFirst {
                 it.opcode == Opcode.SPUT_OBJECT && it.getReference<FieldReference>()?.let { f ->
                     f.name == "filters" && f.type == FILTER_ARRAY
@@ -142,19 +131,16 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
             }
         }
 
-        // Each new video reaches the auto like (and, with Log feed items on, the response dumps).
         mutableClassDefByOrNull(MORPHE_VIDEO_INFORMATION)?.methods?.firstOrNull {
             it.name == "setVideoId" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;")
         }?.addInstruction(0, "invoke-static { p0 }, $EXTENSION/AutoLike;->onVideo(Ljava/lang/String;)V")
             ?: logger.warning("Morphe's VideoInformation.setVideoId is missing, so Like every video is off.")
 
-        // A resolution picked in a quality menu turns the Audio only row's mode off.
         mutableClassDefByOrNull(MORPHE_REMEMBER_QUALITY)?.methods?.firstOrNull {
             it.name == "userChangedQuality" && it.parameterTypes.map { p -> p.toString() } == listOf("I") && it.implementation != null
         }?.addInstruction(0, "invoke-static {}, $EXTENSION/QualityAudioRow;->resolutionPicked()V")
             ?: logger.warning("Morphe's userChangedQuality is missing, so a resolution pick leaves Audio only on.")
 
-        // Each title Morphe's Litho text hook returns passes through the DeArrow icon tap and the suggestion pencil.
         mutableClassDefByOrNull(MORPHE_ORIGINAL_TITLES)?.methods?.firstOrNull {
             it.name == "onLithoTextLoaded" && it.returnType == "Ljava/lang/CharSequence;" &&
                     it.parameterTypes.size == 2 && it.parameterTypes[1].toString() == "Ljava/lang/CharSequence;"
@@ -172,7 +158,6 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
             )
         } ?: logger.warning("Morphe's title hook is missing, so the DeArrow icon tap and title suggestions are off.")
 
-        // RYD's like and dislike texts as counts, percentages, or both: the extension's text, or RYD's own when null.
         for ((name, method) in listOf("getFormattedDislikes" to "dislikes", "getFormattedLikes" to "likes")) {
             mutableClassDefByOrNull(MORPHE_RYD)?.methods?.firstOrNull {
                 it.name == name && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" &&
@@ -190,8 +175,6 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
             ) ?: logger.warning("Morphe's RYD $name is missing, so the vote format option is off there.")
         }
 
-        // The count Morphe's RYD draws under the like icon of the compact action bar is YouTube's own like count,
-        // formatted by RYD's formatLikeCount, so the vote format is applied to the text the drawable returns.
         mutableClassDefByOrNull(MORPHE_RYD_ICON_COUNT)?.methods?.firstOrNull {
             it.name == "getText" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" && it.implementation != null
         }?.apply {
@@ -204,12 +187,9 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
             )
         } ?: logger.warning("Morphe's RYD icon count is missing, so the like count under the icon stays a number.")
 
-        // The feed card save button of Morphe's card layout runs the menu's Save to Watch later command, which the
-        // extension swaps for Save to... when that option is on.
         mutableClassDefByOrNull(MORPHE_FEED_CARD_LAYOUT)?.methods?.firstOrNull {
             it.name == "findWatchLaterCommand" && it.implementation != null
         }?.apply {
-            // The card's menu (the method's argument), whose own Save to playlist item opens the sheet with thumbnails.
             addInstruction(0, "invoke-static { p0 }, $EXTENSION/SaveChooser;->rememberMenu(Ljava/lang/Object;)V")
             hookReturns(
                 Opcode.RETURN_OBJECT,
@@ -244,8 +224,6 @@ val youtubeExtrasPatch = bytecodePatch(
     dependsOn(youtubeExtrasBasePatch)
 
     execute {
-        // Live chat opens on all messages when the option is on: the first request of a chat asks for every message,
-        // by rewriting the chat type its continuation states (the request's bytes or its token string).
         LiveChatRequestFingerprint.let { fp ->
             val requestClass = fp.classDef
             val build = requestClass.methods.first { m ->
@@ -273,10 +251,8 @@ val youtubeExtrasPatch = bytecodePatch(
             )
         }
 
-        // Older layouts: a Spinner of Top chat and Live chat in the chat's header.
         SortFilterBindFingerprint.let {
             it.method.apply {
-                // The last listener set before the offline-key check: the one sending the user's choice.
                 val index = instructions.withIndex().filter { (i, ins) ->
                     i < it.instructionMatches.last().index && ins.opcode == Opcode.INVOKE_VIRTUAL &&
                             ins.getReference<MethodReference>()?.name == "setOnItemSelectedListener"
@@ -289,10 +265,6 @@ val youtubeExtrasPatch = bytecodePatch(
             }
         }
 
-        // The reason after a hand-made Not interested (AutoReason): the notice's presenter, whose constructor takes the notice's
-        // view and reads R.id.dismissal_reasons_text, reports the view at the constructor's first instruction (p1 still holds
-        // the view there; at the returns the compiler had reused the register, and a hook of the reasons row's constructor at its
-        // returns failed Android's verifier on 2026-11-23). The reasons list is found in the app's windows at run time.
         run {
             val noticeId = if (hasResourceId(ResourceType.ID, "dismissal_reasons_text")) resourceId(ResourceType.ID, "dismissal_reasons_text") else null
             fun MethodLike(method: com.android.tools.smali.dexlib2.iface.Method, id: Long?) = id != null && method.name == "<init>" &&

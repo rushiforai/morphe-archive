@@ -71,6 +71,7 @@ val customFontPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.CUSTOM_FONT)
         check(ZaloTypefaceFactoryFingerprint.matchAll(1..1).size == 1)
         check(ZaloZinstantTextFontFingerprint.matchAll(1..1).size == 1)
         applyCurrentFontHooks()
@@ -178,4 +179,6 @@ private fun BytecodePatchContext.applyCurrentFontHooks() {
         move-result-object v0
         invoke-static {v0, v$flagRegister}, $extension->enableSelectedFont(Landroid/content/Context;Ljava/util/concurrent/atomic/AtomicBoolean;)V
     """.trimIndent())
+
+    registerHooks(PatchId.CUSTOM_FONT, factory, setter, *constructors.toTypedArray(), defaultFont, paint, startup)
 }

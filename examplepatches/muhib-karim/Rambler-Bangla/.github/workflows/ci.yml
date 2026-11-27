@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Python unit tests (patcher helpers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+      - name: Run unit tests
+        run: python3 -m unittest discover -s tests/python -v
+      - name: Self-test the static-suite pass gate
+        run: bash .github/scripts/ci_gate_selftest.sh
+      - name: Self-test the APK URL allowlist
+        run: bash .github/scripts/url_allowlist_selftest.sh
+
+  static-suite:
+    name: Static suite (fixture build + patch + fail-closed checks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Fetch pinned toolchain
+        run: |
+          python3 -m pip install --quiet androguard==4.1.4
+          bash scripts/bootstrap_tools.sh
+      - name: Run static suite
+        run: |
+          set -euo pipefail
+          source tools/tool-env.sh
+          bash tests/run_tests.sh | tee /tmp/test.log
+          grep -Eq '^TEST SUITE: [0-9]+ passed, 0 failed$' /tmp/test.log
+
+  morphe-patches:
+    name: Morphe patches & Android extensions
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Build extensions, run unit/lint/patch tests, and package .mpp
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon \
+            :extensions:extension:syncExtension \
+            :extensions:calculator:syncExtension \
+            :extensions:rambler-enhancements:testDebugUnitTest \
+            :extensions:rambler-enhancements:lintDebug \
+            :extensions:rambler-enhancements:syncExtension \
+            :patches:verifyGboardCapabilityWiring \
+            :patches:test \
+            :patches:buildAndroid \
+            generatePatchesList
+          ls -lh patches/build/libs/*.mpp patches-list.json

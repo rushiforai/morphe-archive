@@ -27,7 +27,7 @@ internal val extensionHookPatch = bytecodePatch(
             }
             addInstruction(
                 superCall + 1,
-                "invoke-static { p0 }, ${Constants.UTILS}->onApplicationCreate(Landroid/app/Application;)V",
+                "invoke-static/range { p0 .. p0 }, ${Constants.UTILS}->onApplicationCreate(Landroid/app/Application;)V",
             )
         }
     }

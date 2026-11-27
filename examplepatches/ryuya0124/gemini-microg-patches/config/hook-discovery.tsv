@@ -8,3 +8,6 @@ gms_certificate_class	boolean	2	Unable to obtain package certificate history.
 main_process_class	java.lang.String	0	More than 1 custom main process specified
 runtime_permissions	void	1	ROBIN_MAIN_ACTIVITY_ON_CREATE_END
 process_name_callers	*	*	com.google.android.googlequicksearchbox:googleapp
+gemini_haptics_settings_class	java.lang.Object	2	RobinSettingsPreferenceFragment: report problem feedback tap listener
+gemini_haptics_waveform_player	java.lang.Object	1	Ma-HapticsPlayer-Impl|Playing haptic feedback
+gemini_haptics_answer_events	java.lang.Object	1	playing feedback for QueryAnswerStarted|playing feedback for QueryAnswered

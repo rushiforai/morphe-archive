@@ -1,6 +1,5 @@
 package io.github.bryceaspringfield.morphe.extension.youtube;
 
-/** A standalone check of Metadata's parsers: javac the two files and run main (no test framework in the bundle). */
 public final class MetadataCheck {
 
     private static int failures;

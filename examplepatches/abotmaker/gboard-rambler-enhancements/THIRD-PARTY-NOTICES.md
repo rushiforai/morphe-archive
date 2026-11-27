@@ -8,9 +8,10 @@ It builds on and credits the following open-source projects:
 ## 1. Hex by Anomaly (`anomalyco/hex`)
 
 The **Hex Dot Scope** (`DotScopeSimulation` + `DotScopeShader` Strip trace & iOS halo looks),
-**Hex Android Wave** (`VoiceVisualizer` 7-row scrolling sine dot wave), and **Processing**
-(`Flow`, `Pulse`, `Sweep`) waveform animations in this repository were ported to Android Canvas
-from **Hex by Anomaly**:
+**Hex Android Wave** (`VoiceVisualizer` 7-row scrolling sine dot wave), **Processing**
+(`Flow`, `Pulse`, `Sweep`) waveform animations, and the **Auto "Learn From My Fixes"**
+post-dictation edit learning engine (`DictationTracker`, `DictationEdits`, `DictationFixes`)
+in this repository were ported and adapted from **Hex by Anomaly**:
 
 - Repository: https://github.com/anomalyco/hex
 - License: **MIT License**

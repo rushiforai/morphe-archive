@@ -6,18 +6,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Audio only as a quality: the player's list of video tracks, which the quality menu shows, gets one more track,
- * the lowest one with the size {@link #AUDIO_W} x {@link #AUDIO_H}. The menu sets the player's largest size to
- * the size of the track picked, so that size turns the video track type off (ExoPlayer then fetches and decodes
- * only audio), and any other choice turns it back on.
- */
 public final class KickPlayer {
 
     static final int AUDIO_W = 2;
     static final int AUDIO_H = 1;
     static final String AUDIO_ID = "audio_only";
-    /** C.TRACK_TYPE_VIDEO. */
     private static final int TRACK_TYPE_VIDEO = 2;
 
     private static WeakReference<Object> current = new WeakReference<>(null);
@@ -27,8 +20,6 @@ public final class KickPlayer {
     private KickPlayer() {
     }
 
-    /** Called before VideoPlayer.getAvailableVideoTracks() returns: the list with the audio-only track added. A new
-     * player (the next stream) keeps audio only. */
     public static List<Object> tracks(Object player, List<Object> tracks) {
         try {
             if (player != null && current.get() != player) {
@@ -71,7 +62,6 @@ public final class KickPlayer {
         }
     }
 
-    /** Called at the start of VideoPlayer.setMaxResolution(VideoSize): the size to apply. */
     public static Object onMaxResolution(Object player, Object size) {
         try {
             current = new WeakReference<>(player);

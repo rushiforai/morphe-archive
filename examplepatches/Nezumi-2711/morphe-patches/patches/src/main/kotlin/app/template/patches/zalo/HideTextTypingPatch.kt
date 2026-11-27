@@ -74,10 +74,12 @@ val hideTextTypingPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_TEXT_TYPING)
         check(DirectTextTypingFingerprint.matchAll(1..1).size == 1)
         check(GroupTextTypingFingerprint.matchAll(1..1).size == 1)
         suppressTextTyping(DirectTextTypingFingerprint.method, "p1")
         suppressTextTyping(GroupTextTypingFingerprint.method, "p2")
+        registerHooks(PatchId.HIDE_TEXT_TYPING, DirectTextTypingFingerprint.method, GroupTextTypingFingerprint.method)
         attachNezumiSettings("attachTyping")
     }
 }

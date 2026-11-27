@@ -9,18 +9,12 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
-/**
- * The base class of every paged feed (Home, Popular, Latest, communities, custom feeds).
- */
 internal object FeedPagingDataSourceFingerprint : Fingerprint(
     filters = listOf(
         string("FeedPagingDataSource::getPagedDataGql not implemented")
     )
 )
 
-/**
- * The feed's page loader, which reads each fetched page's elements with getData().
- */
 internal object FeedPagingDataSourceLoadFingerprint : Fingerprint(
     classFingerprint = FeedPagingDataSourceFingerprint,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
@@ -36,10 +30,6 @@ internal object FeedPagingDataSourceLoadFingerprint : Fingerprint(
     )
 )
 
-/**
- * The older post listings' constructor (search results, profiles), which stores the posts.
- * Morphe Patches' ad filter hooks the same constructor.
- */
 internal object ListingFingerprint : Fingerprint(
     definingClass = "Lcom/reddit/domain/model/listing/Listing;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),

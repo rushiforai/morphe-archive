@@ -8,7 +8,7 @@
 # (Morphe Manager on Android), plus one extension DEX per feature.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.2.6'
+    [string]$Version = '1.2.7'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -83,6 +83,8 @@ $extensions = @(
     @{ Name = 'extensions/KickMatureWarning.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-maturewarning\classes.dex') },
     @{ Name = 'extensions/KickStopOnMinimize.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-stoponminimize\classes.dex') },
     @{ Name = 'extensions/KickHomeDestination.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-homedestination\classes.dex') },
+    @{ Name = 'extensions/KickChatBackground.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-chatbackground\classes.dex') },
+    @{ Name = 'extensions/KickChatSplit.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-chatsplit\classes.dex') },
     @{ Name = 'extensions/TwitchSeyttings.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-seyttings\classes.dex') },
     @{ Name = 'extensions/TwitchEmotes.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-emotes\classes.dex') },
     @{ Name = 'extensions/TwitchExpandChat.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-expandchat\classes.dex') },
@@ -112,10 +114,10 @@ $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 $manifest = @"
 Manifest-Version: 1.0
 Name: Sey Morphe Patches
-Description: Morphe patches for KICK (Android TV) and Twitch (Android TV) - Sey (SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT, HIDE PINNED, SKIP 18+ WARNING, STOP ON MINIMIZE, DEFAULT HOME DESTINATION, AD BLOCK, AMOLED and DEFAULT HOME TAB)
+Description: Morphe patches for KICK (Android TV) and Twitch (Android TV) - Sey (SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT, HIDE PINNED, SKIP 18+ WARNING, STOP ON MINIMIZE, DEFAULT HOME DESTINATION, CHAT BACKGROUND, DEFAULT SPLIT VIEW, AD BLOCK, AMOLED and DEFAULT HOME TAB)
 Version: $Version
 Timestamp: $timestamp
-Source: https://github.com/seythegamer/sey-morphe-patches
+Source: https://github.com/nawszym/sey-morphe-patches
 Author: sey
 Contact: na
 Website: na

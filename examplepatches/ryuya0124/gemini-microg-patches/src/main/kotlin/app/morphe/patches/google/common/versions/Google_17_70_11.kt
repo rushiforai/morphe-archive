@@ -101,6 +101,56 @@ val google177011 = AppVersionProfile(
         ),
         HookId.SPLIT_RESTRICTION_REMOVAL to TargetSpec(description = "Remove manifest split requirements; resource split still needs package rename/signing."),
         HookId.APP_LABEL_UPDATE to TargetSpec(description = "Google (Morphe)"),
+        HookId.GEMINI_HAPTICS to TargetSpec(
+            className = "Lbxle;", methodName = "v",
+            methodDescriptor = "(Landroidx/preference/PreferenceScreen;Ljava/lang/String;Lbxlh;Ljava/util/Locale;Ljava/util/List;Lavch;Lawul;Ljava/lang/String;Lawuw;Lhgnc;)Ljava/lang/Object;",
+            anchorStrings = listOf("RobinSettingsPreferenceFragment: notifications tap listener"),
+            methodSignatures = listOf(
+                "Lbsac;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbsca;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbrzk;->a(Lbrzc;)V",
+                "Lbscx;->onScroll(Landroid/view/MotionEvent;Landroid/view/MotionEvent;FF)Z",
+                "Lbscz;->c(Landroid/view/View;Z)V",
+                "Lbsjn;->onScroll(Landroid/view/MotionEvent;Landroid/view/MotionEvent;FF)Z",
+                "Lbnek;->i(Lbneu;Landroid/graphics/Point;Lhgpk;Layii;Lbhhv;)Z",
+                "Lcom/google/android/apps/search/assistant/surfaces/voice/robin/ui/extensions/mediagen/editor/ui/views/EditorCanvasView;->f(Lcom/google/android/apps/search/assistant/surfaces/voice/robin/ui/extensions/mediagen/editor/ui/views/EditorCanvasView;)Lhgke;",
+                "Lbxas;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                // Guided prompt interactions.
+                "Lbwxd;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbwxh;->invoke()Ljava/lang/Object;",
+                "Lbwxp;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbwxw;->invoke()Ljava/lang/Object;",
+                "Lbwyx;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbwyz;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbwza;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbwzk;->invoke()Ljava/lang/Object;"
+            ),
+            expectedMatches = 28,
+            integers = mapOf("settingsRegisters" to 30, "screenParameter" to 1),
+            values = mapOf("findPreference" to "ah", "setKey" to "I", "setTitle" to "M",
+                "addPreference" to "ae", "listenerField" to "n", "persistentField" to "w", "setChecked" to "j"),
+            description = "Add the Gemini vibration switch and gate verified Gemini view feedback."
+        ),
+        HookId.GEMINI_HAPTICS_VIBRATOR to TargetSpec(
+            anchorStrings = listOf("Ma-HapticsPlayer-Impl", "Playing haptic feedback"),
+            methodSignatures = listOf(
+                "Lauin;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lblcx;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lblda;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lavqw;->b(Lavqm;Lhgnc;)Ljava/lang/Object;"
+            ),
+            values = mapOf("vibrateReference" to
+                "Lbv\$\$ExternalSyntheticApiModelOutline0;->m(Landroid/os/Vibrator;Landroid/os/VibrationEffect;)V"),
+            expectedMatches = 4,
+            description = "Gate the chat waveform player plus Live and Gemini feedback-report cues."
+        ),
+        HookId.GEMINI_HAPTICS_COMPOSE to TargetSpec(
+            className = "Lbxhu;", methodName = "onCreateView",
+            methodDescriptor = "(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;",
+            integers = mapOf("registers" to 11, "viewRegister" to 7, "titleRegister" to 9,
+                "geminiSettingsTitle" to 0x7f151e35, "settingsTitle" to 0x7f151e42),
+            description = "Add the switch when the Compose fragment renders the main settings page."
+        ),
         HookId.ACCOUNT_SWITCH_LOCK_BYPASS to TargetSpec(
             enabled = false, anchorStrings = listOf("Acquired account-switch Mutex."),
             description = "Historical rejected approach. Do not enable; normal account synchronization is required."

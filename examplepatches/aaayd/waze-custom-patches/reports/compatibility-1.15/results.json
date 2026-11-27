@@ -1,0 +1,215 @@
+[
+  {
+    "version": "4.100.1.0",
+    "version_code": 1030440,
+    "uploaded": "2023-12-24T14:40:00Z",
+    "release_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-gps-maps-traffic-alerts-live-navigation-4-100-1-0-release/",
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-gps-maps-traffic-alerts-live-navigation-4-100-1-0-release/waze-navigation-live-traffic-4-100-1-0-android-apk-download/",
+    "extension": ".apk",
+    "input": "C:\\Development\\waze-maps-skin\\downloads\\waze-4.100.1.0-original-arm64.apk",
+    "size": 89220331,
+    "sha256": "c75ea6e94da2c90a635f9fd116cc5b7238c18fa2d3d784a0d6ebef9d96c8eff2",
+    "bundle_sha256": "880be484345a5af89060718c8d1e1d90d1f90d294c4033c4d1f7ec1fbf7dabc9",
+    "bundle_version": "1.15.2",
+    "published_version_allowed": false,
+    "complete": true,
+    "renderer_sha256": "e81f9d626afc8534bcf4c9dee320a50703cc6d1d5f09546339aeeb5902a6f5c2",
+    "original_signatures_verified": true,
+    "native_discovery": "FAIL",
+    "native_error": "Native report layout: cannot identify one shared report string constructor; inlined layouts require review",
+    "version_gate_bypassed_for_diagnosis": true,
+    "patch_exit_code": 0,
+    "applied": [
+      "Android Auto police alert distance",
+      "Android Auto setup",
+      "Rank badge selector",
+      "Selectable map themes",
+      "Selectable report icon packs",
+      "Speed camera sound below speed limit",
+      "Unlock driver moods"
+    ],
+    "failed": [
+      {
+        "name": "Detailed report icons at normal sizes",
+        "reason": "app.morphe.patcher.patch.PatchException: No verified icon-sizing profile for this ARM64 renderer. Refresh the Morphe source after the nightly build. Renderer SHA-256: e81f9d626afc8534bcf4c9dee320a50703cc6d1d5f09546339aeeb5902a6f5c2\r\n\tat local.wazemaps.ReportIconSizingPatchKt.reportIconSizingPatch$lambda$0$1(ReportIconSizingPatch.kt:28)\r\n\tat app.morphe.patcher.patch.Patch.execute(Patch.kt:120)\r\n\tat app.morphe.patcher.patch.RawResourcePatch.execute$morphe_patcher(Patch.kt:334)\r\n\tat app.morphe.patcher.Patcher$invoke$1.invokeSuspend$execute(Patcher.kt:96)\r\n\tat app.morphe.patcher.Patcher$invoke$1.invokeSuspend(Patcher.kt:120)\r\n\tat app.morphe.patcher.Patcher$invoke$1.invoke(Patcher.kt)\r\n\tat app.morphe.patcher.Patcher$invoke$1.invoke(Patcher.kt)\r\n\tat kotlinx.coroutines.flow.SafeFlow.collectSafely(Builders.kt:57)\r\n\tat kotlinx.coroutines.flow.AbstractFlow.collect(Flow.kt:226)\r\n\tat app.morphe.desktop.command.PatchCommand$call$3$3$1.invokeSuspend(PatchCommand.kt:786)\r\n\tat kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)\r\n\tat kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)\r\n\tat kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:256)\r\n\tat kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:54)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlockingImpl(Builders.kt:30)\r\n\tat kotlinx.coroutines.BuildersKt.runBlockingImpl(Unknown Source)\r\n\tat kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK(Builders.concurrent.kt:172)\r\n\tat kotlinx.coroutines.BuildersKt.runBlockingK(Unknown Source)\r\n\tat kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK$default(Builders.concurrent.kt:157)\r\n\tat kotlinx.coroutines.BuildersKt.runBlockingK$default(Unknown Source)\r\n\tat app.morphe.desktop.command.PatchCommand.call$lambda$13$2(PatchCommand.kt:785)\r\n\tat app.morphe.desktop.command.model.PatchingResultKt.addStepResult(PatchingResult.kt:29)\r\n\tat app.morphe.desktop.command.PatchCommand.call(PatchCommand.kt:784)\r\n\tat app.morphe.desktop.command.PatchCommand.call(PatchCommand.kt:54)\r\n\tat picocli.CommandLine.executeUserObject(CommandLine.java:2031)\r\n\tat picocli.CommandLine.access$1500(CommandLine.java:148)\r\n\tat picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2469)\r\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2461)\r\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2423)\r\n\tat picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2277)\r\n\tat picocli.CommandLine$RunLast.execute(CommandLine.java:2425)\r\n\tat picocli.CommandLine.execute(CommandLine.java:2174)\r\n\tat app.morphe.MorpheLauncherKt.main(MorpheLauncher.kt:85)\r\n"
+      }
+    ],
+    "steps": [
+      {
+        "step": "PATCHING",
+        "success": true
+      },
+      {
+        "step": "REBUILDING",
+        "success": true
+      }
+    ],
+    "structural_validation": "PASS",
+    "diagnostic_apk_sha256": "726c05a0008578381cad1419a9bb84bbe278289c0ed6ad7032dc55c6ec72d351",
+    "diagnostic_apk_size": 91673419,
+    "automatic_build_pass": false,
+    "seconds": 113.5
+  },
+  {
+    "version": "5.15.5.0",
+    "uploaded": "2026-01-15T23:36:00Z",
+    "release_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-15-5-0-release/",
+    "label": "Waze Navigation & Live Traffic 5.15.5.0",
+    "version_code": 1030665,
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-15-5-0-release/waze-navigation-live-traffic-5-15-5-0-android-apk-download/",
+    "extension": ".apkm",
+    "input": "C:\\Development\\waze-maps-skin\\downloads\\waze-5.15.5.0-original-arm64.apkm",
+    "size": 103037311,
+    "sha256": "8965f198d8e9aa1f3308b668e9ca1840e37cbadf0c91926512d09599852b11e5",
+    "bundle_sha256": "880be484345a5af89060718c8d1e1d90d1f90d294c4033c4d1f7ec1fbf7dabc9",
+    "bundle_version": "1.15.2",
+    "published_version_allowed": false,
+    "complete": true,
+    "renderer_sha256": "3616e18ef06cdd8af0d607ef4894f5f3648572299cbcbc4b91a31ca3c53ac5cd",
+    "original_signatures_verified": true,
+    "native_discovery": "FAIL",
+    "native_error": "Native report layout: cannot identify one shared report string constructor; inlined layouts require review",
+    "version_gate_bypassed_for_diagnosis": true,
+    "patch_exit_code": 0,
+    "applied": [
+      "Android Auto police alert distance",
+      "Android Auto setup",
+      "Rank badge selector",
+      "Selectable map themes",
+      "Selectable report icon packs",
+      "Speed camera sound below speed limit",
+      "Unlock driver moods"
+    ],
+    "failed": [
+      {
+        "name": "Detailed report icons at normal sizes",
+        "reason": "app.morphe.patcher.patch.PatchException: No verified icon-sizing profile for this ARM64 renderer. Refresh the Morphe source after the nightly build. Renderer SHA-256: 3616e18ef06cdd8af0d607ef4894f5f3648572299cbcbc4b91a31ca3c53ac5cd\r\n\tat local.wazemaps.ReportIconSizingPatchKt.reportIconSizingPatch$lambda$0$1(ReportIconSizingPatch.kt:28)\r\n\tat app.morphe.patcher.patch.Patch.execute(Patch.kt:120)\r\n\tat app.morphe.patcher.patch.RawResourcePatch.execute$morphe_patcher(Patch.kt:334)\r\n\tat app.morphe.patcher.Patcher$invoke$1.invokeSuspend$execute(Patcher.kt:96)\r\n\tat app.morphe.patcher.Patcher$invoke$1.invokeSuspend(Patcher.kt:120)\r\n\tat app.morphe.patcher.Patcher$invoke$1.invoke(Patcher.kt)\r\n\tat app.morphe.patcher.Patcher$invoke$1.invoke(Patcher.kt)\r\n\tat kotlinx.coroutines.flow.SafeFlow.collectSafely(Builders.kt:57)\r\n\tat kotlinx.coroutines.flow.AbstractFlow.collect(Flow.kt:226)\r\n\tat app.morphe.desktop.command.PatchCommand$call$3$3$1.invokeSuspend(PatchCommand.kt:786)\r\n\tat kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)\r\n\tat kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)\r\n\tat kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:256)\r\n\tat kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:54)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlockingImpl(Builders.kt:30)\r\n\tat kotlinx.coroutines.BuildersKt.runBlockingImpl(Unknown Source)\r\n\tat kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK(Builders.concurrent.kt:172)\r\n\tat kotlinx.coroutines.BuildersKt.runBlockingK(Unknown Source)\r\n\tat kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK$default(Builders.concurrent.kt:157)\r\n\tat kotlinx.coroutines.BuildersKt.runBlockingK$default(Unknown Source)\r\n\tat app.morphe.desktop.command.PatchCommand.call$lambda$13$2(PatchCommand.kt:785)\r\n\tat app.morphe.desktop.command.model.PatchingResultKt.addStepResult(PatchingResult.kt:29)\r\n\tat app.morphe.desktop.command.PatchCommand.call(PatchCommand.kt:784)\r\n\tat app.morphe.desktop.command.PatchCommand.call(PatchCommand.kt:54)\r\n\tat picocli.CommandLine.executeUserObject(CommandLine.java:2031)\r\n\tat picocli.CommandLine.access$1500(CommandLine.java:148)\r\n\tat picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2469)\r\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2461)\r\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2423)\r\n\tat picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2277)\r\n\tat picocli.CommandLine$RunLast.execute(CommandLine.java:2425)\r\n\tat picocli.CommandLine.execute(CommandLine.java:2174)\r\n\tat app.morphe.MorpheLauncherKt.main(MorpheLauncher.kt:85)\r\n"
+      }
+    ],
+    "steps": [
+      {
+        "step": "PATCHING",
+        "success": true
+      },
+      {
+        "step": "REBUILDING",
+        "success": true
+      }
+    ],
+    "structural_validation": "PASS",
+    "diagnostic_apk_sha256": "73ec4b2fbbf0a1b649a76e1225e0afce09e89ad2fb06297717e611ddc66f3379",
+    "diagnostic_apk_size": 113555502,
+    "automatic_build_pass": false,
+    "seconds": 147.5
+  },
+  {
+    "version": "5.18.5.0",
+    "uploaded": "2026-04-15T17:31:00Z",
+    "release_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-18-5-0-release/",
+    "label": "Waze Navigation & Live Traffic 5.18.5.0",
+    "version_code": 1030690,
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-18-5-0-release/waze-navigation-live-traffic-5-18-5-0-2-android-apk-download/",
+    "extension": ".apkm",
+    "input": "C:\\Development\\waze-maps-skin\\downloads\\waze-5.18.5.0-original-arm64.apkm",
+    "size": 97939201,
+    "sha256": "b0ea556af1f66a1568014aee20a6ff28987e4fae921a7238fa24fdfa4f8cb115",
+    "bundle_sha256": "880be484345a5af89060718c8d1e1d90d1f90d294c4033c4d1f7ec1fbf7dabc9",
+    "bundle_version": "1.15.2",
+    "published_version_allowed": true,
+    "complete": true,
+    "renderer_sha256": "68a1cf2cb69bb194399b635a5715a8065d860cc36487a345dda4bf45f6d8455a",
+    "original_signatures_verified": true,
+    "native_discovery": "PASS",
+    "native_profile": {
+      "source_sha256": "68a1cf2cb69bb194399b635a5715a8065d860cc36487a345dda4bf45f6d8455a",
+      "output_sha256": "6ad182bbf15c31a6474ffb7d2bf1e3f345d423dd3108fc4bcc930fb636bbc362",
+      "groups": 22,
+      "call_sites": 44,
+      "aliases": 38
+    },
+    "version_gate_bypassed_for_diagnosis": false,
+    "patch_exit_code": 0,
+    "applied": [
+      "Android Auto police alert distance",
+      "Android Auto setup",
+      "Detailed report icons at normal sizes",
+      "Rank badge selector",
+      "Selectable map themes",
+      "Selectable report icon packs",
+      "Speed camera sound below speed limit",
+      "Unlock driver moods"
+    ],
+    "failed": [],
+    "steps": [
+      {
+        "step": "PATCHING",
+        "success": true
+      },
+      {
+        "step": "REBUILDING",
+        "success": true
+      }
+    ],
+    "structural_validation": "PASS",
+    "native_output_verified": true,
+    "diagnostic_apk_sha256": "07983f86285361e2142b67d38cb6172e3cf70d02eed8b11650ac652b266a3a49",
+    "diagnostic_apk_size": 154512664,
+    "automatic_build_pass": true,
+    "seconds": 147.7
+  },
+  {
+    "version": "5.24.90.901",
+    "uploaded": "2026-10-02T19:49:00Z",
+    "release_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-24-90-901-release/",
+    "label": "Waze Navigation & Live Traffic 5.24.90.901",
+    "version_code": 1030734,
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-24-90-901-release/waze-navigation-live-traffic-5-24-90-901-android-apk-download/",
+    "extension": ".apkm",
+    "input": "C:\\Development\\waze-maps-skin\\downloads\\waze-5.24.90.901-original-arm64.apkm",
+    "size": 157099416,
+    "sha256": "565ecb9de2e2ddd2a57412ababa1d19851af683193c28e0d30fd16e035d12a47",
+    "bundle_sha256": "880be484345a5af89060718c8d1e1d90d1f90d294c4033c4d1f7ec1fbf7dabc9",
+    "bundle_version": "1.15.2",
+    "published_version_allowed": true,
+    "complete": true,
+    "renderer_sha256": "b3ea2c7960c6bc9f000b88abf369e609ed9e8172338fea76a574f3641f72feeb",
+    "original_signatures_verified": true,
+    "native_discovery": "PASS",
+    "native_profile": {
+      "source_sha256": "b3ea2c7960c6bc9f000b88abf369e609ed9e8172338fea76a574f3641f72feeb",
+      "output_sha256": "3bd0a6804071bc7da152186a5dd0ffb3a94f7d10b521d971032714526a4d8f04",
+      "groups": 25,
+      "call_sites": 98,
+      "aliases": 65
+    },
+    "version_gate_bypassed_for_diagnosis": false,
+    "patch_exit_code": 0,
+    "applied": [
+      "Android Auto police alert distance",
+      "Android Auto setup",
+      "Detailed report icons at normal sizes",
+      "Rank badge selector",
+      "Selectable map themes",
+      "Selectable report icon packs",
+      "Speed camera sound below speed limit",
+      "Unlock driver moods"
+    ],
+    "failed": [],
+    "steps": [
+      {
+        "step": "PATCHING",
+        "success": true
+      },
+      {
+        "step": "REBUILDING",
+        "success": true
+      }
+    ],
+    "structural_validation": "PASS",
+    "native_output_verified": true,
+    "diagnostic_apk_sha256": "17b87129249b483f7a513e192023d4c628ab08bbc542ffcc04e66a0bbe62cced",
+    "diagnostic_apk_size": 233402950,
+    "automatic_build_pass": true,
+    "seconds": 192.2
+  }
+]

@@ -309,10 +309,12 @@ Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post d
 Captions	Legendas
 Captions, gestures and on-screen controls	Legendas, gestos e controles na tela
 Capture crash reports locally	Guardar os relatórios de falha no aparelho
+Free memory early	Liberar memória antes
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.	Escolha entre %1$d e %2$d vídeos. Valores fora dessa faixa usam o limite válido mais próximo. Reinicie o TikTok para aplicar.
 Choose a backup file. Your current settings are kept for Undo.	Escolha um arquivo de backup. Suas configurações atuais ficam guardadas para Desfazer.
 Pick a folder on internal storage, not an SD card	Escolha uma pasta interna, não do cartão SD
-Choose a preset to fill the SIM details.	Escolha uma predefinição para preencher os dados do SIM.
+Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts.	Marque uma predefinição para preencher os dados do SIM, ou várias para usar uma diferente sempre que o TikTok abre.
+A different preset each time TikTok starts, in this order: %1$s	Uma predefinição diferente sempre que o TikTok abre, nesta ordem: %1$s
 Choose a subfolder under %1$s.	Escolha uma subpasta dentro de %1$s.
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.	Escolha as ações que quer remover da lista de compartilhamento. Os nomes digitados manualmente que o TikTok ainda não mostrou continuam na lista acima.
 Choose what reaches your feed	Escolha o que chega ao seu feed
@@ -467,6 +469,7 @@ Top right double tap	Toque duplo no canto superior direito
 Bottom left double tap	Toque duplo no canto inferior esquerdo
 Bottom right double tap	Toque duplo no canto inferior direito
 Download original photos	Baixar as fotos originais
+Download speed	Velocidade de download
 Destination updated	Destino atualizado
 Downloads	Downloads
 Drag to move, release to place	Arraste para mover, solte para posicionar
@@ -612,6 +615,7 @@ Hide message streaks	Esconder as sequências de mensagens
 Hide new follower notifications	Esconder as notificações de novos seguidores
 Hide new followers	Esconder os novos seguidores
 Hide paid partnerships	Esconder as parcerias pagas
+Hide parts of the room line	Ocultar partes da linha da sala
 Hide people and options by name	Esconder pessoas e opções por nome
 Hide photo posts	Esconder as publicações de fotos
 Hide picture comments	Esconder os comentários com imagem
@@ -743,6 +747,7 @@ Larger (1.25x)	Maior (1,25x)
 Last original value	Último valor original
 Last recording: %1$d gates.	Última gravação: %1$d gates.
 Last recording: 1 gate.	Última gravação: 1 gate.
+Latency	Latência
 Layout	Layout
 Layout, search, profile and system	Layout, pesquisa, perfil e sistema
 Leave maximum empty to keep it unlimited.	Deixe o máximo vazio para ficar sem limite.
@@ -1003,6 +1008,7 @@ Save media	Salvar a mídia
 Saves your Hushfeed settings and Feature Gate Lab rules to a file.	Salva suas configurações do Hushfeed e as regras do Feature Gate Lab em um arquivo.
 Save subtitles beside videos	Salvar as legendas junto com os vídeos
 Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.	Salva neste celular o último relatório de falha do TikTok para que ele possa entrar no relatório de diagnóstico.
+Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.	Pede ao TikTok que limpe os caches quando a memória dele chega perto do ponto em que o Android fecha a tela principal e o feed recomeça.
 Save the original sound	Salvar o som original
 Save the sound as well	Salvar o som também
 Save videos without sound	Salvar os vídeos sem som
@@ -1596,6 +1602,9 @@ Save again	Salvar novamente
 The saved-video choice couldn't open. Try again.	As opções do vídeo salvo não abriram. Tente de novo.
 The saved-video choice is still open	As opções do vídeo salvo ainda estão abertas
 No full file for this video. Try again later.	Sem arquivo completo deste vídeo. Tente mais tarde.
+Subscriber-only posts can't be saved	Publicações só para assinantes não são salvas
+Copy-protected videos can't be saved	Vídeos protegidos contra cópia não podem ser salvos
+Not saved. The file wasn't a playable video.	Não salvo. O arquivo não era um vídeo reproduzível.
 Saving video to %1$s	Salvando vídeo em %1$s
 Video and details saved to %1$s	Vídeo e detalhes salvos em %1$s
 Saved, but a later save may make a second copy	Salvo, mas salvar de novo pode criar outra cópia
@@ -1852,6 +1861,7 @@ Brightness	Brilho
 Volume	Volume
 Left edge strip	Faixa lateral esquerda
 Right edge strip	Faixa lateral direita
+Room ID	ID da sala
 Stop search results playing on their own	Impedir que resultados de busca toquem sozinhos
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	Os vídeos nos resultados de busca mostram a capa e tocam quando você os abre. O feed e os vídeos que você abre tocam normalmente.
 In a chat	Em um chat
@@ -1859,8 +1869,6 @@ Hide call buttons	Esconder os botões de chamada
 The voice and video call buttons leave the top of a chat. Calls still ring, and the chat details button stays.	Os botões de chamada de voz e de vídeo saem do topo de um chat. As chamadas continuam tocando e o botão de detalhes do chat fica.
 Hide sticker suggestions	Esconder as sugestões de figurinhas
 The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.	O banner de sugestões de figurinhas deixa de aparecer em um chat. Suas próprias figurinhas continuam no seletor de figurinhas.
-Hide suggested replies	Esconder as respostas sugeridas
-TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.	As respostas sugeridas do TikTok e o banner que as apresenta deixam de aparecer em um chat. As mensagens que você escreve ou recebe não são alteradas.
 Hide online status	Ocultar o status online
 Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.	Seus amigos não verão um ponto verde nem Active now enquanto você estiver no TikTok. Precisa do modo Ghost ligado. O status deles pode parar de atualizar para você, e o seu último status pode continuar visível por um tempo.
 Stop LIVE previews opening by themselves	Impedir que prévias de LIVE abram sozinhas
@@ -2264,6 +2272,7 @@ The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on 
 Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	Vídeos horizontais em que o TikTok permite ganham um botão para adicionar comentários de uma linha abaixo do vídeo e uma barra para eles em tela cheia. Os outros vídeos continuam iguais.
 
 Pick videos to save from profile grids	Escolher vídeos para salvar nas grades de perfil
+Pick what to leave off the small line with the room ID and your connection. The rest stays on it.	Escolha o que sai da linha pequena com o ID da sala e sua conexão. O resto continua nela.
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Coloca um círculo em cada vídeo de uma grade de perfil, Curtidos ou Favoritos. Escolha até %1$s e toque em Salvar para salvá-los um após o outro, com uma contagem e Cancelar.
 Pick for saving	Escolher para salvar
 You can pick up to %1$s at a time	Você pode escolher até %1$s de uma vez
@@ -2519,7 +2528,6 @@ autoplay auto play	reprodução automática autoplay
 picture in picture PiP	picture-in-picture PiP
 search suggestions	sugestões de pesquisa
 AI chat	chat de IA
-AI Tako	IA Tako
 save photos	salvar fotos
 download button	botão de download baixar
 It's in %1$s, under %2$s. Tap to go there.	Fica em %1$s, em %2$s. Toque para ir até lá.
@@ -2542,6 +2550,8 @@ Leave after no touch	Sair se a tela não for tocada
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	Zero desliga isso. Depois desses minutos sem nenhum toque na tela, o vídeo para e o TikTok vai para segundo plano, para quando você dorme assistindo. Qualquer toque recomeça a espera.
 Left TikTok after no touch	Saiu do TikTok por inatividade
 Show when an account was made	Mostrar quando a conta foi criada
+Show how many videos a profile has	Mostrar quantos vídeos um perfil tem
+Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them.	Abaixo do @usuário de um perfil, incluindo o seu, mostrar quantos vídeos ele tem segundo o TikTok.
 Show what changed since your last visit	Mostrar o que mudou desde a sua última visita
 Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	Abaixo do @usuário em um perfil, mostra como os seguidores, quem ele segue, as curtidas e os vídeos mudaram desde a última vez que você o abriu. Os números ficam só neste celular.
 Since %1$s: %2$s	Desde %1$s: %2$s
@@ -2676,7 +2686,7 @@ Read receipts shown	Confirmações de leitura visíveis
 Compact long-press menu everywhere	Menu compacto no toque longo em todo lugar
 A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.	Um toque longo em um vídeo abre a pequena folha de compartilhamento do TikTok também em Para você, a mesma que os vídeos de um criador têm. Ela vale mais que os dois botões de menu completo acima. Precisa de Toque longo no padrão do TikTok.
 Hide streak pop-ups	Ocultar pop-ups de ofensiva
-Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	Para os avisos de ofensiva que deslizam sobre o TikTok e as mensagens e dicas de ofensiva que ele coloca nos seus chats.
+Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats.	Para os avisos de ofensiva que deslizam sobre o TikTok, o convite do Streak Pet na caixa de entrada e as mensagens e dicas de ofensiva que ele coloca nos seus chats.
 Long press on For You opens my watch history	Tocar e segurar em Para você abre meu histórico de exibição
 Instead of these settings. The list has a button that brings you back here.	Em vez destas configurações. A lista tem um botão que traz você de volta aqui.
 Long press on Profile opens my watch history	Tocar e segurar em Perfil abre meu histórico de exibição
@@ -2777,7 +2787,9 @@ dialog popup greeting	diálogo pop-up saudação
 Don't show again	Não mostrar de novo
 # context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
 Stop the blink under the bar	Parar a piscada sob a barra
+Pages under the bar	Páginas sob a barra
 If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Se o vídeo pisca quando você desliza com Barra inferior transparente ativada, isto o desenha dentro do TikTok em vez de numa camada própria. Pode gastar um pouco mais de bateria. Precisa de Barra inferior transparente.
+Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.	Deixa a grade da Comunidade no Início e outras páginas que terminam acima das abas continuarem por baixo da barra transparente, para que apareçam através dela no lugar da faixa preta ou branca. A última linha ainda rola até ficar acima das abas. Precisa de Barra inferior transparente.
 # context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
 Bend the video at the edges	Curvar o vídeo nas bordas
 The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	As bordas da pílula de vidro curvam o vídeo desfocado atrás delas, como a borda de um vidro de verdade, e as cores ficam um pouco mais vivas. Precisa de Desfocar o vídeo atrás da barra e do Android 13 ou mais recente.
@@ -2830,6 +2842,8 @@ Hide Send to new group	Esconder Enviar para novo grupo
 Hides the button that turns the people you picked into a new group chat. Send separately stays.	Esconde o botão que transforma as pessoas que você escolheu em um novo chat em grupo. Enviar separadamente continua.
 # context: Switch in Hushfeed settings > App > Appearance (#372)
 AMOLED dark mode	Modo escuro AMOLED
+Dark mode	Modo escuro
+Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.	Ativa o tema escuro que o TikTok Lite traz, mas nunca deixa escolher. Reinicie o TikTok Lite para ver a mudança.
 # context: Summary under the AMOLED dark mode switch
 Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	Preenche o modo escuro com a cor escolhida ao aplicar o patch, preto puro a menos que outra tenha sido escolhida. Desative para ter os cinzas escuros do próprio TikTok. O modo claro não muda. Reinicie o TikTok para ver a mudança.
 # context: Switch in Hushfeed settings > App, under the startup message rows (#377)
@@ -2883,6 +2897,7 @@ Friends in the top tabs	Amigos nas abas de cima
 Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	Amigos sobe para as abas do topo do feed, ao lado de Seguindo, e Descobrir fica no lugar dele na barra de baixo, do jeito que o TikTok organiza em alguns países. Sua região e seu feed continuam iguais.
 # context: Row title of the Inbox switch that lifts the app's cap on pinned chats
 Pin more chats	Fixar mais conversas
+Ping	Ping
 # context: Summary under that switch; 5 is the cap TikTok's app usually puts on pinned chats
 Lifts the app's limit on pinned chats in the Inbox, usually 5, so you can pin more.	Remove o limite do app para conversas fixadas na caixa de entrada, geralmente 5, para você fixar mais.
 # context: Row title of the Comments switch that hides voice comments
@@ -3159,7 +3174,8 @@ Unknown (TikTok didn't send it)	Desconhecido (o TikTok não enviou)
 A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	O menu de compartilhar de um perfil ganha um botão Dados da conta. Ele mostra o que o TikTok já enviou sobre a conta: quando ela entrou, a região e o idioma, o nível de doador e o SecUID, quantas publicações, vídeos curtidos, favoritos e republicações ela tem, quando o nome de usuário e o nome de exibição mudaram pela última vez, se ela é privada e se os vídeos curtidos são públicos. Nada a mais é baixado.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Mostrar o ID da sala e sua conexão
-Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	Adiciona uma linha pequena às salas LIVE com o ID da sala e como está a sua própria conexão com a transmissão, como o player do TikTok mede: ping, latência e velocidade de download. Toque na linha para copiar o ID da sala.
+Show the room line	Mostrar a linha da sala
+Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.	Adiciona uma linha pequena às salas LIVE com o ID da sala e como está a sua própria conexão com a transmissão, como o player do TikTok mede: ping, latência e velocidade de download. Toque na linha para reduzi-la a um ponto e toque no ponto para trazê-la de volta. Toque e segure a linha para copiar o ID da sala.
 Room ID %1$s	ID da sala %1$s
 Ping %1$s ms	Ping %1$s ms
 Latency %1$s s	Latência %1$s s
@@ -3193,7 +3209,7 @@ Adds three stops below the smallest size on TikTok's own Text size slider, in Se
 UI size	Tamanho da interface
 Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.	Deixa toda a interface do TikTok menor, tanto o texto quanto os botões, para caber mais na tela. Com 100 ela fica como está. Reinicie o TikTok para ver a mudança.
 Show how long a LIVE has been on	Mostrar há quanto tempo uma LIVE está no ar
-Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.	Adiciona uma linha pequena às salas LIVE com há quanto tempo o anfitrião está ao vivo, contado a partir do início da sala. Com o ID da sala também ativado, ela fica embaixo dele.
+Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot.	Adiciona uma linha pequena às salas LIVE com há quanto tempo o anfitrião está ao vivo, contado a partir do início da sala. Com o ID da sala também ativado, ela fica embaixo dele. Toque na linha para reduzi-la a um ponto.
 LIVE for %1$s	LIVE há %1$s
 Show exact LIVE battle scores	Mostrar pontuações exatas das batalhas LIVE
 In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.	Em uma batalha LIVE, o TikTok limita as pontuações altas que os espectadores veem, enquanto o anfitrião vê o número inteiro. Isso mostra a pontuação inteira na barra da batalha e nas janelas dos coanfitriões.
@@ -3223,6 +3239,8 @@ The buttons, caption and tabs fade away instead of vanishing at once, and a touc
 # context: #461 Date instead of age, a switch under Write the month as a word
 Date instead of age	Data em vez de idade
 Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.	Vídeos recentes mostram a data em que foram postados ao lado do nome do criador, como 10-12, em vez de uma idade como há 2 d. Dia antes do mês e Escrever o mês por extenso mudam a data do mesmo jeito.
+Use this date format everywhere	Usar este formato de data em todo lugar
+Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.	Escreve as datas dos comentários, os cabeçalhos de data nas conversas e as datas dos resultados de pesquisa do jeito que as três linhas acima escrevem a data ao lado do nome do criador.
 # context: #503 Keep your place in chats, an Inbox switch under Show message times; the down arrow is the button that jumps a chat to its newest message
 Keep your place in chats	Manter sua posição nas conversas
 A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.	Uma conversa em que você rolou para cima fica onde você estava quando volta de um vídeo ou envia uma resposta. Enviar uma mensagem normal ou tocar na seta para baixo ainda leva você à mais recente.

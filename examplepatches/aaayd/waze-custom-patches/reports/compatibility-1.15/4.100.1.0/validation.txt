@@ -1,0 +1,1 @@
+PASS actual APK: themes=true, icons=true, Android Auto=true, alerts=true, camera sound=true; isolated classes, assets, permissions, components, startup and settings hooks

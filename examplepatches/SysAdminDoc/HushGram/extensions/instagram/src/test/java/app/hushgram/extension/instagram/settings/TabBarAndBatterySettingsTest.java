@@ -8,6 +8,8 @@ import static app.hushgram.extension.instagram.settings.StoryTimeSettingsTest.se
 import static org.junit.Assert.*;
 
 import android.app.Activity;
+import android.preference.EditTextPreference;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.SwitchPreference;
@@ -41,6 +43,7 @@ import app.hushgram.extension.instagram.misc.GlassCorners;
 import app.hushgram.extension.instagram.misc.GlassHeight;
 import app.hushgram.extension.instagram.misc.GlassLift;
 import app.hushgram.extension.instagram.misc.GlassReelsHide;
+import app.hushgram.extension.instagram.misc.GlassTint;
 import app.hushgram.extension.instagram.misc.HapticStyle;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
@@ -84,6 +87,7 @@ public class TabBarAndBatterySettingsTest {
         Settings.GLASS_TAB_BAR_SLIDE.resetToDefault();
         Settings.GLASS_TAB_BAR_LIQUID.resetToDefault();
         Settings.GLASS_TAB_BAR_KEEP_SIZE.resetToDefault();
+        Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.resetToDefault();
         Settings.GLASS_TAB_BAR_HOLD_LENS.resetToDefault();
         Settings.GLASS_TAB_BAR_REFRACT.resetToDefault();
         Settings.GLASS_TAB_BAR_BLUR.resetToDefault();
@@ -92,6 +96,8 @@ public class TabBarAndBatterySettingsTest {
         Settings.GLASS_TAB_BAR_TAP_SOUND.resetToDefault();
         Settings.GLASS_TAB_BAR_TAP_SOUND_VOLUME.resetToDefault();
         Settings.GLASS_TAB_BAR_OPACITY.resetToDefault();
+        Settings.GLASS_TAB_BAR_TINT.resetToDefault();
+        Settings.GLASS_TAB_BAR_TINT_CUSTOM.resetToDefault();
         Settings.GLASS_TAB_BAR_REFRACT_STRENGTH.resetToDefault();
         Settings.GLASS_TAB_BAR_HEIGHT.resetToDefault();
         Settings.GLASS_TAB_BAR_CORNERS.resetToDefault();
@@ -112,6 +118,7 @@ public class TabBarAndBatterySettingsTest {
         Settings.STOP_HEARTBEAT.resetToDefault();
         Settings.STOP_UPLOAD_ALARM.resetToDefault();
         Settings.STOP_BACKGROUND_FETCH.resetToDefault();
+        Settings.ANSWER_ACCOUNT_CHECKS.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
     }
@@ -131,8 +138,9 @@ public class TabBarAndBatterySettingsTest {
     @Test public void withoutThePatchesNoneOfTheirRowsShow() throws Exception {
         open();
         for (String key : List.of(Settings.GLASS_TAB_BAR.key, Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key, Settings.GLASS_TAB_BAR_OPACITY.key, Settings.GLASS_TAB_BAR_HEIGHT.key,
-                Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_LIFT.key, Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, Settings.GLASS_TAB_BAR_REELS_HIDE.key, Settings.SAVED_ON_PROFILE.key, Settings.SAVED_FAST_SCROLL.key, Settings.FAST_SCROLL_HOME.key, Settings.FAST_SCROLL_CHATS.key, Settings.HIDE_SAVED_NEW_COLLECTION.key, Settings.HIDE_SAVED_REELS_TAB.key, Settings.HIDE_EXPLORE_SAVED.key, Settings.STOP_HEARTBEAT.key,
-                Settings.STOP_UPLOAD_ALARM.key, Settings.STOP_BACKGROUND_FETCH.key, Settings.GLASS_TAB_BAR_HAPTIC_STRENGTH.key,
+                Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_LIFT.key, Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, Settings.GLASS_TAB_BAR_REELS_HIDE.key,
+                Settings.GLASS_TAB_BAR_TINT.key, Settings.GLASS_TAB_BAR_TINT_CUSTOM.key, Settings.SAVED_ON_PROFILE.key, Settings.SAVED_FAST_SCROLL.key, Settings.FAST_SCROLL_HOME.key, Settings.FAST_SCROLL_CHATS.key, Settings.HIDE_SAVED_NEW_COLLECTION.key, Settings.HIDE_SAVED_REELS_TAB.key, Settings.HIDE_EXPLORE_SAVED.key, Settings.STOP_HEARTBEAT.key,
+                Settings.STOP_UPLOAD_ALARM.key, Settings.STOP_BACKGROUND_FETCH.key, Settings.ANSWER_ACCOUNT_CHECKS.key, Settings.GLASS_TAB_BAR_HAPTIC_STRENGTH.key,
                 Settings.GLASS_TAB_BAR_TAP_SOUND.key, Settings.GLASS_TAB_BAR_TAP_SOUND_VOLUME.key)) {
             assertNull(key, row(key));
         }
@@ -148,8 +156,8 @@ public class TabBarAndBatterySettingsTest {
         assertTrue(Settings.GLASS_TAB_BAR.rebootApp);
         assertEquals(Arrays.asList(Settings.GLASS_TAB_BAR, Settings.GLASS_TAB_BAR_BLUR, Settings.GLASS_TAB_BAR_FLOAT,
                 Settings.GLASS_TAB_BAR_HAPTICS, Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL, Settings.GLASS_TAB_BAR_SLIDE,
-                Settings.GLASS_TAB_BAR_LIQUID, Settings.GLASS_TAB_BAR_KEEP_SIZE, Settings.GLASS_TAB_BAR_HOLD_LENS,
-                Settings.GLASS_TAB_BAR_SHRINK_ON_SCROLL, Settings.GLASS_TAB_BAR_MATERIAL,
+                Settings.GLASS_TAB_BAR_LIQUID, Settings.GLASS_TAB_BAR_KEEP_SIZE, Settings.GLASS_TAB_BAR_SEARCH_IN_PILL,
+                Settings.GLASS_TAB_BAR_HOLD_LENS, Settings.GLASS_TAB_BAR_SHRINK_ON_SCROLL, Settings.GLASS_TAB_BAR_MATERIAL,
                 Settings.GLASS_TAB_BAR_REFRACT, Settings.GLASS_TAB_BAR_REELS_BEHIND, Settings.GLASS_TAB_BAR_TAP_SOUND),
                 PatchFamily.GLASS_TAB_BAR.switches);
         for (String key : List.of(Settings.GLASS_TAB_BAR_BLUR.key, Settings.GLASS_TAB_BAR_HAPTICS.key, Settings.GLASS_TAB_BAR_FLOAT.key,
@@ -552,7 +560,7 @@ public class TabBarAndBatterySettingsTest {
             if (Settings.GLASS_TAB_BAR_LIQUID.key.equals(key)) liquidAt = i;
         }
         assertEquals("Tint right after Blur strength, so both share a screen with the preview", blurAt + 1, tintAt);
-        assertEquals("right after Tint", tintAt + 1, liquidAt);
+        assertEquals("right after Tint and its color (#875)", tintAt + 3, liquidAt);
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_LIQUID.key));
 
         Settings.GLASS_TAB_BAR.save(false);
@@ -635,6 +643,145 @@ public class TabBarAndBatterySettingsTest {
         assertFalse("the standard pill has no bubble to grow", Settings.GLASS_TAB_BAR_HOLD_LENS.isAvailable());
         Settings.GLASS_TAB_BAR_LIQUID.save(true);
         assertTrue(Settings.GLASS_TAB_BAR_HOLD_LENS.isAvailable());
+    }
+
+    /**
+     * #875: Keep Search in the pill is a switch right after Glass lens under your finger, off to start so the
+     * liquid look keeps Search's circle, offered only with the liquid look on, backed up, and read as the bar is
+     * built, so it asks for a restart.
+     */
+    @Test public void keepSearchInThePillSitsUnderTheLiquidLookAndStartsOff() throws Exception {
+        open(PatchFamily.GLASS_TAB_BAR);
+        SwitchPreference inPill = (SwitchPreference) row(Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.key);
+        assertNotNull(inPill);
+        assertEquals("Keep Search in the pill", String.valueOf(inPill.getTitle()));
+        assertEquals("With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass "
+                + "circle of its own. Restart Instagram after changing it.", String.valueOf(inPill.getSummary()));
+        assertFalse(inPill.isChecked());
+        assertFalse(Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.defaultValue);
+        assertTrue(Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.rebootApp);
+        PreferenceGroup section = sectionOf(page.getPreferenceScreen(), inPill);
+        int lensAt = -1;
+        int inPillAt = -1;
+        for (int i = 0; i < section.getPreferenceCount(); i++) {
+            String key = section.getPreference(i).getKey();
+            if (Settings.GLASS_TAB_BAR_HOLD_LENS.key.equals(key)) lensAt = i;
+            if (Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.key.equals(key)) inPillAt = i;
+        }
+        assertTrue(lensAt >= 0);
+        assertEquals("right after Glass lens under your finger", lensAt + 1, inPillAt);
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.key));
+
+        assertFalse("no glass bar, no pill", Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.isAvailable());
+        Settings.GLASS_TAB_BAR.save(true);
+        assertFalse("the standard pill keeps Search anyway", Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.isAvailable());
+        Settings.GLASS_TAB_BAR_LIQUID.save(true);
+        assertTrue(Settings.GLASS_TAB_BAR_SEARCH_IN_PILL.isAvailable());
+    }
+
+    /**
+     * #875: Tint color is a list right after Tint intensity, starting on Instagram's colors, with light, dark, AMOLED
+     * black, the phone's Material You accent and a custom color, each saying what it does. The custom color is typed
+     * in the row after it, and saving one picks Custom. Both rest with the bar off, and while the Material look draws
+     * the pill in its own colors, each saying which switch is in the way. Both show at once and are backed up.
+     */
+    @Test public void tintColorSitsAfterTintIntensityWithItsCustomColorAndStartsOnInstagrams() throws Exception {
+        open(PatchFamily.GLASS_TAB_BAR);
+        Preference found = row(Settings.GLASS_TAB_BAR_TINT.key);
+        assertTrue(found instanceof ListPreference);
+        ListPreference tint = (ListPreference) found;
+        assertEquals("Tint color", String.valueOf(tint.getTitle()));
+        List<String> labels = new ArrayList<>();
+        for (CharSequence entry : tint.getEntries()) labels.add(String.valueOf(entry));
+        assertEquals(Arrays.asList("Instagram's colors", "Light", "Dark", "AMOLED black", "Material You", "Custom"), labels);
+        List<String> values = new ArrayList<>();
+        for (CharSequence value : tint.getEntryValues()) values.add(String.valueOf(value));
+        assertEquals(Arrays.asList("INSTAGRAM", "LIGHT", "DARK", "AMOLED", "WALLPAPER", "CUSTOM"), values);
+        assertEquals("INSTAGRAM", tint.getValue());
+        assertEquals(GlassTint.INSTAGRAM, Settings.GLASS_TAB_BAR_TINT.defaultValue);
+        assertFalse("a pick shows on the bar at once", Settings.GLASS_TAB_BAR_TINT.rebootApp);
+        assertFalse(Settings.GLASS_TAB_BAR_TINT_CUSTOM.rebootApp);
+        assertFalse(tint.isEnabled());
+        assertEquals("Turn on Glass tab bar to use this choice.", String.valueOf(tint.getSummary()));
+        Preference customFound = row(Settings.GLASS_TAB_BAR_TINT_CUSTOM.key);
+        assertTrue(customFound instanceof EditTextPreference);
+        EditTextPreference custom = (EditTextPreference) customFound;
+        assertEquals("Custom tint color", String.valueOf(custom.getTitle()));
+        assertEquals("A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.",
+                String.valueOf(custom.getDialogMessage()));
+        assertFalse(custom.isEnabled());
+        assertEquals("Turn on Glass tab bar to use this choice.", String.valueOf(custom.getSummary()));
+
+        PreferenceGroup section = sectionOf(page.getPreferenceScreen(), tint);
+        assertEquals("Tab bar", String.valueOf(section.getTitle()));
+        int intensityAt = -1;
+        int colorAt = -1;
+        int customAt = -1;
+        for (int i = 0; i < section.getPreferenceCount(); i++) {
+            String key = section.getPreference(i).getKey();
+            if (Settings.GLASS_TAB_BAR_OPACITY.key.equals(key)) intensityAt = i;
+            if (Settings.GLASS_TAB_BAR_TINT.key.equals(key)) colorAt = i;
+            if (Settings.GLASS_TAB_BAR_TINT_CUSTOM.key.equals(key)) customAt = i;
+        }
+        assertTrue(intensityAt >= 0);
+        assertEquals("right after Tint intensity", intensityAt + 1, colorAt);
+        assertEquals("its custom color next", colorAt + 1, customAt);
+
+        ((SwitchPreference) row(Settings.GLASS_TAB_BAR.key)).setChecked(true);
+        ShadowLooper.idleMainLooper();
+        assertTrue(tint.isEnabled());
+        assertTrue(custom.isEnabled());
+        assertEquals("The glass takes Instagram's own colors, dark or light with its theme.", String.valueOf(tint.getSummary()));
+        assertEquals("None yet. Custom keeps Instagram's colors until you type one.", String.valueOf(custom.getSummary()));
+        String[] said = {
+                "The glass takes Instagram's own colors, dark or light with its theme.",
+                "Frosted white glass whatever Instagram's theme, with the tab icons dark on it.",
+                "Dark gray glass whatever Instagram's theme, with the tab icons white on it.",
+                "A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.",
+                "The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones "
+                        + "keep Instagram's colors.",
+                "The glass takes the color you type under Custom tint color.",
+        };
+        for (GlassTint each : GlassTint.values()) {
+            tint.setValue(each.name());
+            ShadowLooper.idleMainLooper();
+            assertEquals(each, Settings.GLASS_TAB_BAR_TINT.savedValue());
+            assertEquals(each.name(), said[each.ordinal()], String.valueOf(tint.getSummary()));
+            assertFalse("no restart for " + each, AbstractPreferenceFragment.restartPending.contains(Settings.GLASS_TAB_BAR_TINT.key));
+        }
+        tint.setValue(GlassTint.LIGHT.name());
+        ShadowLooper.idleMainLooper();
+
+        Preference.OnPreferenceChangeListener typed = custom.getOnPreferenceChangeListener();
+        assertFalse("a word isn't a color", typed.onPreferenceChange(custom, "teal"));
+        assertEquals(GlassTint.LIGHT, Settings.GLASS_TAB_BAR_TINT.savedValue());
+        assertTrue(typed.onPreferenceChange(custom, "#4A6B82"));
+        custom.setText("#4A6B82");
+        ShadowLooper.idleMainLooper();
+        assertEquals("saving a color picks Custom", GlassTint.CUSTOM, Settings.GLASS_TAB_BAR_TINT.savedValue());
+        assertEquals("CUSTOM", tint.getValue());
+        assertEquals("#4A6B82", Settings.GLASS_TAB_BAR_TINT_CUSTOM.savedValue());
+        assertEquals("#4A6B82", String.valueOf(custom.getSummary()));
+        assertFalse(AbstractPreferenceFragment.restartPending.contains(Settings.GLASS_TAB_BAR_TINT_CUSTOM.key));
+
+        ((SwitchPreference) row(Settings.GLASS_TAB_BAR_MATERIAL.key)).setChecked(true);
+        ShadowLooper.idleMainLooper();
+        assertFalse("the Material look draws in its own colors", tint.isEnabled());
+        assertFalse(custom.isEnabled());
+        assertEquals("Turn off Material look to use this choice.", String.valueOf(tint.getSummary()));
+        assertEquals("Turn off Material look to use this choice.", String.valueOf(custom.getSummary()));
+        assertEquals("the pick is kept for later", GlassTint.CUSTOM, Settings.GLASS_TAB_BAR_TINT.savedValue());
+        ((SwitchPreference) row(Settings.GLASS_TAB_BAR_LIQUID.key)).setChecked(true);
+        ShadowLooper.idleMainLooper();
+        assertTrue("the liquid look wins over the Material look", tint.isEnabled());
+        assertEquals("The glass takes the color you type under Custom tint color.", String.valueOf(tint.getSummary()));
+
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_TINT.key));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_TINT_CUSTOM.key));
+        assertTrue(ConfigurationBackup.textAllowed(Settings.GLASS_TAB_BAR_TINT_CUSTOM, "#4A6B82"));
+        assertTrue(ConfigurationBackup.textAllowed(Settings.GLASS_TAB_BAR_TINT_CUSTOM, ""));
+        assertFalse(ConfigurationBackup.textAllowed(Settings.GLASS_TAB_BAR_TINT_CUSTOM, "4a6b82"));
+        assertFalse(ConfigurationBackup.textAllowed(Settings.GLASS_TAB_BAR_TINT_CUSTOM, "teal"));
     }
 
     /**
@@ -854,22 +1001,27 @@ public class TabBarAndBatterySettingsTest {
         assertNull(row(Settings.HIDE_EXPLORE_SAVED.key));
     }
 
-    @Test public void batteryHoldsAllThreeWakeUpSwitchesAndAllStartOff() throws Exception {
+    @Test public void batteryHoldsAllFourWakeUpSwitchesAndAllStartOff() throws Exception {
         open(PatchFamily.STOP_HEARTBEAT);
         SwitchPreference heartbeat = (SwitchPreference) row(Settings.STOP_HEARTBEAT.key);
         SwitchPreference upload = (SwitchPreference) row(Settings.STOP_UPLOAD_ALARM.key);
         SwitchPreference fetch = (SwitchPreference) row(Settings.STOP_BACKGROUND_FETCH.key);
+        SwitchPreference accounts = (SwitchPreference) row(Settings.ANSWER_ACCOUNT_CHECKS.key);
         assertNotNull(heartbeat);
         assertNotNull(upload);
         assertNotNull(fetch);
+        assertNotNull(accounts);
         assertEquals("Battery", String.valueOf(sectionOf(page.getPreferenceScreen(), heartbeat).getTitle()));
         assertSame(sectionOf(page.getPreferenceScreen(), heartbeat), sectionOf(page.getPreferenceScreen(), upload));
         assertSame(sectionOf(page.getPreferenceScreen(), heartbeat), sectionOf(page.getPreferenceScreen(), fetch));
+        assertSame(sectionOf(page.getPreferenceScreen(), heartbeat), sectionOf(page.getPreferenceScreen(), accounts));
         assertEquals("Stop background feed refresh", String.valueOf(fetch.getTitle()));
+        assertEquals("Let Instagram close after account checks", String.valueOf(accounts.getTitle()));
         assertFalse(heartbeat.isChecked());
         assertFalse(upload.isChecked());
         assertFalse(fetch.isChecked());
-        assertEquals(Arrays.asList(Settings.STOP_HEARTBEAT, Settings.STOP_UPLOAD_ALARM, Settings.STOP_BACKGROUND_FETCH),
-                PatchFamily.STOP_HEARTBEAT.switches);
+        assertFalse(accounts.isChecked());
+        assertEquals(Arrays.asList(Settings.STOP_HEARTBEAT, Settings.STOP_UPLOAD_ALARM, Settings.STOP_BACKGROUND_FETCH,
+                Settings.ANSWER_ACCOUNT_CHECKS), PatchFamily.STOP_HEARTBEAT.switches);
     }
 }

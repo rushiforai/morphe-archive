@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 public final class GboardOcrSettings {
     public static final String PREF_FILE = "gboard_ocr_settings";
     public static final String PREF_KEY_ENGINE = "pref_ocr_engine";
+    public static final String PREF_KEY_SHARED_IMAGE_OCR = "pref_shared_image_ocr";
     public static final String DEFAULT_ENGINE = "latin";
 
     private GboardOcrSettings() {
@@ -38,6 +39,8 @@ public final class GboardOcrSettings {
             preferences.edit().putString(PREF_KEY_ENGINE, sanitizedValue).apply();
         }
     }
+
+    public static boolean sharedImageOcr(Context context) { SharedPreferences p=preferences(context);return p!=null && p.getBoolean(PREF_KEY_SHARED_IMAGE_OCR,false); }
 
     public static GboardOcrEngine readEngine(Context context) {
         return readEngine(preferences(context));

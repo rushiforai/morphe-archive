@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-09.
  * Modified by lavinhoque33, 2026-11-09.
  */
@@ -67,6 +68,26 @@ public class VideoCopyFilesTest {
         assertTrue(files.has("omvOne00000"));
         assertEquals(1, files.stats().count());
         assertEquals(150, files.stats().bytes());
+    }
+
+    @Test public void artworkReadsOnlyTheRequestedVideoCommitBeforeLoadingPairs() throws Exception {
+        assertTrue(retain("omvOne00000", "atvOne00000", 100));
+        assertTrue(retain("omvTwo00000", "atvTwo00000", 100));
+        VideoCopyFiles cold = new VideoCopyFiles(new File(temporary.getRoot(), "rvx_video"));
+
+        assertEquals("atvOne00000", cold.artworkPartner("omvOne00000", null));
+        assertNull(cold.artworkPartner("omvOne00000", "atvTwo00000"));
+        assertNull(cold.artworkPartner("atvOne00000", null));
+        assertFalse(cold.has("omvOne00000"));
+        assertFalse(cold.has("omvTwo00000"));
+    }
+
+    @Test public void artworkUsesOnlyAnUnambiguousLoadedReversePartner() throws Exception {
+        assertTrue(retain("omvOne00000", "atvOne00000", 100));
+        files.ensureLoaded();
+        assertEquals("omvOne00000", files.artworkPartner("atvOne00000", null));
+        assertTrue(retain("omvTwo00000", "atvOne00000", 100));
+        assertNull(files.artworkPartner("atvOne00000", null));
     }
 
     @Test public void selectedAudioCodecsReopenWithoutInvalidatingEarlierPairs() throws Exception {

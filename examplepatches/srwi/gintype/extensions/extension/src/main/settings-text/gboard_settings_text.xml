@@ -1,0 +1,831 @@
+<?xml version='1.0' encoding='utf-8'?>
+<settings-text locales="en">
+    <string name="gboard_patches_activity_title">
+        <translation locale="en">GinType</translation>
+        </string>
+    <string name="gboard_patches_header_badge">
+        <translation locale="en">Gboard</translation>
+        </string>
+    <string name="gboard_patches_header_title">
+        <translation locale="en">GinType settings</translation>
+        </string>
+    <string name="gboard_patches_header_summary">
+        <translation locale="en" />
+        </string>
+    <string name="gboard_patches_preview_label">
+        <translation locale="en">Preview</translation>
+        </string>
+    <string name="gboard_patches_confirm_action">
+        <translation locale="en">Confirm</translation>
+        </string>
+    <string name="gboard_patches_dialog_cancel">
+        <translation locale="en">Cancel</translation>
+        </string>
+    <string name="gboard_patches_dialog_save">
+        <translation locale="en">Save</translation>
+        </string>
+    <string name="gboard_patches_dialog_close">
+        <translation locale="en">Close</translation>
+        </string>
+    <string name="gboard_patches_slider_default">
+        <translation locale="en">Default</translation>
+        </string>
+    <string name="gboard_patches_keyboard_preview_action">
+        <translation locale="en">Open keyboard</translation>
+        </string>
+    <string name="gboard_patches_keyboard_preview_title">
+        <translation locale="en">GinType</translation>
+        </string>
+    <string name="gboard_patches_keyboard_preview_input_accessibility">
+        <translation locale="en">Keyboard test field</translation>
+        </string>
+    <string name="gboard_patches_dialog_error_positive">
+        <translation locale="en">Enter a positive number.</translation>
+        </string>
+    <string name="gboard_patches_dialog_error_save_failed">
+        <translation locale="en">Failed to save setting.</translation>
+        </string>
+    <string name="gboard_patches_section_features">
+        <translation locale="en">Features</translation>
+        </string>
+    <string name="gboard_patches_section_about">
+        <translation locale="en">About</translation>
+        </string>
+    <string name="gboard_patches_about_author_title">
+        <translation locale="en">Author</translation>
+        </string>
+    <string name="gboard_patches_about_patch_version_title">
+        <translation locale="en">Patch Version</translation>
+        </string>
+    <string name="gboard_patches_error_header_title">
+        <translation locale="en">Feature unavailable</translation>
+        </string>
+    <string name="gboard_patches_error_header_summary">
+        <translation locale="en">This settings page failed to load and was safely disabled.</translation>
+        </string>
+    <string name="gboard_patches_error_row_title">
+        <translation locale="en">Unable to load feature</translation>
+        </string>
+    <string name="gboard_patches_error_row_summary">
+        <translation locale="en">The host app stayed alive. Reopen Gboard settings and try again.</translation>
+        </string>
+    <string name="gboard_patches_fatal_fallback_title">
+        <translation locale="en">Patches temporarily unavailable</translation>
+        </string>
+    <string name="gboard_patches_fatal_fallback_summary">
+        <translation locale="en">This screen hit an internal error and was safely disabled. Gboard stays alive. Reopen settings and try again.</translation>
+        </string>
+    <string name="gboard_patches_preview_load_failed">
+        <translation locale="en">Failed to load preview media.</translation>
+        </string>
+    <string name="gboard_patches_navigate_up">
+        <translation locale="en">Navigate up</translation>
+        </string>
+    <string name="gboard_patches_search_title">
+        <translation locale="en">Search settings</translation>
+        </string>
+    <string name="gboard_patches_search_hint">
+        <translation locale="en">Search settings</translation>
+        </string>
+    <string name="gboard_patches_search_clear">
+        <translation locale="en">Clear search</translation>
+        </string>
+    <string name="gboard_patches_search_close">
+        <translation locale="en">Close search</translation>
+        </string>
+    <string name="gboard_patches_search_empty_summary">
+        <translation locale="en">Search feature and setting names.</translation>
+        </string>
+    <string name="gboard_patches_search_no_results_title">
+        <translation locale="en">No matching settings</translation>
+        </string>
+    <string name="gboard_patches_search_no_results_summary">
+        <translation locale="en">Try a shorter or different keyword.</translation>
+        </string>
+    <plurals name="gboard_patches_search_results">
+        <item quantity="one">
+            <translation locale="en">%d result</translation>
+            </item>
+        <item quantity="other">
+            <translation locale="en">%d results</translation>
+            </item>
+    </plurals>
+    <string name="gboard_patches_search_english_match">
+        <translation locale="en">English: %1$s</translation>
+        </string>
+    <string name="gboard_patches_restart_action">
+        <translation locale="en">Restart Gboard</translation>
+        </string>
+    <string name="gboard_patches_restart_failed">
+        <translation locale="en">Gboard could not be restarted. Reopen Gboard settings and try again.</translation>
+        </string>
+
+    <string name="gboard_patches_developer_options_package_warning_title">
+        <translation locale="en">Unsupported Gboard package</translation>
+        </string>
+    <string name="gboard_patches_developer_options_package_warning_message">
+        <translation locale="en">The current Gboard package is %1$s. GinType supports only the official package com.google.android.inputmethod.latin and dev.srwi.com.google.android.inputmethod.latin. Mixing Gboard builds from multiple sources may cause instability.</translation>
+        </string>
+    <string name="gboard_patches_developer_options_try_anyway">
+        <translation locale="en">Try anyway</translation>
+        </string>
+    <string name="gboard_patches_developer_options_launch_failed">
+        <translation locale="en">Unable to open Developer options for %1$s.</translation>
+        </string>
+    <plurals name="gboard_patches_minutes">
+        <item quantity="one">
+            <translation locale="en">%d minute</translation>
+            </item>
+        <item quantity="other">
+            <translation locale="en">%d minutes</translation>
+            </item>
+    </plurals>
+    <string name="gboard_patches_advanced_voice_speech_services_open_failed">
+        <translation locale="en">Unable to open the Speech Recognition &amp; Synthesis Google Play page.</translation>
+        </string>
+    <string name="gboard_patches_advanced_voice_live_transcribe_open_failed">
+        <translation locale="en">Unable to open Live Transcribe or its Google Play page.</translation>
+        </string>
+    <string name="gboard_patches_flag_patch_error_title">
+        <translation locale="en">Patch setting unavailable</translation>
+        </string>
+    <string name="gboard_patches_flag_patch_error_summary">
+        <translation locale="en">The patch setting screen failed to load. Reopen Gboard settings and try again.</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_title">
+        <translation locale="en">Thicc Top Bar</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_summary">
+        <translation locale="en">Expanded suggestion bar with multi-row words and swipe navigation</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_enable_title">
+        <translation locale="en">Enable Thicc Top Bar</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_section">
+        <translation locale="en">Appearance &amp; Gestures</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_topbar_scale_title">
+        <translation locale="en">Top bar size</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_topbar_scale_summary">
+        <translation locale="en">Adjust the height and text size of the suggestion bar</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_topbar_scale_value">
+        <translation locale="en">%.2fx</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_topbar_scale_value_default">
+        <translation locale="en">%.2fx (Default)</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_invert_swipe_title">
+        <translation locale="en">Invert vertical swipe</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_invert_swipe_summary">
+        <translation locale="en">Reverse vertical swipe direction when picking suggestions from the upper or lower row</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_swipe_sensitivity_title">
+        <translation locale="en">Horizontal swipe sensitivity</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_swipe_sensitivity_summary">
+        <translation locale="en">Higher values require shorter horizontal swipes to switch words</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_multi_word_select_title">
+        <translation locale="en">Double-tap &amp; swipe to select words</translation>
+        </string>
+    <string name="gboard_patches_thicc_top_bar_multi_word_select_summary">
+        <translation locale="en">Double-tap and drag left or right on the suggestion bar to select multiple words</translation>
+        </string>
+    <string name="gboard_patches_section_settings">
+        <translation locale="en">Settings</translation>
+        </string>
+    <plurals name="gboard_patches_restart_action_pending">
+        <item quantity="one">
+            <translation locale="en">Restart Gboard (%1$d change waiting to apply)</translation>
+            </item>
+        <item quantity="other">
+            <translation locale="en">Restart Gboard (%1$d changes waiting to apply)</translation>
+            </item>
+    </plurals>
+    <string name="gboard_patches_preview_row_description">
+        <translation locale="en">Preview “%1$s”</translation>
+        </string>
+    <string name="gboard_patches_preview_done">
+        <translation locale="en">Done</translation>
+        </string>
+    <string name="gboard_patches_preview_viewer_close">
+        <translation locale="en">Close viewer</translation>
+        </string>
+    <string name="gboard_patches_preview_viewer_previous">
+        <translation locale="en">Previous</translation>
+        </string>
+    <string name="gboard_patches_preview_viewer_next">
+        <translation locale="en">Next</translation>
+        </string>
+    <string name="gboard_patches_preview_open_fullscreen">
+        <translation locale="en">View full screen</translation>
+        </string>
+
+    <string name="gboard_patches_multiglide_title">
+        <translation locale="en">MultiGlide</translation>
+        </string>
+    <string name="gboard_patches_multiglide_summary">
+        <translation locale="en">Swipe words with two fingers at once, while single-finger glide typing stays normal</translation>
+        </string>
+    <string name="gboard_patches_multiglide_section_gestures">
+        <translation locale="en">Gestures &amp; Timing</translation>
+        </string>
+    <string name="gboard_patches_multiglide_section_auto_space">
+        <translation locale="en">Auto-space</translation>
+        </string>
+    <string name="gboard_patches_multiglide_section_advanced">
+        <translation locale="en">Advanced</translation>
+        </string>
+    <string name="gboard_patches_multiglide_enabled_title">
+        <translation locale="en">Enable MultiGlide</translation>
+        </string>
+    <string name="gboard_patches_multiglide_enabled_summary">
+        <translation locale="en">Use both thumbs to swipe parts of a word together. Single-finger swiping still works as usual.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_auto_space_title">
+        <translation locale="en">Auto-space</translation>
+        </string>
+    <string name="gboard_patches_multiglide_auto_space_summary">
+        <translation locale="en">Automatically insert spaces between two-finger words</translation>
+        </string>
+    <string name="gboard_patches_multiglide_space_placement_title">
+        <translation locale="en">Space placement</translation>
+        </string>
+    <string name="gboard_patches_multiglide_space_placement_summary">
+        <translation locale="en">Choose whether spaces are added before the next word or after each word</translation>
+        </string>
+    <string name="gboard_patches_multiglide_space_placement_before">
+        <translation locale="en">Before next word (Gboard style)</translation>
+        </string>
+    <string name="gboard_patches_multiglide_space_placement_after">
+        <translation locale="en">After each word</translation>
+        </string>
+    <string name="gboard_patches_multiglide_auto_space_delay_title">
+        <translation locale="en">Word finish delay</translation>
+        </string>
+    <string name="gboard_patches_multiglide_auto_space_delay_summary">
+        <translation locale="en">How long to wait after lifting your fingers before finalizing the word and adding a space</translation>
+        </string>
+    <string name="gboard_patches_multiglide_auto_space_delay_value">
+        <translation locale="en">%d ms</translation>
+        </string>
+    <string name="gboard_patches_multiglide_auto_space_delay_value_default">
+        <translation locale="en">%d ms (Default)</translation>
+        </string>
+    <string name="gboard_patches_multiglide_auto_space_delay_custom">
+        <translation locale="en">Custom…</translation>
+        </string>
+    <string name="gboard_patches_multiglide_combine_enabled_title">
+        <translation locale="en">Chain consecutive swipes</translation>
+        </string>
+    <string name="gboard_patches_multiglide_combine_enabled_summary">
+        <translation locale="en">Combine quick single-finger swipes into one word instead of starting a new word each time</translation>
+        </string>
+    <string name="gboard_patches_multiglide_combine_delay_title">
+        <translation locale="en">Swipe combine window</translation>
+        </string>
+    <string name="gboard_patches_multiglide_combine_delay_summary">
+        <translation locale="en">How long to wait for the next swipe before treating it as a new word</translation>
+        </string>
+    <string name="gboard_patches_multiglide_tap_to_multiglide_enabled_title">
+        <translation locale="en">Continue tapped letters with a swipe</translation>
+        </string>
+    <string name="gboard_patches_multiglide_tap_to_multiglide_enabled_summary">
+        <translation locale="en">If you tap a few letters and then swipe with two fingers, combine them into one word</translation>
+        </string>
+    <string name="gboard_patches_multiglide_tap_to_multiglide_delay_title">
+        <translation locale="en">Tap-to-swipe window</translation>
+        </string>
+    <string name="gboard_patches_multiglide_tap_to_multiglide_delay_summary">
+        <translation locale="en">How long recent letter taps count toward a two-finger swipe</translation>
+        </string>
+    <string name="gboard_patches_multiglide_smart_tap_swipe_split_enabled_title">
+        <translation locale="en">Keep short tapped words separate</translation>
+        </string>
+    <string name="gboard_patches_multiglide_smart_tap_swipe_split_enabled_summary">
+        <translation locale="en">Insert a space instead of combining when a 1–3 letter tap prefix and the following swipe make more sense as separate words</translation>
+        </string>
+    <string name="gboard_patches_multiglide_spacebar_timer_indicator_title">
+        <translation locale="en">Show countdown on spacebar</translation>
+        </string>
+    <string name="gboard_patches_multiglide_spacebar_timer_indicator_summary">
+        <translation locale="en">Display a visual bar on the spacebar while waiting to finish the word</translation>
+        </string>
+    <string name="gboard_patches_multiglide_word_ready_vibration_title">
+        <translation locale="en">Vibrate when ready for new word</translation>
+        </string>
+    <string name="gboard_patches_multiglide_word_ready_vibration_summary">
+        <translation locale="en">Give a subtle vibration when the word timer expires and a new word can begin</translation>
+        </string>
+    <string name="gboard_patches_multiglide_backspace_mode_title">
+        <translation locale="en">Backspace behavior</translation>
+        </string>
+    <string name="gboard_patches_multiglide_backspace_mode_summary">
+        <translation locale="en">What Backspace does right after a two-finger swipe</translation>
+        </string>
+    <string name="gboard_patches_multiglide_backspace_mode_whole_word">
+        <translation locale="en">Delete entire word (Default)</translation>
+        </string>
+    <string name="gboard_patches_multiglide_backspace_mode_last_input">
+        <translation locale="en">Undo last swipe or tap before word is finished</translation>
+        </string>
+    <string name="gboard_patches_multiglide_combine_delay_off">
+        <translation locale="en">0 ms (Off)</translation>
+        </string>
+    <string name="gboard_patches_kinetica_title">
+        <translation locale="en">Word decoder</translation>
+        </string>
+    <string name="gboard_patches_kinetica_summary">
+        <translation locale="en">Fine-tune swipe accuracy vs. common-word preference</translation>
+        </string>
+    <string name="gboard_patches_kinetica_header_summary">
+        <translation locale="en">Adjust how strictly the decoder follows your exact finger path versus favoring common words. Default values work best for most people.</translation>
+        </string>
+    <string name="gboard_patches_kinetica_section_parameters">
+        <translation locale="en">Decoder parameters</translation>
+        </string>
+    <string name="gboard_patches_multiglide_beam_width_title">
+        <translation locale="en">Search depth</translation>
+        </string>
+    <string name="gboard_patches_multiglide_beam_width_summary">
+        <translation locale="en">How many word candidates the decoder tracks per letter. Higher values can improve accuracy for long words, but use slightly more battery.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_freq_weight_floor_title">
+        <translation locale="en">Rare word boost</translation>
+        </string>
+    <string name="gboard_patches_multiglide_freq_weight_floor_summary">
+        <translation locale="en">Prevent common words from overriding rare words you swiped accurately. Higher = easier to type uncommon words.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_geo_exponent_title">
+        <translation locale="en">Path strictness</translation>
+        </string>
+    <string name="gboard_patches_multiglide_geo_exponent_summary">
+        <translation locale="en">How closely your swipe must match the exact letters. Higher = follow your path strictly; lower = allow messier swipes.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_beam_freq_weight_title">
+        <translation locale="en">Common word preference</translation>
+        </string>
+    <string name="gboard_patches_multiglide_beam_freq_weight_summary">
+        <translation locale="en">How strongly everyday words are preferred while matching your swipe. 0 = match finger path only.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_value_default">
+        <translation locale="en">%s (Default)</translation>
+        </string>
+    <string name="gboard_patches_multiglide_error_title">
+        <translation locale="en">MultiGlide settings unavailable</translation>
+        </string>
+    <string name="gboard_patches_multiglide_error_summary">
+        <translation locale="en">The MultiGlide settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_section_diagnostics">
+        <translation locale="en">Diagnostics</translation>
+        </string>
+    <string name="gboard_patches_multiglide_diagnostics_summary">
+        <translation locale="en">Record and export logs for troubleshooting</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_logging_title">
+        <translation locale="en">Debug trace logging</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_logging_summary">
+        <translation locale="en">Record touch paths, timings, and decoder candidates to local trace logs for troubleshooting.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_title">
+        <translation locale="en">Export debug trace log…</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_summary">
+        <translation locale="en">Choose how many minutes back to export recorded trace events as JSONL.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_dialog_title">
+        <translation locale="en">Export trace window</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_minutes_item">
+        <translation locale="en">Last %d minutes</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_hours_item">
+        <translation locale="en">Last %d hours</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_all">
+        <translation locale="en">All recorded logs</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_hint">
+        <translation locale="en">Minutes (1–1440)</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_error">
+        <translation locale="en">Enter a duration between 1 and 1440 minutes.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_empty">
+        <translation locale="en">No trace log entries found in the selected time window.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_export_done">
+        <translation locale="en">Trace log exported.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_clear_title">
+        <translation locale="en">Clear debug trace logs</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_clear_summary">
+        <translation locale="en">Delete locally stored MultiGlide trace log files.</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_clear_confirm_title">
+        <translation locale="en">Clear debug trace logs?</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_clear_confirm_message">
+        <translation locale="en">Delete all recorded MultiGlide trace log files?</translation>
+        </string>
+    <string name="gboard_patches_multiglide_trace_clear_done">
+        <translation locale="en">Debug trace logs cleared.</translation>
+        </string>
+    <string name="gboard_patches_kinetica_reset_title">
+        <translation locale="en">Reset to defaults</translation>
+        </string>
+    <string name="gboard_patches_kinetica_reset_summary">
+        <translation locale="en">Restore all decoder parameters to their default values</translation>
+        </string>
+    <string name="gboard_patches_kinetica_reset_confirm_title">
+        <translation locale="en">Reset decoder parameters?</translation>
+        </string>
+    <string name="gboard_patches_kinetica_reset_confirm_message">
+        <translation locale="en">Search depth, rare word boost, path strictness, and common word preference will be restored to defaults.</translation>
+        </string>
+    <string name="gboard_patches_kinetica_reset_done">
+        <translation locale="en">Decoder parameters reset to defaults.</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_title">
+        <translation locale="en">Typing Effects</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_summary">
+        <translation locale="en">Rainbow swipe trail, glitter particles, and tap or release explosions</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_section_effects">
+        <translation locale="en">General</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_section_style">
+        <translation locale="en">Swipe Glitter</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_section_trail">
+        <translation locale="en">Rainbow Swipe Trail</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_section_particles">
+        <translation locale="en">Explosions</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_section_particle_physics">
+        <translation locale="en">Particle Physics</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_section_key_glow">
+        <translation locale="en">Key Touch Glow</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_section_warp">
+        <translation locale="en">Trampoline Keyboard Warp</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_section_wind">
+        <translation locale="en">Swipe Wind</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_enabled_title">
+        <translation locale="en">Enable Typing Effects</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_enabled_summary">
+        <translation locale="en">Master switch for all visual show effects on the keyboard</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_rainbow_trail_title">
+        <translation locale="en">Rainbow swipe trail</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_rainbow_trail_summary">
+        <translation locale="en">Replace the default swipe trail and MultiGlide chord accent with an animated color trail for single-finger and MultiGlide gestures</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_trail_glow_title">
+        <translation locale="en">Trail neon glow</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_trail_glow_summary">
+        <translation locale="en">Add a luminous outer aura and bright core highlight to the swipe trail</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_title">
+        <translation locale="en">Swipe glitter</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_summary">
+        <translation locale="en">Emit shimmering glitter particles behind your fingers while swiping</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_tap_explosion_title">
+        <translation locale="en">Tap explosion</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_tap_explosion_summary">
+        <translation locale="en">Burst particles at your fingertip whenever you tap a key</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_release_explosion_title">
+        <translation locale="en">Swipe-release explosion</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_release_explosion_summary">
+        <translation locale="en">Trigger a celebratory burst when lifting a finger at the end of a swipe</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_shockwave_ring_title">
+        <translation locale="en">Shockwave ring</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_shockwave_ring_summary">
+        <translation locale="en">Add an expanding luminous ring to tap and swipe-release explosions</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_title">
+        <translation locale="en">Key touch glow</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_summary">
+        <translation locale="en">Illuminates touched and swiped-over keys with a glowing highlight that fades out smoothly</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_style_title">
+        <translation locale="en">Key glow style</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_style_summary">
+        <translation locale="en">Visual style used to highlight touched keys</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_style_neon_glow">
+        <translation locale="en">Neon RGB glow (Default)</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_style_plasma_pulse">
+        <translation locale="en">Plasma pulse frame</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_style_soft_fill">
+        <translation locale="en">Soft glass fill</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_duration_title">
+        <translation locale="en">Key glow duration</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_key_highlight_duration_summary">
+        <translation locale="en">How long touched keys stay illuminated before fading out</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_keyboard_warp_title">
+        <translation locale="en">Trampoline keyboard warp</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_keyboard_warp_summary">
+        <translation locale="en">Flex and depress touched and neighboring keys like an elastic trampoline with spring rebound</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_warp_strength_title">
+        <translation locale="en">Warp strength</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_warp_strength_summary">
+        <translation locale="en">How deeply keys depress, tilt, and pull toward your finger</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_warp_radius_title">
+        <translation locale="en">Warp radius</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_warp_radius_summary">
+        <translation locale="en">How far the trampoline wave spreads across surrounding keys</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_wind_title">
+        <translation locale="en">Swipe wind streams</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_wind_summary">
+        <translation locale="en">Flowing ambient air ribbons that loosely follow your swipe trajectory in a wide corridor</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_wind_intensity_title">
+        <translation locale="en">Wind intensity</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_wind_intensity_summary">
+        <translation locale="en">How many wind gusts appear and how vivid they look while swiping</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_wind_spread_title">
+        <translation locale="en">Wind spread radius</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_wind_spread_summary">
+        <translation locale="en">How wide around your swipe path the ambient wind ribbons flow</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_palette_title">
+        <translation locale="en">Color palette</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_palette_summary">
+        <translation locale="en">Color theme used for trails, glitter, and explosions</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_palette_rainbow">
+        <translation locale="en">Rainbow (Default)</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_palette_neon">
+        <translation locale="en">Neon Cyberpunk</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_palette_fire">
+        <translation locale="en">Blazing Fire</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_palette_galaxy">
+        <translation locale="en">Cosmic Galaxy</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_palette_pastel">
+        <translation locale="en">Dreamy Pastel</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_explosion_style_title">
+        <translation locale="en">Explosion style</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_explosion_style_summary">
+        <translation locale="en">Visual particle shape for tap and swipe-release bursts</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_explosion_style_sparks_ring">
+        <translation locale="en">Glowing sparks (Default)</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_explosion_style_sparkles">
+        <translation locale="en">Sparkling stars &amp; diamonds</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_explosion_style_confetti">
+        <translation locale="en">Colorful confetti shards</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_explosion_style_all_out">
+        <translation locale="en">All-out show mix (Sparks + Stars + Confetti)</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_style_title">
+        <translation locale="en">Glitter style</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_style_summary">
+        <translation locale="en">Particle shape emitted along your swipe path</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_style_sparkles">
+        <translation locale="en">Twinkling stars (Default)</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_style_sparks">
+        <translation locale="en">Glowing micro-sparks</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_style_confetti">
+        <translation locale="en">Mini confetti flecks</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_style_mixed">
+        <translation locale="en">Mixed sparkle burst</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_trail_width_title">
+        <translation locale="en">Trail width</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_trail_width_summary">
+        <translation locale="en">Thickness of the swipe ribbon at your fingertip</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_trail_fade_title">
+        <translation locale="en">Trail fade duration</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_trail_fade_summary">
+        <translation locale="en">How long swipe trails linger before fading away</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_rainbow_speed_title">
+        <translation locale="en">Color cycle speed</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_rainbow_speed_summary">
+        <translation locale="en">How rapidly rainbow and palette colors shift along the trail</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_particle_count_title">
+        <translation locale="en">Explosion particle count</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_particle_count_summary">
+        <translation locale="en">Number of particles spawned per tap or swipe-release explosion</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_density_title">
+        <translation locale="en">Glitter density</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_glitter_density_summary">
+        <translation locale="en">How densely glitter particles spawn while swiping</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_particle_size_title">
+        <translation locale="en">Particle size</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_particle_size_summary">
+        <translation locale="en">Scale of sparks, stars, confetti, and shockwave rings</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_particle_lifetime_title">
+        <translation locale="en">Particle lifetime</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_particle_lifetime_summary">
+        <translation locale="en">How long explosion and glitter particles stay visible</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_particle_speed_title">
+        <translation locale="en">Particle speed</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_particle_speed_summary">
+        <translation locale="en">Initial burst velocity of explosion and glitter particles</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_reset_title">
+        <translation locale="en">Reset to defaults</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_reset_summary">
+        <translation locale="en">Restore all Typing Effects toggles, styles, and sliders to default values</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_reset_confirm_title">
+        <translation locale="en">Reset Typing Effects?</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_reset_confirm_message">
+        <translation locale="en">All Typing Effects settings will be restored to their default values.</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_reset_done">
+        <translation locale="en">Typing Effects reset to defaults.</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_error_title">
+        <translation locale="en">Typing Effects settings unavailable</translation>
+        </string>
+    <string name="gboard_patches_typing_effects_error_summary">
+        <translation locale="en">The Typing Effects settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        </string>
+
+    <string name="gboard_patches_custom_hold_popups_title">
+        <translation locale="en">Custom Hold Popups</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_summary">
+        <translation locale="en">Customize or add characters, symbols, emojis, and text snippets to long-press popups</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_section_general">
+        <translation locale="en">General</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_section_customizations">
+        <translation locale="en">Custom hold bindings</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_enabled_title">
+        <translation locale="en">Enable Custom Hold Popups</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_enabled_summary">
+        <translation locale="en">Add or edit symbols when long-pressing keys on the keyboard</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_lock_keys_title">
+        <translation locale="en">Lock keys</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_lock_keys_summary">
+        <translation locale="en">Hide the edit icon and disable hold-to-edit on the keyboard to prevent accidental changes</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_empty_title">
+        <translation locale="en">No custom hold bindings yet</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_empty_summary">
+        <translation locale="en">Long-press any key and release on the edit icon to add a symbol, or hold on an existing popup symbol for 2 seconds to edit it.</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_entry_modified_title">
+        <translation locale="en">Key &quot;%1$s&quot;: %2$s → %3$s</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_entry_modified_summary">
+        <translation locale="en">Modified default symbol (original: %1$s) • Tap to edit or reset</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_entry_added_title">
+        <translation locale="en">Key &quot;%1$s&quot; + %2$s</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_entry_added_summary">
+        <translation locale="en">Added custom symbol • Tap to edit or delete</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_add_title">
+        <translation locale="en">Add hold symbol for &quot;%1$s&quot;</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_add_subtitle">
+        <translation locale="en">Enter a character, symbol, emoji, or text snippet to add to the long-press popup of key &quot;%1$s&quot;.</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_edit_title">
+        <translation locale="en">Edit hold symbol for &quot;%1$s&quot;</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_edit_added_subtitle">
+        <translation locale="en">Update or delete this custom symbol on key &quot;%1$s&quot;.</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_edit_default_subtitle">
+        <translation locale="en">Replace this default symbol (original: &quot;%2$s&quot;) on key &quot;%1$s&quot;, or reset it to the original symbol.</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_input_hint">
+        <translation locale="en">Character, emoji, or text snippet</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_action_add">
+        <translation locale="en">Add</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_action_save">
+        <translation locale="en">Save</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_action_delete">
+        <translation locale="en">Delete</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_action_reset">
+        <translation locale="en">Reset</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_error_empty">
+        <translation locale="en">Please enter at least one character.</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_error_reserved_pencil">
+        <translation locale="en">The edit icon (✎) is reserved and cannot be used as a hold symbol.</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_delete_confirm_message">
+        <translation locale="en">Delete custom symbol &quot;%1$s&quot; from key &quot;%2$s&quot;?</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_dialog_reset_confirm_message">
+        <translation locale="en">Reset this hold slot on key &quot;%2$s&quot; back to &quot;%1$s&quot;?</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_add_binding_title">
+        <translation locale="en">Add hold binding</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_add_binding_summary">
+        <translation locale="en">Choose a key and add a custom hold symbol (works even when keys are locked)</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_add_binding_key_hint">
+        <translation locale="en">Base key (e.g. a, ., 1)</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_reset_title">
+        <translation locale="en">Reset all custom hold bindings</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_reset_summary">
+        <translation locale="en">Remove all added symbols and restore all modified default hold popup symbols</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_reset_confirm_title">
+        <translation locale="en">Reset all custom hold bindings?</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_reset_confirm_message">
+        <translation locale="en">All custom added symbols will be deleted and all modified default symbols will be restored to their original values.</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_reset_done">
+        <translation locale="en">All custom hold bindings have been reset.</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_error_title">
+        <translation locale="en">Custom Hold Popups settings unavailable</translation>
+        </string>
+    <string name="gboard_patches_custom_hold_popups_error_summary">
+        <translation locale="en">The Custom Hold Popups settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        </string>
+</settings-text>

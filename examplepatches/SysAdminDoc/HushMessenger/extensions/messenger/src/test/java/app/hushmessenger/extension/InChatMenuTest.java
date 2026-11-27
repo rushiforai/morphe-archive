@@ -364,7 +364,8 @@ public class InChatMenuTest {
 
     /**
      * On the S22 the emoji row lands across a photo or video rather than over it (#162). One that fits on the screen
-     * with the card still gets the card under it, moving up as far as the card needs, so the card never covers it.
+     * with the card still gets the card under it, moving up as far as the card needs, so the card never covers it, and
+     * the row moves on up off the photo.
      */
     @Test public void aPhotoTheRowLiesAcrossRisesWithTheCardUnderIt() {
         assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
@@ -381,10 +382,46 @@ public class InChatMenuTest {
         int card = FloatingMenu.height(LABELS.length, density);
         assertTrue("The fixture's photo fits with its card", 600 - 200 + gap + card <= chat.getHeight() - 2 * edge);
         int rise = Math.max(0, 600 + gap + card - (chat.getHeight() - edge));
+        assertTrue("The fixture leaves the row room over the photo", 300 - rise - edge >= 350 - 200);
         assertSame(message, lift().message);
         assertEquals(rise, lift().rise);
-        assertEquals(-rise, panel.getTranslationY(), 0f);
+        assertEquals("The row ends where the photo starts", -(rise + 350 - 200), panel.getTranslationY(), 0f);
         assertEquals("Under the photo, not over it", 600 - rise + gap, ((FrameLayout.LayoutParams) card().getLayoutParams()).topMargin);
+    }
+
+    /**
+     * #162: with the row laid 12 px down a photo, as the S22 had it, the row moves up off the photo, past whatever the
+     * card's room took, with or without the blur, and Messenger's slide doesn't put it back.
+     */
+    @Test public void theEmojiRowMovesUpOffThePhotoItLiesAcrossAndStaysThere() {
+        on(MenuBlur.KEY, FloatingMenu.KEY);
+        makeTheMessageTall(300);
+
+        open(212);
+        idle();
+        fillIn();
+        idle();
+
+        float density = activity.getResources().getDisplayMetrics().density;
+        int gap = (int) (FloatingMenu.GAP_DP * density), edge = (int) (FloatingMenu.EDGE_DP * density);
+        int card = FloatingMenu.height(LABELS.length, density);
+        // Only a photo drawn again over the blur can move up with the row to make room for the card.
+        boolean blurs = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
+        int rise = blurs ? Math.max(0, 500 + gap + card - (chat.getHeight() - edge)) : 0;
+        assertTrue("The fixture leaves the row room over the photo", 212 - rise - edge >= 262 - 200);
+        if (blurs) assertEquals(rise, lift().rise);
+        int moved = rise + 262 - 200;
+        assertEquals("The row ends where the photo starts", -moved, panel.getTranslationY(), 0f);
+        assertEquals(Math.min(500 - rise + gap, chat.getHeight() - edge - card),
+            ((FrameLayout.LayoutParams) card().getLayoutParams()).topMargin);
+
+        panel.setTranslationY(0f);
+        frame();
+        assertEquals(-moved, panel.getTranslationY(), 0f);
+
+        chat.removeView(menu);
+        assertEquals(0f, panel.getTranslationY(), 0f);
+        assertTrue(Settings.hookErrors.isEmpty());
     }
 
     /** A video taller than the screen can share with the card keeps its place, and the card goes under the row. */

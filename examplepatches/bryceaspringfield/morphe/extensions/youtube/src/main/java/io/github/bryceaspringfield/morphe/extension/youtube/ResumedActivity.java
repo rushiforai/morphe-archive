@@ -7,7 +7,6 @@ import android.os.Bundle;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/** The main activity while it is resumed (2026-11-18: all that remains of the removed Keep Home going feature). */
 final class ResumedActivity {
 
     private static boolean registered;
@@ -26,7 +25,6 @@ final class ResumedActivity {
         }
     }
 
-    /** The main activity while it is resumed, else null. */
     static Activity main() {
         return resumed;
     }

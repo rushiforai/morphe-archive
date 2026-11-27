@@ -21,7 +21,7 @@ final class LibraryMetadata {
 
     Scan scan(Progress progress) throws IOException {
         progress.update("reading", 0, 0);
-        List<LibraryDaap.Track> tracks = cloud.tracks();
+        List<LibraryDaap.Track> tracks = cloud.tracks((loaded, total) -> progress.update("reading", loaded, total));
         Set<String> ids = new LinkedHashSet<>();
         for (LibraryDaap.Track track : tracks) if (!track.catalogId.isEmpty()) ids.add(track.catalogId);
         MetadataCatalog catalog = new MetadataCatalog(cancelled);

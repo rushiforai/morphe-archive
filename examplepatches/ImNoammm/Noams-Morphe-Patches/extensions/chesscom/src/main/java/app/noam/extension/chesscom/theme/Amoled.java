@@ -42,6 +42,16 @@ public final class Amoled {
         return ((long) argb & 0xFFFFFFFFL) << 32;
     }
 
+    /** A color of the redesign's background shade: transparent, so it leaves no grey haze over black. */
+    public static long shade(long original) {
+        return enabled() ? compose(Color.TRANSPARENT) : original;
+    }
+
+    /** The bottom bar's color (chess.com's gray900, which the app then makes slightly see-through): black. */
+    public static long bar(long original) {
+        return enabled() ? compose(Color.BLACK) : original;
+    }
+
     /** The theme background (a picture or colour behind the app's screens): black instead. */
     public static Drawable background(Drawable background) {
         return enabled() ? new ColorDrawable(Color.BLACK) : background;

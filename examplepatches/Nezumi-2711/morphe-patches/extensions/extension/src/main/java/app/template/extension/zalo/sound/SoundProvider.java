@@ -10,6 +10,9 @@ import android.provider.OpenableColumns;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
+
 public final class SoundProvider extends ContentProvider {
     @Override public boolean onCreate() {
         return true;
@@ -52,6 +55,7 @@ public final class SoundProvider extends ContentProvider {
             cursor.addRow(values);
             return cursor;
         } catch (FileNotFoundException failure) {
+            NezumiLog.swallowedOnce(Patch.CUSTOM_SOUNDS, "SoundProvider", "query for a missing sound file", failure);
             return null;
         }
     }

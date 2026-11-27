@@ -48,7 +48,7 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 ## App overview
 
 <!-- PATCHES_START SUMMARY -->
-**Patch bundle [v1.106.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.106.0)** · 90 apps · 434 patches
+**Patch bundle [v1.108.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.108.0)** · 90 apps · 440 patches
 
 ### Weather
 
@@ -149,7 +149,7 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 | [Cronometer](docs/site/en/apps/cronometer.md) | Tracking | 4.57.2 | APKM | 7 |
 | [dynamicSpot](docs/site/en/apps/dynamicspot.md) | Plus/Pro · Compatibility | 3.02 | APKM | 5 |
 | [Fennec](docs/site/en/apps/fennec.md) | See guide | Any | APK | 1 |
-| [Gboard](docs/site/en/apps/gboard.md) | See guide | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a | APK | 34 |
+| [Gboard](docs/site/en/apps/gboard.md) | See guide | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a | APK | 40 |
 | [GridCraft](docs/site/en/apps/gridcraft.md) | See guide | Any | APK | 1 |
 | [Home Assistant](docs/site/en/apps/homeassistant.md) | See guide | 2026.10.1-full | APKS | 1 |
 | [Home Assistant (Automotive)](docs/site/en/apps/homeassistant-automotive.md) | See guide | 2026.11.2-full | APK | 2 |

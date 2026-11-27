@@ -34,12 +34,16 @@ final class PreviewUrls {
         }catch(IllegalArgumentException invalid){return null;}
     }
     static List<String> extract(CharSequence body,int maximum){
+        return extract(body,maximum,false);
+    }
+    static List<String> extract(CharSequence body,int maximum,boolean explicitOnly){
         LinkedHashSet<String> links=new LinkedHashSet<>();
         if(body!=null&&body.length()<=100000){
             Matcher matcher=LINKS.matcher(body),ids=IDS.matcher(body);boolean hasId=ids.find();
             while(matcher.find()&&links.size()<maximum){
                 while(hasId&&ids.end()<=matcher.start())hasId=ids.find();
                 String candidate=matcher.group();
+                if(explicitOnly&&candidate.indexOf("://")<0&&!candidate.startsWith("//"))continue;
                 // IDs may resemble bare domains. Keep explicit/abbreviated URLs usable,
                 // but never infer a URL inside an ID token, including spaced/full-width labels.
                 if(candidate.indexOf("://")<0&&!candidate.startsWith("//")&&hasId&&ids.start()<=matcher.start()&&matcher.start()<ids.end())continue;

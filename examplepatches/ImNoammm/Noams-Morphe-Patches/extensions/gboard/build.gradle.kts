@@ -5,7 +5,7 @@ extension {
 android {
     namespace = "app.nogoogle.gboard"
 
-    // Gboard 18.2 runs on Android 12L and up.
+    // The patched keyboard installs on Android 12L and up only (the patches raise Gboard's minimum to it).
     defaultConfig {
         minSdk = 32
     }

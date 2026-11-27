@@ -8,12 +8,22 @@
     {
       "name": "DeepSeek – Biên tập truyện convert",
       "author": "HaoDH",
-      "version": 11,
+      "version": 16,
       "source": "https://api.deepseek.com",
-      "description": "Biên tập nguyên chương Việt convert bằng nhiều nguồn AI (DeepSeek, Gemini free, OpenRouter, Groq, tùy chỉnh); tự chuyển sang DeepSeek khi nguồn miễn phí hết hạn mức; lưu toàn chương và bộ nhớ tên theo truyện.",
+      "description": "Biên tập nguyên chương Việt convert bằng nhiều nguồn AI (DeepSeek, Gemini free, Cloudflare Workers AI, Groq, OpenRouter, model local trên PC qua LAN/tùy chỉnh); tự thử lại, chuyển nguồn và chia nhỏ chương dài; prompt theo thể loại; bộ nhớ tên theo truyện và dùng chung giữa các truyện.",
       "type": "translate",
       "locale": "vi_VN",
       "path": "https://raw.githubusercontent.com/HaoDH/vbook-patche/main/extensions/convert-editor.zip"
+    },
+    {
+      "name": "Local AI – Biên tập truyện convert",
+      "author": "HaoDH",
+      "version": 2,
+      "source": "https://lmstudio.ai",
+      "description": "Biên tập nguyên chương Việt convert bằng model AI chạy trên máy bạn (Ollama, llama.cpp, LM Studio) qua wifi LAN. Miễn phí, riêng tư, không gọi dịch vụ ngoài và không có fallback trả phí; bộ nhớ tên theo truyện, phong cách theo thể loại, tự chia nhỏ chương dài.",
+      "type": "translate",
+      "locale": "vi_VN",
+      "path": "https://raw.githubusercontent.com/HaoDH/vbook-patche/main/extensions/convert-editor-local.zip"
     }
   ]
 }

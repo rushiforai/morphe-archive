@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 
 public final class ChatHeadAction {
     private static final int OPTION_ID = 0x4e7a;
@@ -46,7 +47,7 @@ public final class ChatHeadAction {
 
     public static boolean canObservePosture(Context context) {
         boolean allowed = Build.VERSION.SDK_INT < 31 || context.isUiContext();
-        if (!allowed) NezumiLog.i("ChatHeadAction", "Skipping posture listener for non-UI context");
+        if (!allowed) NezumiLog.i(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "Skipping posture listener for non-UI context");
         return allowed;
     }
 
@@ -65,9 +66,9 @@ public final class ChatHeadAction {
                 Object option = loader.loadClass(owner).getConstructor(int.class, int.class, int.class)
                     .newInstance(OPTION_ID, icon, label);
             ((ArrayList<Object>) items).add(option);
-            NezumiLog.i("ChatHeadAction", "Created chat head option; source rows=" + items.size());
+            NezumiLog.i(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "Created chat head option; source rows=" + items.size());
         } catch (ReflectiveOperationException | RuntimeException error) {
-            NezumiLog.w("ChatHeadAction", "Unable to add chat head option", error);
+            NezumiLog.w(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "Unable to add chat head option", error);
         }
     }
 
@@ -81,10 +82,10 @@ public final class ChatHeadAction {
                     break;
                 }
             } catch (ReflectiveOperationException failure) {
-                NezumiLog.swallowedOnce("ChatHeadAction", "option id unavailable (field b)", failure);
+                NezumiLog.swallowedOnce(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "option id unavailable (field b)", failure);
             }
         }
-        NezumiLog.i("ChatHeadAction", "ChatInfo rows: source=" + source.size()
+        NezumiLog.i(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "ChatInfo rows: source=" + source.size()
                 + ", displayed=" + displayed.size() + ", option=" + found);
     }
 
@@ -96,9 +97,10 @@ public final class ChatHeadAction {
             if (!open(adapter)) showUnavailable();
             return true;
         } catch (NoSuchFieldException error) {
+            NezumiLog.swallowedOnce(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "chat info option has no id field (b)", error);
             return false;
         } catch (ReflectiveOperationException | RuntimeException error) {
-            NezumiLog.w("ChatHeadAction", "Unable to handle chat head option", error);
+            NezumiLog.w(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "Unable to handle chat head option", error);
             return true;
         }
     }
@@ -109,7 +111,7 @@ public final class ChatHeadAction {
             Context context = (Context) applicationClass.getMethod("getAppContext").invoke(null);
             Toast.makeText(context, "Chat head is unavailable for this conversation", Toast.LENGTH_SHORT).show();
         } catch (ReflectiveOperationException | RuntimeException error) {
-            NezumiLog.w("ChatHeadAction", "Unable to show chat head status", error);
+            NezumiLog.w(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "Unable to show chat head status", error);
         }
     }
 
@@ -140,7 +142,7 @@ public final class ChatHeadAction {
             Runnable task = (Runnable) constructor.newInstance(controller, conversation, true, 0, true, "", bundle, true);
             return ((Handler) controllerClass.getField("b").get(controller)).post(task);
         } catch (ReflectiveOperationException | RuntimeException error) {
-            NezumiLog.w("ChatHeadAction", "Unable to open chat head", error);
+            NezumiLog.w(Patch.CHAT_HEADS_INSTEAD_OF_ANDROID_BUBBLES, "ChatHeadAction", "Unable to open chat head", error);
             return false;
         }
     }

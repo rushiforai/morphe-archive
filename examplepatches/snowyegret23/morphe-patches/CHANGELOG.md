@@ -1,3 +1,20 @@
+## [1.5.1](https://github.com/snowyegret23/morphe-patches/compare/v1.5.0...v1.5.1) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* disable streamer highlights and chat navigation by default ([49b887e](https://github.com/snowyegret23/morphe-patches/commit/49b887e83f9178ecbe9999e71d999ee5b7084005))
+* preserve exception handlers when removing playback ads ([f79104f](https://github.com/snowyegret23/morphe-patches/commit/f79104f2468076027c9f060cfdd046174f8e6f59))
+* restore complete CHZZK 3.18.0 mobile patch support ([7c6cfde](https://github.com/snowyegret23/morphe-patches/commit/7c6cfde6be05b8d57f8c809d1aedd33dc35ccb00))
+* restore startup on CHZZK 3.18.0 and TV 1.5.0 ([c377fad](https://github.com/snowyegret23/morphe-patches/commit/c377fad4f3c9723a89119e570fbe6b25798d5065))
+
+### ✨ New Features
+
+* add streamer chat highlighting and chat navigation ([771af36](https://github.com/snowyegret23/morphe-patches/commit/771af366626b6bc3a2f1866bac31380cdb2d8203))
+
+### 🚀 Updated App Support
+
+* support all patches on CHZZK for Android TV 1.5.0 ([4fe32b2](https://github.com/snowyegret23/morphe-patches/commit/4fe32b2f75256db1d39f7df78ad74155eb689a1e))
+
 ## [1.5.0](https://github.com/snowyegret23/morphe-patches/compare/v1.4.10...v1.5.0) (2026-11-23)
 
 ### ✨ New Features
@@ -8,7 +25,11 @@
 
 ### ✨ New Features
 
-* add overlay controls and playback compatibility settings ([de7f0fc](https://github.com/snowyegret23/morphe-patches/commit/de7f0fc6577bc3e3caf0198301a2ae6a943804a9))
+* organize viewer count, broadcast duration and playback statistics under the overlay settings ([de7f0fc](https://github.com/snowyegret23/morphe-patches/commit/de7f0fc6577bc3e3caf0198301a2ae6a943804a9))
+* allow viewer count, broadcast duration and their labels to be shown or hidden independently ([289cc77](https://github.com/snowyegret23/morphe-patches/commit/289cc778ca4b1204ecb57bd7f5bb940c4b8a6046))
+* add background color and opacity controls for broadcast information, and text outlines for playback statistics ([de7f0fc](https://github.com/snowyegret23/morphe-patches/commit/de7f0fc6577bc3e3caf0198301a2ae6a943804a9))
+* add a setting to hide startup ads and event popups, enabled by default ([de7f0fc](https://github.com/snowyegret23/morphe-patches/commit/de7f0fc6577bc3e3caf0198301a2ae6a943804a9))
+* add optional 1080p/60fps compatibility adjustments for affected XiaoxinPad firmware in Morphe player settings, disabled by default ([de7f0fc](https://github.com/snowyegret23/morphe-patches/commit/de7f0fc6577bc3e3caf0198301a2ae6a943804a9))
 
 ## [1.4.9](https://github.com/snowyegret23/morphe-patches/compare/v1.4.8...v1.4.9) (2026-11-13)
 
@@ -70,47 +91,47 @@
 
 * **minor:** improve live catch-up and add buffer controls ([d3a142a](https://github.com/snowyegret23/morphe-patches/commit/d3a142ad15387e08d96f0c5ded48175e770977fc))
 
-## 1.3.0 (2026-10-14)
+## [1.3.0](https://github.com/snowyegret23/morphe-patches/compare/v1.2.0...v1.3.0) (2026-10-14)
 
-### 새 기능과 개선
+### ✨ New Features
 
-- 소리 평준화와 100–300% 추가 증폭을 추가했습니다. Morphe 설정의 ‘소리’에서 각각 켜고 조절할 수 있습니다.
-- 채팅 글자 크기와 소리 증폭 배율을 −/+ 버튼으로 5%씩 조절할 수 있습니다.
+* add sound leveling and 100–300% volume boost, with independent controls in Morphe audio settings ([45cd415](https://github.com/snowyegret23/morphe-patches/commit/45cd4155602ff4bf2ea60a158ff8a6493a2052a2))
+* adjust chat font size and volume boost in 5% steps using the −/+ buttons ([45cd415](https://github.com/snowyegret23/morphe-patches/commit/45cd4155602ff4bf2ea60a158ff8a6493a2052a2))
 
-## 1.2.0 (2026-10-12)
+## [1.2.0](https://github.com/snowyegret23/morphe-patches/compare/v1.1.2...v1.2.0) (2026-10-12)
 
-### 지원 버전 추가
+### 🚀 Updated App Support
 
-- 치지직 3.14.10 지원을 추가했습니다. 기존 3.14.0도 계속 지원합니다.
+* support CHZZK 3.14.10 alongside 3.14.0 ([d723cb7](https://github.com/snowyegret23/morphe-patches/commit/d723cb7692fb1396afc0693ac94cf711cb4c201c))
 
-## 1.1.2 (2026-10-05)
+## [1.1.2](https://github.com/snowyegret23/morphe-patches/compare/v1.1.1...v1.1.2) (2026-10-05)
 
-### 수정
+### 🐛 Bug Fixes
 
-- 채팅 폭 조절을 − / 숫자 / + 순서로 정렬했습니다. 숫자 영역의 너비를 확보해 값이 바뀌어도 버튼 위치가 일정하게 유지됩니다.
+* keep the chat width value in a fixed width area between the −/+ buttons to prevent layout shifts ([acb7e59](https://github.com/snowyegret23/morphe-patches/commit/acb7e595e908518aa06aa677523d29419a9c6bee))
 
-## 1.1.1 (2026-10-05)
+## [1.1.1](https://github.com/snowyegret23/morphe-patches/compare/v1.1.0...v1.1.1) (2026-10-05)
 
-### 수정
+### 🐛 Bug Fixes
 
-- 채팅 글자 크기를 바꿨을 때 이미 표시된 메시지에도 즉시 반영되도록 수정했습니다.
-- 저장된 채팅 스타일을 설정 변경 시 갱신하여 줄 간격과 이모티콘 크기도 함께 반영합니다.
+* apply chat font size changes immediately to messages already on screen ([9106c8b](https://github.com/snowyegret23/morphe-patches/commit/9106c8bd5e6f2174af833db439ccdd9a62adc816))
+* refresh cached chat styles so changes to line spacing and emoji size also take effect ([9106c8b](https://github.com/snowyegret23/morphe-patches/commit/9106c8bd5e6f2174af833db439ccdd9a62adc816))
 
-## 1.1.0 (2026-10-05)
+## [1.1.0](https://github.com/snowyegret23/morphe-patches/compare/v1.0.0...v1.1.0) (2026-10-05)
 
-### 새 기능과 개선
+### ✨ New Features
 
-- 채팅 경계를 드래그하고 손잡이를 눌러 폭·글자 크기를 바로 조절할 수 있습니다.
-- 채팅 폭은 기본 100%, 50–300% 배율입니다. −/+ 조절을 지원하고 화면 절반 제한을 해제했습니다.
-- 닉네임과 구독·후원 순위·활동·인증·채널·역할 배지를 각각 숨길 수 있습니다.
-- 닉네임 앞 시각 표시와 PC·안드로이드·iOS 아이콘을 지원합니다.
-- 동심원 모양의 실시간 따라잡기 버튼과 클립·크롬캐스트·공유 버튼 표시 설정을 추가했습니다.
-- 방송 화면의 ⋯ 메뉴에서 Morphe 설정을 열 수 있습니다.
-- 설정과 최근 채팅 화면을 새로 구성하고 설정 복사·붙여넣기를 지원합니다.
-- 7개 패치를 기본 선택합니다. 전문가 모드 없이 원본과 별도인 ‘치지직 S’로 설치됩니다.
+* add drag handles and quick settings for chat width and font size ([d43a26e](https://github.com/snowyegret23/morphe-patches/commit/d43a26eeef424cdf34e99afe7f25c97c9c40fd03))
+* set the default chat width to 100%, allow 50–300% scaling with −/+ controls, and remove the half-screen width limit ([d43a26e](https://github.com/snowyegret23/morphe-patches/commit/d43a26eeef424cdf34e99afe7f25c97c9c40fd03))
+* add independent visibility controls for nicknames and subscription, donation ranking, activity, verification, channel and role badges ([d43a26e](https://github.com/snowyegret23/morphe-patches/commit/d43a26eeef424cdf34e99afe7f25c97c9c40fd03))
+* add timestamps and PC, Android and iOS device icons before nicknames ([d43a26e](https://github.com/snowyegret23/morphe-patches/commit/d43a26eeef424cdf34e99afe7f25c97c9c40fd03))
+* add a live catch-up button and visibility settings for clip, Chromecast and share buttons ([d43a26e](https://github.com/snowyegret23/morphe-patches/commit/d43a26eeef424cdf34e99afe7f25c97c9c40fd03))
+* open Morphe settings from the live player’s more menu ([d43a26e](https://github.com/snowyegret23/morphe-patches/commit/d43a26eeef424cdf34e99afe7f25c97c9c40fd03))
+* redesign settings and recent chat views, with settings backup and restore using copy and paste ([d43a26e](https://github.com/snowyegret23/morphe-patches/commit/d43a26eeef424cdf34e99afe7f25c97c9c40fd03))
+* select all seven patches by default for CHZZK 3.14.0, installing a separate CHZZK S app without expert mode ([d43a26e](https://github.com/snowyegret23/morphe-patches/commit/d43a26eeef424cdf34e99afe7f25c97c9c40fd03))
 
 ## 1.0.0 (2026-10-05)
 
 ### ✨ New Features
 
-* add CHZZK patches with configurable chat and app branding
+* add CHZZK patches with configurable chat and app branding ([839980e](https://github.com/snowyegret23/morphe-patches/commit/839980e95f1dbff795dd2065ffa9f148c1c5c1b1))

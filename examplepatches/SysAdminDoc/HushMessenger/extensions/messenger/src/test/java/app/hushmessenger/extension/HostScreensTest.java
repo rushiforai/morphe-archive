@@ -964,6 +964,8 @@ public class HostScreensTest {
                 TextView help = root.findViewWithTag("access_help");
                 assertEquals(new SettingsText(app).get(mounted ? "access_help_hosted_menu" : "access_help_menu"), help.getText().toString());
                 assertEquals(mounted, root.findViewWithTag("hide_drawer_icon") == null);
+                // The stock screen a Root Mount install shows settings in never hears that it was left (#207).
+                assertEquals(mounted, root.findViewWithTag(SettingsActivity.IN_RECENTS) == null);
                 root.findViewWithTag("restart_messenger").performClick();
                 Intent restart = Shadows.shadowOf(screen.get()).getNextStartedActivity();
                 assertEquals(mounted ? HostScreens.SCREEN_HOST : RestartActivity.class.getName(), restart.getComponent().getClassName());

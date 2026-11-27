@@ -290,6 +290,9 @@ Feed videos and stories wait for your tap. Reels and videos in Explore play as I
 Turn on Tap to play to use this choice.	Ative Tocar para reproduzir para usar esta opção.
 Resume long videos	Retomar vídeos longos
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Vídeos e reels com mais de dois minutos continuam de onde você parou. Arraste a barra de progresso para começar em outro ponto. Vídeos ao vivo e anúncios começam normalmente.
+# context: a switch under Resume long videos (#874). A feed video you scroll past and come back to keeps playing from where it was, only until Instagram closes. The Reels tab is Instagram's own tab.
+Keep your place in feed videos	Lembrar onde parou nos vídeos do feed
+A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over as usual.	Um vídeo do feed que você rola para longe continua de onde parou quando você volta a ele, até você fechar o Instagram. Os reels da aba Reels começam do início normalmente.
 Default playback quality	Qualidade de reprodução padrão
 # context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
 Videos, reels and stories play at the quality below, starting with the next one you open.	Vídeos, reels e stories são reproduzidos na qualidade abaixo, a partir do próximo que você abrir.
@@ -771,6 +774,9 @@ The latitude and the longitude in degrees, with a comma between them, like 40.75
 Turn off HDR brightness boosts	Desativar o reforço de brilho HDR
 Keep HDR on photo uploads	Manter o HDR ao enviar fotos
 Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	Experimental. Uma foto Ultra HDR que você publica mantém o mapa de ganho no Android 14 e mais recentes, para que ainda possa aparecer em HDR. Desative se uma foto que você publicar parecer errada.
+# context: Keep HDR on video uploads, under Playback next to the photo switch. Instagram encodes a video again before it uploads it; HDR means HLG here.
+Keep HDR on video uploads	Manter o HDR ao enviar vídeos
+Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong or won't upload.	Experimental. Um vídeo HDR que você publica é codificado em HDR no Android 13 e mais recentes, onde o Instagram o deixaria em SDR em alguns celulares. Desative se um vídeo que você publicar parecer errado ou não for enviado.
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	O que você abre pela pesquisa não entra em Recentes, nem no app nem do lado do Instagram. As pesquisas que já estão lá ficam até você limpá-las.
 Wi-Fi stays as it is. Turn this off to save data on every network.	O Wi-Fi fica como está. Desative esta chave para economizar dados em qualquer rede.
 Hide comments	Ocultar comentários
@@ -1099,6 +1105,8 @@ Stop the analytics upload alarm	Parar o alarme de envio de análises
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	O Instagram define um alarme para acordar seu telefone e enviar os dados de uso cinco minutos depois. Isso para esse alarme. Os dados vão na próxima vez que você usar o app.
 Stop background feed refresh	Parar a atualização do feed em segundo plano
 About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Mais ou menos a cada meia hora, o Instagram acorda seu telefone para baixar seu feed com antecedência. Isso para essa atividade. O feed carrega quando você abre o app, e mensagens e notificações continuam chegando.
+Let Instagram close after account checks	Deixar o Instagram fechar após a verificação de contas
+When your phone checks its accounts, as it does at startup and when an account changes, Instagram never answers. Android then keeps it running for up to 15 minutes, even after you swipe it away. This answers right away so Instagram can close. Your login is unaffected.	Quando seu telefone verifica as contas, como ao ligar e quando uma conta muda, o Instagram nunca responde. O Android então o mantém rodando por até 15 minutos, mesmo depois de você deslizá-lo para fechar. Isso responde na hora para o Instagram poder fechar. Seu login não é afetado.
 Haptic style	Estilo de vibração
 Short tick	Toque curto
 System tick	Toque do sistema
@@ -1922,6 +1930,21 @@ Seek bar button on feed videos	Botão da barra de progresso nos vídeos do feed
 Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	Adiciona um botão pequeno no canto inferior esquerdo de um vídeo do feed que mostra ou oculta a barra de progresso. Funciona com a barra de progresso nos vídeos do feed ligada ou desligada.
 Seek bar	Barra de progresso
 Tint intensity	Intensidade do tom
+# context: Tab bar: the Tint color list under Tint intensity that picks the glass tab bar's color, its choices' descriptions, the Custom tint color field under it with its dialog message and empty summary, and what both say while another switch is in the way (#875). Light, Dark and AMOLED black are choices in the list; Tint intensity, Custom tint color, Glass tab bar and Material look are rows' names
+Tint color	Cor do tom
+Light	Claro
+Dark	Escuro
+AMOLED black	Preto AMOLED
+The glass takes Instagram's own colors, dark or light with its theme.	O vidro usa as cores do próprio Instagram, escuro ou claro como o Instagram estiver.
+Frosted white glass whatever Instagram's theme, with the tab icons dark on it.	Vidro branco fosco com o Instagram escuro ou claro, com os ícones das abas escuros sobre ele.
+Dark gray glass whatever Instagram's theme, with the tab icons white on it.	Vidro cinza-escuro com o Instagram escuro ou claro, com os ícones das abas brancos sobre ele.
+A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.	Uma pílula preta sem brilho, para telas AMOLED. Com uma Intensidade do tom menor, o que está atrás aparece.
+The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones keep Instagram's colors.	O vidro usa a cor de destaque que o Android escolhe do seu papel de parede. Android 12 ou mais recente. Celulares mais antigos mantêm as cores do Instagram.
+The glass takes the color you type under Custom tint color.	O vidro usa a cor que você digitar em Cor do tom personalizada.
+Custom tint color	Cor do tom personalizada
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.	Uma cor em seis dígitos hexadecimais, como #4A6B82. Salvar escolhe Personalizada em Cor do tom.
+Turn on Glass tab bar to use this choice.	Ative Barra de abas de vidro para usar esta opção.
+Turn off Material look to use this choice.	Desative Visual Material para usar esta opção.
 Refraction intensity	Intensidade da refração
 Preview of the tab bar	Prévia da barra de abas
 Keep stories playing while zooming	Manter stories tocando ao dar zoom
@@ -2334,6 +2357,9 @@ Instagram's small window for reels gets a button to pause the reel and play it a
 # context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
 Previous and next in the reels window	Anterior e próximo na janela de reels
 Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	A janela pequena do Instagram para reels ganha os próprios botões para voltar um reel ou ir para o próximo.
+# context: a switch on the Playback page under Previous and next in the reels window; photo and carousel reels go in Instagram's small picture in picture window for reels, a carousel shows a dot per page, and the window's Previous and Next buttons turn its pages before moving to another reel (#873)
+Photos and carousels in the reels window	Fotos e carrosséis na janela de reels
+Photo and carousel reels go in Instagram's small window for reels too. A carousel shows a dot for each page, and Previous and Next go through its pages first.	Reels de foto e de carrossel também vão para a janela pequena do Instagram para reels. Um carrossel mostra um ponto para cada página, e Anterior e Próximo passam primeiro pelas páginas dele.
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	Picture-in-picture para stories
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	Ao sair do Instagram enquanto um story toca, ele vira uma janela pequena sobre seus outros apps, onde continua passando pelos stories.
@@ -2781,6 +2807,9 @@ HushGram's own files take up %1$s.	Os arquivos do próprio HushGram ocupam %1$s.
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	Lente de vidro sob o seu dedo
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	Segure um dedo na bolha da pílula de vidro líquido, ou deslize-a pelas abas, e a bolha cresce e curva mais o que está atrás dela, como vidro sob a ponta de um dedo. Ela volta ao normal quando você solta. A curvatura precisa de Desfoque atrás da barra de abas e Android 13 ou mais recente. Reinicie o Instagram depois de alterar.
+# context: Tab bar: switch under Glass lens under your finger that keeps Instagram's Search tab inside the liquid pill with the other tabs instead of in a glass circle of its own, and its description (#875). Search is Instagram's tab, named as it is there; Liquid glass look is another switch's name
+Keep Search in the pill	Manter a Pesquisa na pílula
+With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass circle of its own. Restart Instagram after changing it.	Com o Visual de vidro líquido ativado, a Pesquisa fica na pílula com as outras abas em vez de em um círculo de vidro próprio. Reinicie o Instagram depois de alterar.
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	Guardar quem viu os stories
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	Toda vez que você abre quem viu um dos seus stories, a lista fica guardada neste celular, ao lado dos seus seguidores. Nada a mais é pedido ao Instagram. Desative e para na hora.
@@ -3087,3 +3116,11 @@ Settings page logo set.	Logo das configurações definido.
 HushGram shows at the top of this page.	HushGram aparece no topo desta página.
 # context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
 The top of this page says %1$s.	O topo desta página diz %1$s.
+# context: Settings > Downloads > switch title, under Name saves by account and post time (#792)
+Date saves by when they were posted	Datar o que é salvo pela hora do post
+# context: Settings > Downloads > summary of Date saves by when they were posted (#792)
+Gives each saved photo and video the time its post went up, so your gallery sorts saves by the post instead of the day you saved them. A save that doesn't know when it was posted keeps the time it was saved.	Dá a cada foto e vídeo salvo a hora em que o post foi publicado, para que a galeria ordene o que você salva pelo post e não pelo dia em que você salvou. O que for salvo sem saber quando foi postado mantém a hora em que foi salvo.
+# context: Profiles > title of the switch that adds a Select all button beside Instagram's own Select on the grids in Your activity (#762); Your activity is Instagram's own page in the profile menu, use the name Instagram shows for it in this language
+Select all in Your activity	Selecionar tudo em Sua atividade
+# context: Profiles > summary of Select all in Your activity (#762). Select, Delete and Unlike are Instagram's own buttons on those grids; use the words Instagram shows there in this language
+Adds Select all beside Select on the photo and video grids in Your activity, like your posts, reels and likes. Tick one first and it shows. It only ticks them. Nothing goes until you press Delete or Unlike yourself.	Adiciona Selecionar tudo ao lado de Selecionar nas grades de fotos e vídeos de Sua atividade, como suas publicações, reels e curtidas. Ele aparece assim que você marca um. Ele só marca os itens. Nada é removido até você mesmo tocar em Excluir ou Descurtir.

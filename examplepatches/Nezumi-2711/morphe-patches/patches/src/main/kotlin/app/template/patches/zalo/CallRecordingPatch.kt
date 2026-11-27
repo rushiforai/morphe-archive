@@ -81,6 +81,7 @@ val callRecordingPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.CALL_RECORDING)
         check(InCallMinimizeButtonFingerprint.matchAll(1..1).size == 1)
         check(CallStateFingerprint.matchAll(1..1).size == 1)
         check(MakeCallFingerprint.matchAll(1..1).size == 1)
@@ -132,6 +133,7 @@ val callRecordingPatch = bytecodePatch(
             invoke-static {v${addView.registerD}}, $CALL_RECORDING_UI->attach(Landroid/view/View;)V
         """.trimIndent())
 
+        registerHooks(PatchId.CALL_RECORDING, makeCall, incoming, callState, CallServiceDestroyFingerprint.method, minimize)
         attachNezumiSettings("attachCallRecording")
     }
 }

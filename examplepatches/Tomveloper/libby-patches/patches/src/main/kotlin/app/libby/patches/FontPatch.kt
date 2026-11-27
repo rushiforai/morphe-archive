@@ -2,7 +2,7 @@ package app.libby.patches
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.libby.patches.Constants.COMPATIBILITY_LIBBY
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
@@ -19,7 +19,7 @@ private val ADD_JAVASCRIPT_INTERFACE = ImmutableMethodReference(
 )
 
 @Suppress("unused")
-val customReadingFontPatch = bytecodePatch(
+val customReadingFontPatch = patch(
     name = "Custom reading font",
     description = "Renders book text with a font you upload in the reader.",
     default = true,

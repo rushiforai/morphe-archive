@@ -11,6 +11,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.net.Uri;
+
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+import app.morphe.extension.facebook.download.MenuTopForTests;
 import app.morphe.extension.facebook.media.PostMenuSpeed;
 import app.morphe.extension.facebook.media.ReelSpeedForTests;
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -42,7 +45,8 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * Post menu items and the first page's Playback speed: the sheet's holder loses the rows of every
  * picked kind, in its lists and its rows of their own, the kinds a menu shows are written down, and
  * Keep the reel speed's row moves from More options to the end of the first page when its switch is
- * on. Off, paused, with nothing picked or with a holder of another shape, the sheet stays Facebook's.
+ * on, with Download first's rows above it (#603). Off, paused, with nothing picked or with a holder
+ * of another shape, the sheet stays Facebook's.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -108,6 +112,8 @@ public class PostMenuItemsTest {
     private final Row cast = new Row("Cast", Kind.CAST);
     private final Row why = new Row("Why am I seeing this post?", Kind.WAIST);
     private final Row speed = new Row("Playback speed", null);
+    private final Row download = new Row("Download to phone", null);
+    private final Row openElsewhere = new Row("Open in another app", null);
 
     private Sheet sheet() {
         Sheet sheet = new Sheet();
@@ -116,6 +122,13 @@ public class PostMenuItemsTest {
         sheet.A02 = manage;
         sheet.A08.addAll(Arrays.asList(save, report));
         sheet.A07.addAll(Arrays.asList(cast, why, speed));
+        return sheet;
+    }
+
+    /** A video post's sheet with Download first on: its rows have no kind, so they lead More options. */
+    private Sheet downloadSheet() {
+        Sheet sheet = sheet();
+        sheet.A07.addAll(0, Arrays.asList(download, openElsewhere));
         return sheet;
     }
 
@@ -131,8 +144,10 @@ public class PostMenuItemsTest {
         Settings.SEEN_POST_MENU_ITEMS.resetToDefault();
         Settings.POST_MENU_SPEED.resetToDefault();
         Settings.POST_MENU_SPEED_ON_TOP.resetToDefault();
+        Settings.POST_MENU_DOWNLOAD_FIRST.resetToDefault();
         PostMenuItems.forgetForTests();
         ReelSpeedForTests.forgetPostMenuRows();
+        MenuTopForTests.forget();
         HookStatus.clear();
         FeedFilterCounters.clear();
     }
@@ -176,6 +191,39 @@ public class PostMenuItemsTest {
         String line = statusLine(FamilyNames.POST_MENU_ITEMS);
         assertNotNull(String.join("\n", HookStatus.report()), line);
         assertTrue(line, line.contains(PostMenuItems.HIDDEN + " 4"));
+    }
+
+    /**
+     * #475: the feed's sheet draws Interested and Not interested as one card, and only when both are
+     * there, so with one of them picked the other moves on top of the first page and stays.
+     */
+    @Test
+    public void oneOfInterestedAndNotInterestedPickedTheOtherStaysOnTopOfTheFirstPage() {
+        PatchFamilyForTests.carry(PatchFamily.POST_MENU_ITEMS);
+        PostMenuItems.hide(Collections.singletonList("SEE_MORE"));
+        Sheet sheet = sheet();
+        arrange(sheet);
+        assertNull("Interested went", sheet.A01);
+        assertNull("Not interested left the card it can't have alone", sheet.A00);
+        assertEquals(Arrays.asList(notInterested, save, report), sheet.A08);
+        assertSame("Manage your Feed stays", manage, sheet.A02);
+        String line = statusLine(FamilyNames.POST_MENU_ITEMS);
+        assertNotNull(String.join("\n", HookStatus.report()), line);
+        assertTrue(line, line.contains(PostMenuItems.HIDDEN + " 1"));
+
+        PostMenuItems.hide(Collections.singletonList("SEE_LESS"));
+        sheet = sheet();
+        arrange(sheet);
+        assertNull(sheet.A00);
+        assertNull(sheet.A01);
+        assertEquals(Arrays.asList(interested, save, report), sheet.A08);
+
+        // Facebook handed the card only one of them, so it draws neither: nothing moves.
+        sheet = sheet();
+        sheet.A00 = null;
+        arrange(sheet);
+        assertSame(interested, sheet.A01);
+        assertEquals(Arrays.asList(save, report), sheet.A08);
     }
 
     @Test
@@ -270,6 +318,63 @@ public class PostMenuItemsTest {
         assertEquals("the control: running, it moves", Arrays.asList(cast, why), sheet.A07);
     }
 
+    /** #603: Download first's rows leave More options for the first page, right above Playback speed. */
+    @Test
+    public void downloadFirstMovesItsRowsOutOfMoreOptionsAbovePlaybackSpeed() {
+        Settings.POST_MENU_SPEED.save(true);
+        PostMenuSpeed.remember(speed);
+        Settings.POST_MENU_DOWNLOAD_FIRST.save(true);
+        MenuTopForTests.putOnTop(download);
+        MenuTopForTests.putOnTop(openElsewhere);
+        Sheet sheet = downloadSheet();
+        arrange(sheet);
+        assertEquals(Arrays.asList(save, report, download, openElsewhere, speed), sheet.A08);
+        assertEquals(Arrays.asList(cast, why), sheet.A07);
+        String line = statusLine(FamilyNames.VIDEO_DOWNLOAD);
+        assertNotNull(String.join("\n", HookStatus.report()), line);
+        assertTrue(line, line.contains(PostMenuItems.DOWNLOAD_MOVED + " 2"));
+
+        arrange(sheet);
+        assertEquals("a second pass moved them again", Arrays.asList(save, report, download, openElsewhere, speed),
+                sheet.A08);
+    }
+
+    @Test
+    public void withoutPlaybackSpeedOnTheFirstPageDownloadGoesAtItsEnd() {
+        Settings.POST_MENU_DOWNLOAD_FIRST.save(true);
+        MenuTopForTests.putOnTop(download);
+        Sheet sheet = downloadSheet();
+        arrange(sheet);
+        assertEquals(Arrays.asList(save, report, download), sheet.A08);
+        assertEquals("a row Download first didn't put on top stays", Arrays.asList(openElsewhere, cast, why, speed),
+                sheet.A07);
+    }
+
+    @Test
+    public void offPausedOrForAnotherRowDownloadStaysUnderMoreOptions() {
+        MenuTopForTests.putOnTop(download);
+        assertFalse("the switch starts off", Settings.POST_MENU_DOWNLOAD_FIRST.get());
+        Sheet sheet = downloadSheet();
+        arrange(sheet);
+        assertEquals(Arrays.asList(download, openElsewhere, cast, why, speed), sheet.A07);
+
+        Settings.POST_MENU_DOWNLOAD_FIRST.save(true);
+        MenuTopForTests.forget();
+        MenuTopForTests.putOnTop(new Row("Download to phone", null));
+        arrange(sheet);
+        assertEquals("a row with the same title isn't the one added",
+                Arrays.asList(download, openElsewhere, cast, why, speed), sheet.A07);
+
+        MenuTopForTests.putOnTop(download);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        arrange(sheet);
+        assertEquals(Arrays.asList(download, openElsewhere, cast, why, speed), sheet.A07);
+        PauseForTests.resume();
+        arrange(sheet);
+        assertEquals("the control: running, it moves", Arrays.asList(save, report, download), sheet.A08);
+        assertEquals(Arrays.asList(openElsewhere, cast, why, speed), sheet.A07);
+    }
+
     @Test
     public void bothRunTogether() {
         PatchFamilyForTests.carry(PatchFamily.POST_MENU_ITEMS, PatchFamily.KEEP_REEL_SPEED);
@@ -362,7 +467,7 @@ public class PostMenuItemsTest {
         assertEquals("Clear mode", PostMenuItems.label("CLEAR_MODE"));
         assertEquals("Scroll to next reel automatically", PostMenuItems.label("AUTO_ADVANCE"));
         // A reel's More sheet shows these rows by other words than their ids (588, #475).
-        assertEquals("Quality settings", PostMenuItems.label(PostMenuItems.reelKind("fds_control_type_best_guess_post_control")));
+        assertEquals("Quality settings", PostMenuItems.label(PostMenuItems.reelKind(PostMenuItems.NO_ID, "HD")));
         assertEquals("Request community note", PostMenuItems.label(PostMenuItems.reelKind("fds_control_type_other")));
         assertEquals("Something went wrong", PostMenuItems.label(PostMenuItems.reelKind("fds_control_type_bug")));
         // #475: a kind that kept an fb_control_type_ wrapping reads without it, and Skip silent parts by its title.
@@ -483,7 +588,99 @@ public class PostMenuItemsTest {
         }
     }
 
+    /** Stands in for 588's LX/01Yk, Facebook's icon enum, which keeps its names. */
+    enum Icon { HD, RUNNING, NUCLEUS_HIDE, ARROWS_SQUARE_ADD }
+
+    /** Stands in for 588's LX/0b3x, a row's icon: an image address and an icon. */
+    static final class IconBox {
+        final Uri A00 = null;
+        final Icon A01;
+        final Boolean A02 = null;
+
+        IconBox(Icon icon) {
+            A01 = icon;
+        }
+    }
+
+    /** Stands in for 588's LX/0Zsz made without an id: it answers NO_ID, and holds its icon in A01. */
+    static final class NoIdRow extends ReelModel {
+        private final String title;
+        final IconBox A01;
+
+        NoIdRow(String title, IconBox icon) {
+            super(PostMenuItems.NO_ID);
+            this.title = title;
+            A01 = icon;
+        }
+
+        @Override
+        public String toString() {
+            return title;
+        }
+    }
+
     private static final String REEL_MODEL = ReelModel.class.getName();
+
+    /**
+     * #475: every row made without an id answers the same one, Quality settings and the rows a post
+     * menu's items become alike, so picking Quality settings took Playback speed off a feed video's
+     * sheet. Only the row wearing the HD icon is Quality settings now.
+     */
+    @Test
+    public void onlyTheHdRowWithNoIdIsQualitySettings() {
+        PatchFamilyForTests.carry(PatchFamily.POST_MENU_ITEMS);
+        NoIdRow quality = new NoIdRow("Quality settings", new IconBox(Icon.HD));
+        NoIdRow feedSpeed = new NoIdRow("Playback speed", new IconBox(null));
+        NoIdRow feedSkip = new NoIdRow("Skip silent parts: on", null);
+        NoIdRow product = new NoIdRow("Hide product", new IconBox(Icon.NUCLEUS_HIDE));
+        List<Object> rows = Arrays.asList(quality, feedSpeed, feedSkip, product, reelSpeed);
+        assertSame("nothing picked keeps them", rows, PostMenuItems.reelRows(rows, REEL_MODEL, "A04"));
+        assertEquals("of the rows with no id only Quality settings is written down",
+                Arrays.asList("BEST_GUESS_POST", "PLAYBACK_SPEED"),
+                new ArrayList<>(PostMenuItems.parse(Settings.SEEN_POST_MENU_ITEMS.savedValue())));
+
+        PostMenuItems.hide(Collections.singletonList("BEST_GUESS_POST"));
+        assertEquals(Arrays.asList(feedSpeed, feedSkip, product, reelSpeed),
+                PostMenuItems.reelRows(rows, REEL_MODEL, "A04"));
+        assertTrue(PostMenuItems.reelRowHidden(quality, REEL_MODEL, "A04"));
+        assertFalse("a post menu's Playback speed stays", PostMenuItems.reelRowHidden(feedSpeed, REEL_MODEL, "A04"));
+        assertFalse(PostMenuItems.reelRowHidden(product, REEL_MODEL, "A04"));
+        assertEquals("Quality settings", PostMenuItems.label("BEST_GUESS_POST"));
+        assertNull(PostMenuItems.reelKind(PostMenuItems.NO_ID));
+        assertNull(PostMenuItems.reelKind(PostMenuItems.NO_ID, "RUNNING"));
+        assertEquals("BEST_GUESS_POST", PostMenuItems.reelKind(PostMenuItems.NO_ID, "HD"));
+    }
+
+    /**
+     * #475: Remix this reel never joined the list, since a reel open to remixes makes the row with
+     * no id (588 LX/0aiJ;->A00), and only its icon tells it apart. One that isn't open to them makes
+     * it as fds_control_remix_video. Both are Remix, and picking it leaves the other rows alone.
+     */
+    @Test
+    public void remixThisReelJoinsTheListAndGoesAlone() {
+        PatchFamilyForTests.carry(PatchFamily.POST_MENU_ITEMS);
+        NoIdRow remix = new NoIdRow("Remix this reel", new IconBox(Icon.ARROWS_SQUARE_ADD));
+        ReelRow remixOff = new ReelRow("Remix this reel", "fds_control_remix_video");
+        NoIdRow quality = new NoIdRow("Quality settings", new IconBox(Icon.HD));
+        NoIdRow feedSpeed = new NoIdRow("Playback speed", new IconBox(null));
+        NoIdRow product = new NoIdRow("Hide product", new IconBox(Icon.NUCLEUS_HIDE));
+        List<Object> rows = Arrays.asList(reelSpeed, quality, remix, feedSpeed, product, saveReel);
+        assertSame("nothing picked keeps them", rows, PostMenuItems.reelRows(rows, REEL_MODEL, "A04"));
+        assertEquals("Remix is written down with the rows that have a kind",
+                Arrays.asList("PLAYBACK_SPEED", "BEST_GUESS_POST", "REMIX", "SAVE"),
+                new ArrayList<>(PostMenuItems.parse(Settings.SEEN_POST_MENU_ITEMS.savedValue())));
+        assertEquals("Remix this reel", PostMenuItems.label("REMIX"));
+
+        PostMenuItems.hide(Collections.singletonList("REMIX"));
+        assertEquals(Arrays.asList(reelSpeed, quality, feedSpeed, product, saveReel),
+                PostMenuItems.reelRows(rows, REEL_MODEL, "A04"));
+        assertTrue(PostMenuItems.reelRowHidden(remix, REEL_MODEL, "A04"));
+        assertTrue("the row of a reel closed to remixes goes too", PostMenuItems.reelRowHidden(remixOff, REEL_MODEL, "A04"));
+        assertFalse(PostMenuItems.reelRowHidden(quality, REEL_MODEL, "A04"));
+        assertFalse(PostMenuItems.reelRowHidden(feedSpeed, REEL_MODEL, "A04"));
+        assertEquals("REMIX", PostMenuItems.reelKind("fds_control_remix_video"));
+        assertNull("an icon alone is no kind", PostMenuItems.reelKind(null, "ARROWS_SQUARE_ADD"));
+    }
 
     private final ReelRow reelInterested = new ReelRow("Interested", "fds_control_type_preference_signal_positive");
     private final ReelRow reelSpeed = new ReelRow("Playback speed", "fds_control_playback_speed");

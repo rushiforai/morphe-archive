@@ -918,53 +918,6 @@ final class Extras {
         return List.of();
     }
 
-    /** Mirrors pinnedBarGate in PinnedBar.kt: a ThreadKey ()Z check whose answer jumps straight to the loader's new-instance. */
-    private static boolean hasPinnedBarGate(Method m, String loader) {
-        if (m.getImplementation() == null) return false;
-        var code = instructions(m);
-        int made = -1, branch = -1;
-        for (int i = 0; i < code.size(); i++) {
-            if (code.get(i).getOpcode() != Opcode.NEW_INSTANCE || !loader.equals(((ReferenceInstruction) code.get(i)).getReference().toString())) continue;
-            if (made >= 0) return false;
-            made = i;
-        }
-        if (made < 0) return false;
-        for (int i = 0; i < code.size(); i++) {
-            if (code.get(i).getOpcode() != Opcode.IF_NEZ || !jumpsTo(code, i, made)) continue;
-            if (branch >= 0) return false;
-            branch = i;
-        }
-        // 588 falls into the loader from an if-eqz right above that skips it, and nothing else may land on the loader.
-        if (branch < 0 && made >= 1 && code.get(made - 1).getOpcode() == Opcode.IF_EQZ && mediaTarget(code, made - 1) > made
-            && !mediaTargets(m).contains(made)) branch = made - 1;
-        if (branch < 2 || mediaTargets(m).contains(branch)) return false;
-        int pinnedRegister = ((OneRegisterInstruction) code.get(branch)).getRegisterA();
-        var pinnedResult = code.get(branch - 1);
-        if (pinnedResult.getOpcode() != Opcode.MOVE_RESULT || ((OneRegisterInstruction) pinnedResult).getRegisterA() != pinnedRegister || pinnedRegister > 0xff) return false;
-        var pinnedRead = code.get(branch - 2);
-        if (pinnedRead.getOpcode() != Opcode.INVOKE_VIRTUAL || !(((ReferenceInstruction) pinnedRead).getReference() instanceof MethodReference pinnedCheck)) return false;
-        return "Lcom/facebook/messaging/model/threadkey/ThreadKey;".equals(pinnedCheck.getDefiningClass()) && "Z".equals(pinnedCheck.getReturnType())
-            && pinnedCheck.getParameterTypes().isEmpty();
-    }
-
-    /** pinned_bar: the banner fetch that gates the loader naming the pinned data source. Mirrors findPinnedBar. */
-    static List<Method> pinnedBar(List<ClassDef> classes) {
-        var pinnedLoaders = new ArrayList<String>();
-        for (var cls : classes) for (var method : cls.getMethods())
-            if (method.getImplementation() != null && stringsOf(method).contains("PinnedMessagesMsysBannerDataSource")) {
-                pinnedLoaders.add(cls.getType());
-                break;
-            }
-        if (pinnedLoaders.size() != 1) return List.of();
-        for (var cls : classes) {
-            if (!"Lcom/facebook/messaging/msys/thread/banner/datafetch/ThreadViewBannerDataFetch;".equals(cls.getType())) continue;
-            var found = new ArrayList<Method>();
-            for (var method : cls.getMethods()) if (hasPinnedBarGate(method, pinnedLoaders.get(0))) found.add(method);
-            return found.size() == 1 ? found : List.of();
-        }
-        return List.of();
-    }
-
     private static List<String> typeNames(List<? extends CharSequence> types) {
         var names = new ArrayList<String>();
         for (var type : types) names.add(type.toString());
@@ -1021,6 +974,57 @@ final class Extras {
     static List<Method> openChatSound(List<ClassDef> classes) {
         var found = new ArrayList<Method>();
         for (var cls : classes) for (var method : cls.getMethods()) if (hasOpenChatSite(method)) found.add(method);
+        return found.size() == 1 ? found : List.of();
+    }
+
+    private static final String RAW_SOUND_OPEN = "Landroid/content/res/Resources;->openRawResourceFd(I)Landroid/content/res/AssetFileDescriptor;";
+    private static final String RAW_SOUND_HOOK = "Lapp/hushmessenger/extension/OwnChatSounds;->rawSound(Landroid/content/res/Resources;I)Landroid/content/res/AssetFileDescriptor;";
+    private static final String RAW_SOUND_SOURCE = "Landroid/media/MediaPlayer;->setDataSource(Ljava/io/FileDescriptor;JJ)V";
+    private static final List<String> RAW_SOUND_READS = List.of("Landroid/content/res/AssetFileDescriptor;->getFileDescriptor()Ljava/io/FileDescriptor;",
+        "Landroid/content/res/AssetFileDescriptor;->getStartOffset()J", "Landroid/content/res/AssetFileDescriptor;->getLength()J",
+        "Landroid/content/res/AssetFileDescriptor;->close()V");
+
+    private static String rawSoundCall(Instruction i) {
+        return i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference call ? call.toString() : null;
+    }
+
+    /** Mirrors rawSoundSite in OwnChatSounds.kt: the player's one raw sound open, stock or hooked, feeding the player. */
+    private static boolean hasRawSoundSite(Method m) {
+        if (!AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"Z".equals(m.getReturnType()) || m.getImplementation() == null) return false;
+        if (!typeNames(m.getParameterTypes()).equals(List.of(m.getDefiningClass(), "F", "I", "I", "Z"))) return false;
+        var code = instructions(m);
+        int id = m.getImplementation().getRegisterCount() - 3;
+        var stock = new ArrayList<Integer>();
+        var hooked = new ArrayList<Integer>();
+        for (int i = 0; i < code.size(); i++) {
+            var called = rawSoundCall(code.get(i));
+            if (code.get(i).getOpcode() == Opcode.INVOKE_VIRTUAL && RAW_SOUND_OPEN.equals(called)) stock.add(i);
+            if (code.get(i).getOpcode() == Opcode.INVOKE_STATIC && RAW_SOUND_HOOK.equals(called)) hooked.add(i);
+        }
+        int at;
+        if (stock.size() == 1 && hooked.isEmpty()) at = stock.get(0);
+        else if (stock.isEmpty() && hooked.size() == 1) at = hooked.get(0);
+        else return false;
+        var open = (FiveRegisterInstruction) code.get(at);
+        if (open.getRegisterCount() != 2 || open.getRegisterD() != id || at + 1 >= code.size()) return false;
+        var result = code.get(at + 1);
+        if (result.getOpcode() != Opcode.MOVE_RESULT_OBJECT) return false;
+        int descriptor = ((OneRegisterInstruction) result).getRegisterA();
+        var reads = new HashSet<String>();
+        int sources = 0;
+        for (var i : code) {
+            var called = rawSoundCall(i);
+            if (RAW_SOUND_SOURCE.equals(called)) sources++;
+            if (called != null && i.getOpcode() == Opcode.INVOKE_VIRTUAL && ((FiveRegisterInstruction) i).getRegisterCount() == 1
+                && ((FiveRegisterInstruction) i).getRegisterC() == descriptor) reads.add(called);
+        }
+        return reads.containsAll(RAW_SOUND_READS) && sources == 1;
+    }
+
+    /** own_chat_sounds: the one chat sound player whose raw sound open the extension takes. Mirrors findOwnChatSounds. */
+    static List<Method> ownChatSounds(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) if (hasRawSoundSite(method)) found.add(method);
         return found.size() == 1 ? found : List.of();
     }
 

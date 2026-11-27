@@ -589,6 +589,52 @@ public class SettingsDialogTest {
         }
     }
 
+    /** #248: the clock, the Menu tab row and a chat menu's row open the log alone, and Close goes back to Messenger. */
+    @Test public void theLogOpenedOnItsOwnClosesBackToMessenger() throws Exception {
+        MessageLog.write(Settings.appContext, List.of(new MessageLog.Entry(System.currentTimeMillis(), "t_ana", "lunch at noon")));
+        Intent intent = HostScreens.intentFor(Settings.appContext, HostScreens.SETTINGS).putExtra(MessageLogSheet.OPEN_EXTRA, true);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class, intent).setup()) {
+            SettingsActivity page = screen.get();
+            View settings = ((ViewGroup) page.findViewById(android.R.id.content)).getChildAt(0);
+            assertEquals("Settings doesn't show behind the log", View.INVISIBLE, settings.getVisibility());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            awaitText(root, "lunch at noon");
+            root.findViewWithTag("message_log_dialog_close").performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("Close leaves settings too", page.isFinishing());
+        }
+    }
+
+    @Test public void turningThePhoneWithTheLogOpenedOnItsOwnKeepsTheLog() throws Exception {
+        MessageLog.write(Settings.appContext, List.of(new MessageLog.Entry(System.currentTimeMillis(), "t_ana", "lunch at noon")));
+        Intent intent = HostScreens.intentFor(Settings.appContext, HostScreens.SETTINGS).putExtra(MessageLogSheet.OPEN_EXTRA, true);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class, intent).setup()) {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            awaitText(ShadowDialog.getLatestDialog().getWindow().getDecorView(), "lunch at noon");
+            SettingsActivity before = screen.get();
+            screen.recreate();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse("A rotation isn't Close", before.isFinishing());
+            assertFalse(screen.get().isFinishing());
+            awaitText(ShadowDialog.getLatestDialog().getWindow().getDecorView(), "lunch at noon");
+        }
+    }
+
+    @Test public void theLogOpenedFromSettingsClosesBackToSettings() throws Exception {
+        MessageLog.write(Settings.appContext, List.of(new MessageLog.Entry(System.currentTimeMillis(), "t_ana", "lunch at noon")));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            SettingsActivity page = screen.get();
+            assertEquals(View.VISIBLE, ((ViewGroup) page.findViewById(android.R.id.content)).getChildAt(0).getVisibility());
+            page.getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+            View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            awaitText(root, "lunch at noon");
+            root.findViewWithTag("message_log_dialog_close").performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse(page.isFinishing());
+        }
+    }
+
     @Test public void aSaveThatCantWriteSaysSo() throws Exception {
         MessageLog.write(Settings.appContext, List.of(new MessageLog.Entry(System.currentTimeMillis(), "t", "a line")));
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {

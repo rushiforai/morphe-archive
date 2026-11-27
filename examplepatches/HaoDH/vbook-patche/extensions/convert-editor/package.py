@@ -18,7 +18,7 @@ for source in (root / 'src').glob('*.js'):
         imported = (root / 'src' / dependency).read_text(encoding='utf-8')
         assert not re.search(r'''load\(['"](.*?\.js)['"]\);?''', imported), 'vBook does not support nested load(): ' + dependency
 
-plugin = output / 'vbook-convert-editor-1.4.2.zip'
+plugin = output / 'vbook-convert-editor-1.4.7.zip'
 files = [root / 'plugin.json', root / 'README.md', *sorted((root / 'src').glob('*.js'))]
 icon = root / 'icon.png'
 if icon.is_file():
@@ -31,7 +31,7 @@ with zipfile.ZipFile(plugin) as archive:
     assert archive.testzip() is None
     assert all('src/' + name in archive.namelist() for name in manifest['script'].values())
 
-source_zip = output / 'vbook-convert-editor-1.4.2-source.zip'
+source_zip = output / 'vbook-convert-editor-1.4.7-source.zip'
 with zipfile.ZipFile(source_zip, 'w', zipfile.ZIP_DEFLATED) as archive:
     for path in sorted(root.rglob('*')):
         if path.is_file() and '.git' not in path.parts:

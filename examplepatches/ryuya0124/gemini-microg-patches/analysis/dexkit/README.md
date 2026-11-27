@@ -29,7 +29,7 @@ scripts/discover-hooks.sh inputs/google-base.apk
 ```sh
 scripts/discover-hooks.sh local/old-google.apk
 scripts/discover-hooks.sh local/new-google.apk
-python3 scripts/compare-discovery.py build/discovery/OLD.json build/discovery/NEW.json
+bash scripts/compare-discovery.sh build/discovery/OLD.json build/discovery/NEW.json
 scripts/inspect-hooks.sh local/new-google.apk dump 'Lcandidate;->method(Args)Return'
 ```
 

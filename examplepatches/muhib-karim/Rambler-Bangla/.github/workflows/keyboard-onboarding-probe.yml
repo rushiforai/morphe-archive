@@ -1,0 +1,124 @@
+name: Rambler clean-device onboarding probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: "HTTPS URL for the production APK (host must be allowlisted)"
+        required: true
+        type: string
+      expected_sha256:
+        description: "SHA-256 of APK"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  PACKAGE_NAME: com.aidev2024.ramblerbangla
+  EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
+  APK_PATH: ${{ github.workspace }}/rambler-production.apk
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Validate APK host and download APK
+        env:
+          APK_URL: ${{ inputs.apk_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$APK_URL"
+          if [[ "$APK_URL" != https://* ]]; then
+            echo "APK URL must use https" >&2
+            exit 1
+          fi
+          # Match the real host only: take the authority (cut at the first
+          # "/", "?" or "#"), then drop any "userinfo@" and any ":port".
+          host="${APK_URL#https://}"
+          host="${host%%[/?#]*}"
+          host="${host##*@}"
+          host="${host%%:*}"
+          host="$(printf '%s' "$host" | tr 'A-Z' 'a-z')"
+          if [[ -z "$host" ]]; then
+            echo "APK URL has no host" >&2
+            exit 1
+          fi
+          case "$host" in
+            github.com|litter.catbox.moe|catbox.moe|gofile.io|store*.gofile.io|tmpfiles.org)
+              echo "APK host allowlisted: $host"
+              ;;
+            *)
+              echo "APK host not allowlisted: $host" >&2
+              exit 1
+              ;;
+          esac
+          # tmpfiles.org page URLs do not serve the file directly; the page
+          # embeds a fresh /dl/ token link. Scrape it and download from this
+          # same runner so any token/IP binding is satisfied.
+          if [[ "$host" == "tmpfiles.org" ]]; then
+            dl="$(curl -sS --fail --location --connect-timeout 30 --max-time 60 "$APK_URL" \
+              | grep -oE 'https://tmpfiles\.org/dl/[^"]+' | head -n 1)"
+            if [[ -z "$dl" ]]; then
+              echo "No /dl/ link found on tmpfiles page" >&2
+              exit 1
+            fi
+            APK_URL="$dl"
+          fi
+          # Only the host is ever logged; the full URL stays out of the logs.
+          if ! curl -sS --fail --location --retry 3 --retry-all-errors \
+              --connect-timeout 30 --max-time 300 \
+              --output "$APK_PATH" "$APK_URL" 2>download.err; then
+            echo "Download failed from host: $host" >&2
+            exit 1
+          fi
+          echo "$EXPECTED_SHA256  $APK_PATH" | sha256sum --check --strict
+          ls -lh "$APK_PATH"
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Probe clean-device onboarding UI
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_5
+          emulator-options: -no-snapshot-load -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          disable-animations: true
+          script: |
+            mkdir -p probe-artifacts
+            adb wait-for-device
+            adb install --no-streaming -r -t "$APK_PATH" | tee probe-artifacts/install.txt
+            adb logcat -c
+            adb shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1 | tee probe-artifacts/launch.txt
+            sleep 8
+            adb shell uiautomator dump /sdcard/app-launch.xml
+            adb pull /sdcard/app-launch.xml probe-artifacts/app-launch.xml
+            cat probe-artifacts/app-launch.xml
+            adb exec-out screencap -p > probe-artifacts/app-launch.png
+            adb shell dumpsys package "$PACKAGE_NAME" > probe-artifacts/package-dump.txt
+            grep -E "Activity|activity|Settings|settings|Language|language" probe-artifacts/package-dump.txt | head -200 | tee probe-artifacts/settings-components.txt || true
+            adb shell ime list -a -s | tr -d '\r' | grep -m1 "^${PACKAGE_NAME}/" > probe-artifacts/ime-id.txt
+            adb shell ime enable "$(cat probe-artifacts/ime-id.txt)"
+            adb shell ime set "$(cat probe-artifacts/ime-id.txt)"
+            adb shell am start -a android.settings.INPUT_METHOD_SETTINGS | tee probe-artifacts/input-settings-launch.txt
+            sleep 3
+            adb shell uiautomator dump /sdcard/input-settings.xml
+            adb pull /sdcard/input-settings.xml probe-artifacts/input-settings.xml
+            cat probe-artifacts/input-settings.xml
+            adb exec-out screencap -p > probe-artifacts/input-settings.png
+            adb logcat -d -v threadtime > probe-artifacts/logcat.txt
+      - name: Upload onboarding evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: rambler-onboarding-probe-${{ github.run_id }}
+          path: probe-artifacts/
+          retention-days: 14

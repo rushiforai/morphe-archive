@@ -1,0 +1,3 @@
+"""Bump the series when publishing changed patches for an existing Waze version."""
+BUNDLE_SERIES = "1.17"
+RELEASE_NOTES = "Support Waze's inherited protobuf mood catalogue loader while retaining the older JNI layout. Include hidden moods through verified bridges that preserve sorting, caller registers and native results. Validate real catalogue calls, malformed and ambiguous bindings, range encoding and repeat application before and after patching. Add the Waze 5.28.5.0 compatibility fixture. Older inlined native icon sizing remains unsupported. Phone and Android Auto runtime testing is still required."

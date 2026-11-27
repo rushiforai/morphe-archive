@@ -3,6 +3,7 @@ package app.template.patches.joplin.theme
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.joplin.joplinAdapters
+import app.template.patches.shared.loadAdapter
 import java.security.MessageDigest
 
 // Appearance/font-menu and Blush Pink currently share one prebuilt JS bundle.
@@ -20,11 +21,7 @@ internal val joplinThemeResourcesPatch = resourcePatch {
             ?: throw PatchException("No matching Appearance/theme adapter for this original bundle ($hash). Supported: " +
                 joplinAdapters.joinToString { it.getProperty("version") } +
                 ". Generate/register an adapter for the new official APK; native hooks are version-independent.")
-        val resource = "joplin/adapters/${adapter.getProperty("version")}.bundle"
-        val bytes = object {}.javaClass.classLoader.getResourceAsStream(resource)?.use { it.readBytes() }
-            ?: throw PatchException("Missing UI adapter $resource")
-        val actual = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }
-        if (actual != adapter.getProperty("patchedSha256")) throw PatchException("UI adapter checksum mismatch")
+        val bytes = loadAdapter("joplin/adapters", adapter.getProperty("version"), adapter, target.readBytes())
         target.writeBytes(bytes)
 
     }

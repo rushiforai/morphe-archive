@@ -186,11 +186,20 @@ public final class GboardAiWritingToolsRuntime {
         if (GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA.equals(backendType)) {
             return new BackendDecision(Long.valueOf(3L), Boolean.TRUE, Boolean.FALSE);
         }
-        if (GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER.equals(backendType)) {
+        if (GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER.equals(backendType)
+                || GboardAiWritingToolsSettings.BACKEND_SHARED_LOCAL.equals(backendType)) {
             return new BackendDecision(Long.valueOf(1L), Boolean.FALSE, Boolean.FALSE);
         }
         return new BackendDecision(null, null, null);
     }
+
+    /** Only Shared mode restores this confirmed intent; other backends retain their stock routes. */
+    public static boolean isAutoFixRoutingEnabled(Object intent) {
+        if (!(intent instanceof Enum<?>) || !"INTENT_AUTO_FIX".equals(((Enum<?>) intent).name())) return false;
+        try { return dev.jason.gboardpatches.extension.sharedmodel.GboardSharedWritingRuntime.selected(resolveContext()); }
+        catch (Throwable ignored) { return false; }
+    }
+    public static boolean allowAutoFixRoute(boolean original,Object intent) { return original || isAutoFixRoutingEnabled(intent); }
 
     public static boolean applySignalResult(Object signal, boolean originalResult) {
         if (originalResult) {
@@ -289,6 +298,8 @@ public final class GboardAiWritingToolsRuntime {
         Set<Object> existing = FORCED_SIGNALS.putIfAbsent(classLoader, immutable);
         return existing == null ? immutable : existing;
     }
+
+    public static Context sharedBackendContext() { return resolveContext(); }
 
     static Context resolveContext() {
         Context cached = applicationContext;

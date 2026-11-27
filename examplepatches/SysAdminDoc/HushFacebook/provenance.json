@@ -398,7 +398,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: Hide Meta upsells, six switches that start off. With Edits on, every read of the Reels composer landing's two Edits header flags and every fetch_edits_app_deep_dive_pill request flag answers off. With Threads on, the cross-posting onboarding's should-show check answers no. With Meta Verified on, the after-post sheet's eligibility check and the dispatcher's one request for its label answer no. With avatar stickers on, the three avatar sticker upsell components draw nothing. With Imagine on, the post call-to-action selector's check answers no for ImagineMePlugin, every question the post composer asks about its AI_GEN_IMAGINE capability answers no, and Create story's tile builder gets its list of tools without IMAGINE. With the share sheet's Threads switch on, every list of share sheet item types the item picker returns loses SHARE_TO_THREADS, through the share sheet hook it shares with Share sheet items."
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: Hide Meta upsells, six switches that start off. With Edits on, every read of the Reels composer landing's two Edits header flags and every fetch_edits_app_deep_dive_pill request flag answers off. With Threads on, the cross-posting onboarding's should-show check answers no. With Meta Verified on, the after-post sheet's eligibility check and the dispatcher's one request for its label answer no. With avatar stickers on, the three avatar sticker upsell components draw nothing. With Imagine on, the post call-to-action selector's check answers no for ImagineMePlugin, every question the post composer asks about its AI_GEN_IMAGINE capability answers no, and Create story's tile builder gets its list of tools without IMAGINE. With the share sheet's Threads switch on, every list of share sheet item types the item picker returns loses SHARE_TO_THREADS, through the share sheet hook it shares with Share sheet items. On 588 the pill under a Page's timeline video still showed (#314), so the Edits switch or the reels promos switch now also has three more places answer. The getter of a feed video's Edits attribution, found by the constant Facebook counts its reads with (FEED_UNIT_VIDEO_ATTACHMENT_GET_EDITS_ATTRIBUTION), answers null. The pill request gate the 588 feed and video queries ask through a static helper answers off. And the builder of the pill under a feed video, the one naming DeepDivePillSocket, answers null for a pill whose type is \"edits_app\"."
     },
     {
       "paths": [
@@ -856,6 +856,17 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/profile/FriendList.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/FriendsGoneScreen.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/profile/FriendListPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: who's no longer on your friends list. In Facebook 588 Profile > Friends > All friends is one section naming itself AllFriendListContentSection, for your own list and anyone else's. Its build method, the one holding AllFriendListContentSectionSpec, reads one boolean of the section, whether the list is your own. Its event method handles the list's load in the case holding all_friends_list: it casts the section and asks the load for the PaginableList of everyone loaded so far. The patch hands the section to the extension right after that cast and the list right after it's read, and fills in the names of the own-list flag and of the event method's other flag, true while the list's search is empty. The extension keeps your own unsearched list once it has no next page, by each row's id and name read with getString and the field names' hashCodes, and lists anyone on the kept copy who isn't on the next one."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/profile/LocalProfileCounts.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/profile/LocalProfileCountsPatch.kt"
       ],
@@ -895,7 +906,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: switches that take the song and effect credits off a story's subtitle line and the suggested replies off its bottom. Facebook 585 draws each as a Litho component that names itself in its class initializer, so the patch finds the one-credit line, the turning credit line and the reply suggestions by those names and asks the extension at the top of each render. On a yes the one-credit line and the suggestions draw nothing, as Facebook's own render already does for a story without them, and the turning line answers the plain subtitle its constructor kept, unless the flag render tests before its Trending or Suggested label is set. A third switch draws a progress bar along the bottom of a story: each listener that writes \"StoryViewerProgressBar.onProgressUpdated\" hands the extension its segments and its own progress argument right after it moves them, and the extension draws the bar in the overlay of the story's card. Another switch sends every answer of the check a story's header line asks before it puts in how long ago the story was posted through the extension, which turns a yes into a no so a Page's story shows its time too, and the header's title row, where it gives up on that line before reading it, asks the extension and reads the line when the switch is on."
+      "changes": "Written for Hushfacebook: switches that take the song and effect credits off a story's subtitle line and the suggested replies off its bottom. Facebook 585 draws each as a Litho component that names itself in its class initializer, so the patch finds the one-credit line, the turning credit line and the reply suggestions by those names and asks the extension at the top of each render. On a yes the one-credit line and the suggestions draw nothing, as Facebook's own render already does for a story without them, and the turning line answers the plain subtitle its constructor kept, unless the flag render tests before its Trending or Suggested label is set. A third switch draws a progress bar along the bottom of a story: each listener that writes \"StoryViewerProgressBar.onProgressUpdated\" hands the extension its segments and its own progress argument right after it moves them, and the extension draws the bar in the overlay of the story's card. Another switch sends every answer of the check a story's header line asks before it puts in how long ago the story was posted through the extension, which turns a yes into a no so a Page's story shows its time too, and the header's title row, where it gives up on that line before reading it, asks the extension and reads the line when the switch is on. On 588 (#563) the line builder's arm for a story with an attachment builds its label line with no time, so with the switch on that label gets \" • \" and the time from the builder's own time source. A story that shares a post or a reel shows Facebook's subtitle component in place of the line (who posted it, \"View full reel\"), and that component's constructor now adds the time to its last text and its description, formatted by the line builder's own formatter."
     },
     {
       "paths": [
@@ -982,6 +993,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: the Related posts list under a post's buttons. In Facebook 584 it is InlineRelatedPostsPlugin, a plugin of the socket that names itself FeedStoryBelowUFIFooterSocket, and the socket's static name table names it along with the Meta AI comment summary. The patch finds that table and the socket's per-plugin check the way Hide Meta AI comment summaries does, and goes first in the check with the plugin's name from the table. The extension answers no for the Related posts plugin while the switch is on, so the socket moves on to its next plugin."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/suggested/FriendsTabSuggestions.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: People you may know in the Friends tab. In Facebook 588 the tab is one section naming itself FriendingJewelContentSection, whose rows come from one paginated GraphQL list through a connection section that hands each page to the section's event method as a load result: a status, the ImmutableList of rows so far and a Throwable. The patch finds the one read of that list in a method of the section holding SectionHeaderFriendingTabRow, and right after it hands the list to the extension and copies the answer back with ImmutableList.copyOf into the same register. The extension reads each row's getTypeName() and a header's type field (TreeJNI.getString with the key \"type\".hashCode()) and, while its switch is on, leaves out the header whose type is PEOPLE_YOU_MAY_KNOW, every row under it up to the next header, and any PeopleYouMayKnowFriendingTabRow."
     },
     {
       "paths": [
@@ -2032,12 +2052,13 @@
     },
     {
       "paths": [
-        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/RoundedTabBar.java"
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/RoundedTabBar.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/GlassLook.java"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook for issue #344: Rounded tab bar. No patch of its own: the tab bar patch's lifecycle watcher gives each main screen a pre-draw listener that finds the bar the way See-through bars does, clips it to a round-ended outline around its row of tabs and scales it to 90% about a point that keeps the pill a few dp above the row's bottom. Off, paused or with the bar at the top it puts back the bar's own outline, clip, scale and pivot. See-through bars keeps its frost inside the pill with the same corners."
+      "changes": "Written for Hushfacebook for issue #344: Rounded tab bar. No patch of its own: the tab bar patch's lifecycle watcher gives each main screen a pre-draw listener that finds the bar the way See-through bars does, clips it to a round-ended outline around its row of tabs and scales it to 90% about a point that keeps the pill a few dp above the row's bottom. Off, paused or with the bar at the top it puts back the bar's own outline, clip, scale and pivot. See-through bars keeps its frost inside the pill with the same corners. Glass tab bar (#596) adds a light rim drawn in the bar's overlay, a soft shadow drawn in its parent's overlay outside the pill, and a highlight drawn in the tab row's overlay over the tabs that slides from the tab left to the one picked, in place of the tab's own spot."
     },
     {
       "paths": [

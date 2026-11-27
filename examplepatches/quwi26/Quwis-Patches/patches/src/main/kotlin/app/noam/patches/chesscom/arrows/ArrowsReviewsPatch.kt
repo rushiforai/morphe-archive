@@ -56,6 +56,7 @@ val arrowsReviewsPatch = bytecodePatch(
             "Ljava/lang/String;", "Ljava/lang/Integer;", "Lkotlin/jvm/functions/Function0;",
             "Lkotlin/jvm/functions/Function1;", "Z", "Z", "I",
         )
+        val modifier = "Landroidx/compose/ui/b;"
         class ActionsCall(
             val type: String,
             val name: String,
@@ -74,9 +75,16 @@ val arrowsReviewsPatch = bytecodePatch(
                     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                         ?: return@forEachIndexed
                     val types = reference.parameterTypes.map(CharSequence::toString)
-                    if (types.size != 9 || types[2] != "Landroidx/compose/ui/b;" ||
-                        types[4] != "Ljava/lang/Integer;" || types[5] != "Z" ||
-                        types[7] != "I" || types[8] != "I") return@forEachIndexed
+                    // The bar's button composable: (buttons, action, modifier, location, badge,
+                    // enabled, composer, changed, defaults). 4.10.31 dropped the badge count.
+                    val barCall = when {
+                        types.size == 9 && types[2] == modifier && types[4] == "Ljava/lang/Integer;" &&
+                            types[5] == "Z" && types[7] == "I" && types[8] == "I" -> true
+                        types.size == 8 && types[2] == modifier && types[4] == "Z" &&
+                            types[6] == "I" && types[7] == "I" -> true
+                        else -> false
+                    }
+                    if (!barCall) return@forEachIndexed
                     val register = when (instruction) {
                         is RegisterRangeInstruction -> instruction.startRegister
                         is FiveRegisterInstruction -> instruction.registerC

@@ -15,16 +15,16 @@ In Morphe Manager, add source `Okazakee/iptv-morphe-patches`, select **Unlock Pr
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.2](https://github.com/Okazakee/iptv-morphe-patches/releases/tag/v1.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.4.0](https://github.com/Okazakee/iptv-morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 IPTV Pro Stream Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.2.7 | 2.7.17 | 2.7.21 | 2.7.24 |
-| :---: | :---: | :---: | :---: |
-| Older target · pre-2.7.21 | Older target · pre-2.7.21 | Verified 2026-10-19 · vc204 | Verified 2026-10-27 · vc207 |
+| 1.2.7 | 2.7.17 | 2.7.21 | 2.7.24 | 2.7.27 | 2.7.28 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| Older target · pre-2.7.21 | Older target · pre-2.7.21 | Verified 2026-10-19 · vc204 | Verified 2026-10-27 · vc207 | Verified 2026-11-26 · vc210 | Verified 2026-11-26 · vc211 |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -38,9 +38,9 @@ In Morphe Manager, add source `Okazakee/iptv-morphe-patches`, select **Unlock Pr
 
 **🎯 Supported versions:**
 
-| 2.7.21 | 2.7.24 |
-| :---: | :---: |
-| Verified 2026-10-19 · vc204 | Verified 2026-10-27 · vc207 |
+| 2.7.21 | 2.7.24 | 2.7.28 |
+| :---: | :---: | :---: |
+| Verified 2026-10-19 · vc204 | Verified 2026-10-27 · vc207 | Verified 2026-11-26 · vc211 |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

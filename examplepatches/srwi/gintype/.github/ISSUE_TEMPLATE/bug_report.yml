@@ -1,0 +1,100 @@
+name: Bug report
+description: Create a bug report
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: checkboxes
+    attributes:
+      label: Preflight checklist
+      description: Please complete these checks before submitting the report.
+      options:
+        - label: I have read the [README](https://github.com/srwi/GinType/blob/master/README.md) and it did not solve the problem.
+          required: true
+        - label: I have searched the [open and closed issues](https://github.com/srwi/GinType/issues?q=) for the same problem without success.
+          required: true
+        - label: I tested with only GinType applied, without other patch bundles.
+          required: true
+  - type: input
+    id: patches-version
+    attributes:
+      label: GinType version
+      description: What patch bundle version are you using?
+      placeholder: "e.g. 1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: gboard-version
+    attributes:
+      label: Gboard version
+      description: Include the exact Gboard package version shown by Morphe or the installed APK.
+      placeholder: "e.g. 18.5.4.993608717-release-arm64-v8a"
+    validations:
+      required: true
+  - type: input
+    id: morphe-version
+    attributes:
+      label: Morphe Manager / CLI version
+      description: Which Morphe version did you use to patch Gboard?
+      placeholder: "e.g. Morphe Manager 1.0.0 or morphe-cli 1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: device-and-system
+    attributes:
+      label: Device and Android version
+      description: What device and Android version are you using?
+      placeholder: |
+        Device: Pixel 9
+        Android: Android 16
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Describe exactly how to reproduce the problem.
+      placeholder: |
+        1. Open ...
+        2. Enable ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: What happened instead? Include any error messages.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots or a screen recording to help explain the problem.
+  - type: textarea
+    id: log-output
+    attributes:
+      label: Log output
+      description: If applicable, paste relevant Logcat output, especially lines tagged GboardPatches, GboardThiccTopBar, or GboardMultiGlide.
+      render: text
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional information
+      description: Add any other details that may be relevant, such as selected patches, custom settings, or other installed keyboard patches.
+  - type: checkboxes
+    attributes:
+      label: Final checklist
+      description: Please confirm that the report contains enough detail to investigate.
+      options:
+        - label: I have provided clear steps and enough information to reproduce the problem.
+          required: true
+        - label: I am reporting one problem per issue.
+          required: true

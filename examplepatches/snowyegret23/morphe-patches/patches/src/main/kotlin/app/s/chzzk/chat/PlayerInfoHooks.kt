@@ -6,6 +6,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -14,8 +15,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val MODIFIER = "Landroidx/compose/ui/Modifier;"
 private const val COMPOSER = "Landroidx/compose/runtime/Composer;"
-private const val DETAIL = "Lcom/navercorp/game/android/community/ui/common/ui/overlayplayerend/live/streaming/StreamingLiveDetail;"
-private const val STATUS = "Lcom/navercorp/game/android/community/data/core/entity/serviceplayable/StreamingLiveStatus;"
+private val BytecodePatchContext.DETAIL get() = chzzkType("Lcom/navercorp/game/android/community/ui/common/ui/overlayplayerend/live/streaming/StreamingLiveDetail;")
+private val BytecodePatchContext.STATUS get() = chzzkType("Lcom/navercorp/game/android/community/data/core/entity/serviceplayable/StreamingLiveStatus;")
 
 internal fun BytecodePatchContext.addPlayerInfoBackgroundHooks() {
     val color = classDefBy("Landroidx/compose/ui/graphics/ColorKt;").methods.single {
@@ -62,10 +63,10 @@ internal fun BytecodePatchContext.addPlayerInfoBackgroundHooks() {
         """.trimIndent())
     }
 
-    val simple = mutableClassDefBy("Lcom/navercorp/game/android/community/app/ui/overlayplayerend/live/simple/SimpleLiveEndInfoScreenKt;")
+    val simple = mutableClassDefBy(chzzkType("Lcom/navercorp/game/android/community/app/ui/overlayplayerend/live/simple/SimpleLiveEndInfoScreenKt;"))
         .methods.single { it.parameterTypeNames.take(3) == listOf(MODIFIER, DETAIL, STATUS) }
     applyToInfoColumn(simple)
-    val liveItem = "Lcom/navercorp/game/android/community/data/core/entity/serviceplayable/StreamingLiveItem;"
+    val liveItem = chzzkType("Lcom/navercorp/game/android/community/data/core/entity/serviceplayable/StreamingLiveItem;")
     val opened = classDefBy(liveItem).methods.single { method ->
         method.parameterTypes.isEmpty() && method.returnType == "Ljava/lang/String;" &&
             method.implementation?.instructions?.count() == 2 &&

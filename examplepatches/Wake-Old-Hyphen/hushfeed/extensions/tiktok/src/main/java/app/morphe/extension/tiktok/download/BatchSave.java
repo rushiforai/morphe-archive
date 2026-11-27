@@ -199,6 +199,8 @@ final class BatchSave {
         if (post instanceof Joined) return saveJoined(app, (Joined) post, last);
         String id = Reflect.string(post, "getAid", "aid");
         if (id == null) throw new IOException("A picked post has no id");
+        // Subscriber-only or DRM-sourced: left out of the run before anything is fetched (#544).
+        PlayableVideo.checkMarkers(post);
         boolean checkSaved = Settings.CHECK_SAVED_VIDEOS.get();
         if (Reflect.property(post, "getPhotoModeImageInfo", "photoModeImageInfo") != null) {
             if (checkSaved && SavedVideoArchive.find(app, id) != null) return Result.ALREADY_SAVED;
@@ -234,6 +236,7 @@ final class BatchSave {
         try {
             File picture = temp(app, temporary);
             RemoteMedia.fetch(source.video, picture, RemoteMedia.Kind.VIDEO);
+            PlayableVideo.check(picture);
             File result = picture;
             if (!source.audio.isEmpty()) {
                 File sound = temp(app, temporary);
@@ -268,6 +271,7 @@ final class BatchSave {
             String id = Reflect.string(post, "getAid", "aid");
             // A single save of one of them is under way; the two would race for its photos.
             if (id != null && SlideshowVideo.saving(id)) throw new IOException("A picked post is already being saved as a video");
+            PlayableVideo.checkMarkers(post);
         }
         last[0] = SlideshowVideo.makeJoined(app, joined.posts);
         return Result.SAVED;

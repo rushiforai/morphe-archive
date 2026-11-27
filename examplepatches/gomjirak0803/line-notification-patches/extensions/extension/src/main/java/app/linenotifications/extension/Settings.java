@@ -381,7 +381,7 @@ public final class Settings {
             String chat = (String) NativeLine.field(data, "a");
             if (!NativeLine.regularChat(chat)) return;
             String account = NativeLine.account();
-            Class<?> callback = NativeLine.type("nt8.l");
+            Class<?> callback = NativeLine.type("cn8.l");
             Object click = Proxy.newProxyInstance(context.getClassLoader(), new Class[]{callback}, (proxy, method, args) -> {
                 if (method.getName().equals("invoke")) {
                     if (!account.equals(NativeLine.account())) return null;
@@ -400,7 +400,7 @@ public final class Settings {
                                         null, null); }
                                 catch (ReflectiveOperationException ignored) { }
                             }).setNegativeButton(Strings.get(context, "line_notify_btn_cancel", "Cancel"), null).show();
-                    return NativeLine.type("vs8.i0").getField("a").get(null);
+                    return NativeLine.type("lm8.i0").getField("a").get(null);
                 }
                 if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
                 if (method.getName().equals("equals")) return proxy == args[0];
@@ -409,7 +409,7 @@ public final class Settings {
             int layout = context.getResources().getIdentifier("chathistory_menu_text_with_icon_item", "layout", context.getPackageName());
             int title = context.getResources().getIdentifier("line_notify_hide_chat", "string", context.getPackageName());
             if (layout == 0 || title == 0) return;
-            Object row = NativeLine.type("d60.z").getConstructor(int.class, int.class, int.class, boolean.class, boolean.class, callback)
+            Object row = NativeLine.type("m60.y").getConstructor(int.class, int.class, int.class, boolean.class, boolean.class, callback)
                     .newInstance(layout, android.R.drawable.ic_lock_silent_mode, title, true, true, click);
             rows.add(row);
         } catch (ReflectiveOperationException | RuntimeException ignored) { /* Keep the native menu usable. */ }

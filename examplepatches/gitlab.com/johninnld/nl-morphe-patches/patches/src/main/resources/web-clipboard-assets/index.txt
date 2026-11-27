@@ -5,6 +5,7 @@ assets/geist-latin-wght-normal-BgDaEnEv.woff2
 assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2
 assets/index-CrrbJfwz.js
 assets/index-j-45Yer8.css
+assets/clipboard-interaction.css
 favicon.svg
 icons.svg
 index.html

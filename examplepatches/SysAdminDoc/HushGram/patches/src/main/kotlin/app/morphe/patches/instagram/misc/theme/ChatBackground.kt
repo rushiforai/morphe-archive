@@ -56,9 +56,7 @@ private fun refuse(why: String): Nothing = throw PatchException("$PATCH: $why")
  * exactly one, and refuses without the extension's hook.
  */
 internal fun BytecodePatchContext.findChatBackground(): ChatBackgroundSite? {
-    val sites = THREAD_BACKGROUND_IDS.flatMap { id ->
-        classesLoading(id).flatMap { classDef -> classDef.methods.mapNotNull { site(it, id) } }
-    }.distinctBy { "${it.method.definingClass}->${it.method.name}(${it.method.parameterTypes.joinToString("")})" }
+    val sites = chatBackgroundSites()
     val site = sites.singleOrNull() ?: run {
         patchLog.warning("$PATCH: found ${sites.size} methods painting a chat's background, so chats keep Instagram's black")
         return null
@@ -72,6 +70,14 @@ internal fun BytecodePatchContext.findChatBackground(): ChatBackgroundSite? {
     }
     return site
 }
+
+/**
+ * Every method [findChatBackground] picks among, the one painting an opened chat's background (07CM.A0D on
+ * 386314286), once each. Full screen Messages looks in it for the strip under the status bar (#187).
+ */
+internal fun BytecodePatchContext.chatBackgroundSites(): List<ChatBackgroundSite> = THREAD_BACKGROUND_IDS.flatMap { id ->
+    classesLoading(id).flatMap { classDef -> classDef.methods.mapNotNull { site(it, id) } }
+}.distinctBy { "${it.method.definingClass}->${it.method.name}(${it.method.parameterTypes.joinToString("")})" }
 
 /**
  * [method]'s chat background site when it loads [id], then builds a LayerDrawable, and a later static
@@ -149,6 +155,10 @@ internal fun BytecodePatchContext.findChatHeader(): ChatHeaderSite? {
     }
     return site
 }
+
+/** The classes of the methods [findChatHeader] picks among, the one coloring an opened chat's header (`LX/08Cr` on 386314286). */
+internal fun BytecodePatchContext.chatHeaderClasses(): List<String> =
+    classesLoading(CHAT_HEADER_TRACE).flatMap { classDef -> classDef.methods.mapNotNull(::headerSite) }.map { it.method.definingClass }.distinct()
 
 /** [method]'s chat header site, when it loads [CHAT_HEADER_TRACE] into the last argument of a later [COLORS_VIEW] call. */
 private fun headerSite(method: Method): ChatHeaderSite? {

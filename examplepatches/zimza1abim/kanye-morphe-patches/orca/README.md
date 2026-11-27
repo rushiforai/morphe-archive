@@ -23,9 +23,9 @@ Morphe patch for the Android package `dev.orca.app`. Supported versions are list
   has no glyphs for their code points.
 - Imported files are copied into a private directory; the user's original is not modified. TrueType
   or OpenType signatures, a 48 MiB cap and native loading are checked before a font is accepted.
-- The font screen and its native bridge travel as a rebuilt Hermes bundle. The patch verifies the
-  SHA-256 of the official bundle for that exact version, replaces it with the adapter and verifies
-  the adapter's own checksum. Expo updates stay disabled in the manifest, so a downloaded bundle
+- The font screen and its native bridge travel as a rebuilt Hermes bundle, stored as a delta
+  against the official bundle. The patch verifies the SHA-256 of the official bundle for that exact
+  version, rebuilds the adapter from it and verifies the adapter's own checksum. Expo updates stay disabled in the manifest, so a downloaded bundle
   cannot outlive the patch.
 - Orca 0.0.70 draws each bot's uploaded picture itself. The patch adds the device copy behind
   that read: the picture the app last drew is kept under the app's cache and drawn on the first
@@ -56,8 +56,10 @@ node orca/build-bundle.cjs build/orca-source-<version> <original-app-release.apk
 ```
 
 The script verifies the original APK's bundle checksum, injects the font UI into the source,
-rebuilds the bundle with `expo export:embed`, checks that it is still Hermes bytecode with the same
-header, and writes `adapters/<version>.bundle`, `<version>.assets.zip` and the checksums in
+exports the JavaScript with `expo export:embed`, compiles it with the release flags of the React
+Native Gradle plugin (no debug info in the bundle), checks the bytecode header, and writes
+`adapters/<version>.bdelta` (the adapter as a delta against the official bundle, made with
+`scripts/delta/BundleDelta.java`), `<version>.assets.zip` and the checksums in
 `adapters/<version>.properties`.
 
 Then build the patch bundle:

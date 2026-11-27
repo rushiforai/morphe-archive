@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-08.
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import app.morphe.extension.music.patches.downloads.NativeDownloads.Command;
@@ -36,9 +38,8 @@ import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
 /**
- * Plays a downloaded song with no network through the app's own offline command, player and watch-next paths,
- * only while the setting is on and a stored response is available. Online requests stay stock except for the
- * seek snap of a current StreamSwap local source, which needs the same target preservation as offline replay.
+ * Opens saved playlists in the native detail fragment and plays downloaded tracks through the app's own offline
+ * command, player and watch-next paths. Online playback stays native; StreamSwap still supplies the local media.
  */
 @SuppressWarnings("unused")
 public final class OfflineReplay {
@@ -65,13 +66,56 @@ public final class OfflineReplay {
         /** The watch command the request was made for. */
         Object rvxCommand();
 
-        /** The stock response object of the watch-next response {@code bytes}. */
-        Object rvxNextResponse(byte[] bytes);
+        /** The stock response object, with either a fresh shuffle marker or an opaque continuation token. */
+        Object rvxNextResponse(byte[] bytes, boolean shuffledStart, @Nullable Object continuation);
+    }
+
+    /** Added to the native primary queue only where the saved shuffle commit is bridged. */
+    public interface LocalShuffleQueue {
+        boolean rvxMatchesLocalShuffle(List<?> rows, int cursor);
+    }
+
+    /** Bridges on the native detail fragment; parsing and framework registration are worker-only. */
+    public interface DetailPage {
+        @Nullable String rvxInitialBrowseId(Object request);
+
+        @Nullable Object rvxSavedPageModel(byte[] bytes);
+
+        boolean rvxFinishInitialBrowse(Object request, @Nullable Object model);
     }
 
     /** What the last dispatched command left behind: the way to run a command of our own. */
     private record Captured(WeakReference<Dispatcher> dispatcher, Command template,
                             WeakReference<Map<?, ?>> context) {}
+
+    private record ShuffleSource(OfflineSourceStore.Source saved, boolean legacy) {}
+
+    private record ShufflePlan(ShuffleSource source, List<OfflineWatchNext.Item> items, byte[] command) {}
+
+    /** The native watch-next request retains this exact Root. Row endpoints never use it. */
+    private static final class ShuffleCommand extends WeakReference<Command> {
+        final int generation;
+        @Nullable ShufflePlan plan;
+
+        ShuffleCommand(Command command, int generation, ShufflePlan plan) {
+            super(command);
+            this.generation = generation;
+            this.plan = plan;
+        }
+    }
+
+    private record ShuffleReply(WeakReference<Object> response, int generation, ShuffleSource source) {}
+
+    record LiveShuffle(WeakReference<LocalShuffleQueue> owner, int generation, ShuffleSource source,
+                       String playlistId) {}
+
+    private record ShuffleContinuation(LiveShuffle live, List<?> rows, int cursor) {}
+
+    private static final List<ShuffleCommand> shuffleCommands = new ArrayList<>();
+    private static final ThreadLocal<Object> redispatchedShuffle = new ThreadLocal<>();
+    private static volatile int shuffleGeneration;
+    private static volatile ShuffleReply shuffleReply;
+    private static volatile LiveShuffle liveShuffle;
 
     private static final String HOOK_GATE = "gate";
     private static final String HOOK_PLAYER = "player";
@@ -80,6 +124,7 @@ public final class OfflineReplay {
     private static final String HOOK_SEEK = "seek";
     private static final String HOOK_BROWSE_CAPTURE = "browse-capture";
     private static final String HOOK_BROWSE_REPLAY = "browse-replay";
+    private static final ThreadLocal<Object> localBrowseDelivery = new ThreadLocal<>();
     private static final String REASON_SETTING_OFF = "setting off";
     private static final String REASON_NO_ID = "no browse id";
     private static final String REASON_NOT_A_LIST = "not a downloaded list";
@@ -186,6 +231,7 @@ public final class OfflineReplay {
      */
     static boolean play(String sourceId, int index) {
         if (!canDispatch()) return false;
+        advanceShuffleSelection();
 
         // A tap is a fresh selection that starts in the Song display, offline or online: the video copy plays with its
         // video surface off, and the app's own Song/Video switch flips it in place.
@@ -246,6 +292,7 @@ public final class OfflineReplay {
 
     static void cancelQueuedSongs() {
         queueGeneration.incrementAndGet();
+        advanceShuffleSelection();
     }
 
     private static boolean waitForPlaying(int generation, String song, @Nullable String video)
@@ -267,6 +314,7 @@ public final class OfflineReplay {
      */
     static boolean playOnline(String sourceId, String videoId) {
         if (!canDispatch()) return false;
+        advanceShuffleSelection();
 
         Utils.runOnBackgroundThread(() -> {
             try {
@@ -305,13 +353,19 @@ public final class OfflineReplay {
 
     @Nullable
     private static byte[] startCommand(String sourceId, List<OfflineWatchNext.Item> items, int index) {
+        return startCommand(sourceId, items, index, false);
+    }
+
+    @Nullable
+    private static byte[] startCommand(String sourceId, List<OfflineWatchNext.Item> items, int index,
+                                       boolean shuffledStart) {
         if (index < 0 || index >= items.size()) return null;
 
         String songId = items.get(index).videoId();
         Map<String, String> videos = videoCopies();
         String videoId = OfflineReplayLogic.videoOf(songId, videos);
         return OfflineWatchCommand.build(videoId == null ? songId : videoId, playlistId(sourceId), index,
-                OfflineReplayLogic.startTypeOf(songId, videos));
+                OfflineReplayLogic.startTypeOf(songId, videos), shuffledStart);
     }
 
     /**
@@ -412,9 +466,11 @@ public final class OfflineReplay {
                 return false;
             }
 
-            if (!enabled()) return false;
+            if (!enabled() || redispatchedShuffle.get() == command) return false;
 
-            captured = new Captured(new WeakReference<>(stockDispatcher), message, new WeakReference<>(context));
+            Captured origin = new Captured(new WeakReference<>(stockDispatcher), message,
+                    new WeakReference<>(context));
+            captured = origin;
             OfflineCopyStore.warmUp();
             OfflineBackfill.kick();
 
@@ -425,18 +481,31 @@ public final class OfflineReplay {
                 PlaylistSync.onBrowse(browseId);
             }
 
-            return takeOffline(bytes, browseId);
+            return takeOffline(bytes, browseId, origin);
         } catch (Exception ex) {
             Logger.printException(() -> "OfflineReplay: could not read the command", ex);
             return false;
         }
     }
 
-    private static boolean takeOffline(byte[] command, @Nullable String browseId) {
+    private static boolean takeOffline(byte[] command, @Nullable String browseId, Captured origin) {
         OfflineReplayLogic.WatchTarget watch = browseId == null ? OfflineReplayLogic.songTargetOf(
                 OfflineReplayLogic.onlineWatchOf(command), VideoCopyStore.pairsIfLoaded()) : null;
         DownloadedRegistry registry = DownloadedMarkers.loadedRegistry();
         if (registry != null) watch = OfflineReplayLogic.canonicalTargetOf(watch, registry::canonicalId);
+        boolean start = browseId == null && noteNativePlaylistStart(command);
+
+        if (OfflineReplayHooks.localPlaylistShuffleSupported()) {
+            if (watch != null) {
+                advanceShuffleSelection();
+            } else if (OfflineReplayLogic.startsPlaylist(command)) {
+                int generation = advanceShuffleSelection();
+                if (browseId == null && takeShufflePlay(command, origin, generation)) return true;
+            } else if (start) {
+                advanceShuffleSelection();
+            }
+        }
+
         if (browseId == null && watch == null) return false;
         if (watch != null && !Utils.isInternetReachable() && !holds(watch.videoId())) {
             PlayerFallback.unavailable();
@@ -445,7 +514,8 @@ public final class OfflineReplay {
 
         Map<String, List<String>> tracks = OfflineCopyStore.tracksBySource();
         OfflineReplayLogic.Decision decision = OfflineReplayLogic.routeOf(Utils.isInternetReachable(), browseId, watch,
-                SONGS, tracks::containsKey, OfflineBrowsePages::has, OfflineCopyStore::has,
+                SONGS, OfflineReplayHooks.localDetailSupported(), tracks::containsKey, OfflineBrowsePages::has,
+                OfflineCopyStore::has,
                 target -> OfflineReplayLogic.sourceOfPlaylist(target.playlistId(), target.videoId(), tracks),
                 videoId -> OfflineReplayLogic.sourceHolding(videoId, tracks));
         switch (decision.route()) {
@@ -470,6 +540,193 @@ public final class OfflineReplay {
         }
     }
 
+    /** Raw dispatched offline Watch, not the indexed commands the native Up Next navigator consumes. */
+    static boolean noteNativePlaylistStart(byte[] command) {
+        if (!OfflineReplayLogic.hasField(command, OfflineWatchCommand.ENDPOINT_FIELD)) return false;
+        PlayerFallback.playlistStarted();
+        return true;
+    }
+
+    private static int advanceShuffleSelection() {
+        if (!OfflineReplayHooks.localPlaylistShuffleSupported()) return shuffleGeneration;
+
+        synchronized (shuffleCommands) {
+            for (int index = 0; index < shuffleCommands.size(); index++) shuffleCommands.get(index).plan = null;
+            shuffleReply = null;
+            liveShuffle = null;
+            return ++shuffleGeneration;
+        }
+    }
+
+    private static boolean canShuffleOffline() {
+        return enabled() && OfflineReplayHooks.localPlaylistShuffleSupported()
+                && OfflineReplayHooks.localDetailSupported() && LocalDownloadManager.downloadMode().streamCopy()
+                && !Utils.isInternetReachable();
+    }
+
+    private static boolean currentShuffle(int generation) {
+        return generation == shuffleGeneration && canShuffleOffline();
+    }
+
+    private static boolean takeShufflePlay(byte[] command, Captured origin, int generation) {
+        if (!canShuffleOffline() || origin.context().get() == null) return false;
+
+        String sourceId = OfflineReplayLogic.savedShufflePlaylistOf(command, OfflineCopyStore::mayHaveSource);
+        if (sourceId == null) return false;
+
+        Utils.runOnBackgroundThread(() -> {
+            try {
+                if (!currentShuffle(generation)) return;
+                ShufflePlan plan = prepareShuffle(sourceId);
+                Utils.runOnMainThread(() -> finishShufflePlay(origin, generation, plan));
+            } catch (Exception ex) {
+                Logger.printException(() -> "OfflineReplay: could not prepare Shuffle Play of " + sourceId, ex);
+            }
+        });
+        return true;
+    }
+
+    @Nullable
+    private static ShufflePlan prepareShuffle(String sourceId) {
+        OfflineSourceStore.Source source = OfflineCopyStore.sourceForOpening(sourceId);
+        if (source == null || !OfflineCopyStore.ownsStreamSource(source)
+                || DownloadedMarkers.pendingPlaylistIds().contains(sourceId)) return null;
+
+        OfflineCopyStore.loadPlaybackData();
+
+        // Read this exact saved membership. Old stream sources may still be represented only in the track markers.
+        boolean legacy = OfflineCopyStore.source(sourceId) == null;
+        Set<String> copyIds = RawAudioStore.copyIds();
+        DownloadedRegistry markers = DownloadedMarkers.loadedRegistry();
+        Map<String, String> aliases = markers == null ? RawAudioStore.aliases() : Map.of();
+        UnaryOperator<String> canonical = markers == null
+                ? id -> OfflineCopyStore.copyId(id, copyIds, aliases) : markers::canonicalId;
+        List<OfflineWatchNext.Item> items = OfflineReplayLogic.itemsOfTracks(
+                OfflineSourceStore.tracksOf(source, copyIds, OfflineCopyStore::metadataOf, canonical));
+        byte[] bytes = startCommand(sourceId, items, 0, true);
+        return bytes == null ? null : new ShufflePlan(new ShuffleSource(source, legacy), items, bytes);
+    }
+
+    private static boolean shuffleSourceStillCurrent(ShuffleSource origin) {
+        OfflineSourceStore.Source source = origin.saved();
+        String id = source.id();
+        if (DownloadedMarkers.isPlaylistPending(id) || !OfflineCopyStore.ownsStreamSource(source)) return false;
+
+        OfflineSourceStore.Source indexed = OfflineCopyStore.source(id);
+        if (!origin.legacy()) return source == indexed;
+        if (indexed != null) return source.equals(indexed);
+
+        DownloadedRegistry markers = DownloadedMarkers.loadedRegistry();
+        return markers == null ? DownloadedMarkers.completedStreamSource(source)
+                : source.videoIds().equals(markers.sourceTracks(id));
+    }
+
+    private static void finishShufflePlay(Captured origin, int generation, @Nullable ShufflePlan plan) {
+        Dispatcher dispatcher = origin.dispatcher().get();
+        Map<?, ?> context = origin.context().get();
+        if (dispatcher == null || context == null || !currentShuffle(generation)) return;
+
+        try {
+            if (plan == null) {
+                dispatchShuffleCommand(dispatcher, origin.template(), context);
+                return;
+            }
+            if (!shuffleSourceStillCurrent(plan.source())) return;
+
+            Object parsed = origin.template().rvxWithBytes(plan.command());
+            if (!(parsed instanceof Command command)) return;
+
+            synchronized (shuffleCommands) {
+                if (generation != shuffleGeneration) return;
+                shuffleCommands.removeIf(commandRef -> commandRef.get() == null);
+                shuffleCommands.add(new ShuffleCommand(command, generation, plan));
+            }
+            logDecision(HOOK_COMMAND, "audio mode: " + AudioFirst.startAudioMode());
+            if (currentShuffle(generation)) dispatchShuffleCommand(dispatcher, command, context);
+        } catch (Exception ex) {
+            Logger.printException(() -> "OfflineReplay: could not dispatch Shuffle Play", ex);
+        }
+    }
+
+    /** Both the synthetic Root and a genuine local miss re-enter this same dispatcher, without claiming it again. */
+    static void dispatchShuffleCommand(Dispatcher dispatcher, Command command, Map<?, ?> context) {
+        // Redispatched Shuffle Play bypasses takeOffline; even a stock redispatch supersedes the old selection.
+        PlayerFallback.playlistStarted();
+        redispatchedShuffle.set(command);
+        try {
+            dispatcher.rvxDispatch(command, context);
+        } finally {
+            redispatchedShuffle.remove();
+        }
+    }
+
+    @Nullable
+    private static ShuffleCommand shuffleCommandOf(Object command) {
+        if (!OfflineReplayHooks.localPlaylistShuffleSupported() || command == null) return null;
+
+        synchronized (shuffleCommands) {
+            for (int index = shuffleCommands.size() - 1; index >= 0; index--) {
+                ShuffleCommand candidate = shuffleCommands.get(index);
+                if (candidate.get() == command) return candidate;
+            }
+            return null;
+        }
+    }
+
+    static boolean ownsLocalPlaylistShuffleReply(Object response) {
+        return currentShuffleReply(response) != null;
+    }
+
+    @Nullable
+    private static ShuffleReply currentShuffleReply(Object response) {
+        ShuffleReply reply = shuffleReply;
+        return reply != null && response != null && reply.response().get() == response
+                && currentShuffle(reply.generation()) && shuffleSourceStillCurrent(reply.source())
+                ? reply : null;
+    }
+
+    /** Binds the installed native shuffle to the very reply that produced it, not to the seed video. */
+    static void localPlaylistShuffleApplied(Object queue, Object exactMarkedReply) {
+        if (!(queue instanceof LocalShuffleQueue owner)) return;
+
+        ShuffleReply reply = currentShuffleReply(exactMarkedReply);
+        if (reply == null) return;
+
+        synchronized (shuffleCommands) {
+            if (shuffleReply != reply || reply.generation() != shuffleGeneration) return;
+            liveShuffle = new LiveShuffle(new WeakReference<>(owner), reply.generation(), reply.source(),
+                    playlistId(reply.source().saved().id()));
+        }
+    }
+
+    @Nullable
+    private static LiveShuffle liveShuffleFor(@Nullable OfflineReplayLogic.WatchTarget offline, byte[] command) {
+        LiveShuffle live = liveShuffle;
+        return live != null && offline != null && live.playlistId().equals(offline.playlistId())
+                && !OfflineReplayLogic.isShuffleStart(command, offline) ? live : null;
+    }
+
+    @Nullable
+    static Object localPlaylistContinuation(LiveShuffle live, List<?> rows, int cursor) {
+        return live.owner().get() != null && currentLiveShuffle(live)
+                ? new ShuffleContinuation(live, rows, cursor) : null;
+    }
+
+    private static boolean currentLiveShuffle(LiveShuffle live) {
+        return live == liveShuffle && currentShuffle(live.generation()) && shuffleSourceStillCurrent(live.source());
+    }
+
+    static boolean retainLocalPlaylistShuffle(Object queue, @Nullable Object continuation) {
+        if (!(continuation instanceof ShuffleContinuation captured)
+                || !(queue instanceof LocalShuffleQueue owner)) return false;
+
+        LiveShuffle live = captured.live();
+        if (live.owner().get() != owner || !currentLiveShuffle(live)) return false;
+
+        // Native apply holds the primary queue monitor across its stock selection guard and this match.
+        return live == liveShuffle && owner.rvxMatchesLocalShuffle(captured.rows(), captured.cursor());
+    }
+
     /** Starts a song with stored data as a track of the list's offline queue, with no network. Main thread. */
     private static boolean playTrack(String sourceId, String videoId, int position) {
         if (!canDispatch()) return false;
@@ -480,10 +737,14 @@ public final class OfflineReplay {
                 List<OfflineWatchNext.Item> items = queueOf(sourceId);
                 String songId = OfflineReplayLogic.songOf(videoId, videoCopies());
                 OfflineSourceStore.Source source = OfflineCopyStore.source(sourceId);
-                DownloadedRegistry markers = DownloadedMarkers.loadedRegistry();
-                int index = source != null && source.browsePage() != null && markers != null
-                        ? PlaylistSyncPlan.readyIndex(source.videoIds(), items, songId, position, markers::canonicalId)
-                        : OfflineReplayLogic.currentIndex(items, songId, -1);
+                int index;
+                if (source != null && position >= 0) {
+                    DownloadedRegistry markers = DownloadedMarkers.loadedRegistry();
+                    UnaryOperator<String> canonical = markers != null ? markers::canonicalId : UnaryOperator.identity();
+                    index = PlaylistSyncPlan.readyIndex(source.videoIds(), items, songId, position, canonical);
+                } else {
+                    index = OfflineReplayLogic.currentIndex(items, songId, -1);
+                }
                 byte[] command = startCommand(sourceId, items, index);
                 if (command == null) {
                     Logger.printWarn(() -> "OfflineReplay: no stored song " + videoId + " in " + sourceId);
@@ -498,12 +759,68 @@ public final class OfflineReplay {
     }
 
     /**
+     * Claims the first playlist detail dispatch before its stock loader runs. The worker never owns a fragment
+     * or request; the main-thread completion uses the same request and ignores a replaced or canceled generation.
+     */
+    static boolean openInitialBrowse(Object fragment, Object request) {
+        if (!(fragment instanceof DetailPage page)) return false;
+
+        String pageId = page.rvxInitialBrowseId(request);
+        if (pageId == null || !OfflineBrowsePages.mayOpen(pageId)) return false;
+
+        WeakReference<DetailPage> owner = new WeakReference<>(page);
+        WeakReference<Object> identity = new WeakReference<>(request);
+        Utils.runOnBackgroundThread(() -> {
+            Object model = readInitialBrowse(owner, pageId);
+            Utils.runOnMainThread(() -> finishInitialBrowse(owner, identity, pageId, model));
+        });
+        return true;
+    }
+
+    @Nullable
+    private static Object readInitialBrowse(WeakReference<DetailPage> owner, String pageId) {
+        try {
+            byte[] response = OfflineBrowsePages.readForOpening(pageId);
+            DetailPage page = owner.get();
+            return response == null || page == null ? null
+                    : page.rvxSavedPageModel(OfflinePlaylistArtwork.localize(pageId, response));
+        } catch (Exception | LinkageError failure) {
+            Logger.printException(() -> "OfflineReplay: could not read the saved detail page", failure);
+            return null;
+        }
+    }
+
+    private static void finishInitialBrowse(WeakReference<DetailPage> owner, WeakReference<Object> identity,
+                                            String pageId, @Nullable Object model) {
+        DetailPage page = owner.get();
+        Object request = identity.get();
+        if (page == null || request == null) return;
+
+        if (model == null) {
+            page.rvxFinishInitialBrowse(request, null);
+            return;
+        }
+
+        localBrowseDelivery.set(model);
+        try {
+            if (page.rvxFinishInitialBrowse(request, model)) {
+                logDecision(HOOK_BROWSE_REPLAY, "opened saved detail " + pageId);
+            }
+        } finally {
+            localBrowseDelivery.remove();
+        }
+    }
+
+    /**
      * Injection point: the success of a page the app's page fragment shows (a playlist, an album), on the main
      * thread, with the response model it renders. Records the page of a downloaded list the user opened while online,
      * to open it again with no network. The serialization and the write run on a worker thread: the response is
      * immutable. A recorded page is logged; of the pages that are not recorded only the odd reason is, once a minute.
      */
-    static void onBrowseResponse(String browseId, Object result) {
+    static void onBrowseResponse(String browseId, Object result, boolean captureLegacyDetails) {
+        if (localBrowseDelivery.get() == result && result != null) return;
+        if (!captureLegacyDetails && !OfflineReplayLogic.isPlaylistDetailBrowse(browseId)) return;
+
         noteAlive(HOOK_BROWSE_CAPTURE);
         String skipped = captureSkipReason(browseId, result);
         if (skipped != null) {
@@ -528,15 +845,10 @@ public final class OfflineReplay {
                     return;
                 }
 
+                int written = OfflineBrowsePages.capture(pageId, list, response);
+                if (written < 0) return;
+
                 int updates = OfflineBrowsePagesLogic.frameworkUpdatesSize(response);
-                int written;
-                synchronized (PlaylistSync.MUTATION) {
-                    OfflineSourceStore.Source source = OfflineCopyStore.source(list);
-                    if (source == null || source.browsePage() != null) return;
-                    if (source.kind() == OfflineSourceStore.Kind.PLAYLIST
-                            && !PlaylistSyncPage.matchesSavedPrefix(list, response, source.videoIds())) return;
-                    written = OfflineBrowsePages.write(pageId, list, response);
-                }
                 logDecision(HOOK_BROWSE_CAPTURE, "recorded " + browseId + " list=" + list + " bytes="
                         + response.length + " frameworkUpdates=" + updates + " gzip=" + written + " fields="
                         + OfflineBrowsePagesLogic.fieldSizes(response));
@@ -573,13 +885,17 @@ public final class OfflineReplay {
     }
 
     /**
-     * Injection point: the page fragment's load of a page failed. The recorded page of a downloaded list answers it
-     * while there is no network; every other failure, an online one included, stays the app's.
+     * Legacy replay: albums on their original versions, or playlists if their initial dispatch shape was not found.
+     * Stock playlist refresh failures are never answered with an old snapshot on local-first versions.
      *
      * @return the recorded browse response, or null.
      */
     @Nullable
     static byte[] answerBrowse(String browseId, Throwable failure) {
+        if (OfflineReplayHooks.localDetailSupported() && OfflineReplayLogic.isPlaylistDetailBrowse(browseId)) {
+            return null;
+        }
+
         noteAlive(HOOK_BROWSE_REPLAY);
         boolean online = Utils.isInternetReachable();
         String sourceId = browseId == null ? null : OfflineReplayLogic.sourceOfBrowseId(browseId);
@@ -736,7 +1052,11 @@ public final class OfflineReplay {
     @Nullable
     private static OfflineReplayLogic.WatchTarget watchTargetOf(Object request) {
         if (!(request instanceof NextRequest next) || !(next.rvxCommand() instanceof Command command)) return null;
+        return watchTargetOf(command);
+    }
 
+    @Nullable
+    private static OfflineReplayLogic.WatchTarget watchTargetOf(Command command) {
         byte[] bytes = command.toByteArray();
         OfflineReplayLogic.WatchTarget offline = OfflineReplayLogic.offlineWatchOf(bytes);
         return offline == null ? OfflineReplayLogic.onlineWatchOf(bytes) : offline;
@@ -745,7 +1065,11 @@ public final class OfflineReplay {
     /** Disconnected next requests complete from the committed queue before stock can schedule network work. */
     @Nullable
     static ListenableFuture<?> localNext(Object request) {
-        if (!enabled() || Utils.isInternetReachable() || watchTargetOf(request) == null) return null;
+        if (!(request instanceof NextRequest next) || !(next.rvxCommand() instanceof Command command)) return null;
+
+        ShuffleCommand shuffled = shuffleCommandOf(command);
+        if (shuffled != null) return localShuffleNext(next, command, shuffled);
+        if (!enabled() || Utils.isInternetReachable() || watchTargetOf(command) == null) return null;
 
         ReplayFuture result = new ReplayFuture();
         Utils.runOnBackgroundThread(() -> {
@@ -757,15 +1081,94 @@ public final class OfflineReplay {
         return result;
     }
 
+    /** Only the accepted shuffled start gets a fresh saved queue, never a previous native queue with the same seed. */
+    private static ListenableFuture<?> localShuffleNext(NextRequest next, Command command, ShuffleCommand shuffled) {
+        ShufflePlan plan;
+        synchronized (shuffleCommands) {
+            plan = shuffled.plan;
+            shuffled.plan = null;
+        }
+
+        ReplayFuture result = new ReplayFuture();
+        int generation = shuffled.generation;
+        if (plan == null || !currentShuffle(generation)) {
+            result.cancel(false);
+            return result;
+        }
+
+        Utils.runOnBackgroundThread(() -> {
+            if (result.isCancelled()) return;
+            try {
+                Object response = buildShuffleReply(next, command, generation, plan);
+                if (response != null && ownsLocalPlaylistShuffleReply(response)) {
+                    result.set(response);
+                    return;
+                }
+            } catch (Exception | LinkageError failure) {
+                Logger.printException(() -> "OfflineReplay: could not answer the shuffled native queue", failure);
+            }
+            result.cancel(false);
+        });
+        return result;
+    }
+
+    @Nullable
+    private static Object buildShuffleReply(NextRequest next, Command command, int generation, ShufflePlan plan) {
+        if (!currentShuffle(generation) || !shuffleSourceStillCurrent(plan.source())) return null;
+
+        String sourceId = plan.source().saved().id();
+        if (plan.source().legacy() && !plan.source().saved().equals(OfflineCopyStore.sourceForOpening(sourceId))) {
+            return null;
+        }
+
+        byte[] commandBytes = command.toByteArray();
+        OfflineReplayLogic.WatchTarget target = OfflineReplayLogic.offlineWatchOf(commandBytes);
+        if (target == null || !playlistId(sourceId).equals(target.playlistId())
+                || !OfflineReplayLogic.isShuffleStart(commandBytes, target)) return null;
+
+        List<OfflineWatchNext.Item> items = plan.items();
+        Map<String, String> videos = videoCopies();
+        String songId = OfflineReplayLogic.songOf(target.videoId(), videos);
+        if (!songId.equals(items.get(0).videoId()) || !holds(target.videoId())) return null;
+        if (OfflineReplayLogic.showsVideos(target.videoId(), videos)) {
+            items = OfflineReplayLogic.showingVideos(items, videos);
+        }
+
+        byte[] bytes = OfflineWatchNext.build(target.playlistId(), items, 0, true);
+        Object response = next.rvxNextResponse(bytes, true, null);
+        if (response == null) return null;
+
+        synchronized (shuffleCommands) {
+            if (generation != shuffleGeneration) return null;
+            shuffleReply = new ShuffleReply(new WeakReference<>(response), generation, plan.source());
+        }
+        return response;
+    }
+
     @Nullable
     static Object nextResponse(Object request) {
         try {
-            OfflineReplayLogic.WatchTarget target = watchTargetOf(request);
-            if (target == null || !(request instanceof NextRequest next)) return null;
+            if (!(request instanceof NextRequest next) || !(next.rvxCommand() instanceof Command command)
+                    || shuffleCommandOf(command) != null) return null;
+            byte[] commandBytes = command.toByteArray();
+            OfflineReplayLogic.WatchTarget offline = OfflineReplayLogic.offlineWatchOf(commandBytes);
+            OfflineReplayLogic.WatchTarget target = offline == null ? OfflineReplayLogic.onlineWatchOf(commandBytes)
+                    : offline;
+            if (target == null) return null;
 
-            byte[] bytes = PlayerFallback.nextBytes(target.playlistId(), target.videoId(), next.rvxCommand());
-            if (bytes == null) bytes = nextBytes(target.playlistId(), target.videoId(), target.index(), true);
-            return bytes == null ? null : next.rvxNextResponse(bytes);
+            Object edited = PlayerFallback.editedQueueSelection(request, target.videoId());
+            if (edited != null) {
+                // Never fall back to a reconstructed saved list when an exact edited selection has gone stale.
+                return PlayerFallback.editedNextResponse(edited, request, next,
+                        target.playlistId(), target.videoId(), commandBytes);
+            }
+
+            Object captured = PlayerFallback.capturedNextResponse(next, target.playlistId(), target.videoId(),
+                    commandBytes, liveShuffleFor(offline, commandBytes));
+            if (captured != null) return captured;
+
+            byte[] bytes = nextBytes(target.playlistId(), target.videoId(), target.index(), true);
+            return bytes == null ? null : next.rvxNextResponse(bytes, false, null);
         } catch (Exception failure) {
             Logger.printException(() -> "OfflineReplay: could not answer the native queue", failure);
             return null;

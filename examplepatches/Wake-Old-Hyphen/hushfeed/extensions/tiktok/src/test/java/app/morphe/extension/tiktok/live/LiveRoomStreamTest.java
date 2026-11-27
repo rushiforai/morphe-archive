@@ -3,8 +3,11 @@ package app.morphe.extension.tiktok.live;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import app.morphe.extension.tiktok.download.LiveRecorder;
+import com.bytedance.android.livesdkapi.depend.model.live.Room;
+import com.bytedance.android.livesdkapi.session.EnterRoomConfig;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -197,5 +200,133 @@ public class LiveRoomStreamTest {
         assertNotNull(pick.problem);
         assertNotNull(LiveRoomStream.fromRoom(null, null).problem);
         assertNotNull(LiveRoomStream.fromRoom(new Object(), null).problem);
+    }
+
+    private static final class StreamUrl {
+        public Map<String, String> flvPullUrl;
+    }
+
+    private static final class StreamRoom extends Room {
+        public StreamUrl streamUrl;
+    }
+
+    /** A LIVE room page: its room and the enter config it was opened with. */
+    private static final class RoomPage {
+        public Room room;
+        public EnterRoomConfig config;
+
+        RoomPage(Room room, EnterRoomConfig config) {
+            this.room = room;
+            this.config = config;
+        }
+    }
+
+    private static Room heldRoom(String id) {
+        Room room = new Room();
+        room.idStr = id;
+        return room;
+    }
+
+    private static EnterRoomConfig opened(String json, long streamRoomId, long enteredRoomId) {
+        EnterRoomConfig config = new EnterRoomConfig();
+        config.mStreamData.pullStreamData = json;
+        config.mStreamData.streamRoomId = streamRoomId;
+        config.mRoomsData.roomId = enteredRoomId;
+        return config;
+    }
+
+    /**
+     * #413: with Ghost mode holding the room enter back, TikTok never fills the room's stream, so
+     * the window's Record found none. The player plays the stream the page was opened with.
+     */
+    @Test public void aRoomWhoseEnterWasHeldBackRecordsTheStreamItsPageOpenedWith() {
+        Room room = heldRoom("7");
+        assertEquals("No stream", LiveRoomStream.fromRoom(room, "hd").problem);
+        LiveRoomStream.Pick pick = LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 7, 0)), room, "hd");
+        assertNull(pick.problem);
+        assertEquals("https://p.example.com/hd.flv", pick.target.url);
+        assertEquals(LiveRecorder.Transport.FLV, pick.target.transport);
+        assertEquals("7", pick.target.room);
+        assertEquals("sd, hd, origin", pick.offered);
+        LiveRoomStream.Pick entered = LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 0, 7)), room, null);
+        assertEquals("with no stream room id, the entered room's id counts",
+                "https://p.example.com/o.flv", entered.target.url);
+    }
+
+    @Test public void anotherRoomsStreamIsNeverRecorded() {
+        Room room = heldRoom("7");
+        LiveRoomStream.Pick other = LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 8, 7)), room, null);
+        assertNull(other.target);
+        assertTrue(other.problem, other.problem.startsWith("No stream, "));
+        assertNull(LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 0, 8)), room, null).target);
+        assertNull(LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 0, 0)), room, null).target);
+    }
+
+    @Test public void aPageWithoutAnOpeningStreamKeepsTheRoomsOwnReason() {
+        Room room = heldRoom("7");
+        assertEquals("No stream", LiveRoomStream.fromPage(null, room, null).problem);
+        assertNull(LiveRoomStream.fromPage(new Object(), room, null).target);
+        assertNull(LiveRoomStream.fromPage(new RoomPage(room, null), room, null).target);
+        assertNull(LiveRoomStream.fromPage(new RoomPage(room, opened(null, 7, 7)), room, null).target);
+        assertNull(LiveRoomStream.fromPage(new RoomPage(room, opened("{not json", 7, 7)), room, null).target);
+        assertNull(LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 7, 7)), heldRoom(null), null).target);
+        assertNotNull(LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 7, 7)), null, null).problem);
+    }
+
+    /** A room that carries its own pull stream data and no stream URL, as a held room can on 48.0.2. */
+    private static final class DataRoom extends Room {
+        public String pullStreamData;
+    }
+
+    /**
+     * #413 on the S22: in a room Ghost mode held back, Record logged "No stream, the page opened
+     * with another room's stream". The room had no stream URL, so its own pull stream data was
+     * never read, though that data is the room's by definition.
+     */
+    @Test public void aHeldRoomRecordsItsOwnStreamDataWhenItHasNoStreamUrl() {
+        DataRoom room = new DataRoom();
+        room.idStr = "7";
+        room.pullStreamData = JSON;
+        LiveRoomStream.Pick own = LiveRoomStream.fromRoom(room, "hd");
+        assertNull(own.problem);
+        assertEquals("https://p.example.com/hd.flv", own.target.url);
+        assertEquals("7", own.target.room);
+        LiveRoomStream.Pick page = LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 8, 8)), room, null);
+        assertEquals("another room's opening stream doesn't get in the way",
+                "https://p.example.com/o.flv", page.target.url);
+        room.pullStreamData = "";
+        assertEquals("No stream", LiveRoomStream.fromRoom(room, null).problem);
+    }
+
+    @Test public void aStreamRefusedForAnotherRoomSaysWhichRooms() {
+        Room room = heldRoom("7");
+        String problem = LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 0, 0)), room, null).problem;
+        assertTrue(problem, problem.endsWith("(stream room 0, entered 0, this room 7)"));
+    }
+
+    @Test public void aRoomsOwnStreamStillComesFirst() {
+        StreamRoom room = new StreamRoom();
+        room.idStr = "7";
+        room.streamUrl = new StreamUrl();
+        room.streamUrl.flvPullUrl = new LinkedHashMap<>();
+        room.streamUrl.flvPullUrl.put("sd", "https://p.example.com/own.flv");
+        LiveRoomStream.Pick pick = LiveRoomStream.fromPage(new RoomPage(room, opened(JSON, 7, 7)), room, null);
+        assertEquals("https://p.example.com/own.flv", pick.target.url);
+    }
+
+    @Test public void theEnteredRoomsCachedCopyIsUsedWhenItHasTheStream() {
+        Room held = heldRoom("7");
+        StreamRoom cached = new StreamRoom();
+        cached.idStr = "7";
+        cached.streamUrl = new StreamUrl();
+        cached.streamUrl.flvPullUrl = new LinkedHashMap<>();
+        cached.streamUrl.flvPullUrl.put("hd", "https://p.example.com/cached.flv");
+        EnterRoomConfig config = opened(null, 0, 7);
+        config.mRoomsData.enterRoomCache = cached;
+        assertEquals("https://p.example.com/cached.flv",
+                LiveRoomStream.fromPage(new RoomPage(held, config), held, null).target.url);
+        cached.idStr = "8";
+        assertNull("another room's cached copy is never used",
+                LiveRoomStream.fromPage(new RoomPage(held, config), held, null).target);
     }
 }

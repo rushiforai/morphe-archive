@@ -21,6 +21,7 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21s
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -31,6 +32,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import patches.gboard.shared.*
 import patches.gboard.shared.generated.GboardVersionBindings
 import org.w3c.dom.Element
 
@@ -492,9 +494,8 @@ private fun resolveTranscriptionBundle(): TranscriptionBundle {
 @Suppress("unused")
 val parakeetVoiceTyping = bytecodePatch(
     name = "Parakeet voice typing",
-    description = "Adds Gboard settings → Voice typing → Parakeet voice typing. After downloading NVIDIA Parakeet " +
-        "(Moondream's Parakeet Ultra or the original TDT v3), the microphone key transcribes on the phone and " +
-        "recognises Dutch, English and 23 more languages per sentence without switching. Gives the patched Gboard the Parakeet launcher icon.",
+    description = "Uses the speech model selected in Local Model Host through Binder while preserving Gboard's native microphone and dictation UI. " +
+        "Choose Parakeet, Nemotron Streaming or Whisper Tiny and download/enable the model in the host. Gboard can use separately authorized contact names for local dictation with Parakeet Ultra.",
 ) {
     compatibleWith(gboard)
     extendWith("extensions/gboard.mpe")
@@ -508,6 +509,17 @@ val parakeetVoiceTyping = bytecodePatch(
                 packageName = manifest.documentElement.getAttribute("package").ifEmpty { packageName }
                 val application = manifest.getElementsByTagName("application").item(0) as? Element
                     ?: throw PatchException("Gboard manifest has no application")
+                val root=manifest.documentElement
+                ensureManifestUsesPermission(manifest,root,"android.permission.REQUEST_INSTALL_PACKAGES")
+                ensureManifestUsesPermission(manifest,root,"android.permission.RECORD_AUDIO")
+                ensureManifestUsesPermission(manifest,root,"android.permission.READ_CONTACTS")
+                val queries=root.childElements("queries").firstOrNull()?:manifest.createElement("queries").also{root.insertBefore(it,application)}
+                if(queries.childElements("package").none{it.manifestAndroidAttribute("name")=="app.johninnl.modelhost"})queries.appendChild(manifest.createElement("package").apply{setManifestAndroidAttribute("name","app.johninnl.modelhost")})
+                ensureManifestComponent(manifest,application,"activity","dev.jason.gboardpatches.extension.sharedmodel.SharedModelSetupActivity").setManifestAndroidAttribute("exported","false")
+                ensureManifestComponent(manifest,application,"provider","app.johninnl.modelhost.api.ProviderApkProvider").apply{
+                    setManifestAndroidAttribute("authorities",packageName+".local-model-host-apks");setManifestAndroidAttribute("exported","false");setManifestAndroidAttribute("grantUriPermissions","true")
+                }
+
                 val activities = manifest.getElementsByTagName("activity")
                 if ((0 until activities.length).any { (activities.item(it) as Element).getAttributeNS(ANDROID, "name") == SETTINGS_ACTIVITY }) {
                     throw PatchException("Parakeet settings are already declared")
@@ -518,14 +530,20 @@ val parakeetVoiceTyping = bytecodePatch(
                     setAttributeNS(ANDROID, "android:label", "@string/morphe_parakeet_title")
                 })
             }
+            val release=object {}.javaClass.classLoader.getResourceAsStream("gboard/model-host-release.json")?.use{it.readBytes()}
+            if(release!=null){val target=this["assets/morphe/model-host-release.json",false];target.parentFile.mkdirs();target.writeBytes(release)}
             for ((folder, texts) in listOf(
                 "values" to listOf(
-                    "Parakeet voice typing", "On-device speech recognition, Dutch and English without switching",
-                    "Parakeet", "Voice typing on your phone with NVIDIA Parakeet, set up under Parakeet voice typing",
+                    "Local AI voice typing", "Speech models and downloads are managed in Local Model Host",
+                    "Standard", "Google voice typing, or the selected Local AI speech model when enabled below",
+                    "Use contact names",
+                    "With Parakeet Ultra selected in Local Model Host, use up to 32 contact display names to improve local dictation. Names stay on this phone and are not saved by Local Model Host.",
                 ),
                 "values-nl" to listOf(
-                    "Parakeet-spraakinvoer", "Spraakherkenning op de telefoon, Nederlands en Engels zonder wisselen",
-                    "Parakeet", "Spraakinvoer op je telefoon met NVIDIA Parakeet, in te stellen onder Parakeet-spraakinvoer",
+                    "Lokale AI-spraakinvoer", "Spraakmodellen en downloads worden beheerd in Local Model Host",
+                    "Standaard", "Google-spraakinvoer, of het gekozen lokale AI-spraakmodel als dit hieronder is ingeschakeld",
+                    "Contactnamen gebruiken",
+                    "Als Parakeet Ultra is geselecteerd in Local Model Host, kan lokale spraakinvoer maximaal 32 namen uit je contacten gebruiken. De namen blijven op deze telefoon en worden niet opgeslagen door Local Model Host.",
                 ),
             )) {
                 val path = "res/$folder/strings.xml"
@@ -533,7 +551,8 @@ val parakeetVoiceTyping = bytecodePatch(
                 document(path).use { strings ->
                     val root = strings.documentElement
                     val keys = listOf("morphe_parakeet_title", "morphe_parakeet_summary",
-                        "morphe_parakeet_selector_title", "morphe_parakeet_selector_summary")
+                        "morphe_parakeet_selector_title", "morphe_parakeet_selector_summary",
+                        "morphe_parakeet_contact_names", "morphe_parakeet_contact_names_summary")
                     for ((key, value) in keys.zip(texts)) {
                         root.appendChild(strings.createElement("string").apply {
                             setAttribute("name", key)
@@ -586,7 +605,7 @@ val parakeetVoiceTyping = bytecodePatch(
             }
         }
     }
-    dependsOn(originalInput, settings, gboardParakeetIconPatch)
+    dependsOn(originalInput, settings, gboardParakeetIconPatch, gboardPatchesExtensionCarrierPatch)
 
     execute {
         val contract = resolveContract()
@@ -732,16 +751,68 @@ val parakeetVoiceTyping = bytecodePatch(
             invoke-static {p0}, $RECOGNIZER->attachService(Landroid/inputmethodservice/InputMethodService;)V
         """)
 
+        if (GboardVersionBindings.targetVersion == "18.8.0-beta") {
+            // NGA constructs its own dictation client when this preference is true. Standard with
+            // shared speech selected must use the voice-ime factory, which supplies the host engine.
+            val enhanced = GboardMethodTarget("Lrtt;", "d", emptyList(), "Z").resolve(this)
+            GboardFieldTarget("Lrtt;", "a", CONTEXT).resolve(this)
+            check(enhanced.instructionsOrEmpty().any { (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f14093c }) {
+                "Gboard enhanced voice preference binding changed"
+            }
+            check(enhanced.implementation!!.registerCount >= 2) {
+                "Gboard enhanced voice preference does not have a free local register"
+            }
+            enhanced.addInstructionsWithLabels(0, """
+                iget-object v0, p0, Lrtt;->a:$CONTEXT
+                invoke-static {v0}, $RECOGNIZER->shouldUseSharedStandard($CONTEXT)Z
+                move-result v0
+                if-eqz v0, :enhanced_stock
+                const/4 v0, 0x0
+                return v0
+            """, ExternalLabel("enhanced_stock", enhanced.getInstruction(0)))
+
+            // The consolidated stack bypasses rtt.c() entirely. Let the stock factory build its
+            // existing Standard handler when shared speech is selected.
+            val handler = GboardMethodTarget(
+                "Lrlm;", "a", listOf(CONTEXT, "Lakrx;", "Lakse;", "Latta;"), "Laksa;",
+            ).resolve(this)
+            val handlerCode = handler.instructionsOrEmpty()
+            val contextCopy = handlerCode.getOrNull(1) as? TwoRegisterInstruction
+            check(handler.implementation!!.registerCount == 21 &&
+                contextCopy?.opcode == Opcode.MOVE_OBJECT_FROM16 &&
+                contextCopy.registerA == 2 && contextCopy.registerB == 17
+            ) { "Gboard dictation factory context register changed" }
+            val consolidatedFlag = handlerCode.indices.single {
+                handlerCode[it].isFieldReference("Lakti;->Q:Ladfh;")
+            }
+            val flagResult = handlerCode.getOrNull(consolidatedFlag + 5) as? OneRegisterInstruction
+            check(handlerCode[consolidatedFlag + 4].isMethodReference("Ljava/lang/Boolean;->booleanValue()Z") &&
+                flagResult?.opcode == Opcode.MOVE_RESULT && flagResult.registerA == 1 &&
+                handlerCode[consolidatedFlag + 7].opcode == Opcode.IF_NEZ &&
+                handlerCode.any { it.isMethodReference("Lrtt;->c()Z") }
+            ) { "Gboard consolidated dictation routing changed" }
+            handler.addInstructions(consolidatedFlag + 6, """
+                invoke-static {v2, v1}, $RECOGNIZER->allowConsolidatedDictation(${CONTEXT}Z)Z
+                move-result v1
+            """.trimIndent())
+        }
+
         val factory = mutableClassDefBy(contract.factory.definingClass).methods
             .single { it.name == contract.factory.name && it.params() == contract.factory.params() && it.returnType == contract.factory.returnType }
-        // Rambler sessions stay with Google's cloud recognizer, so the user's Rambler/Standard choice in
-        // Gboard's Voice settings picks between Rambler and Parakeet instead of Parakeet taking both.
-        factory.addInstructionsWithLabels(0, """
-            iget-boolean v0, p1, ${contract.ramblerSessionField.smali()}
-            if-nez v0, :original
+        // Keep the stock Rambler request when no explicit local edit has been armed.
+        val factoryType = contract.factory.definingClass
+        val choose = "morpheSharedRecognizerForRequest"
+        addHelperMethodIfMissing(factoryType, choose, listOf(factoryType, factory.params().single()), RECOGNIZER,
+            AccessFlags.PRIVATE.value or AccessFlags.STATIC.value, 4, """
             iget-object v0, p0, ${contract.holderField.smali()}
             iget-object v0, v0, ${contract.contextField.smali()}
-            invoke-static {v0}, $RECOGNIZER->create($CONTEXT)$RECOGNIZER
+            iget-boolean v1, p1, ${contract.ramblerSessionField.smali()}
+            invoke-static {v0, v1}, $RECOGNIZER->createForVoiceRequest(${CONTEXT}Z)$RECOGNIZER
+            move-result-object v0
+            return-object v0
+        """.trimIndent())
+        factory.addInstructionsWithLabels(0, """
+            invoke-static {p0, p1}, $factoryType->$choose($factoryType${factory.params().single()})$RECOGNIZER
             move-result-object v0
             if-eqz v0, :original
             return-object v0

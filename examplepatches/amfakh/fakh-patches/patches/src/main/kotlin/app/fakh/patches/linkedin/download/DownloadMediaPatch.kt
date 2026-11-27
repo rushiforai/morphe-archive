@@ -24,12 +24,11 @@ private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/DownloadMediaPatch;"
 @Suppress("unused")
 val downloadMediaPatch = patch(
     name = "Download media",
-    description = "Adds download buttons to profile photos and banners and Download media to the ⋯ menu of " +
-        "posts. Adds a switch in Fakh Patches.",
+    description = "Adds download buttons to profile photos and banners and Download media to the ⋯ menu of posts.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feature")
+    category("Download")
 
     // The server driven viewer is handled by the SDUI filter and SduiFragment lifecycle hooks, the ⋯ menu items
     // by the post menu hooks.

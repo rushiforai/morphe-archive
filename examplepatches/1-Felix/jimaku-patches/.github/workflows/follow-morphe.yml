@@ -1,0 +1,256 @@
+# Follows Morphe's stable releases: when Morphe moves to new YouTube versions, Jimaku's targets move with it,
+# each version is tested here, and a stable Jimaku release follows. A failed run is the only signal.
+# Run by hand with a Morphe tag to test that release without pushing anything.
+name: Follow Morphe
+
+on:
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "A Morphe patches tag to test (a dry run: nothing is pushed)"
+        required: false
+
+concurrency:
+  group: follow-morphe
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# Explicit bash runs every step with pipefail.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      follow: ${{ steps.check.outputs.follow }}
+      dry_run: ${{ steps.check.outputs.dry_run }}
+      tag: ${{ steps.check.outputs.tag }}
+      targets: ${{ steps.check.outputs.targets }}
+      signatures: ${{ steps.check.outputs.signatures }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Test the scripts
+        run: python3 -m unittest discover -s .github/follow-morphe -t .github/follow-morphe
+
+      - name: Check Morphe's latest stable release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          # Only main's code is released; a run from another branch tests and pushes nothing.
+          ON_MAIN: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          [ "$ON_MAIN" = true ] || DRY_RUN=--dry-run
+          python3 .github/follow-morphe/morphe.py check ${TAG:+--tag "$TAG"} ${DRY_RUN:-} | tee -a "$GITHUB_OUTPUT"
+
+  build:
+    needs: check
+    if: needs.check.outputs.follow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Take Morphe's targets
+        run: python3 .github/follow-morphe/morphe.py update --tag "${{ needs.check.outputs.tag }}"
+
+      - uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build Jimaku's bundle and run its tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :extensions:jimaku:testDebugUnitTest --no-daemon
+
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: jimaku-bundle
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            patches/build/libs/patches-*.mpp
+            !patches/build/libs/*-javadoc.mpp
+            !patches/build/libs/*-sources.mpp
+
+  test:
+    needs: [check, build]
+    if: needs.check.outputs.follow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJSON(needs.check.outputs.targets) }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.check.outputs.tag }}
+      VERSION: ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: jimaku-bundle
+          path: bundle
+
+      - name: Fetch Morphe's patches, the latest Morphe CLI and MicroG
+        run: |
+          mkdir -p work
+          gh release download "$TAG" -R MorpheApp/morphe-patches -p 'patches-*.mpp' -D work
+          gh release download -R MorpheApp/morphe-desktop -p '*-all.jar' -D work
+          MICROG=$(gh release view -R MorpheApp/MicroG-RE --json tagName -q .tagName)
+          gh release download "$MICROG" -R MorpheApp/MicroG-RE -p "microg-${MICROG#v}.apk" -D work
+          ls work bundle
+
+      - name: Download YouTube ${{ matrix.version }}
+        run: python3 .github/follow-morphe/apk.py download "$VERSION" work/youtube.apk
+
+      - name: Check it is YouTube ${{ matrix.version }}, signed as Morphe expects
+        env:
+          SIGNATURES: ${{ needs.check.outputs.signatures }}
+        run: python3 .github/follow-morphe/apk.py verify work/youtube.apk "$VERSION" "$SIGNATURES"
+
+      - name: Check every name Jimaku looks up exists
+        run: python3 .github/follow-morphe/apk.py names work/youtube.apk
+
+      - uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Patch with Morphe's patches and Jimaku
+        run: |
+          set -o pipefail
+          java -Xmx4g -jar work/morphe-desktop-*-all.jar patch -p work/patches-*.mpp -p bundle/patches-*.mpp \
+            --striplibs=x86_64 -o work/youtube-patched.apk work/youtube.apk 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > work/patch.log
+          grep -E 'Applied: Jimaku|SEVERE' work/patch.log || true
+          grep -q 'Applied: Jimaku' work/patch.log
+          ! grep -q 'SEVERE' work/patch.log
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Emulator check
+        id: emulator
+        continue-on-error: true
+        uses: ReactiveCircus/android-emulator-runner@v2.38.0
+        with: &emulator
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 4096M
+          disk-size: 8G
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          disable-animations: true
+          script: bash .github/follow-morphe/smoke.sh work
+
+      # Again only when the emulator failed to boot or install; a failed check of Jimaku is final.
+      # 2026-10-30: a corrupt download of the emulator package failed both attempts 20 s apart on one runner,
+      # so the second attempt starts from a clean SDK download cache, a minute later.
+      - name: Clear the SDK download cache
+        if: steps.emulator.outcome == 'failure' && hashFiles('work/jimaku-check-failed') == ''
+        run: |
+          df -h / | tail -1
+          rm -rf "$ANDROID_HOME/.temp" "$ANDROID_HOME/.downloadIntermediates" ~/.android/cache
+          sleep 60
+
+      - name: Emulator check, second attempt
+        if: steps.emulator.outcome == 'failure' && hashFiles('work/jimaku-check-failed') == ''
+        uses: ReactiveCircus/android-emulator-runner@v2.38.0
+        with: *emulator
+
+      - name: Keep the report, logs and screenshots (never an APK)
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: report-${{ matrix.version }}
+          retention-days: 3
+          path: |
+            work/report*.txt
+            work/patch.log
+            work/logcat*.txt
+            work/shots/
+            work/attempt-1/
+
+  release:
+    needs: [check, build, test]
+    if: needs.check.outputs.follow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.check.outputs.tag }}
+      DRY_RUN: ${{ needs.check.outputs.dry_run }}
+    steps:
+      # Commit on the newest main: an automatic release carries only the version change, never dev's work.
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Check main is what was tested
+        if: needs.check.outputs.dry_run != 'true'
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo "main moved during this run, so what was tested is not what would be released; the next run tests the new main"
+            exit 1
+          fi
+
+      - name: Take Morphe's targets
+        id: update
+        run: python3 .github/follow-morphe/morphe.py update --tag "$TAG" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Commit, push and release
+        env:
+          CHANGED: ${{ steps.update.outputs.changed }}
+          SUBJECT: ${{ steps.update.outputs.subject }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/follow-morphe/followed.txt patches/src/main/kotlin/app/jimaku/patches/shared/Constants.kt \
+            gradle/libs.versions.toml settings.gradle.kts
+          if git diff --cached --quiet; then
+            echo "Nothing to commit: Morphe $TAG is already followed"
+            exit 0
+          fi
+          git commit -q -m "$SUBJECT"
+          git show --stat HEAD
+          if [ "$DRY_RUN" = "true" ]; then
+            git show HEAD -- patches gradle settings.gradle.kts
+            echo "Dry run: nothing pushed"
+            exit 0
+          fi
+          git push origin HEAD:main
+          [ "$CHANGED" = "true" ] || exit 0
+          # A push made with GITHUB_TOKEN starts no workflow; a dispatch does. Its outcome is this run's:
+          # the record is pushed already, so a failed release would otherwise go unseen and never be retried.
+          since=$(date -u -d '-1 minute' +%Y-%m-%dT%H:%M:%SZ)
+          gh workflow run release.yml --ref main
+          for _ in $(seq 1 18); do
+            sleep 10
+            id=$(gh run list -w release.yml -e workflow_dispatch -b main -L 5 --json databaseId,createdAt \
+              -q "[.[] | select(.createdAt >= \"$since\")] | last | .databaseId // empty")
+            [ -n "$id" ] && break
+          done
+          [ -n "$id" ] || { echo "The dispatched release run did not show up"; exit 1; }
+          gh run watch "$id" --exit-status --interval 30

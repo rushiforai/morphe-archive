@@ -32,7 +32,7 @@ Gboard の設定で次のようにすると、スクリーンショットと同�
 ## パッチ一覧
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/twelvehouse/gboard-ios-style-jp-en-morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.4.0](https://github.com/twelvehouse/gboard-ios-style-jp-en-morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -48,7 +48,7 @@ Gboard の設定で次のようにすると、スクリーンショットと同�
 |----------|----------------|-----------|
 | [Change package name](#change-package-name) | Installs the patched Gboard as a separate app next to the stock Gboard, which is usually a system app that cannot be replaced by an APK with another signature. | • Package name |
 | [Immediate globe key](#immediate-globe-key) | Lets the globe key switch languages right after typing on the letter keyboards, as it does on iOS. Gboard otherwise ignores it for half a second after a key is typed. |  |
-| [iOS QWERTY layout](#ios-qwerty-layout) | Puts the globe key of the letter keyboards at the bottom left, where it is on the Japanese 12-key keyboards, and lays out the English symbol keyboard like the iOS "123" and "#+=" pages. Gboard's number row setting keeps working. |  |
+| [iOS QWERTY layout](#ios-qwerty-layout) | Puts the globe key of the letter keyboards at the bottom left, where it is on the Japanese 12-key keyboards, and lays out the English symbol keyboard like the iOS "123" and "#+=" pages. Gboard's number row setting keeps working. | • Bottom left keys |
 | [iOS flick layout](#ios-flick-layout) | Changes the Japanese 12-key keyboard to the layout of iOS with "flick only" enabled: 123, ABC and あいう keys and the globe key on the left, and backspace, space and a two-row enter key on the right. | • Mark the active mode key |
 
 </details>

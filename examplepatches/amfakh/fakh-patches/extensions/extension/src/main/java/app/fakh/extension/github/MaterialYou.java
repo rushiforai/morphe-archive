@@ -19,6 +19,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -247,6 +249,37 @@ public final class MaterialYou {
     }
 
     /**
+     * Injected into the constructor of the WebView that renders markdown: lets its page ask for the link color.
+     *
+     * @param view the new markdown view
+     */
+    public static void markdownView(WebView view) {
+        view.addJavascriptInterface(new MarkdownColors(view.getContext()), "fakhColors");
+    }
+
+    /** What the markdown page can ask the app about colors. */
+    public static final class MarkdownColors {
+        private final Context context;
+
+        private MarkdownColors(Context context) {
+            this.context = context;
+        }
+
+        /**
+         * The accent for links, the same tones as the links of the app's own screens.
+         *
+         * @param dark whether the page is dark
+         * @return the color as {@code #rrggbb}, or an empty string with Material You off
+         */
+        @JavascriptInterface
+        public String link(boolean dark) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !isMaterialYou(context)) return "";
+            int color = context.getColor(dark ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600);
+            return String.format("#%06x", color & 0xFFFFFF);
+        }
+    }
+
+    /**
      * The accent that replaces a Primer blue: the tone of the same lightness for an opaque blue, and the main
      * accent with the blue's own alpha for a translucent one (selected tab pills, pressed rows).
      *
@@ -299,6 +332,10 @@ public final class MaterialYou {
      * @param key     the switch's key
      */
     public static void toggled(Context context, String key, Object preference) {
+        if (PatchMenu.opens(key)) {
+            PatchMenu.open(context, key);
+            return;
+        }
         if (ChoiceSheets.opens(key)) {
             ChoiceSheets.open(activity(context), key, preference);
             return;
@@ -319,11 +356,6 @@ public final class MaterialYou {
         ChoiceSheets.settings(fragment);
     }
 
-    /** Injected into each Settings row that opens a sheet: the summary under its title, or null. */
-    public static String summary(String key) {
-        return ChoiceSheets.summary(key);
-    }
-
     /** Turns the remembered dark canvas and card fields black, or back to their normal color. */
     private static void setAmoled(boolean on) {
         amoled = on;
@@ -340,10 +372,12 @@ public final class MaterialYou {
     /** The Black setting each activity was created with. */
     private static final Map<Activity, Boolean> CREATED_BLACK = new WeakHashMap<>();
     private static boolean watching;
+    /** Whether a change waits for a restart, which ends this process and with it the flag. */
+    private static boolean restartPending;
 
     /**
      * Recreates an activity that comes back to the front with the other AMOLED black setting: the screens behind Settings were created before the switch, and their View colors come from their
-     * base context.
+     * base context. A Settings screen that comes to the front while a change waits for a restart gets the restart bar.
      */
     private static void watchActivities(Context context) {
         if (watching || !(context.getApplicationContext() instanceof Application)) return;
@@ -357,7 +391,12 @@ public final class MaterialYou {
             @Override
             public void onActivityResumed(Activity activity) {
                 Boolean black = CREATED_BLACK.get(activity);
-                if (black != null && black != isAmoled(activity)) activity.recreate();
+                if (black != null && black != isAmoled(activity)) {
+                    activity.recreate();
+                } else if (restartPending && PatchMenu.SETTINGS_ACTIVITY.equals(activity.getClass().getName())) {
+                    // A new screen is not attached yet, and the bar needs its insets.
+                    activity.getWindow().getDecorView().post(() -> keepRestartBar(activity));
+                }
             }
 
             @Override
@@ -382,10 +421,30 @@ public final class MaterialYou {
         });
     }
 
-    /** Says the change applies after a restart, with a Restart action. */
+    /**
+     * Says the change applies after a restart, with a Restart action. The bar stays, on this and every other Settings
+     * screen, until the app restarts.
+     */
     static void showRestartBar(Activity activity) {
+        restartPending = true;
+        watchActivities(activity);
+        keepRestartBar(activity);
+    }
+
+    /** Draws the restart bar over a Settings screen and pads its list, so the last row can scroll above the bar. */
+    private static void keepRestartBar(Activity activity) {
         ViewGroup root = activity.findViewById(android.R.id.content);
-        if (root != null) RestartBar.show(activity, navigationBarHeight(root), isMaterialYou(activity));
+        if (root == null) return;
+        View bar = RestartBar.keep(activity, navigationBarHeight(root), isMaterialYou(activity));
+        if (bar == null) return;
+        bar.post(() -> {
+            ViewGroup list = root.findViewById(activity.getResources()
+                    .getIdentifier("recycler_view", "id", activity.getPackageName()));
+            if (list == null) return;
+            list.setClipToPadding(false);
+            list.setPadding(list.getPaddingLeft(), list.getPaddingTop(), list.getPaddingRight(),
+                    Math.max(list.getPaddingBottom(), root.getHeight() - bar.getTop()));
+        });
     }
 
     /** Height of the navigation bar under the content, which edge-to-edge screens draw behind. */
@@ -395,7 +454,7 @@ public final class MaterialYou {
     }
 
     /** The activity behind a view's context, which preferences wrap in a themed context. */
-    private static Activity activity(Context context) {
+    static Activity activity(Context context) {
         while (context instanceof ContextWrapper) {
             if (context instanceof Activity) return (Activity) context;
             context = ((ContextWrapper) context).getBaseContext();

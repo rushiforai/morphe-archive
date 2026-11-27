@@ -12,6 +12,7 @@ import app.fakh.patches.linkedin.shared.Constants.GLASS_NAVIGATION_BAR
 import app.fakh.patches.linkedin.shared.Constants.HIDE_TAB_BADGES
 import app.fakh.patches.linkedin.shared.Constants.HIDE_TAB_LABELS
 import app.fakh.patches.linkedin.shared.Constants.LIQUID_GLASS
+import app.fakh.patches.linkedin.shared.Constants.NAVIGATION_TABS
 import app.fakh.patches.linkedin.shared.Constants.SWIPE_TABS
 import app.fakh.patches.linkedin.shared.settingsPatch
 import app.fakh.patches.shared.register
@@ -116,15 +117,14 @@ internal val navigationHooksPatch = patch {
 @Suppress("unused")
 val navigationBarPatch = patch(
     name = "Navigation bar",
-    description = "Lets you choose the navigation bar tabs, including Post, Video, News and Messaging, and hide its " +
-        "count badges and labels. In Fakh Patches.",
+    description = "Lets you choose and sort the navigation bar tabs, including Post, Video, News and Messaging.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feature")
+    category("Navigation bar")
     dependsOn(navigationHooksPatch)
     execute {
-        register(HIDE_TAB_LABELS, HIDE_TAB_BADGES)
+        register(NAVIGATION_TABS)
         VideoTabScreenFingerprint.method.apply {
             addInstructionsWithLabels(
                 0,
@@ -141,13 +141,37 @@ val navigationBarPatch = patch(
 }
 
 @Suppress("unused")
+val hideTabLabelsPatch = patch(
+    name = "Hide tab labels",
+    description = "Hides the text under the icons of the navigation bar.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Navigation bar")
+    dependsOn(navigationHooksPatch)
+    execute { register(HIDE_TAB_LABELS) }
+}
+
+@Suppress("unused")
+val hideTabBadgesPatch = patch(
+    name = "Hide notification badges",
+    description = "Hides the count badges on the navigation bar tabs.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Navigation bar")
+    dependsOn(navigationHooksPatch)
+    execute { register(HIDE_TAB_BADGES) }
+}
+
+@Suppress("unused")
 val swipeTabsPatch = patch(
     name = "Swipe between tabs",
     description = "Swipe sideways to switch tabs of the navigation bar.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feature")
+    category("Navigation bar")
     dependsOn(navigationHooksPatch)
     execute { register(SWIPE_TABS) }
 }
@@ -155,11 +179,12 @@ val swipeTabsPatch = patch(
 @Suppress("unused")
 val glassNavigationBarPatch = patch(
     name = "Glass navigation bar",
-    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Adds a Background blur switch in Fakh Patches.",
+    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a " +
+        "finger along it to switch tabs. Can blur what's behind it.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Theme")
+    category("Navigation bar")
     dependsOn(navigationHooksPatch)
     execute { register(GLASS_NAVIGATION_BAR, LIQUID_GLASS) }
 }
@@ -175,11 +200,11 @@ private object ScrollDirectionFingerprint : Fingerprint(
 @Suppress("unused")
 val alwaysShowNavigationBarPatch = patch(
     name = "Always show navigation bar",
-    description = "Adds an option in Fakh Patches to keep the navigation bar on screen while you scroll.",
+    description = "Keeps the navigation bar on screen while you scroll.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feature")
+    category("Navigation bar")
     dependsOn(settingsPatch)
     execute {
         register(ALWAYS_SHOW_NAVIGATION_BAR)

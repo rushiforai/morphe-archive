@@ -54,6 +54,9 @@ public final class Settings {
     static final String MUTED_WORDS = "muted_words";
     /** Names of people and pages, one per line: their posts are hidden. */
     static final String MUTED_AUTHORS = "muted_authors";
+    // Registered when the muted lists are patched in; not switches.
+    static final String MUTED_WORDS_LIST = "muted_words_list";
+    static final String MUTED_AUTHORS_LIST = "muted_authors_list";
     static final String OPEN_LINKS_DIRECTLY = "open_links_directly";
     static final String HIDE_SPONSORED_MESSAGES = "hide_sponsored_messages";
     static final String GHOST_MODE = "ghost_mode";
@@ -68,6 +71,8 @@ public final class Settings {
     static final String GLASS_NAVIGATION_BAR = "glass_navigation_bar";
     static final String LIQUID_GLASS = "liquid_glass";
     static final String ALWAYS_SHOW_NAVIGATION_BAR = "always_show_navigation_bar";
+    /** Registered when the Navigation bar tabs sheet is patched in; not a switch. */
+    static final String NAVIGATION_TABS = "navigation_tabs";
     static final String HIDE_TAB_LABELS = "hide_tab_labels";
     static final String HIDE_TAB_BADGES = "hide_tab_badges";
     static final String SHOW_TAB_JOBS = "show_tab_jobs";
@@ -96,6 +101,8 @@ public final class Settings {
     static final String VIDEO_TAB_AUTO_SCROLL = "video_tab_auto_scroll";
     static final String HIDE_MORE_TAB = "hide_more_tab";
     static final String SHOW_TAB_MORE = "show_tab_more";
+    /** Registered when the Items in the More tab sheet is patched in; not a switch. */
+    static final String MORE_TAB_ITEMS = "more_tab_items";
     static final String MOVE_MORE_ITEMS = "move_more_items";
     static final String GAMES_SHORTCUT = "games_shortcut";
     /** Items of the More tab last seen, as JSON (MoreMenu). */
@@ -138,10 +145,6 @@ public final class Settings {
         return Features.has(DOWNLOAD_MEDIA);
     }
 
-    public static boolean isFeedFiltersIncluded() {
-        return Features.has(FOCUS_MODE);
-    }
-
     public static boolean isExpandPostsIncluded() {
         return Features.has(EXPAND_POSTS);
     }
@@ -163,7 +166,6 @@ public final class Settings {
         return Features.on(SANITIZE_SHARE_LINKS);
     }
 
-    /** Part of "Open links directly". */
     static boolean resolveShortLinks() {
         return Features.on(RESOLVE_SHORT_LINKS);
     }
@@ -208,7 +210,7 @@ public final class Settings {
     }
 
     public static boolean isNavigationBarIncluded() {
-        return Features.has(HIDE_TAB_LABELS);
+        return Features.has(NAVIGATION_TABS);
     }
 
     static boolean hideTabLabels() {
@@ -319,8 +321,9 @@ public final class Settings {
         return Features.on(MATERIAL_TAB_ICONS);
     }
 
+    /** Whether the video time or the Video tab's auto-scroll is patched in; both follow the playing video. */
     public static boolean isVideoTabIncluded() {
-        return Features.has(VIDEO_TAB_TIME);
+        return Features.has(VIDEO_TAB_TIME) || Features.has(VIDEO_TAB_AUTO_SCROLL);
     }
 
     static boolean videoTabTime() {
@@ -340,7 +343,7 @@ public final class Settings {
     }
 
     public static boolean isMoreMenuIncluded() {
-        return Features.has(GAMES_SHORTCUT);
+        return Features.has(MORE_TAB_ITEMS);
     }
 
     static boolean moreMenu() {
@@ -361,7 +364,7 @@ public final class Settings {
     }
 
     static boolean moveMoreItems() {
-        return isMoreMenuIncluded() && get(MOVE_MORE_ITEMS, moreHiddenAndMoved());
+        return Features.has(MOVE_MORE_ITEMS) && get(MOVE_MORE_ITEMS, moreHiddenAndMoved());
     }
 
     public static boolean isGmsCoreSupportIncluded() {
@@ -475,10 +478,6 @@ public final class Settings {
         return Features.on(COPY_TEXT);
     }
 
-    public static boolean isMessagingIncluded() {
-        return Features.has(HIDE_SPONSORED_MESSAGES);
-    }
-
     static boolean hideSponsoredMessages() {
         return Features.on(HIDE_SPONSORED_MESSAGES);
     }
@@ -556,11 +555,11 @@ public final class Settings {
     }
 
     /**
-     * A muted list as typed ({@link #MUTED_WORDS} or {@link #MUTED_AUTHORS}), or an empty string; only with Feed
-     * filters patched in.
+     * A muted list as typed ({@link #MUTED_WORDS} or {@link #MUTED_AUTHORS}), or an empty string; only with that
+     * list patched in.
      */
     static String muted(String key) {
-        return isFeedFiltersIncluded() ? getString(key, "") : "";
+        return Features.has(MUTED_WORDS.equals(key) ? MUTED_WORDS_LIST : MUTED_AUTHORS_LIST) ? getString(key, "") : "";
     }
 
     static boolean hideAds() {

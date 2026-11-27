@@ -14,7 +14,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.20.0](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.20.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
+> **[v1.20.1](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.20.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;32 patches total
 <details open>
 <summary>📦 Alpha Progression&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -114,6 +114,22 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 |----------|----------------|-----------|
 | [Force Premium Writes](#force-premium-writes) | Stores true on every write of the PREMIUM_ENABLED preference, so RevenueCat entitlement callbacks and the purchase coroutine can never clear the local premium flag. |  |
 | [Unlock Premium](#unlock-premium) | Unlocks the premium surfaces gated by the app's local PREMIUM_ENABLED flag: premium schedules and workouts, unlimited custom schedules/workouts, statistics ranges, notes, AI exercise tips, coach weeks, export, sign-in, photo upload and the plate calculator. |  |
+
+</details>
+
+<details open>
+<summary>📦 MacroFactor&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.8.13 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Stub App Check tokens](#stub-app-check-tokens) | Makes Firebase App Check's Play Integrity token fetch succeed with a throwaway token, so the app no longer reports "Device integrity can't be verified". The server still rejects the token, so AI food search keeps failing there. Client-side check only. |  |
+| [Unlock Premium (Root)](#unlock-premium-root) | Unlocks all premium features. Requires root: the patched build must be mounted over the genuine Play-signed install — a re-signed sideload will not work. |  |
 
 </details>
 
@@ -264,21 +280,6 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Reports an active `premium` entitlement to Runna's JavaScript layer, clears the backend's client-side plan lock flags and subscription status, unlocking premium screens, all plan weeks and the plan footer without a Play purchase. |  |
-
-</details>
-
-<details open>
-<summary>📦 MacroFactor&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 5.8.11 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium (Root)](#unlock-premium-root) | Unlocks all premium features. Requires root: the patched build must be mounted over the genuine Play-signed install — a re-signed sideload will not work. |  |
 
 </details>
 

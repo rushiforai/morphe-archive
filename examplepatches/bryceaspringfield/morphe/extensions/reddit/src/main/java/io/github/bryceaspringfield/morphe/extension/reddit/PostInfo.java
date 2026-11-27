@@ -14,25 +14,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * What the filters read from one post: its text, poster, community, flairs, type, score, and comment count.
- * <p>
- * A feed post is a tree of Kotlin data classes with obfuscated names. Each part is recognized by the name its
- * toString() starts with (for example {@code PostTitleElement(}), which survives obfuscation, and its values
- * are read from the labels of the same toString() (for example {@code , translatedTitle=}). A repost holds the
- * original post, whose text, poster, and community are added to the repost's.
- */
 final class PostInfo {
 
     final StringBuilder title = new StringBuilder();
     final StringBuilder body = new StringBuilder();
     final List<String> flairs = new ArrayList<>();
     final List<String> authors = new ArrayList<>();
-    /** The authors as Reddit shows them, in their own case, in the order of {@link #authors}. */
     final List<String> shownAuthors = new ArrayList<>();
     final List<String> communities = new ArrayList<>();
     final StringBuilder domain = new StringBuilder();
-    /** The post's media as host and ID (i.redd.it/abc, imgur.com/xyz), from the first media address it names. */
     final StringBuilder media = new StringBuilder();
     boolean isPost;
     boolean nsfw;
@@ -44,14 +34,8 @@ final class PostInfo {
     Long comments;
     final List<String> partNames = new ArrayList<>();
 
-    /**
-     * The post's ID (t3_...), or blank.
-     */
     String id = "";
 
-    /**
-     * The community the post was made in (a repost's own community), or blank.
-     */
     String community() {
         return communities.isEmpty() ? "" : communities.get(0);
     }
@@ -73,20 +57,14 @@ final class PostInfo {
         return value.length() > 80 ? value.substring(0, 80) + "..." : value;
     }
 
-    // region Feed elements
-
     private static final Pattern NEXT_LABEL = Pattern.compile(", [a-zA-Z]+=");
     private static final Pattern FLAIR_TEXT = Pattern.compile("(?:\\(|, )(?:text|flairText|richText|name)=");
     private static final Pattern NSFW = Pattern.compile("(?i)(?:\\(|, )(?:isNsfw|nsfw|over18|isOver18|isNSFW|nsfwIndicator)=true|\\bNsfw\\b|\\bNSFW\\b|Indicator\\.Nsfw|Nsfw\\(");
-    /** A media address: Reddit's image and video hosts, imgur, RedGIFs, Streamable, Gfycat, and YouTube. */
     private static final Pattern MEDIA_URL = Pattern.compile(
             "https?://(?:www\\.|m\\.)?((?:i|v|preview)\\.redd\\.it|(?:i\\.)?imgur\\.com|(?:www\\.)?redgifs\\.com/(?:watch|ifr)"
                     + "|streamable\\.com|gfycat\\.com|youtu\\.be|youtube\\.com/(?:watch\\?v=|shorts/))/?(?!snoovatar|avatars?/|award)([A-Za-z0-9_-]{5,})");
     private static final Map<Class<?>, List<Field>> FIELDS = new ConcurrentHashMap<>();
 
-    /**
-     * The name a data class's toString() starts with, or blank.
-     */
     static String nameOf(String text) {
         int paren = text.indexOf('(');
         if (paren <= 0 || paren > 64) return "";
@@ -97,9 +75,6 @@ final class PostInfo {
         return name;
     }
 
-    /**
-     * The value printed after {@code label} in a data class's toString(), or blank.
-     */
     static String valueOf(String text, String label) {
         String key = ", " + label + "=";
         int start = text.indexOf(key);
@@ -210,15 +185,12 @@ final class PostInfo {
             if (!indicators.isEmpty() && NSFW.matcher(indicators).find()) nsfw = true;
         }
 
-        // Home feed cards of some builds carry the flair in another element (or none until the post's state changes):
-        // any element naming a link flair or a flairs list gives it, whatever its class.
         if (!name.equals("PostFlairsElement")) {
             String linkFlair = valueOf(text, "linkFlairText");
             if (!linkFlair.isEmpty()) addFlair(linkFlair);
             if (text.contains(", flairs=[") || text.contains("(flairs=[")) addFlairs(bracketed(text, "flairs"));
         }
 
-        // The parts: lists of elements, and single elements such as a repost's original post.
         for (Field field : fields(element.getClass())) {
             Object value;
             try {
@@ -239,10 +211,6 @@ final class PostInfo {
         }
     }
 
-    /**
-     * A search result's post. A repost's toString() holds its original post after the label crossPostParent, which the
-     * recursion reads as a part of its own.
-     */
     private void readSearchPost(String text) {
         isPost = true;
         addLine(title, valueOf(text, "title"));
@@ -261,9 +229,6 @@ final class PostInfo {
         if (domain.length() == 0) domain.append(valueOf(text, "domain").toLowerCase(Locale.ROOT));
     }
 
-    /**
-     * Names the post's community when no part of the post names one (a community's own feed).
-     */
     void defaultCommunity(String name) {
         if (communities.isEmpty() && name != null) addCommunity(name);
     }
@@ -281,7 +246,6 @@ final class PostInfo {
                     field.setAccessible(true);
                     fields.add(field);
                 } catch (RuntimeException ignored) {
-                    // A field the runtime refuses to open is skipped.
                 }
             }
         }
@@ -310,10 +274,6 @@ final class PostInfo {
         if (!flair.isEmpty() && !flairs.contains(flair)) flairs.add(flair);
     }
 
-    /**
-     * Whether the post has the flair given, compared by letters and digits alone (case, emoji, and punctuation
-     * aside).
-     */
     boolean hasFlair(String flair) {
         String key = Rules.flairMatchKey(flair);
         if (key.isEmpty()) return false;
@@ -321,10 +281,6 @@ final class PostInfo {
         return false;
     }
 
-    /**
-     * A field's value in a data class's toString(), starting at {@code start}: it ends at the next ", name=" or at
-     * the closing bracket of its object, with brackets inside the value (a flair "Question (Answered)") kept.
-     */
     static String fieldValue(String text, int start) {
         int depth = 0;
         for (int i = start; i < text.length(); i++) {
@@ -340,10 +296,6 @@ final class PostInfo {
         return text.substring(start).trim();
     }
 
-    /**
-     * A list or object field's whole value, brackets included ("flairs=[Flair(...), Flair(...)]"), or the plain
-     * value of any other field.
-     */
     static String bracketed(String text, String label) {
         String key = ", " + label + "=";
         int start = text.indexOf(key);
@@ -362,10 +314,6 @@ final class PostInfo {
         }
         return text.substring(start);
     }
-
-    // endregion
-
-    // region Listing items (com.reddit.domain.model.Link)
 
     private static final Map<String, Method> LINK_METHODS = new ConcurrentHashMap<>();
     private static final Set<String> MISSING_METHODS = ConcurrentHashMap.newKeySet();
@@ -404,17 +352,11 @@ final class PostInfo {
         return info;
     }
 
-    /**
-     * Gives a post with no photo, video, or link part the type its domain names: a post whose card shows only a link
-     * preview thumbnail (e.g., ballotpedia.org) names its site in the header, and a text post names self.community or
-     * nothing.
-     */
     private void outsideLink() {
         if (!textOnly() || domain.length() == 0) return;
         String host = domain.toString().toLowerCase(Locale.ROOT);
         if (host.startsWith("self.") || host.equals("reddit.com") || host.endsWith(".reddit.com")
                 || host.startsWith("r/") || host.startsWith("u/") || host.indexOf('.') < 0) return;
-        // A media host names the post's type (a YouTube video, an i.redd.it image); any other site is a link.
         classicMedia(host, "");
     }
 
@@ -455,9 +397,6 @@ final class PostInfo {
         }
     }
 
-    // endregion
-
-    /** Records the first media address in {@code text}, its host shortened to one name for each service. */
     private void addMedia(String text) {
         if (text == null || text.isEmpty()) return;
         Matcher m = MEDIA_URL.matcher(text);
@@ -495,9 +434,6 @@ final class PostInfo {
         builder.append(value.toLowerCase(Locale.ROOT));
     }
 
-    /**
-     * A count as printed in the app (for example 42, 1.2k, 3,4 k, or 2M), or null when it states no number.
-     */
     static Long parseCount(String label) {
         if (label == null) return null;
         String text = label.trim().toLowerCase(Locale.ROOT).replace(" ", " ");

@@ -21,8 +21,35 @@ final class MebukiAdapter {
     private static final Charset SJIS = Charset.forName("Shift_JIS");
     private final SharedPreferences index;
     private final Context context;
-    private final java.util.LinkedHashMap<String,String> privateImages = new java.util.LinkedHashMap<>();
+    private static final int MAX_ORIGINAL_BYTES=12_000_000;
+    private static final class PrivateImage {
+        final String url; final boolean original;
+        PrivateImage(String url,boolean original){this.url=url;this.original=original;}
+    }
+    private final java.util.LinkedHashMap<String,PrivateImage> privateImages = new java.util.LinkedHashMap<>();
     private String imageSession = "";
+    // Shared by in-process reader/reply adapters; never persisted or returned to external peers.
+    private static final java.util.LinkedHashMap<String,String> privateThreads = new java.util.LinkedHashMap<>();
+    private static String threadSession = "";
+    private static synchronized void syncThreadSession(String cookie){
+        if(!cookie.equals(threadSession)){privateThreads.clear();threadSession=cookie;}
+    }
+    synchronized String rememberPrivateThread(String cookie,String slug)throws Exception{
+        if(slug==null||!slug.matches("[A-Za-z0-9_-]{8,24}")||!MebukiSession.safeCookie(cookie))
+            throw new IllegalArgumentException("Invalid thread identity");
+        if(!cookie.equals(MebukiSession.saved(context)))throw new IllegalStateException("Session changed");
+        String id=virtualId("thread.",slug);
+        synchronized(MebukiAdapter.class){
+            syncThreadSession(cookie);
+            String existing=privateThreads.get(id);
+            String publicSlug=index.getString("thread."+id,null);
+            if((existing!=null&&!existing.equals(slug))||(publicSlug!=null&&!publicSlug.equals(slug)))
+                throw new IllegalStateException("ID collision");
+            if(privateThreads.size()>=512&&existing==null)privateThreads.remove(privateThreads.keySet().iterator().next());
+            privateThreads.put(id,slug);
+        }
+        return id;
+    }
 
     MebukiAdapter(Context context) {
         this.context = context;
@@ -35,30 +62,32 @@ final class MebukiAdapter {
             String path = rawPath.split("\\?", 2)[0];
             if ("/mebuki/".equals(path) || ("/mebuki/futaba.php".equals(path) &&
                     BridgeServer.hasCatalogMode(rawPath)))
-                return BridgeServer.BridgeResponse.html(catalog());
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog(internal)));
             if (path.matches("/mebuki/res/[0-9]{13}\\.htm")) {
                 String id = path.substring("/mebuki/res/".length(), path.length() - 4);
                 if (internal && MebukiSession.safeCookie(MebukiSession.saved(context))) {
                     String cookie=MebukiSession.saved(context);
                     try {
                         MebukiThreadData data=readPrivateThread(context,id);
-                        byte[] html=data.nativeHtml(id,url->rememberPrivateImage(cookie,url));
+                        byte[] html=data.nativeHtml(id,url->rememberPrivateImage(cookie,url,true));
                         if(cookie.equals(MebukiSession.saved(context)))
-                            return BridgeServer.BridgeResponse.html(html);
+                            return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,html));
                     } catch(Exception ignored) { /* keep the explicit notice on any failure */ }
                 }
-                return BridgeServer.BridgeResponse.html(unavailableThread(id));
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,unavailableThread(id)));
             }
             if (path.matches("/mebuki/(thumb|cat|src)/[0-9]{13}s?\\.jpg")) {
                 String id = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('/') + 14);
                 String remote = index.getString("img." + id, null);
                 if (remote == null && internal) {
                     String cookie=MebukiSession.saved(context);
-                    String candidate=privateImage(cookie,id);
+                    PrivateImage candidate=privateImage(cookie,id);
                     if(candidate!=null && MebukiSession.verify(cookie)==MebukiSession.State.AUTHENTICATED
                             && cookie.equals(MebukiSession.saved(context))) {
-                        byte[] image=fetchImage(candidate);
-                        if(cookie.equals(MebukiSession.saved(context))) return BridgeServer.BridgeResponse.image(image);
+                        // Thread images use the original bytes even for the stock inline thumbnail.
+                        BridgeServer.BridgeResponse image=candidate.original?originalResponse(candidate.url):
+                                BridgeServer.BridgeResponse.image(fetchImage(candidate.url));
+                        if(cookie.equals(MebukiSession.saved(context))) return image;
                     }
                 }
                 if (remote == null) return BridgeServer.BridgeResponse.text(404, "Unknown image");
@@ -70,21 +99,22 @@ final class MebukiAdapter {
         }
     }
 
-    private synchronized String rememberPrivateImage(String cookie,String url) {
+    private synchronized String rememberPrivateImage(String cookie,String url,boolean original) {
+        if(!MebukiThreadData.safeImage(url))return null;
         if(!cookie.equals(MebukiSession.saved(context)))return null;
         if(!cookie.equals(imageSession)){privateImages.clear();imageSession=cookie;}
         try {
-            byte[] digest=MessageDigest.getInstance("SHA-256").digest(("private."+url).getBytes(StandardCharsets.UTF_8));
+            byte[] digest=MessageDigest.getInstance("SHA-256").digest(((original?"private.original.":"private.")+url).getBytes(StandardCharsets.UTF_8));
             long n=java.nio.ByteBuffer.wrap(digest).getLong() & Long.MAX_VALUE;
             String id=Long.toString(1000000000000L+n%9000000000000L);
             if(index.contains("img."+id))return null;
-            String existing=privateImages.get(id);
-            if(existing!=null&&!existing.equals(url))return null;
+            PrivateImage existing=privateImages.get(id);
+            if(existing!=null&&(!existing.url.equals(url)||existing.original!=original))return null;
             if(privateImages.size()>=512&&existing==null)privateImages.remove(privateImages.keySet().iterator().next());
-            privateImages.put(id,url);return id;
+            privateImages.put(id,new PrivateImage(url,original));return id;
         }catch(Exception ex){return null;}
     }
-    private synchronized String privateImage(String cookie,String id) {
+    private synchronized PrivateImage privateImage(String cookie,String id) {
         if(!cookie.equals(imageSession)){privateImages.clear();imageSession=cookie;return null;}
         return MebukiSession.safeCookie(cookie)?privateImages.get(id):null;
     }
@@ -101,10 +131,36 @@ final class MebukiAdapter {
     // Does not enter the public image index; the session cookie is not sent.
     byte[] readPrivateImage(String url) throws Exception {
         if (!MebukiThreadData.safeImage(url)) throw new IllegalArgumentException("Invalid attachment");
-        return download(url, 3_000_000, true);
+        return download(url, MAX_ORIGINAL_BYTES, true);
+    }
+
+    private BridgeServer.BridgeResponse originalResponse(String url)throws Exception{
+        byte[] raw=readPrivateImage(url);
+        BitmapFactory.Options bounds=new BitmapFactory.Options();
+        bounds.inJustDecodeBounds=true;
+        BitmapFactory.decodeByteArray(raw,0,raw.length,bounds);
+        String mime=bounds.outMimeType;
+        if(bounds.outWidth<=0||bounds.outHeight<=0||bounds.outWidth>16000||bounds.outHeight>16000||
+                (long)bounds.outWidth*bounds.outHeight>40_000_000L||
+                mime==null||!mime.matches("image/(jpeg|png|gif|webp)"))
+            throw new IllegalArgumentException("Unsupported original image");
+        return new BridgeServer.BridgeResponse(200,mime,raw);
     }
 
     JSONObject threadsJson() throws Exception {
+        return threadsJson(true);
+    }
+
+    private JSONObject threadsJson(boolean internal) throws Exception {
+        String cookie=MebukiSession.saved(context);
+        if(internal && MebukiSession.safeCookie(cookie)){
+            try{
+                JSONArray items=authenticatedCatalog(MebukiSession.readCatalog(cookie),cookie);
+                if(!cookie.equals(MebukiSession.saved(context)))throw new IllegalStateException("Session changed");
+                return new JSONObject().put("threads",items).put("trial",false).put("delayed",false)
+                        .put("threadReadingAvailable",true);
+            }catch(Exception ignored){ /* explicit trial fallback, never pretend it is current */ }
+        }
         byte[] response = download(HOST + "/api/trial/trending", 250_000, false);
         JSONArray raw = new JSONObject(new String(response, StandardCharsets.UTF_8)).getJSONArray("threads");
         JSONArray threads = new JSONArray();
@@ -130,10 +186,54 @@ final class MebukiAdapter {
         return result;
     }
 
-    private byte[] catalog() throws Exception {
-        JSONArray items = threadsJson().getJSONArray("threads");
+    private JSONArray authenticatedCatalog(String stream,String cookie)throws Exception{
+        Object root=MebukiTurboStream.decode(stream);
+        if(!(root instanceof java.util.Map))throw new IllegalArgumentException("Catalog root");
+        Object raw=((java.util.Map<?,?>)root).get("threads");
+        if(!(raw instanceof java.util.List))throw new IllegalArgumentException("Catalog threads");
+        java.util.List<java.util.Map<?,?>> ordered=new java.util.ArrayList<>();
+        for(Object o:(java.util.List<?>)raw){
+            if(!(o instanceof java.util.Map))throw new IllegalArgumentException("Catalog item");
+            java.util.Map<?,?> row=(java.util.Map<?,?>)o;
+            if(Boolean.TRUE.equals(row.get("isHidden")))continue;
+            if(!(row.get("slug") instanceof String)||!((String)row.get("slug")).matches("[A-Za-z0-9_-]{8,24}")||
+                    !(row.get("messageCount") instanceof Long))throw new IllegalArgumentException("Catalog fields");
+            catalogTime(row);
+            ordered.add(row);
+        }
+        // Official default: latest-update, with creation time for zero-reply threads.
+        ordered.sort((a,b)->Long.compare(catalogTime(b),catalogTime(a)));
+        JSONArray items=new JSONArray();
+        for(java.util.Map<?,?> row:ordered){
+            if(items.length()>=45)break;
+            String slug=(String)row.get("slug");
+            String id=rememberPrivateThread(cookie,slug);
+            String title=row.get("name") instanceof String?(String)row.get("name"):"";
+            JSONObject item=new JSONObject().put("id",id).put("title",title)
+                    .put("replies",row.get("messageCount"));
+            Object image=row.get("mainImage");
+            if(image instanceof java.util.Map){
+                String url=MebukiThreadData.thumbnail((java.util.Map<?,?>)image);
+                if(url!=null){String imageId=rememberPrivateImage(cookie,url,false);if(imageId!=null)item.put("imageId",imageId);}
+            }
+            items.put(item);
+        }
+        return items;
+    }
+    private static long catalogTime(java.util.Map<?,?> row){
+        Object date=row.get("lastMessageAt");
+        if(date==null)date=row.get("createdAt");
+        if(!(date instanceof String))throw new IllegalArgumentException("Catalog time");
+        return MebukiTurboStream.dateMillis((String)date);
+    }
+
+    private byte[] catalog(boolean internal) throws Exception {
+        JSONObject result=threadsJson(internal);
+        JSONArray items = result.getJSONArray("threads");
         StringBuilder html = new StringBuilder("<html><head><meta charset='Shift_JIS'></head><body>");
-        html.append("<small>めぶきちゃんねる おためし（5分遅延／スレ本文はログイン後に要確認）</small>");
+        html.append(result.optBoolean("trial")?
+                "<small>めぶきちゃんねる おためし（5分遅延／認証済み一覧を取得できません）</small>":
+                "<small>めぶきちゃんねる（認証済み／最新更新順）</small>");
         html.append("<table id='cattable'><tr>");
         for (int i = 0; i < items.length(); i++) {
             JSONObject item = items.getJSONObject(i);
@@ -205,16 +305,25 @@ final class MebukiAdapter {
 
     String slugForThreadId(String threadId) {
         if (threadId == null || !threadId.matches("[0-9]{13}")) return null;
+        String cookie=MebukiSession.saved(context);
+        synchronized(MebukiAdapter.class){
+            syncThreadSession(cookie);
+            String slug=privateThreads.get(threadId);
+            if(slug!=null&&MebukiSession.safeCookie(cookie))return slug;
+        }
         return index.getString("thread." + threadId, null);
     }
 
-    private synchronized String remember(String prefix, String upstream) throws Exception {
+    private static String virtualId(String prefix,String upstream)throws Exception{
         byte[] hashed = MessageDigest.getInstance("SHA-256")
                 .digest((prefix + upstream).getBytes(StandardCharsets.UTF_8));
         long bits = 0;
         for (int i = 0; i < 8; i++) bits = (bits << 8) | (hashed[i] & 255L);
         long n = 1000000000000L + ((bits & Long.MAX_VALUE) % 9000000000000L);
-        String id = Long.toString(n);
+        return Long.toString(n);
+    }
+    private synchronized String remember(String prefix, String upstream) throws Exception {
+        String id=virtualId(prefix,upstream);
         String existing = index.getString(prefix + id, null);
         if (existing != null && !existing.equals(upstream)) throw new IllegalStateException("ID collision");
         if (existing == null) index.edit().putString(prefix + id, upstream).commit();

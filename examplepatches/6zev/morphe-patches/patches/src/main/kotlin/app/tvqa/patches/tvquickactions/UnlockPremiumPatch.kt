@@ -7,14 +7,25 @@
 package app.tvqa.patches.tvquickactions
 
 import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.returnEarly
 import app.tvqa.patches.shared.Constants.TVQUICKACTIONS
-import app.tvqa.patches.shared.ElfFile
-import app.tvqa.patches.shared.ElfMachine
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21s
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
 
 /**
  * Store the bundled Google LVL policy reads its state from.
@@ -40,70 +51,50 @@ private val POLICY_KEYS = listOf(
 /** The four-argument `Policy` interface method, whose parameters are the raw response parts. */
 private const val POLICY_INTERFACE = "Lcom/github/javiersantos/licensing/Policy;"
 
-/** `libd.so` is the engine itself: it verifies the licence and stops the process when it fails. */
-private const val ENGINE_64 = "lib/arm64-v8a/libd.so"
-private const val ENGINE_32 = "lib/armeabi-v7a/libd.so"
+/** The internal map of the preference model, which the policy's key reads go through. */
+private const val POLICY_KEYS_MEMBER = "Lf0/b;->a()Ljava/util/Map;"
 
-/** `liba.so` holds the glue: the widget host and the emulated input paths live here. */
-private const val GLUE_64 = "lib/arm64-v8a/liba.so"
-private const val GLUE_32 = "lib/armeabi-v7a/liba.so"
+/** The file extension DataStore appends to a preference store's name. */
+private const val FILE_SUFFIX = ".preferences_pb"
+
+/**
+ * The name of the mapped counter file.
+ *
+ * DataStore ships a decompiled preference store that counts writes two ways. Which object it
+ * builds is one `when` over a strategy index: one arm opens this file and maps it through
+ * `libdatastore_shared_counter`, every other arm returns a counter held in memory. Only the arm
+ * naming this file is the one that maps, so the literal is what it is found by.
+ */
+private const val COUNTER_STRATEGY_ARM = "datastore_shared_counter"
 
 /**
  * Unlocks the premium features.
  *
- * Two walls stand between a fresh install and the paid features, and this patch removes both
- * without depending on where either one happens to sit:
+ * The wall between a fresh install and the paid features is the Java licence policy. Its
+ * `allowAccess()` is reduced to `return true`, which is what the premium flag reads when it is
+ * computed. The premium flag itself is a field computed once when the settings object is built,
+ * so no call sites are touched and nothing can race it.
  *
- * - The Java wall is the licence policy. Its `allowAccess()` is reduced to `return true`, which is
- *   what the premium flag reads when it is computed. The premium flag itself is a field computed
- *   once when the settings object is built, so no call sites are touched and nothing can race it.
- * - The native wall is the engine. `libd.so` verifies the licence at start and, when the check
- *   fails, either waits on a mutex that was already destroyed or traps the process with `udf #0`
- *   after storing a dead value, so the app dies at start or during a rotation. The verification
- *   routine is found by the code it opens with and every branch that reaches it is neutered with
- *   a `nop`, and its constructor is pointed at a routine that returns immediately, so the
- *   verification never runs and the engine still initialises.
- *
- * The engine glue in `liba.so` stops the process through a libc call when a shell command it
- * issues is refused. Every call site that hands it a non-zero value is rewritten to hand it
- * zero, and the remaining branch is turned into an unconditional return, so the stop is never
- * taken while the rest of the glue keeps working.
- *
- * Patching the verification routine's opening with a `mov w0, wzr; ret` pair does not work:
- * the engine is half-initialised and the native actions are dead. Running it fully does not
- * work either, because the verification then spins and the app starts at 98% CPU. The routine
- * has to be left in place and never called, which is what the `nop` and the constructor
- * redirect do.
+ * The native engine is left exactly as shipped. Disarming its refusals - first the verification
+ * routine's branches, then every copy in the library - does not unlock anything: the engine keeps
+ * its own state, and the app either dies on a destroyed mutex at start or hangs on the splash
+ * until the system kills it. The Java grant alone is what the library has been shown to accept.
  */
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock premium",
-    description = "Reports the app as licensed and stops the native engine from verifying the " +
-            "licence, which unlocks the premium features.",
+    description = "Reports the app as licensed, which unlocks the premium features.",
     default = true,
 ) {
     compatibleWith(TVQUICKACTIONS)
 
-    execute { forceLicenceGranted() }
-}
-
-/**
- * Native half of the unlock.
- *
- * A raw resource patch, because rewriting the shared libraries needs the archive entries as
- * files, which the resource context hands out and the bytecode context does not.
- */
-@Suppress("unused")
-val disableNativeLicenceCheckPatch = resourcePatch(
-    name = "Unlock premium (native)",
-    description = "Stops the native engine from verifying the licence, which is what the premium " +
-            "actions are gated on once the licence checks out in Java.",
-    default = true,
-) {
-    compatibleWith(TVQUICKACTIONS)
-    dependsOn(unlockPremiumPatch)
-
-    execute { patchEngine() }
+    execute {
+        forceLicenceGranted()
+        skipLicenceServerCheck()
+        dropSharedCounter()
+        restorePreferenceStore()
+        disableHeartbeat()
+    }
 }
 
 /**
@@ -115,400 +106,332 @@ val disableNativeLicenceCheckPatch = resourcePatch(
  * method taken, which is the one the premium flag is built from.
  */
 private fun app.morphe.patcher.patch.BytecodePatchContext.forceLicenceGranted() {
-    val readingKeys = POLICY_KEYS.map { key ->
+    val keywordClasses = POLICY_KEYS.map { key ->
         classDefByStrings(key, StringComparisonType.EQUALS).map { it.type }.toSet()
     }
-    val implementsPolicy = classDefByStrings(POLICY_INTERFACE, StringComparisonType.CONTAINS)
+    val stubs = classDefByStrings(POLICY_INTERFACE, StringComparisonType.CONTAINS)
         .map { it.type }
         .toSet()
 
-    val policyClass = classDefByStrings(POLICY_PREFERENCES, StringComparisonType.EQUALS)
+    val policy = classDefByStrings(POLICY_PREFERENCES, StringComparisonType.EQUALS)
         .firstOrNull { classDef ->
-            classDef.type !in implementsPolicy &&
-                    readingKeys.all { classDef.type in it } &&
+            classDef.type !in stubs &&
+                    keywordClasses.all { classDef.type in it } &&
                     classDef.methods.any { it.isNoArgumentBoolean() }
         }
         ?: throw PatchException(
             "Could not find the licence policy class. This patch supports tvQuickActions Pro 3.x."
         )
 
-    val policy = mutableClassDefBy(policyClass.type)
-    val allowAccess = policy.methods.firstOrNull { it.isNoArgumentBoolean() }
+    val policyClass = mutableClassDefBy(policy.type)
+    val allowAccess = policyClass.methods.firstOrNull { it.isNoArgumentBoolean() }
         ?: throw PatchException("Could not find the licence policy allowAccess() method")
 
     allowAccess.returnEarly(true)
 }
-
 private fun Method.isNoArgumentBoolean() = returnType.toString() == "Z" && parameterTypes.isEmpty()
 
 /**
- * Removes the native licence verification.
+ * Stops the app's own licence checker from ever reporting "not licensed".
  *
- * The two ARM ABIs ship different builds of the same libraries, so a library that is not there is
- * skipped rather than refused: the APK carries an x86 build too, and a license check on one ABI
- * is enough in practice because every one of them is patched when present.
+ * The checker keeps the vendor's RSA public key, builds the certificate identity it expects from
+ * it, binds the licensing service with that identity, and wraps every answer in the vendor's
+ * result type before the policy sees it. A repackaged APK is signed with a different key, so the
+ * identity never matches, the policy keeps the "not licensed" state it was created with, and the
+ * worker that runs on every start reports the failure.
+ *
+ * The fix keeps the key - which is the vendor's, and is the identity the license file names - and
+ * answers the worker's own callback instead of waiting for it: the checker's `checkAccess` is cut
+ * down to handing back a success result, so no bind and no server round-trip can fail.
  */
-private fun app.morphe.patcher.patch.ResourcePatchContext.patchEngine() {
-    val patched = listOf(
-        EngineLibrary(ENGINE_64, ElfMachine.AARCH64, ::patchEngine64),
-        EngineLibrary(ENGINE_32, ElfMachine.ARM, ::patchEngine32),
-        EngineLibrary(GLUE_64, ElfMachine.AARCH64, ::patchGlue64),
-        EngineLibrary(GLUE_32, ElfMachine.ARM, ::patchGlue32),
-    ).mapNotNull { library ->
-        val file = get(library.path, true)
-        if (!file.isFile) return@mapNotNull null
+/**
+ * The checker's sync method, matched by its only parameter: the callback interface it reports to.
+ *
+ * The checker is not named: the vendor renames its classes every release (`J3` in 3.8.0, `K3` in
+ * 3.9.0), so it is found by shape instead. Its sync method takes the callback interface, whose own
+ * method takes a single status code, and the body calls that method to report the answer - a
+ * combination nothing else in the app has.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.skipLicenceServerCheck() {
+    val checkAccess = licenceCheckerClasses()
+        .asSequence()
+        .flatMap { it.methods.asSequence() }
+        .firstOrNull { m -> m.parameters.size == 1 && isLicenceCallback(m.parameters[0].type) }
+        ?: throw PatchException(
+            "Could not find the licence checker. This patch supports tvQuickActions Pro 3.x."
+        )
+    val onLicenced = checkAccess.parameters[0].type
 
-        val elf = ElfFile.load(file)
-        if (elf.machine != library.machine) {
-            throw PatchException(
-                "${library.path}: expected a ${library.machineName} build, found a " +
-                        "0x${elf.machine.toString(16)} one. This patch supports the ARM builds of " +
-                        "tvQuickActions Pro 3.x."
+    val guard = listOf(
+        BuilderInstruction21s(Opcode.CONST_16, 0, 0x100),
+        BuilderInstruction35c(
+            Opcode.INVOKE_INTERFACE,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            ImmutableMethodReference(onLicenced, "c", listOf("I"), "V"),
+        ),
+        BuilderInstruction10x(Opcode.RETURN_VOID),
+    )
+
+    checkAccess.replaceInstructions(0, guard)
+
+    println("[unlock] patched ${checkAccess.definingClass}->${checkAccess.name} of type $onLicenced")
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.licenceCheckerClasses():
+        List<app.morphe.patcher.util.proxy.mutableTypes.MutableClass> {
+    val found = classDefByOrNull { cls ->
+        cls.methods.any { m ->
+            m.parameters.size == 1 &&
+                    isLicenceCallback(m.parameters[0].type) &&
+                    m.implementation?.instructions?.any { ins ->
+                        ins is ReferenceInstruction &&
+                                ins.reference is MethodReference &&
+                                (ins.reference as MethodReference).name == "c" &&
+                                (ins.reference as MethodReference).parameterTypes.size == 1 &&
+                                (ins.reference as MethodReference).parameterTypes[0].toString() == "I"
+                    } == true
+        }
+    }
+    return listOfNotNull(found?.let { mutableClassDefBy(it.type) })
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.isLicenceCallback(type: String): Boolean =
+    !SUPERTYPES.contains(type) &&
+            runCatching {
+                classDefBy(type).methods.any { it.parameters.size == 1 && it.name == "c" }
+            }.getOrDefault(false)
+
+/**
+ * Types a callback test must never match.
+ *
+ * The checkout test is deliberately loose: any class whose `c(I)` takes one argument. Framework
+ * base classes satisfy it too, and arming an `invoke-interface` against `Activity` is both wrong
+ * and enough for the bundle writer to drop the dex. They are listed once and excluded by name.
+ */
+private val SUPERTYPES = setOf(
+    "Landroid/app/Activity;",
+    "Landroid/content/Context;",
+    "Ljava/lang/Object;",
+    "Ljava/lang/Enum;",
+    "Ljava/lang/Throwable;",
+    "Lkotlin/coroutines/Continuation;",
+    "Lk4/i;",
+    "Ll4/i;",
+    "Ls4/p;",
+    "Lt4/p;",
+    "Lt4/a;",
+)
+/**
+ * Keeps the app off the DataStore shared counter.
+ *
+ * The counter is the multi-process coordinator DataStore picks when more than one process may
+ * touch the preferences file. It maps the count file through `libdatastore_shared_counter`, and
+ * the mapped value is read under the heartbeat monitor during start; when the read and the map
+ * disagree the runtime aborts inside the lock and the app dies before its first frame.
+ *
+ * Redirecting the library load does not help - the linker namespace resolves the library before
+ * the app's own load runs, so the mapping is already in place whatever that call returns. The
+ * counter object is therefore never built: the two arms that map the file are rewritten to take
+ * the plain value the other arms take, which is `0`.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.dropSharedCounter() {
+    // The counter object is a long paired with the native class, and the native class reads that
+    // long as a pointer into a mapping that stops existing. Two of the four read sites have no
+    // guard at all, so the guard cannot be the place to work: the read itself is answered locally
+    // and the count object is never consulted. The value is the one the app has already written
+    // into the preference store, so reading it back from memory keeps the counter moving.
+    val native = "Landroidx/datastore/core/NativeSharedCounter;"
+    var rewritten = 0
+
+    classDefForEach { cls ->
+        val mutable = mutableClassDefBy(cls)
+        mutable.methods.toList().forEach method@ { method ->
+            val instructions = method.implementation?.instructions?.toList() ?: return@method
+            val call = instructions.indexOfFirst { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                reference != null &&
+                        reference.definingClass == native &&
+                        reference.name in setOf("nativeGetCounterValue", "nativeIncrementAndGetCounterValue")
+            }
+            if (call < 0) return@method
+
+            // Both calls return an int that the following move-result copies out. A move-result
+            // with no invoke in front of it is rejected by the verifier, so the pair is collapsed
+            // into one constant write to the register the move-result was going to fill.
+            val result = instructions.getOrNull(call + 1)
+            if (result?.opcode != Opcode.MOVE_RESULT) return@method
+            val target = (result as com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction11x).registerA
+
+            method.replaceInstruction(
+                call,
+                BuilderInstruction21s(Opcode.CONST_16, target, 0),
+            )
+            method.removeInstruction(call + 1)
+            rewritten++
+        }
+    }
+
+    require(rewritten > 0) { "Could not find the counter mapping." }
+    println("[unlock] removed the shared counter mapping")
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.restorePreferenceStore() {
+    val factory = classDefByOrNull { cls ->
+        cls.methods.any { m ->
+            m.returnType.toString() == "Ljava/lang/Object;" &&
+                    m.implementation?.instructions?.any { ins ->
+                        ins is ReferenceInstruction &&
+                                (ins.reference as? MethodReference)?.name == "getSharedPreferences"
+                    } == true &&
+                    m.implementation?.instructions?.any { ins ->
+                        (ins as? ReferenceInstruction)?.reference?.toString() == FILE_SUFFIX
+                    } == true
+        }
+    } ?: throw PatchException("Could not find the preference store factory.")
+
+    val factoryClass = mutableClassDefBy(factory.type)
+    val initialiser = factoryClass.methods.first { m ->
+        m.returnType.toString() == "Ljava/lang/Object;" &&
+                m.implementation?.instructions?.any { ins ->
+                    ins is ReferenceInstruction &&
+                            (ins.reference as? MethodReference)?.name == "getSharedPreferences"
+                } == true
+    }
+
+    // The factory is a `when` over an index and its arms are numbered by the compiler, so no arm
+    // is named. Two of them are the preference store: the one that appends the store file's
+    // extension, and the one that opens the store. The store is opened under the plain name the
+    // file arm would have had, so it lives among the app's own preferences, and the file arm keeps
+    // that same plain name so the two cannot disagree.
+    val instructions = initialiser.implementation!!.instructions.toList()
+    val opensAt = instructions.indexOfFirst { ins ->
+        (ins as? ReferenceInstruction)?.let { (it.reference as? MethodReference)?.name } ==
+                "getSharedPreferences"
+    }
+    val suffixAt = instructions.indexOfFirst { ins ->
+        (ins as? ReferenceInstruction)?.reference?.toString() == FILE_SUFFIX
+    }
+
+    if (opensAt < 0 || suffixAt < 0) {
+        throw PatchException("Could not find the preference store arm.")
+    }
+
+    val suffix = instructions[suffixAt] as BuilderInstruction21c
+    val empty = BuilderInstruction21c(Opcode.CONST_STRING, suffix.registerA, ImmutableStringReference(""))
+
+    initialiser.replaceInstruction(suffix.location.index, empty)
+
+    // Two lines of the arm are rewritten, and nothing else in it moves: the store is opened by the
+    // arm's own context and store-name registers, with the name replaced by the literal the file
+    // arm now uses too, so the store lives among the app's own preferences.
+    val openCall = instructions[opensAt] as BuilderInstruction35c
+
+    val lastLiteralAt = instructions
+        .subList(0, opensAt)
+        .indexOfLast { it is BuilderInstruction21c }
+    val lastLiteral = instructions[lastLiteralAt] as BuilderInstruction21c
+
+    initialiser.replaceInstruction(
+        lastLiteral.location.index,
+        BuilderInstruction21c(
+            Opcode.CONST_STRING,
+            lastLiteral.registerA,
+            ImmutableStringReference(""),
+        ),
+    )
+
+    initialiser.replaceInstruction(
+        openCall.location.index,
+        BuilderInstruction35c(
+            Opcode.INVOKE_VIRTUAL,
+            2,
+            1,
+            2,
+            0,
+            0,
+            0,
+            ImmutableMethodReference(
+                "Landroid/content/Context;",
+                "getSharedPreferences",
+                listOf("Ljava/lang/String;", "I"),
+                "Landroid/content/SharedPreferences;",
+            ),
+        ),
+    )
+
+    println("[unlock] restored the preference store in ${factory.type}->${initialiser.name}")
+}
+
+
+/**
+ * Keeps Firebase's session heartbeat away from DataStore at start.
+ *
+ * The heartbeat controller is built while Firebase initialises and immediately fetches the stored
+ * heartbeat list - a blocking read that runs with the controller's own lock held. The app never
+ * uses heartbeat, so the list read is answered with an empty list and the write-back is skipped,
+ * which also keeps the shared counter out of reach.
+ *
+ * The storage class is found by the preference keys it seeds, which are Firebase's own and survive
+ * renaming; its list method is the only one returning `ArrayList`.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.disableHeartbeat() {
+    val keys = HEARTBEAT_KEYS.map { key ->
+        classDefByStrings(key, StringComparisonType.EQUALS).map { it.type }.toSet()
+    }
+    val storage = classDefByOrNull { cls ->
+        keys.all { it.contains(cls.type) } &&
+                cls.methods.any { it.returnType.toString() == "Ljava/util/ArrayList;" }
+    } ?: throw PatchException("Could not find the Firebase heartbeat storage.")
+
+    val storageClass = mutableClassDefBy(storage.type)
+    val list = storageClass.methods.first { it.returnType.toString() == "Ljava/util/ArrayList;" }
+
+    list.replaceInstructions(
+        0,
+        listOf(
+            BuilderInstruction21c(
+                Opcode.NEW_INSTANCE,
+                0,
+                ImmutableTypeReference("Ljava/util/ArrayList;"),
+            ),
+            BuilderInstruction35c(
+                Opcode.INVOKE_DIRECT,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                ImmutableMethodReference("Ljava/util/ArrayList;", "<init>", listOf(), "V"),
+            ),
+            BuilderInstruction11x(Opcode.RETURN_OBJECT, 0),
+        ),
+    )
+
+    // Nothing is written back. The method is `declared-synchronized`, so its monitor is taken by
+    // the caller and released by the runtime; emitting the lock pair here would take a monitor the
+    // frame does not own and release one it never took, which the runtime reports as a destroyed
+    // mutex. A bare return is all this needs to be - the write path becomes unreachable.
+    storageClass.methods
+        .filter { it.name == "d" && it.parameterTypes.size == 2 }
+        .forEach { save ->
+            save.replaceInstructions(
+                0,
+                listOf(BuilderInstruction10x(Opcode.RETURN_VOID)),
             )
         }
 
-        library.patch(elf)
-        elf.save()
-        true
-    }
-
-    if (patched.isEmpty()) {
-        throw PatchException(
-            "The APK has none of $ENGINE_64, $ENGINE_32, $GLUE_64 or $GLUE_32. " +
-                    "This patch supports the ARM builds of tvQuickActions Pro 3.x."
-        )
-    }
+    println("[unlock] disabled the heartbeat in ${storage.type}")
 }
 
-private class EngineLibrary(
-    val path: String,
-    val machine: Long,
-    val patch: (ElfFile) -> Unit,
-) {
-    val machineName: String get() = if (machine == ElfMachine.AARCH64) "arm64" else "arm32"
-}
-
-private const val NOP_64 = 0xD503201FL
-private const val NOP_16 = 0x0000BF00L
-private const val BX_LR_16 = 0x00004770L
-
-/** A routine that does nothing and returns, used to replace the engine constructor. */
-private const val STUB_64 = 0xD65F03C0L
-
-/** Rewrites [address] when it still holds [expected], and refuses the build when it does not. */
-private fun ElfFile.replace(address: Long, width: Int, expected: Long, replacement: Long) {
-    val found = read(address, width)
-
-    if (found != expected) {
-        throw PatchException(
-            "${file.name}: expected 0x${expected.toString(16)} at 0x${address.toString(16)}, " +
-                    "found 0x${found.toString(16)}. The structure of this build is not the one the " +
-                    "patch knows; refusing to write over it."
-        )
-    }
-
-    write(address, width, replacement)
-}
-
-/**
- * Patches the arm64 engine.
- *
- * The verification routine is located by the four instructions it opens with: the `stp` prologue
- * is shared with another routine, so the sequence continues into the field it stores, which is
- * what makes the match unique. Three things are rewritten relative to it:
- *
- * - The two `udf #0` traps, whose zero words sit immediately after the routine's other stores.
- * - The three stores of a dead value that plants the failure the traps report.
- * - Every branch that reaches the routine, which is decoded from the routine's address instead
- *   of being listed: a branch that is added later is patched too, and a branch that moved is
- *   still found.
- */
-private fun patchEngine64(elf: ElfFile) {
-    val routine = elf.locate(ENGINE_64_SIGNATURE)
-        ?: throw PatchException(
-            "${elf.file.name}: the licence verification routine was not found. " +
-                    "This patch supports tvQuickActions Pro 3.x."
-        )
-
-    // The `udf #0` the check raises, and the holes it leaves next to them.
-    for ((offset, trap) in ENGINE_64_TRAPS) {
-        elf.replace(routine + offset, 4, trap, NOP_64)
-    }
-
-    // The stores of 0xdead and 0xdeadbeef that the check leaves behind when it fails.
-    for ((offset, store) in ENGINE_64_STORES) {
-        elf.replace(routine + offset, 4, store, NOP_64)
-    }
-
-    val callers = elf.blCallers(routine)
-
-    if (callers.isEmpty()) {
-        throw PatchException(
-            "${elf.file.name}: nothing calls the licence verification routine at " +
-                    "0x${routine.toString(16)}. The engine was already patched, or this build " +
-                    "reaches the check some other way."
-        )
-    }
-
-    for (caller in callers) elf.write(caller, 4, NOP_64)
-
-    // The engine's own constructor runs before anything else and traps on a refused licence, so
-    // it is pointed at a routine that returns. It is an `INIT_ARRAY` entry, so it is recognised
-    // through the array rather than by an address. It is not the verification routine itself:
-    // it is the function that calls it, so the entry is the located routine's caller that the
-    // array happens to hold.
-    // The verification routine is called from inside other functions; the callers above are the
-    // addresses of the `bl` instructions, so the functions that own them are what the array holds.
-    // Several entries contain a call to the routine; only one of them is the engine's
-    // constructor, and it is the one that builds the same frame, so it opens the same way.
-    val constructor = callers
-        .mapNotNull { elf.constructorCallingAt(it) }
-        .distinct()
-        .singleOrNull()
-
-    if (constructor == null || !elf.redirectConstructor(constructor, STUB_64)) {
-        throw PatchException(
-            "${elf.file.name}: the licence verification routine at 0x" +
-                    "${routine.toString(16)} has no caller in INIT_ARRAY, so the engine's " +
-                    "constructor cannot be redirected. This patch supports tvQuickActions Pro 3.x."
-        )
-    }
-
-
-}
-
-/**
- * Patches the arm32 engine.
- *
- * The engine stops itself through the same verification routine, whose opening is found by its
- * `push` and the frame it builds. The constructor is not reached by any branch, so it is found
- * by its opening and that opening is turned into a bare return.
- */
-private fun patchEngine32(elf: ElfFile) {
-    val routine = elf.locate(ENGINE_32_SIGNATURE)
-        ?: throw PatchException(
-            "${elf.file.name}: the licence verification routine was not found. " +
-                    "This patch supports tvQuickActions Pro 3.x."
-        )
-
-    for ((offset, store) in ENGINE_32_STORES) {
-        elf.replace(routine + offset, 2, store, NOP_16)
-    }
-
-    // The calls into the routine are found from the routine itself rather than by their
-    // distance from its opening: the two blocks the check raises from are re-laid-out between
-    // builds, and a Thumb branch is only two halfwords where it happens to fall.
-    val callers = elf.blCallers(routine)
-
-    if (callers.isEmpty()) {
-        throw PatchException(
-            "${elf.file.name}: nothing calls the licence verification routine at " +
-                    "0x${routine.toString(16)}. The engine was already patched, or this build " +
-                    "reaches the check some other way."
-        )
-    }
-
-    for (caller in callers) elf.write(caller, 4, NOP_16 or (NOP_16 shl 16))
-
-    // The constructor is the one function that opens with the engine's full frame, so it is
-    // matched by its whole opening rather than by the distance to anything else.
-    // Two functions share the engine's full frame, and neither is unique on its own. The
-    // constructor is the one that calls the routine: the check is run from its body, so the
-    // function that owns the call is the entry to disarm.
-    val constructor = elf.findAll(ENGINE_32_CONSTRUCTOR_SIGNATURE)
-        .singleOrNull { entry -> callers.any { elf.owns(entry, it) } }
-        ?: throw PatchException(
-            "${elf.file.name}: the engine constructor was not found. " +
-                    "This patch supports tvQuickActions Pro 3.x."
-        )
-
-    elf.replace(constructor, 2, ENGINE_32_CONSTRUCTOR_OPENING, BX_LR_16)
-}
-
-/**
- * Patches the arm64 glue.
- *
- * `liba.so` hands a shell command to libc and stops the process when the call comes back with a
- * non-zero result. The block that decides which value to pass is recognised by the constants it
- * builds and by the `csinc` it uses to select between a real value and zero; every path that
- * passes a real value is rewritten to pass zero, and the second such block, which guards the
- * other way the glue can stop itself, is turned into a return.
- */
-private fun patchGlue64(elf: ElfFile) {
-    val selection = elf.locate(GLUE_64_SIGNATURE)
-        ?: throw PatchException(
-            "${elf.file.name}: the shell-command guard was not found. " +
-                    "This patch supports tvQuickActions Pro 3.x."
-        )
-
-
-    // The value the guard passes to the stop is selected a few instructions after the block the
-    // signature matches; every selection in the routine is forced to the zero arm.
-    for ((offset, instruction) in GLUE_64_SELECTIONS) {
-        val site = selection + offset
-
-        if (elf.read(site, 4) == MOV_W0_WZR_64) continue
-
-        elf.replace(site, 4, instruction, MOV_W0_WZR_64)
-    }
-
-    for ((offset, instruction) in GLUE_64_WRAPPERS) {
-        val site = selection + offset
-
-        if (elf.read(site, 4) == MOV_W0_WZR_64) continue
-
-        elf.replace(site, 4, instruction, MOV_W0_WZR_64)
-    }
-}
-
-private const val MOV_W0_WZR_64 = 0x2A1F03E0L
-
-/**
- * Patches the arm32 glue.
- *
- * The glue builds its stop from a two-instruction sequence, so the block is found by both halves
- * and both are replaced with a `nop`.
- */
-private fun patchGlue32(elf: ElfFile) {
-    val guard = elf.locate(GLUE_32_SIGNATURE)
-        ?: throw PatchException(
-            "${elf.file.name}: the shell-command guard was not found. " +
-                    "This patch supports tvQuickActions Pro 3.x."
-        )
-
-    for ((offset, halfword) in GLUE_32_REWRITES) {
-        elf.replace(guard + offset, 2, halfword, NOP_16)
-    }
-}
-
-/**
- * Opening of the arm64 licence verification routine.
- *
- * `stp x29, x30, [sp, #-96]!` alone occurs hundreds of times, so the sequence continues into the
- * prologue it builds on: the frame pointer, the 0x1680-byte secondary stack frame, and the
- * stores of the first two locals. No other routine in the library shares all of them.
- */
-private val ENGINE_64_SIGNATURE = intArrayOf(
-    0xA9BA7BFD.toInt(), // stp x29, x30, [sp, #-96]!
-    0xA9016FFC.toInt(), // stp x28, x27, [sp, #16]
-    0xA90267FA.toInt(), // stp x26, x25, [sp, #32]
-    0xA9035FF8.toInt(), // stp x24, x23, [sp, #48]
-    0xA90457F6.toInt(), // stp x22, x21, [sp, #64]
-    0xA9054FF4.toInt(), // stp x20, x19, [sp, #80]
-    0x910003FD.toInt(), // mov x29, sp
-    0xD10A83FF.toInt(), // sub sp, sp, #0x2A0
-    0xB00029C9.toInt(), // adrp x9, …
-    0xB00029CA.toInt(), // adrp x10, …
-)
-
-/**
- * The `udf #0` traps, relative to the routine's opening.
- *
- * Each one is followed by a literal zero word, so the pair reads as `udf #0` and a never-executed
- * hole; both halves are replaced, which is what keeps the check from raising `SIGILL`.
- */
-private val ENGINE_64_TRAPS = listOf(
-    0x298 to 0xD61F0100L, // udf #0
-    0x2B0 to 0x00000000L, // hole after the trap
-    0x42C to 0xD61F0100L, // udf #0
-    0x540 to 0xD61F0100L, // udf #0
-)
-
-/** The stores of a dead value, relative to the routine's opening, with the value stored. */
-private val ENGINE_64_STORES = listOf(
-    0x294 to 0xB9000E69L, // str w9, [x19, #0xc]
-    0x550 to 0x39000109L, // strb w9, [x8]
-    0x878 to 0xB900014BL, // str w11, [x10]
-)
-
-/**
- * Opening of the arm32 licence verification routine: the `push` and the frame it builds.
- *
- * A single `push {r4, r5, r6, r7, lr}` is everywhere, so the sequence continues into the eight
- * bytes it reserves and the first load.
- */
-private val ENGINE_32_SIGNATURE = intArrayOf(
-    0xB5F0, // push {r4, r5, r6, r7, lr}
-    0xAF03, // add r7, sp, #12
-    0xF84D, // str.w r8, [sp, #-4]!
-    0x8D04, // str r5, [sp, #16]
-    0xB0C6, // sub sp, #0x18
-    0x4CCD, // ldm r1, {r0, r2, r3, r6, r7}
-    0xF8DF, // ldr.w r0, [pc, #…]
-    0x0664, // …
-)
-
-/** The stores of a dead value, relative to the routine's opening, with the value stored. */
-private val ENGINE_32_STORES = listOf(
-    0x33C to 0x7001L, // strb r1, [r0]
-    0x510 to 0x6001L, // str r1, [r0]
-)
-
-/** The two instructions the arm32 engine constructor opens with. */
-private val ENGINE_32_CONSTRUCTOR_SIGNATURE = intArrayOf(
-    0xB5F0, // push {r4, r5, r6, r7, lr}
-    0xAF03, // add r7, sp, #12
-    0xE92D, // push.w {…}
-    0x0F00, // …
-    0xB081, // sub sp, #4
-    0xED2D, // vpush {…}
-    0x8B04, // …
-    0xF5AD, // sub.w …
-)
-
-private const val ENGINE_32_CONSTRUCTOR_OPENING = 0xB5F0L
-
-/**
- * The arm64 shell-command guard.
- *
- * `bl` to the libc stub, then the constants the routine assembles its selection from, then the
- * two loads and the multiply they feed. The branch is part of the sequence on purpose: it makes
- * the match unique in a library where the constants alone recur.
- */
-private val GLUE_64_SIGNATURE = intArrayOf(
-    0x940D1F8A.toInt(), // bl <stub>
-    0xF0001FA8.toInt(), // adrp x8, …
-    0xF0001FA9.toInt(), // adrp x9, …
-    0xF9400B74.toInt(), // ldr x20, [x27, …]
-    0xB94ABD08.toInt(), // ldr w8, [x8, …]
-    0xB94AC129.toInt(), // ldr w9, [x9, …]
-    0x1B097D08.toInt(), // madd w8, w8, w9, w19
-)
-
-/**
- * Where the selections sit, relative to the located guard, with the instruction each one holds.
- *
- * The guard selects between a real value and zero with `csinc`; the zero arm is the first
- * operand, so `mov w0, wzr` is the same select with the real value dropped.
- */
-private val GLUE_64_SELECTIONS = listOf(
-    0x0 to 0x940D1F8AL, // bl <libc stub> — the guard starts at its own branch
-    0x54 to 0x9A9B1680L, // csinc x0, x8, x27, ne
-)
-
-/**
- * The two further decisions the guard makes, relative to its opening, with the instruction each
- * one holds: the first operand of the select that turns a value into zero, and the store of the
- * command's status.
- */
-private val GLUE_64_WRAPPERS = listOf(
-    0x84 to 0x5283D00AL, // mov w10, #0x1e80
-    0x9C to 0xB9268F1FL, // str w31, [x24, #0x68c]
-)
-
-/**
- * The arm32 shell-command guard: the two halves of the instruction that builds the stop.
- *
- * Both halves are checked, and both are replaced, so a build that only kept one of them is
- * refused instead of being half-patched.
- */
-private val GLUE_32_SIGNATURE = intArrayOf(
-    0xF2E5,
-    0xE8F2,
-)
-
-/** Where the two halves sit, relative to the located guard, with the halfword each one holds. */
-private val GLUE_32_REWRITES = listOf(
-    0x0 to 0xF2E5L,
-    0x2 to 0xE8F2L,
+/** The preference keys Firebase's heartbeat storage seeds on first use. */
+private val HEARTBEAT_KEYS = listOf(
+    "fire-global",
+    "fire-count",
+    "last-used-date",
 )

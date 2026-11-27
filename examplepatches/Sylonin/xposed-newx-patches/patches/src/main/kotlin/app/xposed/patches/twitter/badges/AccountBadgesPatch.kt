@@ -44,7 +44,7 @@ private val Method.isStatic get() = AccessFlags.STATIC.isSet(accessFlags)
 private val Field.isStatic get() = AccessFlags.STATIC.isSet(accessFlags)
 
 /** The User interface of X's models. */
-private class UserModel(val type: String, val screenName: MethodReference, val getId: MethodReference, val idValue: FieldReference)
+internal class UserModel(val type: String, val screenName: MethodReference, val getId: MethodReference, val idValue: FieldReference)
 
 /** Renamed Jetpack Compose members the bridge calls. */
 private class ComposeModel(
@@ -171,11 +171,14 @@ val accountBadgesPatch = bytecodePatch(
             )
         }
 
-        // Posts: (post, authorAppealPivot, ..., modifier, composer, changed).
+        // Posts: (post, authorAppealPivot, ..., modifier, composer, changed). This one draws only
+        // the opened (focal) post of a conversation; timeline posts use the layouts below.
         val post = AvailablePostToStringFingerprint.matchSingle()
         val postFields = toStringFields(post.originalMethod)
         val author = postFields.field("AvailablePost", "author", user.type)
         val appealPivot = postFields.field("AvailablePost", "authorAppealPivot")
+        writeModelBridge(user, post.originalClassDef, postFields)
+        hookTimelineProfiles(MinimalUserToStringFingerprint.matchSingle().originalClassDef.type)
         Fingerprint(
             isStatic = true,
             returnType = "V",
@@ -185,11 +188,11 @@ val accountBadgesPatch = bytecodePatch(
                     types.count { it == MODIFIER } == 1 && COMPOSER in types
             },
         ).matchSingle().let { match ->
+            requireFocalPost(match.originalMethod, appealPivot.type)
             match.method.hookFilteredComposable(
                 match.originalMethod,
-                user,
-                "move-object/16 v0, ${match.method.parameterRegister(0)}\niget-object v0, v0, ${author.descriptor}",
-                match.method.types.indexOf(MODIFIER),
+                "move-object/16 v1, ${match.method.parameterRegister(0)}\niget-object v0, v1, ${author.descriptor}",
+                focal = true,
             )
         }
 
@@ -221,13 +224,13 @@ val accountBadgesPatch = bytecodePatch(
         headerLayouts.forEach { match ->
             match.method.hookFilteredComposable(
                 match.originalMethod,
-                user,
-                "move-object/16 v0, ${match.method.parameterRegister(0)}\niget-object v0, v0, ${author.descriptor}",
-                match.method.types.indexOf(MODIFIER),
+                "move-object/16 v1, ${match.method.parameterRegister(0)}\niget-object v0, v1, ${author.descriptor}",
             )
         }
 
         // Quote cards: one dispatcher calls the compact or the media layout, which take the same data.
+        // It only highlights; hiding a quote happens in its item (hookQuotePlaceholder), so the
+        // card's border goes too and quotes in the composer, Grok and Spaces stay visible.
         val quoteLayouts = Fingerprint(
             isStatic = true,
             returnType = "V",
@@ -245,44 +248,91 @@ val accountBadgesPatch = bytecodePatch(
             }
         }.single("quote card dispatcher").let { match ->
             val types = match.method.types
+            // A quote has no AvailablePost of its own; its language is left to the enclosing post.
             match.method.hookFilteredComposable(
                 match.originalMethod,
-                user,
-                "move-object/16 v0, ${match.method.parameterRegister(types.indexOf(user.type))}",
-                types.indexOf(MODIFIER),
+                "move-object/16 v0, ${match.method.parameterRegister(types.indexOf(user.type))}\nconst/4 v1, 0x0",
             )
         }
+        hookQuotePlaceholder(post, author, compose.emptyModifier, headerLayouts.map { it.originalMethod })
+        writeListTimeline()
+
+        // People lists: the item of a timeline user renders the whole row, avatar to divider,
+        // in its (scope, isLast, padding, modifier, composer, changed) method. Rows are only
+        // highlighted. The follow button is null only on the signed-in account's own row.
+        val timelineUser = TimelineUserStateToStringFingerprint.matchSingle()
+        val timelineUserFields = toStringFields(timelineUser.originalMethod)
+        val rowUser = timelineUserFields.field("TimelineUserState", "user", user.type)
+        val followButton = timelineUserFields.field("TimelineUserState", "followButton")
+        requirePublic(rowUser, followButton)
+        val personRow = timelineUser.originalClassDef.methods.filter { method ->
+            val types = method.types
+            !method.isStatic && method.returnType == "V" && types.count { it == MODIFIER } == 1 &&
+                types.count { it == COMPOSER } == 1 && types.last() == "I"
+        }.single("row composable of ${timelineUser.originalClassDef.type}")
+        fun hookPersonRow(method: Method, loadTimelineUser: String) = mutableMethodOf(method).apply {
+            val modifierIndex = method.types.indexOf(MODIFIER)
+            replaceComposableArgument(
+                method,
+                modifierIndex,
+                """
+                $loadTimelineUser
+                iget-object v0, v1, ${followButton.descriptor}
+                if-eqz v0, :xposed_original
+                iget-object v0, v1, ${rowUser.descriptor}
+                if-eqz v0, :xposed_original
+                move-object/16 v1, ${parameterRegister(modifierIndex)}
+                invoke-static { v0, v1 }, $HOOKS_CLASS->onPersonRow(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object v0
+                if-eq v0, v1, :xposed_original
+                check-cast v0, $MODIFIER
+                """,
+            )
+        }
+        hookPersonRow(personRow, "move-object/16 v1, p0")
+
+        // List members wrap the same item and render it with a row method of the same shape.
+        val listMember = ListMembersUserStateToStringFingerprint.matchSingle()
+        val memberItem = toStringFields(listMember.originalMethod)
+            .field("ListMembersTimelineUserState", "timelineUserState", timelineUser.originalClassDef.type)
+        requirePublic(memberItem)
+        hookPersonRow(
+            listMember.originalClassDef.methods.filter { !it.isStatic && it.types == personRow.types && it.returnType == "V" }
+                .single("row composable of ${listMember.originalClassDef.type}"),
+            "move-object/16 v1, p0\niget-object v1, v1, ${memberItem.descriptor}\nif-eqz v1, :xposed_original",
+        )
     }
 }
 
 /**
- * Asks the extension about a post or quote whose author [loadAuthor] puts in v0. It returns
- * Hooks.HIDE to show nothing, or the modifier to use, which carries the highlight if it isn't
- * the original one.
+ * Asks the extension about a post or quote. [load] puts the author in v0 and the
+ * AvailablePost, or null for a quote, in v1. Hooks.onPost also gets the modifier, the
+ * composer, the row's PaddingValues if it has one, and whether this is the opened post. It
+ * returns Hooks.HIDE to show nothing (or the notice it drew instead), or the modifier to use,
+ * which carries the highlight if it isn't the original one.
  */
-private fun MutableMethod.hookFilteredComposable(original: Method, user: UserModel, loadAuthor: String, modifierIndex: Int) {
+private fun MutableMethod.hookFilteredComposable(original: Method, load: String, focal: Boolean = false) {
+    val types = original.types
+    val modifierIndex = types.indexOf(MODIFIER)
+    val composerIndex = types.indexOf(COMPOSER)
+    val paddingIndex = types.indexOfFirst { it.startsWith(LAYOUT_PACKAGE) }
     replaceComposableArgument(
         original,
         modifierIndex,
         """
-        $loadAuthor
+        $load
         if-eqz v0, :xposed_original
-        invoke-interface { v0 }, ${user.screenName.descriptor}
-        move-result-object v1
-        invoke-interface { v0 }, ${user.getId.descriptor}
-        move-result-object v5
-        const-wide/16 v2, 0x0
-        if-eqz v5, :xposed_call
-        iget-wide v2, v5, ${user.idValue.descriptor}
-        :xposed_call
-        move-object/16 v4, ${parameterRegister(modifierIndex)}
-        invoke-static/range { v1 .. v4 }, $HOOKS_CLASS->onPost(Ljava/lang/String;JLjava/lang/Object;)Ljava/lang/Object;
+        move-object/16 v2, ${parameterRegister(modifierIndex)}
+        move-object/16 v3, ${parameterRegister(composerIndex)}
+        ${if (paddingIndex >= 0) "move-object/16 v4, ${parameterRegister(paddingIndex)}" else "const/4 v4, 0x0"}
+        const/4 v5, ${if (focal) "0x1" else "0x0"}
+        invoke-static/range { v0 .. v5 }, $HOOKS_CLASS->onPost(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Z)Ljava/lang/Object;
         move-result-object v0
         sget-object v1, $HOOKS_CLASS->HIDE:Ljava/lang/Object;
         if-ne v0, v1, :xposed_show
         return-void
         :xposed_show
-        if-eq v0, v4, :xposed_original
+        if-eq v0, v2, :xposed_original
         check-cast v0, $MODIFIER
         """,
         locals = 6,
@@ -313,11 +363,11 @@ private fun MutableMethod.replaceComposableArgument(original: Method, index: Int
 private fun BytecodePatchContext.mutableMethodOf(method: Method): MutableMethod =
     mutableClassDefBy(method.definingClass).methods.first { it.name == method.name && it.types == method.types && it.returnType == method.returnType }
 
-private fun BytecodePatchContext.instanceField(classType: String, what: String, predicate: (Field) -> Boolean): Field =
+internal fun BytecodePatchContext.instanceField(classType: String, what: String, predicate: (Field) -> Boolean): Field =
     classDefBy(classType).fields.filter { !it.isStatic && predicate(it) }.single(what)
 
 /** Code we add runs in other classes, so everything it touches must be public. */
-private fun BytecodePatchContext.requirePublic(vararg members: Any) {
+internal fun BytecodePatchContext.requirePublic(vararg members: Any) {
     fun requireClass(type: String) {
         if (!type.startsWith("L")) return
         val classDef = classDefByOrNull(type) ?: return

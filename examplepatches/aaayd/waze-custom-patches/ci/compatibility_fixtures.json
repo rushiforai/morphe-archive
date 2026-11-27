@@ -1,0 +1,59 @@
+[
+  {
+    "version": "4.100.1.0",
+    "version_code": 1030440,
+    "extension": ".apk",
+    "sha256": "c75ea6e94da2c90a635f9fd116cc5b7238c18fa2d3d784a0d6ebef9d96c8eff2",
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-gps-maps-traffic-alerts-live-navigation-4-100-1-0-release/waze-navigation-live-traffic-4-100-1-0-android-apk-download/",
+    "unsupported_patches": [
+      "Detailed report icons at normal sizes"
+    ]
+  },
+  {
+    "version": "5.24.5.0",
+    "version_code": 1030732,
+    "sha256": "3d2c2f113fa4129f70afb46785d986e3a67489aac87a8e976f68663365c71d65",
+    "url": "https://github.com/aaayd/waze-custom-patches/releases/download/waze-5.24.5.0-1030732-patches-1.11/waze-5.24.5.0-original-arm64.apkm"
+  },
+  {
+    "version": "5.24.0.2",
+    "version_code": 1030730,
+    "sha256": "a5259d8bb4e6c1fe7c09bc7b8fde3f4c2b3b8bc27b972bcb4a817ce1c71af9b4",
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-24-0-2-release/waze-navigation-live-traffic-5-24-0-2-android-apk-download/"
+  },
+  {
+    "version": "5.15.5.0",
+    "version_code": 1030665,
+    "sha256": "8965f198d8e9aa1f3308b668e9ca1840e37cbadf0c91926512d09599852b11e5",
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-15-5-0-release/waze-navigation-live-traffic-5-15-5-0-android-apk-download/",
+    "unsupported_patches": [
+      "Detailed report icons at normal sizes"
+    ]
+  },
+  {
+    "version": "5.18.5.0",
+    "version_code": 1030690,
+    "sha256": "b0ea556af1f66a1568014aee20a6ff28987e4fae921a7238fa24fdfa4f8cb115",
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-18-5-0-release/waze-navigation-live-traffic-5-18-5-0-2-android-apk-download/"
+  },
+  {
+    "version": "5.21.0.0",
+    "version_code": 1030711,
+    "sha256": "5922d571c483b25e906587f85cf56dafc06e6dba2756432a0a685b7d3ea09133",
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-21-0-0-release/waze-navigation-live-traffic-5-21-0-0-2-android-apk-download/"
+  },
+  {
+    "version": "5.26.0.0",
+    "version_code": 1030742,
+    "extension": ".apkm",
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-26-0-0-release/waze-navigation-live-traffic-5-26-0-0-android-apk-download/",
+    "sha256": "e44c3eb2a974b689950c89fe038aea1758b234886bf113032e7d211329532ab1"
+  },
+  {
+    "version": "5.28.5.0",
+    "version_code": 1030754,
+    "extension": ".apkm",
+    "variant_url": "https://www.apkmirror.com/apk/waze/waze-gps-maps-traffic-alerts-live-navigation/waze-navigation-live-traffic-5-28-5-0-release/waze-navigation-live-traffic-5-28-5-0-2-android-apk-download/",
+    "sha256": "783fafb93d8c64084c8dcf134b918acda2d979a6002ea3608f2a166a8f1d13dc"
+  }
+]

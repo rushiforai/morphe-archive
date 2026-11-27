@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-11.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -93,11 +94,27 @@ public final class NativeDownloads {
     private static Object rewriteDownloadCommand(Object original, java.util.Map<?, ?> context) {
         // The global method handles all Download commands, or leaves them with stock/external delegation.
         if (!(original instanceof Command command)) return original;
+
+        final byte[] bytes;
+        final String copyId;
+        try {
+            bytes = command.toByteArray();
+            copyId = OfflinePlayerMenu.removalFromCommand(bytes);
+        } catch (Exception ex) {
+            Logger.printException(() -> "Could not read native Music download command", ex);
+            return original;
+        }
+
+        if (copyId != null) {
+            OfflinePlayerActions.requestRemoval(copyId);
+            return null;
+        }
+
         boolean playlists = LocalDownloadManager.interceptsPlaylists();
         if (!playlists && !deviceLibrary()) return original;
         try {
             // signed-in non-Premium accounts receive an upsell batch without a playlist id.
-            String playlistId = playlists ? playlistFromContextUpsell(command.toByteArray(), context) : null;
+            String playlistId = playlists ? playlistFromContextUpsell(bytes, context) : null;
             if (playlistId != null) {
                 PlaylistDownloads.onDownloadButton(playlistId);
                 return null;
@@ -106,7 +123,6 @@ public final class NativeDownloads {
             Logger.printException(() -> "Could not resolve signed-in playlist download", ex);
         }
         try {
-            byte[] bytes = command.toByteArray();
             CodedInputStream input = CodedInputStream.newInstance(bytes);
             while (!input.isAtEnd()) {
                 int start = input.getTotalBytesRead();

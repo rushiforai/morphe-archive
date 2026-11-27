@@ -27,9 +27,11 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.os.Build;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.widget.ImageView;
 
 import org.junit.After;
 import org.junit.Before;
@@ -41,7 +43,9 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -611,6 +615,173 @@ public class AccentThemeTest {
         }
     }
 
+    /**
+     * Instagram can start with no screen at all (a push, a sync job), and then builds its Compose
+     * palettes long before a theme is styled. With Material You picked, the dark grays came back as
+     * Instagram's own, so the Messages rows and search field stayed black until a force stop (#187).
+     * Its backgrounds' style points at the wallpaper's own tones, so it's read like a fixed color's.
+     * Before Android 12 there's no wallpaper palette and the color isn't picked at all.
+     */
+    @Test
+    public void composeReadsMaterialYousBackgroundsBeforeAnyScreenIsStyled() {
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.WALLPAPER);
+        Settings.ACCENT_BACKGROUNDS.save(true);
+        MaterialYou.reset();
+        AccentTheme.darkSurfacesForTests(null);
+        AccentTheme.lightSurfacesForTests(null);
+        String pkg = THEMED + ".wallpaper.early";
+        SharedPreferences prefs = RuntimeEnvironment.getApplication().getSharedPreferences(pkg + "_preferences", Context.MODE_PRIVATE);
+        try {
+            Context app = themed(pkg, (name, type) -> {
+                if (type.equals("style") && name.equals("HushGramAccentBackgrounds_WALLPAPER_dark")) return android.R.style.Theme_Material;
+                return type.equals("attr") && name.startsWith("igds_color_") ? android.R.attr.colorBackground : 0;
+            });
+            long black = (long) 0xff000000 << 32;
+            long darkPage = (long) (0xff000000 | page(app, android.R.style.Theme_Material)) << 32;
+            assertTrue("a page color unlike Compose's own", darkPage != black);
+
+            prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_ON).commit();
+            assertEquals(MaterialYou.available() ? darkPage : black, AccentTheme.composeSurface(black, app));
+            AccentTheme.darkSurfacesForTests(null);
+
+            prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_OFF).commit();
+            assertEquals("a light screen's text", black, AccentTheme.composeSurface(black, app));
+        } finally {
+            prefs.edit().clear().commit();
+            MaterialYou.reset();
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+        }
+    }
+
+    /**
+     * The same start with a typed color picked: its backgrounds' style holds stand-ins until the
+     * color's table is in the assets, so the read loads the table first (#187). Without it (no color
+     * names, or Android 10 and older) Instagram's grays stay, as a styled screen keeps its theme then.
+     */
+    @Test
+    public void composeReadsATypedColorsBackgroundsBeforeAnyScreenIsStyled() {
+        CustomAccent.Installer realInstaller = CustomAccent.installer;
+        List<byte[]> installed = new ArrayList<>();
+        CustomAccent.installer = (resources, table) -> installed.add(table);
+        CustomAccent.forget();
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.CUSTOM);
+        Settings.ACCENT_CUSTOM.save("#4A6B82");
+        Settings.ACCENT_BACKGROUNDS.save(true);
+        AccentTheme.darkSurfacesForTests(null);
+        String pkg = THEMED + ".custom.early";
+        String names = "hushgram_accent_custom_background_dark_base";
+        SharedPreferences prefs = RuntimeEnvironment.getApplication().getSharedPreferences(pkg + "_preferences", Context.MODE_PRIVATE);
+        try {
+            Context app = themed(pkg, (name, type) -> {
+                if (type.equals("style") && name.equals("HushGramAccentBackgrounds_CUSTOM_dark")) return android.R.style.Theme_Material;
+                if (type.equals("color") && name.equals(names)) return 0x7f060101;
+                return type.equals("attr") && name.startsWith("igds_color_") ? android.R.attr.colorBackground : 0;
+            });
+            prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_ON).commit();
+
+            assertNull("without the patch's color names", AccentTheme.styledSurfaces(app, true, null));
+            int[] surfaces = AccentTheme.styledSurfaces(app, true, names);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                assertNull(surfaces);
+                assertTrue(installed.isEmpty());
+                return;
+            }
+            assertEquals("the typed color's table first", 1, installed.size());
+            assertEquals(page(app, android.R.style.Theme_Material), surfaces[0] & 0xffffff);
+        } finally {
+            prefs.edit().clear().commit();
+            CustomAccent.installer = realInstaller;
+            CustomAccent.forget();
+            Settings.ACCENT_CUSTOM.resetToDefault();
+            AccentTheme.darkSurfacesForTests(null);
+        }
+    }
+
+    /**
+     * Backgrounds in the accent color on a light theme hands that theme's page to Compose's white too,
+     * so the Messages rows and the search band match the tinted page around them instead of staying
+     * white, and the dark grays a light screen writes its text with stay (#187).
+     */
+    @Test
+    public void accentBackgroundsHandALightThemesPageToCompose() {
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        Settings.ACCENT_BACKGROUNDS.save(true);
+        AccentTheme.darkSurfacesForTests(null);
+        AccentTheme.lightSurfacesForTests(null);
+        try {
+            Context light = new ContextThemeWrapper(themed(THEMED + ".accent.compose.light", (name, type) -> {
+                if (type.equals("style") && name.equals(AccentTheme.paletteStyle(AccentHue.TEAL))) return android.R.style.TextAppearance;
+                if (type.equals("style") && name.startsWith("HushGramAccentBackgrounds_")) return android.R.style.TextAppearance_Small;
+                if (type.equals("attr") && name.equals(AccentTheme.ICON_ATTRIBUTE)) return android.R.attr.colorForeground;
+                if (type.equals("attr") && name.equals("igds_color_secondary_background")) return android.R.attr.colorForeground;
+                return type.equals("attr") && name.startsWith("igds_color_") ? android.R.attr.colorBackground : 0;
+            }), android.R.style.Theme_Material_Light);
+            long white = (long) 0xffffffff << 32;
+            long text = (long) 0xff0c1014 << 32;
+
+            AccentTheme.apply(light, "igds_color_link");
+
+            TypedValue page = new TypedValue();
+            assertTrue(light.getTheme().resolveAttribute(android.R.attr.colorBackground, page, true));
+            TypedValue top = new TypedValue();
+            assertTrue(light.getTheme().resolveAttribute(android.R.attr.colorForeground, top, true));
+            assertTrue("a page color unlike Compose's own", (page.data & 0xffffff) != 0xffffff);
+            assertEquals((long) (0xff000000 | page.data & 0xffffff) << 32, AccentTheme.composeSurface(white));
+            assertEquals("the search band takes the top shade", (long) (0xff000000 | top.data & 0xffffff) << 32,
+                    AccentTheme.composeSurface((long) 0xfff0f2f5 << 32));
+            assertEquals("the text", text, AccentTheme.composeSurface(text));
+
+            Settings.ACCENT_BACKGROUNDS.save(false);
+            assertEquals("backgrounds off", white, AccentTheme.composeSurface(white));
+        } finally {
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+        }
+    }
+
+    /**
+     * The same before any screen is styled, as Instagram builds its palettes on a start with no screen:
+     * the picked color's light style is read while the app will show a light screen, and only then,
+     * since a dark one's white labels over media would take it (#187).
+     */
+    @Test
+    public void composeReadsTheAccentsLightBackgroundsBeforeAnyScreenIsStyled() {
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        Settings.ACCENT_BACKGROUNDS.save(true);
+        AccentTheme.darkSurfacesForTests(null);
+        AccentTheme.lightSurfacesForTests(null);
+        String pkg = THEMED + ".accent.light.early";
+        SharedPreferences prefs = RuntimeEnvironment.getApplication().getSharedPreferences(pkg + "_preferences", Context.MODE_PRIVATE);
+        try {
+            Context app = themed(pkg, (name, type) -> {
+                if (type.equals("style") && name.equals("HushGramAccentBackgrounds_TEAL_light")) return android.R.style.Theme_Material_Light;
+                return type.equals("attr") && name.startsWith("igds_color_") ? android.R.attr.colorBackground : 0;
+            });
+            long white = (long) 0xffffffff << 32;
+            long black = (long) 0xff000000 << 32;
+            long lightPage = (long) (0xff000000 | page(app, android.R.style.Theme_Material_Light)) << 32;
+            assertTrue("a page color unlike Compose's own", lightPage != white);
+
+            prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_OFF).commit();
+            assertEquals("Dark mode off", lightPage, AccentTheme.composeSurface(white, app));
+            assertEquals("a light screen's text", black, AccentTheme.composeSurface(black, app));
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+
+            prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_ON).commit();
+            assertEquals("a dark screen's white", white, AccentTheme.composeSurface(white, app));
+        } finally {
+            prefs.edit().clear().commit();
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+        }
+    }
+
     /** The RGB of the window background [style] gives a theme of [context]'s resources. */
     private static int page(Context context, int style) {
         Resources.Theme theme = context.getResources().newTheme();
@@ -642,6 +813,7 @@ public class AccentThemeTest {
             assertEquals(fill, AccentTheme.dspDark(0xff0082fb));
             assertEquals("the blue's own alpha", 0x80000000 | fill & 0xffffff, AccentTheme.dspDark(0x800082fb));
             assertEquals("backgrounds off", 0xff1f1f20, AccentTheme.dspDark(0xff1f1f20));
+            assertEquals("a light page with backgrounds off", 0xffffffff, AccentTheme.dspLight(0xffffffff));
 
             Settings.ACCENT_BACKGROUNDS.save(true);
             assertEquals("the menu", dark[1], AccentTheme.dspDark(0xff1f1f20));
@@ -649,7 +821,7 @@ public class AccentThemeTest {
             assertEquals("a scrim keeps its alpha", 0xb2000000 | dark[1] & 0xffffff, AccentTheme.dspDark(0xb21f1f20));
             assertEquals("the light text gray", 0xffd1d3d5, AccentTheme.dspDark(0xffd1d3d5));
             assertEquals("a dark gray on a light screen is text", 0xff28292b, AccentTheme.dspLight(0xff28292b));
-            assertEquals("a light page without Classic colors", 0xffffffff, AccentTheme.dspLight(0xffffffff));
+            assertEquals("a light page with the backgrounds", light[0], AccentTheme.dspLight(0xffffffff));
 
             Settings.CLASSIC_COLORS.save(true);
             assertEquals(light[0], AccentTheme.dspLight(0xffffffff));
@@ -663,6 +835,60 @@ public class AccentThemeTest {
             AccentTheme.darkSurfacesForTests(null);
             AccentTheme.lightSurfacesForTests(null);
         }
+    }
+
+    /**
+     * The account switcher's card and button outlines, Meta's #3d4f5c and #445664 on a dark screen and
+     * #dde2e8 and #ccd3db on a light one, take a faint shade of the picked color with the accent
+     * backgrounds on: a fifth of the way from the surface under them to the link shade. Its Add account
+     * button's fill, Meta's near black on a dark screen and #f1f4f7 on a light one, takes the page and
+     * the wash. A see-through near black and the same grays kept for the other screen stay (#187).
+     */
+    @Test
+    public void metasOutlinesAndButtonFillsTakeTheAccent() {
+        int[] dark = {0xff101820, 0xff182030, 0xff203040};
+        int[] light = {0xfffafafa, 0xfff0f0f0, 0xffe8e8e8};
+        AccentTheme.darkSurfacesForTests(dark);
+        AccentTheme.lightSurfacesForTests(light);
+        try {
+            Settings.ACCENT_COLOR.save(true);
+            Settings.ACCENT_HUE.save(AccentHue.PINK);
+            assertEquals("backgrounds off", 0xff3d4f5c, AccentTheme.dspDark(0xff3d4f5c));
+            assertEquals("backgrounds off", 0xffdde2e8, AccentTheme.dspLight(0xffdde2e8));
+            assertEquals("backgrounds off", 0xff0a1317, AccentTheme.dspDark(0xff0a1317));
+
+            Settings.ACCENT_BACKGROUNDS.save(true);
+            int darkLine = fifthOfTheWay(dark[1], AccentHue.PINK.linkOnDark);
+            int lightLine = fifthOfTheWay(light[0], AccentHue.PINK.linkOnLight);
+            assertEquals("the cards' outline", darkLine, AccentTheme.dspDark(0xff3d4f5c));
+            assertEquals("the button's outline", darkLine, AccentTheme.dspDark(0xff445664));
+            assertEquals("an outline keeps its alpha", 0x80000000 | darkLine & 0xffffff, AccentTheme.dspDark(0x803d4f5c));
+            assertEquals("the cards' outline", lightLine, AccentTheme.dspLight(0xffdde2e8));
+            assertEquals("the button's outline", lightLine, AccentTheme.dspLight(0xffccd3db));
+            assertEquals("Add account's fill", dark[0], AccentTheme.dspDark(0xff0a1317));
+            assertEquals("Add account's fill", light[2], AccentTheme.dspLight(0xfff1f4f7));
+            assertEquals("a see-through near black", 0x260a1317, AccentTheme.dspDark(0x260a1317));
+            assertEquals("near black on a light screen is text", 0xff0a1317, AccentTheme.dspLight(0xff0a1317));
+            assertEquals("a light outline gray on a dark screen is text", 0xffdde2e8, AccentTheme.dspDark(0xffdde2e8));
+            assertEquals("a dark outline gray on a light screen", 0xff445664, AccentTheme.dspLight(0xff445664));
+
+            Settings.ACCENT_COLOR.save(false);
+            assertEquals("Accent color off", 0xff3d4f5c, AccentTheme.dspDark(0xff3d4f5c));
+        } finally {
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+        }
+    }
+
+    /** The opaque shade a fifth of the way from [from] to [to], each channel rounded. */
+    private static int fifthOfTheWay(int from, int to) {
+        int color = 0xff000000;
+        for (int shift = 16; shift >= 0; shift -= 8) {
+            int start = from >> shift & 0xff;
+            int end = to >> shift & 0xff;
+            color |= Math.round(start + (end - start) / 5f) << shift;
+        }
+        return color;
     }
 
     /**
@@ -719,7 +945,7 @@ public class AccentThemeTest {
             assertEquals("the accent's backgrounds", List.of(dark[0], dark[0]), colors(accent));
             LayerDrawable lightAccent = chat(0xffffffff);
             AccentTheme.chatBackground(lightAccent);
-            assertEquals("a light page without Classic colors", List.of(0xffffffff, 0xffffffff), colors(lightAccent));
+            assertEquals("a light page with the accent's backgrounds", List.of(light[0], light[0]), colors(lightAccent));
 
             BaseSettings.PAUSED.save(true);
             PauseForTests.pause(HushgramPause.Reason.SWITCH);
@@ -1182,6 +1408,193 @@ public class AccentThemeTest {
     }
 
     /**
+     * A chat composer's voice, gallery, sticker and + buttons are told the chat theme's white or black,
+     * and with Icons in the accent color on they take the picked color's shade the way a top bar's icons
+     * do (#187). The camera button on its own accent circle, another view's button, a view with no id,
+     * a framework id or a name the app doesn't have keep what they're told, as do a red, see-through, a
+     * shade already picked, the switch off and a pause.
+     */
+    @Test
+    public void aChatComposersButtonsTakeThePickedShade() throws Exception {
+        java.lang.reflect.Method hook = AccentTheme.class.getMethod("composerIcon", View.class, int.class);
+        Context app = RuntimeEnvironment.getApplication();
+        Map<Integer, String> names = new HashMap<>();
+        names.put(0x7f0e0001, "row_thread_composer_voice");
+        names.put(0x7f0e0002, "row_thread_composer_button_gallery");
+        names.put(0x7f0e0003, "row_thread_composer_button_sticker");
+        names.put(0x7f0e0004, "row_thread_composer_button_overflow");
+        names.put(0x7f0e0005, "row_thread_composer_button_overflow_left_aligned");
+        names.put(0x7f0e0006, "row_thread_composer_button_camera");
+        names.put(0x7f0e0007, "thread_header_button");
+        names.put(0x01020001, "row_thread_composer_voice");
+        Resources resources = new Resources(app.getAssets(), app.getResources().getDisplayMetrics(), app.getResources().getConfiguration()) {
+            @Override
+            public String getResourceEntryName(int id) {
+                String name = names.get(id);
+                if (name == null) throw new NotFoundException("no name for " + Integer.toHexString(id));
+                return name;
+            }
+        };
+        Context context = new ContextWrapper(app) {
+            @Override
+            public Resources getResources() {
+                return resources;
+            }
+        };
+        ColorButton voice = new ColorButton(context, 0x7f0e0001, hook);
+        int white = 0xffffffff;
+        int black = 0xff000000;
+        voice.setNormalColor(white);
+        assertEquals("off", white, voice.normal);
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        voice.setNormalColor(white);
+        assertEquals("icons off", white, voice.normal);
+        Settings.ACCENT_ICONS.save(true);
+
+        int onDark = 0xff000000 | AccentColor.swap(0xff85a1ff, AccentHue.TEAL);
+        int onLight = 0xff000000 | AccentColor.swap(0xff3143e3, AccentHue.TEAL);
+        voice.setNormalColor(white);
+        voice.setActiveColor(white);
+        assertEquals("the voice button", onDark, voice.normal);
+        assertEquals("the voice button, pressed", onDark, voice.active);
+        for (int id = 0x7f0e0002; id <= 0x7f0e0005; id++) {
+            ColorButton button = new ColorButton(context, id, hook);
+            button.setNormalColor(white);
+            assertEquals(names.get(id), onDark, button.normal);
+        }
+        ColorButton sticker = new ColorButton(context, 0x7f0e0003, hook);
+        sticker.setNormalColor(black);
+        assertEquals("black on a light chat", onLight, sticker.normal);
+
+        for (int id : new int[] {0x7f0e0006, 0x7f0e0007, View.NO_ID, 0x01020001, 0x7f0e0009}) {
+            ColorButton other = new ColorButton(context, id, hook);
+            other.setNormalColor(white);
+            assertEquals("kept: " + Integer.toHexString(id), white, other.normal);
+        }
+        voice.setNormalColor(0xffff3040);
+        assertEquals("a red of its own", 0xffff3040, voice.normal);
+        voice.setNormalColor(0);
+        assertEquals("see-through", 0, voice.normal);
+        voice.setNormalColor(onDark);
+        assertEquals("already the shade", onDark, voice.normal);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        voice.setNormalColor(white);
+        assertEquals("paused", white, voice.normal);
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        Settings.ACCENT_ICONS.save(false);
+        voice.setNormalColor(white);
+        assertEquals("icons off again", white, voice.normal);
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.BAR_ICONS + " 7"));
+    }
+
+    /** A tab icon view whose color setters hand their color to the composer hook first, as the patched view's do. */
+    private static final class ColorButton extends ImageView {
+        private final java.lang.reflect.Method hook;
+        int normal;
+        int active;
+
+        ColorButton(Context context, int id, java.lang.reflect.Method hook) {
+            super(context);
+            this.hook = hook;
+            setId(id);
+        }
+
+        void setNormalColor(int color) throws Exception {
+            normal = (int) hook.invoke(null, this, color);
+        }
+
+        void setActiveColor(int color) throws Exception {
+            active = (int) hook.invoke(null, this, color);
+        }
+    }
+
+    /**
+     * A story's like, comment and share icons are tinted white over the story, and with Icons in the
+     * accent color on each white in the tint takes the picked color's link shade for a dark screen,
+     * keeping its alpha (#187). No tint (a liked heart), a red, a dark color, the switch off and a pause
+     * answer null, which leaves the icon as it is.
+     */
+    @Test
+    public void storyButtonsTakeThePickedShade() {
+        int[][] states = {{android.R.attr.state_selected}, {-android.R.attr.state_enabled}, {}};
+        ColorStateList white = new ColorStateList(states, new int[] {0xffffffff, 0x4dffffff, 0xfff5f5f5});
+        assertNull("off", AccentTheme.storyButton(white));
+        assertFalse(AccentTheme.storyButtonsOn());
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        assertNull("icons off", AccentTheme.storyButton(white));
+        assertFalse(AccentTheme.storyButtonsOn());
+        Settings.ACCENT_ICONS.save(true);
+        assertTrue(AccentTheme.storyButtonsOn());
+
+        int shade = AccentColor.swap(0xff85a1ff, AccentHue.TEAL) & 0xffffff;
+        ColorStateList tinted = AccentTheme.storyButton(white);
+        assertEquals("the white it's drawn in", 0xff000000 | shade, tinted.getDefaultColor());
+        assertEquals("selected", 0xff000000 | shade,
+                tinted.getColorForState(new int[] {android.R.attr.state_selected, android.R.attr.state_enabled}, 0));
+        assertEquals("disabled keeps its alpha", 0x4d000000 | shade, tinted.getColorForState(new int[0], 0));
+        assertNull("no tint, a liked heart", AccentTheme.storyButton(null));
+        assertNull("a red of its own", AccentTheme.storyButton(ColorStateList.valueOf(0xffff3040)));
+        assertNull("a dark color", AccentTheme.storyButton(ColorStateList.valueOf(0xff0c1014)));
+        assertNull("see-through", AccentTheme.storyButton(ColorStateList.valueOf(0x00ffffff)));
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertNull("paused", AccentTheme.storyButton(white));
+        assertFalse(AccentTheme.storyButtonsOn());
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.STORY_BUTTONS + " 1"));
+    }
+
+    /**
+     * A Compose search bar's search icon takes the picked shade with Icons in the accent color on,
+     * whether its color is handed over as it's read or Compose's icon wrapper reads the default one
+     * for it, which only the icon named right before takes; every other icon the wrapper draws keeps
+     * its color (#187). A color in another space, a red, the switch off and a pause keep theirs.
+     */
+    @Test
+    public void searchBarIconsTakeThePickedShade() {
+        AccentTheme.searchIconForTests();
+        long gray = (long) 0xffa8a8a8 << 32;
+        long white = (long) 0xfff5f5f5 << 32;
+        assertEquals("off", gray, AccentTheme.searchIcon(gray));
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        assertEquals("icons off", gray, AccentTheme.searchIcon(gray));
+        Settings.ACCENT_ICONS.save(true);
+
+        assertEquals("the gray, dimmer", (long) AccentTheme.barIcons(0xffa8a8a8) << 32, AccentTheme.searchIcon(gray));
+        assertEquals("a white", (long) AccentTheme.barIcons(0xfff5f5f5) << 32, AccentTheme.searchIcon(white));
+        assertTrue("a shade of its own", AccentTheme.searchIcon(white) != white);
+        long red = (long) 0xffff3040 << 32;
+        assertEquals("a red of its own", red, AccentTheme.searchIcon(red));
+        long otherSpace = white | 0x12L;
+        assertEquals("another color space", otherSpace, AccentTheme.searchIcon(otherSpace));
+
+        assertEquals("any other icon keeps the default", white, AccentTheme.defaultIcon(white));
+        AccentTheme.searchIconNext();
+        assertEquals("the search icon named", AccentTheme.searchIcon(white), AccentTheme.defaultIcon(white));
+        assertEquals("and only that one", white, AccentTheme.defaultIcon(white));
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertEquals("paused", gray, AccentTheme.searchIcon(gray));
+        AccentTheme.searchIconNext();
+        assertEquals("paused, named", white, AccentTheme.defaultIcon(white));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.SEARCH_ICONS + " 5"));
+    }
+
+    /**
      * The top bar's filter maker and its back arrow's setColorFilter(int) go through the extension,
      * which gives them Instagram's own SRC_ATOP filter of the color with Icons in the accent color off,
      * and of the picked shade with it on, one filter kept per color (#187).
@@ -1494,6 +1907,74 @@ public class AccentThemeTest {
         PauseForTests.resume();
         String report = HookStatus.report().toString();
         assertTrue(report, report.contains(AccentTheme.PILLS + " 2"));
+    }
+
+    /**
+     * The chip with only an icon before Explore's chips is outlined in the gray its prism chips read, and
+     * with Filters in the accent color on each shape of its background, every state and through a
+     * wrapper too, takes the outline the chips beside it get at Instagram's width for it (#187). The
+     * switch off, a pause or a background with no shape leaves it as it is.
+     */
+    @Test
+    public void exploresIconChipTakesTheChipsOutline() {
+        Ids ids = (name, type) -> {
+            if (type.equals("dimen") && name.equals(AccentTheme.PILL_BORDER)) return android.R.dimen.app_icon_size;
+            return type.equals("attr") && name.equals(AccentTheme.ICON_ATTRIBUTE) ? android.R.attr.colorForeground : 0;
+        };
+        Context dark = new ContextThemeWrapper(themed(THEMED + ".explore", ids), android.R.style.Theme_Material);
+        int gray = 0xff363636;
+        View pill = new View(dark);
+        pill.setBackground(outlined(gray));
+        AccentTheme.explorePill(pill);
+        assertEquals("off", gray, shadow(pill(pill.getBackground(), new int[0])).getStrokeColor());
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        AccentTheme.explorePill(pill);
+        assertEquals("the filters' switch off", gray, shadow(pill(pill.getBackground(), new int[0])).getStrokeColor());
+        Settings.ACCENT_PILLS.save(true);
+
+        int onDark = 0xff000000 | AccentColor.swap(0xff85a1ff, AccentHue.TEAL);
+        int width = dark.getResources().getDimensionPixelSize(android.R.dimen.app_icon_size);
+        AccentTheme.explorePill(pill);
+        GradientDrawable rest = pill(pill.getBackground(), new int[0]);
+        assertEquals("the chips' outline", onDark, shadow(rest).getStrokeColor());
+        assertEquals("Instagram's width", width, shadow(rest).getStrokeWidth());
+        assertEquals("pressed too", onDark, shadow(pill(pill.getBackground(), new int[] {android.R.attr.state_pressed})).getStrokeColor());
+
+        View wrapped = new View(dark);
+        wrapped.setBackground(new android.graphics.drawable.InsetDrawable(outlined(gray), 2));
+        AccentTheme.explorePill(wrapped);
+        Drawable inner = ((android.graphics.drawable.InsetDrawable) wrapped.getBackground()).getDrawable();
+        assertEquals("through a wrapper", onDark, shadow(pill(inner, new int[0])).getStrokeColor());
+        Drawable flat = new ColorDrawable(gray);
+        View plain = new View(dark);
+        plain.setBackground(flat);
+        AccentTheme.explorePill(plain);
+        assertSame("no shape, nothing to outline", flat, plain.getBackground());
+        AccentTheme.explorePill(null);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        View paused = new View(dark);
+        paused.setBackground(outlined(gray));
+        AccentTheme.explorePill(paused);
+        assertEquals("paused", gray, shadow(pill(paused.getBackground(), new int[0])).getStrokeColor());
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.PRISM_CHIPS + " 2"));
+    }
+
+    /** A chip's background as Instagram's resources hold one: a shape for pressed and one for the rest, each outlined in [color]. */
+    private static Drawable outlined(int color) {
+        android.graphics.drawable.StateListDrawable states = new android.graphics.drawable.StateListDrawable();
+        for (int[] state : new int[][] {{android.R.attr.state_pressed}, {}}) {
+            GradientDrawable shape = new GradientDrawable();
+            shape.setColor(0);
+            shape.setStroke(2, color);
+            states.addState(state, shape);
+        }
+        return states;
     }
 
     /** A filter as Instagram builds one: a title in [color]. */

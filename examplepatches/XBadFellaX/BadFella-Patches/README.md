@@ -330,8 +330,8 @@ and disappear when it ends. Capturing adds some overhead; it does not fix lag.
 
 ## App update alerts
 
-A daily check posts new upstream listings to the
-[app update thread](https://github.com/XBadFellaX/BadFella-Patches/issues/12).
-Subscribe to that thread for GitHub email alerts. Beta listings are included
-where the source exposes them; unchanged checks send no alert. A new listing
-still needs patch compatibility testing.
+A daily check updates the [app update dashboard](https://github.com/XBadFellaX/BadFella-Patches/issues/12)
+when results change. Each row links to the newest comparable stable app listing
+and shows a dev patch target when the published preview differs from stable.
+Expand source coverage to see unavailable results. Availability varies by
+device, region and rollout.

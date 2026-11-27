@@ -13,17 +13,9 @@ import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.shared.VideoState;
 
-/**
- * Recovers a video the connection change left stopped. The player pauses itself about 2 s after the connection
- * drops, and stays paused, or keeps a frozen position, after the connection returns. So the state is noted when the
- * connection is lost; from 3 s after a network becomes the default, a video playing before the loss and now paused is
- * sent a seek to its position (a new stream request on the new connection) and a play key, and a playing video whose
- * position has not moved in 4 s is sent the seek. A video the user paused before the loss is left paused.
- */
 final class NetworkRecovery {
 
     private static boolean registered;
-    /** Whether a video was playing when the connection was last lost, or when the new network arrived. */
     private static volatile boolean wasPlaying;
 
     private NetworkRecovery() {
@@ -88,7 +80,6 @@ final class NetworkRecovery {
         }
     }
 
-    /** Sends the play media key, which the system routes to this app's media session, the one playing last. */
     private static void play() {
         try {
             if (playing()) return;

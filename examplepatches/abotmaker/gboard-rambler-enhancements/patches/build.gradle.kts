@@ -17,7 +17,7 @@ configurations.named(patchMetadataSourceSet.implementationConfigurationName) {
 patches {
     about {
         name = "Gboard Rambler Enhancements"
-        description = "Standalone Morphe patch pack for Gboard Rambler: Hex by Anomaly Listening & Processing waveform animations, Custom Instructions, Personal Dictionary, Contact Names, Cursor-Aware & Append-Only Editing, and App Context. Designed to work alongside upstream GboardWu. Verified on Gboard 18.5.4; newer versions are unverified."
+        description = "Hex waveforms + Rambler productivity suite for Gboard: Long-press Spacebar trigger, Smart Search Bars, Toolbar button, Fix & Learn, Per-App Instructions, Snippets, Find & Replace, Dictation Stats/History, Personal Dictionary, Contacts & JSON Backup."
         source = "git@github.com:abotmaker/gboard-rambler-enhancements.git"
         author = "abotmaker"
         contact = "https://github.com/abotmaker/gboard-rambler-enhancements/issues"

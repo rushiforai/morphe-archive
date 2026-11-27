@@ -1,4 +1,110 @@
 <!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/dddd8923e40f5bfdc54f925a216af9c48e9ef488/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.108.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [dddd8923e40f](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/dddd8923e40f5bfdc54f925a216af9c48e9ef488). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.108.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.107.1...v1.108.0) (2026-11-26)
+
+### ✨ New Features
+
+* **Gboard:** add native editing shortcuts, symbols and grammar on 18.8 ([dddd892](https://gitlab.com/johninnld/nl-morphe-patches/commit/dddd8923e40f5bfdc54f925a216af9c48e9ef488)), closes [#13](https://gitlab.com/johninnld/nl-morphe-patches/issues/13)
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/f5607c15c12448e923dcbc3059bbe3f0b53fe3c4/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.107.1.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [f5607c15c124](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/f5607c15c12448e923dcbc3059bbe3f0b53fe3c4). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.107.1](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.107.0...v1.107.1) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** preserve the spacebar logo on repeated binds ([96e7e03](https://gitlab.com/johninnld/nl-morphe-patches/commit/96e7e03d395f79464c0b8aeffc457bd452f2f537))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/de208d5bddf0eeeb88c5e30a9ebfcd8ced42b146/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.107.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [de208d5bddf0](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/de208d5bddf0eeeb88c5e30a9ebfcd8ced42b146). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.107.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.106.0...v1.107.0) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** activate native writing before local actions ([2bb7a3d](https://gitlab.com/johninnld/nl-morphe-patches/commit/2bb7a3da0540c2e36e7e8e47514279f6648d994f))
+* **Gboard:** allow local panels while native results load ([75af026](https://gitlab.com/johninnld/nl-morphe-patches/commit/75af026f5f6a19a1722166440493ef2deb5d356b))
+* **Gboard:** borrow native primary action styling ([950b2a7](https://gitlab.com/johninnld/nl-morphe-patches/commit/950b2a7a464508a71163b2a67c51192ea375c08d))
+* **Gboard:** check microphone permission before local capture ([cfd3785](https://gitlab.com/johninnld/nl-morphe-patches/commit/cfd3785a104543b62e0480a03d17cc96cefb6fa9))
+* **Gboard:** choose the Standard handler for shared speech ([2e54351](https://gitlab.com/johninnld/nl-morphe-patches/commit/2e5435188dc477b7804bb8eb3d0c168ed2e16b37))
+* **Gboard:** clarify beta switches and expose toolbar count ([6b1a808](https://gitlab.com/johninnld/nl-morphe-patches/commit/6b1a808f9d89711427058d5d7c94d867a2a3b21d))
+* **Gboard:** clarify Local AI state and show action failures ([0765dfe](https://gitlab.com/johninnld/nl-morphe-patches/commit/0765dfe8bf8e514b261003df40e3d02e7dad3c49))
+* **Gboard:** connect shared model readiness to native writing modules ([ff54ca2](https://gitlab.com/johninnld/nl-morphe-patches/commit/ff54ca20ce09d3157b5cab24f4abfd275ab9d857))
+* **Gboard:** declare capture permission and close cancelled speech setup ([b367c5a](https://gitlab.com/johninnld/nl-morphe-patches/commit/b367c5ad2c7dc27b0c7a7496372e89117d7d57b2))
+* **Gboard:** deliver image choices only to the visible OCR keyboard ([17c2ac6](https://gitlab.com/johninnld/nl-morphe-patches/commit/17c2ac634ae7ff685f2231c76cd12212c56284a3))
+* **Gboard:** disable stock Translate with telemetry blocking ([7578644](https://gitlab.com/johninnld/nl-morphe-patches/commit/75786444797e795a3476368591ca83934393dc13))
+* **Gboard:** distinguish Standard dictation from enabled local speech ([d243615](https://gitlab.com/johninnld/nl-morphe-patches/commit/d24361527693377c93c942fb4d6cbbdda2404d3b))
+* **Gboard:** implement the native prepared writing interface directly ([3978a04](https://gitlab.com/johninnld/nl-morphe-patches/commit/3978a044d5b16de53da778524179bf6ffd38cef7))
+* **Gboard:** install the current signed Local AI companion ([f066fc0](https://gitlab.com/johninnld/nl-morphe-patches/commit/f066fc0973ae7f1d9ca4a3a296e05aa4ce6324ab))
+* **Gboard:** keep local AI in the native themed interface ([308106d](https://gitlab.com/johninnld/nl-morphe-patches/commit/308106dcb32e1208abd8cf0d929d2a48a8fdd426))
+* **Gboard:** keep shared speech cancellation independent of audio submission ([556462a](https://gitlab.com/johninnld/nl-morphe-patches/commit/556462a3173d1990cc81329cc4069717b3a8ce3b))
+* **Gboard:** make companion setup usable without keyboard networking ([8be7098](https://gitlab.com/johninnld/nl-morphe-patches/commit/8be7098eb99138cd8f078fc32dc73ded6151289e))
+* **Gboard:** offer all baseline translation destinations ([0774bf1](https://gitlab.com/johninnld/nl-morphe-patches/commit/0774bf19c50b5babc82502ded4ca58551b008077))
+* **Gboard:** open OCR controls independently of model readiness ([f2d1810](https://gitlab.com/johninnld/nl-morphe-patches/commit/f2d1810a28e7beb0a1ff3d854dfe3172e96fe0ca))
+* **Gboard:** pin companion with light system bar contrast ([9cbb04f](https://gitlab.com/johninnld/nl-morphe-patches/commit/9cbb04f84c6ef60f134a123b860975c85fcedc10))
+* **Gboard:** pin Local Model Host 143 and document setup ([de208d5](https://gitlab.com/johninnld/nl-morphe-patches/commit/de208d5bddf0eeeb88c5e30a9ebfcd8ced42b146))
+* **Gboard:** pin the completed Local AI extraction provider ([acca332](https://gitlab.com/johninnld/nl-morphe-patches/commit/acca332423ae429714fa418b8a74743e618385a8))
+* **Gboard:** prepare OCR inputs in stock camera coordinates ([0e8f870](https://gitlab.com/johninnld/nl-morphe-patches/commit/0e8f870e1b5f61029b33af3bb979455cd9fcf179))
+* **Gboard:** preserve editor intent and close cancelled local work ([142659f](https://gitlab.com/johninnld/nl-morphe-patches/commit/142659f8c861ea84d954fc0c6458f42dad80cedd))
+* **Gboard:** preserve factory arguments and initialize inline suggestions ([0cdf436](https://gitlab.com/johninnld/nl-morphe-patches/commit/0cdf4366f2508e43135be9f54511a62086f89105))
+* **Gboard:** preserve native filled styling on local action buttons ([69bb207](https://gitlab.com/johninnld/nl-morphe-patches/commit/69bb20747194ceed9317f823d1e6f412c21de33e))
+* **Gboard:** preserve native receivers across writing lifecycle hooks ([472c3f8](https://gitlab.com/johninnld/nl-morphe-patches/commit/472c3f8b607eaf27eec700e512e11baaa0ddfd04))
+* **Gboard:** preserve the native writing handler wrapper ([67ab434](https://gitlab.com/johninnld/nl-morphe-patches/commit/67ab4348bbf01901b7aa6d8ba5c80e7103e98ba2))
+* **Gboard:** preserve the receiver-only native provisioning gate ([cbbd7a1](https://gitlab.com/johninnld/nl-morphe-patches/commit/cbbd7a10c10880eccb546a190b20a518d97bed81))
+* **Gboard:** rebind cached native writing surfaces ([8fa5d7a](https://gitlab.com/johninnld/nl-morphe-patches/commit/8fa5d7ad1084a4013fb9660b91836e333864adec))
+* **Gboard:** rebind the active writing editor after capture ([c272594](https://gitlab.com/johninnld/nl-morphe-patches/commit/c272594d3470ee3e69b5302cef8458922acfcae0))
+* **Gboard:** record Voice Edit commands in the writing panel ([b20a8b8](https://gitlab.com/johninnld/nl-morphe-patches/commit/b20a8b86e87a8bcf82e3933adb819ac1d6ba7d7c))
+* **Gboard:** remove idle animation from Web Clipboard ([9007fd4](https://gitlab.com/johninnld/nl-morphe-patches/commit/9007fd40b61332e06056b3596a9bfb3c4451f9b0))
+* **Gboard:** repair image handoffs and suggestion contracts ([2f98ed2](https://gitlab.com/johninnld/nl-morphe-patches/commit/2f98ed29ad4953457e8affaebd72f220aa283b1c))
+* **Gboard:** resolve provisioning wrappers from the active patch context ([72ed1dc](https://gitlab.com/johninnld/nl-morphe-patches/commit/72ed1dc928ccf33a1e80cb37b7b9ba7e07352f8f))
+* **Gboard:** restore local image actions through native keyboard transitions ([2d06e1f](https://gitlab.com/johninnld/nl-morphe-patches/commit/2d06e1f45f71cbbed4d5d1228269a8fd952329e9))
+* **Gboard:** restore Scan Text after image selection ([0a27628](https://gitlab.com/johninnld/nl-morphe-patches/commit/0a27628a4f19aac6444fda55924834a76ee0f7c9))
+* **Gboard:** retain the receiver in the readiness factory wrapper ([088078f](https://gitlab.com/johninnld/nl-morphe-patches/commit/088078f928d19f1e06619c6d6fd16bbcbbf2a7f2))
+* **Gboard:** route armed Voice Edit through shared speech ([6d6b9f7](https://gitlab.com/johninnld/nl-morphe-patches/commit/6d6b9f78f9c903b59c54b6496cd1b065bd6545d6))
+* **Gboard:** send shared Standard speech through the local recognizer ([080b87d](https://gitlab.com/johninnld/nl-morphe-patches/commit/080b87de2f493eff6e0649e1d25f9f110960cbef))
+* **Gboard:** show the selected speech provider when recording starts ([7721023](https://gitlab.com/johninnld/nl-morphe-patches/commit/77210233701746a2187aac2037efce98ab34e094))
+* **Gboard:** stop telemetry at its outgoing submissions ([22ba54b](https://gitlab.com/johninnld/nl-morphe-patches/commit/22ba54b96acef6c7505a9a4a3cf2308a2cf9289d))
+* **Gboard:** style extra local actions with the active writing surface ([ae09e63](https://gitlab.com/johninnld/nl-morphe-patches/commit/ae09e633ada6c9a6b41ceb5f55e790e68f6fbffd))
+* **Gboard:** surface native writing preflight failures ([ae1004b](https://gitlab.com/johninnld/nl-morphe-patches/commit/ae1004be14baec00c6f9e381e6c43bf0ddbd2ec0))
+* **Gboard:** trace received OCR text only under explicit vision diagnostics ([d4604aa](https://gitlab.com/johninnld/nl-morphe-patches/commit/d4604aa086a030d12250e3ddaa4eb0ce8ec666ae))
+* **Gboard:** validate exact native notification method signatures ([0e5f45f](https://gitlab.com/johninnld/nl-morphe-patches/commit/0e5f45fb6cb9c9d516be3c3752512f474bf47385))
+
+### ✨ New Features
+
+* **Gboard:** add an opt-in telemetry and network block ([26bc0d4](https://gitlab.com/johninnld/nl-morphe-patches/commit/26bc0d4060c98cd6ceb1dfc26d80984296aabe85))
+* **Gboard:** add optional shared Gemma AI backend ([2c0be37](https://gitlab.com/johninnld/nl-morphe-patches/commit/2c0be3700f424bdfb7999650ef88f39463398ce4))
+* **Gboard:** document standalone Local AI and gate companion compatibility ([6ee5294](https://gitlab.com/johninnld/nl-morphe-patches/commit/6ee5294f917f1ea60eb249e7ca58374fb456e07b))
+* **Gboard:** explain local AI language coverage without a hard cap ([d1078ec](https://gitlab.com/johninnld/nl-morphe-patches/commit/d1078ec84f0cd20c4fd1a979fbc00c16b409c6b9))
+* **Gboard:** offer verified Local Model Host updates ([61e2fcc](https://gitlab.com/johninnld/nl-morphe-patches/commit/61e2fccd0d1ea3c57b58387fb1d2976804d4e4b9))
+* **Gboard:** reuse native tools for local OCR and screen-context replies ([2bf0eb1](https://gitlab.com/johninnld/nl-morphe-patches/commit/2bf0eb1301ccdae73e0a6715f88d4fbf382f2b39))
+* **Gboard:** share selectable local speech models through Binder ([f2c18b3](https://gitlab.com/johninnld/nl-morphe-patches/commit/f2c18b3920c0bfb26ca6ec3ac4c2566b286e796f))
+
+<!-- dap-release-branding:v1 -->
 ![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/2e66e61d30f33208132c9392cf3ffe73d22a8802/docs/site/assets/brand/release-banner.png)
 
 **Release · patch bundle v1.106.0.**

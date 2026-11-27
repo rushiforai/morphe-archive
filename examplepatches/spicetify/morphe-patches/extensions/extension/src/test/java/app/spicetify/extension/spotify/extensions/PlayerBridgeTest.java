@@ -8,6 +8,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import android.content.Context;
 import com.spotify.cosmos.cosmos.Lifetime;
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -174,17 +176,33 @@ public class PlayerBridgeTest {
     }
 
     @Test
-    public void aRouterDestroyedAfterTheBridgesCheckFailsTheCallWithoutCallingIn() throws Exception {
-        FakeService service = new FakeService();
-        PlayerBridge.attach(CosmosRouter.reflective(service));
-        service.router.destroyAfterFirstCheck = true;
+    public void aRouterShutDownAfterTheBridgesCheckFailsTheCallWithoutCallingIn() throws Exception {
+        FakeNativeRouter nativeRouter = new FakeNativeRouter();
+        CosmosRouter reflective = CosmosRouter.reflective(nativeRouter);
+        // Spotify shuts the router down right after the bridge asked whether it's destroyed, as a logout would.
+        PlayerBridge.attach(new CosmosRouter() {
+            private boolean asked;
+
+            @Override
+            public Cancel resolve(String action, String uri, byte[] body, Callback callback) {
+                return reflective.resolve(action, uri, body, callback);
+            }
+
+            @Override
+            public boolean destroyed() {
+                boolean was = asked ? reflective.destroyed() : false;
+                if (!asked) CosmosRouter.shutdown(nativeRouter);
+                asked = true;
+                return was;
+            }
+        });
         Answer answer = new Answer();
 
         PlayerBridge.call(Esperanto.CONTEXT_PLAYER, "SkipNext", new byte[0], answer);
 
         answer.await();
         assertEquals("bridge not connected", answer.reason);
-        assertNull("never sent to the destroyed router", service.router.request);
+        assertNull("never sent to the shut down router", nativeRouter.request);
     }
 
     @Test
@@ -527,18 +545,18 @@ public class PlayerBridgeTest {
 
     @Test
     public void reflectiveBuildsSpotifysRequestAndMapsItsCallback() throws Exception {
-        FakeService service = new FakeService();
-        CosmosRouter reflective = CosmosRouter.reflective(service);
+        FakeNativeRouter nativeRouter = new FakeNativeRouter();
+        CosmosRouter reflective = CosmosRouter.reflective(nativeRouter);
         Recorded recorded = new Recorded();
 
         CosmosRouter.Cancel cancel = reflective.resolve("SUB", GET_STATE, new byte[] {3}, recorded);
 
-        Request request = service.router.request;
+        Request request = nativeRouter.request;
         assertEquals("SUB", request.getAction());
         assertEquals(GET_STATE, request.getUri());
         assertArrayEquals(new byte[] {3}, request.getBody());
 
-        ResolveCallback callback = service.router.callback;
+        ResolveCallback callback = nativeRouter.callback;
         callback.onResolved(new Response(200, new byte[] {9}));
         assertEquals(200, recorded.status);
         assertArrayEquals(new byte[] {9}, recorded.body);
@@ -554,13 +572,133 @@ public class PlayerBridgeTest {
         assertTrue(callbacks.contains(callback));
         assertNotNull(callback.toString());
 
-        assertEquals(0, service.router.released);
+        assertEquals(0, nativeRouter.released);
         cancel.cancel();
-        assertEquals(1, service.router.released);
+        assertEquals(1, nativeRouter.released);
 
         assertFalse(reflective.destroyed());
-        service.router.destroyed = true;
+        CosmosRouter.shutdown(nativeRouter);
         assertTrue(reflective.destroyed());
+    }
+
+    @Test
+    public void aShutDownRouterRefusesEverySendWithoutCallingIn() throws Exception {
+        FakeNativeRouter nativeRouter = new FakeNativeRouter();
+        CosmosRouter reflective = CosmosRouter.reflective(nativeRouter);
+
+        CosmosRouter.shutdown(nativeRouter);
+        CosmosRouter.shutdown(nativeRouter); // a second shutdown changes nothing
+
+        try {
+            reflective.resolve("GET", "sp://a", new byte[0], new Recorded());
+            fail("a shut down router must refuse to send");
+        } catch (IllegalStateException expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("destroyed"));
+        }
+        assertEquals(0, nativeRouter.resolves.get());
+        CosmosRouter.shutdown(new Object()); // a router that was never wrapped is none of its business
+    }
+
+    @Test
+    public void shutdownWaitsForASendInFlightAndNoSendReachesTheRouterAfterIt() throws Exception {
+        FakeNativeRouter nativeRouter = new FakeNativeRouter();
+        CosmosRouter reflective = CosmosRouter.reflective(nativeRouter);
+        nativeRouter.hold = new CountDownLatch(1);
+
+        // A send is inside the native router, holding there.
+        AtomicReference<Throwable> inFlight = new AtomicReference<>();
+        Thread sender = new Thread(() -> send(reflective, inFlight), "in flight");
+        sender.start();
+        assertTrue("the send never got into the router", nativeRouter.entered.await(CEILING_SECONDS, TimeUnit.SECONDS));
+
+        // Shutdown can't finish while it is, so it parks on the write lock.
+        AtomicBoolean shutDown = new AtomicBoolean();
+        Thread shutdown = new Thread(() -> {
+            CosmosRouter.shutdown(nativeRouter);
+            shutDown.set(true);
+        }, "shutdown");
+        shutdown.start();
+        awaitParked(shutdown);
+        assertFalse("shutdown returned with a send inside the router", shutDown.get());
+
+        // Sends that come now queue up behind it.
+        List<AtomicReference<Throwable>> late = new ArrayList<>();
+        List<Thread> lateSenders = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            AtomicReference<Throwable> result = new AtomicReference<>();
+            late.add(result);
+            Thread thread = new Thread(() -> send(reflective, result), "late " + i);
+            lateSenders.add(thread);
+            thread.start();
+            awaitParked(thread);
+        }
+        assertEquals("only the first send is inside the router", 1, nativeRouter.resolves.get());
+
+        nativeRouter.hold.countDown();
+
+        join(sender);
+        join(shutdown);
+        for (Thread thread : lateSenders) join(thread);
+        assertTrue(shutDown.get());
+        assertNull("the send that was inside finished", inFlight.get());
+        for (AtomicReference<Throwable> result : late) {
+            assertTrue("a late send must be refused, not sent: " + result.get(), result.get() instanceof IllegalStateException);
+        }
+        assertEquals("nothing reached the router after shutdown", 1, nativeRouter.resolves.get());
+        assertTrue(reflective.destroyed());
+    }
+
+    @Test
+    public void onShutdownStopsTheBridgeSendingToTheRouterItAttached() throws Exception {
+        FakeNativeRouter nativeRouter = new FakeNativeRouter();
+        PlayerBridge.onCosmos(nativeRouter, false);
+        assertTrue(PlayerBridge.connected());
+
+        PlayerBridge.onShutdown(nativeRouter);
+
+        assertFalse(PlayerBridge.connected());
+        Answer answer = new Answer();
+        PlayerBridge.call(Esperanto.CONTEXT_PLAYER, "SkipNext", new byte[0], answer);
+        answer.await();
+        assertEquals("bridge not connected", answer.reason);
+        assertEquals(0, nativeRouter.resolves.get());
+        assertEquals("Player bridge: waiting for Spotify", PlayerBridge.problemLine());
+    }
+
+    @Test
+    public void aNewRouterTakesOverAfterTheOldOneShutDown() throws Exception {
+        FakeNativeRouter first = new FakeNativeRouter();
+        PlayerBridge.onCosmos(first, false);
+        PlayerBridge.onShutdown(first);
+        FakeNativeRouter second = new FakeNativeRouter();
+
+        PlayerBridge.onCosmos(second, false);
+
+        assertTrue(PlayerBridge.connected());
+        PlayerBridge.call(Esperanto.CONTEXT_PLAYER, "SkipNext", new byte[0], new Answer());
+        assertEquals(1, second.resolves.get());
+        assertEquals(0, first.resolves.get());
+    }
+
+    @Test
+    public void aReplacedRouterThatShutDownLaterIsStillRefusedToAnySenderHoldingIt() throws Exception {
+        // A sender may have read the old router before the new one was attached, and shutdown of the old one
+        // arrives after that: the old router must refuse it, though it is no longer the attached one.
+        FakeNativeRouter first = new FakeNativeRouter();
+        CosmosRouter old = CosmosRouter.reflective(first);
+        PlayerBridge.attach(old);
+        PlayerBridge.onCosmos(new FakeNativeRouter(), false);
+
+        PlayerBridge.onShutdown(first);
+
+        assertTrue(old.destroyed());
+        assertTrue(PlayerBridge.connected());
+        try {
+            old.resolve("GET", "sp://a", new byte[0], new Recorded());
+            fail("the old router must refuse to send");
+        } catch (IllegalStateException expected) {
+            assertEquals(0, first.resolves.get());
+        }
     }
 
     @Test
@@ -572,15 +710,15 @@ public class PlayerBridgeTest {
         context.getSharedPreferences("spicetify_extensions", Context.MODE_PRIVATE).edit()
                 .putBoolean("test_started", true).commit();
         Extensions.setAppContext(null);
-        FakeService service = new FakeService();
+        FakeNativeRouter nativeRouter = new FakeNativeRouter();
 
-        PlayerBridge.onCosmos(service, true);
+        PlayerBridge.onCosmos(nativeRouter, true);
 
         assertSame("found through the router's class loader", context, Extensions.appContext());
         assertTrue(PlayerBridge.connected());
         assertTrue("an extension that is on starts with Spotify", started.await(CEILING_SECONDS, TimeUnit.SECONDS));
         PlayerBridge.call(Esperanto.CONTEXT_PLAYER, "SkipNext", new byte[0], new Answer());
-        assertEquals(SKIP_NEXT, service.router.request.getUri());
+        assertEquals(SKIP_NEXT, nativeRouter.request.getUri());
     }
 
     @Test
@@ -590,20 +728,20 @@ public class PlayerBridgeTest {
         // Switched on in an earlier build that had the extensions patch.
         context.getSharedPreferences("spicetify_extensions", Context.MODE_PRIVATE).edit()
                 .putBoolean("test_left_on", true).commit();
-        FakeService service = new FakeService();
+        FakeNativeRouter nativeRouter = new FakeNativeRouter();
 
-        PlayerBridge.onCosmos(service); // Home pins alone: InstalledPatches.extensions() is false, as in every test
+        PlayerBridge.onCosmos(nativeRouter); // Home pins alone: InstalledPatches.extensions() is false, as in every test
         onBridge(() -> null); // runs after anything onCosmos posted
 
         assertTrue(PlayerBridge.connected());
         assertFalse("nothing starts without the extensions patch", started.get());
         PlayerBridge.call(Esperanto.YOUR_LIBRARY, "All", Esperanto.yourLibraryAll(), new Answer());
-        assertEquals("sp://esperanto/" + Esperanto.YOUR_LIBRARY + "/All", service.router.request.getUri());
+        assertEquals("sp://esperanto/" + Esperanto.YOUR_LIBRARY + "/All", nativeRouter.request.getUri());
     }
 
     @Test
     public void onCosmosWithoutSpotifysRouterKeepsTheBridgeAndShowsWhy() {
-        PlayerBridge.onCosmos(new Object());
+        PlayerBridge.onCosmos(new Recorded()); // from the test's class loader, so Spotify's kept types load, but no resolve
 
         assertTrue(PlayerBridge.connected());
         String line = lineWhileDestroyed(router);
@@ -850,36 +988,48 @@ public class PlayerBridgeTest {
         }
     }
 
-    /** Stands in for {@code SharedCosmosRouterService}; reflective() only calls getRemoteNativeRouter(). */
-    public static final class FakeService {
-        final FakeNativeRouter router = new FakeNativeRouter();
-
-        public FakeNativeRouter getRemoteNativeRouter() {
-            return router;
-        }
-    }
-
-    /** Stands in for {@code RemoteNativeRouter}. */
+    /** Stands in for {@code NativeRouter}: reflective() only calls resolve(Request, ResolveCallback). */
     public static final class FakeNativeRouter {
         volatile Request request;
         volatile ResolveCallback callback;
         volatile int released;
-        volatile boolean destroyed;
-        /** Destroys the router right after its first check, as a logout between check and call would. */
-        volatile boolean destroyAfterFirstCheck;
+        final AtomicInteger resolves = new AtomicInteger();
+        /** Counts down when a send is inside resolve. */
+        final CountDownLatch entered = new CountDownLatch(1);
+        /** When set, the first send holds inside resolve until it is counted down, as a busy native core would. */
+        volatile CountDownLatch hold;
 
-        public Lifetime performNativeResolve(Request request, ResolveCallback callback) {
-            // Spotify's own resolve holds this monitor, and destroy() takes it.
-            assertTrue("sent under the router's monitor", Thread.holdsLock(this));
+        public Lifetime resolve(Request request, ResolveCallback callback) {
+            boolean first = resolves.incrementAndGet() == 1;
             this.request = request;
             this.callback = callback;
+            entered.countDown();
+            if (first && hold != null) awaitQuietly(hold);
             return () -> released++;
         }
+    }
 
-        public boolean getRouterDestroyed() {
-            boolean was = destroyed;
-            if (destroyAfterFirstCheck) destroyed = true;
-            return was;
+    /** One send through {@code reflective}, recording what it threw, or nothing. */
+    private static void send(CosmosRouter reflective, AtomicReference<Throwable> thrown) {
+        try {
+            reflective.resolve("GET", "sp://a", new byte[0], new Recorded());
+        } catch (Throwable e) {
+            thrown.set(e);
         }
+    }
+
+    /** Waits until {@code thread} is parked, as a thread blocked on a lock is, so it can no longer make progress. */
+    private static void awaitParked(Thread thread) throws InterruptedException {
+        long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(CEILING_SECONDS);
+        while (thread.getState() != Thread.State.WAITING && thread.getState() != Thread.State.TERMINATED) {
+            assertTrue(thread.getName() + " never parked", System.nanoTime() < end);
+            Thread.sleep(1);
+        }
+        assertEquals(thread.getName() + " ended instead of waiting", Thread.State.WAITING, thread.getState());
+    }
+
+    private static void join(Thread thread) throws InterruptedException {
+        thread.join(TimeUnit.SECONDS.toMillis(CEILING_SECONDS));
+        assertFalse(thread.getName() + " is stuck", thread.isAlive());
     }
 }

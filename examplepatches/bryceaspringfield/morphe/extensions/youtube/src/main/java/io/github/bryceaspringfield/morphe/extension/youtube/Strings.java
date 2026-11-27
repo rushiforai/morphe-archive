@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/** The bundle's texts in English and Spanish, chosen by the app's language. */
 final class Strings {
 
     private static final Map<String, String[]> T = new HashMap<>();

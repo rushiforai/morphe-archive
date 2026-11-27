@@ -85,4 +85,33 @@ public final class ComposeBridge {
     public static Object affiliateBadge(String contentDescription, String url) {
         throw notPatched();
     }
+
+    /** X's RichText {@code (text, rtl = false, Natural alignment, no entities)}. */
+    public static Object richText(String text) {
+        throw notPatched();
+    }
+
+    /**
+     * X's notice for posts it can't show: a bordered row with message and, when cta isn't
+     * null, a tappable call to action that runs onClick. message and cta are RichText.
+     */
+    public static void notice(Object message, Object cta, Function1<?, ?> onLink, Object modifier, Function0<?> onClick,
+                              Object composer) {
+        throw notPatched();
+    }
+
+    /** {@code modifier.fillMaxWidth()}; null stands for an empty modifier. */
+    public static Object fillMaxWidth(Object modifier) {
+        throw notPatched();
+    }
+
+    /** {@code modifier.padding(paddingValues)}; null modifier stands for an empty one. */
+    public static Object padding(Object modifier, Object paddingValues) {
+        throw notPatched();
+    }
+
+    /** The timeline X is composing, from its CompositionLocal, or null outside timelines. */
+    public static Object timelineHost(Object composer) {
+        throw notPatched();
+    }
 }

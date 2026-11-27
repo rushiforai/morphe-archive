@@ -33,6 +33,8 @@ quick_access	快速存取
 access_help	長按主畫面上的 Messenger 圖示，即可選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。你也可以從應用程式抽屜開啟 HushMessenger 設定。
 hide_drawer_icon	隱藏應用程式抽屜圖示
 hide_drawer_icon_help	仍可透過 Messenger 的選單或主畫面圖示捷徑開啟設定。
+settings_in_recents	設定留在最近使用
+settings_in_recents_help	用主畫面鍵或最近使用的應用程式鍵離開設定，它的卡片會留在最近使用的應用程式裡，讓你回到原本的位置。用返回鍵關閉就不會留下卡片。關閉這個選項時，你一離開，卡片就會消失。
 hide_menu_row	隱藏選單中的設定項目
 hide_menu_row_help	從 Messenger 的「選單」分頁與側邊選單移除 HushMessenger 項目。長按「聊天室」頂端的 Messenger 標誌，或長按主畫面上的 Messenger 圖示並點選「Patch controls（修補功能控制）」，即可返回這裡。若這兩種入口都無法使用，選單中的項目就會恢復顯示。
 menu_row_needs_shortcut	請先透過長按捷徑開啟一次設定（長按主畫面上的 Messenger 圖示，再點選「Patch controls（修補功能控制）」），確保隱藏選單項目後仍能返回這裡。
@@ -60,8 +62,8 @@ menu_row_needs_way	請先重新啟用圖示捷徑或長按標誌，確保隱藏�
 hide_menu_row_help_without_shortcut	從 Messenger 的「選單」分頁與側邊選單移除 HushMessenger 項目。長按「聊天室」頂端的 Messenger 標誌即可返回這裡。停用長按標誌後，選單中的項目就會恢復顯示。
 hide_menu_row_help_plain	從 Messenger 的「選單」分頁與側邊選單移除 HushMessenger 項目。
 menu_tab	「選單」分頁
-menu_rows_help	Messenger 放在「選單」分頁裡的項目，例如社群或頻道邀請。把你從不打開的隱藏起來。每個項目在「選單」分頁顯示過一次之後，就會出現在這裡。
-menu_rows_empty	先開一次 Messenger 的「選單」分頁，它的項目就會出現在這裡讓你隱藏。
+menu_rows_help	Messenger 放在「選單」分頁或側邊選單裡的項目，例如社群或頻道邀請。把你從不打開的隱藏起來。每個項目在 Messenger 顯示過一次之後，就會出現在這裡。
+menu_rows_empty	先開一次 Messenger 的「選單」分頁或側邊選單，它的項目就會出現在這裡讓你隱藏。
 menu_log_out	「選單」分頁中的登出項目
 menu_log_out_help	在 Messenger「選單」分頁的設定下方加入登出，登出方式與 Messenger 本身的「登出」相同。
 way_menu	從 Messenger「選單」分頁或側邊選單中的 HushMessenger 項目開啟設定。
@@ -176,6 +178,8 @@ call_captions_no_recognizer	你的手機沒有裝置端語音辨識，因此無�
 call_captions_no_translator	你的手機沒有裝置端翻譯，因此字幕會維持原本說的語言。
 call_captions_untranslated	你的手機無法翻譯這組語言，因此字幕維持原文。
 call_captions_unavailable	你的手機無法辨識這個語言。請在 HushMessenger 設定中選擇其他語言。
+call_captions_checking	正在確認你的手機能否辨識%1$s
+call_captions_cant_hear	你的手機無法自行產生%1$s字幕。請選擇其他語言。
 call_captions_downloading	手機正在下載這個語言。下載完成後就會開始顯示字幕。
 call_captions_stopped	這通通話的字幕已停止。
 call_captions_no_voice	你的手機沒有這個語言的語音，因此不會朗讀字幕。
@@ -192,6 +196,16 @@ hidden_chats_failed	無法隱藏這個聊天室
 hidden_chats_empty	你從聊天清單隱藏的聊天室會顯示在這裡。
 hidden_chats_unhide	取消隱藏
 hidden_chats_unnamed	聊天室
+chat_preview_taps_open	開啟聊天室
+chat_preview_taps_gone	請從聊天室清單開啟
+# context: confirm_strangers_held, the toast after that switch holds a Send, asking for a second tap
+confirm_strangers_held	你們還不是朋友。再點一下「傳送」即可傳送。
+# context: remove_contact_row, the row this switch adds to the menu you get by holding a person who isn't a friend. Messenger's own old row was called Remove contact.
+remove_contact_row	移除聯絡人
+# context: remove_contact_done, the toast after that row took the person out of your Messenger contacts
+remove_contact_done	已從你的聯絡人中移除
+# context: remove_contact_failed, the toast when that row couldn't take the person out of your contacts
+remove_contact_failed	無法移除這位聯絡人
 special_contacts_track	追蹤這個人
 special_contacts_untrack	停止追蹤
 special_contacts_tracked	已開始追蹤這個人
@@ -236,6 +250,8 @@ invisible_buttons_group_ours	HushMessenger 的按鈕
 invisible_buttons_group_other	其他
 tab_bar_slide	沿著分頁列滑動
 tab_bar_slide_help	手指沿著下方的分頁列滑動，會有一個醒目框跟著手指一個分頁一個分頁移動。放開手指就會開啟底下的分頁。點一下還是跟以前一樣，而且關閉滑動切換分頁時也能用。開啟後請重新啟動 Messenger。
+tab_swipe_follow	頁面跟著手指移動
+tab_swipe_follow_help	在分頁之間滑動時，頁面會跟著手指移動，放開手指後下一個分頁會從旁邊滑入。滑動距離太短時頁面會彈回原位。分頁列不會移動。
 message_actions_hidden_label	%1$s（已隱藏）
 message_actions_move_up	將%1$s上移
 message_actions_move_down	將%1$s下移
@@ -334,6 +350,27 @@ tab_icons_tab_metaai	Meta AI
 tab_icons_tab_jewel	Facebook
 tab_icons_tab_more	選單
 tab_icons_tab_mesetting	你的個人檔案
+tab_icons_size	圖示大小
+tab_icons_size_help	你的圖片和線條圖示都會以這個大小繪製。%1$s 會填滿 Messenger 留給圖示的整個空間，%2$s 大約和 Messenger 原本的圖示一樣大。重新啟動 Messenger 後生效。
+tab_icons_size_picked	Messenger 重新啟動後圖示為 %1$s
+own_chat_sounds_help	「傳送中」在你的訊息送出時播放，「已傳送」在訊息送達時播放，「應用程式內訊息」則在 Messenger 開著時收到訊息時播放。可為任何一個選擇最大 %1$d MB 的 .ogg、.mp3、.m4a 或 .wav 檔案。
+own_chat_sounds_sound_send	傳送中
+own_chat_sounds_sound_sent	已傳送
+own_chat_sounds_sound_in_app	應用程式內訊息
+own_chat_sounds_choose	選擇
+own_chat_sounds_remove	移除
+own_chat_sounds_stock	Messenger 的音效
+own_chat_sounds_yours	你的音效
+own_chat_sounds_copying	複製中...
+own_chat_sounds_saved	已儲存音效。
+own_chat_sounds_removed	已改回 Messenger 的音效。
+own_chat_sounds_remove_failed	無法移除該音效。
+own_chat_sounds_not_sound	該檔案無法當作音效播放。
+own_chat_sounds_too_large	音效最大 %1$d MB。
+own_chat_sounds_unreadable	無法開啟該檔案。
+own_chat_sounds_not_saved	無法儲存音效。
+own_chat_sounds_busy	仍在複製上一個檔案。
+own_chat_sounds_timeout	檔案處理太久，請再試一次。
 quiet_calls_chosen	只限選定的聊天室
 quiet_calls_chosen_help	你在下方開啟的聊天室來電會安靜地進來，其他來電照常響鈴。
 quiet_calls_recent_empty	打電話給你的聊天室會顯示在這裡，最新的在最上面。
@@ -773,6 +810,9 @@ chat_jump_loading	正在載入較早的訊息（目前 %1$d 則）
 chat_jump_loading_plain	正在載入較早的訊息
 chat_jump_seeking	正在找那一天
 chat_jump_cancel	取消
+pinned_bar_one	置頂訊息
+pinned_bar_many	%1$d 則置頂訊息
+pinned_bar_attachment	附件
 chat_jump_start	這是聊天室的開頭
 chat_jump_found	這是那一天的第一則訊息
 chat_jump_next	那一天沒有訊息，這是下一則
@@ -814,12 +854,19 @@ search_suggested.title	在搜尋中隱藏建議
 search_suggested.description	在你輸入任何內容前，隱藏搜尋頂端的建議人選。你搜尋他們時，他們仍會出現。
 search_reels.title	在搜尋中隱藏最近的 Reels
 search_reels.description	在你輸入任何內容前，從搜尋中隱藏你最近看過的 Reels。
+search_strangers.title	在搜尋中隱藏不認識的人
+search_strangers.description	在搜尋中輸入時，隱藏不是你朋友的人，以免不小心傳訊息給陌生人。你的朋友和群組仍會出現。
+# context: confirm_strangers, the Inbox switch that holds the first Send in a chat with someone who isn't a friend
+confirm_strangers.title	傳訊息給不認識的人前先詢問
+confirm_strangers.description	在與非朋友的聊天室中第一次按傳送時先暫停，並請你再點一下傳送。5 秒內再點一下，就會以訊息請求送出。群組、粉絲專頁，以及對方曾傳訊息給你的聊天室會直接傳送。
 longer_notes.title	撰寫較長的便利貼
-longer_notes.description	讓便利貼最多可輸入 2000 個字元，而不是 60 個。較長的便利貼能否發布由 Facebook 決定。
+longer_notes.description	讓便利貼最多可輸入 600 個字元，而不是 60 個。較長的便利貼能否發布由 Facebook 決定。
 chat_preview.title	長按預覽聊天室
 chat_preview.description	長按聊天室，就能在 Messenger 內建的預覽中快速看一眼，下方附上聊天室選單，不必開啟聊天室。
 chat_preview_size.title	放大聊天室預覽
 chat_preview_size.description	長按聊天室時，讓預覽中的聊天內容有更多空間，並可在預覽中往回捲動查看。下方的選單維持固定高度，項目較多時可以捲動。
+chat_preview_taps.title	點按聊天室預覽不會開啟聊天室
+chat_preview_taps.description	長按聊天室時出現的預覽中，點按聊天內容不再會開啟聊天室。點按會直接傳到聊天室本身，所以前往最新訊息的向下箭頭可以使用，下方選單最上面的「開啟聊天室」則會開啟聊天室。
 mark_read_action.title	隱藏「標示為已讀」
 mark_read_action.description	在長按聊天清單中的聊天室所顯示的選單中，隱藏「標示為已讀」，避免誤將聊天室標示為已讀。「標示為未讀」仍會保留。
 pinned_chats.title	置頂更多聊天室
@@ -832,6 +879,9 @@ chat_menu_items.title	隱藏聊天室選單項目
 chat_menu_items.description	從長按聊天清單中的聊天室所顯示的選單裡，隱藏你選擇的項目。先按住任一聊天室一次，該選單的項目就會顯示在這個開關下方供你選擇。
 profile_menu_items.title	隱藏個人檔案選單項目
 profile_menu_items.description	從點按聊天室中訊息旁的大頭貼所顯示的選單裡，隱藏你選擇的項目。先點按任一大頭貼一次，該選單的項目就會顯示在這個開關下方供你選擇。
+# context: remove_contact, the Chat menu switch that adds Remove contact to the menu you get by holding a person who isn't a friend
+remove_contact.title	顯示「移除聯絡人」
+remove_contact.description	對不是你朋友的人，在「聯絡人」分頁、你的聯絡人清單或搜尋中長按某人時出現的選單裡，重新加入「移除聯絡人」。這會把對方從你的 Messenger 聯絡人中移除，但不會封鎖對方。
 facebook.title	隱藏 Facebook 捷徑
 facebook.description	隱藏 Facebook 按鈕、個人檔案與分享捷徑，以及「選單」分頁中的「Meta 旗下其他產品」與「訂閱」區塊。適合只使用 Messenger 的使用者。
 meta_ai.title	隱藏 Meta AI
@@ -913,7 +963,7 @@ local_chat_search.description	在聊天室的搜尋結果中加入一個按鈕�
 chat_jump.title	跳到第一則訊息或指定日期
 chat_jump.description	長按聊天室頂端的名稱，即可跳到第一則訊息或你選的日期。聊天室左下角的箭頭可直接跳到第一則訊息，長按箭頭則可選擇日期。Messenger 一次只載入一頁聊天內容，所以會一路往回捲動並在畫面上顯示數量，直到抵達為止，按「取消」即可停止。最多只能回到 Messenger 能載入的範圍。
 pinned_bar.title	顯示置頂訊息
-pinned_bar.description	在聊天名稱下方的橫列中顯示該聊天置頂的訊息。Messenger 本來就有這個橫列，但只在部分聊天中開啟。
+pinned_bar.description	在端對端加密的聊天中，於聊天名稱下方顯示一個橫列，列出最新的置頂訊息。點一下即可跳到該訊息。
 landscape.title	允許橫向顯示
 landscape.description	讓 Messenger 隨手機轉成橫向，鍵盤更寬，照片和影片也更大。會依照手機的自動旋轉設定。通話、相機、付款和其他少數畫面仍保持直向。變更後請重新啟動 Messenger。
 chat_bar_plus.title	將聊天列按鈕移到 + 選單
@@ -1004,6 +1054,8 @@ restricted_notify.title	接收受限制聊天的通知
 restricted_notify.description	與你限制的人的聊天會像其他聊天一樣通知你，但端對端加密的聊天除外。你設為靜音的聊天仍保持安靜。受限制的人仍無法看到你何時在線上，或何時已讀他們的訊息。
 open_chat_sound.title	開啟中的聊天室也有音效
 open_chat_sound.description	在你開啟的聊天室收到訊息時，播放 Messenger 的應用程式內訊息音效。Messenger 原本只會對讚和貼圖這麼做。手機設為靜音，或關閉 Messenger 自己的應用程式內音效時，仍然不會有聲音。
+own_chat_sounds.title	你自己的聊天音效
+own_chat_sounds.description	在你傳送訊息時、訊息送達時，以及 Messenger 開著時收到新訊息時，改為播放你挑選的音效檔，取代 Messenger 的音效。請在下方選擇。沒有更換的仍是 Messenger 的音效，而每個音效何時播放仍由 Messenger 決定。
 passkey_login.title	跳過密碼金鑰登入
 passkey_login.description	登入時不再提供這支手機上的密碼金鑰，Facebook 會改成請你用另一台已登入的裝置核准這次登入，就像帳號沒有密碼金鑰時那樣。修補過的 Messenger 無法通過 Facebook 的密碼金鑰檢查，這就是有些登入一直卡在瀏覽器檢查的原因。開啟時，Messenger 也無法用密碼金鑰做加密備份，所以除非登入卡住，請保持關閉。長按主畫面上的 Messenger 圖示，不必登入也能開啟這些設定。
 recovery_code_row.title	顯示 40 字元代碼選項

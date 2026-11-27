@@ -32,13 +32,11 @@ public final class VideoThumbnailRetry {
             actions=new LinearLayout(host.getContext());actions.setOrientation(LinearLayout.HORIZONTAL);
             actions.setTag(ACTIONS_TAG,Boolean.TRUE);
             button=button("再取得","サムネイルを再取得");
-            Button play=button("再生","サムネイルを使わずに動画を再生");
-            actions.addView(button,new LinearLayout.LayoutParams(0,-1,1));actions.addView(play,new LinearLayout.LayoutParams(0,-1,1));
+            actions.addView(button,new LinearLayout.LayoutParams(-1,-1));
             int height=Math.round(36*view.getResources().getDisplayMetrics().density);
             host.addView(actions,new FrameLayout.LayoutParams(Math.max(1,view.getWidth()),height,Gravity.TOP|Gravity.LEFT));
             host.getViewTreeObserver().addOnPreDrawListener(this);position();
             button.setOnClickListener(v->{if(closed||view.getTag(TAG)!=this)return;if(VideoFrameThumbnail.retry(source)){update();MAIN.removeCallbacks(polling);MAIN.postDelayed(polling,500);}else if(!VideoFrameThumbnail.running(source))Toast.makeText(view.getContext(),"動画サムネイルの取得設定を確認してください",Toast.LENGTH_SHORT).show();});
-            play.setOnClickListener(v->{if(closed||view.getTag(TAG)!=this)return;try{view.getContext().startActivity(playbackIntent(view.getContext(),source));}catch(RuntimeException unavailable){Toast.makeText(view.getContext(),"動画を開けませんでした",Toast.LENGTH_SHORT).show();}});
         }
         Button button(String text,String description){Button button=new Button(host.getContext());button.setText(text);button.setContentDescription(description);button.setTextSize(12);button.setAllCaps(false);button.setMinHeight(0);button.setMinimumHeight(0);button.setMinWidth(0);button.setMinimumWidth(0);button.setPadding(4,0,4,0);return button;}
         void update(){if(button!=null){boolean running=VideoFrameThumbnail.running(source);button.setText(running?"再取得中…":"再取得");button.setEnabled(!running);}}

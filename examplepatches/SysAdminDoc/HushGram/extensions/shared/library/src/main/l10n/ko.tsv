@@ -291,6 +291,9 @@ Feed videos and stories wait for your tap. Reels and videos in Explore play as I
 Turn on Tap to play to use this choice.	이 옵션을 사용하려면 ‘탭하여 재생’을 켜세요
 Resume long videos	긴 동영상 이어보기
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	2분이 넘는 동영상과 릴스는 시청을 중단한 시점부터 이어서 재생됩니다. 다른 부분을 보려면 원하는 시점으로 이동하세요. 라이브 동영상과 광고는 기존과 동일하게 처음부터 재생됩니다
+# context: a switch under Resume long videos (#874). A feed video you scroll past and come back to keeps playing from where it was, only until Instagram closes. The Reels tab is Instagram's own tab.
+Keep your place in feed videos	피드 동영상 위치 기억
+A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over as usual.	스크롤해서 지나친 피드 동영상으로 돌아오면 멈춘 시점부터 이어서 재생됩니다. Instagram을 닫을 때까지 유지됩니다. 릴스 탭의 릴스는 기존과 동일하게 처음부터 재생됩니다.
 Default playback quality	기본 재생 화질
 # context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
 Videos, reels and stories play at the quality below, starting with the next one you open.	동영상, 릴스 및 스토리는 다음에 여는 콘텐츠부터 아래 설정된 화질로 재생됩니다.
@@ -770,6 +773,9 @@ The latitude and the longitude in degrees, with a comma between them, like 40.75
 Turn off HDR brightness boosts	HDR 밝기 강조 끄기
 Keep HDR on photo uploads	사진 업로드 시 HDR 유지
 Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	실험적 기능입니다. Android 14 이상에서 게시하는 Ultra HDR 사진의 게인 맵이 유지되어 계속 HDR로 표시될 수 있습니다. 게시한 사진이 이상하게 보이면 끄세요.
+# context: Keep HDR on video uploads, under Playback next to the photo switch. Instagram encodes a video again before it uploads it; HDR means HLG here.
+Keep HDR on video uploads	동영상 업로드 시 HDR 유지
+Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong or won't upload.	실험적 기능입니다. Android 13 이상에서 게시하는 HDR 동영상이 HDR로 인코딩됩니다. 일부 휴대폰에서는 Instagram이 SDR로 바꿉니다. 게시한 동영상이 이상하게 보이거나 업로드되지 않으면 끄세요.
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	검색에서 연 항목은 앱에서도 Instagram 쪽에서도 최근 항목에 남지 않습니다. 이미 있는 검색은 지울 때까지 남아 있습니다.
 Wi-Fi stays as it is. Turn this off to save data on every network.	Wi-Fi는 그대로입니다. 모든 네트워크에서 데이터를 아끼려면 이 스위치를 끄세요.
 Hide comments	댓글 숨기기
@@ -1098,6 +1104,8 @@ Stop the analytics upload alarm	분석 업로드 알람 중지
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram은 5분 뒤 사용 데이터를 보내기 위해 휴대폰을 깨우는 알람을 설정합니다. 이 알람을 멈춥니다. 데이터는 다음에 앱을 사용할 때 전송됩니다.
 Stop background feed refresh	백그라운드 피드 새로고침 중지
 About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Instagram은 약 30분마다 휴대폰을 깨워 피드를 미리 내려받습니다. 이를 멈춥니다. 피드는 앱을 열 때 불러오며, 메시지와 알림은 계속 도착합니다.
+Let Instagram close after account checks	계정 확인 후 Instagram 종료 허용
+When your phone checks its accounts, as it does at startup and when an account changes, Instagram never answers. Android then keeps it running for up to 15 minutes, even after you swipe it away. This answers right away so Instagram can close. Your login is unaffected.	휴대폰이 시작할 때나 계정이 바뀔 때처럼 계정을 확인하면 Instagram은 응답하지 않습니다. 그러면 Android는 앱을 밀어서 닫은 뒤에도 최대 15분 동안 실행 상태로 둡니다. 이 설정은 바로 응답해 Instagram이 종료될 수 있게 합니다. 로그인에는 영향이 없습니다.
 Haptic style	햅틱 스타일
 Short tick	짧은 틱
 System tick	시스템 틱
@@ -1921,6 +1929,21 @@ Seek bar button on feed videos	피드 동영상 탐색 막대 버튼
 Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	피드 동영상 왼쪽 아래에 탐색 막대를 보이거나 숨기는 작은 버튼을 추가합니다. 피드 동영상 탐색 막대가 켜져 있어도 꺼져 있어도 작동합니다.
 Seek bar	탐색 막대
 Tint intensity	색조 강도
+# context: Tab bar: the Tint color list under Tint intensity that picks the glass tab bar's color, its choices' descriptions, the Custom tint color field under it with its dialog message and empty summary, and what both say while another switch is in the way (#875). Light, Dark and AMOLED black are choices in the list; Tint intensity, Custom tint color, Glass tab bar and Material look are rows' names
+Tint color	색조 색상
+Light	밝게
+Dark	어둡게
+AMOLED black	AMOLED 블랙
+The glass takes Instagram's own colors, dark or light with its theme.	유리가 Instagram 자체 색상을 따르며 Instagram에 맞춰 어둡거나 밝게 표시됩니다.
+Frosted white glass whatever Instagram's theme, with the tab icons dark on it.	Instagram이 어둡든 밝든 반투명한 흰색 유리로 표시되며 탭 아이콘은 어둡게 보입니다.
+Dark gray glass whatever Instagram's theme, with the tab icons white on it.	Instagram이 어둡든 밝든 짙은 회색 유리로 표시되며 탭 아이콘은 흰색으로 보입니다.
+A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.	AMOLED 화면을 위한 광택 없는 검은색 알약입니다. 색조 강도를 낮추면 뒤에 있는 내용이 비쳐 보입니다.
+The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones keep Instagram's colors.	유리가 Android가 배경화면에서 고른 강조 색상을 따릅니다. Android 12 이상. 이전 휴대폰은 Instagram 색상을 유지합니다.
+The glass takes the color you type under Custom tint color.	유리가 ‘사용자 지정 색조 색상’에 입력한 색상을 따릅니다.
+Custom tint color	사용자 지정 색조 색상
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.	#4A6B82처럼 16진수 여섯 자리로 쓴 색상입니다. 저장하면 ‘색조 색상’에서 사용자 지정이 선택됩니다.
+Turn on Glass tab bar to use this choice.	이 옵션을 사용하려면 ‘유리 탭 바’를 활성화하세요
+Turn off Material look to use this choice.	이 옵션을 사용하려면 ‘머티리얼 스타일’을 비활성화하세요
 Refraction intensity	굴절 강도
 Preview of the tab bar	탭 바 미리보기
 Keep stories playing while zooming	확대하는 동안 스토리 계속 재생
@@ -2333,6 +2356,9 @@ Instagram's small window for reels gets a button to pause the reel and play it a
 # context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
 Previous and next in the reels window	릴스 창의 이전 및 다음
 Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	Instagram의 작은 릴스 창에 이전 릴스로 돌아가거나 다음 릴스로 넘어가는 Instagram 자체 버튼이 생깁니다.
+# context: a switch on the Playback page under Previous and next in the reels window; photo and carousel reels go in Instagram's small picture in picture window for reels, a carousel shows a dot per page, and the window's Previous and Next buttons turn its pages before moving to another reel (#873)
+Photos and carousels in the reels window	릴스 창의 사진 및 캐러셀
+Photo and carousel reels go in Instagram's small window for reels too. A carousel shows a dot for each page, and Previous and Next go through its pages first.	사진 릴스와 캐러셀 릴스도 Instagram의 작은 릴스 창에 들어갑니다. 캐러셀은 페이지마다 점을 표시하고, 이전과 다음은 먼저 캐러셀의 페이지를 넘깁니다.
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	스토리 PIP 모드
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	스토리가 재생되는 중에 Instagram을 나가면 다른 앱 위의 작은 창으로 줄어들고, 그 창에서 스토리가 계속 넘어갑니다.
@@ -2780,6 +2806,9 @@ HushGram's own files take up %1$s.	HushGram 자체 파일 용량: %1$s
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	손가락 아래 유리 렌즈
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	리퀴드 글래스 알약의 버블을 손가락으로 누르고 있거나 탭 위로 밀면 버블이 커지고 뒤에 있는 화면을 더 강하게 굴절시킵니다. 손끝 아래의 유리처럼요. 손을 떼면 원래대로 돌아갑니다. 굴절에는 탭 바 뒤 흐림 효과와 Android 13 이상이 필요합니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
+# context: Tab bar: switch under Glass lens under your finger that keeps Instagram's Search tab inside the liquid pill with the other tabs instead of in a glass circle of its own, and its description (#875). Search is Instagram's tab, named as it is there; Liquid glass look is another switch's name
+Keep Search in the pill	검색을 알약 안에 두기
+With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass circle of its own. Restart Instagram after changing it.	리퀴드 글래스 스타일이 켜져 있으면 검색이 별도의 유리 원 대신 다른 탭과 함께 알약 안에 있습니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	스토리 조회자 보관
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	내 스토리를 누가 봤는지 열 때마다 그 목록이 이 휴대폰에 보관되고 팔로워 옆에 나란히 놓입니다. Instagram에 추가로 요청하는 것은 없습니다. 끄면 바로 멈춥니다.
@@ -3086,3 +3115,11 @@ Settings page logo set.	설정 페이지 로고를 설정했습니다.
 HushGram shows at the top of this page.	이 페이지 맨 위에 HushGram이 표시됩니다.
 # context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
 The top of this page says %1$s.	이 페이지 맨 위에 %1$s 이름이 표시됩니다.
+# context: Settings > Downloads > switch title, under Name saves by account and post time (#792)
+Date saves by when they were posted	게시 시간으로 저장 파일 날짜 지정
+# context: Settings > Downloads > summary of Date saves by when they were posted (#792)
+Gives each saved photo and video the time its post went up, so your gallery sorts saves by the post instead of the day you saved them. A save that doesn't know when it was posted keeps the time it was saved.	저장한 각 사진과 동영상에 게시물이 올라온 시간을 넣어, 갤러리가 저장한 날이 아니라 게시물 기준으로 저장 파일을 정렬합니다. 언제 게시됐는지 모르는 저장 파일은 저장한 시간을 그대로 씁니다.
+# context: Profiles > title of the switch that adds a Select all button beside Instagram's own Select on the grids in Your activity (#762); Your activity is Instagram's own page in the profile menu, use the name Instagram shows for it in this language
+Select all in Your activity	내 활동에서 모두 선택
+# context: Profiles > summary of Select all in Your activity (#762). Select, Delete and Unlike are Instagram's own buttons on those grids; use the words Instagram shows there in this language
+Adds Select all beside Select on the photo and video grids in Your activity, like your posts, reels and likes. Tick one first and it shows. It only ticks them. Nothing goes until you press Delete or Unlike yourself.	내 활동의 사진 및 동영상 그리드(내 게시물, 릴스, 좋아요 등)에서 선택 옆에 모두 선택을 추가합니다. 하나를 선택하면 나타납니다. 선택 표시만 합니다. 직접 삭제나 좋아요 취소를 누르기 전에는 아무것도 사라지지 않습니다.

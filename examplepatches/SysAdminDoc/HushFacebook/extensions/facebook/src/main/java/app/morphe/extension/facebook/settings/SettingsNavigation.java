@@ -538,13 +538,30 @@ final class SettingsNavigation extends BaseAdapter {
         else showAt(0, 0);
     }
 
+    /**
+     * Back clears a search first, then folds the open section with its header kept in place (#604),
+     * so it takes a Back with every section folded to leave the settings. The list view shows every
+     * section open at once, and Back leaves from there.
+     */
     boolean back() {
         if (!query.isEmpty()) {
             search("");
             showPage();
             return true;
         }
-        return false;
+        if (listMode) return false;
+        boolean folded = false;
+        for (String id : new ArrayList<>(expanded)) {
+            Preference header = header(id);
+            if (header == null) {
+                expanded.remove(id);
+                continue;
+            }
+            // A Back that folds only a section the list doesn't show would seem to do nothing.
+            if (visible.contains(header)) folded = true;
+            setExpanded(id, false);
+        }
+        return folded;
     }
 
     private void showAt(int position, int offset) {
@@ -714,9 +731,17 @@ final class SettingsNavigation extends BaseAdapter {
         giveIcons();
         visible.clear();
         List<String> terms = SettingsSearch.terms(query);
-        // Switches that are on (#353) sits above the sections, on the main list and in search.
+        // Export and Import settings (#608), then Switches that are on (#353), sit above the
+        // sections, on the main list and in search.
+        Preference[] backup = {
+                screen.findPreference(SettingsBackupPreference.keyFor(SettingsBackupPreference.EXPORT)),
+                screen.findPreference(SettingsBackupPreference.keyFor(SettingsBackupPreference.IMPORT)),
+        };
         Preference favorites = screen.findPreference(FavoriteSwitchesScreen.ROW);
         if (!terms.isEmpty()) {
+            for (Preference row : backup) {
+                if (row != null && SettingsSearch.matchesTerms(terms, row.getTitle(), row.getSummary())) visible.add(row);
+            }
             if (favorites != null && SettingsSearch.matchesTerms(terms, favorites.getTitle(), favorites.getSummary()))
                 visible.add(favorites);
             for (Section section : sections) {
@@ -762,6 +787,7 @@ final class SettingsNavigation extends BaseAdapter {
             // Only in a build that lacks another default patch: the card's own line under it.
             Preference missing = screen.findPreference(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
             if (missing != null) visible.add(missing);
+            for (Preference row : backup) if (row != null) visible.add(row);
             if (favorites != null) visible.add(favorites);
             for (Section section : sections) {
                 // The list view names each section over its rows, as search does, with no button to open.

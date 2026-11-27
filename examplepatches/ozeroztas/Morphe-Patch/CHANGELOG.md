@@ -1,3 +1,7 @@
+Morphe Patches 1.1.0
+
+See CHANGELOG.md for the complete list of changes.
+
 Morphe Patches 1.0.2
 
 See CHANGELOG.md for the complete list of changes.

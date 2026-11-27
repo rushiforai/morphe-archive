@@ -65,8 +65,8 @@ final class Stats {
         }
     }
 
-    /** A post shown on screen, with its author's info if known. */
-    static synchronized void postShown(long postId, AccountInfo author) {
+    /** A post shown on screen, by its id and its author's id. */
+    static synchronized void postShown(long postId, long authorId) {
         if (prefs == null || !counted.add(postId)) return;
         if (counted.size() > SEEN_LIMIT) {
             Iterator<Long> it = counted.iterator();
@@ -74,11 +74,14 @@ final class Stats {
             it.remove();
         }
         add(POSTS, 1);
-        if (author == null || author.location == null) {
+        String handle = Users.handleFor(authorId);
+        AccountInfo author = handle == null ? null : Lookup.peek(handle);
+        String country = author == null ? null : author.country(Settings.sources().deviceCountry);
+        if (country == null) {
             add(POSTS_UNKNOWN, 1);
         } else {
-            seen.merge(author.location, 1, Integer::sum);
-            if (Filters.actionFor(author) != Filters.Action.NONE) filtered.merge(author.location, 1, Integer::sum);
+            seen.merge(country, 1, Integer::sum);
+            if (Verdicts.forEvent(authorId, postId) != 0) filtered.merge(country, 1, Integer::sum);
         }
         scheduleSave();
     }

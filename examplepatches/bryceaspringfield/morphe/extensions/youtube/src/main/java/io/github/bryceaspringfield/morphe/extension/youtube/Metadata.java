@@ -4,11 +4,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Reads a feed item's metadata line from its readable text (lowercase): the view count ("1.2m views", "1,2 mil
- * visualizaciones"), the age ("3 years ago", "hace 2 semanas"), and the badges for members-only and upcoming videos.
- * English and Spanish, the languages of the bundle's strings.
- */
 final class Metadata {
 
     private static final Pattern VIEWS = Pattern.compile(
@@ -20,18 +15,12 @@ final class Metadata {
             "(\\d+)\\s*(second|minute|hour|day|week|month|year)s?\\s+ago");
     private static final Pattern AGE_ES = Pattern.compile(
             "hace\\s+(\\d+)\\s*(segundo|minuto|hora|d[ií]a|semana|mes|a[ñn]o)(?:s|es)?");
-    /** A badge is a whole line (or a whole piece of a line joined by bullets), never words inside a title. */
     private static final Pattern MEMBERS = Pattern.compile(
             "(?:^|[\\n•·])\\s*(?:members only|members-only|solo para miembros|exclusivo para miembros)\\s*(?:$|[\\n•·])");
     private static final Pattern UPCOMING = Pattern.compile(
             "(?:^|[\\s•·])(?:scheduled for\\s+\\S|premieres\\s+(?:in|on|at|today|tomorrow|\\d)|upcoming(?:$|\\s*[•·])"
                     + "|programado para\\s+\\S|se estrena(?:rá)?\\s+(?:en|el|hoy|mañana|\\d))");
 
-    /**
-     * A course (a playlist YouTube labels "Course" in place of a view count, e.g., YaleCourses' "Financial Theory") states
-     * the label as a string of its own on the card layout, inside its byline ("Jazz For Soul · Course · Updated today")
-     * on the classic layout, and its count as "79 lessons" (seen on Home, 2026-11-13).
-     */
     private static final Pattern COURSE = Pattern.compile(
             "(?:(?<=[\\x00-\\x1f])|[·•] )(?:Course|Curso|Cours|Kurs|Corso)(?:(?![\\p{L} ])| [·•])"
                     + "|(?<=[\\x00-\\x1f])(?:Course|Curso|Cours|Kurs|Corso) [·•] "
@@ -42,7 +31,6 @@ final class Metadata {
     private Metadata() {
     }
 
-    /** The view count the text states, or -1 where it states none (live streams state watchers, not views). */
     static long views(String text) {
         if (text == null) return -1;
         if (NO_VIEWS.matcher(text).find()) return 0;
@@ -55,7 +43,6 @@ final class Metadata {
         try {
             String n = number;
             double v;
-            // "1.234" and "1,234" with three digits after a separator are thousands; "1.2" and "1,2" are decimals.
             if (n.matches("\\d{1,3}(?:[.,]\\d{3})+")) v = Double.parseDouble(n.replaceAll("[.,]", ""));
             else v = Double.parseDouble(n.replace(',', '.'));
             String u = unit == null ? "" : unit;
@@ -71,7 +58,6 @@ final class Metadata {
         }
     }
 
-    /** The age in days the text states ("3 years ago", "hace 2 semanas"), or -1 where it states none. */
     static double ageDays(String text) {
         if (text == null) return -1;
         Matcher m = AGE_EN.matcher(text);
@@ -92,21 +78,15 @@ final class Metadata {
         return n * 365.25;
     }
 
-    /**
-     * A playlist or podcast card by the label it prints under the channel name, in the languages of the course label
-     * (2026-11-18: Home cards of "Playlist" and "Podcast" carried no playlist ID in the buffer read), or by its episode count.
-     */
     private static final Pattern PLAYLIST_LABEL = Pattern.compile(
             "(?:(?<=[\\x00-\\x1f])|[·•] )(?:Playlist|Podcast|Lista de reproducci\u00f3n|Liste de lecture|Wiedergabeliste"
                     + "|Lista de reprodu\u00e7\u00e3o|Playlist de|Elenco)(?![\\p{L}])"
                     + "|(?<![\\w])\\d+ (?:episodes|episodios|\u00e9pisodes|Folgen|episodi|epis\u00f3dios)(?![\\p{L}])");
 
-    /** Whether an item's raw buffer text labels it a playlist or a podcast. */
     static boolean isPlaylistLabel(String raw) {
         return raw != null && PLAYLIST_LABEL.matcher(raw).find();
     }
 
-    /** Whether an item's raw buffer text (its protobuf strings, cased as stated) labels it a course. */
     static boolean isCourse(String raw) {
         return raw != null && COURSE.matcher(raw).find();
     }
@@ -119,7 +99,6 @@ final class Metadata {
         return text != null && UPCOMING.matcher(text).find();
     }
 
-    /** A number of views typed by the user: 5000, 5k, 1.5m, 2 million; blank or unreadable is -1. */
     static long parseViews(String raw) {
         if (raw == null) return -1;
         Matcher m = TYPED_VIEWS.matcher(raw.toLowerCase(Locale.ROOT));
@@ -127,7 +106,6 @@ final class Metadata {
         return scale(m.group(1).replace(',', '.'), m.group(2));
     }
 
-    /** An age typed by the user: 30 (days), 30d, 8w, 6m (months), 2y; blank or unreadable is -1. */
     static double parseAge(String raw) {
         if (raw == null) return -1;
         Matcher m = TYPED_AGE.matcher(raw.toLowerCase(Locale.ROOT));

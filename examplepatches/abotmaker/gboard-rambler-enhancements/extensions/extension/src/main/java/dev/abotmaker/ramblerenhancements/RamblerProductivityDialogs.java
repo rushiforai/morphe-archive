@@ -647,6 +647,263 @@ final class RamblerProductivityDialogs {
         dialog.show();
     }
 
+    static void showLearnedFixesDialog(Activity activity, Runnable onChanged) {
+        RamblerWaveformDialogs.Palette pal = RamblerWaveformDialogs.palette(activity);
+
+        LinearLayout root = new LinearLayout(activity);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dp(activity, 16), dp(activity, 10), dp(activity, 16), dp(activity, 4));
+
+        TextView hintView = new TextView(activity);
+        hintView.setText(
+                "Auto-learned after 2 consistent fixes (manual Find & Replace rules always take precedence).");
+        hintView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        hintView.setTextColor(pal.secondary);
+        LinearLayout.LayoutParams hintParams = matchWrap();
+        hintParams.bottomMargin = dp(activity, 8);
+        root.addView(hintView, hintParams);
+
+        ScrollView scroll = new ScrollView(activity);
+        LinearLayout listBox = new LinearLayout(activity);
+        listBox.setOrientation(LinearLayout.VERTICAL);
+        scroll.addView(listBox, matchWrap());
+        root.addView(scroll, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(activity, 360)));
+
+        final AlertDialog[] dialogRef = new AlertDialog[1];
+        Runnable[] rebuildRef = new Runnable[1];
+        rebuildRef[0] = () -> {
+            listBox.removeAllViews();
+            List<RamblerLearnedFixes.FixRecord> allRecords =
+                    RamblerLearnedFixes.readRecords(activity);
+            List<RamblerLearnedFixes.FixRecord> learnedList =
+                    RamblerLearnedFixes.learned(allRecords);
+            List<RamblerLearnedFixes.FixRecord> trackingList =
+                    RamblerLearnedFixes.tracking(allRecords);
+            java.util.Set<String> disabledIds = RamblerLearnedFixes.readDisabledIds(activity);
+            int activeCount = RamblerLearnedFixes.active(learnedList, disabledIds).size();
+
+            if (dialogRef[0] != null) {
+                dialogRef[0].setTitle(activeCount > 0
+                        ? ("Learned fixes (" + activeCount + " active)")
+                        : "Learned fixes");
+            }
+
+            if (learnedList.isEmpty() && trackingList.isEmpty()) {
+                TextView empty = new TextView(activity);
+                empty.setText(
+                        "No learned fixes yet.\n\nFix a misheard word twice after dictating and Rambler will learn it automatically.");
+                empty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+                empty.setTextColor(pal.secondary);
+                empty.setPadding(dp(activity, 4), dp(activity, 18), dp(activity, 4), dp(activity, 18));
+                listBox.addView(empty);
+                return;
+            }
+
+            if (!learnedList.isEmpty()) {
+                TextView section = makeFieldLabel(
+                        activity, "Active & paused (" + learnedList.size() + ")", pal);
+                LinearLayout.LayoutParams secParams = matchWrap();
+                secParams.bottomMargin = dp(activity, 6);
+                listBox.addView(section, secParams);
+
+                for (RamblerLearnedFixes.FixRecord fix : learnedList) {
+                    String fixId = fix.id();
+                    boolean isPaused = disabledIds.contains(fixId);
+
+                    LinearLayout card = new LinearLayout(activity);
+                    card.setOrientation(LinearLayout.VERTICAL);
+                    card.setPadding(dp(activity, 12), dp(activity, 10), dp(activity, 12), dp(activity, 10));
+                    card.setBackground(RamblerWaveformDialogs.tileBackground(activity, false));
+
+                    LinearLayout topRow = new LinearLayout(activity);
+                    topRow.setOrientation(LinearLayout.HORIZONTAL);
+                    topRow.setGravity(Gravity.CENTER_VERTICAL);
+
+                    TextView pairView = new TextView(activity);
+                    pairView.setText("\"" + fix.heard + "\" \u2192 \"" + fix.meant + "\"");
+                    pairView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                    pairView.setTypeface(Typeface.DEFAULT_BOLD);
+                    pairView.setTextColor(isPaused ? pal.secondary : pal.primary);
+                    topRow.addView(pairView, new LinearLayout.LayoutParams(
+                            0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+                    TextView countBadge = new TextView(activity);
+                    countBadge.setText(isPaused
+                            ? ("Paused · \u00D7" + fix.count)
+                            : ("\u00D7" + fix.count));
+                    countBadge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+                    countBadge.setTypeface(Typeface.DEFAULT_BOLD);
+                    countBadge.setTextColor(isPaused ? pal.secondary : pal.accent);
+                    topRow.addView(countBadge);
+                    card.addView(topRow);
+
+                    LinearLayout actions = new LinearLayout(activity);
+                    actions.setOrientation(LinearLayout.HORIZONTAL);
+                    actions.setGravity(Gravity.END);
+                    LinearLayout.LayoutParams actParams = matchWrap();
+                    actParams.topMargin = dp(activity, 6);
+
+                    TextView toggleBtn = new TextView(activity);
+                    toggleBtn.setText(isPaused ? "Resume" : "Pause");
+                    toggleBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+                    toggleBtn.setTypeface(Typeface.DEFAULT_BOLD);
+                    toggleBtn.setTextColor(pal.accent);
+                    toggleBtn.setPadding(dp(activity, 8), dp(activity, 4), dp(activity, 8), dp(activity, 4));
+                    toggleBtn.setClickable(true);
+                    toggleBtn.setFocusable(true);
+                    toggleBtn.setOnClickListener(v -> {
+                        RamblerLearnedFixes.setFixDisabled(activity, fixId, !isPaused);
+                        if (onChanged != null) {
+                            onChanged.run();
+                        }
+                        rebuildRef[0].run();
+                    });
+                    actions.addView(toggleBtn);
+
+                    TextView deleteBtn = new TextView(activity);
+                    deleteBtn.setText("Delete");
+                    deleteBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+                    deleteBtn.setTypeface(Typeface.DEFAULT_BOLD);
+                    deleteBtn.setTextColor(pal.secondary);
+                    deleteBtn.setPadding(dp(activity, 8), dp(activity, 4), dp(activity, 2), dp(activity, 4));
+                    deleteBtn.setClickable(true);
+                    deleteBtn.setFocusable(true);
+                    deleteBtn.setOnClickListener(v -> {
+                        RamblerLearnedFixes.deleteRecord(activity, fixId);
+                        if (onChanged != null) {
+                            onChanged.run();
+                        }
+                        rebuildRef[0].run();
+                    });
+                    actions.addView(deleteBtn);
+                    card.addView(actions, actParams);
+
+                    LinearLayout.LayoutParams cardParams = matchWrap();
+                    cardParams.bottomMargin = dp(activity, 7);
+                    listBox.addView(card, cardParams);
+                }
+            }
+
+            if (!trackingList.isEmpty()) {
+                TextView section = makeFieldLabel(
+                        activity, "Tracking (1/2 fixes · " + trackingList.size() + ")", pal);
+                LinearLayout.LayoutParams secParams = matchWrap();
+                secParams.topMargin = learnedList.isEmpty() ? 0 : dp(activity, 10);
+                secParams.bottomMargin = dp(activity, 6);
+                listBox.addView(section, secParams);
+
+                for (RamblerLearnedFixes.FixRecord fix : trackingList) {
+                    String fixId = fix.id();
+
+                    LinearLayout card = new LinearLayout(activity);
+                    card.setOrientation(LinearLayout.VERTICAL);
+                    card.setPadding(dp(activity, 12), dp(activity, 10), dp(activity, 12), dp(activity, 10));
+                    card.setBackground(RamblerWaveformDialogs.tileBackground(activity, false));
+
+                    TextView pairView = new TextView(activity);
+                    pairView.setText("\"" + fix.heard + "\" \u2192 \"" + fix.meant + "\"");
+                    pairView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+                    pairView.setTypeface(Typeface.DEFAULT_BOLD);
+                    pairView.setTextColor(pal.primary);
+                    card.addView(pairView);
+
+                    TextView subView = new TextView(activity);
+                    subView.setText("Fixed once — correct once more to auto-learn, or tap Learn now.");
+                    subView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+                    subView.setTextColor(pal.secondary);
+                    LinearLayout.LayoutParams subParams = matchWrap();
+                    subParams.topMargin = dp(activity, 2);
+                    card.addView(subView, subParams);
+
+                    LinearLayout actions = new LinearLayout(activity);
+                    actions.setOrientation(LinearLayout.HORIZONTAL);
+                    actions.setGravity(Gravity.END);
+                    LinearLayout.LayoutParams actParams = matchWrap();
+                    actParams.topMargin = dp(activity, 6);
+
+                    TextView learnBtn = new TextView(activity);
+                    learnBtn.setText("Learn now");
+                    learnBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+                    learnBtn.setTypeface(Typeface.DEFAULT_BOLD);
+                    learnBtn.setTextColor(pal.accent);
+                    learnBtn.setPadding(dp(activity, 8), dp(activity, 4), dp(activity, 8), dp(activity, 4));
+                    learnBtn.setClickable(true);
+                    learnBtn.setFocusable(true);
+                    learnBtn.setOnClickListener(v -> {
+                        RamblerLearnedFixes.promoteRecordNow(
+                                activity, fixId, System.currentTimeMillis());
+                        Toast.makeText(
+                                        activity,
+                                        "Rambler learned: \"" + fix.heard + "\" \u2192 \""
+                                                + fix.meant + "\"",
+                                        Toast.LENGTH_SHORT)
+                                .show();
+                        if (onChanged != null) {
+                            onChanged.run();
+                        }
+                        rebuildRef[0].run();
+                    });
+                    actions.addView(learnBtn);
+
+                    TextView dismissBtn = new TextView(activity);
+                    dismissBtn.setText("Dismiss");
+                    dismissBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+                    dismissBtn.setTypeface(Typeface.DEFAULT_BOLD);
+                    dismissBtn.setTextColor(pal.secondary);
+                    dismissBtn.setPadding(dp(activity, 8), dp(activity, 4), dp(activity, 2), dp(activity, 4));
+                    dismissBtn.setClickable(true);
+                    dismissBtn.setFocusable(true);
+                    dismissBtn.setOnClickListener(v -> {
+                        RamblerLearnedFixes.deleteRecord(activity, fixId);
+                        if (onChanged != null) {
+                            onChanged.run();
+                        }
+                        rebuildRef[0].run();
+                    });
+                    actions.addView(dismissBtn);
+                    card.addView(actions, actParams);
+
+                    LinearLayout.LayoutParams cardParams = matchWrap();
+                    cardParams.bottomMargin = dp(activity, 7);
+                    listBox.addView(card, cardParams);
+                }
+            }
+        };
+
+        AlertDialog dialog = new AlertDialog.Builder(activity)
+                .setTitle("Learned fixes")
+                .setView(root)
+                .setPositiveButton("Done", null)
+                .setNeutralButton("Clear all", null)
+                .create();
+        dialogRef[0] = dialog;
+        rebuildRef[0].run();
+        dialog.setOnShowListener(d -> {
+            View clearBtn = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            if (clearBtn != null) {
+                clearBtn.setOnClickListener(v -> {
+                    if (RamblerLearnedFixes.readRecords(activity).isEmpty()) {
+                        return;
+                    }
+                    new AlertDialog.Builder(activity)
+                            .setTitle("Clear all learned fixes?")
+                            .setMessage("Remove all auto-learned and tracked fixes? Your manual Find & Replace rules stay intact.")
+                            .setPositiveButton("Clear", (ignored, which) -> {
+                                RamblerLearnedFixes.clearAll(activity);
+                                if (onChanged != null) {
+                                    onChanged.run();
+                                }
+                                rebuildRef[0].run();
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show();
+                });
+            }
+        });
+        dialog.show();
+    }
+
     static void copyToClipboard(Context context, String text) {
         try {
             ClipboardManager cm =

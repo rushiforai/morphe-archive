@@ -876,7 +876,7 @@ A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	B
 # context: switch title under Comments and writing; on, a tap on Like under a comment asks first
 Ask before liking a comment	Yorumu beğenmeden önce sor
 # context: summary of that switch
-A tap on Like under a comment asks first, and only Continue likes or unlikes it.	Bir yorumun altındaki Beğen'e dokunmak önce sorar, beğeniyi yalnızca Devam ekler ya da kaldırır.
+A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only Continue goes ahead.	Bir yorumun altındaki Beğen'e dokunmak ya da bir yoruma basılı tutup tepki seçmek önce sorar, yalnızca Devam ile gerçekleşir.
 # context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
 Like or unlike this post?	Bu gönderi beğenilsin mi, beğeni kaldırılsın mı?
 # context: the same question for a reel
@@ -1858,6 +1858,10 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	Pencere içinde pencere düğmesi
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Penceresi hazır olan bir reel veya videonun sol kenarında küçük bir düğme gösterir. Pencereyi hemen açmak için dokun. Pencere içinde pencere açıkken çalışır.
+# context: switch title under Picture-in-picture on the Playback page; on, when a reel ends in the small picture-in-picture window, the next reel plays there
+Next reel in the window	Pencerede sonraki reel
+# context: summary of that switch; "the window" is the small picture-in-picture window
+When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window instead of the same one again. Works with Picture-in-picture on.	Küçük pencerede bir reel bittiğinde aynısı tekrar çalmak yerine Reels'teki sonraki reel pencerede çalar. Pencere içinde pencere açıkken çalışır.
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Arka planda çalmaya devam et
 Next reel in the background	Arka planda sonraki reel
@@ -1985,8 +1989,8 @@ Hides the stacked reaction icons in the corner of a comment. The space stays, so
 Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	Bir yorumdaki tepki simgelerinin yanındaki sayıyı gizler. Simgeler yerinde kalır ve onlara dokunmak tepki listesini yine açar.
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	Gönderi menülerinde önce İndir
-# context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
-Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.	Telefona indir ve Fotoğrafı kaydet satırlarını bir gönderinin üç nokta menüsünün sonundan seçenekler listesinin başına taşır. Facebook'un kendi üst satırları bunların üstünde kalır (fotoğraf gönderilerinde liste Diğer seçenekler sayfasıdır). Kaydedilecek bir şey olmayan gönderide ikisi de görünmez.
+# context: summary of that switch; "Download to phone", "Save photo" and "Playback speed" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
+Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.	Telefona indir ve Fotoğrafı kaydet satırlarını Diğer seçenekler sayfasından bir gönderinin üç nokta menüsünün ilk sayfasına, Oynatma hızı satırının üstüne taşır. Kaydedilecek bir şey olmayan gönderide ikisi de görünmez.
 # context: row title under Menu; opens a list of the Menu's tiles to hide, such as Marketplace and Gaming
 Menu tiles to hide	Gizlenecek Menü kutucukları
 # context: title of the list of Menu tiles to hide
@@ -2105,6 +2109,10 @@ A saved video that ends stays on screen instead of opening the next one. Swipe u
 Show saved posts in the row	Kaydedilen gönderileri sırada göster
 # context: summary of that switch
 A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	Sıradaki kaydedilmiş bir gönderi atlanmak yerine ekranda kalır. Sonraki kaydedilmiş video için sonunda yukarı, öncekine dönmek için başında aşağı kaydır.
+# context: switch title under Reels and Watch; on, a reel opened from a Reels row in the news feed (the strip of reels you scroll sideways) goes on to the next reel in that row instead of a suggested reel
+Play the feed's Reels row in order	Akıştaki Reels sırasını sırayla oynat
+# context: summary of that switch; the feed is Facebook's News Feed, so use Facebook's name for it in your language if you know it
+A reel you open from a Reels row in your feed goes on to the next one in that row when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	Akışındaki bir Reels sırasından açtığın bir reel bittiğinde veya yukarı kaydırdığında, önerilen bir reel yerine o sıradaki bir sonrakine geçer. Bir öncekine dönmek için aşağı kaydır.
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	"Hâlâ izliyor musun?" sorusunu atla
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2146,6 +2154,9 @@ Hides the For you searches Facebook suggests when you open search. Your recent s
 Hide "People you may know" in search	Aramada “Tanıyor olabileceğin kişiler” bölümünü gizle
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	Aramayı açtığınızda Facebook'un gösterdiği Tanıyor olabileceğin kişiler satırını gizler. Son aramalarınız ve yazarken çıkan öneriler kalır.
+# context: switch title under News feed; People you may know is the list of friend suggestions Facebook shows in its Friends tab below your friend requests, as in Hide "People you may know"
+Hide "People you may know" in the Friends tab	Arkadaşlar sekmesinde “Tanıyor olabileceğin kişiler” bölümünü gizle
+Hides the People you may know list in the Friends tab. Your friend requests stay.	Arkadaşlar sekmesindeki Tanıyor olabileceğin kişiler listesini gizler. Arkadaşlık isteklerin kalır.
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	Arama geçmişini kaydetme
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
@@ -2689,6 +2700,34 @@ Digits only, up to 10. Your own profile shows this number on this phone. Leave i
 Facebook's real number shows. Type digits to show your own.	Facebook'un gerçek sayısı görünüyor. Kendi sayını göstermek için rakam yaz.
 # context: summary of that row; %1$s is the number typed, already grouped for the language
 Your profile shows %1$s on this phone.	Profilin bu telefonda %1$s gösteriyor.
+# context: switch title under News feed; on, your own Facebook friends list is kept on this phone each time you scroll it to the end, so you can see who is no longer on it
+Keep track of your friends list	Arkadaş listeni takip et
+# context: summary of that switch; Profile > Friends > All friends is the path to the list in Facebook, so use Facebook's own names for those screens in your language
+Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on this phone and tells you who's no longer on it since the time before. Someone who unfriended you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.	Profil > Arkadaşlar > Tüm arkadaşlar altındaki kendi listeni her sonuna kadar kaydırdığında, bu telefonda bir kopyasını saklar ve önceki seferden beri kimin listede olmadığını söyler. Seni arkadaşlıktan çıkaran biri, senin çıkardığın biri ve kapatılmış bir hesap aynı şekilde görünür. Hiçbir şey telefonundan çıkmaz.
+# context: row title and list title; the people who were on your Facebook friends list and aren't any more
+Friends no longer on your list	Artık listende olmayan arkadaşlar
+# context: summary of that row
+People who were on your friends list one time you scrolled it to the end and weren't the next. Tap one to open their profile.	Listeni bir kez sonuna kadar kaydırdığında arkadaş listende olan ama bir sonrakinde olmayan kişiler. Profilini açmak için birine dokun.
+# context: toast the first time your friends list is kept; %1$d is how many friends are on it
+Hushfacebook kept a copy of your %1$d friends. Next time you scroll the list to its end, it tells you who's no longer on it.	Hushfacebook %1$d arkadaşının bir kopyasını sakladı. Listeyi bir dahaki sefere sonuna kadar kaydırdığında, artık kimin listede olmadığını söyler.
+# context: toast; %1$s is one person's name
+%1$s is no longer on your friends list.	%1$s artık arkadaş listende değil.
+# context: toast; %1$s is two or three people's names separated by commas
+No longer on your friends list: %1$s.	Artık arkadaş listende değil: %1$s.
+# context: toast; %1$s is three people's names separated by commas, %2$d how many other people
+No longer on your friends list: %1$s and %2$d more.	Artık arkadaş listende değil: %1$s ve %2$d kişi daha.
+# context: toast when tapping a person in that list doesn't open their profile
+Their profile can't open here.	Profil burada açılamıyor.
+# context: shown in place of a person's name when Facebook gave none
+Someone without a name	Adı olmayan biri
+# context: second line of a person in that list; %1$s is the date they were last seen on your list, %2$s the date they were first missing
+Gone between %1$s and %2$s	%1$s ile %2$s arasında ayrıldı
+# context: line above that list before your friends list was ever kept
+No copy of your friends list yet.	Henüz arkadaş listenin bir kopyası yok.
+# context: line above that list; %1$s is a date, %2$d how many friends were on the list then
+Your list was last read to its end on %1$s, with %2$d friends.	Listen en son %1$s tarihinde sonuna kadar okundu, %2$d arkadaşla.
+# context: shown while that list is empty; Keep track of your friends list is the switch's title
+Nobody yet. With Keep track of your friends list on, scroll Profile > Friends > All friends to its end now and then. Anyone who drops off between two of those reads shows up here.	Henüz kimse yok. Arkadaş listeni takip et açıkken, ara sıra Profil > Arkadaşlar > Tüm arkadaşlar listesini sonuna kadar kaydır. İki okuma arasında listeden düşen herkes burada görünür.
 # context: switch title under Stories; the stories row at the top of Home shown as round pictures
 Round stories tray	Yuvarlak hikaye çubuğu
 # context: summary of that switch
@@ -2759,6 +2798,10 @@ Switches that are on	Açık olan anahtarlar
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	Açtığın tüm anahtarlar tek bir listede. Burada birini kapatırsan her yerde kapanır.
 No switches are on yet.	Henüz açık anahtar yok.
 Turned off lately	Son kapatılanlar
+# context: one of three order choices above the Switches that are on list; lists the switches in the order the settings page has them (the other two are A to Z and Newest)
+Page order	Sayfadaki sıra
+# context: the second order choice there; lists the switches alphabetically by their titles
+A to Z	A'dan Z'ye
 Emoji after the logo	Logodan sonra emoji
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	Ana sayfanın üstünde Facebook logosunun hemen yanına, kendi renkleriyle çizilen bir emoji. Hiç olmasın istiyorsan boş bırak.
 No emoji after the logo. Type one to show it there.	Logodan sonra emoji yok. Orada görünmesi için bir tane yaz.
@@ -2870,12 +2913,26 @@ Bar opacity	Çubuk opaklığı
 How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	Saydam çubukların rengini yüzde kaç koruduğu, %1$s ile %2$s arası. Daha düşük değer akışın ve bulanıklığın daha çok görünmesini sağlar. %3$s için ya da bulanıklığın üzerinde %4$s için boş bırakın.
 The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	Çubuklar renginin yüzde %1$s kadarını, bulanıklığın üzerinde yüzde %2$s kadarını korur. Değiştirmek için bir sayı yazın.
 The see-through bars keep %1$s percent of their color.	Saydam çubuklar renginin yüzde %1$s kadarını korur.
+# context: row title under Appearance, right under Bar opacity; picks how strongly the see-through top bar and tab bar blur the feed behind them
+Blur strength	Bulanıklık gücü
+# context: message of that row's number box; %1$s is 0 (no blur), %2$s the most, %3$s the usual amount
+How much the see-through bars blur the feed behind them, in percent of the usual blur, from %1$s, no blur, to %2$s. Leave it blank for %3$s. The blur needs Android 12 or newer.	Saydam çubukların arkalarındaki akışı ne kadar bulanıklaştırdığı, olağan bulanıklığın yüzdesi olarak, bulanıklık yok demek olan %1$s ile %2$s arası. %3$s için boş bırakın. Bulanıklık için Android 12 veya daha yenisi gerekir.
+# context: summary of that row while it's blank
+The see-through bars blur the feed behind them the usual amount. Type a number to change it.	Saydam çubuklar arkalarındaki akışı olağan ölçüde bulanıklaştırır. Değiştirmek için bir sayı yazın.
+# context: summary of that row when it's 0
+The see-through bars show the feed behind them sharp, with no blur.	Saydam çubuklar arkalarındaki akışı bulanıklık olmadan net gösterir.
+# context: summary of that row; %1$s is the number typed
+The see-through bars blur the feed behind them %1$s percent of the usual amount.	Saydam çubuklar arkalarındaki akışı olağanın yüzde %1$s kadarı bulanıklaştırır.
 Tab bar width	Sekme çubuğu genişliği
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Ekran genişliğinin yüzdesi, %1$s ile %2$s arası. Simgeler onunla birlikte büyür ve küçülür. %3$s için boş bırakın.
 The rounded tab bar is %1$s percent of the screen wide.	Yuvarlak sekme çubuğu ekran genişliğinin yüzde %1$s kadarı.
 Tab bar height	Sekme çubuğu yüksekliği
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	Yuvarlak sekme çubuğunun tam yüksekliğinin yüzde kaçını koruduğu, %1$s ile %2$s arası, simgelerin üstünden ve altından kırpılır. 100'ün üstü onu daha uzun yapar, çoğunlukla ekranın altına doğru. %3$s için boş bırakın.
 The rounded tab bar keeps %1$s percent of its height.	Yuvarlak sekme çubuğu yüksekliğinin yüzde %1$s kadarını korur.
+# context: switch title under Appearance, right under Tab bar height; gives the rounded tab bar a glass look
+Glass tab bar	Cam sekme çubuğu
+# context: description of that switch; Rounded tab bar is the switch a few rows above it, the pill is that rounded tab bar, and the highlight is the faint pill behind the selected tab's icon
+With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the highlight behind the tab you're on slides over when you pick another tab.	Yuvarlak sekme çubuğu açıkken çubuk açık renkli bir cam kenar ve hafif bir gölge alır, açık olan sekmenin arkasındaki vurgu da seçtiğin sekmeye kayar.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	Yeni ayarları işaretle
 # context: choice in that row; the dot goes once the page holding the setting is left
@@ -3197,7 +3254,23 @@ Hide hashtags in reel captions	Reels açıklamalarındaki hashtag'leri gizle
 Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	Reels açıklamalarındaki hashtag'leri, sondaki etiket grubu gibi, kaldırır. Bir cümlenin parçası olan hashtag kalır. Değişiklik bir sonraki reel'den itibaren görünür.
 Keep the keyboard closed when comments open	Yorumlar açılınca klavyeyi kapalı tut
 Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	Yorumlar, henüz yorumu olmayan bir gönderide bile klavye açılmadan açılır. Yazmak istediğinde yorum kutusuna dokun.
+Post text doesn't open comments	Gönderi metni yorumları açmasın
+A tap on a post's text no longer opens its comments. The Comment button still does.	Bir gönderinin metnine dokunmak artık yorumlarını açmaz. Yorum Yap düğmesi hâlâ açar.
 Settings language	Ayarlar dili
 Same as Facebook	Facebook ile aynı
 Show feed reels uncropped	Akıştaki reels'leri kırpmadan göster
 Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Akışındaki reels'ler Facebook'un çerçevesine göre kırpılmak yerine kendi oranlarıyla görüntünün tamamını gösterir. Değişiklikten sonra yüklenen reels'ler bunu uygular.
+Remix this reel	Bu reeli remixle
+Hold the profile tab for Activity log	Etkinlik günlüğü için profil sekmesini basılı tut
+Press and hold the profile tab to open your Activity log instead of switching accounts. On accounts with a Menu tab in its place, that tab does it. You can still switch accounts from the Menu.	Hesap değiştirmek yerine Etkinlik günlüğünü açmak için profil sekmesini basılı tut. Onun yerinde Menü sekmesi olan hesaplarda bunu o sekme yapar. Hesap değiştirmeye Menü'den devam edebilirsin.
+React to this comment?	Bu yoruma tepki verilsin mi?
+Hide reactions on a held comment	Basılı tutulan yorumda tepkileri gizle
+Hide Reply on a held comment	Basılı tutulan yorumda Yanıtla'yı gizle
+Hide Copy on a held comment	Basılı tutulan yorumda Kopyala'yı gizle
+Hide Report on a held comment	Basılı tutulan yorumda Şikayet Et'i gizle
+Hide the Hide comment option	Yorumu gizle seçeneğini gizle
+Holding a comment no longer shows the row of reactions above it. Like under the comment still works.	Bir yorumu basılı tuttuğunda üstündeki tepki satırı artık görünmez. Yorumun altındaki Beğen çalışmaya devam eder.
+Holding a comment no longer offers Reply. The Reply under the comment stays.	Bir yorumu basılı tuttuğunda artık Yanıtla sunulmaz. Yorumun altındaki Yanıtla yerinde kalır.
+Holding a comment no longer offers Copy.	Bir yorumu basılı tuttuğunda artık Kopyala sunulmaz.
+Holding a comment no longer offers Report comment or Report to group admins.	Bir yorumu basılı tuttuğunda artık Yorumu şikayet et veya Grup yöneticilerine şikayet et sunulmaz.
+Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.	Bir yorumu basılı tuttuğunda artık Yorumu gizle sunulmaz. Sunacak hiçbir şeyi kalmayan bir yorumu basılı tutmak hiçbir şey yapmaz.

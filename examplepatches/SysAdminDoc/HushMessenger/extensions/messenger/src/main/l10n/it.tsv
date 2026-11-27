@@ -33,6 +33,8 @@ quick_access	Accesso rapido
 access_help	Tieni premuta l'icona di Messenger nella schermata Home per Patch controls o Restart Messenger. Puoi aprire le impostazioni di HushMessenger anche dal cassetto delle app.
 hide_drawer_icon	Nascondi l'icona nel cassetto delle app
 hide_drawer_icon_help	Continui ad accedere dal Menu di Messenger o dalla scorciatoia della sua icona nella schermata Home.
+settings_in_recents	Impostazioni in Recenti
+settings_in_recents_help	Esci dalle impostazioni con Home o con il tasto Recenti e la loro scheda resta in Recenti, così torni dove eri. Se le chiudi con Indietro, non resta nessuna scheda. Con questa opzione disattivata, la scheda sparisce appena esci.
 hide_menu_row	Nascondi la riga nel Menu
 hide_menu_row_help	Toglie la riga di HushMessenger dalla scheda Menu e dal menu laterale di Messenger. Per tornare qui, tieni premuto il logo di Messenger in cima a Chat, oppure tieni premuta l'icona di Messenger nella schermata Home e tocca Patch controls. Se non resta nessuna delle due, la riga torna.
 menu_row_needs_shortcut	Apri prima queste impostazioni una volta dalla scorciatoia con pressione prolungata (tieni premuta l'icona di Messenger nella schermata Home, poi Patch controls), così hai un modo per tornare senza la riga.
@@ -60,8 +62,8 @@ menu_row_needs_way	Prima riattiva le scorciatoie dell'icona o la pressione prolu
 hide_menu_row_help_without_shortcut	Toglie la riga di HushMessenger dalla scheda Menu e dal menu laterale di Messenger. Per tornare qui, tieni premuto il logo di Messenger in cima a Chat. Se disattivi la pressione prolungata sul logo, la riga torna.
 hide_menu_row_help_plain	Toglie la riga di HushMessenger dalla scheda Menu e dal menu laterale di Messenger.
 menu_tab	Scheda Menu
-menu_rows_help	Le righe che Messenger mette nella scheda Menu, come Community o Inviti ai canali. Nascondi quelle che non apri mai. Ogni riga compare qui dopo che la scheda Menu l'ha mostrata.
-menu_rows_empty	Apri una volta la scheda Menu di Messenger e le sue righe compaiono qui, pronte da nascondere.
+menu_rows_help	Le righe che Messenger mette nella scheda Menu o nel menu laterale, come Community o Inviti ai canali. Nascondi quelle che non apri mai. Ogni riga compare qui dopo che Messenger l'ha mostrata.
+menu_rows_empty	Apri una volta la scheda Menu o il menu laterale di Messenger e le sue righe compaiono qui, pronte da nascondere.
 menu_log_out	Riga Esci nella scheda Menu
 menu_log_out_help	Mette Esci nella scheda Menu di Messenger, sotto Impostazioni. Ti disconnette come fa l'opzione Esci di Messenger.
 way_menu	Apri le impostazioni di HushMessenger dalla loro riga nella scheda Menu o nel menu laterale di Messenger.
@@ -176,6 +178,8 @@ call_captions_no_recognizer	Il tuo telefono non ha il riconoscimento vocale sul 
 call_captions_no_translator	Il tuo telefono non ha la traduzione sul dispositivo, quindi i sottotitoli restano nella lingua in cui vengono pronunciati.
 call_captions_untranslated	Il tuo telefono non sa tradurre questa coppia di lingue, quindi i sottotitoli restano come vengono pronunciati.
 call_captions_unavailable	Il tuo telefono non sa riconoscere questa lingua. Scegline un'altra nelle impostazioni di HushMessenger.
+call_captions_checking	Verifico %1$s sul tuo telefono
+call_captions_cant_hear	Il tuo telefono non sa creare da solo sottotitoli in %1$s. Scegli un'altra lingua.
 call_captions_downloading	Il tuo telefono sta scaricando questa lingua. I sottotitoli partono appena è pronta.
 call_captions_stopped	Sottotitoli interrotti per questa chiamata.
 call_captions_no_voice	Il tuo telefono non ha una voce per questa lingua, quindi i sottotitoli non vengono letti ad alta voce.
@@ -192,6 +196,16 @@ hidden_chats_failed	Impossibile nascondere questa chat
 hidden_chats_empty	Le chat che nascondi dall'elenco compaiono qui.
 hidden_chats_unhide	Mostra di nuovo
 hidden_chats_unnamed	Chat
+chat_preview_taps_open	Apri chat
+chat_preview_taps_gone	Aprila dal tuo elenco delle chat
+# context: confirm_strangers_held, the toast after that switch holds a Send, asking for a second tap
+confirm_strangers_held	Non siete ancora amici. Tocca di nuovo Invia.
+# context: remove_contact_row, the row this switch adds to the menu you get by holding a person who isn't a friend. Messenger's own old row was called Remove contact.
+remove_contact_row	Rimuovi contatto
+# context: remove_contact_done, the toast after that row took the person out of your Messenger contacts
+remove_contact_done	Rimosso dai tuoi contatti
+# context: remove_contact_failed, the toast when that row couldn't take the person out of your contacts
+remove_contact_failed	Impossibile rimuovere questo contatto
 special_contacts_track	Segui questa persona
 special_contacts_untrack	Smetti di seguire
 special_contacts_tracked	Ora segui questa persona
@@ -236,6 +250,8 @@ invisible_buttons_group_ours	Pulsanti di HushMessenger
 invisible_buttons_group_other	Altri
 tab_bar_slide	Scorri lungo la barra delle schede
 tab_bar_slide_help	Fai scorrere il dito lungo la barra delle schede in basso e un riquadro lo segue da una scheda all'altra. Solleva il dito per aprire la scheda sotto. Un tocco funziona come prima, e funziona anche con Scorri tra le schede spento. Riavvia Messenger dopo averlo attivato.
+tab_swipe_follow	La pagina segue il dito
+tab_swipe_follow_help	Mentre scorri tra le schede, la pagina si muove con il dito e, quando lo sollevi, la scheda successiva entra dal lato. Uno scorrimento breve la riporta indietro. La barra delle schede resta dov'è.
 message_actions_hidden_label	%1$s (nascosta)
 message_actions_move_up	Sposta %1$s su
 message_actions_move_down	Sposta %1$s giù
@@ -334,6 +350,27 @@ tab_icons_tab_metaai	Meta AI
 tab_icons_tab_jewel	Facebook
 tab_icons_tab_more	Menu
 tab_icons_tab_mesetting	Il tuo profilo
+tab_icons_size	Dimensione delle icone
+tab_icons_size_help	Le tue immagini e le icone a contorno vengono disegnate a questa dimensione. %1$s riempie tutto lo spazio che Messenger dà a un'icona, e %2$s è più o meno grande come le icone di Messenger. Riavvia Messenger per vedere la modifica.
+tab_icons_size_picked	Icone al %1$s dopo il riavvio di Messenger
+own_chat_sounds_help	Invio suona mentre il tuo messaggio parte, Inviato quando è arrivato e Messaggio nell'app quando ne arriva uno con Messenger aperto. Scegli un file .ogg, .mp3, .m4a o .wav fino a %1$d MB per ognuno.
+own_chat_sounds_sound_send	Invio
+own_chat_sounds_sound_sent	Inviato
+own_chat_sounds_sound_in_app	Messaggio nell'app
+own_chat_sounds_choose	Scegli
+own_chat_sounds_remove	Rimuovi
+own_chat_sounds_stock	Suono di Messenger
+own_chat_sounds_yours	Il tuo suono
+own_chat_sounds_copying	Copia in corso...
+own_chat_sounds_saved	Suono salvato.
+own_chat_sounds_removed	Torna il suono di Messenger.
+own_chat_sounds_remove_failed	Impossibile rimuovere quel suono.
+own_chat_sounds_not_sound	Quel file non si riproduce come suono.
+own_chat_sounds_too_large	I suoni possono arrivare a %1$d MB.
+own_chat_sounds_unreadable	Impossibile aprire quel file.
+own_chat_sounds_not_saved	Impossibile salvare il suono.
+own_chat_sounds_busy	Sto ancora copiando l'ultimo.
+own_chat_sounds_timeout	Il file ci ha messo troppo. Riprova.
 quiet_calls_chosen	Solo le chat scelte
 quiet_calls_chosen_help	Le chiamate dalle chat che attivi qui sotto arrivano in silenzio. Tutte le altre suonano come al solito.
 quiet_calls_recent_empty	Le chat che ti chiamano compaiono qui, dalla più recente.
@@ -773,6 +810,9 @@ chat_jump_loading	Caricamento dei messaggi più vecchi (%1$d finora)
 chat_jump_loading_plain	Caricamento dei messaggi più vecchi
 chat_jump_seeking	Cerco quel giorno
 chat_jump_cancel	Annulla
+pinned_bar_one	Messaggio fissato
+pinned_bar_many	%1$d messaggi fissati
+pinned_bar_attachment	Un allegato
 chat_jump_start	Questo è l'inizio della chat
 chat_jump_found	Ecco il primo messaggio di quel giorno
 chat_jump_next	Niente quel giorno, quindi ecco il messaggio successivo
@@ -814,12 +854,19 @@ search_suggested.title	Nascondi Suggeriti nella ricerca
 search_suggested.description	Nasconde le persone suggerite in cima alla ricerca prima che tu scriva qualcosa. Le persone compaiono comunque quando le cerchi.
 search_reels.title	Nascondi i reel recenti nella ricerca
 search_reels.description	Nasconde dalla ricerca i reel che hai guardato di recente, prima che tu scriva qualcosa.
+search_strangers.title	Nascondi gli sconosciuti nella ricerca
+search_strangers.description	Nasconde le persone che non sono tue amiche quando scrivi nella ricerca, così non scrivi per sbaglio a uno sconosciuto. I tuoi amici e i tuoi gruppi continuano ad apparire.
+# context: confirm_strangers, the Inbox switch that holds the first Send in a chat with someone who isn't a friend
+confirm_strangers.title	Chiedi prima di scrivere a sconosciuti
+confirm_strangers.description	Trattiene il primo invio in una chat con qualcuno che non è tuo amico e ti chiede di toccare di nuovo Invia. Un secondo tocco entro 5 secondi lo invia come richiesta di messaggio. Gruppi, pagine e chat in cui ti hanno scritto inviano subito.
 longer_notes.title	Scrivi note più lunghe
-longer_notes.description	Permette alla casella delle note di contenere fino a 2000 caratteri invece di 60. È Facebook a decidere se una nota lunga passa.
+longer_notes.description	Permette alla casella delle note di contenere fino a 600 caratteri invece di 60. È Facebook a decidere se una nota lunga passa.
 chat_preview.title	Anteprima chat con pressione lunga
 chat_preview.description	Tieni premuta una chat per darle un'occhiata nell'anteprima di Messenger, con il menu della chat sotto, senza aprirla.
 chat_preview_size.title	Anteprima della chat più grande
 chat_preview_size.description	Dà più spazio alla chat nell'anteprima che compare quando tieni premuta una chat, e ti permette di scorrerla all'indietro lì. Il menu sotto mantiene un'altezza fissa e scorre quando ha più voci.
+chat_preview_taps.title	I tocchi restano nell'anteprima della chat
+chat_preview_taps.description	Toccare la chat nell'anteprima che compare quando tieni premuta una chat non la apre più. I tocchi arrivano alla chat stessa, quindi la sua freccia verso il messaggio più recente funziona, e Apri chat in cima al menu sotto apre la chat.
 mark_read_action.title	Nascondi Segna come letto
 mark_read_action.description	Nasconde Segna come letto nel menu che compare quando tieni premuta una chat nell'elenco, così non segni una chat come letta per sbaglio. Segna come non letto resta.
 pinned_chats.title	Fissa più chat
@@ -832,6 +879,9 @@ chat_menu_items.title	Nascondi voci del menu della chat
 chat_menu_items.description	Nasconde le voci che scegli dal menu che compare quando tieni premuta una chat nell'elenco. Tieni premuta una chat qualsiasi una volta e le voci di quel menu compaiono sotto questo interruttore, pronte da scegliere.
 profile_menu_items.title	Nascondi voci del menu del profilo
 profile_menu_items.description	Nasconde le voci che scegli dal menu che compare quando tocchi l'immagine di qualcuno accanto al suo messaggio in una chat. Tocca un'immagine una volta e le voci di quel menu compaiono sotto questo interruttore, pronte da scegliere.
+# context: remove_contact, the Chat menu switch that adds Remove contact to the menu you get by holding a person who isn't a friend
+remove_contact.title	Mostra Rimuovi contatto
+remove_contact.description	Rimette Rimuovi contatto nel menu che compare quando tieni premuto qualcuno in Persone, nei tuoi contatti o nella ricerca, per le persone che non sono tra i tuoi amici. Lo toglie dai tuoi contatti di Messenger senza bloccarlo.
 facebook.title	Nascondi le scorciatoie di Facebook
 facebook.description	Nasconde i pulsanti di Facebook, le scorciatoie al profilo e alla condivisione, e le sezioni Altro da Meta e Abbonamenti nella scheda Menu. Comodo se usi solo Messenger.
 meta_ai.title	Nascondi Meta AI
@@ -913,7 +963,7 @@ local_chat_search.description	Aggiunge ai risultati di ricerca di una chat un pu
 chat_jump.title	Vai al primo messaggio o a una data
 chat_jump.description	Tieni premuto il nome di una chat in cima alla chat per andare al suo primo messaggio o a un giorno che scegli. Una freccia in basso a sinistra in una chat porta al primo messaggio, e una pressione prolungata sulla freccia chiede un giorno. Toccare una delle date tra i messaggi apre lo stesso selettore del giorno su quel giorno. Messenger carica una chat una pagina alla volta, quindi scorre all'indietro con un contatore sullo schermo finché non ci arriva, e Annulla lo ferma. Può andare indietro solo fin dove Messenger riesce a caricare.
 pinned_bar.title	Mostra i messaggi fissati
-pinned_bar.description	Mostra i messaggi fissati di una chat in una barra sotto il suo nome. Messenger ha già quella barra, ma la attiva solo in alcune chat.
+pinned_bar.description	Mostra una barra sotto il nome della chat con il suo messaggio fissato più recente, nelle chat con crittografia end-to-end. Toccala per andare al messaggio.
 landscape.title	Consenti l'orientamento orizzontale
 landscape.description	Permette a Messenger di girarsi di lato con il telefono, per una tastiera più larga e foto e video più grandi. Segue l'impostazione di rotazione automatica del telefono. Chiamate, fotocamera, pagamenti e poche altre schermate restano in verticale. Riavvia Messenger dopo averlo cambiato.
 chat_bar_plus.title	Pulsanti della barra della chat nel menu +
@@ -1004,6 +1054,8 @@ restricted_notify.title	Notifiche per le chat limitate
 restricted_notify.description	Le chat con le persone che hai limitato ti avvisano come le altre chat, a meno che siano crittografate end-to-end. Una chat che hai silenziato resta silenziosa. Le persone limitate continuano a non vedere quando sei attivo o quando hai letto i loro messaggi.
 open_chat_sound.title	Suono nella chat aperta
 open_chat_sound.description	Riproduce il suono dei messaggi nell'app di Messenger quando arriva un messaggio nella chat che hai aperta. Messenger lo fa già per i Mi piace e gli sticker. Un telefono in silenzioso o l'interruttore Suoni nell'app di Messenger lo tengono comunque in silenzio.
+own_chat_sounds.title	I tuoi suoni della chat
+own_chat_sounds.description	Riproduce i file audio che scegli al posto dei suoni di Messenger quando invii un messaggio, quando è stato consegnato e per un nuovo messaggio mentre Messenger è aperto. Sceglili qui sotto. Quelli che lasci stare restano quelli di Messenger, e Messenger decide comunque quando suona ciascuno.
 passkey_login.title	Salta l'accesso con passkey
 passkey_login.description	L'accesso non propone più una passkey da questo telefono, quindi Facebook ripiega sull'approvazione dell'accesso da un altro dispositivo connesso, come fa per un account senza passkey. Un Messenger patchato non può superare il controllo della passkey di Facebook, ed è questo che fa girare alcuni accessi intorno al controllo del browser ancora e ancora. Mentre è attivo, Messenger non può usare una passkey nemmeno per i backup crittografati, quindi lascialo disattivato a meno che un accesso non sia bloccato. Tieni premuta l'icona di Messenger nella schermata Home per raggiungere queste impostazioni senza accedere.
 recovery_code_row.title	Mostra il codice di 40 caratteri

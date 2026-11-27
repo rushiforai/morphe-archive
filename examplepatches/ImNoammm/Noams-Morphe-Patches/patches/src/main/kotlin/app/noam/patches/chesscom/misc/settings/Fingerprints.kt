@@ -9,3 +9,12 @@ internal object MoreMenuStateToStringFingerprint : Fingerprint(
     parameters = listOf(),
     strings = listOf("MoreMenuUiState(items="),
 )
+
+/**
+ * The More screen's tap on a row, the app's only method taking just a row key. The view model's
+ * handling of the tap is inlined into it.
+ */
+internal object MoreRowClickFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Lcom/chess/home/more/MoreMenuItemKey;"),
+)

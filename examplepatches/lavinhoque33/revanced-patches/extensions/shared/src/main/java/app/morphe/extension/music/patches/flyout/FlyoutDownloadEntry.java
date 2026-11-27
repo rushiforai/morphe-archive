@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-10.
  * Written by lavinhoque33, 2026-11-10.
  */
@@ -53,6 +54,9 @@ final class FlyoutDownloadEntry {
             if (items.isEmpty()) return items;
 
             FlyoutMenuScan.Result scan = scan(items);
+            // The player has already bound Remove to its exact held copy, including when queuing is unavailable.
+            if (scan.playerRemoval()) return items;
+
             String songId = SongMenus.targetOfMenu(scan.songId());
             if (route == SongDownloadRoute.STOCK && !SongMenus.isOpenFor(songId)) return items;
 

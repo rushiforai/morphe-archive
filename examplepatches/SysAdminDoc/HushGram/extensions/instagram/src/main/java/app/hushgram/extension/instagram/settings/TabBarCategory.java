@@ -13,6 +13,8 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.glassLiftRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.glassOpacityRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.glassReelsHideRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.glassTintCustomRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.glassTintRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.glassRefractRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.hapticStrengthRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.hapticStyleRow;
@@ -153,6 +155,13 @@ final class TabBarCategory {
                 SliderRow tintRow = glassOpacityRow(context);
                 preview.follow(tintRow, GlassPreview.TINT);
                 glass.addPreference(tintRow);
+                // Next to Tint intensity and under the preview, which shows each pick at once (#875).
+                HushgramPreferenceFragment.GlassTintRow tintColorRow = glassTintRow(context);
+                preview.redrawOn(tintColorRow);
+                glass.addPreference(tintColorRow);
+                HushgramPreferenceFragment.GlassTintCustomRow tintCustomRow = glassTintCustomRow(context);
+                preview.redrawOn(tintCustomRow);
+                glass.addPreference(tintCustomRow);
                 glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_LIQUID, L10n.t("Liquid glass look"),
                         slowsOlderPhones(L10n.t("Rounds the pill and its highlight and puts Search in a glass circle of its own. Scrolling "
                                 + "a list down shrinks the bar to the tab you're on and Search, unless Hide the tab bar as "
@@ -171,6 +180,9 @@ final class TabBarCategory {
                                 + "the bubble swells and bends what's behind it harder, like glass under a fingertip. It "
                                 + "eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or "
                                 + "newer. Restart Instagram after changing it."))));
+                glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_SEARCH_IN_PILL, L10n.t("Keep Search in the pill"),
+                        L10n.t("With Liquid glass look on, Search stays in the pill with the other tabs instead of a "
+                                + "glass circle of its own. Restart Instagram after changing it.")));
                 glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_SHRINK_ON_SCROLL, L10n.t("Shrink the pill as you scroll"),
                         L10n.t("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up "
                                 + "or changing tab brings it back to full size. Hide the tab bar as you scroll takes over "

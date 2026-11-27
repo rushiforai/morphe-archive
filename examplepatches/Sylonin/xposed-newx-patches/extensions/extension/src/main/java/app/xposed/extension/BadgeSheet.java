@@ -120,25 +120,8 @@ final class BadgeSheet implements Lookup.Listener {
         footer.setPadding(0, ui.dp(16), 0, ui.dp(16));
         content.addView(footer);
 
-        if (info.location != null) {
-            boolean filtered = Filters.isFiltered(info.location);
-            String verb = Settings.highlightMode() ? "Highlight" : "Hide";
-            String label = filtered
-                    ? (Settings.highlightMode() ? "Stop highlighting " : "Stop hiding ") + info.location
-                    : verb + " posts from " + info.location;
-            TextView toggle = ui.pill(label, !filtered, v -> {
-                Set<String> locations = new HashSet<>(Filters.locations());
-                if (filtered) {
-                    locations.removeIf(l -> Countries.canonicalKey(l).equals(Countries.canonicalKey(info.location)));
-                } else {
-                    locations.add(info.location);
-                }
-                Filters.save(locations, Settings.highlightMode());
-                States.changedAll();
-                render();
-            });
-            content.addView(toggle, Ui.matchWidth());
-        }
+        long userId = info.userId != 0 ? info.userId : Users.idFor(handle);
+        if (!Verdicts.isViewer(userId)) addQuickFilters(info, userId);
 
         LinearLayout actions = new LinearLayout(context);
         actions.setPadding(0, ui.dp(12), 0, 0);
@@ -192,5 +175,64 @@ final class BadgeSheet implements Lookup.Listener {
         ImageView v = new ImageView(context);
         v.setImageDrawable(glyph.asDrawable(color));
         return v;
+    }
+
+    /**
+     * Hide or highlight the account's country or region or the account itself, and Always Show
+     * for the account, as X-Posed's card does.
+     */
+    private void addQuickFilters(AccountInfo info, long userId) {
+        FilterRules rules = Filters.rules();
+        boolean highlight = rules.highlight;
+        String start = highlight ? "Highlight " : "Hide ";
+        String stop = highlight ? "Stop highlighting " : "Stop hiding ";
+        String location = info.country(Settings.sources().deviceCountry);
+        if (location != null) {
+            boolean filtered = rules.locationKeys.contains(Countries.canonicalKey(location));
+            TextView toggle = ui.pill(filtered ? stop + location : start + "posts from " + location, !filtered, v -> {
+                Filters.edit(b -> {
+                    if (filtered) b.removeLocation(location);
+                    else b.addLocation(location);
+                });
+                render();
+            });
+            content.addView(toggle, Ui.matchWidth());
+        }
+        if (userId != 0) {
+            boolean filtered = rules.accounts.containsKey(userId);
+            TextView toggle = ui.pill(filtered ? stop + "@" + handle : start + "@" + handle, false, v -> {
+                Filters.edit(b -> {
+                    if (filtered) b.removeAccount(userId);
+                    else b.putAccount(userId, handle);
+                });
+                render();
+            });
+            addSpaced(toggle);
+        }
+        boolean alwaysShown = rules.alwaysShow.contains(handle);
+        TextView always = ui.pill(alwaysShown ? "Remove @" + handle + " from Always Show" : "Always show @" + handle, false, v -> {
+            Filters.edit(b -> {
+                if (alwaysShown) b.removeAlwaysShow(handle);
+                else b.addAlwaysShow(handle);
+            });
+            render();
+        });
+        addSpaced(always);
+        String notice = alwaysShown ? "Always Show takes priority over your filters for this account."
+                : rules.alwaysShowFollowing && Verdicts.followedByMe(handle)
+                ? "You follow this account, so your setting to always show followed accounts takes priority over your filters."
+                : null;
+        if (notice != null) {
+            TextView text = ui.text(notice, 13, false, ui.secondary);
+            text.setPadding(0, ui.dp(8), 0, 0);
+            text.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+            content.addView(text, Ui.matchWidth());
+        }
+    }
+
+    private void addSpaced(View view) {
+        LinearLayout.LayoutParams lp = Ui.matchWidth();
+        lp.topMargin = ui.dp(12);
+        content.addView(view, lp);
     }
 }

@@ -28,7 +28,18 @@ public final class MebukiPrivateReadTest {
         check(data.html.indexOf("id='post0'")<data.html.indexOf("id='post1'"),"initial order");
         check(data.html.contains("<font color=\"#789922\">&gt;quote</font>"),"quote markup");
         check(!data.html.contains("never display this deleted content"),"deleted hidden");
-        check(data.images.size()==1&&data.images.get(0).endsWith("fixture_sm.webp"),"thumbnail and spoiler");
+        check(data.images.size()==1&&data.images.get(0).endsWith("/fixture.jpg"),"original filePath and spoiler exclusion");
+        String nativeHtml=new String(data.nativeHtml("1234567890123",url->{
+            check(url.endsWith("/fixture.jpg"),"native thread uses original mapping");
+            return "1234567890124";
+        }),java.nio.charset.Charset.forName("Shift_JIS"));
+        check(nativeHtml.contains("/mebuki/src/1234567890124.jpg")&&nativeHtml.contains("/mebuki/thumb/1234567890124s.jpg"),"native original and inline paths");
+        java.util.Map<String,Object> attachment=new java.util.HashMap<>();
+        attachment.put("filePath",data.images.get(0));attachment.put("fileType","image/jpeg");attachment.put("createdAt","2026-11-25T15:00:00Z");
+        for(String flag:new String[]{"spoiler","nsfw","gore","other"})attachment.put(flag,false);
+        check(MebukiThreadData.thumbnail(attachment).endsWith("fixture_sm.webp"),"catalog stays small");
+        attachment.put("spoiler",true);
+        check(MebukiThreadData.original(attachment)==null&&MebukiThreadData.thumbnail(attachment)==null,"sensitive images stay hidden");
         check(!data.html.contains("storage.mebuki.moe"),"image URL not in document");
         check(!MebukiThreadData.safeImage("https://storage.mebuki.moe.evil.invalid/uploads/attachments/a.jpg"),"other host");
         check(!MebukiThreadData.safeImage("https://storage.mebuki.moe/uploads/attachments/../a.jpg"),"traversal");
@@ -78,6 +89,11 @@ public final class MebukiPrivateReadTest {
         check(publicRead.status==200&&!publicHtml.contains("fixture <script>")&&publicHtml.contains("futatabi.invalid/mebuki/1234567890123"),"public notice only");
         check(calls==before,"public route never touches session");
         response=fixture;check(adapter.readPrivateThread(context,"1234567890123").count==3,"private adapter read");
+        String newId=adapter.rememberPrivateThread(COOKIE,"newfixture123");
+        check("newfixture123".equals(new MebukiAdapter(context).slugForThreadId(newId)),"confirmed navigation mapping shared across reader instance");
+        check(!context.getSharedPreferences("futatabi_mebuki_index",0).contains("thread."+newId),"navigation mapping not persisted");
+        context.getSharedPreferences(MebukiSession.STORE,0).edit().remove(MebukiSession.KEY).commit();
+        check(new MebukiAdapter(context).slugForThreadId(newId)==null,"navigation map invalidated on logout");
         System.out.println("PASS "+checks+" assertions; synthetic session and thread data only");
     }
 }

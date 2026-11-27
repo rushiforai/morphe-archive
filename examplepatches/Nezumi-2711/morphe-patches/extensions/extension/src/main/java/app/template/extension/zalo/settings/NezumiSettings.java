@@ -73,6 +73,10 @@ public final class NezumiSettings {
         NezumiSettingsPage.attach(root, anchor, NezumiSettingsPage.FEATURE_CALL_RECORDING);
     }
 
+    public static void attachCallBackground(View root, View anchor) {
+        NezumiSettingsPage.attach(root, anchor, NezumiSettingsPage.FEATURE_CALL_BACKGROUND);
+    }
+
     public static void attachBugLog(View root, View anchor) {
         NezumiSettingsPage.attach(root, anchor, NezumiSettingsPage.FEATURE_BUG_LOG);
     }

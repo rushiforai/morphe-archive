@@ -12,7 +12,7 @@ open either app, and Morphe Manager lists only the patches that belong to that
 app. Every feature is a separate entry, and **SEYTTINGS** is the base dependency
 for the feature patches of both apps.
 
-**Source code:** <https://github.com/seythegamer/sey-morphe-patches>
+**Source code:** <https://github.com/nawszym/sey-morphe-patches>
 **License:** GPLv3 (see [LICENSE](LICENSE))
 
 ## Patches
@@ -22,14 +22,16 @@ for the feature patches of both apps.
 | Patch | Type | What it does |
 | --- | --- | --- |
 | **SEYTTINGS** | base | Turns the licensing row in the KICK settings screen into a red **SEYTTINGS** row that opens a native patched-tweaks dialog. Required by every KICK feature. |
-| **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the KICK chat. One shared toggle in SEYTTINGS enables all providers. |
-| **CHAT SIZE** | feature | Resizes the chat in the VIDEO/CHAT view: default (100%), 125%, 90%, 85% and 80%. The video and chat panel always meet at the same edge. |
-| **CHAT TEXT SIZE** | feature | Renders chat text larger, Twitch-style: 16 sp (default), 15 sp, 13 sp or stock 11 sp, and widens the gap between messages (10 dp) whenever the tweak is active. Choose the size in SEYTTINGS. |
+| **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the KICK chat. One toggle enables all providers, plus a Native/Twitch-like emote size option (also affects KICK's built-in emotes). |
+| **CHAT SIZE** | feature | Three options for the VIDEO/CHAT view: Native (stock), Twitch-like (measured Twitch TV ratio) and Big. The video and chat panel always meet at the same edge. |
+| **CHAT TEXT SIZE** | feature | Two options: Native (stock KICK text and spacing) or Twitch-like (larger 16 sp text, a wider 10 dp gap, lighter messages and bolder usernames). Toggle in SEYTTINGS. |
 | **EXPAND CHAT** | feature | Hides the **Join the Chat** footer in the VIDEO/CHAT view and lets the chat fill the freed space. Toggle in SEYTTINGS. |
 | **HIDE PINNED** | feature | Removes the pinned message card (and the ad banner attached to it) from the top of the chat. Toggle in SEYTTINGS. |
 | **SKIP 18+ WARNING** | feature | Auto-accepts the 18+ mature content warning, so a mature stream starts without the extra click. Toggle in SEYTTINGS. |
 | **STOP ON MINIMIZE** | feature | Stops playback (audio/video) when the app is minimized or exited, so nothing keeps playing in the background. Open a stream again to resume. Toggle in SEYTTINGS. |
 | **DEFAULT HOME DESTINATION** | feature | Opens the chosen tab (Home, Categories, Live, Following or Settings) automatically when KICK starts. Pick it in SEYTTINGS. |
+| **CHAT BACKGROUND** | feature | Replaces the chat background with pure black (#000000) for AMOLED screens. Toggle it in SEYTTINGS. |
+| **DEFAULT SPLIT VIEW** | feature | Opens streams in the video/chat split view by default instead of the small overlay chat. Toggle it in SEYTTINGS. |
 
 ### Twitch (Android TV)
 
@@ -127,12 +129,12 @@ illustrations for this README. Morphe Manager derives the app tiles from
 
 Add **one** of these under **Sources** -> **+**:
 
-- Repository: `https://github.com/seythegamer/sey-morphe-patches`
-- Manifest: `https://raw.githubusercontent.com/seythegamer/sey-morphe-patches/main/patches-bundle.json`
+- Repository: `https://github.com/nawszym/sey-morphe-patches`
+- Manifest: `https://raw.githubusercontent.com/nawszym/sey-morphe-patches/main/patches-bundle.json`
 
 One-click link:
 
-<https://morphe.software/add-source?github=seythegamer/sey-morphe-patches>
+<https://morphe.software/add-source?github=nawszym/sey-morphe-patches>
 
 Morphe Manager reads `patches-list.json` for the patch list and
 `patches-bundle.json` for the bundle download URL. Do not paste a direct `.mpp`
@@ -143,7 +145,7 @@ fetches `CHANGELOG.md` from the repository root. The raw
 `patches-bundle.json` URL works for patching and updates, but it does not carry
 release notes.
 
-You can also import `SeyMorphe-1.2.6.mpp` manually as a local source.
+You can also import `SeyMorphe-1.2.7.mpp` manually as a local source.
 
 ## How to use
 
@@ -167,7 +169,7 @@ newest version in the file and shows every entry in between.
 
 Morphe parses the file with these rules, so keep the format:
 
-- one version heading per release, newest first: `## 1.2.6 (2026-11-15)` (the
+- one version heading per release, newest first: `## 1.2.7 (2026-11-22)` (the
   date is required),
 - section headings such as `### ✨ New Features`, `### 🐛 Bug Fixes`,
   `### ⚡ Performance` or `### 📝 Other`,
@@ -183,12 +185,11 @@ the feature, as in the examples.
 Add a new section at the top before publishing a version:
 
 ```markdown
-## 1.2.6 (2026-11-20)
+## 1.2.8 (YYYY-MM-DD)
 
 ### ✨ New Features
 
-* **Twitch - CHAT SIZE:** Added a chat size preset.
-* **KICK: Live Streaming - CHAT SIZE:** Added a chat size preset.
+* **KICK: Live Streaming - EXAMPLE:** Describe the change here. Requires the SEYTTINGS patch.
 ```
 
 ## Build from source
@@ -210,7 +211,7 @@ Build the extension DEX files and the combined bundle:
 powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
 ```
 
-Output: `dist\SeyMorphe-1.2.6.mpp`.
+Output: `dist\SeyMorphe-1.2.7.mpp`.
 
 Optional APK builders use the same bundle and apply the patches to an original
 APKM:
@@ -224,7 +225,7 @@ Prepare the files for a GitHub source:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\prepare-remote.ps1 `
-    -Owner seythegamer -Repo sey-morphe-patches
+    -Owner nawszym -Repo sey-morphe-patches
 ```
 
 `scripts\publish-remote.ps1` can upload them through the GitHub REST API; the
@@ -237,9 +238,9 @@ token is read from `git credential fill` and is never printed.
 2. Build the bundle and pass the same version everywhere:
 
    ```powershell
-   powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.6
+   powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.7
    powershell -ExecutionPolicy Bypass -File scripts\prepare-remote.ps1 `
-       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.6
+       -Owner nawszym -Repo sey-morphe-patches -Version 1.2.7
    ```
 
 3. Commit and push `CHANGELOG.md` together with `patches-bundle.json`,
@@ -249,7 +250,7 @@ token is read from `git credential fill` and is never printed.
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File scripts\publish-release.ps1 `
-       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.6
+       -Owner nawszym -Repo sey-morphe-patches -Version 1.2.7
    ```
 
    The script reads the `## <version> (YYYY-MM-DD)` section from `CHANGELOG.md`
@@ -285,6 +286,7 @@ patches/src/main/kotlin/app/morphe/patches/
   kicktv/maturewarning/             KICK SKIP 18+ WARNING patch
   kicktv/stoponminimize/            KICK STOP ON MINIMIZE patch
   kicktv/homedestination/           KICK DEFAULT HOME DESTINATION patch
+  kicktv/chatbackground/            KICK CHAT BACKGROUND patch
   twitch/Target.kt                  Twitch compatibility (package, version, purple tile)
   twitch/settings/                  Twitch SEYTTINGS base patch
   twitch/amoled/                    Twitch AMOLED patch
@@ -310,6 +312,7 @@ extension/src/app/morphe/extension/
   kicktv/maturewarning/             KICK mature warning helper
   kicktv/stoponminimize/            KICK stop-on-minimize player helper
   kicktv/homedestination/           KICK home-destination player helper
+  kicktv/chatbackground/            KICK chat background (AMOLED) helpers
   twitch/base/                      Twitch red themed dialog, bridge and injector
   twitch/amoled/                    Twitch AMOLED injector, preference and section
   twitch/adblock/                   Twitch AD BLOCK injector, preference and section
@@ -323,7 +326,7 @@ patches-list.json                   remote patch metadata (repository root)
 patches-bundle.json                 remote bundle manifest (repository root)
 patches-bundle.png                  source icon shown by Morphe Manager
 CHANGELOG.md                        release notes read by Morphe Manager
-SeyMorphe-1.2.6.mpp                 published bundle (repository root)
+SeyMorphe-1.2.7.mpp                 published bundle (repository root)
 assets/                             README illustrations
 LICENSE                            GNU General Public License v3.0
 README.md                          this documentation

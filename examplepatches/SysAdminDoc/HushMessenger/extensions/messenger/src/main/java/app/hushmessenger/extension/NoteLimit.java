@@ -10,7 +10,11 @@ import java.lang.reflect.Modifier;
  * be changed the composer gets Messenger's number back.
  */
 public final class NoteLimit {
-    static final int LIMIT = 2000;
+    /**
+     * The longest note Facebook still shares (#233): on the S22 in November 2026 one of 601 characters posted and 609
+     * didn't ("Your note wasn't shared"). A bigger box only lets people type notes that fail.
+     */
+    static final int LIMIT = 600;
     private static final String KEY = "longer_notes";
 
     /** The filter's limit field, kept once found because Messenger calls this every time the note screen updates. */

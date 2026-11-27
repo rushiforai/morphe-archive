@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Minimalist Brave Shield Silhouette (Safe Zone: 66dp centered at 54,54) -->
+    <!-- Main Shield Body (Brave Orange) -->
+    <path
+        android:fillColor="#FF5500"
+        android:pathData="M54,27C64,29 74,30 74,32L74,53C74,66 65,75 54,81C43,75 34,66 34,53L34,32C34,30 44,29 54,27Z" />
+
+    <!-- Inner Shield Depth Contrast Surface -->
+    <path
+        android:fillColor="#18181B"
+        android:pathData="M54,31C62,32.5 69.5,33.5 69.5,35L69.5,52.5C69.5,63 62,71 54,76C46,71 38.5,63 38.5,52.5L38.5,35C38.5,33.5 46,32.5 54,31Z" />
+
+    <!-- Downward Media Arrow Motif (Clean Crisp White) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M51,39L57,39L57,51L64,51L54,63L44,51L51,51Z" />
+
+    <!-- Media Download Base Cradle / Progress Bar (Clean White) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,67L64,67L64,70L44,70Z" />
+
+    <!-- Mod Cyan/Orange Accent Pip -->
+    <path
+        android:fillColor="#FF5500"
+        android:pathData="M52,67.5L56,67.5L56,69.5L52,69.5Z" />
+</vector>

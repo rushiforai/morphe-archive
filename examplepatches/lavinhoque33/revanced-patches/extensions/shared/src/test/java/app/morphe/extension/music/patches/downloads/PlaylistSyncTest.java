@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-17.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -18,6 +19,8 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +42,8 @@ public class PlaylistSyncTest {
         var snapshot = PlaylistSyncPage.fetch(PLAYLIST, token -> token == null ? initial : later);
         assertEquals(List.of(FIRST, UNAVAILABLE, SECOND, FIRST), snapshot.tracks());
         byte[] renderer = snapshot.browseBytes();
-        assertTrue(PlaylistSyncPage.matchesSavedPrefix(PLAYLIST, renderer, snapshot.tracks()));
-        assertFalse(PlaylistSyncPage.matchesSavedPrefix(PLAYLIST, renderer, List.of(FIRST, UNAVAILABLE)));
+        assertTrue(PlaylistSyncPage.matchesComplete(PLAYLIST, renderer, snapshot.tracks()));
+        assertFalse(PlaylistSyncPage.matchesComplete(PLAYLIST, renderer, List.of(FIRST, UNAVAILABLE)));
         assertFalse(OfflineBrowsePagesLogic.isContinuation(renderer));
         assertEquals(4, OfflineBrowsePagesLogic.frameworkUpdatesSize(renderer));
     }
@@ -58,11 +61,59 @@ public class PlaylistSyncTest {
                 token == null ? initial : firstPage(PLAYLIST, null, row(SECOND))));
     }
 
-    @Test public void staleOnlineRendererDoesNotMatchSavedQueue() {
-        byte[] original = firstPage(PLAYLIST, "next", row(FIRST));
-        assertTrue(PlaylistSyncPage.matchesSavedPrefix(PLAYLIST, original, List.of(FIRST, SECOND)));
-        byte[] changed = firstPage(PLAYLIST, null, row(THIRD), row(FIRST));
-        assertFalse(PlaylistSyncPage.matchesSavedPrefix(PLAYLIST, changed, List.of(FIRST, SECOND)));
+    @Test public void onlyAnExactCompleteLegacyPageCanBeCommittedAsGenuine() throws Exception {
+        List<String> ordered = List.of(FIRST, UNAVAILABLE, SECOND, FIRST);
+        byte[] partial = firstPage(PLAYLIST, "next", row(FIRST), unavailable());
+        byte[] exact = firstPage(PLAYLIST, null, row(FIRST), unavailable(), row(SECOND), row(FIRST));
+        assertNull(PlaylistSyncPage.completeLegacy(PLAYLIST, partial, ordered));
+        assertNull(PlaylistSyncPage.completeLegacy(PLAYLIST, exact, List.of(SECOND, UNAVAILABLE, FIRST, FIRST)));
+        assertNull(PlaylistSyncPage.completeLegacy(PLAYLIST, exact, List.of(FIRST, UNAVAILABLE, SECOND)));
+        assertNull(PlaylistSyncPage.completeLegacy(PLAYLIST, Arrays.copyOf(exact, exact.length - 1), ordered));
+        assertTrue(PlaylistSyncPage.matchesComplete(PLAYLIST, PlaylistSyncPage.completeLegacy(PLAYLIST, exact, ordered),
+                ordered));
+    }
+
+    @Test public void matchingLegacyPrefixKeepsItsNativeHeaderAndMenusAndAddsOnlyMissingRows() throws Exception {
+        byte[] header = "saved native header".getBytes(StandardCharsets.UTF_8);
+        byte[] menu = "saved native menu".getBytes(StandardCharsets.UTF_8);
+        byte[] first = wrap(161_429_595, new ProtoWriter().message(5, OnlineWatchCommand.build(FIRST, PLAYLIST, 0))
+                .message(9, menu).toByteArray());
+        byte[] partial = firstPage(PLAYLIST, "next", first);
+        partial = new ProtoWriter().raw(partial, 0, partial.length).message(13, header).toByteArray();
+        List<String> saved = List.of(FIRST, UNAVAILABLE, SECOND, FIRST);
+        var missing = new ArrayList<Integer>();
+
+        byte[] repaired = PlaylistSyncPage.repairLegacy(PLAYLIST, partial, saved, position -> {
+            missing.add(position);
+            return OfflineBrowsePagesLogic.fallbackRow(PLAYLIST, position, saved.get(position), null, "Unavailable");
+        });
+
+        assertEquals(List.of(1, 2, 3), missing);
+        assertTrue(PlaylistSyncPage.matchesComplete(PLAYLIST, repaired, saved));
+        assertEquals(1, OfflineBrowsePagesLogic.occurrences(repaired, header));
+        assertEquals(1, OfflineBrowsePagesLogic.occurrences(repaired, menu));
+        assertEquals(2, OfflineBrowsePagesLogic.frameworkUpdatesSize(repaired));
+        assertEquals(0, OfflineBrowsePagesLogic.occurrences(repaired, "next".getBytes(StandardCharsets.UTF_8)));
+        assertNull(PlaylistSyncPage.repairLegacy(PLAYLIST, partial, List.of(SECOND, FIRST), position -> {
+            throw new AssertionError("A mismatched prefix must not be spliced onto the saved queue");
+        }));
+    }
+
+    @Test public void initialSnapshotCanBeCapturedAndReopenedWithoutAnotherNativeVisit() throws Exception {
+        File manifest = temporary.newFile("sources.json");
+        OfflineSourceStore store = new OfflineSourceStore(manifest);
+        List<String> downloaded = List.of(FIRST, UNAVAILABLE, SECOND, FIRST);
+        store.remember(PLAYLIST, new SourceHeader("Playlist", "Artist", ""), downloaded, 1, true);
+        byte[] first = firstPage(PLAYLIST, "next", row(FIRST), unavailable());
+        byte[] rest = continuation(null, row(SECOND), row(FIRST));
+        PlaylistSyncPage.Snapshot captured = PlaylistSyncPage.fetch(PLAYLIST, token -> token == null ? first : rest);
+        assertEquals(downloaded, captured.tracks());
+        File page = store.stageBrowsePage(captured.browseBytes());
+        assertTrue(store.replacePlaylist(store.get(PLAYLIST), downloaded, page, 1, () -> true));
+
+        OfflineSourceStore restarted = new OfflineSourceStore(manifest);
+        restarted.ensureLoaded();
+        assertTrue(PlaylistSyncPage.matchesComplete(PLAYLIST, restarted.readBrowsePage(PLAYLIST), downloaded));
     }
 
     @Test public void onlyNewIdsCanTriggerTransfersAndAliasesReuseAnOwnedCopy() {

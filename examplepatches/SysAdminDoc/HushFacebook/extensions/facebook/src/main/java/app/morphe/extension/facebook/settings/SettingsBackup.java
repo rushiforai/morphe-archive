@@ -153,6 +153,7 @@ public final class SettingsBackup {
             Settings.HIDE_FIND_FRIENDS_CARD,
             Settings.HIDE_SEARCH_FOR_YOU,
             Settings.HIDE_SEARCH_PEOPLE_YOU_MAY_KNOW,
+            Settings.HIDE_FRIENDS_TAB_PEOPLE_YOU_MAY_KNOW,
             Settings.HIDE_TOP_STORIES_TRAY,
             Settings.HIDE_STORIES_BETWEEN_POSTS,
             Settings.HIDE_HOME_COMPOSER,
@@ -267,6 +268,7 @@ public final class SettingsBackup {
             Settings.HIDE_PROFILE_NOTES,
             Settings.HIDE_PROFILE_GIFTS,
             Settings.LOCAL_PROFILE_COUNTS,
+            Settings.FRIEND_LIST_WATCH,
             Settings.POST_SAVE_BUTTON,
             Settings.POST_DOWNLOAD_BUTTON,
             Settings.HIDE_POST_LIKE_BUTTON,
@@ -337,6 +339,7 @@ public final class SettingsBackup {
             Settings.SAVED_VIDEOS_IN_ORDER,
             Settings.SAVED_VIDEOS_STAY_ON_END,
             Settings.SAVED_POSTS_IN_ROW,
+            Settings.FEED_REELS_ROW_IN_ORDER,
             Settings.SKIP_STILL_WATCHING,
             Settings.FILL_REELS,
             Settings.FILL_EVERY_REEL,
@@ -390,7 +393,13 @@ public final class SettingsBackup {
             Settings.LIKE_ONLY,
             Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS,
             Settings.HIDE_COMMENT_EMOJI_ROW,
+            Settings.HIDE_HELD_COMMENT_REACTIONS,
+            Settings.HIDE_HELD_COMMENT_REPLY,
+            Settings.HIDE_HELD_COMMENT_COPY,
+            Settings.HIDE_HELD_COMMENT_REPORT,
+            Settings.HIDE_HELD_COMMENT_HIDE,
             Settings.KEEP_COMMENT_KEYBOARD_CLOSED,
+            Settings.KEEP_COMMENTS_CLOSED_ON_TEXT_TAP,
             Settings.HIDE_COMMENT_BOX_LINE,
             Settings.HIDE_COMMENT_BOX,
             Settings.OPEN_REPLY_THREADS,
@@ -448,6 +457,7 @@ public final class SettingsBackup {
             Settings.PICTURE_IN_PICTURE,
             Settings.PICTURE_IN_PICTURE_FROM_MENU,
             Settings.PICTURE_IN_PICTURE_BUTTON,
+            Settings.NEXT_REEL_IN_WINDOW,
             Settings.KEEP_PLAYING_IN_BACKGROUND,
             Settings.NEXT_REEL_IN_BACKGROUND,
             Settings.BACKGROUND_PLAY_BUTTON,
@@ -543,8 +553,10 @@ public final class SettingsBackup {
             Settings.HIDE_REELS_TAB_BAR,
             Settings.HIDE_TAB_BAR_LINE,
             Settings.TAB_BAR_IN_GROUPS,
+            Settings.PROFILE_TAB_ACTIVITY_LOG,
             Settings.TRANSLUCENT_BARS,
             Settings.ROUNDED_TAB_BAR,
+            Settings.GLASS_TAB_BAR,
             Settings.HIDE_STATUS_BAR,
             Settings.CENTER_FEED_ON_BIG_SCREENS,
             Settings.LIGHT_REELS_TAB_BARS,
@@ -925,7 +937,7 @@ public final class SettingsBackup {
     static final StringSetting TAB_ORDER = Settings.TAB_ORDER;
 
     /**
-     * The rows that take a typed number (#589): Round picture size, Dim to, Bar opacity, Tab bar
+     * The rows that take a typed number (#589): Round picture size, Dim to, Bar opacity, Blur strength, Tab bar
      * width and height, and Box darkness. Each is held in a file exactly as its row stores it, digits
      * only and at most {@link #MAX_NUMBER_DIGITS} of them, blank for the row's default, and a value its
      * row would store any other way refuses the whole file, as a switch that isn't true or false does.
@@ -935,13 +947,14 @@ public final class SettingsBackup {
     static final StringSetting TRAY_SIZE = Settings.STORIES_TRAY_SIZE;
     static final StringSetting DIM_TO = Settings.BURN_IN_LEVEL;
     static final StringSetting OPACITY = Settings.SEE_THROUGH_OPACITY;
+    static final StringSetting BLUR = Settings.SEE_THROUGH_BLUR;
     static final StringSetting TAB_BAR_WIDTH = Settings.TAB_BAR_WIDTH;
     static final StringSetting TAB_BAR_HEIGHT = Settings.TAB_BAR_HEIGHT;
     static final StringSetting BOX_DARKNESS = Settings.TEXT_BOX_DARKNESS;
 
     /** Those number rows, in the order Settings declares them. */
     static final List<StringSetting> NUMBERS = Collections.unmodifiableList(
-            Arrays.asList(TRAY_SIZE, DIM_TO, OPACITY, TAB_BAR_WIDTH, TAB_BAR_HEIGHT, BOX_DARKNESS));
+            Arrays.asList(TRAY_SIZE, DIM_TO, OPACITY, BLUR, TAB_BAR_WIDTH, TAB_BAR_HEIGHT, BOX_DARKNESS));
 
     /** The most digits a number row's field takes. */
     static final int MAX_NUMBER_DIGITS = 3;
@@ -970,7 +983,7 @@ public final class SettingsBackup {
 
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, TRAY_SIZE, CLEAN_RETURN, BURN_IN, BURN_IN_WAIT, DIM_TO, GRAY_OVER, DATE_STYLE, REELS_ORDER, HOLD_REACTION, COMMENTS_HEIGHT, WATCHED_KEEP, SHARE_ITEMS, POST_MENU_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, OPACITY, TAB_BAR_WIDTH, TAB_BAR_HEIGHT, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, HEADER_FONT, SEEN_KEEP, FOLD_POSTS, FOLD_COMMENTS, FOLD_REEL_CAPTIONS, BOX_DARKNESS, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, TRAY_SIZE, CLEAN_RETURN, BURN_IN, BURN_IN_WAIT, DIM_TO, GRAY_OVER, DATE_STYLE, REELS_ORDER, HOLD_REACTION, COMMENTS_HEIGHT, WATCHED_KEEP, SHARE_ITEMS, POST_MENU_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, OPACITY, BLUR, TAB_BAR_WIDTH, TAB_BAR_HEIGHT, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, HEADER_FONT, SEEN_KEEP, FOLD_POSTS, FOLD_COMMENTS, FOLD_REEL_CAPTIONS, BOX_DARKNESS, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY, VIDEO_BUFFER,
                     QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, REFRESH_RATE, NEW_ROW_MARK, ACCENT, ACCENT_CUSTOM, LOGO_EMOJI,
                     BADGE, LOGO, TAB));

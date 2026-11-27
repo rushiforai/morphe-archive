@@ -1,4 +1,4 @@
-rootProject.name = "instagram-notification-nudges"
+rootProject.name = "instagram-patches"
 
 pluginManagement {
     repositories {

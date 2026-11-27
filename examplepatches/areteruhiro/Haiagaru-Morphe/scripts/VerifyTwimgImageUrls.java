@@ -8,6 +8,8 @@ public final class VerifyTwimgImageUrls {
         if (!Objects.equals(expected, actual)) throw new AssertionError(input + " -> " + actual);
     }
     public static void main(String[] args) {
+        check("https://pbs.twimg.com/media/HTVwz6DaEAAis2z.webp?format=webp&name=large",
+                "https://pbs.twimg.com/media/HTVwz6DaEAAis2z?format=webp&name=large");
         String hostPath = "pbs.twimg.com/media/HUL_2IXaEAAne0T";
         String query = "?format=png&name=900x900";
         String expected = "https://" + hostPath + ".png" + query;

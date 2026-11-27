@@ -110,9 +110,9 @@ The `.mpp` carries both JVM classes (Desktop/CLI patcher) and a `classes.dex`
 
 ### Bundle structure
 
-- KICK: 9 entries — `SEYTTINGS`, `EMOTES`, `CHAT SIZE`, `CHAT TEXT SIZE`,
+- KICK: 11 entries — `SEYTTINGS`, `EMOTES`, `CHAT SIZE`, `CHAT TEXT SIZE`,
   `EXPAND CHAT`, `HIDE PINNED`, `SKIP 18+ WARNING`, `STOP ON MINIMIZE`,
-  `DEFAULT HOME DESTINATION`.
+  `DEFAULT HOME DESTINATION`, `CHAT BACKGROUND`, `DEFAULT SPLIT VIEW`.
 - Twitch: 8 entries — `SEYTTINGS`, `AMOLED`, `AD BLOCK`, `EMOTES`,
   `EXPAND CHAT`, `HIDE PINNED`, `SKIP 18+ WARNING`, `DEFAULT HOME TAB`.
 
@@ -138,7 +138,7 @@ Persistent switches live in `SharedPreferences`:
 
 | App | Preference file | Example keys |
 | --- | --- | --- |
-| KICK | `morphe_kicktv` | `emotes_enabled`, `chat_resize_enabled`, `chat_size_percent`, `chat_text_size_sp`, `chat_expand_enabled`, `hide_pinned_enabled`, `mature_auto_accept_enabled` |
+| KICK | `morphe_kicktv` | `emotes_enabled`, `emote_size_twitch`, `chat_resize_enabled`, `chat_size_percent`, `chat_text_size_sp`, `chat_expand_enabled`, `hide_pinned_enabled`, `mature_auto_accept_enabled`, `chat_amoled_enabled`, `chat_split_default_enabled` |
 | Twitch | `morphe_twitchtv` | `emotes_enabled`, `amoled_enabled`, `adblock_enabled`, `expand_chat_enabled`, `hide_pinned_enabled`, `mature_auto_accept_enabled` |
 
 ### Twitch is a WebView app
@@ -245,7 +245,10 @@ index 0 of `<init>`; `inject` at index 0 of the page callbacks.
 | Chat panel | `La79;` → `a(...)` (pinned card) / `b(...)` (message LazyColumn) / `c()V` (panel width) |
 | Player sidebar | `Lbn2;` (openSidebar, literal `0.7f`) and `Lmb;` (toggle, `0.7f`) |
 | Emote text pipeline | `Lvz3;` → `d(String)` and `a(...)`; URL builder `Lj40;` → `i(...)` with `chat_emotes_url` |
-| TextStyle | `Lvi4;` → `<clinit>` writing field `m`; sizes via `Ldh7;` → `m(I)J` |
+| Emote sizes (1.2.7) | `Lvz3.a`: unique `20.0f` / `12.0f` (third-party) and `const/16 0x14` / `0xc` (KICK native, `z3` branch); `Lj40.i`: own `20.0f` for CDN width |
+| Chat panel background (1.2.7) | `La79.d`: two `sget-wide ..., Lng4;->f:J` reads (split + overlay branch); overlay anchored by `sget-object ..., La57;->H:Lnh3;` |
+| Default chat mode (1.2.7) | `Lwc9`: `fieldAccess("Lhw0;", "B", "Lhw0;")` in `<init>(Lbo1;Lvu7;Lyu7;)V` and `a(Log1;)Ljava/lang/Object;`; `hw0.B` = OVERLAY_HALF (default), `hw0.D` = SIDE_PANEL |
+| TextStyle | `Lvi4;` → `<clinit>` writing field `m`; sizes via `Ldh7;` → `m(I)J`; font weight is `Ly23;->G:Ly23;` (600) in the `Lfv8;-><init>` call right before the `m` write, redirected to `y23.E` (400) for Twitch-like |
 | Mature dialog | `Lsz6;` → `i(...)` |
 | Splash start route | `Ldn0;` → `invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;` filtered by `const-string "home"` + `Lxs5;->b(String, Function1)` (last frame of the "VideoSplashScreen" effect) |
 
@@ -265,6 +268,17 @@ index 0 of `<init>`; `inject` at index 0 of the page callbacks.
 - KICK settings row: label replacement removes 3 instructions
   (`const` + `ai7.i(...)` + `move-result-object`) and must run **subtitle →
   title** (highest index first) because indexes shift after removal.
+- The row's **click** callback is parameter `p2`; `p3` is the focus callback.
+  `OpenSettings` must be installed on `p2` or the menu opens on hover.
+- Compose packs a Color as **ARGB shifted left 32 bits** (`gca.f(long)` does
+  `j << 32`). Returning an unshifted ARGB sets alpha to 0 (transparent).
+- When scaling a `const/high16` value whose register previously held another
+  type (e.g. a `Map`), **insert the helper call after the const**; replacing the
+  const with `invoke-static {vX}` makes the dex verifier reject the class.
+- KICK's native emotes use **int** dp constants (`const/16 0x14` / `0xc` →
+  `dh7.m(I)J`) in the `z3` branch of `vz3.a`; third-party emotes use float
+  constants in the other branch. Both must be patched for "emote size" to
+  cover all image emotes.
 - Injected helper calls must be `invoke-static` on a class that exists in the
   merged extension DEX; typos fail at runtime, not at build time.
 
@@ -355,22 +369,22 @@ Commands (run from the repo root):
 powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
 
 # bundle with a custom version
-powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.5
+powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.7
 
 # patched APKs (also rebuild the bundle)
 powershell -ExecutionPolicy Bypass -File scripts\build-kick-apk.ps1
 powershell -ExecutionPolicy Bypass -File scripts\build-twitch-apk.ps1
 
 # regenerate metadata + staging folder
-powershell -ExecutionPolicy Bypass -File scripts\generate-patches-list.ps1 -Version 1.2.5
+powershell -ExecutionPolicy Bypass -File scripts\generate-patches-list.ps1 -Version 1.2.7
 powershell -ExecutionPolicy Bypass -File scripts\prepare-remote.ps1 `
-    -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.5
+    -Owner nawszym -Repo sey-morphe-patches -Version 1.2.7
 
 # publish (needs network + git credentials)
 powershell -ExecutionPolicy Bypass -File scripts\publish-remote.ps1 `
-    -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.5
+    -Owner nawszym -Repo sey-morphe-patches -Version 1.2.7
 powershell -ExecutionPolicy Bypass -File scripts\publish-release.ps1 `
-    -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.5
+    -Owner nawszym -Repo sey-morphe-patches -Version 1.2.7
 ```
 
 APK builders sign with `build/kick-morphe.keystore` /
@@ -392,7 +406,7 @@ must be uninstalled first.
 
 ### Version bump checklist (six scripts + five tracked artefacts)
 
-The version `1.2.5` is hard-coded as a default in **six** scripts:
+The version `1.2.7` is hard-coded as a default in **six** scripts:
 
 - `scripts/build-patch.ps1`
 - `scripts/build-kick-apk.ps1`
@@ -405,7 +419,7 @@ The version `1.2.5` is hard-coded as a default in **six** scripts:
 Then update, in order:
 
 1. `CHANGELOG.md` — new `## <version> (YYYY-MM-DD)` section at the top.
-2. `README.md` — all `1.2.5`/`SeyMorphe-1.2.5.mpp` references (tables, build
+2. `README.md` — all `1.2.7`/`SeyMorphe-1.2.7.mpp` references (tables, build
    output, project layout, import instructions).
 3. Build → `dist/SeyMorphe-<version>.mpp`.
 4. **Copy the new bundle to the repo root** as `SeyMorphe-<version>.mpp` and
@@ -420,12 +434,12 @@ Then update, in order:
    `patches-bundle.json`, `SeyMorphe-<version>.mpp`.
 9. Publish (`publish-remote.ps1`, then `publish-release.ps1`).
 10. Verify
-    `https://raw.githubusercontent.com/seythegamer/sey-morphe-patches/main/CHANGELOG.md`
+    `https://raw.githubusercontent.com/nawszym/sey-morphe-patches/main/CHANGELOG.md`
     returns the new heading (Morphe only shows notes for repository sources).
 
 ### Changelog format (Morphe parses this)
 
-- One heading per release, newest first: `## 1.2.5 (2026-11-14)` — date is
+- One heading per release, newest first: `## 1.2.7 (2026-11-22)` — date is
   **required**.
 - Section headings: `### ✨ New Features`, `### 🐛 Bug Fixes`,
   `### ⚡ Performance`, `### 📝 Other`.
@@ -559,5 +573,5 @@ Read these before "fixing" anything:
 
 ---
 
-*Last full scan: repository state at bundle version 1.2.5, Morphe Desktop
+*Last full scan: repository state at bundle version 1.2.7, Morphe Desktop
 2.1.1, no Git binary on the host PATH, no Android SDK on the host PATH.*

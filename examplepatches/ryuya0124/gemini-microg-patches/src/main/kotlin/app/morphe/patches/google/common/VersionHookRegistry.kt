@@ -2,7 +2,10 @@ package app.morphe.patches.google.common
 
 import app.morphe.patches.google.common.versions.google177011
 import app.morphe.patches.google.common.versions.gemini10995038376
+import app.morphe.patches.google.common.versions.gemini101009090390
 import app.morphe.patches.google.common.versions.google177217
+import app.morphe.patches.google.common.versions.google177620
+import app.morphe.patches.google.common.versions.google177814
 import app.morphe.patcher.PackageMetadata
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
@@ -27,6 +30,10 @@ enum class HookId(val displayName: String) {
     MAIN_PROCESS_CHECK("アカウントストアのプロセス判定"),
     PACKAGE_CLONE_REDIRECT("クローンパッケージ参照"),
     CONVERSATION_UPDATE_WARNING("会話の更新要求警告"),
+    GEMINI_HAPTICS("Geminiの触覚フィードバック"),
+    GEMINI_HAPTICS_VIBRATOR("Geminiの波形振動"),
+    GEMINI_HAPTICS_COMPOSE("GeminiのCompose設定"),
+    GEMINI_HAPTICS_SETTINGS_LIST("Geminiの設定一覧"),
     ACCOUNT_SWITCH_LOCK_BYPASS("無効: アカウントロック省略"),
     ACCOUNT_SYNC_LOOP_FIX("無効: Binder 成功偽装"),
     ACCOUNT_CONVERT_FALLBACK("無効: 固定 AccountId")
@@ -67,7 +74,10 @@ data class AppVersionProfile(
 
 object VersionHookRegistry {
     // Add a new version file and register it here. Never widen a verified version to .*.
-    val profiles: List<AppVersionProfile> = listOf(google175418, google177011, google177217, gemini10958859967, gemini10995038376)
+    val profiles: List<AppVersionProfile> = listOf(
+        google175418, google177011, google177217, google177620, google177814,
+        gemini10958859967, gemini10995038376, gemini101009090390
+    )
 
     init {
         check(profiles.map { it.packageName to it.versionName }.distinct().size == profiles.size)
@@ -77,9 +87,11 @@ object VersionHookRegistry {
      * Morphe's displayed compatibility uses the same exact versions as the execution guard.
      * Unregistered versions are still refused by [requireProfile] at patch time.
      */
-    fun compatibility(vararg packageNames: String): Array<Compatibility> =
+    fun compatibility(vararg packageNames: String, hook: HookId? = null): Array<Compatibility> =
         packageNames.map { packageName ->
-            val versions = profiles.filter { it.packageName == packageName }.map { it.versionName }
+            val versions = profiles.filter {
+                it.packageName == packageName && (hook == null || it.hooks[hook]?.enabled == true)
+            }.map { it.versionName }
             check(versions.isNotEmpty()) { "No verified versions for $packageName" }
             Compatibility(
                 packageName = packageName,

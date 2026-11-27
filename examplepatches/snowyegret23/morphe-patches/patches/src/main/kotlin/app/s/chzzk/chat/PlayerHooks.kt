@@ -8,6 +8,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -17,7 +18,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 private const val COMMUNITY = "Lcom/navercorp/game/android/community/"
 private const val PLAYER = "Lcom/naver/prismplayer/player/PrismPlayer;"
 private const val COMPOSER = "Landroidx/compose/runtime/Composer;"
-private const val BUTTONS = "${COMMUNITY}core/feature/feature/player/ui/LivePlayerButtonsKt;"
+private val BytecodePatchContext.BUTTONS get() = chzzkType("${COMMUNITY}core/feature/feature/player/ui/LivePlayerButtonsKt;")
 
 internal val playerResources = resourcePatch {
     execute {
@@ -37,21 +38,36 @@ internal val playerResources = resourcePatch {
                 <path android:fillColor="#FFFFFFFF" android:pathData="M12,10 A2,2 0,1 1,12,14 A2,2 0,1 1,12,10"/>
             </vector>
         """.trimIndent())
+        // TV 1.5.0 removes the unused device drawables from the upstream resources.
+        if (packageMetadata.versionName == "1.5.0") {
+            for ((name, paths) in mapOf(
+                "pc" to listOf("M3 6.38c0-1.66 1.35-3 3-3h12c1.65 0 3 1.34 3 3v7.02c0 1.66-1.35 3.01-3 3.01H6c-1.65 0-3-1.35-3-3V6.37Zm3-1.3h12c0.71 0 1.3 0.58 1.3 1.3v7.02c0 0.72-0.59 1.31-1.3 1.31H6c-0.71 0-1.3-0.59-1.3-1.3V6.37c0-0.72 0.59-1.3 1.3-1.3Z", "M8.44 19.02c-0.47 0-0.85 0.39-0.85 0.86 0 0.46 0.38 0.85 0.85 0.85h8.03c0.46 0 0.85-0.39 0.85-0.86 0-0.46-0.39-0.85-0.85-0.85H8.44Z"),
+                "phone" to listOf("M14 17.15c0.47 0 0.85 0.38 0.85 0.85s-0.38 0.85-0.85 0.85h-4c-0.47 0-0.85-0.38-0.85-0.85s0.38-0.85 0.85-0.85h4Z", "M14.55 2.1c0.54 0 1 0 1.38 0.03 0.4 0.03 0.77 0.1 1.13 0.29 0.55 0.27 1 0.72 1.27 1.26 0.19 0.37 0.26 0.74 0.29 1.13 0.03 0.38 0.03 0.85 0.03 1.39v11.78c0 0.55 0 1.01-0.03 1.39-0.03 0.39-0.1 0.77-0.29 1.13-0.28 0.54-0.72 0.99-1.27 1.26-0.36 0.19-0.74 0.26-1.13 0.3-0.37 0.02-0.84 0.02-1.38 0.02h-5.1c-0.55 0-1.01 0-1.39-0.03-0.39-0.03-0.77-0.1-1.13-0.29-0.54-0.27-0.99-0.72-1.27-1.26-0.18-0.36-0.25-0.74-0.28-1.13-0.03-0.38-0.03-0.84-0.03-1.39V6.2c0-0.54 0-1 0.03-1.39 0.03-0.39 0.1-0.76 0.28-1.13C5.94 3.14 6.4 2.7 6.93 2.42 7.3 2.23 7.67 2.16 8.06 2.13 8.44 2.1 8.9 2.1 9.45 2.1h5.1Zm-5.1 1.7c-0.57 0-0.96 0-1.25 0.02C7.92 3.85 7.79 3.9 7.7 3.93 7.53 4.02 7.4 4.14 7.28 4.3l-0.1 0.17c-0.04 0.08-0.08 0.21-0.1 0.5C7.04 5.24 7.04 5.62 7.04 6.2v11.78c0 0.57 0 0.96 0.02 1.25 0.03 0.28 0.07 0.41 0.1 0.5l0.1 0.16c0.12 0.15 0.26 0.27 0.43 0.36 0.09 0.04 0.22 0.08 0.5 0.1 0.3 0.03 0.68 0.03 1.25 0.03h5.1c0.57 0 0.95 0 1.25-0.02 0.28-0.03 0.41-0.07 0.5-0.11 0.22-0.12 0.4-0.3 0.52-0.52 0.04-0.09 0.08-0.22 0.1-0.5 0.03-0.3 0.03-0.68 0.03-1.25V6.2c0-0.57 0-0.95-0.03-1.25L16.9 4.77c-0.01-0.11-0.03-0.18-0.05-0.24l-0.03-0.07c-0.12-0.23-0.3-0.41-0.53-0.53-0.08-0.04-0.21-0.08-0.5-0.1C15.5 3.8 15.13 3.8 14.56 3.8h-5.1Z"),
+                "ios" to listOf("M8.96 21.95c1.28 0 1.84-0.89 3.43-0.89 1.6 0 1.98 0.85 3.4 0.85 1.41 0 2.32-1.32 3.2-2.63 1-1.49 1.4-2.95 1.44-3.02-0.1-0.02-2.77-1.15-2.77-4.31 0-2.74 2.11-3.98 2.23-4.07-1.4-2.07-3.52-2.11-4.1-2.11-1.55 0-2.83 0.98-3.64 0.98-0.87 0-2.01-0.92-3.37-0.92-2.59 0-5.2 2.2-5.2 6.34 0 2.58 0.97 5.3 2.16 7.07 1.02 1.5 1.92 2.72 3.22 2.72v-0.01Zm3.29-16.43c0.93 0 2.1-0.65 2.8-1.51 0.63-0.8 1.1-1.9 1.1-3 0-0.14-0.02-0.3-0.05-0.4-1.04 0.04-2.3 0.71-3.04 1.62-0.6 0.7-1.14 1.78-1.14 2.89 0 0.16 0.02 0.32 0.05 0.38l0.28 0.02Z"),
+            )) {
+                get("res/drawable/s_chzzk_device_$name.xml").writeText("""
+                    <vector xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+                        ${paths.joinToString("\n") { "<path android:fillColor=\"#FFFFFFFF\" android:fillType=\"evenOdd\" android:pathData=\"$it\"/>" }}
+                    </vector>
+                """.trimIndent())
+            }
+        }
     }
 }
 
 internal fun BytecodePatchContext.addSeekHooks() {
-    val model = "${COMMUNITY}core/feature/feature/player/BasePlayerViewModel;"
+    val model = chzzkType("${COMMUNITY}core/feature/feature/player/BasePlayerViewModel;")
     val context = "Lcom/naver/prismplayer/ui/PrismUiContext;"
     val media = "Lcom/naver/prismplayer/Media;"
     for ((hook, position) in mapOf("seekToLive" to "catchUpPosition", "seekBack" to "rewindPosition")) {
         uiBridge(hook, 9, """
             if-eqz p0, :unavailable
             check-cast p0, $model
-            invoke-virtual {p0}, $model->${when (packageMetadata.versionName) { "1.3.0", "1.4.0" -> "y"; "3.17.0" -> "Q"; else -> "R" }}()$context
+            invoke-virtual {p0}, $model->${when (packageMetadata.versionName) { "1.5.0" -> "u"; "1.3.0", "1.4.0" -> "y"; "3.18.0" -> "I"; "3.17.0" -> "Q"; else -> "R" }}()$context
             move-result-object v0
             if-eqz v0, :unavailable
-            invoke-virtual {v0}, $context->${if (packageMetadata.versionName in setOf("3.17.0", "1.4.0")) "y" else "w"}()$PLAYER
+            invoke-virtual {v0}, $context->${if (packageMetadata.versionName in setOf("3.17.0", "3.18.0", "1.4.0", "1.5.0")) "y" else "w"}()$PLAYER
             move-result-object v0
             if-eqz v0, :unavailable
             invoke-interface {v0}, $PLAYER->isPlayingAd()Z
@@ -93,8 +109,8 @@ internal fun BytecodePatchContext.addSeekHooks() {
 
 internal fun BytecodePatchContext.addPlayerHooks() {
     addSeekHooks()
-    val semantic = classDefBy("${COMMUNITY}core/ui/ui/image/SemanticImageKt;").methods.single { it.name == "c" }
-    val modifierField = if (packageMetadata.versionName in setOf("3.16.0", "3.17.0")) "V" else "Z"
+    val semantic = classDefBy(chzzkType("${COMMUNITY}core/ui/ui/image/SemanticImageKt;")).methods.single { it.name == "c" }
+    val modifierField = if (packageMetadata.versionName in setOf("3.16.0", "3.17.0", "3.18.0")) "V" else "Z"
     for (rewind in listOf(true, false)) {
         val action = if (rewind) "Rewind" else "CatchUp"
         val prefix = if (rewind) "rewind" else "catchUp"
@@ -155,7 +171,7 @@ internal fun BytecodePatchContext.addPlayerHooks() {
     buttons.methods.add(controls)
     var added = 0
     classDefForEach { type ->
-        if (!type.type.startsWith("${COMMUNITY}app/ui/overlayplayerend/live/")) return@classDefForEach
+        if (packageMetadata.versionName != "3.18.0" && !type.type.startsWith("${COMMUNITY}app/ui/overlayplayerend/live/")) return@classDefForEach
         for (method in type.methods) {
             val calls = method.implementation?.instructions?.withIndex()?.filter {
                 it.value.getReference<MethodReference>()?.smaliReference == fullscreen.smaliReference
@@ -191,10 +207,10 @@ internal fun BytecodePatchContext.addPlayerHooks() {
 }
 
 private fun BytecodePatchContext.addPlayerMenuEntry() {
-    val image = "${COMMUNITY}core/feature/feature/popup/common/Selectable${'$'}Image;"
-    val depth = "${COMMUNITY}core/feature/feature/popup/bottomsheet/DepthItem;"
-    val parent = "${COMMUNITY}core/feature/feature/popup/bottomsheet/DepthParent;"
-    val current = packageMetadata.versionName in setOf("3.16.0", "3.17.0")
+    val image = chzzkType("${COMMUNITY}core/feature/feature/popup/common/Selectable${'$'}Image;")
+    val depth = chzzkType("${COMMUNITY}core/feature/feature/popup/bottomsheet/DepthItem;")
+    val parent = chzzkType("${COMMUNITY}core/feature/feature/popup/bottomsheet/DepthParent;")
+    val current = packageMetadata.versionName in setOf("3.16.0", "3.17.0", "3.18.0")
     val ctor = classDefBy(image).methods.single {
         it.name == "<init>" && it.parameterTypes.size == (if (current) 13 else 12) && it.parameterTypes[2] == "Ljava/lang/Integer;"
     }
@@ -232,11 +248,11 @@ private fun BytecodePatchContext.addPlayerMenuEntry() {
         invoke-interface {p0, v0, v1}, Ljava/util/List;->add(ILjava/lang/Object;)V
         return-void
     """)
-    val menuOwner = if (packageMetadata.versionName == "3.17.0") "Lz1;" else if (packageMetadata.versionName in listOf("3.15.0", "3.15.2", "3.16.0")) "Lt1;" else "Lq1;"
-    val menu = mutableClassDefBy(menuOwner).methods.single { it.name == if (packageMetadata.versionName == "3.17.0") "a" else "invoke" }
+    val menuOwner = if (packageMetadata.versionName == "3.18.0") "La4;" else if (packageMetadata.versionName == "3.17.0") "Lz1;" else if (packageMetadata.versionName in listOf("3.15.0", "3.15.2", "3.16.0")) "Lt1;" else "Lq1;"
+    val menu = mutableClassDefBy(menuOwner).methods.single { it.name == if (packageMetadata.versionName in setOf("3.17.0", "3.18.0")) "a" else "invoke" }
     val call = menu.implementation!!.instructions.withIndex().single {
         it.value.getReference<MethodReference>()?.let { ref ->
-            ref.name == "<init>" && ref.definingClass == "${COMMUNITY}core/feature/feature/popup/bottomsheet/BottomSheetModelBase${'$'}DepthSelect;"
+            ref.name == "<init>" && ref.definingClass == chzzkType("${COMMUNITY}core/feature/feature/popup/bottomsheet/BottomSheetModelBase${'$'}DepthSelect;")
         } == true
     }
     val list = (call.value as FiveRegisterInstruction).registerD

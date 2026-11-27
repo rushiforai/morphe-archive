@@ -64,11 +64,13 @@ public final class MoreEntry {
                 if (rowClass == null && printed.startsWith(ROW_PRINT)) rowClass = item.getClass();
             }
             if (rowClass == null) return items;
+            // MoreMenuItemUiModel(key, enabled, badge, status, subtitle, defaults mask): its only
+            // constructor; mask 0 takes the four values as given.
             for (Constructor<?> constructor : rowClass.getConstructors()) {
                 Class<?>[] types = constructor.getParameterTypes();
-                if (types.length == 5 && types[0] == ourKey.getClass() && types[1] == boolean.class) {
+                if (types.length == 6 && types[0] == ourKey.getClass() && types[1] == boolean.class && types[5] == int.class) {
                     List result = new ArrayList(items);
-                    result.add(0, constructor.newInstance(ourKey, true, null, null, null));
+                    result.add(0, constructor.newInstance(ourKey, true, null, null, null, 0));
                     return result;
                 }
             }

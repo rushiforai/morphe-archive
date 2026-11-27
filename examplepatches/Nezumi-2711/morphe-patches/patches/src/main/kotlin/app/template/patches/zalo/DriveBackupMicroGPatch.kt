@@ -13,15 +13,19 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -210,6 +214,7 @@ val driveBackupMicroGPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.DRIVE_BACKUP_VIA_MICROG)
         check(BackupConfiguration.matchAll(1..1).size == 1)
         check(BackupEligibility.matchAll(1..1).size == 1)
         enableDriveMediaBackup(BackupConfiguration.method)
@@ -242,6 +247,7 @@ val driveBackupMicroGPatch = bytecodePatch(
                 m.invokes { it.name == "getAccountsByType" } && m.implementation!!.tryBlocks.isEmpty()
         }.name
         val counts = mutableMapOf("binding" to 0, "type" to 0, "picker" to 0, "refresh" to 0, "result" to 0, "launch" to 0)
+        val modified = LinkedHashSet<MutableMethod>()
         classDefForEach { classDef ->
             if (classDef.type !in owners) return@classDefForEach
             val mutableClass = mutableClassDefBy(classDef)
@@ -254,6 +260,7 @@ val driveBackupMicroGPatch = bytecodePatch(
                 if (picker) {
                     replaceAccountPicker(method, classDef.type)
                     counts["picker"] = counts.getValue("picker") + 1
+                    modified += method
                     return@forEach
                 }
                 original.implementation!!.instructions.forEachIndexed { index, instruction ->
@@ -263,12 +270,15 @@ val driveBackupMicroGPatch = bytecodePatch(
                     if (literal == "authAccount" && classDef.type == SYNC_VIEW && original.name == "onActivityResult") {
                         method.replaceInstruction(index, "sget-object v$register, Landroid/accounts/AccountManager;->KEY_ACCOUNT_NAME:Ljava/lang/String;")
                         counts["result"] = counts.getValue("result") + 1
+                        modified += method
                     } else if (literal == "com.google.android.gms" && classDef.type in authOwners) {
                         method.replaceInstruction(index, "const-string v$register, \"app.revanced.android.gms\"")
                         counts["binding"] = counts.getValue("binding") + 1
+                        modified += method
                     } else if (literal == "com.google" && classDef.type in scopedAccounts + authOwners) {
                         method.replaceInstruction(index, "const-string v$register, \"app.revanced\"")
                         counts["type"] = counts.getValue("type") + 1
+                        modified += method
                     }
                     val call = reference as? MethodReference
                     if (classDef.type == SYNC_VIEW && original.name == "onActivityResult" &&
@@ -277,6 +287,7 @@ val driveBackupMicroGPatch = bytecodePatch(
                         check(invoke.registerCount == 2)
                         method.replaceInstruction(index, "invoke-static {v${invoke.registerC}, v${invoke.registerD}}, $MICROG_SUPPORT->scheduleAccountRefresh(Ljava/lang/Object;Ljava/lang/String;)V")
                         counts["refresh"] = counts.getValue("refresh") + 1
+                        modified += method
                     }
                 }
                 if (classDef.type == "Lcom/zing/zalo/ui/ZaloLauncherActivity;" && original.name == "onCreate" &&
@@ -284,6 +295,7 @@ val driveBackupMicroGPatch = bytecodePatch(
                     check(method.implementation!!.registerCount > 2)
                     method.addInstructions(0, "move-object/from16 v0, p0\ninvoke-static {v0}, $MICROG_SUPPORT->checkGmsCore(Landroid/app/Activity;)Z\nmove-result v0")
                     counts["launch"] = counts.getValue("launch") + 1
+                    modified += method
                 }
             }
         }
@@ -292,6 +304,9 @@ val driveBackupMicroGPatch = bytecodePatch(
         }
         wrapDriveTokenRefresh(DriveTokenGetter.also { check(it.matchAll(1..1).size == 1) }.method,
             DriveTokenRefresher.classDef.type, DriveTokenRefresher.method.name)
+        wrapDriveGetToken(DriveTokenRefresher.method, GoogleAuthTokenService.originalClassDef)
+        registerHooks(PatchId.DRIVE_BACKUP_VIA_MICROG, BackupConfiguration.method, eligibility, *modified.toTypedArray(),
+            DriveTokenGetter.method, DriveTokenRefresher.method)
     }
 }
 
@@ -310,4 +325,61 @@ private fun wrapDriveTokenRefresh(getter: MutableMethod, refresherType: String, 
     check(invoke.registerCount == 2) { "Unexpected Drive token refresh invoke" }
     getter.replaceInstruction(index, "invoke-static {v${invoke.registerC}, v${invoke.registerD}}, " +
         "$DRIVE_TOKEN_RECOVERY->refresh(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;")
+}
+
+// GoogleAuthUtil.getToken(Context, Account, String[, Bundle]); 26.11.01 inlines the 3-arg overload into the
+// refresher, which then calls the Bundle overload directly.
+private val GET_TOKEN_SIGNATURES = setOf(
+    "Landroid/content/Context;Landroid/accounts/Account;Ljava/lang/String;",
+    "Landroid/content/Context;Landroid/accounts/Account;Ljava/lang/String;Landroid/os/Bundle;",
+)
+
+// Minimum Play services version (17895000) GoogleAuthUtil requires before using its GoogleApi token client.
+private const val GMS_TOKEN_API_MIN_VERSION = 17895000L
+
+// Routes the refresher's GoogleAuthUtil.getToken calls through DriveTokenRecovery.getToken, which calls the
+// original and rethrows its exception unchanged but logs the cause that Zalo's catch blocks swallow.
+private fun BytecodePatchContext.wrapDriveGetToken(refresher: MutableMethod, authUtil: ClassDef) {
+    fun isStatic(m: Method) = m.accessFlags and AccessFlags.STATIC.value != 0
+    val getTokens = authUtil.methods.filter {
+        isStatic(it) && it.returnType == "Ljava/lang/String;" && it.parameterTypes.joinToString("") in GET_TOKEN_SIGNATURES
+    }.map { it.name to it.parameterTypes.joinToString("") }.toSet()
+    val calls = refresher.implementation!!.instructions.withIndex().filter { (_, instruction) ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        instruction.opcode == Opcode.INVOKE_STATIC && reference?.definingClass == authUtil.type &&
+            reference.returnType == "Ljava/lang/String;" &&
+            (reference.name to reference.parameterTypes.joinToString("")) in getTokens
+    }
+    check(calls.size == 2) { "Expected two Drive getToken calls, found ${calls.size}" }
+    val targets = calls.map { (_, instruction) ->
+        ((instruction as ReferenceInstruction).reference as MethodReference).let { it.name to it.parameterTypes.joinToString("") }
+    }.toSet()
+    check(targets.size == 1) { "Drive getToken calls use different overloads: $targets" }
+    val (getTokenName, parameters) = targets.single()
+    calls.reversed().forEach { (index, instruction) ->
+        val invoke = instruction as FiveRegisterInstruction
+        val registers = listOf(invoke.registerC, invoke.registerD, invoke.registerE, invoke.registerF)
+            .take(invoke.registerCount)
+        check(invoke.registerCount == registers.size && registers.size in 3..4) { "Unexpected Drive getToken invoke" }
+        refresher.replaceInstruction(index, "invoke-static {${registers.joinToString { "v$it" }}}, " +
+            "$DRIVE_TOKEN_RECOVERY->getToken($parameters)Ljava/lang/String;")
+    }
+
+    // Bake the GoogleAuthUtil class, getToken overload and token-path check into the extension for the
+    // failure log. The path check is optional: without it the log says path=unknown.
+    val pathCheck = authUtil.methods.filter { method ->
+        isStatic(method) && method.returnType == "Z" && method.parameterTypes.joinToString("") == "Landroid/content/Context;" &&
+            method.implementation?.instructions?.any {
+                (it as? WideLiteralInstruction)?.wideLiteral == GMS_TOKEN_API_MIN_VERSION
+            } == true
+    }
+    val recovery = mutableClassDefBy(DRIVE_TOKEN_RECOVERY)
+    fun bakeString(stub: String, value: String) {
+        val method = recovery.methods.single { it.name == stub && it.parameterTypes.isEmpty() }
+        repeat(method.implementation!!.instructions.size) { method.implementation!!.removeInstruction(0) }
+        method.addInstructions(0, "const-string v0, \"$value\"\nreturn-object v0")
+    }
+    bakeString("googleAuthUtilClass", authUtil.type.removePrefix("L").removeSuffix(";").replace('/', '.'))
+    bakeString("googleAuthGetTokenMethod", getTokenName)
+    if (pathCheck.size == 1) bakeString("googleAuthPathMethod", pathCheck.single().name)
 }

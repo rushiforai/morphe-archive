@@ -939,6 +939,15 @@ private fun BytecodePatchContext.patchEdgeArchiveToolbar(
     } else {
         "Ljp/syoboi/a2chMate/feature/toolbar/ToolbarDefault;"
     }
+    if (legacyToolbar) {
+        val parser=mutableClassDefBy(toolbarModelType).methods.single {
+            it.name=="<init>" && it.parameterTypes.map(CharSequence::toString)==listOf("Ljava/lang/String;")
+        }
+        parser.addInstructions(0,"""
+            invoke-static {p1}, Lapp/morphe/extension/chmate/ToolbarSettingsCompat;->for191(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p1
+        """.trimIndent())
+    }
 
     fun MutableMethod.wrapModelReturns(includeMarkAllRead: Boolean = false, favorites: Boolean = false) {
         val indexes = implementation?.instructions
@@ -5563,7 +5572,7 @@ val haiagaruPatch = resourcePatch(
                 "haiagaru_direct_board", "haiagaru_direct_board_2", "haiagaru_direct_board_3", "haiagaru_direct_board_4", "haiagaru_direct_board_5", "haiagaru_direct_board_6", "haiagaru_direct_board_7", "haiagaru_direct_board_8" -> "M3,3h10v2H5v14h14v-8h2v10H3zM14,3h7v7h-2V6.4l-8.3,8.3 -1.4,-1.4L17.6,5H14z"
                 "haiagaru_response_notes" -> "M4,3h12l4,4v14H4zM6,5v14h12V8h-4V5zM8,10h8v2H8zM8,14h8v2H8z"
                 "haiagaru_response_select" ->
-                    "M19,3H5a2,2 0,0 0,-2 2v14a2,2 0,0 0,2 2h14a2,2 0,0 0,2 -2V5a2,2 0,0 0,-2 -2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.58L19,8z"
+                    "M3,3h18v18H3zM5,5v14h14V5zM10,17l-4,-4 1.4,-1.4L10,14.2l6.6,-6.6L18,9z"
                 "haiagaru_stock_posting" ->
                     "M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75zM20.71,7.04a1,1 0,0 0,0 -1.41l-2.34,-2.34a1,1 0,0 0,-1.41 0l-1.83,1.83 3.75,3.75zM13,19h8v2h-8z"
                 "haiagaru_refresh_open_tabs" ->

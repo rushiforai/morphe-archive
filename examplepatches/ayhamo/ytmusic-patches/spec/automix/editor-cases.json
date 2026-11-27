@@ -1,0 +1,4654 @@
+{
+ "notes": "editor.md: every preset and lane shape at a window of D seconds and a beat of beatSec (null: beat match Off) → the curves both engines play (plan.schema.json curves; seconds from the window start). windows: a saved position (override.schema.json $defs.position) on a song grid {downbeatSec, beatSec} → song seconds. expect null: the override is refused (Auto plays). plans: an override (pick) on two steady songs {bpm, sec, downbeatSec} (every beat sure, flat energy, intro 0, outro 20 s before the end), planned at pos with earliest = pos + 4.5 s (a fixture input every runner passes as given, not the platform's own lead: editor.md §6) on Automix engine 2 (Classic) or 3 (v2) → the window played and glide (the plan carries one) and kickLock (Automix v2 only, kickLockAllowed: may its kick lock move the mix-in). An override with a speed (spotify-mixes.md rule 10) is planned with that speed, and its expect adds outRate, rate, speedOut and speedIn.",
+ "curves": [
+  {
+   "name": "preset smooth, 8 bars at 120 BPM",
+   "override": {
+    "preset": "smooth"
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       1,
+       0.995185
+      ],
+      [
+       2,
+       0.980785
+      ],
+      [
+       3,
+       0.95694
+      ],
+      [
+       4,
+       0.92388
+      ],
+      [
+       5,
+       0.881921
+      ],
+      [
+       6,
+       0.83147
+      ],
+      [
+       7,
+       0.77301
+      ],
+      [
+       8,
+       0.707107
+      ],
+      [
+       9,
+       0.634393
+      ],
+      [
+       10,
+       0.55557
+      ],
+      [
+       11,
+       0.471397
+      ],
+      [
+       12,
+       0.382683
+      ],
+      [
+       13,
+       0.290285
+      ],
+      [
+       14,
+       0.19509
+      ],
+      [
+       15,
+       0.098017
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       7.75,
+       0
+      ],
+      [
+       8.25,
+       -18
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       1,
+       0.098017
+      ],
+      [
+       2,
+       0.19509
+      ],
+      [
+       3,
+       0.290285
+      ],
+      [
+       4,
+       0.382683
+      ],
+      [
+       5,
+       0.471397
+      ],
+      [
+       6,
+       0.55557
+      ],
+      [
+       7,
+       0.634393
+      ],
+      [
+       8,
+       0.707107
+      ],
+      [
+       9,
+       0.77301
+      ],
+      [
+       10,
+       0.83147
+      ],
+      [
+       11,
+       0.881921
+      ],
+      [
+       12,
+       0.92388
+      ],
+      [
+       13,
+       0.95694
+      ],
+      [
+       14,
+       0.980785
+      ],
+      [
+       15,
+       0.995185
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       7.75,
+       -18
+      ],
+      [
+       8.25,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "preset rise, 8 bars at 120 BPM",
+   "override": {
+    "preset": "rise"
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       13.75,
+       0
+      ],
+      [
+       14.25,
+       -18
+      ]
+     ],
+     "highpassHz": [
+      [
+       0,
+       20
+      ],
+      [
+       16,
+       1000
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       13.75,
+       -18
+      ],
+      [
+       14.25,
+       0
+      ]
+     ],
+     "lowpassHz": [
+      [
+       0,
+       400
+      ],
+      [
+       16,
+       20000
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "preset blend, 8 bars at 120 BPM",
+   "override": {
+    "preset": "blend"
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       7.75,
+       0
+      ],
+      [
+       8.25,
+       -18
+      ]
+     ],
+     "highDb": [
+      [
+       8,
+       0
+      ],
+      [
+       16,
+       -18
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       7.75,
+       -18
+      ],
+      [
+       8.25,
+       0
+      ]
+     ],
+     "highDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       8,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "preset wave, 8 bars at 120 BPM",
+   "override": {
+    "preset": "wave"
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       7.75,
+       0
+      ],
+      [
+       8.25,
+       -18
+      ]
+     ],
+     "lowpassHz": [
+      [
+       8,
+       20000
+      ],
+      [
+       16,
+       400
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       7.75,
+       -18
+      ],
+      [
+       8.25,
+       0
+      ]
+     ],
+     "lowpassHz": [
+      [
+       0,
+       400
+      ],
+      [
+       8,
+       20000
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "preset melt, 8 bars at 120 BPM",
+   "override": {
+    "preset": "melt"
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       8,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       7.75,
+       0
+      ],
+      [
+       8.25,
+       -18
+      ]
+     ],
+     "highpassHz": [
+      [
+       8,
+       20
+      ],
+      [
+       16,
+       1000
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       8,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       7.75,
+       -18
+      ],
+      [
+       8.25,
+       0
+      ]
+     ],
+     "highpassHz": [
+      [
+       0,
+       1000
+      ],
+      [
+       8,
+       20
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "preset slam, 8 bars at 120 BPM",
+   "override": {
+    "preset": "slam"
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       8,
+       1
+      ],
+      [
+       8.008,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       8,
+       0
+      ],
+      [
+       8.008,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "volume smooth",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "smooth",
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       1,
+       0.995185
+      ],
+      [
+       2,
+       0.980785
+      ],
+      [
+       3,
+       0.95694
+      ],
+      [
+       4,
+       0.92388
+      ],
+      [
+       5,
+       0.881921
+      ],
+      [
+       6,
+       0.83147
+      ],
+      [
+       7,
+       0.77301
+      ],
+      [
+       8,
+       0.707107
+      ],
+      [
+       9,
+       0.634393
+      ],
+      [
+       10,
+       0.55557
+      ],
+      [
+       11,
+       0.471397
+      ],
+      [
+       12,
+       0.382683
+      ],
+      [
+       13,
+       0.290285
+      ],
+      [
+       14,
+       0.19509
+      ],
+      [
+       15,
+       0.098017
+      ],
+      [
+       16,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       1,
+       0.098017
+      ],
+      [
+       2,
+       0.19509
+      ],
+      [
+       3,
+       0.290285
+      ],
+      [
+       4,
+       0.382683
+      ],
+      [
+       5,
+       0.471397
+      ],
+      [
+       6,
+       0.55557
+      ],
+      [
+       7,
+       0.634393
+      ],
+      [
+       8,
+       0.707107
+      ],
+      [
+       9,
+       0.77301
+      ],
+      [
+       10,
+       0.83147
+      ],
+      [
+       11,
+       0.881921
+      ],
+      [
+       12,
+       0.92388
+      ],
+      [
+       13,
+       0.95694
+      ],
+      [
+       14,
+       0.980785
+      ],
+      [
+       15,
+       0.995185
+      ],
+      [
+       16,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "volume crossfade",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "volume overlap",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "overlap",
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "volume cutInFadeOut",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "cutInFadeOut",
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       0.008,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "volume fadeInCutOut",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "fadeInCutOut",
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       15.992,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "volume centerCut",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "centerCut",
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       8,
+       1
+      ],
+      [
+       8.008,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       8,
+       0
+      ],
+      [
+       8.008,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "eq centerBassSwap",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "centerBassSwap",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       7.75,
+       0
+      ],
+      [
+       8.25,
+       -18
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       7.75,
+       -18
+      ],
+      [
+       8.25,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "eq endBassSwap",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "endBassSwap",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       13.75,
+       0
+      ],
+      [
+       14.25,
+       -18
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       13.75,
+       -18
+      ],
+      [
+       14.25,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "eq threeBandFade",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "threeBandFade",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       7.75,
+       0
+      ],
+      [
+       8.25,
+       -18
+      ]
+     ],
+     "highDb": [
+      [
+       8,
+       0
+      ],
+      [
+       16,
+       -18
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       7.75,
+       -18
+      ],
+      [
+       8.25,
+       0
+      ]
+     ],
+     "highDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       8,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "eq quickBassCut",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "quickBassCut",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       0
+      ],
+      [
+       0.5,
+       -18
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "effect lpOut",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "none",
+     "effect": "lpOut"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "lowpassHz": [
+      [
+       0,
+       20000
+      ],
+      [
+       16,
+       400
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "effect hpIn",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "none",
+     "effect": "hpIn"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "highpassHz": [
+      [
+       0,
+       1000
+      ],
+      [
+       8,
+       20
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "effect lpBoth",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "none",
+     "effect": "lpBoth"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "lowpassHz": [
+      [
+       8,
+       20000
+      ],
+      [
+       16,
+       400
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "lowpassHz": [
+      [
+       0,
+       400
+      ],
+      [
+       8,
+       20000
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "effect hpBoth",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "none",
+     "effect": "hpBoth"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "highpassHz": [
+      [
+       8,
+       20
+      ],
+      [
+       16,
+       1000
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "highpassHz": [
+      [
+       0,
+       1000
+      ],
+      [
+       8,
+       20
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "effect lpInHpOut",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "crossfade",
+     "eq": "none",
+     "effect": "lpInHpOut"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": {
+    "durationSec": 16,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "highpassHz": [
+      [
+       0,
+       20
+      ],
+      [
+       16,
+       1000
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "lowpassHz": [
+      [
+       0,
+       400
+      ],
+      [
+       16,
+       20000
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "slam, 2 bars at 128 BPM: the cut ramp is 8 ms",
+   "override": {
+    "preset": "slam"
+   },
+   "D": 3.75,
+   "beatSec": 0.46875,
+   "expect": {
+    "durationSec": 3.75,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       1.875,
+       1
+      ],
+      [
+       1.883,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       1.875,
+       0
+      ],
+      [
+       1.883,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "smooth with beat match off: the swap is 2% of the window either side",
+   "override": {
+    "preset": "smooth"
+   },
+   "D": 10,
+   "beatSec": null,
+   "expect": {
+    "durationSec": 10,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       0.625,
+       0.995185
+      ],
+      [
+       1.25,
+       0.980785
+      ],
+      [
+       1.875,
+       0.95694
+      ],
+      [
+       2.5,
+       0.92388
+      ],
+      [
+       3.125,
+       0.881921
+      ],
+      [
+       3.75,
+       0.83147
+      ],
+      [
+       4.375,
+       0.77301
+      ],
+      [
+       5,
+       0.707107
+      ],
+      [
+       5.625,
+       0.634393
+      ],
+      [
+       6.25,
+       0.55557
+      ],
+      [
+       6.875,
+       0.471397
+      ],
+      [
+       7.5,
+       0.382683
+      ],
+      [
+       8.125,
+       0.290285
+      ],
+      [
+       8.75,
+       0.19509
+      ],
+      [
+       9.375,
+       0.098017
+      ],
+      [
+       10,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       4.8,
+       0
+      ],
+      [
+       5.2,
+       -18
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       0.625,
+       0.098017
+      ],
+      [
+       1.25,
+       0.19509
+      ],
+      [
+       1.875,
+       0.290285
+      ],
+      [
+       2.5,
+       0.382683
+      ],
+      [
+       3.125,
+       0.471397
+      ],
+      [
+       3.75,
+       0.55557
+      ],
+      [
+       4.375,
+       0.634393
+      ],
+      [
+       5,
+       0.707107
+      ],
+      [
+       5.625,
+       0.77301
+      ],
+      [
+       6.25,
+       0.83147
+      ],
+      [
+       6.875,
+       0.881921
+      ],
+      [
+       7.5,
+       0.92388
+      ],
+      [
+       8.125,
+       0.95694
+      ],
+      [
+       8.75,
+       0.980785
+      ],
+      [
+       9.375,
+       0.995185
+      ],
+      [
+       10,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       4.8,
+       -18
+      ],
+      [
+       5.2,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "auto: the planner keeps its own curves",
+   "override": {
+    "preset": "auto"
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": null
+  },
+  {
+   "name": "loop: the loop mix keeps its own curves",
+   "override": {
+    "preset": "loop"
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": null
+  },
+  {
+   "name": "custom with an unknown shape: refused",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": "wobble",
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "D": 16,
+   "beatSec": 0.5,
+   "expect": null
+  },
+  {
+   "name": "a zero-length window: refused",
+   "override": {
+    "preset": "smooth"
+   },
+   "D": 0,
+   "beatSec": 0.5,
+   "expect": null
+  }
+ ],
+ "windows": [
+  {
+   "name": "on a downbeat",
+   "pos": {
+    "bar": 16,
+    "sec": 33.25
+   },
+   "grid": {
+    "downbeatSec": 1.25,
+    "beatSec": 0.5
+   },
+   "expect": {
+    "sec": 33.25,
+    "moved": false,
+    "snapped": true
+   }
+  },
+  {
+   "name": "a beat in, nudged +30 ms",
+   "pos": {
+    "bar": 16,
+    "beat": 1,
+    "nudgeMs": 30,
+    "sec": 33.78
+   },
+   "grid": {
+    "downbeatSec": 1.25,
+    "beatSec": 0.5
+   },
+   "expect": {
+    "sec": 33.78,
+    "moved": false,
+    "snapped": true
+   }
+  },
+  {
+   "name": "nudged -2000 ms (the limit)",
+   "pos": {
+    "bar": 16,
+    "nudgeMs": -2000,
+    "sec": 31.25
+   },
+   "grid": {
+    "downbeatSec": 1.25,
+    "beatSec": 0.5
+   },
+   "expect": {
+    "sec": 31.25,
+    "moved": false,
+    "snapped": true
+   }
+  },
+  {
+   "name": "before the first downbeat",
+   "pos": {
+    "bar": -1,
+    "sec": -0.75
+   },
+   "grid": {
+    "downbeatSec": 1.25,
+    "beatSec": 0.5
+   },
+   "expect": {
+    "sec": -0.75,
+    "moved": false,
+    "snapped": true
+   }
+  },
+  {
+   "name": "a re-analysis moved the grid 20 ms: the bar holds",
+   "pos": {
+    "bar": 16,
+    "sec": 33.25
+   },
+   "grid": {
+    "downbeatSec": 1.27,
+    "beatSec": 0.5
+   },
+   "expect": {
+    "sec": 33.27,
+    "moved": false,
+    "snapped": true
+   }
+  },
+  {
+   "name": "a re-analysis moved the grid half a bar: the saved seconds snap to the new grid",
+   "pos": {
+    "bar": 16,
+    "sec": 33.25
+   },
+   "grid": {
+    "downbeatSec": 2.25,
+    "beatSec": 0.5
+   },
+   "expect": {
+    "sec": 34.25,
+    "moved": true,
+    "snapped": true,
+    "bar": 16
+   }
+  },
+  {
+   "name": "a re-analysis changed the tempo: the saved seconds snap to the new grid",
+   "pos": {
+    "bar": 16,
+    "sec": 33.25
+   },
+   "grid": {
+    "downbeatSec": 1.25,
+    "beatSec": 0.6
+   },
+   "expect": {
+    "sec": 32.45,
+    "moved": true,
+    "snapped": true,
+    "bar": 13
+   }
+  },
+  {
+   "name": "no grid (beat match off or a weak grid): the saved seconds as they are",
+   "pos": {
+    "bar": 16,
+    "nudgeMs": 10,
+    "sec": 33.26
+   },
+   "grid": null,
+   "expect": {
+    "sec": 33.26,
+    "moved": false,
+    "snapped": false
+   }
+  }
+ ],
+ "plans": [
+  {
+   "name": "Slam with beat match Off: the pair's own length (no preset sets one)",
+   "engine": 3,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 126,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 20,
+   "override": {
+    "v": 1,
+    "preset": "slam",
+    "beatMatch": "off"
+   },
+   "expect": {
+    "style": "crossfade",
+    "bars": 0,
+    "durationSec": 12,
+    "mixOutTrackTime": 187.7,
+    "mixInTrackTime": 0,
+    "glide": false,
+    "kickLock": false,
+    "warnings": []
+   }
+  },
+  {
+   "name": "Off with 8 bars: songs at their own speed",
+   "engine": 3,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 126,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 20,
+   "override": {
+    "v": 1,
+    "beatMatch": "off",
+    "bars": 8
+   },
+   "expect": {
+    "style": "crossfade",
+    "bars": 0,
+    "durationSec": 16,
+    "mixOutTrackTime": 183.7,
+    "mixInTrackTime": 0,
+    "glide": false,
+    "kickLock": false,
+    "warnings": []
+   }
+  },
+  {
+   "name": "a preset with no window: the kick lock may move the mix-in",
+   "engine": 3,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 20,
+   "override": {
+    "v": 1,
+    "preset": "blend",
+    "bars": 8
+   },
+   "expect": {
+    "style": "blend",
+    "bars": 8,
+    "durationSec": 16,
+    "mixOutTrackTime": 180.4,
+    "mixInTrackTime": 0.4,
+    "glide": false,
+    "kickLock": true,
+    "warnings": [
+     "no intro in the next song to blend over"
+    ]
+   }
+  },
+  {
+   "name": "a saved window: played where saved, the kick lock leaves the mix-in",
+   "engine": 3,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 20,
+   "override": {
+    "v": 1,
+    "preset": "blend",
+    "bars": 8,
+    "window": {
+     "out": {
+      "bar": 80,
+      "sec": 160.4
+     },
+     "in": {
+      "bar": 8,
+      "nudgeMs": 20,
+      "sec": 16.42
+     }
+    }
+   },
+   "expect": {
+    "style": "blend",
+    "bars": 8,
+    "durationSec": 16,
+    "mixOutTrackTime": 160.4,
+    "mixInTrackTime": 16.42,
+    "glide": false,
+    "kickLock": false,
+    "warnings": []
+   }
+  },
+  {
+   "name": "a saved mix-out past the end: back onto the last downbeat that fits",
+   "engine": 3,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 20,
+   "override": {
+    "v": 1,
+    "preset": "blend",
+    "bars": 8,
+    "window": {
+     "out": {
+      "bar": 95,
+      "sec": 190.4
+     },
+     "in": {
+      "bar": 8,
+      "sec": 16.4
+     }
+    }
+   },
+   "expect": {
+    "style": "blend",
+    "bars": 8,
+    "durationSec": 16,
+    "mixOutTrackTime": 182.4,
+    "mixInTrackTime": 16.4,
+    "glide": false,
+    "kickLock": false,
+    "warnings": [
+     "the mix-out moved to 182.4 s (too close to the end)"
+    ]
+   }
+  },
+  {
+   "name": "a saved mix-out already played: the planner's own",
+   "engine": 3,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 60,
+   "override": {
+    "v": 1,
+    "preset": "blend",
+    "bars": 8,
+    "window": {
+     "out": {
+      "bar": 2,
+      "sec": 4.4
+     },
+     "in": {
+      "bar": 8,
+      "sec": 16.4
+     }
+    }
+   },
+   "expect": {
+    "style": "blend",
+    "bars": 8,
+    "durationSec": 16,
+    "mixOutTrackTime": 180.4,
+    "mixInTrackTime": 16.4,
+    "glide": false,
+    "kickLock": false,
+    "warnings": [
+     "the mix-out at 4.4 s has already played: Auto's mix-out instead"
+    ]
+   }
+  },
+  {
+   "name": "Glide on Classic: the plan carries the glide",
+   "engine": 2,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 124,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 20,
+   "override": {
+    "v": 1,
+    "preset": "smooth",
+    "beatMatch": "glide",
+    "bars": 8
+   },
+   "expect": {
+    "style": "blend",
+    "bars": 8,
+    "durationSec": 15.740525,
+    "mixOutTrackTime": 180.4,
+    "mixInTrackTime": 0.4,
+    "glide": true,
+    "kickLock": false,
+    "warnings": []
+   }
+  },
+  {
+   "name": "a Filter pick from before the editor with a saved window: the window is said to be unused",
+   "engine": 3,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 20,
+   "override": {
+    "v": 1,
+    "preset": "auto",
+    "family": "filter",
+    "window": {
+     "out": {
+      "bar": 80,
+      "sec": 160.4
+     },
+     "in": {
+      "bar": 8,
+      "sec": 16.4
+     }
+    }
+   },
+   "expect": {
+    "style": "filter",
+    "bars": 4,
+    "durationSec": 8,
+    "mixOutTrackTime": 188.4,
+    "mixInTrackTime": 0.4,
+    "glide": false,
+    "kickLock": false,
+    "warnings": [
+     "a Filter mix places itself: the saved window isn't used (pick a preset to use it)"
+    ]
+   }
+  },
+  {
+   "name": "a length alone on a pair with no intro (v2): Automix's drop-in, at the length picked (ruled 2026-11-26: a length picked is kept)",
+   "engine": 3,
+   "out": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 120,
+    "sec": 200,
+    "downbeatSec": 0.4
+   },
+   "pos": 20,
+   "override": {
+    "v": 1,
+    "bars": 16
+   },
+   "expect": {
+    "style": "blend",
+    "bars": 16,
+    "durationSec": 32,
+    "mixOutTrackTime": 164.4,
+    "mixInTrackTime": 0.4,
+    "glide": false,
+    "kickLock": true,
+    "warnings": []
+   }
+  },
+  {
+   "name": "songs at a speed (BUDGET #5, Stay x0.97057 -> Cold Water x1.03228, BitChord's BPMs): 10% apart raw, 3.4% as they play, so it beat-matches; B at A's played tempo",
+   "engine": 3,
+   "out": {
+    "bpm": 102.3,
+    "sec": 220,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 93,
+    "sec": 210,
+    "downbeatSec": 0.4
+   },
+   "pos": 30,
+   "override": {
+    "v": 1,
+    "preset": "custom",
+    "bars": 2,
+    "lanes": {
+     "volume": "fadeInFadeOut",
+     "eq": "none",
+     "effect": "none"
+    },
+    "speed": {
+     "out": 0.97057,
+     "in": 1.03228
+    }
+   },
+   "expect": {
+    "style": "blend",
+    "bars": 2,
+    "durationSec": 4.834357,
+    "mixOutTrackTime": 211.543695,
+    "mixInTrackTime": 0.4,
+    "glide": false,
+    "kickLock": true,
+    "warnings": [
+     "no intro in the next song to blend over"
+    ],
+    "outRate": 0.97057,
+    "rate": 1.067627,
+    "speedOut": 0.97057,
+    "speedIn": 1.03228
+   }
+  },
+  {
+   "name": "the same pair with no speeds: 10% apart, no beat match",
+   "engine": 3,
+   "out": {
+    "bpm": 102.3,
+    "sec": 220,
+    "downbeatSec": 0.4
+   },
+   "in": {
+    "bpm": 93,
+    "sec": 210,
+    "downbeatSec": 0.4
+   },
+   "pos": 30,
+   "override": {
+    "v": 1,
+    "preset": "custom",
+    "bars": 2,
+    "lanes": {
+     "volume": "fadeInFadeOut",
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "expect": {
+    "style": "crossfade",
+    "bars": 0,
+    "durationSec": 4.692082,
+    "mixOutTrackTime": 215.007918,
+    "mixInTrackTime": 0,
+    "glide": false,
+    "kickLock": false,
+    "warnings": [
+     "tempos 10% apart (v2 stretches at most 8%): plays without beat match"
+    ]
+   }
+  }
+ ],
+ "draw": [
+  {
+   "_about": "editor.md §10. fn pointCurves: the drawn lanes at a window of D seconds (null: the glide's own length) and a beat of beatSec (the mix's seconds per beat of A), or the glide's steps -> plan curves {out, in}. presetCurves: an override mixing drawn and named lanes. normalizeOverride: an override as saved (count: the number of points kept per deck). shapeDrawing: a named shape as the drawing Draw starts from. plan: the drawn override on two steady songs (as the plans group), with the plan's gain curves and its rate."
+  },
+  {
+   "name": "a step plays as an 8 ms ramp",
+   "fn": "pointCurves",
+   "D": 8,
+   "beatSec": 0.5,
+   "lanes": {
+    "volume": {
+     "unit": "beat",
+     "out": [
+      [
+       0,
+       1
+      ],
+      [
+       4,
+       1
+      ],
+      [
+       4,
+       0
+      ]
+     ],
+     "in": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       0
+      ],
+      [
+       4,
+       1
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       2,
+       1
+      ],
+      [
+       2.008,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       2,
+       0
+      ],
+      [
+       2.008,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "beats to seconds: x times the mix's beat (125 BPM, 4 bars)",
+   "fn": "pointCurves",
+   "D": 7.68,
+   "beatSec": 0.48,
+   "lanes": {
+    "volume": {
+     "unit": "beat",
+     "out": [
+      [
+       0,
+       1
+      ],
+      [
+       12,
+       0.5
+      ],
+      [
+       16,
+       0
+      ]
+     ],
+     "in": [
+      [
+       0,
+       0
+      ],
+      [
+       16,
+       1
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       5.76,
+       0.5
+      ],
+      [
+       7.68,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       7.68,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "beats to seconds under Glide: each beat its own length (q 1.1, 2 bars)",
+   "fn": "pointCurves",
+   "D": null,
+   "beatSec": 0.5,
+   "glide": {
+    "q": 1.1,
+    "beats": 8,
+    "beatOutSec": 0.5
+   },
+   "lanes": {
+    "volume": {
+     "unit": "beat",
+     "out": [
+      [
+       0,
+       1
+      ],
+      [
+       4,
+       1
+      ],
+      [
+       8,
+       0
+      ]
+     ],
+     "in": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       1
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       1.953081,
+       1
+      ],
+      [
+       3.815272,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       1.953081,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "seconds as drawn (unit sec)",
+   "fn": "pointCurves",
+   "D": 6,
+   "beatSec": 0.5,
+   "lanes": {
+    "volume": {
+     "unit": "sec",
+     "out": [
+      [
+       0,
+       1
+      ],
+      [
+       1.25,
+       1
+      ],
+      [
+       6,
+       0
+      ]
+     ],
+     "in": [
+      [
+       0,
+       0
+      ],
+      [
+       3,
+       1
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       1.25,
+       1
+      ],
+      [
+       6,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       3,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "a drawing longer than the window is cut, the value at D its last point (Hz geometric)",
+   "fn": "pointCurves",
+   "D": 8,
+   "beatSec": 0.5,
+   "lanes": {
+    "volume": {
+     "unit": "beat",
+     "out": [
+      [
+       0,
+       1
+      ],
+      [
+       32,
+       0
+      ]
+     ],
+     "in": [
+      [
+       0,
+       0
+      ],
+      [
+       8,
+       1
+      ]
+     ]
+    },
+    "effect": {
+     "unit": "beat",
+     "out": {
+      "lp": [
+       [
+        0,
+        20000
+       ],
+       [
+        32,
+        200
+       ]
+      ]
+     },
+     "in": {}
+    }
+   },
+   "expect": {
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       8,
+       0.5
+      ]
+     ],
+     "lowpassHz": [
+      [
+       0,
+       20000
+      ],
+      [
+       8,
+       2000
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "a drawing shorter than the window holds its last value",
+   "fn": "pointCurves",
+   "D": 8,
+   "beatSec": 0.5,
+   "lanes": {
+    "volume": {
+     "unit": "beat",
+     "out": [
+      [
+       0,
+       1
+      ],
+      [
+       4,
+       0
+      ]
+     ],
+     "in": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       1
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       2,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       2,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "a curve whose first point is past the window: its first value held",
+   "fn": "pointCurves",
+   "D": 2,
+   "beatSec": 0.5,
+   "lanes": {
+    "eq": {
+     "unit": "beat",
+     "out": {
+      "bass": [
+       [
+        8,
+        0
+       ],
+       [
+        9,
+        -18
+       ]
+      ]
+     },
+     "in": {
+      "bass": [
+       [
+        0,
+        -18
+       ],
+       [
+        2,
+        0
+       ]
+      ]
+     }
+    }
+   },
+   "expect": {
+    "out": {
+     "bassDb": [
+      [
+       0,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "drawn volume with a named EQ shape (centerBassSwap) and no effect",
+   "fn": "presetCurves",
+   "D": 8,
+   "beatSec": 0.5,
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": {
+      "unit": "beat",
+      "out": [
+       [
+        0,
+        1
+       ],
+       [
+        8,
+        1
+       ],
+       [
+        8,
+        0
+       ]
+      ],
+      "in": [
+       [
+        0,
+        0
+       ],
+       [
+        8,
+        0
+       ],
+       [
+        8,
+        1
+       ]
+      ]
+     },
+     "eq": "centerBassSwap",
+     "effect": "none"
+    }
+   },
+   "expect": {
+    "durationSec": 8,
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       4,
+       1
+      ],
+      [
+       4.008,
+       0
+      ]
+     ],
+     "bassDb": [
+      [
+       3.75,
+       0
+      ],
+      [
+       4.25,
+       -18
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       4,
+       0
+      ],
+      [
+       4.008,
+       1
+      ]
+     ],
+     "bassDb": [
+      [
+       0,
+       -18
+      ],
+      [
+       3.75,
+       -18
+      ],
+      [
+       4.25,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "the stutter: 20 gates in 16 bars at 133 BPM, each step an 8 ms ramp",
+   "fn": "pointCurves",
+   "D": 28.872180451,
+   "beatSec": 0.451127819549,
+   "lanes": {
+    "volume": {
+     "unit": "beat",
+     "out": [
+      [
+       0,
+       1
+      ],
+      [
+       8,
+       1
+      ],
+      [
+       8,
+       0
+      ],
+      [
+       8.5,
+       0
+      ],
+      [
+       8.5,
+       1
+      ],
+      [
+       10,
+       1
+      ],
+      [
+       10,
+       0
+      ],
+      [
+       10.5,
+       0
+      ],
+      [
+       10.5,
+       1
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       12,
+       0
+      ],
+      [
+       12.5,
+       0
+      ],
+      [
+       12.5,
+       1
+      ],
+      [
+       14,
+       1
+      ],
+      [
+       14,
+       0
+      ],
+      [
+       14.5,
+       0
+      ],
+      [
+       14.5,
+       1
+      ],
+      [
+       16,
+       1
+      ],
+      [
+       16,
+       0
+      ],
+      [
+       16.5,
+       0
+      ],
+      [
+       16.5,
+       1
+      ],
+      [
+       18,
+       1
+      ],
+      [
+       18,
+       0
+      ],
+      [
+       18.5,
+       0
+      ],
+      [
+       18.5,
+       1
+      ],
+      [
+       20,
+       1
+      ],
+      [
+       20,
+       0
+      ],
+      [
+       20.5,
+       0
+      ],
+      [
+       20.5,
+       1
+      ],
+      [
+       22,
+       1
+      ],
+      [
+       22,
+       0
+      ],
+      [
+       22.5,
+       0
+      ],
+      [
+       22.5,
+       1
+      ],
+      [
+       24,
+       1
+      ],
+      [
+       24,
+       0
+      ],
+      [
+       24.5,
+       0
+      ],
+      [
+       24.5,
+       1
+      ],
+      [
+       26,
+       1
+      ],
+      [
+       26,
+       0
+      ],
+      [
+       26.5,
+       0
+      ],
+      [
+       26.5,
+       1
+      ],
+      [
+       28,
+       1
+      ],
+      [
+       28,
+       0
+      ],
+      [
+       28.5,
+       0
+      ],
+      [
+       28.5,
+       1
+      ],
+      [
+       30,
+       1
+      ],
+      [
+       30,
+       0
+      ],
+      [
+       30.5,
+       0
+      ],
+      [
+       30.5,
+       1
+      ],
+      [
+       32,
+       1
+      ],
+      [
+       32,
+       0
+      ],
+      [
+       32.5,
+       0
+      ],
+      [
+       32.5,
+       1
+      ],
+      [
+       34,
+       1
+      ],
+      [
+       34,
+       0
+      ],
+      [
+       34.5,
+       0
+      ],
+      [
+       34.5,
+       1
+      ],
+      [
+       36,
+       1
+      ],
+      [
+       36,
+       0
+      ],
+      [
+       36.5,
+       0
+      ],
+      [
+       36.5,
+       1
+      ],
+      [
+       38,
+       1
+      ],
+      [
+       38,
+       0
+      ],
+      [
+       38.5,
+       0
+      ],
+      [
+       38.5,
+       1
+      ],
+      [
+       40,
+       1
+      ],
+      [
+       40,
+       0
+      ],
+      [
+       40.5,
+       0
+      ],
+      [
+       40.5,
+       1
+      ],
+      [
+       42,
+       1
+      ],
+      [
+       42,
+       0
+      ],
+      [
+       42.5,
+       0
+      ],
+      [
+       42.5,
+       1
+      ],
+      [
+       44,
+       1
+      ],
+      [
+       44,
+       0
+      ],
+      [
+       44.5,
+       0
+      ],
+      [
+       44.5,
+       1
+      ],
+      [
+       46,
+       1
+      ],
+      [
+       46,
+       0
+      ],
+      [
+       46.5,
+       0
+      ],
+      [
+       46.5,
+       1
+      ],
+      [
+       56,
+       1
+      ],
+      [
+       64,
+       0
+      ]
+     ],
+     "in": [
+      [
+       0,
+       0
+      ],
+      [
+       56,
+       0
+      ],
+      [
+       64,
+       1
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "out": {
+     "gain": [
+      [
+       0,
+       1
+      ],
+      [
+       3.609023,
+       1
+      ],
+      [
+       3.617023,
+       0
+      ],
+      [
+       3.834586,
+       0
+      ],
+      [
+       3.842586,
+       1
+      ],
+      [
+       4.511278,
+       1
+      ],
+      [
+       4.519278,
+       0
+      ],
+      [
+       4.736842,
+       0
+      ],
+      [
+       4.744842,
+       1
+      ],
+      [
+       5.413534,
+       1
+      ],
+      [
+       5.421534,
+       0
+      ],
+      [
+       5.639098,
+       0
+      ],
+      [
+       5.647098,
+       1
+      ],
+      [
+       6.315789,
+       1
+      ],
+      [
+       6.323789,
+       0
+      ],
+      [
+       6.541353,
+       0
+      ],
+      [
+       6.549353,
+       1
+      ],
+      [
+       7.218045,
+       1
+      ],
+      [
+       7.226045,
+       0
+      ],
+      [
+       7.443609,
+       0
+      ],
+      [
+       7.451609,
+       1
+      ],
+      [
+       8.120301,
+       1
+      ],
+      [
+       8.128301,
+       0
+      ],
+      [
+       8.345865,
+       0
+      ],
+      [
+       8.353865,
+       1
+      ],
+      [
+       9.022556,
+       1
+      ],
+      [
+       9.030556,
+       0
+      ],
+      [
+       9.24812,
+       0
+      ],
+      [
+       9.25612,
+       1
+      ],
+      [
+       9.924812,
+       1
+      ],
+      [
+       9.932812,
+       0
+      ],
+      [
+       10.150376,
+       0
+      ],
+      [
+       10.158376,
+       1
+      ],
+      [
+       10.827068,
+       1
+      ],
+      [
+       10.835068,
+       0
+      ],
+      [
+       11.052632,
+       0
+      ],
+      [
+       11.060632,
+       1
+      ],
+      [
+       11.729323,
+       1
+      ],
+      [
+       11.737323,
+       0
+      ],
+      [
+       11.954887,
+       0
+      ],
+      [
+       11.962887,
+       1
+      ],
+      [
+       12.631579,
+       1
+      ],
+      [
+       12.639579,
+       0
+      ],
+      [
+       12.857143,
+       0
+      ],
+      [
+       12.865143,
+       1
+      ],
+      [
+       13.533835,
+       1
+      ],
+      [
+       13.541835,
+       0
+      ],
+      [
+       13.759398,
+       0
+      ],
+      [
+       13.767398,
+       1
+      ],
+      [
+       14.43609,
+       1
+      ],
+      [
+       14.44409,
+       0
+      ],
+      [
+       14.661654,
+       0
+      ],
+      [
+       14.669654,
+       1
+      ],
+      [
+       15.338346,
+       1
+      ],
+      [
+       15.346346,
+       0
+      ],
+      [
+       15.56391,
+       0
+      ],
+      [
+       15.57191,
+       1
+      ],
+      [
+       16.240602,
+       1
+      ],
+      [
+       16.248602,
+       0
+      ],
+      [
+       16.466165,
+       0
+      ],
+      [
+       16.474165,
+       1
+      ],
+      [
+       17.142857,
+       1
+      ],
+      [
+       17.150857,
+       0
+      ],
+      [
+       17.368421,
+       0
+      ],
+      [
+       17.376421,
+       1
+      ],
+      [
+       18.045113,
+       1
+      ],
+      [
+       18.053113,
+       0
+      ],
+      [
+       18.270677,
+       0
+      ],
+      [
+       18.278677,
+       1
+      ],
+      [
+       18.947368,
+       1
+      ],
+      [
+       18.955368,
+       0
+      ],
+      [
+       19.172932,
+       0
+      ],
+      [
+       19.180932,
+       1
+      ],
+      [
+       19.849624,
+       1
+      ],
+      [
+       19.857624,
+       0
+      ],
+      [
+       20.075188,
+       0
+      ],
+      [
+       20.083188,
+       1
+      ],
+      [
+       20.75188,
+       1
+      ],
+      [
+       20.75988,
+       0
+      ],
+      [
+       20.977444,
+       0
+      ],
+      [
+       20.985444,
+       1
+      ],
+      [
+       25.263158,
+       1
+      ],
+      [
+       28.87218,
+       0
+      ]
+     ]
+    },
+    "in": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       25.263158,
+       0
+      ],
+      [
+       28.87218,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "saved: x and values rounded and clamped, sorted, ties kept in drawn order",
+   "fn": "normalizeOverride",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": {
+      "unit": "beat",
+      "out": [
+       [
+        4,
+        1.4
+       ],
+       [
+        -1,
+        0.5
+       ],
+       [
+        2.00049,
+        0.2
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "in": [
+       [
+        0,
+        0
+       ],
+       [
+        8,
+        1
+       ]
+      ]
+     },
+     "eq": {
+      "unit": "beat",
+      "out": {
+       "bass": [
+        [
+         0,
+         0
+        ],
+        [
+         4,
+         -30
+        ]
+       ]
+      },
+      "in": {
+       "high": [
+        [
+         0,
+         3
+        ]
+       ]
+      }
+     },
+     "effect": {
+      "unit": "beat",
+      "out": {
+       "lp": [
+        [
+         0,
+         30000
+        ],
+        [
+         4,
+         5.4
+        ]
+       ]
+      },
+      "in": {}
+     }
+    }
+   },
+   "expect": {
+    "v": 1,
+    "preset": "custom",
+    "lanes": {
+     "volume": {
+      "unit": "beat",
+      "out": [
+       [
+        0,
+        0.5
+       ],
+       [
+        2,
+        0.2
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "in": [
+       [
+        0,
+        0
+       ],
+       [
+        8,
+        1
+       ]
+      ]
+     },
+     "eq": {
+      "unit": "beat",
+      "out": {
+       "bass": [
+        [
+         0,
+         0
+        ],
+        [
+         4,
+         -18
+        ]
+       ]
+      },
+      "in": {
+       "high": [
+        [
+         0,
+         0
+        ]
+       ]
+      }
+     },
+     "effect": {
+      "unit": "beat",
+      "out": {
+       "lp": [
+        [
+         0,
+         20000
+        ],
+        [
+         4,
+         20
+        ]
+       ]
+      },
+      "in": {}
+     }
+    }
+   }
+  },
+  {
+   "name": "saved: a third point at one x is dropped; an effect drawing with no curve is none",
+   "fn": "normalizeOverride",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": {
+      "unit": "beat",
+      "out": [
+       [
+        0,
+        1
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        0.5
+       ],
+       [
+        8,
+        0
+       ]
+      ],
+      "in": [
+       [
+        0,
+        0
+       ],
+       [
+        8,
+        1
+       ]
+      ]
+     },
+     "eq": "none",
+     "effect": {
+      "unit": "beat",
+      "out": {},
+      "in": {
+       "hp": []
+      }
+     }
+    }
+   },
+   "expect": {
+    "v": 1,
+    "preset": "custom",
+    "lanes": {
+     "volume": {
+      "unit": "beat",
+      "out": [
+       [
+        0,
+        1
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        8,
+        0
+       ]
+      ],
+      "in": [
+       [
+        0,
+        0
+       ],
+       [
+        8,
+        1
+       ]
+      ]
+     },
+     "eq": "none",
+     "effect": "none"
+    }
+   }
+  },
+  {
+   "name": "saved: past 128 points the rest are dropped",
+   "fn": "normalizeOverride",
+   "count": true,
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": {
+      "unit": "beat",
+      "out": [
+       [
+        0,
+        0
+       ],
+       [
+        0.25,
+        1
+       ],
+       [
+        0.5,
+        0
+       ],
+       [
+        0.75,
+        1
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        1.25,
+        1
+       ],
+       [
+        1.5,
+        0
+       ],
+       [
+        1.75,
+        1
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        2.25,
+        1
+       ],
+       [
+        2.5,
+        0
+       ],
+       [
+        2.75,
+        1
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        3.25,
+        1
+       ],
+       [
+        3.5,
+        0
+       ],
+       [
+        3.75,
+        1
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4.25,
+        1
+       ],
+       [
+        4.5,
+        0
+       ],
+       [
+        4.75,
+        1
+       ],
+       [
+        5,
+        0
+       ],
+       [
+        5.25,
+        1
+       ],
+       [
+        5.5,
+        0
+       ],
+       [
+        5.75,
+        1
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6.25,
+        1
+       ],
+       [
+        6.5,
+        0
+       ],
+       [
+        6.75,
+        1
+       ],
+       [
+        7,
+        0
+       ],
+       [
+        7.25,
+        1
+       ],
+       [
+        7.5,
+        0
+       ],
+       [
+        7.75,
+        1
+       ],
+       [
+        8,
+        0
+       ],
+       [
+        8.25,
+        1
+       ],
+       [
+        8.5,
+        0
+       ],
+       [
+        8.75,
+        1
+       ],
+       [
+        9,
+        0
+       ],
+       [
+        9.25,
+        1
+       ],
+       [
+        9.5,
+        0
+       ],
+       [
+        9.75,
+        1
+       ],
+       [
+        10,
+        0
+       ],
+       [
+        10.25,
+        1
+       ],
+       [
+        10.5,
+        0
+       ],
+       [
+        10.75,
+        1
+       ],
+       [
+        11,
+        0
+       ],
+       [
+        11.25,
+        1
+       ],
+       [
+        11.5,
+        0
+       ],
+       [
+        11.75,
+        1
+       ],
+       [
+        12,
+        0
+       ],
+       [
+        12.25,
+        1
+       ],
+       [
+        12.5,
+        0
+       ],
+       [
+        12.75,
+        1
+       ],
+       [
+        13,
+        0
+       ],
+       [
+        13.25,
+        1
+       ],
+       [
+        13.5,
+        0
+       ],
+       [
+        13.75,
+        1
+       ],
+       [
+        14,
+        0
+       ],
+       [
+        14.25,
+        1
+       ],
+       [
+        14.5,
+        0
+       ],
+       [
+        14.75,
+        1
+       ],
+       [
+        15,
+        0
+       ],
+       [
+        15.25,
+        1
+       ],
+       [
+        15.5,
+        0
+       ],
+       [
+        15.75,
+        1
+       ],
+       [
+        16,
+        0
+       ],
+       [
+        16.25,
+        1
+       ],
+       [
+        16.5,
+        0
+       ],
+       [
+        16.75,
+        1
+       ],
+       [
+        17,
+        0
+       ],
+       [
+        17.25,
+        1
+       ],
+       [
+        17.5,
+        0
+       ],
+       [
+        17.75,
+        1
+       ],
+       [
+        18,
+        0
+       ],
+       [
+        18.25,
+        1
+       ],
+       [
+        18.5,
+        0
+       ],
+       [
+        18.75,
+        1
+       ],
+       [
+        19,
+        0
+       ],
+       [
+        19.25,
+        1
+       ],
+       [
+        19.5,
+        0
+       ],
+       [
+        19.75,
+        1
+       ],
+       [
+        20,
+        0
+       ],
+       [
+        20.25,
+        1
+       ],
+       [
+        20.5,
+        0
+       ],
+       [
+        20.75,
+        1
+       ],
+       [
+        21,
+        0
+       ],
+       [
+        21.25,
+        1
+       ],
+       [
+        21.5,
+        0
+       ],
+       [
+        21.75,
+        1
+       ],
+       [
+        22,
+        0
+       ],
+       [
+        22.25,
+        1
+       ],
+       [
+        22.5,
+        0
+       ],
+       [
+        22.75,
+        1
+       ],
+       [
+        23,
+        0
+       ],
+       [
+        23.25,
+        1
+       ],
+       [
+        23.5,
+        0
+       ],
+       [
+        23.75,
+        1
+       ],
+       [
+        24,
+        0
+       ],
+       [
+        24.25,
+        1
+       ],
+       [
+        24.5,
+        0
+       ],
+       [
+        24.75,
+        1
+       ],
+       [
+        25,
+        0
+       ],
+       [
+        25.25,
+        1
+       ],
+       [
+        25.5,
+        0
+       ],
+       [
+        25.75,
+        1
+       ],
+       [
+        26,
+        0
+       ],
+       [
+        26.25,
+        1
+       ],
+       [
+        26.5,
+        0
+       ],
+       [
+        26.75,
+        1
+       ],
+       [
+        27,
+        0
+       ],
+       [
+        27.25,
+        1
+       ],
+       [
+        27.5,
+        0
+       ],
+       [
+        27.75,
+        1
+       ],
+       [
+        28,
+        0
+       ],
+       [
+        28.25,
+        1
+       ],
+       [
+        28.5,
+        0
+       ],
+       [
+        28.75,
+        1
+       ],
+       [
+        29,
+        0
+       ],
+       [
+        29.25,
+        1
+       ],
+       [
+        29.5,
+        0
+       ],
+       [
+        29.75,
+        1
+       ],
+       [
+        30,
+        0
+       ],
+       [
+        30.25,
+        1
+       ],
+       [
+        30.5,
+        0
+       ],
+       [
+        30.75,
+        1
+       ],
+       [
+        31,
+        0
+       ],
+       [
+        31.25,
+        1
+       ],
+       [
+        31.5,
+        0
+       ],
+       [
+        31.75,
+        1
+       ],
+       [
+        32,
+        0
+       ],
+       [
+        32.25,
+        1
+       ],
+       [
+        32.5,
+        0
+       ],
+       [
+        32.75,
+        1
+       ],
+       [
+        33,
+        0
+       ],
+       [
+        33.25,
+        1
+       ],
+       [
+        33.5,
+        0
+       ],
+       [
+        33.75,
+        1
+       ],
+       [
+        34,
+        0
+       ],
+       [
+        34.25,
+        1
+       ],
+       [
+        34.5,
+        0
+       ],
+       [
+        34.75,
+        1
+       ]
+      ],
+      "in": [
+       [
+        0,
+        0
+       ],
+       [
+        8,
+        1
+       ]
+      ]
+     },
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "expect": {
+    "v": 1,
+    "preset": "custom",
+    "lanes": {
+     "volume": {
+      "out": 128,
+      "in": 2
+     },
+     "eq": "none",
+     "effect": "none"
+    }
+   }
+  },
+  {
+   "name": "refused: a volume drawing with a deck empty (custom is dropped, Auto plays)",
+   "fn": "normalizeOverride",
+   "override": {
+    "preset": "custom",
+    "lanes": {
+     "volume": {
+      "unit": "beat",
+      "out": [
+       [
+        0,
+        1
+       ]
+      ],
+      "in": []
+     },
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "expect": null
+  },
+  {
+   "name": "refused: a drawing without a unit",
+   "fn": "normalizeOverride",
+   "override": {
+    "preset": "custom",
+    "bars": 8,
+    "lanes": {
+     "volume": {
+      "out": [
+       [
+        0,
+        1
+       ]
+      ],
+      "in": [
+       [
+        0,
+        0
+       ]
+      ]
+     },
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "expect": {
+    "v": 1,
+    "bars": 8
+   }
+  },
+  {
+   "name": "Draw starts from the shape: centerCut read back as a step at beat 8 (125 BPM, 4 bars)",
+   "fn": "shapeDrawing",
+   "lane": "volume",
+   "shape": "centerCut",
+   "D": 7.68,
+   "beatSec": 0.48,
+   "unit": "beat",
+   "expect": {
+    "unit": "beat",
+    "out": [
+     [
+      0,
+      1
+     ],
+     [
+      8,
+      1
+     ],
+     [
+      8,
+      0
+     ]
+    ],
+    "in": [
+     [
+      0,
+      0
+     ],
+     [
+      8,
+      0
+     ],
+     [
+      8,
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "name": "Draw starts from the shape: lpBoth in beats",
+   "fn": "shapeDrawing",
+   "lane": "effect",
+   "shape": "lpBoth",
+   "D": 7.68,
+   "beatSec": 0.48,
+   "unit": "beat",
+   "expect": {
+    "unit": "beat",
+    "out": {
+     "lp": [
+      [
+       8,
+       20000
+      ],
+      [
+       16,
+       400
+      ]
+     ]
+    },
+    "in": {
+     "lp": [
+      [
+       0,
+       400
+      ],
+      [
+       8,
+       20000
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "half time (Cinderella 65 -> Drowning 129 BPM, 8 bars): x on A's grid, B's beats two per x",
+   "fn": "plan",
+   "out": {
+    "bpm": 65,
+    "sec": 240,
+    "downbeatSec": 0.5
+   },
+   "in": {
+    "bpm": 129,
+    "sec": 200,
+    "downbeatSec": 0.3
+   },
+   "pos": 100,
+   "override": {
+    "preset": "custom",
+    "bars": 8,
+    "beatMatch": "sync",
+    "lanes": {
+     "volume": {
+      "unit": "beat",
+      "out": [
+       [
+        0,
+        0.8
+       ],
+       [
+        6,
+        0.8
+       ],
+       [
+        7,
+        1
+       ],
+       [
+        8,
+        0.8
+       ],
+       [
+        16,
+        0.8
+       ],
+       [
+        16,
+        0
+       ]
+      ],
+      "in": [
+       [
+        0,
+        0
+       ],
+       [
+        16,
+        0
+       ],
+       [
+        16,
+        1
+       ]
+      ]
+     },
+     "eq": "none",
+     "effect": "none"
+    }
+   },
+   "expect": {
+    "style": "blend",
+    "bars": 8,
+    "durationSec": 29.538462,
+    "outRate": 1,
+    "rate": 1.007752,
+    "gainOut": [
+     [
+      0,
+      0.8
+     ],
+     [
+      5.538462,
+      0.8
+     ],
+     [
+      6.461538,
+      1
+     ],
+     [
+      7.384615,
+      0.8
+     ],
+     [
+      14.769231,
+      0.8
+     ],
+     [
+      14.777231,
+      0
+     ]
+    ],
+    "gainIn": [
+     [
+      0,
+      0
+     ],
+     [
+      14.769231,
+      0
+     ],
+     [
+      14.777231,
+      1
+     ]
+    ]
+   }
+  }
+ ]
+}

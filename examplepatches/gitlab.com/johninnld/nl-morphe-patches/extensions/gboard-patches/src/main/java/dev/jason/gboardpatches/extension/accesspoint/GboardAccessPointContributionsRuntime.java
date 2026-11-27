@@ -2,6 +2,8 @@ package dev.jason.gboardpatches.extension.accesspoint;
 
 import android.content.Context;
 import android.util.Log;
+import dev.jason.gboardpatches.extension.addsymbols.GboardCustomSymbolsContribution;
+import dev.jason.gboardpatches.extension.editingaccesspoints.GboardEditingAccessPointsRuntime;
 import dev.jason.gboardpatches.extension.editingaccesspoints.GboardEditingAccessPointsContribution;
 
 import java.lang.reflect.Field;
@@ -44,6 +46,12 @@ public final class GboardAccessPointContributionsRuntime {
         } catch (Throwable failure) {
             logFailure("Editing buttons catalog contribution failed", failure);
         }
+        if (hasFeature(context, GboardPatchesFeatureAvailability.FEATURE_AI_WRITING_TOOLS)) {
+            result = dev.jason.gboardpatches.extension.sharedmodel.GboardSharedToolsContribution.extend(context, result);
+        }
+        if (hasFeature(context, GboardPatchesFeatureAvailability.FEATURE_CUSTOM_SYMBOLS)) {
+            result = GboardCustomSymbolsContribution.extendOrderCatalog(result);
+        }
         return result;
     }
 
@@ -53,6 +61,11 @@ public final class GboardAccessPointContributionsRuntime {
         } catch (Throwable failure) {
             logFailure("Access Point controller catalog synchronization failed", failure);
             return;
+        }
+        registerSharedTools(controller, context);
+        if (hasFeature(context, GboardPatchesFeatureAvailability.FEATURE_CUSTOM_SYMBOLS)) {
+            GboardCustomSymbolsContribution.register(controller, context,
+                    GboardEditingAccessPointsRuntime::currentService);
         }
         try {
             if (hasFeature(context, GboardPatchesFeatureAvailability.FEATURE_MANUAL_INCOGNITO)) {
@@ -78,6 +91,11 @@ public final class GboardAccessPointContributionsRuntime {
         } catch (Throwable failure) {
             logFailure("Editing buttons controller contribution failed", failure);
         }
+    }
+
+    private static void registerSharedTools(Object controller, Context context) {
+        if (hasFeature(context, GboardPatchesFeatureAvailability.FEATURE_AI_WRITING_TOOLS))
+            dev.jason.gboardpatches.extension.sharedmodel.GboardSharedToolsContribution.register(controller, context);
     }
 
     static void synchronizeControllerOrderCatalog(Object controller, Context context)

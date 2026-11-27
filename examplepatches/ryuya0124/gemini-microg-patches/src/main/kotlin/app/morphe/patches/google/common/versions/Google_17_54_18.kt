@@ -101,6 +101,45 @@ val google175418 = AppVersionProfile(
         ),
         HookId.SPLIT_RESTRICTION_REMOVAL to TargetSpec(description = "Remove manifest split requirements; resource split still needs package rename/signing."),
         HookId.APP_LABEL_UPDATE to TargetSpec(description = "Google (Morphe)"),
+        HookId.GEMINI_HAPTICS to TargetSpec(
+            className = "Lbpot;", methodName = "r",
+            methodDescriptor = "(Landroidx/preference/PreferenceScreen;Ljava/lang/String;Lbpow;Ljava/util/Locale;Ljava/util/List;Lataw;Laulg;Lgtij;)Ljava/lang/Object;",
+            anchorStrings = listOf("RobinSettingsPreferenceFragment: Interrupt Live responses switch listener"),
+            methodSignatures = listOf(
+                "Lblgb;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lblhk;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbles;->a(Lbleo;)V",
+                "Lblig;->onScroll(Landroid/view/MotionEvent;Landroid/view/MotionEvent;FF)Z",
+                "Lblii;->c(Landroid/view/View;Z)V",
+                "Lbhjl;->h(Lbhjv;Landroid/graphics/Point;Lgtks;Lavug;)Z",
+                "Lbpjt;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                // Guided prompt interactions.
+                "Lbpgr;->invoke()Ljava/lang/Object;",
+                "Lbpgz;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbpgd;->invoke()Ljava/lang/Object;",
+                "Lbpig;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbpij;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbpiv;->invoke()Ljava/lang/Object;"
+            ),
+            expectedMatches = 23,
+            integers = mapOf("settingsRegisters" to 33, "screenParameter" to 1),
+            values = mapOf("findPreference" to "ah", "setKey" to "I", "setTitle" to "M",
+                "addPreference" to "ae", "listenerField" to "n", "persistentField" to "w", "setChecked" to "j"),
+            description = "Add the Gemini vibration switch and gate verified Gemini view feedback."
+        ),
+        HookId.GEMINI_HAPTICS_VIBRATOR to TargetSpec(
+            anchorStrings = listOf("Ma-HapticsPlayer-Impl", "Playing haptic feedback"),
+            methodSignatures = listOf(
+                "Lasko;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbgas;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Lbgav;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+                "Latnk;->b(Lgtij;)Ljava/lang/Object;"
+            ),
+            values = mapOf("vibrateReference" to
+                "Lbq\$\$ExternalSyntheticApiModelOutline1;->m(Landroid/os/Vibrator;Landroid/os/VibrationEffect;)V"),
+            expectedMatches = 4,
+            description = "Gate the chat waveform player plus Live and Gemini feedback-report cues."
+        ),
         HookId.ACCOUNT_SWITCH_LOCK_BYPASS to TargetSpec(
             enabled = false, anchorStrings = listOf("Acquired account-switch Mutex."),
             description = "Historical rejected approach. Do not enable; normal account synchronization is required."

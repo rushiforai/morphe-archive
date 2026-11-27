@@ -16,9 +16,9 @@ class VerifyThemeDexTest {
     static final ImmutableMethodReference SURFACE = new ImmutableMethodReference(COMPOSE, "surface", List.of("J"), "J");
     static final ImmutableMethodReference SCRIM = new ImmutableMethodReference(COMPOSE, "scrimAlpha", List.of("F"), "F");
     static final ImmutableMethodReference ICON = new ImmutableMethodReference(COMPOSE, "iconTint", List.of("J"), "J");
-    /** The header scrim's and Encore icon's parameters, as in Spotify 9.1.80.2221, and their register counts there. */
-    static final List<String> SCRIM_PARAMETERS = List.of("Lp/wmg0;", "F", "F", "Lp/tpz;", "Lp/ryz;", "I", "I");
-    static final List<String> ICON_PARAMETERS = List.of("Lp/v8u;", "Lp/u0j;", "Lp/wmg0;", "J", "J", "Z", "Lp/ryz;", "I", "I");
+    /** The header scrim's and Encore icon's parameters, as in Spotify 9.2.4.2644, and their register counts there. */
+    static final List<String> SCRIM_PARAMETERS = List.of("Lp/xzo0;", "F", "F", "Lp/sn50;", "Lp/nvk;", "I", "I");
+    static final List<String> ICON_PARAMETERS = List.of("Lp/ldz;", "Lp/zrm;", "Lp/xzo0;", "J", "J", "Z", "Lp/nvk;", "I", "I");
 
     enum Change {
         NONE, PALETTE_MISSING, PALETTE_REGISTER, PALETTE_CAST, PALETTE_ELSEWHERE, PRIMITIVES_MISSING,
@@ -41,7 +41,7 @@ class VerifyThemeDexTest {
     }
 
     @Test void rejectsTheScrimOrIconHookAloneWhenNotSelected() {
-        for (String site : List.of("Lp/kse1;", "Lp/c9e1;")) {
+        for (String site : List.of("Lp/gls1;", "Lp/ns5;")) {
             var classes = new ArrayList<ClassDef>();
             for (var definition : apk(Change.NONE, false)) if (!definition.getType().equals(site)) classes.add(definition);
             for (var definition : apk(Change.NONE, true)) if (definition.getType().equals(site)) classes.add(definition);
@@ -58,23 +58,23 @@ class VerifyThemeDexTest {
     /** Spotify's hooked classes and the extension's table methods, patched or as they ship. */
     List<ClassDef> apk(Change change, boolean hooked) {
         var classes = new ArrayList<ClassDef>();
-        classes.add(type("Lp/vcu;", "a", palette(hooked, change == Change.PALETTE_REGISTER ? 1 : 0, change != Change.PALETTE_CAST)));
-        classes.add(type("Lp/p6s;", "invoke", palette(hooked && change != Change.PALETTE_MISSING, 0, true)));
+        classes.add(type("Lp/mhz;", "a", palette(hooked, change == Change.PALETTE_REGISTER ? 1 : 0, change != Change.PALETTE_CAST)));
+        classes.add(type("Lp/ccy;", "invoke", palette(hooked && change != Change.PALETTE_MISSING, 0, true)));
         if (change == Change.PALETTE_ELSEWHERE) classes.add(type("Lp/other;", "a", palette(true, 0, true)));
         var primitives = new ArrayList<Instruction>(List.of(
-                new ImmutableInstruction21c(Opcode.SPUT_OBJECT, 0, new ImmutableFieldReference("Lp/rut;", "a", "Lp/jua;"))));
+                new ImmutableInstruction21c(Opcode.SPUT_OBJECT, 0, new ImmutableFieldReference("Lp/hyy;", "a", "Lp/ebd;"))));
         if (hooked && change != Change.PRIMITIVES_MISSING) primitives.add(call(PRIMITIVES, 0, 1));
-        classes.add(type("Lp/rut;", "<clinit>", primitives));
-        classes.add(type("Lp/pz01;", "<clinit>", surface(hooked, change == Change.SURFACE_VALUE ? 0xFF2A2A2AL : 0xFF282828L, "Lp/pz01;", "a")));
-        classes.add(type("Lp/t5s0;", "<clinit>", surface(hooked && change != Change.SURFACE_MISSING, 0xFF282828L, "Lp/t5s0;",
+        classes.add(type("Lp/hyy;", "<clinit>", primitives));
+        classes.add(type("Lp/q5d1;", "<clinit>", surface(hooked, change == Change.SURFACE_VALUE ? 0xFF2A2A2AL : 0xFF282828L, "Lp/q5d1;", "a")));
+        classes.add(type("Lp/ro21;", "<clinit>", surface(hooked && change != Change.SURFACE_MISSING, 0xFF282828L, "Lp/ro21;",
                 change == Change.SURFACE_FIELD ? "a" : "b")));
-        classes.add(method("Lp/kse1;", "j", change == Change.SCRIM_INTEGER ? List.of("Lp/wmg0;", "F", "I", "Lp/tpz;", "Lp/ryz;", "I", "I")
+        classes.add(method("Lp/gls1;", "d", change == Change.SCRIM_INTEGER ? List.of("Lp/xzo0;", "F", "I", "Lp/sn50;", "Lp/nvk;", "I", "I")
                 : SCRIM_PARAMETERS, 26, scrim(hooked && change != Change.SCRIM_MISSING && change != Change.SCRIM_ELSEWHERE, change)));
-        classes.add(method("Lp/c9e1;", "b", ICON_PARAMETERS, 27, icon(hooked && change != Change.ICON_MISSING && change != Change.ICON_ELSEWHERE,
-                change == Change.ICON_ACTIVE_TINT ? 21 : 19, change == Change.ICON_LATE)));
+        classes.add(method("Lp/ns5;", "d", ICON_PARAMETERS, 32, icon(hooked && change != Change.ICON_MISSING && change != Change.ICON_ELSEWHERE,
+                change == Change.ICON_ACTIVE_TINT ? 26 : 24, change == Change.ICON_LATE)));
         // A fingerprint that matched another method of the same shape.
-        if (change == Change.SCRIM_ELSEWHERE) classes.add(method("Lp/other;", "j", SCRIM_PARAMETERS, 26, scrim(true, Change.NONE)));
-        if (change == Change.ICON_ELSEWHERE) classes.add(method("Lp/other;", "b", ICON_PARAMETERS, 27, icon(true, 19, false)));
+        if (change == Change.SCRIM_ELSEWHERE) classes.add(method("Lp/other;", "d", SCRIM_PARAMETERS, 26, scrim(true, Change.NONE)));
+        if (change == Change.ICON_ELSEWHERE) classes.add(method("Lp/other;", "d", ICON_PARAMETERS, 32, icon(true, 24, false)));
         classes.add(type(VerifyThemeDex.THEME + "ThemeRoleMap;", "encoded",
                 table(hooked && change != Change.ROLES_EMPTY && change != Change.TABLES_EMPTY ? "main:gray_7|card:gray_15" : "")));
         classes.add(type(VerifyThemeDex.THEME + "ComposeTheme;", "table",
@@ -84,17 +84,17 @@ class VerifyThemeDexTest {
 
     List<Instruction> palette(boolean hooked, int register, boolean cast) {
         var code = new ArrayList<Instruction>(List.of(
-                new ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, new ImmutableFieldReference("Lp/iwt;", "a", "Lp/avt;"))));
+                new ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, new ImmutableFieldReference("Lp/c0z;", "a", "Lp/pyy;"))));
         if (hooked) {
             code.add(call(PALETTE, register, 1));
             code.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
-            if (cast) code.add(new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference("Lp/avt;")));
+            if (cast) code.add(new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference("Lp/pyy;")));
         }
         return code;
     }
 
     List<Instruction> surface(boolean hooked, long value, String owner, String field) {
-        var color = new ImmutableMethodReference("Lp/iae1;", "g", List.of("J"), "J");
+        var color = new ImmutableMethodReference("Lp/ddp;", "h", List.of("J"), "J");
         var code = new ArrayList<Instruction>(List.of(
                 new ImmutableInstruction51l(Opcode.CONST_WIDE, 0, value),
                 new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 2, 0, 1, 0, 0, 0, color),
@@ -125,15 +125,15 @@ class VerifyThemeDexTest {
         return code;
     }
 
-    /** The icon draw's start: its tint, p3 (v19 and v20 of 27 registers), passes through iconTint. */
+    /** The icon draw's start: its tint, p3 (v24 and v25 of 32 registers), passes through iconTint. */
     List<Instruction> icon(boolean hooked, int tint, boolean late) {
         var code = new ArrayList<Instruction>();
-        if (late) code.add(new ImmutableInstruction32x(Opcode.MOVE_OBJECT_16, 1, 16));
+        if (late) code.add(new ImmutableInstruction32x(Opcode.MOVE_OBJECT_16, 1, 21));
         if (hooked) {
             code.add(call(ICON, tint, 2));
             code.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_WIDE, tint));
         }
-        code.add(new ImmutableInstruction32x(Opcode.MOVE_OBJECT_16, 1, 16));
+        code.add(new ImmutableInstruction32x(Opcode.MOVE_OBJECT_16, 1, 21));
         return code;
     }
 

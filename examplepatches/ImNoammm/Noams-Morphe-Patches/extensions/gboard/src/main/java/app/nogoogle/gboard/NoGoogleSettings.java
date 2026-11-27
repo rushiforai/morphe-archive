@@ -32,11 +32,16 @@ public final class NoGoogleSettings {
     public static final String GIF_KEY_GIPHY = "gif_key_giphy";
     // Keyboard: right-to-left languages change only the letters (KeyboardDirection)
     public static final String KEEP_LTR = "keep_ltr";
+    // Keyboard: the bottom row's height (BottomRow): "stock" | percent of Gboard's
+    public static final String BOTTOM_ROW_HEIGHT = "bottom_row_height";
     public static final String ALWAYS_INCOGNITO = "always_incognito";
     public static final String INCOGNITO_CLIPBOARD = "incognito_clipboard"; // copied text still kept while it is on
+    // Clipboard history (ClipboardHistory): "stock" keeps Gboard's own value
+    public static final String CLIPBOARD_KEEP = "clipboard_keep";       // "stock" | hours | "forever"
+    public static final String CLIPBOARD_RECENT = "clipboard_recent";   // "stock" | recent copies shown
     // Other languages' dictionaries from Google, through the network helper (Dictionaries)
     public static final String DICTIONARY_DOWNLOADS = "dictionary_downloads";
-    public static final String VOICE_ENGINE = "voice_engine";          // "whisper" | "stock"
+    public static final String VOICE_ENGINE = "voice_engine";          // "whisper" | "google" | "futo" | "stock"
     public static final String VOICE_MODEL = "voice_model";            // "auto" | file name
     public static final String VOICE_THREADS = "voice_threads";
     public static final String VOICE_AUTO_STOP = "voice_auto_stop";
@@ -122,6 +127,10 @@ public final class NoGoogleSettings {
                 return "4";
             case TRANSLATE_ENGINE:
                 return "llm";
+            case CLIPBOARD_KEEP:
+            case CLIPBOARD_RECENT:
+            case BOTTOM_ROW_HEIGHT:
+                return "stock";
             default:
                 return "";
         }

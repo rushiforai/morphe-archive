@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-08.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -146,10 +147,38 @@ public class DownloadsPageLogicTest {
         assertEquals(List.of("source:PLa", "source:OLAK5uy_b", "source:songs"), rowTaps(shelf));
     }
 
+    @Test public void onlyOwnedPlaylistCardsInTheDownloadsShelvesCarryASourceId() {
+        SourceRow delegated = new SourceRow("PLb", PLAYLIST.title(), 3, 2, "x", null);
+        DownloadsPageLogic.Taps browse = row -> OfflineLibraryLogic.browseCommand("VL" + row.sourceId());
+        for (Layout layout : List.of(Layout.ALL, Layout.PLAYLISTS)) {
+            List<byte[]> cards = rows(DownloadsPageLogic.sections(layout, true, List.of(PLAYLIST, delegated, ALBUM),
+                    NO_PLAYLIST, LABELS, browse, COVERS, PLAYLIST.sourceId()::equals).get(0));
+
+            assertEquals(PLAYLIST.sourceId(), DownloadsPageLogic.playlistCardSourceId(cards.get(0)));
+            assertEquals("", DownloadsPageLogic.playlistCardSourceId(cards.get(1)));
+            if (layout == Layout.ALL) assertNull(DownloadsPageLogic.playlistCardSourceId(cards.get(2)));
+            assertEquals("", DownloadsPageLogic.playlistCardSourceId(cards.get(cards.size() - 1)));
+
+            // A real browse ID and even the entire marked card inside another model are not the bound card.
+            byte[] other = new ProtoWriter().message(5, browse.source(PLAYLIST))
+                    .message(3, cards.get(0)).toByteArray();
+            assertNull(DownloadsPageLogic.playlistCardSourceId(other));
+        }
+    }
+
+    @Test public void anOwnedCardUsesTheIdAtItsOwnTapBrowseEndpointFieldTwo() {
+        DownloadsPageLogic.Taps wrongField = row -> new ProtoWriter().message(48_687_626,
+                new ProtoWriter().string(1, "VL" + row.sourceId()).toByteArray()).toByteArray();
+        List<byte[]> cards = rows(DownloadsPageLogic.sections(Layout.PLAYLISTS, true, List.of(PLAYLIST),
+                null, LABELS, wrongField, COVERS, id -> true).get(0));
+
+        assertEquals("", DownloadsPageLogic.playlistCardSourceId(cards.get(0)));
+    }
+
     @Test public void aRowWithoutACommandIsLeftOut() {
         DownloadsPageLogic.Taps none = row -> row.sourceId().equals("songs") ? TAPS.source(row) : null;
         List<byte[]> items = DownloadsPageLogic.sections(Layout.ALL, true, List.of(PLAYLIST), NO_PLAYLIST,
-                LABELS, none, COVERS);
+                LABELS, none, COVERS, id -> false);
 
         assertEquals(List.of("No Playlist"), rowTitles(items.get(0)));
     }
@@ -157,7 +186,7 @@ public class DownloadsPageLogicTest {
     @Test public void aRowWithoutACoverHasNoImage() {
         SourceRow plain = new SourceRow("songs", "No Playlist", 1, 1, "s", null);
         byte[] shelf = DownloadsPageLogic.sections(Layout.ALL, true, List.of(), plain, LABELS, TAPS,
-                (id, url) -> null).get(0);
+                (id, url) -> null, id -> false).get(0);
 
         assertEquals(List.of(), rowCovers(shelf));
     }
@@ -228,7 +257,7 @@ public class DownloadsPageLogicTest {
 
     private static List<byte[]> sections(Layout layout, boolean online, List<SourceRow> sources,
                                          SourceRow noPlaylist) {
-        return DownloadsPageLogic.sections(layout, online, sources, noPlaylist, LABELS, TAPS, COVERS);
+        return DownloadsPageLogic.sections(layout, online, sources, noPlaylist, LABELS, TAPS, COVERS, id -> false);
     }
 
     private static byte[] headerEntry() {

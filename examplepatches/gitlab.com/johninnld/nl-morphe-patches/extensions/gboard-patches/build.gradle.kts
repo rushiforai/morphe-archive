@@ -95,6 +95,7 @@ android {
     namespace = "dev.jason.gboardpatches.extension"
 
     buildFeatures {
+        aidl = true
         buildConfig = true
     }
 
@@ -127,6 +128,8 @@ android {
 }
 
 dependencies {
+    compileOnly(project(":gboard-writing188-stubs"))
+    testImplementation(project(":gboard-writing188-stubs"))
     compileOnly("androidx.annotation:annotation:1.9.1")
     // Bundled OCR engine: the recognition pipeline and models ship with the extension
     // because Play Services refuses its module download to a re-signed Gboard. The five

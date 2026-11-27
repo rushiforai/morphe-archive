@@ -1,0 +1,10 @@
+# Kotlin sources are stored and checked out with LF endings.
+#
+# A Windows checkout with core.autocrlf=true rewrites every line ending in the
+# worktree to CRLF, and a tool that "fixes" endings on an already-CRLF file
+# writes a second CR, so the commit carries CRCRLF and the file shows up as a
+# whole-file diff. Pinning the eol here overrides autocrlf for these files: Git
+# stores LF, checks out LF, and a stray CR becomes a real, visible change.
+*.kt text eol=lf
+*.kts text eol=lf
+.gitattributes text eol=lf

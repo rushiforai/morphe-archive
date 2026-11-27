@@ -4,7 +4,7 @@ Usage: prune_versions.py [target ...]   (default: every target in targets.json)
 
 A target's supported versions are those in its `*_VERSIONS` block plus those with a
 registered adapter (Joplin has adapters only). Everything outside the
-three highest is removed: from the block, and with its adapter `.bundle`, `.assets.zip`, `.properties`
+three highest is removed: from the block, and with its adapter `.bundle`/`.bdelta`, `.assets.zip`, `.properties`
 and index entry. Prints `removed <target> <version>` for each version it drops.
 """
 import json
@@ -49,6 +49,7 @@ def prune(name, target):
             if VERSION.fullmatch(version) and version not in kept:
                 properties.unlink()
                 (adapters / f"{version}.bundle").unlink(missing_ok=True)
+                (adapters / f"{version}.bdelta").unlink(missing_ok=True)
                 # Orca adapters carry an Expo asset overlay next to the bundle.
                 (adapters / f"{version}.assets.zip").unlink(missing_ok=True)
         present = sorted((p.stem for p in adapters.glob("*.properties") if VERSION.fullmatch(p.stem)), key=sort_key)

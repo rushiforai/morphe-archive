@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="695" viewBox="0 0 860 695" role="img" aria-label="Terminal output of the Rambler Bangla test suites">
+<rect width="860" height="695" rx="10" fill="#0D1117"/>
+<circle cx="20" cy="18" r="6" fill="#FF5F56"/><circle cx="40" cy="18" r="6" fill="#FFBD2E"/><circle cx="60" cy="18" r="6" fill="#27C93F"/>
+<g font-family="Consolas, Menlo, DejaVu Sans Mono, monospace" font-size="14" xml:space="preserve">
+<text x="18" y="48" fill="#F6B13E">$ bash tests/run_tests.sh</text>
+<text x="18" y="67" fill="#79C0FF">== 1. policy unit tests</text>
+<text x="18" y="86" fill="#7EE787">PolicyTest: 51 passed, 0 failed</text>
+<text x="18" y="105" fill="#7EE787">  PASS: policy unit tests (51 assertions)</text>
+<text x="18" y="124" fill="#79C0FF">== 2. fixture build</text>
+<text x="18" y="143" fill="#7EE787">  PASS: fixture APK builds (smali + d8 + aapt2 + sign)</text>
+<text x="18" y="162" fill="#79C0FF">== 3. end-to-end patch</text>
+<text x="18" y="181" fill="#7EE787">  PASS: analyze resolves anchors and fingerprints</text>
+<text x="18" y="200" fill="#7EE787">  PASS: analyze reports both fingerprint hits</text>
+<text x="18" y="219" fill="#7EE787">  PASS: patch applies on matching fixture</text>
+<text x="18" y="238" fill="#7EE787">  PASS: hook B (override rule) present</text>
+<text x="18" y="257" fill="#7EE787">  PASS: hook A (script gate) present</text>
+<text x="18" y="276" fill="#7EE787">  PASS: enabled-languages value saved to dedicated register</text>
+<text x="18" y="295" fill="#7EE787">  PASS: hook args are distinct registers (no clobber)</text>
+<text x="18" y="314" fill="#7EE787">  PASS: stock rule string preserved as fail-safe input</text>
+<text x="18" y="333" fill="#7EE787">  PASS: register window grew exactly by 3 temps</text>
+<text x="18" y="352" fill="#7EE787">  PASS: --extension-dex merge adds classes3.dex</text>
+<text x="18" y="371" fill="#79C0FF">== 4. fail-closed negative tests</text>
+<text x="18" y="390" fill="#7EE787">  PASS: wrong fingerprint aborts with no output APK</text>
+<text x="18" y="409" fill="#7EE787">  PASS: tampered stock string aborts with no output APK</text>
+<text x="18" y="428" fill="#7EE787">  PASS: re-patching an already patched build aborts (idempotency guard)</text>
+<text x="18" y="447" fill="#79C0FF">== 5. APK parse + signature validation</text>
+<text x="18" y="466" fill="#7EE787">  PASS: patched+resigned fixture passes APK Signature Scheme v2 verification</text>
+<text x="18" y="485" fill="#C9D1D9">  androguard: both APKs parse as valid, package/version read back</text>
+<text x="18" y="504" fill="#7EE787">  PASS: androguard parses stock+patched fixture APKs</text>
+<text x="18" y="523" fill="#C9D1D9"></text>
+<text x="18" y="542" fill="#79C0FF">===================================</text>
+<text x="18" y="561" fill="#7EE787">TEST SUITE: 17 passed, 0 failed</text>
+<text x="18" y="580" fill="#C9D1D9"></text>
+<text x="18" y="599" fill="#F6B13E">$ python3 -m unittest discover -s tests/python</text>
+<text x="18" y="618" fill="#C9D1D9">..........................</text>
+<text x="18" y="637" fill="#C9D1D9">Ran 26 tests in 0.087s</text>
+<text x="18" y="656" fill="#7EE787">OK</text>
+</g>
+</svg>

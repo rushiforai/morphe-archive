@@ -65,11 +65,11 @@ final class BadgeDrawable extends Drawable {
         size = config.size;
         showInfo = config.info;
         background = config.background;
-        location = info.location;
+        location = info.country(config.deviceCountry);
         source = info.source;
         warning = info.hasLocationWarning();
-        if (config.flags && info.location != null) {
-            String f = Countries.flagFor(info.location);
+        if (config.flags && location != null) {
+            String f = Countries.flagFor(location);
             flag = f != null ? f : Countries.UNKNOWN_FLAG;
             items.add(new Item(Kind.FLAG, size.icon));
         } else {

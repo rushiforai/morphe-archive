@@ -6,8 +6,8 @@ Technical reference for [`RyuuseiAkira/w3s-patches`](https://github.com/RyuuseiA
 
 W3Schools Android ships as a split APK bundle (`ApkFileType.APKS`) combining:
 
-1. **Capacitor WebView + Next.js static export** — UI, curriculum progression checks, and client energy state live in bundled webpack chunks under `assets/public/_next/static/chunks/*.js`.
-2. **Android / Dalvik runtime** — `@capgo/capacitor-social-login` (`CredentialManager` / Google Play Services) handles Google Sign-In, while Pairip (`com.pairip.licensecheck.LicenseClient`) validates Play Store licensing at startup.
+1. **Capacitor WebView + Next.js static export** — UI, curriculum progression checks, update lockouts, and client energy state live in bundled webpack chunks under `assets/public/_next/static/chunks/*.js`.
+2. **Android / Dalvik runtime** — `@capgo/capacitor-social-login` handles Google/Facebook Sign-In, Pairip (`com.pairip.licensecheck.LicenseClient`) validates Play Store licensing at startup, and Meta/RevenueCat SDKs emit background analytics/telemetry.
 
 All compatibility metadata lives in [`Constants.kt`](../patches/src/main/kotlin/app/w3s/patches/w3schools/shared/Constants.kt):
 
@@ -25,12 +25,20 @@ All compatibility metadata lives in [`Constants.kt`](../patches/src/main/kotlin/
 |---|---|---|---|---|
 | **Unlimited energy** | On (`true`) | Enabled | `pairipLicenseBypassPatch` | [unlimited-energy.md](unlimited-energy.md) |
 | **Unlock curriculum map** | On (`true`) | Enabled | `pairipLicenseBypassPatch` | [unlock-curriculum-map.md](unlock-curriculum-map.md) |
+| **Bypass forced updates** | On (`true`) | Enabled | `pairipLicenseBypassPatch` | [bypass-forced-updates.md](bypass-forced-updates.md) |
+| **Disable tracking and analytics** | On (`true`) | Enabled | `pairipLicenseBypassPatch` | [disable-telemetry.md](disable-telemetry.md) |
+| **Hide upgrade prompts** | On (`true`) | Enabled | `pairipLicenseBypassPatch` | [hide-upgrade-prompts.md](hide-upgrade-prompts.md) |
+| **Enable developer tools** | Off (`false`) | Disabled by default | `pairipLicenseBypassPatch` | [enable-developer-tools.md](enable-developer-tools.md) |
 | **MicroG-RE support** | Off (`false`) | `DISABLED` (Standard / Shizuku), `UNAVAILABLE` (Mount) | `pairipLicenseBypassPatch` | [microg-re-support.md](microg-re-support.md) |
 | *Pairip license bypass* (internal) | Automatic | Shared dependency | — | [pairip-and-limitations.md](pairip-and-limitations.md) |
 
 ## Guides
 
-- **[Unlimited energy](unlimited-energy.md)** — How Next.js `user-energy` functions are located and stubbed to return a full `3/3` charge snapshot.
-- **[Unlock curriculum map](unlock-curriculum-map.md)** — How `resolveCurriculumAvailability` is unlocked for sequential lessons, checkpoints, and milestones.
+- **[Unlimited energy](unlimited-energy.md)** — `user-energy` JS stubs plus unlimited infinity UI across `/energy`, top bar, curriculum header, and profile.
+- **[Unlock curriculum map](unlock-curriculum-map.md)** — `resolveCurriculumAvailability` unlock and removal of `/course-overview` unlock upsells.
+- **[Bypass forced updates](bypass-forced-updates.md)** — Neutralizes remote `minimumClientBuild` blocking in `W3SAppUpdateProvider` and Play in-app review prompts.
+- **[Disable tracking and analytics](disable-telemetry.md)** — Disables Meta AppEvents, AdServices attribution, AAID/InstallReferrer collection, and RevenueCat diagnostic/event uploads.
+- **[Hide upgrade prompts](hide-upgrade-prompts.md)** — Removes remaining free-user upsell banners on `/streak` and `/duel`.
+- **[Enable developer tools](enable-developer-tools.md)** — Exposes built-in `/billing-debug` and `/devconsole` tools in Settings.
 - **[MicroG-RE support](microg-re-support.md)** — Dalvik bytecode stubs, string/authority rewrites, Android 14+ Credential Manager routing, and manifest spoofing for `app.revanced.android.gms`.
 - **[Pairip bypass & client/server boundaries](pairip-and-limitations.md)** — Internal Pairip startup license bypass and which W3Schools features remain server-enforced.

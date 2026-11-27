@@ -150,6 +150,7 @@ public class StoryEyeTest {
         openViewer();
         StoryEye.Eye eye = eye();
         assertNotNull("the eye joins the viewer's window", eye);
+        assertTrue("#191: Invisible buttons lists it with HushMessenger's own", InvisibleButtons.isOwn(eye));
         assertEquals("hidden until a story's seen is held back", View.GONE, eye.getVisibility());
 
         StoryHandler handler = new StoryHandler();

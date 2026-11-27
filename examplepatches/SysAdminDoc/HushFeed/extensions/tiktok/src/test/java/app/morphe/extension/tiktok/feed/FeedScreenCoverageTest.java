@@ -179,6 +179,9 @@ public class FeedScreenCoverageTest {
         put("publish_date_month_name", YES, YES, NONE);
         // The same row's age written as a date, so it reaches where that row does (#461).
         put("publish_date_instead_of_age", YES, YES, NONE);
+        // The same rows on comment times (#536): the comment sheet opens over a video in either
+        // feed window, and a LIVE room's chat isn't one. Chats and search cards are none of the three.
+        put("publish_date_everywhere", YES, YES, NONE);
         // Profile grids only.
         put("publish_date_on_grid", NONE, NONE, NONE);
         put("video_length_on_grid", NONE, NONE, NONE);
@@ -195,6 +198,10 @@ public class FeedScreenCoverageTest {
         put("collection_grid_sort", NONE, YES, NONE);
         put("sound_grid_sort", NONE, YES, NONE);
         put("grid_search", NONE, YES, NONE);
+        // Block sound under Save on the sound page the spinning record opens, a screen of its own.
+        put("sound_page_block_button", NONE, NONE, NONE);
+        // Jam Sound and Use sound at the foot of that same sound page (#535).
+        put("hide_sound_page_buttons", NONE, NONE, NONE);
         // Where the Liked grid's list starts, which neither window draws (#350).
         put("liked_jump_to_date", NONE, NONE, NONE);
         // The same for the Favorites grid (#508).
@@ -310,6 +317,9 @@ public class FeedScreenCoverageTest {
         put("see_through_bottom_bar", YES, NONE, NONE);
         // How the video under that same bar is drawn (#232).
         put("see_through_video_in_window", YES, NONE, NONE);
+        // The tab pages under that same bar (#436), Community's grid, profiles and the inbox: none
+        // of the three windows, whose feed it leaves where it is.
+        put("pages_under_bottom_bar", NONE, NONE, NONE);
         // Only the look of that same bar (#124).
         put("floating_bottom_bar", YES, NONE, NONE);
         // And of that pill (#218).
@@ -517,14 +527,14 @@ public class FeedScreenCoverageTest {
         int cellId = 0x7f0a1c01;
         Map<String, Integer> ids = new LinkedHashMap<>();
         ids.put("desc", 0x7f0a1c02);
-        ids.put("47.9.3:ofs", 0x7f0a1c03);
-        ids.put("47.9.3:lq1", 0x7f0a1c04);
-        ids.put("47.9.3:fe0", 0x7f0a1c05);
+        ids.put("48.0.2:oan", 0x7f0a1c03);
+        ids.put("48.0.2:lkv", 0x7f0a1c04);
+        ids.put("48.0.2:feu", 0x7f0a1c05);
         Map<BooleanSetting, String> switches = new LinkedHashMap<>();
         switches.put(Settings.HIDE_FEED_CAPTION, "desc");
-        switches.put(Settings.HIDE_FEED_MUSIC, "47.9.3:ofs");
-        switches.put(Settings.HIDE_FEED_ACTION_BAR, "47.9.3:lq1");
-        switches.put(Settings.HIDE_FEED_SURVEYS, "47.9.3:fe0");
+        switches.put(Settings.HIDE_FEED_MUSIC, "48.0.2:oan");
+        switches.put(Settings.HIDE_FEED_ACTION_BAR, "48.0.2:lkv");
+        switches.put(Settings.HIDE_FEED_SURVEYS, "48.0.2:feu");
         for (BooleanSetting setting : switches.keySet()) {
             Coverage coverage = TABLE.get(setting.key);
             assertNotNull(setting.key, coverage);

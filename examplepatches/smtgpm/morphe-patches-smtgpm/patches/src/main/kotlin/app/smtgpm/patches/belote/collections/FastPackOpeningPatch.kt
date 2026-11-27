@@ -17,12 +17,14 @@ import app.smtgpm.patches.belote.shared.verifyNativeLibraryPatch
 /**
  * Zeroes the WaitForSeconds of the pack opening coroutines (ShowPackOpening, ShowGrantedItems,
  * ContAnim) and of the album hand-over (DistributePackRewards), and shortens the card flights
- * into the album from 0.5 s to 0.125 s. The pack's own Animator clip still plays.
+ * into the album from 0.5 s to 0.125 s. The star pack flow (duplicates exchange:
+ * CollectionDuplicatesUIView.ShowRewards and AnimateNewPacksToIcon, and its own ContAnim) gets
+ * the same treatment. The packs' own Animator clips still play.
  */
 @Suppress("unused")
 val fastPackOpeningPatch = rawResourcePatch(
     name = "Fast pack opening",
-    description = "Shows all cards of a pack at once and skips the pauses between packs.",
+    description = "Shows all cards of a pack at once and skips the pauses between packs, star packs included.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_BELOTE)

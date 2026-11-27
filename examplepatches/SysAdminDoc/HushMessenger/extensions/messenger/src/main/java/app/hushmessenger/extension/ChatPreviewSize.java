@@ -44,13 +44,25 @@ public final class ChatPreviewSize {
         }
     }
 
-    /** Lets a drag on the preview's tap layer scroll the chat under it. Taps still reach the layer. */
+    /**
+     * Lets a drag on the preview's tap layer scroll the chat under it. Taps still reach the layer. With Keep taps in the
+     * chat preview on, the layer takes no touches at all, so there's nothing left to hand over.
+     */
     public static void tapLayer(View layer) {
         try {
-            if (layer == null || !Settings.enabled(KEY)) return;
+            if (layer == null || PreviewTaps.adopt(layer) || !Settings.enabled(KEY)) return;
             layer.setOnTouchListener(new Drag(ViewConfiguration.get(layer.getContext()).getScaledTouchSlop()));
         } catch (Throwable error) {
             Settings.hookFailedPrivately(KEY, "Couldn't let the chat preview scroll", error);
+        }
+    }
+
+    /** Hands each preview to Keep taps in the chat preview as its view is built, so Open chat can open the chat its way. */
+    public static void preview(Object fragment) {
+        try {
+            PreviewTaps.keep(fragment);
+        } catch (Throwable error) {
+            Settings.hookFailedPrivately(PreviewTaps.KEY, "Couldn't keep the chat preview's way into the chat", error);
         }
     }
 

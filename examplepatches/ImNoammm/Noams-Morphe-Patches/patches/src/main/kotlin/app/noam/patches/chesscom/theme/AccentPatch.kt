@@ -10,9 +10,7 @@ import app.noam.patches.chesscom.shared.markFeaturePatched
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val ACCENT = "${Constants.EXTENSION_PACKAGE}/theme/Accent;"
 
@@ -25,7 +23,7 @@ private val GREENS = listOf(
 @Suppress("unused")
 val accentPatch = bytecodePatch(
     name = "Accent color",
-    description = "Your own colour in place of chess.com's green, chosen in Noam's Patches → " +
+    description = "Your own color in place of chess.com's green, chosen in Noam's Patches → " +
         "Accent color: buttons, highlights, icons and text of the app.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
@@ -35,7 +33,7 @@ val accentPatch = bytecodePatch(
     execute {
         markFeaturePatched("accentPatched")
 
-        // The design system's colour palette: static colours set in <clinit>, one getter each.
+        // The design system's colour palette: static colours set in <clinit>.
         var palette: ClassDef? = null
         classDefForEach { classDef ->
             if (palette != null || !classDef.type.startsWith("Lcom/chess/designsystem/tokens/")) return@classDefForEach
@@ -44,42 +42,30 @@ val accentPatch = bytecodePatch(
                 palette = classDef
             }
         }
-        val paletteClass = mutableClassDefBy(palette ?: throw PatchException("The colour palette was not found"))
+        val paletteClass = mutableClassDefBy(palette ?: throw PatchException("The color palette was not found"))
 
-        // Which static field holds which green.
-        val shades = mutableMapOf<String, Int>()
+        // Each green is stored once, in <clinit>, and read straight from its field (the getters are
+        // inlined), so it is swapped as it is stored. Greens the app no longer uses have no field.
+        val init = paletteClass.methods.single { it.name == "<clinit>" }
         var constant: Long? = null
-        paletteClass.methods.single { it.name == "<clinit>" }.implementation!!.instructions.forEach { instruction ->
-            when {
-                instruction is WideLiteralInstruction -> constant = instruction.wideLiteral
-                instruction.opcode == Opcode.SPUT_WIDE -> {
-                    val field = (instruction as ReferenceInstruction).reference as FieldReference
-                    val shade = GREENS.indexOf(constant ?: return@forEach)
-                    if (shade >= 0) shades[field.name] = shade
-                }
+        val stores = mutableListOf<Pair<Int, Long>>()
+        init.implementation!!.instructions.forEachIndexed { index, instruction ->
+            if (instruction is WideLiteralInstruction) {
+                constant = instruction.wideLiteral
+            } else if (instruction.opcode == Opcode.SPUT_WIDE) {
+                constant?.takeIf { it in GREENS }?.let { stores += index to it }
             }
         }
-        if (shades.size != GREENS.size) throw PatchException("Found ${shades.size} of ${GREENS.size} greens")
-
-        var hooked = 0
-        paletteClass.methods.forEach { method ->
-            if (method.parameterTypes.isNotEmpty() || method.returnType != "J") return@forEach
-            val body = method.implementation?.instructions?.toList() ?: return@forEach
-            if (body.size != 2 || body[0].opcode != Opcode.SGET_WIDE || body[1].opcode != Opcode.RETURN_WIDE) return@forEach
-            val shade = shades[((body[0] as ReferenceInstruction).reference as FieldReference).name] ?: return@forEach
-            val value = method.getInstruction<OneRegisterInstruction>(1).registerA
-            val self = method.implementation!!.registerCount - 1
-            if (self == value || self == value + 1 || self > 15) throw PatchException("Unexpected palette registers")
-            method.addInstructions(
-                1,
+        if (stores.none { it.second == GREENS[5] }) throw PatchException("The brand green's field was not found")
+        stores.reversed().forEach { (index, _) ->
+            val value = init.getInstruction<OneRegisterInstruction>(index).registerA
+            init.addInstructions(
+                index,
                 """
-                    const/16 v$self, $shade
-                    invoke-static { v$value, v${value + 1}, v$self }, $ACCENT->palette(JI)J
+                    invoke-static/range { v$value .. v${value + 1} }, $ACCENT->palette(J)J
                     move-result-wide v$value
                 """,
             )
-            hooked++
         }
-        if (hooked == 0) throw PatchException("No green palette getters were found")
     }
 }

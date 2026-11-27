@@ -60,7 +60,7 @@ After boot, from another terminal with the repository's local signing environmen
 scripts/setup-tools.sh
 scripts/emulator/build-android12-fixtures.sh /path/to/google-api30.apk /path/to/gemini-api29-base.apk
 scripts/emulator/build-contract-probe.sh
-python3 scripts/emulator/test-issue8.py \
+node scripts/emulator/test-issue8.mjs \
   --adb "$ANDROID_HOME/platform-tools/adb" --serial emulator-5582 \
   --avd GeminiPatch_Issue8_API31 --monolithic-google \
   --bad-apk local/issue8/api31/build/dist/bad.apk \

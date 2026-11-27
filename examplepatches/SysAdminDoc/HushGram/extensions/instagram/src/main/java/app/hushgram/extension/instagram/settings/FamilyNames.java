@@ -112,6 +112,7 @@ public final class FamilyNames {
     public static final String NOTIFICATION_GROUPS = "Group Instagram's notifications";
     public static final String HDR_BOOST = "Turn off HDR brightness boosts";
     public static final String HDR_PHOTOS = "Keep HDR on photo uploads";
+    public static final String HDR_VIDEOS = "Keep HDR on video uploads";
     public static final String STOP_LOOPING = "Stop videos looping";
     public static final String BACKGROUND_PLAY = "Keep playing in the background";
     public static final String MEDIA_CACHE = "Clear the media cache";
@@ -126,6 +127,7 @@ public final class FamilyNames {
     public static final String PROFILE_GRID_JUMP = "Jump a profile's posts to a date";
     public static final String PROFILE_REEL_SORT = "Sort reels on profiles";
     public static final String PROFILE_FOLLOW_COUNTS = "Hide Followers and Following on profiles";
+    public static final String ACTIVITY_SELECT_ALL = "Select all in Your activity";
     public static final String COMMENT_COPY = "Copy comment";
     public static final String COMMENT_PHOTO = "Save comment photo";
     public static final String PROFILE_PICTURE = "Save profile picture";

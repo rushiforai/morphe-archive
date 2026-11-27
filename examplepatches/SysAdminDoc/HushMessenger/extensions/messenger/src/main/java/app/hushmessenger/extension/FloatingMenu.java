@@ -98,15 +98,17 @@ final class FloatingMenu {
      * the menu isn't laid out the way this expects. The card, or null when there's none.
      */
     static View dress(View overlay, View host) {
-        return dress(overlay, host, null);
+        return dress(overlay, host, null, null);
     }
 
     /**
-     * The same, for a menu whose pressed message is drawn again on top of the chat (see InChatMenu). When the card has no
-     * room under that message, the emoji row moves up with it, the way an iPhone lifts the last message in a chat, and
-     * lift is told how far so the message is drawn that much higher too. Null keeps both where Messenger put them.
+     * The same, for a menu in the chat (see InChatMenu), which keeps the emoji row wherever this puts it and is told how
+     * far up that is through raised. A row lying across a photo or video moves up off it. When the pressed
+     * message is drawn again on top of the chat and the card has no room under it, the row moves up with the message
+     * first, the way an iPhone lifts the last message in a chat, and lift is told how far so the message is drawn that
+     * much higher too. A null lift keeps the message where Messenger put it, and a null raised keeps the row there too.
      */
-    static View dress(View overlay, View host, java.util.function.IntConsumer lift) {
+    static View dress(View overlay, View host, java.util.function.IntConsumer lift, java.util.function.IntConsumer raised) {
         ViewGroup actions = actionBar(overlay);
         if (actions == null) return null;
         FrameLayout frameHolder = frame(overlay);
@@ -131,12 +133,18 @@ final class FloatingMenu {
         View message = pressed(host, overlay, anchor, density);
         Rect bubble = message == null ? null : bounds.apply(message);
         int gap = (int) (GAP_DP * density), edge = (int) (EDGE_DP * density);
-        int rise = lift == null ? 0 : rise(anchor, bubble, frame, height, gap, edge);
+        int rise = lift == null || raised == null ? 0 : rise(anchor, bubble, frame, height, gap, edge);
         if (rise > 0) {
             anchor.offset(0, -rise);
             if (bubble != null) bubble.offset(0, -rise);
-            panel.setTranslationY(-rise);
             lift.accept(rise);
+        }
+        int clear = raised == null ? 0 : clear(anchor, bubble, frame, height, gap, edge);
+        anchor.offset(0, -clear);
+        if (rise + clear > 0) {
+            // From the row's resting place, so a row still parked for Messenger's slide doesn't keep that offset.
+            panel.setTranslationY(-(rise + clear));
+            raised.accept(rise + clear);
         }
         Rect placed = place(anchor, bubble, frame, width, height, gap, edge);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
@@ -189,6 +197,23 @@ final class FloatingMenu {
         if (missing <= 0) return 0;
         int room = Math.min(panel.top, anchor.top) - (frame.top + edge);
         return Math.max(0, Math.min(missing, room));
+    }
+
+    /**
+     * How far the emoji row moves up to sit over a photo or video Messenger lays it across rather than on it (#162: on
+     * the S22 it went 38 px down the photo and hid the top third), never so far that it leaves the top of the screen. A
+     * row over a short message moves up too when it reaches more than half a gap into it: its own clear edge may touch
+     * the bubble, but near the top of the chat Messenger left it 29 px in and the row covered the bubble's top (#250).
+     * 0 when the row already ends over the message, for a message whose top is off the screen, and for one too tall to
+     * share the screen with the row and the card, which keeps the row where the press was.
+     */
+    static int clear(Rect panel, Rect bubble, Rect frame, int height, int gap, int edge) {
+        if (bubble == null || bubble.isEmpty() || bubble.top < frame.top + edge) return 0;
+        if (panel.height() + bubble.height() + gap + height > frame.height() - 2 * edge) return 0;
+        int over = panel.bottom - bubble.top;
+        if (bubble.top >= panel.centerY() && over <= gap / 2) return 0;
+        int room = panel.top - (frame.top + edge);
+        return Math.max(0, Math.min(over, room));
     }
 
     /** How tall the card is for that many rows, counting the hairlines between them and its own padding. */

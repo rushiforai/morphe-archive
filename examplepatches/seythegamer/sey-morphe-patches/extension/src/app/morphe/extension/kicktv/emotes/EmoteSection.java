@@ -61,9 +61,17 @@ public final class EmoteSection implements MorpheSection {
         reload.setAlpha(EmotePrefs.isEnabled() ? 1f : 0.45f);
         container.addView(reload, MorpheTheme.matchWidth());
 
+        final Button sizeButton = new Button(activity);
+        sizeButton.setAllCaps(false);
+        sizeButton.setTextSize(18);
+        sizeButton.setTextColor(MorpheTheme.COLOR_ACCENT);
+        MorpheTheme.makeFocusable(activity, sizeButton);
+        container.addView(sizeButton, MorpheTheme.matchWidth());
+
         final TextView hint = new TextView(activity);
         hint.setText("7TV channel emotes are used when available. BTTV and FFZ "
-                + "global emotes are added because they do not provide KICK channels.");
+                + "global emotes are added because they do not provide KICK channels. "
+                + "Emote size applies to both third-party and KICK's built-in emotes.");
         hint.setTextColor(MorpheTheme.COLOR_MUTED);
         hint.setTextSize(12);
         hint.setPadding(
@@ -75,6 +83,15 @@ public final class EmoteSection implements MorpheSection {
 
         final Handler handler = new Handler(Looper.getMainLooper());
         final Runnable refresh = () -> status.setText(EmoteRepository.getSummary());
+        final Runnable updateSize = () -> sizeButton.setText("Emote size: "
+                + (EmotePrefs.isTwitchSize() ? "Twitch-like" : "Native"));
+
+        updateSize.run();
+
+        sizeButton.setOnClickListener(v -> {
+            EmotePrefs.setTwitchSize(!EmotePrefs.isTwitchSize());
+            updateSize.run();
+        });
 
         enable.setOnClickListener(v -> {
             boolean enabled = enable.isChecked();

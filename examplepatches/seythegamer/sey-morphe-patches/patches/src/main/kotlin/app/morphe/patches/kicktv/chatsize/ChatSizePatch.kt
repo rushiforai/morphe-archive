@@ -56,9 +56,9 @@ private object ChatPanelWidthFingerprint : Fingerprint(
 @Suppress("unused")
 val chatSizePatch = patch(
     name = "CHAT SIZE",
-    description = "Resize the chat in the VIDEO/CHAT view: default (100%), " +
-        "125%, 90%, 85% and 80%. The video and the chat panel always meet " +
-        "at the same edge. Requires the SEYTTINGS patch.",
+    description = "Resize the chat in the VIDEO/CHAT view with three options: " +
+        "Native (stock), Twitch-like (Twitch TV ratio) and Big. The video and " +
+        "the chat panel always meet at the same edge. Requires the SEYTTINGS patch.",
     default = true,
 ) {
     compatibleWith(KICK_TV)

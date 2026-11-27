@@ -90,6 +90,7 @@ val unlimitedQuickMessagesPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.UNLIMITED_QUICK_MESSAGES)
         val sites = mutableListOf<QuickMessageSite>()
 
         fun mutableOf(classDef: com.android.tools.smali.dexlib2.iface.ClassDef, original: com.android.tools.smali.dexlib2.iface.Method) =
@@ -344,7 +345,9 @@ val unlimitedQuickMessagesPatch = bytecodePatch(
         """.trimIndent(), ExternalLabel("nezumi_original", update.implementation!!.instructions.first()))
 
         // 5) Delete: pru.L(id, json) -> ufk.c, then report success to the request's el2 callback (pru.b).
-        delete.addInstructions(0, """
+        // WithLabels binds :nezumi_done to this method; plain addInstructions keeps it pointing at the
+        // compiler's scratch method, which breaks once anything is inserted above (the bug-log breadcrumb).
+        delete.addInstructionsWithLabels(0, """
             iget-object p3, p0, Lpru;->b:Lel2;
             invoke-static {p1, p2}, $LOCAL_QUICK_MESSAGES->ids(J)Ljava/util/ArrayList;
             move-result-object v5
@@ -362,5 +365,8 @@ val unlimitedQuickMessagesPatch = bytecodePatch(
             :nezumi_done
             return-void
         """.trimIndent())
+
+        registerHooks(PatchId.UNLIMITED_QUICK_MESSAGES, *sites.map { it.method }.distinct().toTypedArray(),
+            sync, push, pushUpdate, pushDelete, create, update, delete)
     }
 }

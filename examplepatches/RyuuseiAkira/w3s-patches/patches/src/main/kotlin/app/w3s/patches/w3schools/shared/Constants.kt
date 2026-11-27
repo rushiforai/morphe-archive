@@ -18,8 +18,7 @@ object Constants {
         appIconColor = 0x04AA6D,
         signatures = setOf(W3S_SIGNATURE_SHA256),
         targets = listOf(
-            AppTarget(version = "1.0.8"),
-            AppTarget(version = null, isExperimental = true),
+            AppTarget(version = null),
         ),
     )
 }

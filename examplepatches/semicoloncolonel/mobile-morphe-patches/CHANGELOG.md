@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.1.1...v1.1.2) (2026-11-27)
+
+
+### Features
+
+* **ebay:** Add eBay 6.244.0.1 patches ([7ce66f7](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/7ce66f76f539fbb2b92bb10131f1f3d87118c02a))
+
 ## [1.1.1](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.1.0...v1.1.1) (2026-11-18)
 
 ### Bug fixes

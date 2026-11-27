@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.DocumentsContract;
+import android.provider.Settings;
 import android.text.InputType;
 import android.text.format.DateFormat;
 import android.util.TypedValue;
@@ -32,6 +33,8 @@ import app.nogoogle.gboard.gif.GifBridge;
 import app.nogoogle.gboard.gif.HelperApk;
 import app.nogoogle.gboard.translate.LocalTranslate;
 import app.nogoogle.gboard.translate.LocalTranslateInfo;
+import app.nogoogle.gboard.voice.FutoVoice;
+import app.nogoogle.gboard.voice.GoogleVoiceTyping;
 import app.nogoogle.gboard.voice.Models;
 import app.nogoogle.gboard.voice.VoiceController;
 
@@ -175,12 +178,53 @@ public class ModMenuActivity extends Activity {
         toggle("Keep the keyboard left-to-right", "Right-to-left languages (Hebrew, Arabic…) change only the "
                 + "letters: nothing is mirrored and the keyboard's menus stay in the phone's language. Restart "
                 + "Gboard after changing", NoGoogleSettings.KEEP_LTR);
+        if (BottomRow.patched()) {
+            choice("Space bar row height", NoGoogleSettings.BOTTOM_ROW_HEIGHT,
+                    new String[]{"stock", "90", "80", "70", "60", "50"},
+                    new String[]{"Full height (Gboard's default)", "90%", "80%", "70%", "60%", "50%"});
+        }
         restartAction();
+
+        if (ClipboardHistory.patched()) {
+            header("Clipboard");
+            choice("Keep clipboard history for", NoGoogleSettings.CLIPBOARD_KEEP,
+                    new String[]{"stock", "24", "168", "720", "forever"},
+                    new String[]{"1 hour (Gboard's default)", "1 day", "1 week", "30 days", "Forever"});
+            choice("Recent items shown", NoGoogleSettings.CLIPBOARD_RECENT,
+                    new String[]{"stock", "10", "20", "50", "100"},
+                    new String[]{"5 (Gboard's default)", "10", "20", "50", "100"});
+        }
 
         header("Voice typing");
         choice("Engine", NoGoogleSettings.VOICE_ENGINE,
-                new String[]{"whisper", "stock"},
-                new String[]{"Offline Whisper", "Gboard default (needs Google)"});
+                new String[]{"whisper", "google", "futo", "stock"},
+                new String[]{"Offline Whisper", "Google voice typing (another app on this phone, offline)",
+                        "FUTO Voice Input (another app on this phone)", "Gboard default (needs Google)"});
+        if ("futo".equals(NoGoogleSettings.str(NoGoogleSettings.VOICE_ENGINE))) {
+            boolean on = FutoVoice.available(this);
+            boolean installed = on || FutoVoice.installed(this);
+            note("The mic hands your voice to FUTO Voice Input, a separate app on this phone, which types what you "
+                    + "said and goes back to Gboard by itself; that app has its own internet access. "
+                    + (on ? "Its keyboard is turned on."
+                    : installed ? "Its keyboard isn't turned on in Android's keyboard list, so the mic uses offline "
+                    + "Whisper until it is."
+                    : "It isn't installed, so the mic uses offline Whisper."));
+            if (installed && !on) {
+                action("Open Android's keyboard list", "Turn on FUTO Voice Input there",
+                        v -> startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
+            }
+        }
+        if ("google".equals(NoGoogleSettings.str(NoGoogleSettings.VOICE_ENGINE))) {
+            note("The mic hands your voice to Google voice typing, a separate app on this phone (Speech Services "
+                    + "by Google), which recognizes it offline with the languages downloaded in it; that app has its "
+                    + "own internet access. Gboard itself stays offline. "
+                    + (GoogleVoiceTyping.available(this) ? "Google voice typing is turned on."
+                    : "It isn't turned on in Android's keyboard list, so the mic uses offline Whisper until it is."));
+            if (!GoogleVoiceTyping.available(this)) {
+                action("Open Android's keyboard list", "Turn on Google voice typing there",
+                        v -> startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
+            }
+        }
         List<String> names = new ArrayList<>();
         List<String> labels = new ArrayList<>();
         names.add("auto");

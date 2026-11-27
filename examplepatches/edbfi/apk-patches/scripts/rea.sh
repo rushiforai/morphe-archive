@@ -27,10 +27,16 @@ for prefix in /home/linuxbrew/.linuxbrew /opt/homebrew /usr/local; do
     fi
 done
 
-# rea verifies its bridge against Ghidra 12.1.4 only; Homebrew ships 12.2, so 12.1.4 lives in ~/.local/opt.
+# Prefer a Homebrew Ghidra release, which follows the supported 12.x line.
 if [ -z "${GHIDRA_INSTALL_DIR-}" ]; then
-    for dir in "$HOME"/.local/opt/ghidra_12.1.*_PUBLIC; do
-        [ -d "$dir" ] && GHIDRA_INSTALL_DIR=$dir
+    for prefix in /home/linuxbrew/.linuxbrew /opt/homebrew /usr/local; do
+        for dir in "$prefix"/opt/ghidra/*/libexec; do
+            if [ -f "$dir/Ghidra/application.properties" ]; then
+                GHIDRA_INSTALL_DIR=$dir
+                break
+            fi
+        done
+        [ -n "${GHIDRA_INSTALL_DIR-}" ] && break
     done
 fi
 

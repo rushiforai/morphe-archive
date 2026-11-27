@@ -74,6 +74,39 @@ public final class RamblerDynamicConfig {
     // InputConnection wrapper interface methods (pcn in 18.5.4, aepw in 18.8.0)
     public static String PCN_GET_EDITOR_INFO_METHOD = "k";
     public static String PCN_PERFORM_ACTION_METHOD = "y";
+    public static String PCN_SURROUNDING_TEXT_METHOD = "l";
+    public static String PDX_BEFORE_CURSOR_METHOD = "n";
+    public static String PDX_AFTER_CURSOR_METHOD = "m";
+
+    // Gboard Toolbar Access Point bindings (18.5.4 defaults; rewritten for 18.8.0+)
+    public static String AP_CONTROLLER_CLASS = "mwv";
+    public static String AP_CONTROLLER_ORDER_HELPER_FIELD = "g";
+    public static String AP_CONTROLLER_REGISTER_METHOD = "g";
+    public static String AP_ORDER_HELPER_CLASS = "mwg";
+    public static String AP_ORDER_HELPER_CATALOG_FIELD = "c";
+    public static String AP_IMMUTABLE_SET_CLASS = "wpa";
+    public static String AP_IMMUTABLE_SET_COPY_METHOD = "n";
+    public static String AP_DESCRIPTOR_CLASS = "mtr";
+    public static String AP_DESCRIPTOR_BUILDER_FACTORY_METHOD = "c";
+    public static String AP_BUILDER_BASE_CLASS = "mtm";
+    public static String AP_BUILDER_CONCRETE_CLASS = "mtm";
+    public static String AP_BUILDER_TOKEN_METHOD = "l";
+    public static String AP_BUILDER_RUNNABLE_METHOD = "q";
+    public static String AP_BUILDER_BUILD_METHOD = "a";
+    public static String AP_BUILDER_ICON_FIELD = "c";
+    public static String AP_BUILDER_LABEL_FIELD = "d";
+
+    // Spacebar long-press -> Rambler trigger bindings (18.5.4 defaults; rewritten for 18.8.0+)
+    public static String SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD = "g";
+    public static String SPACEBAR_LP_EVENT_ACTION_FIELD = "a";
+    public static String SPACEBAR_LP_KEYDATA_CODE_FIELD = "c";
+    public static String SPACEBAR_LP_KEYDATA_DATA_FIELD = "e";
+    public static String SPACEBAR_LP_EXT_GET_CONTEXT_METHOD = "ac";
+    public static String SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD = "ag";
+    public static String SPACEBAR_LP_AGENTIC_TRIGGER_METHOD = "C";
+    public static String SPACEBAR_LP_AGENTIC_CLASS = "fhv";
+    public static String SPACEBAR_LP_AGENTIC_UI_MANAGER_FIELD = "c";
+    public static String SPACEBAR_LP_UI_MANAGER_GET_STATE_METHOD = "h";
 
     private RamblerDynamicConfig() {
     }

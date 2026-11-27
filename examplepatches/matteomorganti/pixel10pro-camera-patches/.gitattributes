@@ -1,0 +1,25 @@
+# Committing from Windows must not break Linux CI.
+#
+# Everything is stored with LF. Without this, a file added from a Windows editor
+# can land in the repository with CRLF, and a shell script with CRLF fails on
+# the runner with the famously unhelpful:
+#     /bin/sh^M: bad interpreter: No such file or directory
+* text=auto eol=lf
+
+# Windows-native scripts keep CRLF in the working tree.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# The Gradle wrapper is executed by /bin/sh on the runner. It must stay LF, and
+# its executable bit must survive - see `git update-index --chmod=+x gradlew`.
+gradlew text eol=lf
+
+# Never touched.
+*.jar  binary
+*.apk  binary
+*.apkm binary
+*.mpp  binary
+*.mpe  binary
+*.dex  binary
+*.png  binary

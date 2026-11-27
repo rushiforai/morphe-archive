@@ -67,7 +67,7 @@ Use the original API30 Google / API29 Gemini variants and hashes in [the Android
 scripts/build-mpp.sh
 # Import the built MPP in Android Manager, patch original Google with defaults,
 # and export the result separately from the v0.3.3 baseline.
-python3 scripts/emulator/test-issue8-permissions.py \
+node scripts/emulator/test-issue8-permissions.mjs \
   --adb "$ANDROID_HOME/platform-tools/adb" --serial emulator-5582 \
   --baseline-apk local/issue8/register-fix/manager-v0.3.3-google.apk \
   --fixed-apk local/issue8/permission-ui/manager-v0.3.4-google.apk \

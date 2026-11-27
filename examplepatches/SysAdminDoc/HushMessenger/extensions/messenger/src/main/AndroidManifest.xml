@@ -15,9 +15,12 @@
         <meta-data android:name="hush.feature.inbox_search_bar" android:value="true" />
         <meta-data android:name="hush.feature.search_suggested" android:value="true" />
         <meta-data android:name="hush.feature.search_reels" android:value="true" />
+        <meta-data android:name="hush.feature.search_strangers" android:value="true" />
+        <meta-data android:name="hush.feature.confirm_strangers" android:value="true" />
         <meta-data android:name="hush.feature.longer_notes" android:value="true" />
         <meta-data android:name="hush.feature.chat_preview" android:value="true" />
         <meta-data android:name="hush.feature.chat_preview_size" android:value="true" />
+        <meta-data android:name="hush.feature.chat_preview_taps" android:value="true" />
         <meta-data android:name="hush.feature.mark_read_action" android:value="true" />
         <meta-data android:name="hush.feature.facebook" android:value="true" />
         <meta-data android:name="hush.feature.meta_ai" android:value="true" />
@@ -94,6 +97,7 @@
         <meta-data android:name="hush.feature.special_contacts" android:value="true" />
         <meta-data android:name="hush.feature.chat_menu_items" android:value="true" />
         <meta-data android:name="hush.feature.profile_menu_items" android:value="true" />
+        <meta-data android:name="hush.feature.remove_contact" android:value="true" />
         <meta-data android:name="hush.feature.nearby_scans" android:value="true" />
         <meta-data android:name="hush.feature.phone_id_sync" android:value="true" />
         <meta-data android:name="hush.feature.passkey_login" android:value="true" />
@@ -112,6 +116,7 @@
         <meta-data android:name="hush.feature.blocked_list_pictures" android:value="true" />
         <meta-data android:name="hush.feature.restricted_notify" android:value="true" />
         <meta-data android:name="hush.feature.open_chat_sound" android:value="true" />
+        <meta-data android:name="hush.feature.own_chat_sounds" android:value="true" />
         <meta-data android:name="hush.feature.material_you" android:value="true" />
         <meta-data android:name="hush.feature.avatar_shape" android:value="true" />
         <meta-data android:name="hush.feature.thin_story_rings" android:value="true" />

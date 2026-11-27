@@ -1,0 +1,35 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="local.waze.aainstaller" android:versionCode="1" android:versionName="1.0.0">
+  <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="36" />
+  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+  <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+  <queries>
+    <package android:name="com.waze" />
+    <package android:name="app.morphe.manager" />
+    <package android:name="moe.shizuku.privileged.api" />
+    <package android:name="com.google.android.packageinstaller" />
+  </queries>
+  <application android:label="Waze AA Installer" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:allowBackup="false" android:usesCleartextTraffic="false" android:icon="@drawable/ic_installer">
+    <meta-data android:name="moe.shizuku.client.V3_SUPPORT" android:value="true" />
+    <activity android:name=".InstallerActivity" android:exported="true" android:launchMode="singleTop" android:configChanges="orientation|screenSize">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.INSTALL_PACKAGE" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:scheme="content" />
+        <data android:scheme="file" />
+        <data android:mimeType="application/vnd.android.package-archive" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="application/vnd.android.package-archive" />
+      </intent-filter>
+    </activity>
+    <provider android:name="rikka.shizuku.ShizukuProvider" android:authorities="local.waze.aainstaller.shizuku" android:exported="true" android:multiprocess="false" android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+    <provider android:name=".ApkProvider" android:authorities="local.waze.aainstaller.apk" android:exported="true" android:grantUriPermissions="false" />
+  </application>
+</manifest>

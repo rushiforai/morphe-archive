@@ -4,13 +4,17 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import org.json.JSONArray;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -49,12 +53,28 @@ public final class RamblerEnhancementsSettings {
             "pref_rambler_voice_search_enabled";
     public static final String PREF_KEY_VOICE_SEARCH_TRIGGERS =
             "pref_rambler_voice_search_triggers";
+    public static final String PREF_KEY_SEARCH_STRIP_TRAILING_PERIOD =
+            "pref_rambler_search_strip_trailing_period";
+    public static final String PREF_KEY_AUTO_SEARCH_ON_COMMIT =
+            "pref_rambler_auto_search_on_commit";
+    public static final String PREF_KEY_AUTO_SEARCH_APPS =
+            "pref_rambler_auto_search_apps_v1";
     public static final String PREF_KEY_HISTORY_ENABLED =
             "pref_rambler_history_enabled";
     public static final String PREF_KEY_STATS_ENABLED =
             "pref_rambler_stats_enabled";
     public static final String PREF_KEY_TYPING_BASELINE_WPM =
             "pref_rambler_typing_baseline_wpm";
+    public static final String PREF_KEY_TOOLBAR_BUTTON_ENABLED =
+            "pref_rambler_toolbar_button_enabled";
+    public static final String PREF_KEY_SPACEBAR_LONG_PRESS_RAMBLER =
+            "pref_rambler_spacebar_long_press_rambler";
+    public static final String PREF_KEY_SPACEBAR_LONG_PRESS_MODE =
+            "pref_rambler_spacebar_long_press_mode";
+    public static final String PREF_KEY_AUTO_LEARN_FIXES =
+            "pref_rambler_auto_learn_fixes";
+    public static final String PREF_KEY_AUTO_LEARN_TOAST =
+            "pref_rambler_auto_learn_toast";
     public static final String PREF_KEY_SEEDED_CONTACTS =
             "pref_rambler_contacts_seeded_names";
 
@@ -81,11 +101,21 @@ public final class RamblerEnhancementsSettings {
     public static final String DEFAULT_VOICE_SEND_TRIGGERS = "hit send, send it";
     public static final boolean DEFAULT_VOICE_SEARCH_ENABLED = false;
     public static final String DEFAULT_VOICE_SEARCH_TRIGGERS = "hit search, search it";
+    public static final boolean DEFAULT_SEARCH_STRIP_TRAILING_PERIOD = true;
+    public static final boolean DEFAULT_AUTO_SEARCH_ON_COMMIT = false;
     public static final boolean DEFAULT_HISTORY_ENABLED = true;
     public static final boolean DEFAULT_STATS_ENABLED = true;
     public static final int DEFAULT_TYPING_BASELINE_WPM = 40;
     public static final int MIN_TYPING_BASELINE_WPM = 15;
     public static final int MAX_TYPING_BASELINE_WPM = 120;
+    public static final boolean DEFAULT_TOOLBAR_BUTTON_ENABLED = true;
+    public static final boolean DEFAULT_SPACEBAR_LONG_PRESS_RAMBLER = true;
+    public static final String SPACEBAR_MODE_HYBRID = "hybrid";
+    public static final String SPACEBAR_MODE_HOLD = "hold";
+    public static final String SPACEBAR_MODE_TOGGLE = "toggle";
+    public static final String DEFAULT_SPACEBAR_LONG_PRESS_MODE = SPACEBAR_MODE_HYBRID;
+    public static final boolean DEFAULT_AUTO_LEARN_FIXES = false;
+    public static final boolean DEFAULT_AUTO_LEARN_TOAST = true;
 
     private static final ThreadLocal<Boolean> IN_GBOARD_PREFS_LOOKUP = new ThreadLocal<Boolean>();
     private static volatile GboardPrefsBridge cachedGboardBridge;
@@ -327,6 +357,50 @@ public final class RamblerEnhancementsSettings {
                 context, PREF_KEY_VOICE_SEARCH_TRIGGERS, DEFAULT_VOICE_SEARCH_TRIGGERS);
     }
 
+    public static boolean readSearchStripTrailingPeriod(Context context) {
+        return readDedicatedBoolean(
+                context,
+                PREF_KEY_SEARCH_STRIP_TRAILING_PERIOD,
+                DEFAULT_SEARCH_STRIP_TRAILING_PERIOD);
+    }
+
+    public static boolean readAutoSearchOnCommitEnabled(Context context) {
+        return readDedicatedBoolean(
+                context, PREF_KEY_AUTO_SEARCH_ON_COMMIT, DEFAULT_AUTO_SEARCH_ON_COMMIT);
+    }
+
+    public static Set<String> readAutoSearchApps(Context context) {
+        String raw = readDedicatedString(context, PREF_KEY_AUTO_SEARCH_APPS, "");
+        if (raw == null || raw.trim().isEmpty()) {
+            return Collections.emptySet();
+        }
+        try {
+            JSONArray array = new JSONArray(raw);
+            LinkedHashSet<String> out = new LinkedHashSet<String>();
+            for (int i = 0; i < array.length(); i++) {
+                String pkg = array.optString(i, "").trim();
+                if (!pkg.isEmpty()) {
+                    out.add(pkg);
+                }
+            }
+            return Collections.unmodifiableSet(out);
+        } catch (Throwable err) {
+            logWarningSafely("Failed to parse auto-search app list", err);
+            return Collections.emptySet();
+        }
+    }
+
+    public static boolean isAutoSearchAppSelected(Context context, String packageName) {
+        if (context == null || packageName == null) {
+            return false;
+        }
+        String trimmed = packageName.trim();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+        return readAutoSearchApps(context).contains(trimmed);
+    }
+
     public static boolean readHistoryEnabled(Context context) {
         return readDedicatedBoolean(
                 context, PREF_KEY_HISTORY_ENABLED, DEFAULT_HISTORY_ENABLED);
@@ -335,6 +409,45 @@ public final class RamblerEnhancementsSettings {
     public static boolean readStatsEnabled(Context context) {
         return readDedicatedBoolean(
                 context, PREF_KEY_STATS_ENABLED, DEFAULT_STATS_ENABLED);
+    }
+
+    public static boolean readToolbarButtonEnabled(Context context) {
+        return readDedicatedBoolean(
+                context, PREF_KEY_TOOLBAR_BUTTON_ENABLED, DEFAULT_TOOLBAR_BUTTON_ENABLED);
+    }
+
+    public static boolean readSpacebarLongPressRamblerEnabled(Context context) {
+        return readDedicatedBoolean(
+                context,
+                PREF_KEY_SPACEBAR_LONG_PRESS_RAMBLER,
+                DEFAULT_SPACEBAR_LONG_PRESS_RAMBLER);
+    }
+
+    public static String normalizeSpacebarLongPressMode(String mode) {
+        if (SPACEBAR_MODE_HOLD.equals(mode)) {
+            return SPACEBAR_MODE_HOLD;
+        }
+        if (SPACEBAR_MODE_TOGGLE.equals(mode)) {
+            return SPACEBAR_MODE_TOGGLE;
+        }
+        return SPACEBAR_MODE_HYBRID;
+    }
+
+    public static String readSpacebarLongPressMode(Context context) {
+        return normalizeSpacebarLongPressMode(readDedicatedString(
+                context,
+                PREF_KEY_SPACEBAR_LONG_PRESS_MODE,
+                DEFAULT_SPACEBAR_LONG_PRESS_MODE));
+    }
+
+    public static boolean readAutoLearnFixesEnabled(Context context) {
+        return readDedicatedBoolean(
+                context, PREF_KEY_AUTO_LEARN_FIXES, DEFAULT_AUTO_LEARN_FIXES);
+    }
+
+    public static boolean readAutoLearnToastEnabled(Context context) {
+        return readDedicatedBoolean(
+                context, PREF_KEY_AUTO_LEARN_TOAST, DEFAULT_AUTO_LEARN_TOAST);
     }
 
     public static int readTypingBaselineWpm(Context context) {
@@ -434,12 +547,62 @@ public final class RamblerEnhancementsSettings {
         return writeDedicatedString(context, PREF_KEY_VOICE_SEARCH_TRIGGERS, normalized);
     }
 
+    public static boolean writeSearchStripTrailingPeriod(Context context, boolean enabled) {
+        return writeDedicatedBoolean(context, PREF_KEY_SEARCH_STRIP_TRAILING_PERIOD, enabled);
+    }
+
+    public static boolean writeAutoSearchOnCommitEnabled(Context context, boolean enabled) {
+        return writeDedicatedBoolean(context, PREF_KEY_AUTO_SEARCH_ON_COMMIT, enabled);
+    }
+
+    public static boolean writeAutoSearchApps(Context context, Collection<String> packages) {
+        LinkedHashSet<String> cleaned = new LinkedHashSet<String>();
+        if (packages != null) {
+            for (String pkg : packages) {
+                if (pkg != null && !pkg.trim().isEmpty()) {
+                    cleaned.add(pkg.trim());
+                }
+            }
+        }
+        JSONArray array = new JSONArray();
+        for (String pkg : cleaned) {
+            array.put(pkg);
+        }
+        return writeDedicatedString(context, PREF_KEY_AUTO_SEARCH_APPS, array.toString());
+    }
+
     public static boolean writeHistoryEnabled(Context context, boolean enabled) {
         return writeDedicatedBoolean(context, PREF_KEY_HISTORY_ENABLED, enabled);
     }
 
     public static boolean writeStatsEnabled(Context context, boolean enabled) {
         return writeDedicatedBoolean(context, PREF_KEY_STATS_ENABLED, enabled);
+    }
+
+    public static boolean writeToolbarButtonEnabled(Context context, boolean enabled) {
+        return writeDedicatedBoolean(context, PREF_KEY_TOOLBAR_BUTTON_ENABLED, enabled);
+    }
+
+    public static boolean writeSpacebarLongPressRamblerEnabled(Context context, boolean enabled) {
+        return writeDedicatedBoolean(context, PREF_KEY_SPACEBAR_LONG_PRESS_RAMBLER, enabled);
+    }
+
+    public static boolean writeSpacebarLongPressMode(Context context, String mode) {
+        return writeDedicatedString(
+                context,
+                PREF_KEY_SPACEBAR_LONG_PRESS_MODE,
+                normalizeSpacebarLongPressMode(mode));
+    }
+
+    public static boolean writeAutoLearnFixesEnabled(Context context, boolean enabled) {
+        if (!enabled) {
+            RamblerLearnedFixesTracker.finishTracking();
+        }
+        return writeDedicatedBoolean(context, PREF_KEY_AUTO_LEARN_FIXES, enabled);
+    }
+
+    public static boolean writeAutoLearnToastEnabled(Context context, boolean enabled) {
+        return writeDedicatedBoolean(context, PREF_KEY_AUTO_LEARN_TOAST, enabled);
     }
 
     public static boolean writeTypingBaselineWpm(Context context, int wpm) {

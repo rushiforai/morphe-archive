@@ -208,6 +208,12 @@ STREAMING_DATA_REQUEST_DEV2412_CONFLICT_BLOBS = (
     "10d9071add71302102781ff4b0d66e9db77737d2",
     "1ba2ae78510424162e52ecc0d2b5d281baeb40c1",
 )
+
+STREAMING_DATA_REQUEST_STABLE240_CONFLICT_BLOBS = (
+    "101dfdab5a18ff0ed5466ea76c33a3c4334701c1",
+    "d366e3e857965b1030d221e7016a2627c34659bf",
+    "0881a4f106e5309714289acf9265268e0d07704e",
+)
 DEV210_ARRAYS_CONFLICT_BLOBS = (
     "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
     "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
@@ -244,6 +250,12 @@ DEV2411_ARRAYS_CONFLICT_BLOBS = (
     "bc16ee37da3d4505a6c9d47d42d6c6ef42dcb7fb",
 )
 
+STABLE240_ARRAYS_CONFLICT_BLOBS = (
+    "b4fddedbd4f0f1284610b543ba758a084e51a97b",
+    "f34193031b84b65bce757c48ad4264c5e6d77edf",
+    "fcf84c66bd02b4bd9b7e5b2bb9ed7a97585f8505",
+)
+
 # One-time, fail-closed merge of Morphe 1.48.0-dev.8 Series Tracker with
 # Dual VoT's Yandex settings. Any different source versions require review.
 DEV148_SETTINGS_PATH = (
@@ -258,6 +270,12 @@ DEV2411_SETTINGS_CONFLICT_BLOBS = (
     "af1214dcd6523f63b84543165ca853112f1da344",
     "70f0f933e34bf91b1030a5fb958da4c574e32e06",
     "5a3ca2ebb527dde06122b7662d1419675ebedf93",
+)
+
+STABLE240_SETTINGS_CONFLICT_BLOBS = (
+    "59f35d8b72b861afd34d83956cfa186c1fe82371",
+    "d9d0c807ad39e4277c42ab8b1e28be4fe0ffeecf",
+    "802f0dffe911b41873ff1e5db1233169a2222e2d",
 )
 
 DUAL_YANDEX_STRINGS_PATH = re.compile(
@@ -626,6 +644,7 @@ def resolve_dual_yandex_arrays_conflict() -> None:
         STABLE210_ARRAYS_CONFLICT_BLOBS,
         DEV220_ARRAYS_CONFLICT_BLOBS,
         DEV2411_ARRAYS_CONFLICT_BLOBS,
+        STABLE240_ARRAYS_CONFLICT_BLOBS,
         STABLE220_ARRAYS_CONFLICT_BLOBS,
     ):
         return
@@ -1298,36 +1317,58 @@ def merge_streaming_data_request_dev237(source: str) -> str:
 def merge_reviewed_source_conflict(
     source: str, sides_sha256: str, compose: Callable[[str, str], str]
 ) -> str:
-    """Resolve a single reviewed hunk and retain the rest of the Git merge."""
+    """Resolve one reviewed hunk and retain the rest of the Git merge."""
+    return merge_reviewed_source_conflicts(source, ((sides_sha256, compose),))
+
+
+def merge_reviewed_source_conflicts(
+    source: str, resolutions: tuple[tuple[str, Callable[[str, str], str]], ...]
+) -> str:
+    """Require the exact ordered conflict hunks before accepting the Git merge."""
     pattern = r"(?ms)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
     conflicts = list(re.finditer(pattern, source))
-    if len(conflicts) != 1:
-        raise SyncError("Expected one reviewed source conflict")
-    conflict = conflicts[0]
-    ours, theirs = conflict.group(1, 2)
-    if hashlib.sha256((ours + "\0" + theirs).encode()).hexdigest() != sides_sha256:
-        raise SyncError("Unexpected reviewed source conflict sides")
-    replacement = compose(ours, theirs)
-    merged = source[:conflict.start()] + replacement + source[conflict.end():]
+    if len(conflicts) != len(resolutions):
+        raise SyncError("Unexpected number of reviewed source conflicts")
+    parts = []
+    cursor = 0
+    for conflict, (sides_sha256, compose) in zip(conflicts, resolutions):
+        ours, theirs = conflict.group(1, 2)
+        if hashlib.sha256((ours + "\0" + theirs).encode()).hexdigest() != sides_sha256:
+            raise SyncError("Unexpected reviewed source conflict sides")
+        parts.extend((source[cursor:conflict.start()], compose(ours, theirs)))
+        cursor = conflict.end()
+    parts.append(source[cursor:])
+    merged = "".join(parts)
     if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
         raise SyncError("Unresolved markers after reviewed source merge")
     return merged
 
 
+# This hunk is reached only for playback failures. Direct audio and downloads
+# already returned above, keeping their independent client order.
+STREAMING_PREFERRED_CLIENT_CONFLICT = (
+    "59e7c271963c9d52becd76c316d2bc5a935eae90265c34203a466090cc46ba72",
+    lambda ours, theirs: theirs,
+)
+
+# Use the sign-in-aware record signature and retain both Dual accessors.
+STREAMING_SIGN_IN_CONFLICT = (
+    "53328d3cc9aedd35c6df4b064eadcea1230a36605b445a69cb03a9f8f51d71f1",
+    lambda ours, theirs: theirs + ours.split("\n", 1)[1],
+)
+
+
 def merge_streaming_data_request_dev2411(source: str) -> str:
-    # Only the playback failure path reaches this hunk. Direct audio and
-    # downloads already returned above, keeping their independent client order.
-    return merge_reviewed_source_conflict(
-        source, "59e7c271963c9d52becd76c316d2bc5a935eae90265c34203a466090cc46ba72",
-        lambda ours, theirs: theirs,
-    )
+    return merge_reviewed_source_conflict(source, *STREAMING_PREFERRED_CLIENT_CONFLICT)
 
 
 def merge_streaming_data_request_dev2412(source: str) -> str:
-    """Use the sign-in-aware record signature and retain the two Dual accessors."""
-    return merge_reviewed_source_conflict(
-        source, "53328d3cc9aedd35c6df4b064eadcea1230a36605b445a69cb03a9f8f51d71f1",
-        lambda ours, theirs: theirs + ours.split("\n", 1)[1],
+    return merge_reviewed_source_conflict(source, *STREAMING_SIGN_IN_CONFLICT)
+
+
+def merge_streaming_data_request_stable240(source: str) -> str:
+    return merge_reviewed_source_conflicts(
+        source, (STREAMING_SIGN_IN_CONFLICT, STREAMING_PREFERRED_CLIENT_CONFLICT)
     )
 
 
@@ -1349,7 +1390,8 @@ def resolve_streaming_data_request_conflict() -> None:
                        STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS,
-                       STREAMING_DATA_REQUEST_DEV2412_CONFLICT_BLOBS):
+                       STREAMING_DATA_REQUEST_DEV2412_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_STABLE240_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
         merge_known = {
             STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS: merge_streaming_data_request_dev210,
@@ -1362,6 +1404,7 @@ def resolve_streaming_data_request_conflict() -> None:
             STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
             STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS: merge_streaming_data_request_dev2411,
             STREAMING_DATA_REQUEST_DEV2412_CONFLICT_BLOBS: merge_streaming_data_request_dev2412,
+            STREAMING_DATA_REQUEST_STABLE240_CONFLICT_BLOBS: merge_streaming_data_request_stable240,
             STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS: merge_streaming_data_request_dev237,
         }[stage_blobs]
         merged = merge_known(destination.read_text(encoding="utf-8"))
@@ -1524,7 +1567,7 @@ def resolve_dev2411_settings_conflict() -> None:
     if path not in unresolved_paths():
         return
     blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
-    if blobs != DEV2411_SETTINGS_CONFLICT_BLOBS:
+    if blobs not in (DEV2411_SETTINGS_CONFLICT_BLOBS, STABLE240_SETTINGS_CONFLICT_BLOBS):
         return
     destination = ROOT / path
     merged = merge_reviewed_source_conflict(
@@ -1675,6 +1718,12 @@ DEV247_PATCH_BUILD_CONFLICT_BLOBS = (
     "f6d87276332afaf15b0cbaa56eba70d685d2648a",
 )
 
+STABLE240_PATCH_BUILD_CONFLICT_BLOBS = (
+    "6f3a1f0796cbe31ec7ab16b0896cefc3dda68b76",
+    "fa65ef58756947e3c11cfc35d63ae0e467f434e8",
+    "552de44bef14f9de3003f6a5d16f64b8fd514b44",
+)
+
 
 def merge_dev247_patch_build(source: str) -> str:
     """Keep Dual bundle metadata and upstream's test-build name override."""
@@ -1705,7 +1754,7 @@ def resolve_dev247_patch_build_conflict() -> None:
     if path not in unresolved_paths():
         return
     blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
-    if blobs != DEV247_PATCH_BUILD_CONFLICT_BLOBS:
+    if blobs not in (DEV247_PATCH_BUILD_CONFLICT_BLOBS, STABLE240_PATCH_BUILD_CONFLICT_BLOBS):
         return
     destination = ROOT / path
     merged = merge_dev247_patch_build(destination.read_text(encoding="utf-8"))

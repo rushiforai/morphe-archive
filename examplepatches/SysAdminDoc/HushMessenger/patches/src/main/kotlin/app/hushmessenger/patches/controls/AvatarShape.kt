@@ -151,6 +151,7 @@ private const val SET_SHAPE = "Landroid/graphics/drawable/ShapeDrawable;->setSha
 private const val PATH_SHAPE = "Landroid/graphics/drawable/shapes/PathShape;-><init>(Landroid/graphics/Path;FF)V"
 internal const val DRAW_OVAL = "Landroid/graphics/Canvas;->drawOval(Landroid/graphics/RectF;Landroid/graphics/Paint;)V"
 internal const val TILE_OVAL = "$SETTINGS->avatarOval(Landroid/graphics/Canvas;Landroid/graphics/RectF;Landroid/graphics/Paint;)V"
+internal const val TILE_SHAPE = "$SETTINGS->avatarTileShape(Landroid/graphics/drawable/ShapeDrawable;Landroid/graphics/drawable/shapes/Shape;)V"
 
 /** The user tile's shape setter, proved by findAvatarShape before the tile setup that calls it is checked again. */
 internal var tileShapeSetter: String = ""
@@ -160,19 +161,29 @@ private fun Instruction.createdType() =
 
 /**
  * The register of the flag that picks the user tile's shape: Messenger's photo tiles (inbox rows, the story tray, chat
- * headers) mask the picture with a ShapeDrawable, an OvalShape when the flag is set and a RectShape when it isn't.
+ * headers) mask the picture with a ShapeDrawable, an OvalShape when the flag is set and a RectShape when it isn't,
+ * handed to one setShape.
  */
 internal fun Method.tileShapeFlag(): Int? {
     if (AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" || parameterTypes.map { it.toString() } != listOf("Z")) return null
     val code = code()
     val created = code.mapNotNull { it.createdType() }
     if ("Landroid/graphics/drawable/shapes/OvalShape;" !in created || "Landroid/graphics/drawable/shapes/RectShape;" !in created) return null
-    if (code.none { it.invoked()?.toString() == SET_SHAPE }) return null
+    if (code.count { it.invoked()?.toString() == SET_SHAPE } != 1) return null
     val flag = parameterRegister(1)
     val branch = code.firstOrNull { it is OffsetInstruction } ?: return null
     if (branch.opcode !in setOf(Opcode.IF_EQZ, Opcode.IF_NEZ) || (branch as OneRegisterInstruction).registerA != flag) return null
     if (flag > 15 || 0 in jumpTargets()) return null
     return flag
+}
+
+/** Where the shape setter sets its one shape: a plain two-register call on the tile's drawable with the shape picked. */
+internal fun Method.tileShapeCall(): Int? {
+    if (tileShapeFlag() == null) return null
+    val found = code().withIndex().single { it.value.invoked()?.toString() == SET_SHAPE }
+    val call = found.value as? FiveRegisterInstruction ?: return null
+    if (found.value.opcode != Opcode.INVOKE_VIRTUAL || call.registerCount != 2) return null
+    return found.index
 }
 
 /** The register of the clip path the tile setup gets: an oval, cut away where a badge sits, that the photo and the
@@ -357,7 +368,7 @@ internal fun MutableMethod.validateAvatarShape() {
     when {
         name == "<init>" -> vitoRounding() ?: avatarShapeChanged("Vito's rounding options in ${hookId()}")
         name == "draw" -> tileOvals() ?: avatarShapeChanged("the placeholder tile ${hookId()}")
-        hookId() == tileShapeSetter -> tileShapeFlag() ?: avatarShapeChanged("the tile shape ${hookId()}")
+        hookId() == tileShapeSetter -> tileShapeCall() ?: avatarShapeChanged("the tile shape ${hookId()}")
         parameterTypes.any { it.toString() == "Landroid/graphics/Path;" } -> tilePath() ?: avatarShapeChanged("the tile setup ${hookId()}")
         else -> legacyRounding() ?: avatarShapeChanged("the rounded layer helper ${hookId()}")
     }
@@ -367,8 +378,9 @@ internal fun MutableMethod.validateAvatarShape() {
  * Vito's options are rewritten as they're built: a circle becomes a rectangle with Settings' corner radius and no
  * radii, so the radius decides. The radius and radii are worked out from the original isCircular before it changes.
  * The legacy helper hands each layer the same answers. Pictures that weren't circles to begin with are left alone.
- * The user tile asks for its shape on the way in, gets a rectangle of its clip path's bounds in place of the oval, and
- * its placeholder fills that rectangle instead of the oval.
+ * The user tile's shape goes through Settings as it's set, so a tile with no clip path gets the same square or rounded
+ * square as the rest (#207). A tile with one gets a rectangle of the path's bounds in place of the oval, and its
+ * placeholder fills that rectangle instead of the oval.
  */
 internal fun MutableMethod.injectAvatarShape() {
     validateAvatarShape()
@@ -380,11 +392,9 @@ internal fun MutableMethod.injectAvatarShape() {
         return
     }
     if (hookId() == tileShapeSetter) {
-        val flag = tileShapeFlag()!!
-        addInstructions(0, """
-            invoke-static {v$flag}, $SETTINGS->avatarCircle(Z)Z
-            move-result v$flag
-        """.trimIndent())
+        val at = tileShapeCall()!!
+        val call = getInstruction<FiveRegisterInstruction>(at)
+        replaceInstruction(at, "invoke-static {v${call.registerC}, v${call.registerD}}, $TILE_SHAPE")
         return
     }
     if (name != "<init>" && legacyRounding() == null) {

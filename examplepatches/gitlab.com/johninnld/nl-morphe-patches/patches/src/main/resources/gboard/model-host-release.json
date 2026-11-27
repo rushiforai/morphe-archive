@@ -1,0 +1,34 @@
+{
+  "packageName": "app.johninnl.modelhost",
+  "apkSha256": "9c576ca456c57c3ef5e5de986865c4cdff1497ca04a70476a9d9163e4fa4a70e",
+  "signerSha256": "1c45e972f387160e6994391954d0f1ebd983a2b0ab506e444645f4ca9f47bdc4",
+  "versionCode": 145,
+  "versionName": "0.1.145",
+  "sourceCommit": "3d435f38f5a7f850603ceb78d09fbaa55f2992cc",
+  "apkBytes": 179689621,
+  "downloadUrl": "https://gitlab.com/api/v4/projects/89371837/packages/generic/local-model-host-review/3d435f38f5a7f850603ceb78d09fbaa55f2992cc/local-model-host-0.1.145.apk",
+  "clientSdkUrl": "https://gitlab.com/api/v4/projects/89371837/packages/generic/local-model-host-review/3d435f38f5a7f850603ceb78d09fbaa55f2992cc/modelhost-client-api-0.1.145.aar",
+  "clientSdkSha256": "0be5c02d2aafb7c2d5798d553f64bd418a75803a2b4a432d7f51bd0cc777f101",
+  "runtimeAarSha256": "11878045194bd915462d3bf36f4b3c58b4a83c19abb3897b6211c21b9a3c371a",
+  "modelSha256": "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
+  "modelProfiles": [
+    {
+      "id": "gemma4-e2b",
+      "sha256": "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c"
+    },
+    {
+      "id": "gemma4-e4b",
+      "sha256": "0b2a8980ce155fd97673d8e820b4d29d9c7d99b8fa6806f425d969b145bd52e0"
+    }
+  ],
+  "protocolMajor": 1,
+  "protocolMinor": 4,
+  "minimumAndroidApi": 30,
+  "supportedAbis": [
+    "arm64-v8a"
+  ],
+  "installationApkMaxBytes": 268435456,
+  "developerHandoverUrl": "https://gitlab.com/api/v4/projects/89371837/packages/generic/local-model-host-review/3d435f38f5a7f850603ceb78d09fbaa55f2992cc/DriveDeck-Local-Model-Host-Handover.html",
+  "complianceHandoverUrl": "https://gitlab.com/api/v4/projects/89371837/packages/generic/local-model-host-review/3d435f38f5a7f850603ceb78d09fbaa55f2992cc/DriveDeck-Local-AI-Final-State-Compliance.md",
+  "runtimeValidation": "Signed in-place on OnePlus 15. Controlled SDK replay with identical synthetic audio verified an exact Dutch contact spelling improvement, ordinary speech and silence. Three English samples retained their baseline spellings."
+}

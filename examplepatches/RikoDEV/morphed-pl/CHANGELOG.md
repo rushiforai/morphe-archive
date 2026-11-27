@@ -1,3 +1,9 @@
+## [1.7.7](https://github.com/RikoDEV/morphed-pl/compare/v1.7.6...v1.7.7) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* add InPost Synerise ad block, splash block and default parcel tracking tab ([51e02d5](https://github.com/RikoDEV/morphed-pl/commit/51e02d572ed981a1c83ab1c2f84a7a03354330c5))
+
 ## [1.7.6](https://github.com/RikoDEV/morphed-pl/compare/v1.7.5...v1.7.6) (2026-11-25)
 
 ### 🐛 Bug Fixes

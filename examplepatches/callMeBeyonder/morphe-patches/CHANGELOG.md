@@ -1,3 +1,9 @@
+## [1.20.1](https://github.com/callMeBeyonder/morphe-patches/compare/v1.20.0...v1.20.1) (2026-11-26)
+
+### 🚀 Updated App Support
+
+* **macrofactor:** support 5.8.13 ([9c989e5](https://github.com/callMeBeyonder/morphe-patches/commit/9c989e5d236ead31d403550a100291fb778b03a3))
+
 ## [1.20.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.19.2...v1.20.0) (2026-11-24)
 
 ### ✨ New Features

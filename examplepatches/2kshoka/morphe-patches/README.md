@@ -27,7 +27,7 @@ Or add the repository URL manually in **Morphe Manager → Settings → Sources*
 ## Included Patches (`10` Patches — `8` Enabled by Default, `2` Opt-in)
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.1](https://github.com/2kshoka/morphe-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.5.5](https://github.com/2kshoka/morphe-patches/releases/tag/v1.5.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 SoundCloud&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
@@ -48,7 +48,7 @@ Or add the repository URL manually in **Morphe Manager → Settings → Sources*
 | [Home in Android Auto](#home-in-android-auto) | Fills the car Home tab with regular cover tiles from the phone's Home, using the app's existing account. Tracks, mixes and artists play; playlists and albums open. Publishes the real playback queue for Up next, with queue item selection. Falls back to SoundCloud's original car Home if the phone Home cannot load. | ON |  |
 | [Remove ads and upsells](#remove-ads-and-upsells) | Stops SoundCloud from requesting audio/display ads and hides Go upsell prompts. Does not change the account's plan, features or entitlements. | ON |  |
 | [Russian language](#russian-language) | Adds Russian UI resources and known server-provided interface labels, preserves content titles, and enables russian in app locale selection. | ON |  |
-| [Sleep timer in track menu](#sleep-timer-in-track-menu) | Adds a "Таймер сна" item to the track menu. It opens a dialog with 15, 30, 45 and 60 minute options and pauses playback when the time is up. | ON |  |
+| [Sleep timer in track menu](#sleep-timer-in-track-menu) | Adds a customizable sleep timer to SoundCloud with a circular time selector, saved presets, and one-tap controls to start, stop, or extend playback time. | ON |  |
 
 </details>
 

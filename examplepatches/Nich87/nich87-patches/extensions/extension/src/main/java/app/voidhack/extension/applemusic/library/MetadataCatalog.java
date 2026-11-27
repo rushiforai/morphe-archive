@@ -60,23 +60,31 @@ final class MetadataCatalog {
                     throw new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL, context + ":invalid_id");
                 }
             }
-            try {
-                Object response = MusicReflection.invoke("com.apple.android.music.playback.queue.LookupHelper", "lookupMLCoreBlocking",
-                        (Object) batch.toArray(new String[0]), "product", false, "metadata-repair");
-                int status = (Integer) MusicReflection.call(response, "getStatusCode");
-                if (status != 200) throw new LibraryDaap.Failure(LibraryDaap.Kind.HTTP, status, context + ":lookup");
-                byte[] body = (byte[]) MusicReflection.call(response, "getBody");
-                if (body == null || body.length == 0 || body.length > DaapCodec.MAX_BODY) {
-                    throw new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL,
-                            context + ":body_size=" + (body == null ? "null" : body.length));
+            for (int attempt = 0; ; attempt++) {
+                checkCancelled();
+                try {
+                    Object response = MusicReflection.invoke("com.apple.android.music.playback.queue.LookupHelper", "lookupMLCoreBlocking",
+                            (Object) batch.toArray(new String[0]), "product", false, "metadata-repair");
+                    int status = (Integer) MusicReflection.call(response, "getStatusCode");
+                    if (LibraryDaap.shouldRetry(context, "GET", status, attempt)) {
+                        LibraryDaap.pause(cancelled, LibraryDaap.retryBackoffMs(context, attempt), true);
+                        continue;
+                    }
+                    if (status != 200) throw new LibraryDaap.Failure(LibraryDaap.Kind.HTTP, status, context + ":lookup");
+                    byte[] body = (byte[]) MusicReflection.call(response, "getBody");
+                    if (body == null || body.length == 0 || body.length > DaapCodec.MAX_BODY) {
+                        throw new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL,
+                                context + ":body_size=" + (body == null ? "null" : body.length));
+                    }
+                    Map<String, JSONObject> found = decode(new JSONObject(new String(body, StandardCharsets.UTF_8)), new LinkedHashSet<>(batch));
+                    for (String id : batch) items.put(id, found.get(id));
+                    break;
+                } catch (ReflectiveOperationException | JSONException exception) {
+                    LibraryDaap.Failure failure = new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL,
+                            context + ":" + LibraryMetadata.causeName(exception));
+                    failure.initCause(exception);
+                    throw failure;
                 }
-                Map<String, JSONObject> found = decode(new JSONObject(new String(body, StandardCharsets.UTF_8)), new LinkedHashSet<>(batch));
-                for (String id : batch) items.put(id, found.get(id));
-            } catch (ReflectiveOperationException | JSONException exception) {
-                LibraryDaap.Failure failure = new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL,
-                        context + ":" + LibraryMetadata.causeName(exception));
-                failure.initCause(exception);
-                throw failure;
             }
             progress.accept(Math.min(start + 50, missing.size()));
         }

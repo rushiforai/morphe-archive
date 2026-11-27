@@ -11,16 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * KICK Extras' settings (saved in the app's own preferences file "kick_extras") and log. KICK has no Morphe settings
- * screen, so {@link KickSettingsActivity} edits them, opened from the shortcut in the menu of a long press on KICK's icon.
- */
 public final class Kick {
 
     static final String TAG = "KickExtras";
     static final String PREFS = "kick_extras";
 
-    // Settings keys, with their defaults in the getters below.
     static final String DEBUG = "debug";
     static final String AUDIO_ONLY_OPTION = "audio_only_option";
     static final String HIDE_TOP_GIFTED = "hide_top_gifted";
@@ -65,7 +60,6 @@ public final class Kick {
         return s == null ? "" : s;
     }
 
-    /** A setting's list: one entry a line or comma, lowercased, blanks dropped, a leading @ dropped. */
     static List<String> list(String key) {
         List<String> out = new ArrayList<>();
         for (String s : text(key).split("[\\n,]")) {
@@ -93,7 +87,6 @@ public final class Kick {
         else MAIN.post(r);
     }
 
-    /** Whether text names one of the words: a word in "quotes" matches whole words only, any other as a substring. */
     static String matchWord(String text, List<String> words) {
         if (text == null || words.isEmpty()) return null;
         String t = text.toLowerCase(Locale.ROOT);

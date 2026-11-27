@@ -26,5 +26,5 @@ const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'joplin-release-adapter-'));
 const candidate = path.join(temp, 'candidate.json');
 fs.writeFileSync(candidate, JSON.stringify({ version, commit, originalSha256 }));
 execFileSync(process.execPath, [path.join(__dirname, 'build-bundle.cjs'), source, candidate], { stdio: 'inherit' });
-execFileSync(process.execPath, [path.join(__dirname, 'register-adapter.cjs')], { stdio: 'inherit' });
+execFileSync(process.execPath, [path.join(__dirname, 'register-adapter.cjs'), apk], { stdio: 'inherit' });
 console.log('Adapter registered alongside previous releases. Build MPP and check native patch application on this APK before distributing.');

@@ -58,6 +58,14 @@ public class NoteLimitTest {
         CrashGuard.resetForTests();
     }
 
+    /** #233: Facebook refused notes of 609, 625, 750, 1,000 and 2,000 characters on the S22 and shared 601. */
+    @Test public void theBoxStopsAtTheLongestNoteFacebookShares() {
+        turnOn();
+        NoteFilter filter = new NoteFilter(STOCK);
+        assertEquals(600, NoteLimit.raise(filter, STOCK));
+        assertEquals(600, filter.max);
+    }
+
     @Test public void withTheSwitchOffTheNoteKeepsMessengersLimit() {
         NoteFilter filter = new NoteFilter(STOCK);
         assertEquals(STOCK, NoteLimit.raise(filter, STOCK));

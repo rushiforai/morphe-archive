@@ -66,25 +66,25 @@ final class ReadActions {
             if (!BUSY.add(key)) return true;
             AtomicBoolean finished = new AtomicBoolean();
             try {
-                Method provider = NativeLine.type("sc0.f").getMethod("a", Context.class, NativeLine.type("sc0.a"));
-                Class<?> holderType = NativeLine.type("n30.d");
+                Method provider = NativeLine.type("bd0.f").getMethod("a", Context.class, NativeLine.type("bd0.a"));
+                Class<?> holderType = NativeLine.type("x30.d");
                 Object holder = provider.invoke(null, Settings.context(), holderType.getField("a").get(null));
                 Object readHolder = holderType.getMethod("b").invoke(holder);
-                Object updater = NativeLine.type("ue3.y0").getField("a").get(readHolder);
-                Object completion = NativeLine.type("qg3.e").getMethod("e", String.class).invoke(updater, chat);
+                Object updater = NativeLine.type("yl3.s0").getField("a").get(readHolder);
+                Object completion = NativeLine.type("tn3.e").getMethod("e", String.class).invoke(updater, chat);
 
                 // Resolve cleanup before submitting the read so adapter failures leave the notification intact.
-                Class<?> cleanupType = NativeLine.type("fw3.h");
+                Class<?> cleanupType = NativeLine.type("j34.h");
                 Object cleanup = provider.invoke(null, Settings.context(), cleanupType.getField("c").get(null));
-                Object targets = Array.newInstance(NativeLine.type("fw3.l"), 2);
-                Array.set(targets, 0, NativeLine.type("fw3.l$a").getConstructor(String.class).newInstance(chat));
-                Array.set(targets, 1, NativeLine.type("fw3.l$c").getConstructor(String.class).newInstance(chat));
+                Object targets = Array.newInstance(NativeLine.type("j34.l"), 2);
+                Array.set(targets, 0, NativeLine.type("j34.l$a").getConstructor(String.class).newInstance(chat));
+                Array.set(targets, 1, NativeLine.type("j34.l$c").getConstructor(String.class).newInstance(chat));
                 Method clear = cleanupType.getMethod("c", targets.getClass());
-                Class<?> observerType = NativeLine.type("a78.b");
+                Class<?> observerType = NativeLine.type("q08.b");
                 Object observer = Proxy.newProxyInstance(Settings.context().getClassLoader(),
                         new Class<?>[]{observerType}, (proxy, method, args) -> {
                             switch (method.getName()) {
-                                case "b":
+                                case "onComplete":
                                     if (finished.compareAndSet(false, true)) MAIN.post(() -> {
                                         try {
                                             if (!account.equals(NativeLine.account())) return;
@@ -102,7 +102,7 @@ final class ReadActions {
                                         failed(context, account);
                                     }
                                     return null;
-                                case "c": return null; // The native scheduler owns this operation's disposable.
+                                case "b": return null; // onSubscribe: the native scheduler owns this operation's disposable.
                                 case "hashCode": return System.identityHashCode(proxy);
                                 case "equals": return proxy == args[0];
                                 case "toString": return "NotificationReadObserver";
@@ -114,8 +114,8 @@ final class ReadActions {
                     return true;
                 }
                 trace("read: native updater submitted");
-                // qg3.e.e already selects LINE's IO scheduler and native offline retry policy.
-                NativeLine.type("a78.a").getMethod("a", observerType).invoke(completion, observer);
+                // tn3.e.e already selects LINE's IO scheduler and native offline retry policy.
+                NativeLine.type("q08.a").getMethod("a", observerType).invoke(completion, observer);
             } catch (ReflectiveOperationException | RuntimeException ignored) {
                 if (finished.compareAndSet(false, true)) {
                     BUSY.remove(key);

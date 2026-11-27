@@ -9,7 +9,7 @@ import subprocess
 import zipfile
 from pathlib import Path
 
-ROLE_MAP = Path(__file__).resolve().parent.parent / "patches/src/main/resources/theme/9.1.80.2221.properties"
+ROLE_MAP = Path(__file__).resolve().parent.parent / "patches/src/main/resources/theme/9.2.4.2644.properties"
 
 
 def role_map_colors(path=ROLE_MAP):

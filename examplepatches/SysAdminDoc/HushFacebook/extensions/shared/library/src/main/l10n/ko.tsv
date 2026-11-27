@@ -876,7 +876,7 @@ A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	�
 # context: switch title under Comments and writing; on, a tap on Like under a comment asks first
 Ask before liking a comment	댓글 좋아요 전에 확인
 # context: summary of that switch
-A tap on Like under a comment asks first, and only Continue likes or unlikes it.	댓글 아래의 좋아요를 탭하면 먼저 확인하고, 계속을 눌러야만 좋아요를 누르거나 취소해요.
+A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only Continue goes ahead.	댓글 아래의 좋아요를 탭하거나 댓글을 길게 눌러 감정 표현을 고르면 먼저 확인하고, 계속을 눌러야만 진행해요.
 # context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
 Like or unlike this post?	이 게시물에 좋아요를 누르거나 취소할까요?
 # context: the same question for a reel
@@ -1858,6 +1858,10 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	PIP 모드 버튼
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	작은 창을 열 수 있는 릴스나 동영상의 왼쪽 가장자리에 작은 버튼을 표시해요. 탭하면 바로 작은 창이 열려요. "PIP 모드"가 켜져 있을 때 작동해요.
+# context: switch title under Picture-in-picture on the Playback page; on, when a reel ends in the small picture-in-picture window, the next reel plays there
+Next reel in the window	작은 창에서 다음 릴스 재생
+# context: summary of that switch; "the window" is the small picture-in-picture window
+When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window instead of the same one again. Works with Picture-in-picture on.	작은 창에서 재생 중인 릴스가 끝나면 같은 릴스를 반복하지 않고 다음 릴스를 작은 창에서 재생해요. "PIP 모드"가 켜져 있을 때 작동해요.
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	백그라운드에서 계속 재생
 Next reel in the background	백그라운드에서 다음 릴스 재생
@@ -1985,8 +1989,8 @@ Hides the stacked reaction icons in the corner of a comment. The space stays, so
 Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	댓글의 감정 표현 아이콘 옆 숫자를 숨겨요. 아이콘은 그대로 남고, 탭하면 여전히 감정 표현 목록이 열려요.
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	게시물 메뉴에서 다운로드를 맨 위로
-# context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
-Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.	게시물 점 3개 메뉴 끝에 있는 "휴대폰에 다운로드"와 "사진 저장"을 옵션 목록 맨 앞으로 옮겨요. Facebook 자체 상단 항목은 그 위에 남아요(사진 게시물에서는 "옵션 더 보기" 페이지가 목록이에요). 저장할 것이 없는 게시물에는 둘 다 표시되지 않아요.
+# context: summary of that switch; "Download to phone", "Save photo" and "Playback speed" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
+Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.	"휴대폰에 다운로드"와 "사진 저장"을 "옵션 더 보기"에서 게시물 점 3개 메뉴의 첫 페이지, "재생 속도" 위로 옮겨요. 저장할 것이 없는 게시물에는 둘 다 표시되지 않아요.
 # context: row title under Menu; opens a list of the Menu's tiles to hide, such as Marketplace and Gaming
 Menu tiles to hide	숨길 메뉴 타일
 # context: title of the list of Menu tiles to hide
@@ -2105,6 +2109,10 @@ A saved video that ends stays on screen instead of opening the next one. Swipe u
 Show saved posts in the row	연속 재생에 저장한 게시물 표시
 # context: summary of that switch
 A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	연속 재생 중 저장한 게시물이 건너뛰어지지 않고 화면에 표시돼요. 다음 저장한 동영상을 보려면 게시물 끝을 지나 위로, 이전 동영상을 보려면 게시물 맨 위를 지나 아래로 스와이프하세요.
+# context: switch title under Reels and Watch; on, a reel opened from a Reels row in the news feed (the strip of reels you scroll sideways) goes on to the next reel in that row instead of a suggested reel
+Play the feed's Reels row in order	피드의 릴스 줄 순서대로 재생
+# context: summary of that switch; the feed is Facebook's News Feed, so use Facebook's name for it in your language if you know it
+A reel you open from a Reels row in your feed goes on to the next one in that row when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	피드의 릴스 줄에서 연 릴스가 끝나거나 위로 스와이프하면 추천 릴스 대신 그 줄의 다음 릴스로 넘어가요. 이전 릴스로 돌아가려면 아래로 스와이프하세요.
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	"아직 시청 중이신가요?" 건너뛰기
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2146,6 +2154,9 @@ Hides the For you searches Facebook suggests when you open search. Your recent s
 Hide "People you may know" in search	검색에서 "알 수도 있는 사람" 숨기기
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	검색을 열 때 Facebook이 표시하는 "알 수도 있는 사람" 줄을 숨겨요. 최근 검색과 입력 중 표시되는 추천은 그대로 남아요.
+# context: switch title under News feed; People you may know is the list of friend suggestions Facebook shows in its Friends tab below your friend requests, as in Hide "People you may know"
+Hide "People you may know" in the Friends tab	친구 탭에서 "알 수도 있는 사람" 숨기기
+Hides the People you may know list in the Friends tab. Your friend requests stay.	친구 탭의 "알 수도 있는 사람" 목록을 숨겨요. 친구 요청은 그대로 남아요.
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	검색 기록 저장 안 함
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
@@ -2689,6 +2700,34 @@ Digits only, up to 10. Your own profile shows this number on this phone. Leave i
 Facebook's real number shows. Type digits to show your own.	Facebook의 실제 숫자가 표시돼요. 원하는 숫자를 표시하려면 입력하세요.
 # context: summary of that row; %1$s is the number typed, already grouped for the language
 Your profile shows %1$s on this phone.	이 휴대폰에서 내 프로필에 표시되는 숫자: %1$s.
+# context: switch title under News feed; on, your own Facebook friends list is kept on this phone each time you scroll it to the end, so you can see who is no longer on it
+Keep track of your friends list	친구 목록 추적
+# context: summary of that switch; Profile > Friends > All friends is the path to the list in Facebook, so use Facebook's own names for those screens in your language
+Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on this phone and tells you who's no longer on it since the time before. Someone who unfriended you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.	내 프로필 > 친구 > 모든 친구 목록을 끝까지 스크롤할 때마다 이 휴대폰에 사본을 보관하고, 지난번 이후로 목록에서 사라진 사람을 알려 줘요. 나를 친구에서 삭제한 사람, 내가 친구에서 삭제한 사람, 계정을 닫은 사람이 모두 같은 방식으로 표시돼요. 아무것도 휴대폰 밖으로 나가지 않아요.
+# context: row title and list title; the people who were on your Facebook friends list and aren't any more
+Friends no longer on your list	더 이상 목록에 없는 친구
+# context: summary of that row
+People who were on your friends list one time you scrolled it to the end and weren't the next. Tap one to open their profile.	친구 목록을 끝까지 스크롤했을 때는 있었지만 다음번에는 없던 사람들이에요. 누르면 프로필이 열려요.
+# context: toast the first time your friends list is kept; %1$d is how many friends are on it
+Hushfacebook kept a copy of your %1$d friends. Next time you scroll the list to its end, it tells you who's no longer on it.	Hushfacebook이 친구 %1$d명의 사본을 보관했어요. 다음에 목록을 끝까지 스크롤하면 더 이상 목록에 없는 사람을 알려 줘요.
+# context: toast; %1$s is one person's name
+%1$s is no longer on your friends list.	%1$s님이 더 이상 친구 목록에 없어요.
+# context: toast; %1$s is two or three people's names separated by commas
+No longer on your friends list: %1$s.	더 이상 친구 목록에 없음: %1$s.
+# context: toast; %1$s is three people's names separated by commas, %2$d how many other people
+No longer on your friends list: %1$s and %2$d more.	더 이상 친구 목록에 없음: %1$s 외 %2$d명.
+# context: toast when tapping a person in that list doesn't open their profile
+Their profile can't open here.	여기서는 프로필을 열 수 없어요.
+# context: shown in place of a person's name when Facebook gave none
+Someone without a name	이름 없는 사람
+# context: second line of a person in that list; %1$s is the date they were last seen on your list, %2$s the date they were first missing
+Gone between %1$s and %2$s	%1$s~%2$s 사이에 사라짐
+# context: line above that list before your friends list was ever kept
+No copy of your friends list yet.	아직 친구 목록 사본이 없어요.
+# context: line above that list; %1$s is a date, %2$d how many friends were on the list then
+Your list was last read to its end on %1$s, with %2$d friends.	목록을 마지막으로 끝까지 읽은 날: %1$s, 친구 %2$d명.
+# context: shown while that list is empty; Keep track of your friends list is the switch's title
+Nobody yet. With Keep track of your friends list on, scroll Profile > Friends > All friends to its end now and then. Anyone who drops off between two of those reads shows up here.	아직 아무도 없어요. 친구 목록 추적을 켜고 가끔 프로필 > 친구 > 모든 친구를 끝까지 스크롤하세요. 두 번 읽는 사이에 사라진 사람이 여기에 표시돼요.
 # context: switch title under Stories; the stories row at the top of Home shown as round pictures
 Round stories tray	둥근 스토리 영역
 # context: summary of that switch
@@ -2759,6 +2798,10 @@ Switches that are on	켜져 있는 스위치
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	켜 둔 모든 스위치를 한 목록으로 보여 줘요. 여기서 끄면 모든 곳에서 꺼져요.
 No switches are on yet.	아직 켜진 스위치가 없어요.
 Turned off lately	최근에 끈 스위치
+# context: one of three order choices above the Switches that are on list; lists the switches in the order the settings page has them (the other two are A to Z and Newest)
+Page order	페이지 순서
+# context: the second order choice there; lists the switches alphabetically by their titles
+A to Z	가나다순
 Emoji after the logo	로고 뒤 이모티콘
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	홈 상단 Facebook 로고 바로 뒤에 원래 색으로 표시할 이모티콘이에요. 표시하지 않으려면 비워 두세요.
 No emoji after the logo. Type one to show it there.	로고 뒤에 이모티콘이 없어요. 표시하려면 입력하세요.
@@ -2870,12 +2913,26 @@ Bar opacity	바 불투명도
 How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	반투명 바가 유지할 색의 정도를 %1$s~%2$s 사이의 퍼센트로 입력하세요. 낮을수록 피드와 흐림 효과가 더 많이 비쳐요. 비워 두면 %3$s, 흐림 효과 위에서는 %4$s(으)로 설정돼요.
 The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	바가 색의 %1$s퍼센트를 유지하며, 흐림 효과 위에서는 %2$s퍼센트를 유지해요. 바꾸려면 숫자를 입력하세요.
 The see-through bars keep %1$s percent of their color.	반투명 바가 색의 %1$s퍼센트를 유지해요.
+# context: row title under Appearance, right under Bar opacity; picks how strongly the see-through top bar and tab bar blur the feed behind them
+Blur strength	흐림 강도
+# context: message of that row's number box; %1$s is 0 (no blur), %2$s the most, %3$s the usual amount
+How much the see-through bars blur the feed behind them, in percent of the usual blur, from %1$s, no blur, to %2$s. Leave it blank for %3$s. The blur needs Android 12 or newer.	반투명 바가 뒤의 피드를 얼마나 흐리게 할지 평소 흐림의 퍼센트로 입력하세요. %1$s(흐림 없음)부터 %2$s까지예요. 비워 두면 %3$s(으)로 설정돼요. 흐림 효과는 Android 12 이상에서 작동해요.
+# context: summary of that row while it's blank
+The see-through bars blur the feed behind them the usual amount. Type a number to change it.	반투명 바가 뒤의 피드를 평소만큼 흐리게 해요. 바꾸려면 숫자를 입력하세요.
+# context: summary of that row when it's 0
+The see-through bars show the feed behind them sharp, with no blur.	반투명 바가 뒤의 피드를 흐림 없이 선명하게 보여줘요.
+# context: summary of that row; %1$s is the number typed
+The see-through bars blur the feed behind them %1$s percent of the usual amount.	반투명 바가 뒤의 피드를 평소의 %1$s퍼센트만큼 흐리게 해요.
 Tab bar width	탭 바 너비
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	화면 너비 대비 퍼센트로 %1$s~%2$s 사이에서 입력하세요. 아이콘도 함께 커지거나 작아져요. 비워 두면 %3$s(으)로 설정돼요.
 The rounded tab bar is %1$s percent of the screen wide.	둥근 탭 바의 너비가 화면의 %1$s퍼센트예요.
 Tab bar height	탭 바 높이
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	둥근 탭 바가 유지할 원래 높이의 퍼센트로, %1$s~%2$s 사이에서 입력하세요. 아이콘 위아래가 줄어들어요. 100을 넘으면 주로 화면 아래쪽으로 더 높아져요. 비워 두면 %3$s(으)로 설정돼요.
 The rounded tab bar keeps %1$s percent of its height.	둥근 탭 바가 높이의 %1$s퍼센트를 유지해요.
+# context: switch title under Appearance, right under Tab bar height; gives the rounded tab bar a glass look
+Glass tab bar	유리 탭 바
+# context: description of that switch; Rounded tab bar is the switch a few rows above it, the pill is that rounded tab bar, and the highlight is the faint pill behind the selected tab's icon
+With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the highlight behind the tab you're on slides over when you pick another tab.	둥근 탭 바가 켜져 있으면 바에 밝은 유리 테두리와 부드러운 그림자가 생기고, 현재 탭 뒤의 강조 표시가 고른 탭으로 미끄러지듯 옮겨가요.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	새 설정 표시
 # context: choice in that row; the dot goes once the page holding the setting is left
@@ -3197,7 +3254,23 @@ Hide hashtags in reel captions	릴스 설명의 해시태그 숨기기
 Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	릴스 설명에서 끝에 몰려 있는 태그 같은 해시태그를 없애요. 문장의 일부인 해시태그는 그대로 둬요. 변경 사항은 다음 릴스부터 적용돼요.
 Keep the keyboard closed when comments open	댓글을 열 때 키보드 닫아 두기
 Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	아직 댓글이 없는 게시물에서도 키보드가 올라오지 않고 댓글이 열려요. 글을 쓰고 싶을 때 댓글 입력란을 누르세요.
+Post text doesn't open comments	게시물 글을 눌러도 댓글 열지 않기
+A tap on a post's text no longer opens its comments. The Comment button still does.	게시물 글을 눌러도 더 이상 댓글이 열리지 않아요. 댓글 달기 버튼은 그대로 댓글을 열어요.
 Settings language	설정 언어
 Same as Facebook	Facebook과 같게
 Show feed reels uncropped	피드 릴스를 자르지 않고 보기
 Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	피드의 릴스가 Facebook 틀에 맞춰 잘리지 않고 원래 비율로 영상 전체를 보여줘요. 변경 후 표시되는 릴스부터 적용돼요.
+Remix this reel	이 릴스 리믹스하기
+Hold the profile tab for Activity log	프로필 탭을 길게 눌러 활동 로그 열기
+Press and hold the profile tab to open your Activity log instead of switching accounts. On accounts with a Menu tab in its place, that tab does it. You can still switch accounts from the Menu.	프로필 탭을 길게 누르면 계정 전환 대신 활동 로그가 열려요. 그 자리에 메뉴 탭이 있는 계정에서는 메뉴 탭이 그렇게 해요. 계정 전환은 메뉴에서 계속할 수 있어요.
+React to this comment?	이 댓글에 감정 표현을 남길까요?
+Hide reactions on a held comment	댓글을 길게 누를 때 반응 숨기기
+Hide Reply on a held comment	댓글을 길게 누를 때 답글 달기 숨기기
+Hide Copy on a held comment	댓글을 길게 누를 때 복사 숨기기
+Hide Report on a held comment	댓글을 길게 누를 때 신고 숨기기
+Hide the Hide comment option	댓글 숨기기 옵션 숨기기
+Holding a comment no longer shows the row of reactions above it. Like under the comment still works.	댓글을 길게 눌러도 위에 반응 줄이 더 이상 나타나지 않아요. 댓글 아래의 좋아요는 그대로 작동해요.
+Holding a comment no longer offers Reply. The Reply under the comment stays.	댓글을 길게 눌러도 답글 달기가 더 이상 나오지 않아요. 댓글 아래의 답글 달기는 그대로 있어요.
+Holding a comment no longer offers Copy.	댓글을 길게 눌러도 복사가 더 이상 나오지 않아요.
+Holding a comment no longer offers Report comment or Report to group admins.	댓글을 길게 눌러도 댓글 신고나 그룹 관리자에게 신고가 더 이상 나오지 않아요.
+Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.	댓글을 길게 눌러도 댓글 숨기기가 더 이상 나오지 않아요. 남은 옵션이 하나도 없는 댓글은 길게 눌러도 아무 일도 일어나지 않아요.

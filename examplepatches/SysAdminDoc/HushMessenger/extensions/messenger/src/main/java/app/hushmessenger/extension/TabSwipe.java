@@ -1,6 +1,9 @@
 package app.hushmessenger.extension;
 
 import android.content.Context;
+import android.content.res.Configuration;
+import android.graphics.Canvas;
+import android.graphics.Picture;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -11,7 +14,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Changing tab with a sideways swipe on the home screen. Messenger swaps one tab's page in and out of the same
@@ -76,6 +82,16 @@ public final class TabSwipe {
         /** The bar the finger went down on, with Slide along the tab bar on, or null. */
         private TabSlide.Bar bar;
         private boolean sliding;
+        /** The page following the finger, with Page follows your finger on, or null. */
+        private TabFollow.Drag follow;
+        private boolean tabAfter;
+        private boolean tabBefore;
+        /** Which tab each page Messenger built belongs to, learnt as each one shows when a swipe or a tab tap starts. */
+        private final Map<View, Object> pagesBuilt = new WeakHashMap<>();
+        /** A picture of each tab's page the last time it was left, for Page follows your finger. */
+        private final Map<Object, TabFollow.Shot> pictures = new HashMap<>();
+        /** Set when this touch went down on a swipe still changing the tab, so the page on screen may not be its own. */
+        private boolean cutShort;
 
         SwipeFrame(Context context, Route route, Object home) {
             super(context);
@@ -92,8 +108,10 @@ public final class TabSwipe {
                     downX = event.getX();
                     downY = event.getY();
                     taken = false;
+                    cutShort = endFollow(true);
                     endSlide();
                     bar = TabSlide.on() ? barAt(Math.round(event.getRawX()), Math.round(event.getRawY())) : null;
+                    onTabBar(event);
                 } else if (action == MotionEvent.ACTION_MOVE && !taken && event.getPointerCount() == 1 && bar != null) {
                     float sideways = Math.abs(event.getX() - downX);
                     // Nothing on the bar scrolls, so a slop is enough to tell a slide from a tap.
@@ -108,6 +126,7 @@ public final class TabSwipe {
                     // A child that scrolls sideways asks to keep the gesture as it starts dragging, which stops this
                     // from being called at all, so the extra slop here is what keeps those lists working.
                     taken = sideways >= (long) slop * TAKE_SLOPS && sideways > Math.abs(event.getY() - downY) * SIDEWAYS;
+                    if (taken) startFollow();
                 }
             } catch (Throwable error) {
                 Settings.hookFailedPrivately(sliding || bar != null ? TabSlide.KEY : KEY, "Can't read the swipe", error);
@@ -122,15 +141,167 @@ public final class TabSwipe {
             if (sliding) return slide(event);
             if (!taken) return super.onTouchEvent(event);
             int action = event.getActionMasked();
-            if (action == MotionEvent.ACTION_UP) {
+            float moved = event.getX() - downX;
+            if (action == MotionEvent.ACTION_MOVE) {
+                if (follow != null) followTo(moved);
+            } else if (action == MotionEvent.ACTION_POINTER_DOWN && follow != null) {
+                // A second finger isn't a swipe between tabs any more, so the page goes back and the gesture is let be.
                 taken = false;
-                float moved = event.getX() - downX;
+                letGo(false, 0);
+            } else if (action == MotionEvent.ACTION_UP) {
+                taken = false;
                 float floor = COMMIT_DP * getResources().getDisplayMetrics().density;
-                if (Math.abs(moved) >= Math.max(getWidth() * COMMIT_WIDTH, floor)) step(moved < 0 ? 1 : -1);
+                boolean commits = Math.abs(moved) >= Math.max(getWidth() * COMMIT_WIDTH, floor);
+                int direction = moved < 0 ? 1 : -1;
+                if (follow == null) {
+                    if (commits) step(direction);
+                } else {
+                    letGo(commits && (direction > 0 ? tabAfter : tabBefore), direction);
+                }
             } else if (action == MotionEvent.ACTION_CANCEL) {
                 taken = false;
+                if (follow != null) letGo(false, 0);
             }
             return true;
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            endFollow(false);
+            super.onDetachedFromWindow();
+        }
+
+        /** The side beside the moving page goes over everything the home screen drew, the tab bar left out. */
+        @Override
+        protected void dispatchDraw(Canvas canvas) {
+            super.dispatchDraw(canvas);
+            TabFollow.Drag drag = follow;
+            if (drag != null) drag.draw(canvas);
+        }
+
+        /** Pictures taken at another size don't fit any more. */
+        @Override
+        protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+            super.onSizeChanged(width, height, oldWidth, oldHeight);
+            pictures.clear();
+        }
+
+        /** Nor do ones taken with another theme. */
+        @Override
+        protected void onConfigurationChanged(Configuration configuration) {
+            super.onConfigurationChanged(configuration);
+            pictures.clear();
+        }
+
+        /** With Page follows your finger on, the views that move along with this swipe, and which ways a tab is left. */
+        private void startFollow() {
+            try {
+                if (!TabFollow.on()) {
+                    pictures.clear();
+                    return;
+                }
+                List<View> moving = TabFollow.pages(this);
+                if (moving.isEmpty()) return;
+                Object after = next(1);
+                Object before = next(-1);
+                tabAfter = after != null;
+                tabBefore = before != null;
+                // The page this swipe may leave, still at rest, for the next time a swipe heads back to its tab.
+                if (!cutShort) keepPicture(moving);
+                follow = new TabFollow.Drag(this, moving, pagesBuilt, pictures, route.current(home), before, after);
+            } catch (Throwable error) {
+                Settings.hookFailedPrivately(TabFollow.KEY, "Can't move the page with the finger", error);
+                follow = null;
+            }
+        }
+
+        /** A finger going down on the tab bar may be about to leave the open tab, so its page's picture is taken now. */
+        private void onTabBar(MotionEvent event) {
+            if (!TabFollow.on()) {
+                pictures.clear();
+                return;
+            }
+            if (cutShort) return;
+            try {
+                View tabBar = TabFollow.bar(this);
+                if (tabBar == null || !TabFollow.box(this, tabBar).contains(Math.round(event.getX()), Math.round(event.getY()))) {
+                    return;
+                }
+                keepPicture(TabFollow.pages(this));
+            } catch (Throwable error) {
+                Settings.hookFailedPrivately(TabFollow.KEY, "Can't take a picture of the page", error);
+            }
+        }
+
+        /** Takes the open tab's picture from [moving], and learns which of Messenger's pages is that tab's. */
+        private void keepPicture(List<View> moving) {
+            try {
+                Object tab = route.current(home);
+                if (tab == null || moving.isEmpty()) return;
+                View page = TabFollow.openPage(this, moving);
+                if (page != null) pagesBuilt.put(page, tab);
+                TabFollow.Shot shot = TabFollow.Shot.of(this, moving);
+                if (shot == null) return;
+                pictures.put(tab, shot);
+                TabFollow.keepPictures(this, pictures);
+            } catch (Throwable error) {
+                // The swipe still works without it: the tab's page or colour comes in beside instead.
+                Settings.hookFailedPrivately(TabFollow.KEY, "Can't take a picture of the page", error);
+            }
+        }
+
+        /** A picture kept for [tab], or null. Tests read it. */
+        Picture pictureOf(Object tab) {
+            TabFollow.Shot shot = pictures.get(tab);
+            return shot == null ? null : shot.picture;
+        }
+
+        private void followTo(float moved) {
+            try {
+                // Switched off mid-swipe: everything goes back, and the swipe ends the plain way.
+                if (!TabFollow.on()) {
+                    pictures.clear();
+                    endFollow(false);
+                    return;
+                }
+                follow.follow(moved, moved < 0 ? tabAfter : tabBefore);
+            } catch (Throwable error) {
+                Settings.hookFailedPrivately(TabFollow.KEY, "Can't move the page with the finger", error);
+                endFollow(false);
+            }
+        }
+
+        /** The finger came up: the page goes on to the next tab when the swipe committed and there is one, or springs back. */
+        private void letGo(boolean commits, int direction) {
+            try {
+                if (commits) follow.commit(direction, () -> step(direction));
+                else follow.back();
+            } catch (Throwable error) {
+                Settings.hookFailedPrivately(TabFollow.KEY, "Can't move the page with the finger", error);
+                endFollow(false);
+            }
+        }
+
+        /**
+         * Ends a page still sliding with every view back in place, and with [changeTab] the tab it was changing to. True
+         * when that tab was still changing.
+         */
+        private boolean endFollow(boolean changeTab) {
+            TabFollow.Drag was = follow;
+            follow = null;
+            if (was == null) return false;
+            invalidate();
+            try {
+                return was.finish(changeTab);
+            } catch (Throwable error) {
+                Settings.hookFailedPrivately(TabFollow.KEY, "Can't put the page back", error);
+                return true;
+            }
+        }
+
+        /** The page following the finger, or null. Tests read it. */
+        TabFollow.Drag following() {
+            return follow;
         }
 
         /** A slide along the bar: the highlight follows the finger, and letting go opens the tab under it. */
@@ -176,22 +347,28 @@ public final class TabSwipe {
         /** One tab along the bar, or nothing at either end. */
         private void step(int direction) {
             try {
-                Object open = route.current(home);
-                List<?> all = route.tabs(home);
-                if (open == null || all == null || all.isEmpty()) return;
-                // The bar leaves out the tabs Hush hides, and a swipe should land where a tap can.
-                List<Object> shown = Settings.visibleTabs(new ArrayList<Object>(all));
-                int at = at(shown, open);
-                if (at < 0) {
-                    shown = new ArrayList<Object>(all);
-                    at = at(shown, open);
-                }
-                int next = at + direction;
-                if (at < 0 || next < 0 || next >= shown.size()) return;
-                route.select(home, shown.get(next));
+                Object tab = next(direction);
+                if (tab != null) route.select(home, tab);
             } catch (Throwable error) {
                 Settings.hookFailedPrivately(KEY, "Can't change the tab", error);
             }
+        }
+
+        /** The tab one along the bar from the open one, or null at that end. */
+        private Object next(int direction) throws Throwable {
+            Object open = route.current(home);
+            List<?> all = route.tabs(home);
+            if (open == null || all == null || all.isEmpty()) return null;
+            // The bar leaves out the tabs Hush hides, and a swipe should land where a tap can.
+            List<Object> shown = Settings.visibleTabs(new ArrayList<Object>(all));
+            int at = at(shown, open);
+            if (at < 0) {
+                shown = new ArrayList<Object>(all);
+                at = at(shown, open);
+            }
+            int next = at + direction;
+            if (at < 0 || next < 0 || next >= shown.size()) return null;
+            return shown.get(next);
         }
 
         private static int at(List<?> tabs, Object open) {

@@ -1,96 +1,92 @@
 package app.xposed.extension;
 
-import android.graphics.Canvas;
 import android.util.Log;
-import android.util.LruCache;
 
-import java.util.Arrays;
-import java.util.List;
-
-import kotlin.jvm.functions.Function1;
-
-/** Applies the filters to X's post and quote composables: they are hidden or get the highlight. */
+/**
+ * Applies the filters to X's post and quote composables, which are hidden or get the
+ * highlight, and to person rows in people lists, which are only ever highlighted.
+ */
 final class PostFilters {
-    private static Draw highlightDraw;
-    private static String highlightKey;
-    private static volatile boolean broken;
-
-    /** Highlighted modifiers by what they were made from, so equal inputs give the same one. */
-    private static final LruCache<List<Object>, Object> highlighted = new LruCache<>(256);
+    private static Object lastHost;
+    private static boolean lastHostIsList;
+    private static volatile boolean listsBroken;
 
     private PostFilters() {
     }
 
     /**
-     * Called when a post or quote composes, with its author and its modifier (null when it uses
-     * the default). Returns the modifier for it, or {@link Hooks#HIDE} when it should not be shown.
+     * Called when a post or quote card composes, with its author, its AvailablePost (null for
+     * a quote card), its modifier (null when it uses the default), the composer, the row's
+     * PaddingValues (null when it has none) and whether it is the post the user opened.
+     * Returns the modifier for it, or {@link Hooks#HIDE} when it should not be shown. Quote
+     * cards are never hidden here: Hide mode collapses them earlier ({@link Placeholders#quote}),
+     * and a card that still composes was revealed or is outside timelines.
      */
-    static Object onPost(String screenName, long userId, Object modifier) {
-        String handle = NameBadges.normalizeHandle(screenName);
-        if (handle == null) return modifier;
+    static Object onPost(Object user, Object post, Object modifier, Object composer, Object padding, boolean focal) {
+        Object original = Highlights.original(modifier);
+        String handle = FilterText.handle(ModelBridge.screenName(user));
+        if (handle == null) return original;
+        long userId = ModelBridge.userId(user);
         Users.put(userId, handle);
         States.observe(handle);
-        switch (Filters.actionFor(Lookup.get(handle))) {
+        long postId = 0;
+        if (post != null) {
+            Observed.viewer(ModelBridge.viewerId(post));
+            postId = ModelBridge.postId(post);
+        }
+        int reasons = Verdicts.forPost(user, handle, userId, Observed.language(postId), post == null);
+        if (post != null && !focal && Placeholders.related(post, postId, handle, userId, original, padding, composer)) {
+            return Hooks.HIDE;
+        }
+        switch (action(reasons, composer, focal)) {
             case HIDE:
-                return Hooks.HIDE;
+                return post != null ? Hooks.HIDE : original;
             case HIGHLIGHT:
-                Draw draw = highlightDraw();
-                if (draw == null) return modifier;
-                List<Object> key = Arrays.asList(modifier, draw);
-                Object cached = highlighted.get(key);
-                if (cached != null) return cached;
-                try {
-                    Object result = ComposeBridge.drawWithContent(modifier, draw);
-                    highlighted.put(key, result);
-                    return result;
-                } catch (Throwable t) {
-                    broken = true;
-                    Log.e(Hooks.TAG, "Highlight is unavailable", t);
-                    return modifier;
-                }
+                return Highlights.apply(original);
             default:
-                return modifier;
+                return original;
         }
     }
 
-    /** One draw lambda per look, so highlighted modifiers stay equal while the look does. Main thread. */
-    private static Draw highlightDraw() {
-        if (broken) return null;
-        boolean dark = XTheme.isDark();
-        float[] contrast = Settings.highlightContrast();
-        String key = dark + "|" + contrast[0] + "|" + contrast[1];
-        if (!key.equals(highlightKey)) {
-            highlightDraw = new Draw(new Highlight(dark, Hooks.density()));
-            highlightKey = key;
-        }
-        return highlightDraw;
+    /**
+     * What to do with a post that matched these filters, where it is shown. An opened post
+     * is only highlighted unless an account filter matched it, and curated Lists can keep
+     * Highlight while other timelines hide, as in X-Posed.
+     */
+    static Filters.Action action(int reasons, Object composer, boolean focal) {
+        Filters.Action action = Filters.action(reasons);
+        if (action != Filters.Action.HIDE) return action;
+        if (focal && !FilterMatcher.Reason.ACCOUNT.in(reasons)) return Filters.Action.HIGHLIGHT;
+        if (Filters.rules().highlightInLists && inList(composer)) return Filters.Action.HIGHLIGHT;
+        return action;
     }
 
-    /** Draws the post, then the highlight over it, like the overlay X-Posed uses. */
-    private static final class Draw implements Function1<Object, Object> {
-        private final Highlight highlight;
-
-        Draw(Highlight highlight) {
-            this.highlight = highlight;
-        }
-
-        @Override
-        public Object invoke(Object scope) {
-            ComposeBridge.drawContent(scope);
-            if (broken) return null;
-            try {
-                Canvas canvas = ComposeBridge.nativeCanvas(scope);
-                if (canvas == null) return null;
-                long size = ComposeBridge.drawSize(scope);
-                int width = Math.round(Float.intBitsToFloat((int) (size >>> 32)));
-                int height = Math.round(Float.intBitsToFloat((int) size));
-                highlight.setBounds(0, 0, width, height);
-                highlight.draw(canvas);
-            } catch (Throwable t) {
-                broken = true;
-                Log.e(Hooks.TAG, "Failed to draw highlight", t);
+    /** True when the composable being composed is in a curated List's timeline. Main thread. */
+    private static boolean inList(Object composer) {
+        if (listsBroken || composer == null) return false;
+        try {
+            Object host = ComposeBridge.timelineHost(composer);
+            if (host != lastHost) {
+                lastHostIsList = ModelBridge.isListTimeline(host);
+                lastHost = host;
             }
-            return null;
+            return lastHostIsList;
+        } catch (Throwable t) {
+            listsBroken = true;
+            Log.e(Hooks.TAG, "Lists can't be told apart from other timelines", t);
+            return false;
         }
+    }
+
+    /** Person rows match the account filters and are highlighted in either mode, as in X-Posed. */
+    static Object onPersonRow(Object user, Object modifier) {
+        Object original = Highlights.original(modifier);
+        String handle = FilterText.handle(ModelBridge.screenName(user));
+        if (handle == null) return original;
+        long userId = ModelBridge.userId(user);
+        Users.put(userId, handle);
+        States.observe(handle);
+        int reasons = Verdicts.forPost(user, handle, userId, null, false);
+        return reasons != 0 ? Highlights.apply(original) : original;
     }
 }

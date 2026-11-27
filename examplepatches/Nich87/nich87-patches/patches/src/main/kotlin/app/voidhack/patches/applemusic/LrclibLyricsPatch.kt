@@ -163,14 +163,11 @@ val lrclibLyricsPatch = bytecodePatch(
 
         LyricsFragmentHideControls.method.addInstruction(
             0,
-            "invoke-static {p0, p1, p2}, $LYRICS_CONTROLLER->onControlsVisibilityChanged(Ljava/lang/Object;IZ)V",
+            "invoke-static {p0, p1, p2}, $LYRICS_CONTROLLER->onControlsAnimationEnd(Ljava/lang/Object;IZ)V",
         )
-        LyricsFragmentShowControls.method.addInstructions(
+        LyricsFragmentShowControls.method.addInstruction(
             0,
-            """
-                const/4 v0, 0x0
-                invoke-static {p0, p1, v0}, $LYRICS_CONTROLLER->onControlsVisibilityChanged(Ljava/lang/Object;IZ)V
-            """,
+            "invoke-static {p0, p1}, $LYRICS_CONTROLLER->onControlsAnimationStart(Ljava/lang/Object;I)V",
         )
 
         // 4. Keep cached / pinned LRCLIB lyrics open offline (PlayerLyricsViewFragment.q2()Z).

@@ -43,6 +43,7 @@ val hideDeliveryReceiptsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_DELIVERY_RECEIPTS)
         check(DeliveryAckFingerprint.matchAll(1..1).size == 1)
         val sender = DeliveryAckFingerprint.method
         check(sender.parameters.map { it.type }.take(4) == listOf("Ljava/util/List;", "Z", "I", "I"))
@@ -73,6 +74,7 @@ val hideDeliveryReceiptsPatch = bytecodePatch(
             return-void
         """.trimIndent(), ExternalLabel("nezumi_original_delivery", originalStart))
 
+        registerHooks(PatchId.HIDE_DELIVERY_RECEIPTS, sender)
         attachNezumiSettings("attachDeliveryReceipts")
     }
 }

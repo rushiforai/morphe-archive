@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-14.
  */
@@ -11,6 +12,8 @@ import static app.morphe.extension.shared.utils.StringRef.str;
 import android.content.Intent;
 import android.util.Pair;
 import android.view.KeyEvent;
+
+import androidx.annotation.Nullable;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.MessageLite;
@@ -48,7 +51,7 @@ public final class PlayerFallback {
         void rvxCancelAndStop();
         boolean rvxOwnsRequest(Object request);
         void rvxCancelLoad();
-        Object rvxJump(int index, boolean restart);
+        Object rvxJump(Object item, boolean restart);
         void rvxDispatch(Object command);
     }
 
@@ -64,11 +67,14 @@ public final class PlayerFallback {
         Object rvxQueueRenderer();
     }
 
-    private record Selection(Navigator owner, long itemId, String videoId, boolean advancing, int remaining,
-                             ExhaustedPlayback.Occurrence previous, long navigationGeneration) { }
+    record Selection(Navigator owner, long itemId, String videoId, boolean advancing, int remaining,
+                     ExhaustedPlayback.Occurrence previous, long navigationGeneration,
+                     @Nullable OfflineQueueActions.Selection editedQueue) { }
 
     private record Recovery(Navigator owner, int index, long itemId, String videoId, Selection previous, int remaining,
                             boolean resume, long generation) { }
+
+    private record QueueTap(Navigator owner, OfflineQueueActions.Selection selected, long navigationGeneration) { }
 
     private static volatile Selection selection;
     private static volatile Navigator navigator;
@@ -97,8 +103,42 @@ public final class PlayerFallback {
         }
     }
 
+    @Nullable
+    static Object localQueue() {
+        Navigator owner = navigator;
+        return owner instanceof OfflineQueueActions.Owner access ? access.rvxOfflineQueue() : null;
+    }
+
+    @Nullable
+    static OfflineQueueActions.Selection queueSelectionAtCommit(Object model, Object occurrence) {
+        Selection current = selection;
+        if (current == null || current.owner() != navigator
+                || current.navigationGeneration() != navigationGeneration) return null;
+        var edited = current.editedQueue();
+        return edited != null && edited.queue() == model && edited.occurrence() == occurrence
+                && localQueue() == model ? edited : null;
+    }
+
+    static boolean ownsQueueContinuation(Object token, Object request) {
+        if (!(token instanceof Selection selected) || selected != selection ||
+                selected.owner() != navigator || selected.navigationGeneration() != navigationGeneration ||
+                !(request instanceof Request replay) || !selected.videoId().equals(replay.rvxVideoId()) ||
+                !selected.owner().rvxOwnsRequest(request) || selected.editedQueue() == null ||
+                !OfflineQueueActions.ownsLiveOccurrence(selected.owner(), selected.editedQueue())) return false;
+        return selected == selection && selected.navigationGeneration() == navigationGeneration;
+    }
+
+    /** A new external Watch is not a continuation of the previously selected native queue. */
+    static void playlistStarted() {
+        navigationGeneration++;
+        selection = null;
+        initialQueue = List.of();
+        EXHAUSTED.clear();
+    }
+
     static void reconnected() {
         EXHAUSTED.reconnected();
+        OfflineQueueActions.reconnected();
     }
 
     /** Invalidate before the coroutine/index boundary, including a replacement command queued before Play. */
@@ -137,7 +177,7 @@ public final class PlayerFallback {
         if (target < 0 || !OfflineReplay.holds(resume.previous().videoId())) return false;
 
         try {
-            Object command = owner.rvxJump(target, true);
+            Object command = owner.rvxJump(items.get(target), true);
             ((Navigation) command).rvxRecovery(new Recovery(owner, target, resume.previous().itemId(),
                     resume.previous().videoId(), selection, 1, true, resume.generation()));
             Logger.printDebug(() -> "PlayerFallback: exhausted Play -> " + target + "#"
@@ -232,11 +272,33 @@ public final class PlayerFallback {
         else finishUnavailable(request, result);
     }
 
+    /** Starts the stock index navigation with the clicked row's request, not its standalone Watch endpoint. */
+    static boolean playEditedQueueRow(Object owner, OfflineQueueActions.Selection selected) {
+        if (!(owner instanceof Navigator nativeOwner)) return false;
+        Object command = nativeOwner.rvxJump(selected.occurrence(), false);
+        if (!(command instanceof Navigation navigation)) return false;
+
+        captureNavigator(nativeOwner);
+        navigation.rvxRecovery(new QueueTap(nativeOwner, selected, ++navigationGeneration));
+        Logger.printDebug(() -> "OfflineQueueActions: native Up Next selection index=" + selected.index());
+        nativeOwner.rvxDispatch(command);
+        return true;
+    }
+
     /** Runs inline at the stock index boundary; reads in-memory copy indexes, never files or the network. */
     public static int chooseIndex(Object owner, Object command, int target) {
         if (!(owner instanceof Navigator nativeOwner) || !(command instanceof Navigation navigation)) return target;
         captureNavigator(nativeOwner);
-        Recovery recovery = navigation.rvxRecovery() instanceof Recovery token ? token : null;
+        Object token = navigation.rvxRecovery();
+        Recovery recovery = token instanceof Recovery resume ? resume : null;
+        OfflineQueueActions.Selection editedTap = null;
+        if (token instanceof QueueTap tap) {
+            navigation.rvxRecovery(null);
+            if (tap.owner() != nativeOwner || tap.navigationGeneration() != navigationGeneration
+                    || !OfflineQueueActions.ownsSelectedOccurrence(nativeOwner, tap.selected())) return -1;
+            editedTap = tap.selected();
+            target = editedTap.index();
+        }
         if (recovery != null) {
             navigation.rvxRecovery(null);
             if (recovery.owner() != nativeOwner || recovery.previous() != selection) return -1;
@@ -248,6 +310,7 @@ public final class PlayerFallback {
         }
         EXHAUSTED.clear();
         List<?> items = nativeOwner.rvxItems();
+        if (editedTap != null && (target >= items.size() || items.get(target) != editedTap.occurrence())) return -1;
         if (recovery != null && (target < 0 || target >= items.size()
                 || nativeOwner.rvxItemId(items.get(target)) != recovery.itemId())) {
             target = -1;
@@ -299,8 +362,10 @@ public final class PlayerFallback {
         }
         ExhaustedPlayback.Occurrence previous = recovery == null ? previousPlayable(nativeOwner, items)
                 : recovery.previous() == null ? null : recovery.previous().previous();
-        selection = new Selection(nativeOwner, nativeOwner.rvxItemId(items.get(target)), videoId,
-                advance, remaining - (target - originalTarget), previous, navigationGeneration);
+        Object row = items.get(target);
+        selection = new Selection(nativeOwner, nativeOwner.rvxItemId(row), videoId,
+                advance, remaining - (target - originalTarget), previous, navigationGeneration,
+                editedTap != null ? editedTap : OfflineQueueActions.select(nativeOwner, row, target));
         return target;
     }
 
@@ -309,24 +374,61 @@ public final class PlayerFallback {
         if (OfflineReplay.enabled() && items != null && !items.isEmpty()) initialQueue = List.copyOf(items);
     }
 
-    static byte[] nextBytes(String playlistId, String videoId, Object command) throws IOException {
-        if (!(command instanceof NativeDownloads.Command message)) return null;
+    @Nullable
+    static Object editedQueueSelection(Object request, String targetVideoId) {
+        Selection selected = selection;
+        return selected != null && selected.videoId().equals(targetVideoId) &&
+                ownsQueueContinuation(selected, request) ? selected : null;
+    }
+
+    @Nullable
+    static Object editedNextResponse(Object token, Object request, OfflineReplay.NextRequest next, String playlistId,
+                                     String videoId, byte[] command) throws IOException {
+        Selection selected = (Selection) token;
+        if (!videoId.equals(selected.videoId()) || !ownsQueueContinuation(selected, request)) return null;
+        OfflineQueueActions.Continuation continuation =
+                OfflineQueueActions.continuation(selected.editedQueue(), selected, request);
+        if (continuation == null) return null;
+
+        List<byte[]> renderers = capturedRenderers(continuation.rows());
+        if (renderers == null) return null;
+        byte[] bytes = OfflineWatchNext.buildCaptured(playlistId, renderers, continuation.cursor(), command);
+        return next.rvxNextResponse(bytes, false, continuation);
+    }
+
+    @Nullable
+    static Object capturedNextResponse(OfflineReplay.NextRequest next, String playlistId, String videoId,
+                                       byte[] command, @Nullable OfflineReplay.LiveShuffle live) throws IOException {
         Navigator owner = navigator;
         List<?> items = owner == null ? initialQueue : List.copyOf(owner.rvxItems());
         if (items.isEmpty()) return null;
 
-        List<byte[]> renderers = new ArrayList<>(items.size());
+        List<byte[]> renderers = capturedRenderers(items);
+        if (renderers == null) return null;
         int index = -1;
         int nativeIndex = owner == null ? -1 : owner.rvxCurrent();
         for (int position = 0; position < items.size(); position++) {
-            if (!(items.get(position) instanceof QueueRow item)
-                    || !(item.rvxQueueRenderer() instanceof MessageLite proto)) return null;
-            byte[] bytes = proto.toByteArray();
-            String id = owner == null ? TapCommand.parse(bytes).videoId : owner.rvxVideoId(items.get(position));
+            String id = owner == null ? TapCommand.parse(renderers.get(position)).videoId
+                    : owner.rvxVideoId(items.get(position));
             if (videoId.equals(id) && (index < 0 || position == nativeIndex)) index = position;
-            renderers.add(bytes);
         }
-        return index < 0 ? null : OfflineWatchNext.buildCaptured(playlistId, renderers, index, message.toByteArray());
+        if (index < 0) return null;
+
+        byte[] bytes = OfflineWatchNext.buildCaptured(playlistId, renderers, index, command);
+        // The reply's derived position can differ from the saved endpoint index; native apply checks the live cursor.
+        Object continuation = live != null && owner != null && owner == navigator
+                ? OfflineReplay.localPlaylistContinuation(live, items, index) : null;
+        return next.rvxNextResponse(bytes, false, continuation);
+    }
+
+    @Nullable
+    private static List<byte[]> capturedRenderers(List<?> items) {
+        List<byte[]> renderers = new ArrayList<>(items.size());
+        for (Object row : items) {
+            if (!(row instanceof QueueRow item) || !(item.rvxQueueRenderer() instanceof MessageLite proto)) return null;
+            renderers.add(proto.toByteArray());
+        }
+        return renderers;
     }
 
     /** Direct scalar/callback producers also short-circuit before starting network work. */
@@ -433,6 +535,7 @@ public final class PlayerFallback {
     private static void stopUnavailable(Object request, String videoId, Runnable completed,
                                         BooleanSupplier currentRequest, long lossGeneration) {
         Selection expected = selection;
+        long expectedGeneration = navigationGeneration;
         Navigator active = navigator;
         Utils.runOnMainThreadNowOrLater(() -> {
             if (!currentRequest.getAsBoolean()) return;
@@ -441,7 +544,7 @@ public final class PlayerFallback {
                 return;
             }
             // A new native selection owns its own runner: a late failure must never cancel it.
-            if (expected != selection) {
+            if (expected != selection || expectedGeneration != navigationGeneration) {
                 if (completed != null) completed.run();
                 return;
             }
@@ -462,9 +565,10 @@ public final class PlayerFallback {
                         : -1;
                 if (next >= 0) {
                     try {
-                        Object command = active.rvxJump(next, false);
+                        Object item = items.get(next);
+                        Object command = active.rvxJump(item, false);
                         ((Navigation) command).rvxRecovery(new Recovery(active, next,
-                                active.rvxItemId(items.get(next)), ids.get(next), expected,
+                                active.rvxItemId(item), ids.get(next), expected,
                                 expected.remaining() - (next - failedIndex), false, 0));
                         active.rvxCancelLoad();
                         if (completed != null) completed.run();

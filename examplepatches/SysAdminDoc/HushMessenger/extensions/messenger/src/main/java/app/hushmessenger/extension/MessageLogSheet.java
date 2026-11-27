@@ -266,6 +266,9 @@ final class MessageLogSheet {
                 messageLogSaveText = null;
                 messageLogSaveCsv = null;
                 messageLogGeneration++;
+                // Opened just for the log, closing it goes back to Messenger rather than to settings (#248). A
+                // rotation takes the log down too, and the screen it comes back on shows it again.
+                if (page.onlyForTheLog() && !page.isChangingConfigurations() && !page.isFinishing()) page.finish();
             }
         });
         messageLogList = sheet.body;

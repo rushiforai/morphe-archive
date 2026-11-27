@@ -1,0 +1,396 @@
+{
+  "appName": "Google App (AGSA)",
+  "packageName": "com.google.android.googlequicksearchbox",
+  "versionName": "17.76.20.ve.arm64",
+  "versionCode": "301838242",
+  "inputSha256": {
+    "google-base.apk": "4e36a04c15fac7fbcbac19bb01783a37391c324498e937cc78b876c0d12b54ae",
+    "google-xxhdpi.apk": "579c60128a50b59deaa47e32cfcdf48f1cdb599503cc0aa40eff242968ae5a28"
+  },
+  "validation": [
+    "2026-11-26: exact Play Store split variant extracted from a Google-signed installation; default MPP applied",
+    "2026-11-26: API 37 emulator installed the base plus four splits; Gemini launched to sign-in",
+    "2026-11-26: AndroidX switch deduplication, haptic delegation, suppression and process restart exercised in the APK",
+    "Authenticated chat, Secure Folder and the conversation warning hook remain unverified for this version"
+  ],
+  "hooks": {
+    "DEVICE_COMPLIANCE_FEATURE": {
+      "className": "Ldvde;",
+      "methodName": "c",
+      "methodDescriptor": "()Z",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Feature is disabled!"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {
+        "branchDistance": 2
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Feature-disabled logging and the negated flag moved into c(); verify the XOR and branch before editing."
+    },
+    "DEVICE_COMPLIANCE_REDIRECT": {
+      "className": "Ldvdc;",
+      "methodName": "invoke",
+      "methodDescriptor": "()Ljava/lang/Object;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Redirecting to UncertifiedDeviceActivity."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Skip only the local warning-launch branch; does not certify the device or change server integrity results."
+    },
+    "WORK_PROFILE_BYPASS": {
+      "className": "Lahoz;",
+      "methodName": "u",
+      "methodDescriptor": "(Lcom/google/apps/tiktok/account/AccountId;Lhist;)Ljava/lang/Object;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Trampolining to web app for work profile. %s",
+        "Skipping trampoline to web app for work profile."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {
+        "lookback": 60,
+        "branchIndex": 146,
+        "branchRegister": 14,
+        "branchTargetCodeUnit": 392,
+        "observedRegisters": 15
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Only the trampoline anchor remains. IF_EQZ v14 at code unit 264 jumps to 392; nearest IF_EQZ v2 is a nullable Boolean check and MUST NOT be patched. Secondary skip anchor is absent."
+    },
+    "WORK_PROFILE_ELIGIBILITY": {
+      "className": "Laozi;",
+      "methodName": "l",
+      "methodDescriptor": "(Lhist;)Ljava/lang/Object;",
+      "fieldName": "x",
+      "fieldType": "Z",
+      "anchorStrings": [
+        "Robin eligibility : is disallowed on Work profile",
+        "Robin eligibility : Work profile is allowed."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {
+        "errorCode": 19
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Replace IGET_BOOLEAN with same-width const/16 true; retain other eligibility checks."
+    },
+    "MICROG_RUNTIME_PERMISSIONS": {
+      "className": "Lcom/google/android/apps/search/assistant/surfaces/voice/robin/main/MainActivity;",
+      "methodName": "onCreate",
+      "methodDescriptor": "(Landroid/os/Bundle;)V",
+      "fieldName": "o",
+      "fieldType": "Z",
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {
+        "minRegisters": 23,
+        "maxRegisters": 23,
+        "observedRegisters": 23,
+        "activityAlias": 0,
+        "thisParameterOffset": 2,
+        "scratchArray": 6,
+        "scratchIndex": 7,
+        "scratchString": 8
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Insert after final IPUT_BOOLEAN o:Z (code unit 818); v0 aliases Activity."
+    },
+    "PROCESS_NAME_REDIRECT": {
+      "className": "Lelhw;",
+      "methodName": "b",
+      "methodDescriptor": "()Ljava/lang/String;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "com.google.android.googlequicksearchbox:googleapp"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "One provider return site; strip .morphe only for the compiled Dagger process-name switch."
+    },
+    "MAIN_PROCESS_CHECK": {
+      "className": "Lelhs;",
+      "methodName": "b",
+      "methodDescriptor": "()Z",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "More than 1 custom main process specified"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Anchor is in elhs.a; the provider call inside elhs.b is the main-process check."
+    },
+    "GMS_SIGNATURE_BYPASS": {
+      "className": "Ldhsf;",
+      "methodName": "b",
+      "methodDescriptor": "(Landroid/content/Context;I)I",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        " requires Google Play services, but their signature is invalid.",
+        "The Google Play services resources were not found. Check your project configuration to ensure that the resources are included.",
+        " requires Google Play services, but they are missing."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": ""
+    },
+    "GMS_CERTIFICATE_VERIFIER": {
+      "className": "Ldhsg;",
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Unable to obtain package certificate history."
+      ],
+      "methodSignatures": [
+        "b(Ljava/lang/String;)Z",
+        "c(I)Z",
+        "d(Landroid/content/pm/PackageInfo;Z)Z"
+      ],
+      "expectedMatches": 3,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": ""
+    },
+    "GMS_CORE_REDIRECT": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "com.google.android.gms"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {
+        "originalGoogleSha1": "38918a453d07199354f8b19af05ec6562ced5788"
+      },
+      "enabled": true,
+      "description": "microG 7.3.0 app.revanced.android.gms; retain Binder service actions, redirect UI actions. Shared mappings: GmsConstants.kt."
+    },
+    "PACKAGE_CLONE_REDIRECT": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "com.google.android.googlequicksearchbox"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Rewrite exact package references in the Google application."
+    },
+    "SPLIT_RESTRICTION_REMOVAL": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Remove manifest split requirements; resource split still needs package rename/signing."
+    },
+    "APP_LABEL_UPDATE": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Google (Morphe)"
+    },
+    "GEMINI_HAPTICS": {
+      "className": "Lcafg;",
+      "methodName": "l",
+      "methodDescriptor": "(Lavyc;Landroidx/preference/PreferenceScreen;Lhist;)Ljava/lang/Object;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "RobinSettingsPreferenceFragment: report problem feedback tap listener"
+      ],
+      "methodSignatures": [
+        "Lbtmy;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbtow;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbtmg;->a(Lbtly;)V",
+        "Lbtpt;->onScroll(Landroid/view/MotionEvent;Landroid/view/MotionEvent;FF)Z",
+        "Lbtpv;->c(Landroid/view/View;Z)V",
+        "Lbzbc;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbtwo;->onScroll(Landroid/view/MotionEvent;Landroid/view/MotionEvent;FF)Z",
+        "Lbohr;->i(Lboid;Landroid/graphics/Point;Lhivb;Laxvh;Lbhqj;)Z",
+        "Lcom/google/android/apps/search/assistant/surfaces/voice/robin/ui/extensions/mediagen/editor/ui/views/EditorCanvasView;->g(Lcom/google/android/apps/search/assistant/surfaces/voice/robin/ui/extensions/mediagen/editor/ui/views/EditorCanvasView;)Lhipw;",
+        "Lcdqz;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lcdrb;->f()V",
+        "Lcdrb;->g()V",
+        "Lbyxm;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbyxq;->invoke()Ljava/lang/Object;",
+        "Lbyxy;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbyyf;->invoke()Ljava/lang/Object;",
+        "Lbyzf;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbyzh;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbyzi;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbyzr;->invoke()Ljava/lang/Object;",
+        "Lbuwu;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbuxw;->invoke()Ljava/lang/Object;",
+        "Lbuxz;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbuyd;->invoke()Ljava/lang/Object;",
+        "Lbuye;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbuyq;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;"
+      ],
+      "expectedMatches": 37,
+      "integers": {
+        "settingsRegisters": 21,
+        "screenParameter": 2
+      },
+      "values": {
+        "findPreference": "ae",
+        "setKey": "I",
+        "setTitle": "K",
+        "addPreference": "ab",
+        "listenerField": "n",
+        "persistentField": "w",
+        "setChecked": "k"
+      },
+      "enabled": true,
+      "description": "Gate Gemini view feedback from floaty controls, image tools and other verified Gemini surfaces."
+    },
+    "GEMINI_HAPTICS_VIBRATOR": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Ma-HapticsPlayer-Impl",
+        "Playing haptic feedback"
+      ],
+      "methodSignatures": [
+        "Latai;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbmfg;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbmfj;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Laurp;->b(Laurf;Lhist;)Ljava/lang/Object;"
+      ],
+      "expectedMatches": 4,
+      "integers": {},
+      "values": {
+        "vibrateReference": "Lbv$$ExternalSyntheticApiModelOutline0;->m(Landroid/os/Vibrator;Landroid/os/VibrationEffect;)V"
+      },
+      "enabled": true,
+      "description": "Gate the chat waveform player plus Live and Gemini feedback-report cues."
+    },
+    "GEMINI_HAPTICS_COMPOSE": {
+      "className": "Lcabq;",
+      "methodName": "onCreateView",
+      "methodDescriptor": "(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {
+        "registers": 11,
+        "viewRegister": 7,
+        "titleRegister": 8,
+        "geminiSettingsTitle": 2132089932,
+        "settingsTitle": 2132089945
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Add the switch when the Compose fragment renders the main settings page."
+    },
+    "ACCOUNT_SWITCH_LOCK_BYPASS": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Acquired account-switch Mutex."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": false,
+      "description": "Historical rejected approach. Do not enable; normal account synchronization is required."
+    },
+    "ACCOUNT_SYNC_LOOP_FIX": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Binding to service"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": false,
+      "description": "Historical rejected Binder-success spoof; caused hangs."
+    },
+    "ACCOUNT_CONVERT_FALLBACK": {
+      "className": "Lfyca;",
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Found google email address as the old primary email address",
+        "Failed to convert AGSA account name to account id."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": false,
+      "description": "Historical unverified helper name. Fixed AccountId=1 broke token acquisition; never use for a new version."
+    }
+  }
+}

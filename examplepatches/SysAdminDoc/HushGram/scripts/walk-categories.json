@@ -436,6 +436,7 @@
         "patches": [
           "Turn off HDR brightness boosts",
           "Keep HDR on photo uploads",
+          "Keep HDR on video uploads",
           "Tap to play",
           "Resume long videos",
           "Control taps and volume on Reels",
@@ -551,6 +552,7 @@
           "Hide suggested people on profiles",
           "Hide highlights",
           "Hide Followers and Following on profiles",
+          "Select all in Your activity",
           "Hide the Threads button",
           "Hide Notes on profile pictures",
           "Hide profile tabs",
@@ -884,6 +886,15 @@
         },
         {
           "title": "Stop background feed refresh",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Stop background wake-ups"
+            ]
+          }
+        },
+        {
+          "title": "Let Instagram close after account checks",
           "when": {
             "op": "any",
             "patches": [

@@ -1,0 +1,755 @@
+{
+  "note": "Written by Jimaku's extension/scripts/export-shared-cases.ts. Change the cases there, not here.",
+  "about": "A job's time left and its progress bar's glide, from lib/time-left.ts. A case's job is base.job changed by the case's own; times are in ms, lengths in seconds, shares from 0 to 1. A number with `digits` passes when it is within half a unit of that decimal place; without, within 1e-9. A glide is either {even: [from, to, at, seconds, ceiling]} or {progress: {job, duration, translates, now}}. A case of `onward` folds its reads into one glide: shown = onward(shown, progressOf(read.job, duration, translates, read.at)), starting from none.",
+  "base": {
+    "job": {
+      "kind": "premium",
+      "state": "waiting",
+      "percent": null,
+      "since": 0,
+      "first": null,
+      "last": null
+    }
+  },
+  "secondsLeft": [
+    {
+      "name": "11.6 minutes, as production took it",
+      "job": {},
+      "duration": 694,
+      "translates": true,
+      "now": 0,
+      "is": 27.35,
+      "digits": 2
+    },
+    {
+      "name": "26.5 minutes",
+      "job": {},
+      "duration": 1588,
+      "translates": true,
+      "now": 0,
+      "is": 49.7,
+      "digits": 1
+    },
+    {
+      "name": "two hours",
+      "job": {},
+      "duration": 7200,
+      "translates": true,
+      "now": 0,
+      "is": 190
+    },
+    {
+      "name": "Standard, 26 minutes",
+      "job": {
+        "kind": "captions"
+      },
+      "duration": 1569,
+      "translates": true,
+      "now": 0,
+      "is": 23.9,
+      "digits": 1
+    },
+    {
+      "name": "holds while waiting for the processor",
+      "job": {},
+      "duration": 7200,
+      "translates": true,
+      "now": 60000,
+      "is": 190
+    },
+    {
+      "name": "counts down while getting ready",
+      "job": {
+        "state": "downloading"
+      },
+      "duration": 7200,
+      "translates": true,
+      "now": 5000,
+      "is": 185
+    },
+    {
+      "name": "counts down while transcribing",
+      "job": {
+        "state": "transcribing"
+      },
+      "duration": 7200,
+      "translates": true,
+      "now": 30000,
+      "is": 143
+    },
+    {
+      "name": "a step that ran long leaves the rest",
+      "job": {
+        "state": "transcribing"
+      },
+      "duration": 7200,
+      "translates": true,
+      "now": 600000,
+      "is": 99
+    },
+    {
+      "name": "never below 0",
+      "job": {
+        "state": "transcribing"
+      },
+      "duration": 7200,
+      "translates": false,
+      "now": 600000,
+      "is": 0
+    },
+    {
+      "name": "without a translation",
+      "job": {},
+      "duration": 7200,
+      "translates": false,
+      "now": 0,
+      "is": 91
+    },
+    {
+      "name": "translating, the percent not moved yet",
+      "job": {
+        "state": "translating",
+        "percent": 40,
+        "first": {
+          "at": 0,
+          "percent": 40
+        },
+        "last": {
+          "at": 0,
+          "percent": 40
+        }
+      },
+      "duration": 7200,
+      "translates": true,
+      "now": 0,
+      "is": 59.4,
+      "digits": 1
+    },
+    {
+      "name": "translating at the pace seen",
+      "job": {
+        "state": "translating",
+        "percent": 40,
+        "first": {
+          "at": 0,
+          "percent": 0
+        },
+        "last": {
+          "at": 10000,
+          "percent": 40
+        }
+      },
+      "duration": 7200,
+      "translates": true,
+      "now": 12000,
+      "is": 13
+    },
+    {
+      "name": "translating past the pace seen",
+      "job": {
+        "state": "translating",
+        "percent": 40,
+        "first": {
+          "at": 0,
+          "percent": 0
+        },
+        "last": {
+          "at": 10000,
+          "percent": 40
+        }
+      },
+      "duration": 7200,
+      "translates": true,
+      "now": 60000,
+      "is": 0
+    }
+  ],
+  "words": [
+    [
+      0,
+      null
+    ],
+    [
+      59,
+      null
+    ],
+    [
+      60,
+      null
+    ],
+    [
+      89,
+      null
+    ],
+    [
+      90,
+      "about 2 min left"
+    ],
+    [
+      149,
+      "about 2 min left"
+    ],
+    [
+      150,
+      "about 3 min left"
+    ],
+    [
+      190,
+      "about 3 min left"
+    ]
+  ],
+  "progressOf": [
+    {
+      "name": "getting ready's share of a 10-minute video",
+      "job": {
+        "state": "downloading"
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": {
+        "from": 0,
+        "to": 0.24,
+        "seconds": 6,
+        "ceiling": 0.4
+      }
+    },
+    {
+      "name": "transcribing's share",
+      "job": {
+        "state": "transcribing"
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": {
+        "from": 0.24,
+        "to": 0.56,
+        "seconds": 8,
+        "ceiling": 0.78
+      }
+    },
+    {
+      "name": "translating's share",
+      "job": {
+        "state": "translating",
+        "percent": 0
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": {
+        "from": 0.56,
+        "to": 0.95,
+        "seconds": 11,
+        "ceiling": 0.98
+      }
+    },
+    {
+      "name": "on within a step by the time spent",
+      "job": {
+        "state": "transcribing"
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 4000,
+      "is": {
+        "from": 0.4,
+        "to": 0.56,
+        "seconds": 4
+      }
+    },
+    {
+      "name": "only its tail once the step runs long",
+      "job": {
+        "state": "transcribing"
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 20000,
+      "is": {
+        "from": 0.56,
+        "to": 0.56,
+        "seconds": 0
+      }
+    },
+    {
+      "name": "the last step crawls to 98%",
+      "job": {
+        "state": "transcribing"
+      },
+      "duration": 600,
+      "translates": false,
+      "now": 0,
+      "is": {
+        "ceiling": 0.98
+      }
+    },
+    {
+      "name": "a translation alone fills the whole bar",
+      "job": {
+        "kind": "translate",
+        "state": "translating",
+        "percent": 50
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": {
+        "from": 0.5,
+        "to": 0.95,
+        "seconds": 5.5
+      }
+    },
+    {
+      "name": "translating fills its share by the percent",
+      "job": {
+        "state": "translating",
+        "percent": 50
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": {
+        "from": 0.78,
+        "to": 0.95,
+        "seconds": 5.5
+      }
+    },
+    {
+      "name": "no translating share without a translation",
+      "job": {
+        "state": "transcribing"
+      },
+      "duration": 600,
+      "translates": false,
+      "now": 0,
+      "is": {
+        "from": 0.42857142857,
+        "to": 0.95,
+        "seconds": 8
+      }
+    },
+    {
+      "name": "no further than 95% before the job is done",
+      "job": {
+        "state": "translating",
+        "percent": 100
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": {
+        "from": 0.95,
+        "to": 0.95,
+        "seconds": 0
+      }
+    },
+    {
+      "name": "not known while waiting",
+      "job": {
+        "state": "waiting"
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": null
+    },
+    {
+      "name": "not known once done",
+      "job": {
+        "state": "done"
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": null
+    },
+    {
+      "name": "not known once failed",
+      "job": {
+        "state": "failed"
+      },
+      "duration": 600,
+      "translates": true,
+      "now": 0,
+      "is": null
+    }
+  ],
+  "progressDigits": 4,
+  "glides": [
+    {
+      "name": "stands between its ends by the time gone",
+      "glide": {
+        "even": [
+          0.24,
+          0.56,
+          0,
+          8,
+          0.78
+        ]
+      },
+      "standing": [
+        [
+          4000,
+          0.4,
+          4
+        ],
+        [
+          8000,
+          0.56,
+          4
+        ]
+      ]
+    },
+    {
+      "name": "slows down past its end to a crawl, without standing still, and stops at its ceiling",
+      "glide": {
+        "progress": {
+          "job": {
+            "state": "transcribing"
+          },
+          "duration": 600,
+          "translates": true,
+          "now": 0
+        }
+      },
+      "pace": [
+        [
+          7800,
+          0.04,
+          4
+        ],
+        [
+          8000,
+          0.04,
+          2
+        ],
+        [
+          18000,
+          0.006,
+          5
+        ],
+        [
+          30000,
+          0.006,
+          5
+        ],
+        [
+          120000,
+          0,
+          null
+        ]
+      ],
+      "slower": [
+        [
+          10000,
+          9000
+        ]
+      ],
+      "standing": [
+        [
+          120000,
+          0.78,
+          6
+        ]
+      ]
+    },
+    {
+      "name": "never slower than the crawl where the estimate leaves little room before the cap",
+      "glide": {
+        "progress": {
+          "job": {
+            "state": "translating",
+            "percent": 88,
+            "first": {
+              "at": 0,
+              "percent": 0
+            },
+            "last": {
+              "at": 8800,
+              "percent": 88
+            }
+          },
+          "duration": 600,
+          "translates": true,
+          "now": 8800
+        }
+      },
+      "from": [
+        0.9472,
+        4
+      ],
+      "pace": [
+        [
+          8800,
+          0.006,
+          5
+        ]
+      ],
+      "standing": [
+        [
+          9267,
+          0.95,
+          3
+        ],
+        [
+          120000,
+          0.98,
+          6
+        ]
+      ],
+      "above": [
+        [
+          11000,
+          0.95
+        ]
+      ]
+    }
+  ],
+  "paceNote": "A glide's pace at `at` is (standing at at + 100 minus standing at at) times 10, in shares a second.",
+  "onward": [
+    {
+      "name": "picks its tail up where it is when a read changes nothing",
+      "duration": 600,
+      "translates": true,
+      "reads": [
+        {
+          "job": {
+            "state": "transcribing"
+          },
+          "at": 0
+        },
+        {
+          "job": {
+            "state": "transcribing"
+          },
+          "at": 9000
+        },
+        {
+          "job": {
+            "state": "transcribing"
+          },
+          "at": 12000
+        },
+        {
+          "job": {
+            "state": "transcribing"
+          },
+          "at": 15000
+        },
+        {
+          "job": {
+            "state": "transcribing"
+          },
+          "at": 30000
+        }
+      ],
+      "eachAsFirst": {
+        "after": [
+          0,
+          1000,
+          2500,
+          10000
+        ],
+        "digits": 6
+      }
+    },
+    {
+      "name": "keeps its place when a read changes nothing",
+      "duration": 600,
+      "translates": true,
+      "reads": [
+        {
+          "job": {
+            "state": "transcribing"
+          },
+          "at": 0
+        },
+        {
+          "job": {
+            "state": "transcribing"
+          },
+          "at": 3000
+        }
+      ],
+      "asFirst": {
+        "at": [
+          5000
+        ],
+        "digits": 4
+      },
+      "toAsFirst": 4
+    },
+    {
+      "name": "moves ahead when a step ends early",
+      "duration": 600,
+      "translates": true,
+      "reads": [
+        {
+          "job": {
+            "state": "transcribing"
+          },
+          "at": 0
+        },
+        {
+          "job": {
+            "state": "translating",
+            "percent": 0,
+            "since": 2000
+          },
+          "at": 2000
+        }
+      ],
+      "firstStanding": [
+        [
+          2000,
+          0.32,
+          4
+        ]
+      ],
+      "from": [
+        0.56,
+        4
+      ]
+    },
+    {
+      "name": "never moves back when a read is slower than the estimate",
+      "duration": 600,
+      "translates": true,
+      "reads": [
+        {
+          "job": {
+            "state": "translating",
+            "percent": 0
+          },
+          "at": 0
+        },
+        {
+          "job": {
+            "state": "translating",
+            "percent": 10
+          },
+          "at": 6000
+        }
+      ],
+      "fromAsFirstAt": [
+        6000,
+        4
+      ],
+      "toAtLeastFrom": true
+    },
+    {
+      "name": "never moves back, whatever the reads say",
+      "duration": 600,
+      "translates": true,
+      "reads": [
+        {
+          "job": {
+            "state": "downloading",
+            "since": 0
+          },
+          "at": 0
+        },
+        {
+          "job": {
+            "state": "downloading",
+            "since": 9000
+          },
+          "at": 9000
+        },
+        {
+          "job": {
+            "state": "transcribing",
+            "since": 9000
+          },
+          "at": 9000
+        },
+        {
+          "job": {
+            "state": "transcribing",
+            "since": 30000
+          },
+          "at": 30000
+        },
+        {
+          "job": {
+            "state": "translating",
+            "percent": 0,
+            "since": 30000
+          },
+          "at": 30000
+        },
+        {
+          "job": {
+            "state": "translating",
+            "percent": 5,
+            "since": 40000
+          },
+          "at": 40000
+        },
+        {
+          "job": {
+            "state": "translating",
+            "percent": 90,
+            "since": 43000
+          },
+          "at": 43000
+        },
+        {
+          "job": {
+            "state": "translating",
+            "percent": 40,
+            "since": 46000
+          },
+          "at": 46000
+        }
+      ],
+      "neverBack": true
+    }
+  ],
+  "course": [
+    {
+      "name": "takes the bar through its course point by point, to where it stops",
+      "glide": {
+        "even": [
+          0.24,
+          0.56,
+          0,
+          8,
+          0.78
+        ]
+      },
+      "now": 0,
+      "first": [
+        0,
+        0.24
+      ],
+      "through": [
+        [
+          8000,
+          0.56,
+          9
+        ]
+      ],
+      "end": 0.78,
+      "length": null
+    },
+    {
+      "name": "from the middle of its crawl, straight on to its ceiling",
+      "glide": {
+        "even": [
+          0.24,
+          0.56,
+          0,
+          8,
+          0.78
+        ]
+      },
+      "now": 30000,
+      "end": 0.78,
+      "length": 2
+    }
+  ],
+  "courseNote": "Every point of a course stands where the glide has the bar then (6 digits), later than the one before and never lower, the last at `end` exactly, and 100 ms before it still short of `end`."
+}

@@ -8,11 +8,6 @@ import java.util.regex.Pattern;
 
 import app.morphe.extension.shared.Logger;
 
-/**
- * Like and dislike counts as counts, percentages, or both, on the video's like and dislike buttons. Dislikes come from
- * Return YouTube Dislike (Morphe's RYD); the like button shows YouTube's own count, and its percentage is RYD's share of
- * likes among all votes.
- */
 public final class RydText {
 
     private static final String RYD = "app.morphe.extension.shared.returnyoutubedislike.ReturnYouTubeDislike";
@@ -44,10 +39,6 @@ public final class RydText {
         return (Float) vote.getClass().getMethod(getter).invoke(vote);
     }
 
-    /**
-     * Injection points, at the start of RYD's dislike and like texts: the text in the chosen format, or null to keep
-     * RYD's own (counts, or Morphe's Dislikes as percentage).
-     */
     public static String dislikes(Object ryd) {
         return votes(ryd, "getDislikeCount", "getDislikePercentage");
     }
@@ -74,7 +65,6 @@ public final class RydText {
         }
     }
 
-    /** The RYD data of the open video, through the source Morphe's buttons read. */
     @SuppressWarnings("unchecked")
     private static Object currentRyd() throws Exception {
         Field f = Class.forName(BUTTONS).getDeclaredField("videoDataSource");
@@ -83,7 +73,6 @@ public final class RydText {
         return s == null ? null : s.get();
     }
 
-    /** A count as YouTube shows it ("3.4M", "3,4 M", "12 mil", "954K", "1,234") as a number, or -1. */
     static double parseCount(String text) {
         String t = text.replace('\u00a0', ' ').replace('\u202f', ' ').trim().toLowerCase(Locale.ROOT);
         java.util.regex.Matcher m = Pattern.compile("^(\\d+(?:[.,\\s]\\d+)*)\\s*([a-z.]*)").matcher(t);
@@ -100,19 +89,10 @@ public final class RydText {
         }
     }
 
-    /**
-     * Injection point, on the text of each animated count YouTube draws (the like count of live streams, among others):
-     * the like count as a percentage, or both, when the text matches RYD's like count within 15%.
-     */
     public static String rollingNumber(String text) {
         return likeText(text, "rolling number");
     }
 
-    /**
-     * Injection point, on the count Morphe's RYD draws under a compact action bar's like and dislike icons (YouTube's
-     * own like count, e.g. "9M"): the like count as a percentage, or both. The dislike count never matches RYD's like
-     * count, and a text already holding a percentage is kept.
-     */
     public static String iconText(String text) {
         return likeText(text, "icon count");
     }

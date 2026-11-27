@@ -32,6 +32,13 @@ fun main(args: Array<String>) {
             DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it).classes.map { clazz -> clazz.type }.toSet()
         }
         check(updateTypes == setOf("Lapp/geminipatch/extension/ConversationUpdateCompatibility;")) { "Unexpected conversation runtime: $updateTypes" }
+        val haptics = checkNotNull(jar.getJarEntry("extensions/gemini-haptics.bin")) { "Missing haptic feedback runtime" }
+        jar.getInputStream(haptics).buffered().use {
+            val runtime = DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it).classes
+                .single { cls -> cls.type == "Lapp/geminipatch/extension/GeminiHaptics;" }
+            check(runtime.methods.map { method -> method.name }
+                .containsAll(listOf("addPreference", "addComposePreference", "addListPreference", "performFeedback")))
+        }
         check(dexTypes.none { it.startsWith("Lapp/geminipatch/diagnostics/") || it.startsWith("Lapp/morphe/patches/google/diagnostics/") }) { "Diagnostics code must not be released" }
         println("MPP verified: manifest and all ${jvmTypes.size} JVM classes present in Android DEX")
     }

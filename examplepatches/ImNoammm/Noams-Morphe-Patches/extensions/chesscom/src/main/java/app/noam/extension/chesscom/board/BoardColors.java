@@ -21,7 +21,7 @@ public final class BoardColors {
         {"Orange", "#D08B18", "#FCE4B2"},
         {"Icy Sea", "#7A9DB2", "#C5D5DC"},
         {"Sky", "#C2D7E2", "#EFEFEF"},
-        {"Grey", "#AAAAAA", "#DCDCDC"},
+        {"Gray", "#AAAAAA", "#DCDCDC"},
         {"Pink", "#F9CDD3", "#FFF3F3"},
         {"Sand", "#B8A590", "#E5D3C4"},
         {"Walnut", "#835F42", "#C0A684"},

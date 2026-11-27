@@ -34,14 +34,18 @@ jobs:
         run: |
           python -m unittest discover -s tests -p "test_*.py" -v
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-      - name: Publish experimental release
+      - name: Publish release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           $version = (Get-Content patches-bundle.json | ConvertFrom-Json).version
-          gh release create "v$version" artifacts/publish/* --prerelease --title "LINE notification patches $version" --notes-file docs/RELEASE_NOTES.md --target $env:GITHUB_SHA
+          if ($version -match '-') {
+            gh release create "v$version" artifacts/publish/* --prerelease --title "LINE notification patches $version" --notes-file docs/RELEASE_NOTES.md --target $env:GITHUB_SHA
+          } else {
+            gh release create "v$version" artifacts/publish/* --title "LINE notification patches $version" --notes-file docs/RELEASE_NOTES.md --target $env:GITHUB_SHA
+          }
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

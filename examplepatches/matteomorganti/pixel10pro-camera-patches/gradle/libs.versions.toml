@@ -1,0 +1,17 @@
+[versions]
+# app.morphe.patches plugin 1.3.4 + patcher 1.8.0: the newest combination that
+# both upstream code bases (Akshayykadam on 1.3.4/1.8.0, Gamer92000 on
+# 1.3.3/1.7.0) compile against. See WORKLOG.md (Phase 2) for the 2.x attempt.
+morphe-patcher = "1.8.0"
+# Tracking https://github.com/google/smali/issues/100.
+smali = "d92701d947"
+agp = "9.1.0"
+annotation = "1.10.0"
+gson = "2.14.0"
+
+[libraries]
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+[plugins]
+android-library = { id = "com.android.library" }

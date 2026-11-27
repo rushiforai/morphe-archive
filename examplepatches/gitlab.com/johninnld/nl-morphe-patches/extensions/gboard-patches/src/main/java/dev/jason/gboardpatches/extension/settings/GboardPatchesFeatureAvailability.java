@@ -9,6 +9,8 @@ import android.util.Log;
 public final class GboardPatchesFeatureAvailability {
     public static final String FEATURE_KEYPRESS_HAPTICS =
             "dev.jason.gboardpatches.feature.keypress_haptics";
+    public static final String FEATURE_SHIFT_FORWARD_DELETE =
+            "dev.jason.gboardpatches.feature.shift_forward_delete";
     public static final String FEATURE_EDITING_ACCESS_POINTS =
             "dev.jason.gboardpatches.feature.editing_access_points";
     /** 18.8.0 beta gates forced by the Beta features toggle. */
@@ -45,6 +47,7 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.english_uppercase_toggle";
     public static final String FEATURE_ZHUYIN_BOTTOM_ROW_WEIGHT =
             "dev.jason.gboardpatches.feature.zhuyin_bottom_row_weight";
+    public static final String FEATURE_SHARED_LOCAL_MODEL = "dev.jason.gboardpatches.feature.shared_local_model";
     public static final String FEATURE_AI_WRITING_TOOLS =
             "dev.jason.gboardpatches.feature.ai_writing_tools";
     public static final String FEATURE_TOP_ROW_SWIPE =

@@ -4,7 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Collections;
 
 import dev.jason.gboardpatches.extension.R;
@@ -27,13 +28,10 @@ public final class GboardLongPressQuickActionsSettingsFeature
     private final String errorSummary;
     private final String enabledTitle;
     private final String enabledSummary;
-    private final String globeDragTitle;
-    private final String globeDragSummary;
     private final String selectAllTitle;
     private final String selectAllSummary;
     private final String featureSectionTitle;
     private final String mappingsSectionTitle;
-    private final String[] actionLabels;
 
     public GboardLongPressQuickActionsSettingsFeature(Context context) {
         this(
@@ -52,38 +50,19 @@ public final class GboardLongPressQuickActionsSettingsFeature
                 GboardSettingsText.get(context,
                         R.string.gboard_patches_long_press_quick_actions_enabled_summary),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_globe_drag_title),
-                GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_globe_drag_summary),
-                GboardSettingsText.get(context,
                         R.string.gboard_patches_long_press_quick_actions_select_all_title),
                 GboardSettingsText.get(context,
                         R.string.gboard_patches_long_press_quick_actions_select_all_summary),
                 GboardSettingsText.get(context,
                         R.string.gboard_patches_long_press_quick_actions_section_feature),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_section_mappings),
-                new String[] {
-                        GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_select_all),
-                        GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_undo),
-                        GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_copy),
-                        GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_cut),
-                        GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_paste),
-                        GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_redo)
-                });
+                        R.string.gboard_patches_long_press_quick_actions_section_mappings));
     }
 
     GboardLongPressQuickActionsSettingsFeature(String entryTitle, String entrySummary,
             String headerBadge, String errorTitle, String errorSummary, String enabledTitle,
-            String enabledSummary, String globeDragTitle, String globeDragSummary,
-            String selectAllTitle, String selectAllSummary,
-            String featureSectionTitle, String mappingsSectionTitle, String[] actionLabels) {
+            String enabledSummary, String selectAllTitle, String selectAllSummary,
+            String featureSectionTitle, String mappingsSectionTitle) {
         this.entryTitle = entryTitle;
         this.entrySummary = entrySummary;
         this.headerBadge = headerBadge;
@@ -91,13 +70,10 @@ public final class GboardLongPressQuickActionsSettingsFeature
         this.errorSummary = errorSummary;
         this.enabledTitle = enabledTitle;
         this.enabledSummary = enabledSummary;
-        this.globeDragTitle = globeDragTitle;
-        this.globeDragSummary = globeDragSummary;
         this.selectAllTitle = selectAllTitle;
         this.selectAllSummary = selectAllSummary;
         this.featureSectionTitle = featureSectionTitle;
         this.mappingsSectionTitle = mappingsSectionTitle;
-        this.actionLabels = actionLabels == null ? new String[0] : actionLabels.clone();
     }
 
     @Override
@@ -128,78 +104,58 @@ public final class GboardLongPressQuickActionsSettingsFeature
             SharedPreferences preferences = GboardPatchesSettings.preferences(context);
             GboardLongPressQuickActionsSettings.ensureDefault(preferences);
             boolean enabled = GboardLongPressQuickActionsSettings.readEnabled(preferences);
-            boolean globeDragEnabled =
-                    GboardLongPressQuickActionsSettings.readGlobeDragEnabled(preferences);
             boolean selectAllWhenUnselected =
                     GboardLongPressQuickActionsSettings.readSelectAllWhenUnselected(preferences);
-            return buildScreenForState(
-                    enabled,
-                    globeDragEnabled,
-                    selectAllWhenUnselected,
-                    value -> GboardLongPressQuickActionsSettings.writeEnabled(context, value),
-                    value -> GboardLongPressQuickActionsSettings.writeGlobeDragEnabled(
-                            context, value),
-                    value -> GboardLongPressQuickActionsSettings.writeSelectAllWhenUnselected(
-                            context, value));
+            List<GboardPatchesSettingsContract.Row> mappings = new ArrayList<>();
+            for (GboardEditingShortcutPolicy.Shortcut shortcut
+                    : GboardEditingShortcutPolicy.Shortcut.values()) {
+                String key = Character.toUpperCase(shortcut.latinKey) + " · " + shortcut.debugName;
+                mappings.add(placementRow(host, preferences, shortcut, key, enabled));
+            }
+            List<GboardPatchesSettingsContract.Row> featureRows = List.of(
+                    new GboardPatchesSettingsContract.ToggleRow(
+                            enabledTitle, enabledSummary, true, enabled,
+                            value -> GboardLongPressQuickActionsSettings.writeEnabled(preferences, value),
+                            buildEnabledPreview()),
+                    new GboardPatchesSettingsContract.SwitchRow(
+                            selectAllTitle, selectAllSummary, enabled, selectAllWhenUnselected,
+                            value -> GboardLongPressQuickActionsSettings.writeSelectAllWhenUnselected(
+                                    preferences, value)),
+                    placementRow(host, preferences, null, "Default menu position", enabled));
+            return new GboardPatchesSettingsContract.Screen(
+                    entryTitle, headerBadge, entryTitle, "", Collections.emptyList(),
+                    List.of(new GboardPatchesSettingsContract.Section(featureSectionTitle, featureRows),
+                            new GboardPatchesSettingsContract.Section(mappingsSectionTitle, mappings)),
+                    GboardPatchesSettingsContract.RefreshPolicy.none(),
+                    GboardPatchesSettingsContract.PanelStyle.FLAT);
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to render long-press quick action settings", throwable);
             return buildErrorScreen();
         }
     }
 
-    GboardPatchesSettingsContract.Screen buildScreenForState(boolean enabled,
-            boolean globeDragEnabled,
-            boolean selectAllWhenUnselected,
-            GboardPatchesSettingsContract.ToggleAction toggleAction,
-            GboardPatchesSettingsContract.ToggleAction globeDragToggleAction,
-            GboardPatchesSettingsContract.ToggleAction selectAllToggleAction) {
-        String[] labels = normalizedActionLabels();
-        return new GboardPatchesSettingsContract.Screen(
-                entryTitle,
-                headerBadge,
-                entryTitle,
-                "",
-                Collections.emptyList(),
-                Arrays.asList(
-                        new GboardPatchesSettingsContract.Section(
-                                featureSectionTitle,
-                                Arrays.asList(
-                                        new GboardPatchesSettingsContract.ToggleRow(
-                                                enabledTitle,
-                                                enabledSummary,
-                                                true,
-                                                enabled,
-                                                toggleAction,
-                                                buildEnabledPreview()),
-                                        new GboardPatchesSettingsContract.SwitchRow(
-                                                globeDragTitle,
-                                                globeDragSummary,
-                                                enabled,
-                                                globeDragEnabled,
-                                                globeDragToggleAction),
-                                        new GboardPatchesSettingsContract.SwitchRow(
-                                                selectAllTitle,
-                                                selectAllSummary,
-                                                enabled,
-                                                selectAllWhenUnselected,
-                                                selectAllToggleAction))),
-                        new GboardPatchesSettingsContract.Section(
-                                mappingsSectionTitle,
-                                Arrays.asList(
-                                        new GboardPatchesSettingsContract.InfoRow(
-                                                "A", labels[0], true),
-                                        new GboardPatchesSettingsContract.InfoRow(
-                                                "Z", labels[1], true),
-                                        new GboardPatchesSettingsContract.InfoRow(
-                                                "C", labels[2], true),
-                                        new GboardPatchesSettingsContract.InfoRow(
-                                                "X", labels[3], true),
-                                        new GboardPatchesSettingsContract.InfoRow(
-                                                "V", labels[4], true),
-                                        new GboardPatchesSettingsContract.InfoRow(
-                                                "Y", labels[5], true)))),
-                GboardPatchesSettingsContract.RefreshPolicy.none(),
-                GboardPatchesSettingsContract.PanelStyle.FLAT);
+    private GboardPatchesSettingsContract.Row placementRow(
+            GboardPatchesSettingsContract.FeatureHost host, SharedPreferences preferences,
+            GboardEditingShortcutPolicy.Shortcut shortcut, String title, boolean enabled) {
+        String first = GboardLongPressShortcutPlacement.FIRST;
+        String last = GboardLongPressShortcutPlacement.LAST;
+        String inherit = GboardLongPressQuickActionsSettings.INHERIT_PLACEMENT;
+        String[] labels = shortcut == null ? new String[]{"First", "Last"}
+                : new String[]{"Use default", "First", "Last"};
+        String[] values = shortcut == null ? new String[]{first, last}
+                : new String[]{inherit, first, last};
+        String selected = GboardLongPressQuickActionsSettings.readPlacement(preferences, shortcut);
+        String current = first.equals(selected) ? "First" : last.equals(selected) ? "Last" : "Use default";
+        String key = GboardLongPressQuickActionsSettings.placementKey(shortcut);
+        return new GboardPatchesSettingsContract.SelectorRow(
+                title, "Restart Gboard to apply placement changes.", current, enabled,
+                () -> GboardPatchesSettingsContract.showChoiceDialog(
+                        host, title, labels, values, selected, "unused", () -> {},
+                        value -> {
+                            if (preferences.edit().putString(key, value).commit()) {
+                                GboardPatchesSettingsContract.refresh(host);
+                            }
+                        })).setRestartRequired(key);
     }
 
     private GboardPatchesSettingsContract.PreviewSpec buildEnabledPreview() {
@@ -225,13 +181,5 @@ public final class GboardLongPressQuickActionsSettingsFeature
                 Collections.emptyList());
     }
 
-    private String[] normalizedActionLabels() {
-        String[] labels = new String[6];
-        for (int index = 0; index < labels.length; index++) {
-            labels[index] = index < actionLabels.length && actionLabels[index] != null
-                    ? actionLabels[index]
-                    : "";
-        }
-        return labels;
-    }
+
 }

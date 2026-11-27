@@ -372,10 +372,12 @@ Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post d
 Captions	التسميات التوضيحية
 Captions, gestures and on-screen controls	التسميات التوضيحية والإيماءات وعناصر التحكم على الشاشة
 Capture crash reports locally	التقاط تقارير الأعطال محليا
+Free memory early	تحرير الذاكرة مبكرًا
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.	اختر من %1$d إلى %2$d مقطع فيديو. القيم خارج هذا النطاق تستخدم أقرب حد صالح. أعد تشغيل TikTok لتطبيق هذا.
 Choose a backup file. Your current settings are kept for Undo.	اختر ملف نسخة احتياطية. يتم الاحتفاظ بإعداداتك الحالية للتراجع.
 Pick a folder on internal storage, not an SD card	اختر مجلد في وحدة التخزين الداخلية، وليس على بطاقة SD
-Choose a preset to fill the SIM details.	اختر إعدادا مسبقا لملء تفاصيل شريحة الاتصال.
+Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts.	حدد إعدادا مسبقا واحدا لملء تفاصيل شريحة الاتصال، أو عدة إعدادات لاستخدام إعداد مختلف في كل مرة يبدأ فيها TikTok.
+A different preset each time TikTok starts, in this order: %1$s	إعداد مسبق مختلف في كل مرة يبدأ فيها TikTok، بهذا الترتيب: %1$s
 Choose a subfolder under %1$s.	اختر مجلد فرعي داخل %1$s.
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.	اختر الإجراءات التي تريد إزالتها من قائمة المشاركة. الأسماء التي كتبتها يدويا ولم يعرضها TikTok بعد تبقى في القائمة أعلاه.
 Choose what reaches your feed	اختر ما يصل إلى خلاصتك
@@ -530,6 +532,7 @@ Top right double tap	نقر مزدوج أعلى اليمين
 Bottom left double tap	النقر المزدوج أسفل اليسار
 Bottom right double tap	النقر المزدوج أسفل اليمين
 Download original photos	تنزيل الصور الأصلية
+Download speed	سرعة التنزيل
 Destination updated	تم تحديث الوجهة
 Downloads	التنزيلات
 Drag to move, release to place	اسحب للتحريك، وأفلت للتثبيت
@@ -691,6 +694,7 @@ Hide message streaks	إخفاء سلاسل الرسائل
 Hide new follower notifications	إخفاء إشعارات المتابعين الجدد
 Hide new followers	إخفاء المتابعين الجدد
 Hide paid partnerships	إخفاء الشراكات المدفوعة
+Hide parts of the room line	إخفاء أجزاء من سطر الغرفة
 Hide people and options by name	إخفاء الأشخاص والخيارات بالاسم
 Hide photo posts	إخفاء منشورات الصور
 Hide picture comments	إخفاء تعليقات الصور
@@ -826,6 +830,7 @@ Last recording: %1$d gates.|two	آخر تسجيل: %1$d بوابتين.
 Last recording: %1$d gates.|few	آخر تسجيل: %1$d بوابات.
 Last recording: %1$d gates.|many	آخر تسجيل: %1$d بوابة.
 Last recording: 1 gate.	آخر تسجيل: 1 بوابة.
+Latency	التأخير
 Layout	التخطيط
 Layout, search, profile and system	التخطيط والبحث والملف الشخصي والنظام
 Leave maximum empty to keep it unlimited.	اترك الحد الأقصى فارغًا ليبقى غير محدود.
@@ -1098,6 +1103,7 @@ Save media	حفظ الوسائط
 Saves your Hushfeed settings and Feature Gate Lab rules to a file.	يحفظ إعدادات Hushfeed وقواعد Feature Gate Lab في ملف.
 Save subtitles beside videos	حفظ الترجمة بجانب الفيديو
 Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.	يحفظ أحدث تقرير أعطال من TikTok على هذا الهاتف ليتم تضمينه في التقرير التشخيصي.
+Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.	يطلب من TikTok مسح ذاكرته المؤقتة عندما تقترب ذاكرته من الحد الذي يغلق عنده Android الشاشة الرئيسية فتبدأ الخلاصة من جديد.
 Save the original sound	حفظ الصوت الأصلي
 Save the sound as well	حفظ الصوت أيضًا
 Save videos without sound	حفظ الفيديوهات بدون صوت
@@ -1783,6 +1789,9 @@ Save again	حفظ مرة أخرى
 The saved-video choice couldn't open. Try again.	تعذر فتح خيار الفيديو المحفوظ. حاول مرة أخرى.
 The saved-video choice is still open	اختيار الفيديو المحفوظ ما زال مفتوح
 No full file for this video. Try again later.	لا يوجد ملف كامل لهذا الفيديو. حاول لاحقًا.
+Subscriber-only posts can't be saved	لا يمكن حفظ منشورات للمشتركين فقط
+Copy-protected videos can't be saved	لا يمكن حفظ الفيديوهات المحمية من النسخ
+Not saved. The file wasn't a playable video.	لم يُحفظ. الملف ليس فيديو قابلا للتشغيل.
 Saving video to %1$s	جارٍ حفظ الفيديو إلى %1$s
 Video and details saved to %1$s	تم حفظ الفيديو والتفاصيل في %1$s
 Saved, but a later save may make a second copy	تم الحفظ، لكن قد يؤدي حفظ لاحق إلى إنشاء نسخة ثانية
@@ -2043,6 +2052,7 @@ Brightness	السطوع
 Volume	مستوى الصوت
 Left edge strip	الشريط الجانبي الأيسر
 Right edge strip	شريط الحافة الأيمن
+Room ID	معرّف الغرفة
 Stop search results playing on their own	أوقف التشغيل التلقائي لنتائج البحث
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	تعرض الفيديوهات في نتائج البحث غلافها وتعمل عند فتحها. تعمل الخلاصة والفيديوهات التي تفتحها كالمعتاد.
 In a chat	في محادثة
@@ -2050,8 +2060,6 @@ Hide call buttons	إخفاء أزرار الاتصال
 The voice and video call buttons leave the top of a chat. Calls still ring, and the chat details button stays.	يغادر زرا المكالمة الصوتية ومكالمة الفيديو أعلى الدردشة. ما زالت المكالمات ترن، ويبقى زر تفاصيل الدردشة.
 Hide sticker suggestions	أخف اقتراحات الملصقات
 The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.	يتوقف شريط اقتراحات الملصقات عن الظهور في المحادثة. ملصقاتك الخاصة تبقى في منتقي الملصقات.
-Hide suggested replies	إخفاء الردود المقترحة
-TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.	تتوقف خلايا الردود المقترحة من TikTok وبانر التعريف بها عن الظهور في الدردشة. الرسائل التي تكتبها أو تستقبلها لا تتأثر.
 Hide online status	إخفاء حالة الاتصال
 Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.	لن يرى أصدقاؤك نقطة خضراء أو «نشط الآن» أثناء وجودك في TikTok. يتطلب تفعيل «وضع الشبح». قد يتوقف تحديث حالة أصدقائك لديك، وقد تبقى آخر حالة لك ظاهرة لفترة.
 Stop LIVE previews opening by themselves	أوقف فتح معاينات LIVE تلقائيًا
@@ -2495,6 +2503,7 @@ The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on 
 Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	تحصل الفيديوهات العريضة التي يسمح بها TikTok على زر لإضافة تعليق من سطر واحد أسفل الفيديو، وعلى شريط لهذه التعليقات في وضع ملء الشاشة. تبقى الفيديوهات الأخرى كما هي.
 
 Pick videos to save from profile grids	اختر الفيديوهات لحفظها من شبكات الملف الشخصي
+Pick what to leave off the small line with the room ID and your connection. The rest stays on it.	اختر ما تريد إزالته من السطر الصغير الذي فيه معرّف الغرفة واتصالك. يبقى الباقي فيه.
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	يضع دائرة على كل فيديو في شبكة ملف شخصي أو أعجبني أو المفضلات. اختر حتى %1$s، ثم انقر على حفظ لحفظها واحدا تلو الآخر، مع عداد وزر إلغاء.
 Pick for saving	اختر للحفظ
 You can pick up to %1$s at a time	يمكنك اختيار حتى %1$s في المرة الواحدة
@@ -2762,7 +2771,6 @@ autoplay auto play	تشغيل تلقائي تلقائي التشغيل
 picture in picture PiP	صورة داخل صورة PiP
 search suggestions	اقتراحات البحث
 AI chat	دردشة AI
-AI Tako	AI Tako
 save photos	حفظ الصور
 download button	زر التنزيل تنزيل
 It's in %1$s, under %2$s. Tap to go there.	تجده في %1$s ضمن %2$s. اضغط للانتقال إليه.
@@ -2785,6 +2793,8 @@ Leave after no touch	المغادرة عند عدم اللمس
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	الصفر يوقف هذه الميزة. بعد هذا العدد من الدقائق دون لمس الشاشة، يتوقف الفيديو وينتقل TikTok إلى الخلفية، عندما تغفو أثناء المشاهدة. أي لمسة تعيد بدء الانتظار.
 Left TikTok after no touch	تم الخروج من TikTok بعد عدم اللمس
 Show when an account was made	إظهار تاريخ إنشاء الحساب
+Show how many videos a profile has	إظهار عدد مقاطع الفيديو في الملف الشخصي
+Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them.	تحت @username في الملف الشخصي، بما في ذلك ملفك، اعرض عدد مقاطع الفيديو فيه كما يحسبها TikTok.
 Show what changed since your last visit	إظهار ما تغيّر منذ زيارتك الأخيرة
 Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	أسفل @اسم المستخدم في الملف الشخصي، يعرض كيف تغيّر عدد المتابِعين والمتابَعين والإعجابات والفيديوهات منذ آخر مرة فتحته فيها. تُحفظ الأعداد على هذا الهاتف فقط.
 Since %1$s: %2$s	منذ %1$s: %2$s
@@ -2927,7 +2937,7 @@ Read receipts shown	إيصالات القراءة ظاهرة
 Compact long-press menu everywhere	قائمة ضغط مطول مضغوطة في كل مكان
 A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.	الضغط المطول على فيديو يفتح قائمة المشاركة الصغيرة من TikTok في تبويب لك أيضًا، نفس القائمة التي تحصل عليها فيديوهات صانعي المحتوى. لها الأولوية على مفتاحي القائمة الكاملة أعلاه. يتطلب أن يكون الضغط المطول على افتراضي TikTok.
 Hide streak pop-ups	إخفاء نوافذ السلاسل
-Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	أوقف تنبيهات السلاسل التي تنزلق فوق TikTok ورسائل السلاسل والنصائح التي يضيفها إلى محادثاتك.
+Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats.	أوقف تنبيهات السلاسل التي تنزلق فوق TikTok، ودعوة Streak Pet في صندوق الوارد، ورسائل السلاسل والنصائح التي يضيفها إلى محادثاتك.
 Long press on For You opens my watch history	الضغط المطول على «لك» يفتح سجل مشاهداتي
 Instead of these settings. The list has a button that brings you back here.	بدلاً من هذه الإعدادات. تحتوي القائمة على زر يعيدك إلى هنا.
 Long press on Profile opens my watch history	الضغط المطول على «الملف الشخصي» يفتح سجل مشاهداتي
@@ -3028,7 +3038,9 @@ dialog popup greeting	نافذة منبثقة حوار تحية
 Don't show again	لا تظهر مجددا
 # context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
 Stop the blink under the bar	إيقاف الوميض أسفل الشريط
+Pages under the bar	الصفحات أسفل الشريط
 If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	إذا كان فيديو الخلاصة يومض أثناء التمرير مع تفعيل شريط سفلي شفاف، فهذا يرسمه داخل TikTok بدلًا من طبقة خاصة به. قد يستهلك بطارية أكثر قليلًا. يتطلب شريط سفلي شفاف.
+Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.	يجعل شبكة المجتمع في الرئيسية والصفحات الأخرى التي تنتهي فوق علامات التبويب تمتد أسفل الشريط الشفاف، فتظهر من خلاله بدلًا من الشريط الأسود أو الأبيض. ويظل آخر صف قابلًا للتمرير إلى ما فوق علامات التبويب. يتطلب شريط سفلي شفاف.
 # context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
 Bend the video at the edges	ثني الفيديو عند الحواف
 The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	حواف الكبسولة الزجاجية تكسر فيديو الخلاصة الضبابي خلفها، مثل حافة زجاج حقيقي، وتظهر ألوانها أغنى قليلًا. يتطلب ضبابية الفيديو خلف الشريط وAndroid 13 أو أحدث.
@@ -3081,6 +3093,8 @@ Hide Send to new group	إخفاء «إرسال إلى مجموعة جديدة»
 Hides the button that turns the people you picked into a new group chat. Send separately stays.	يخفي الزر الذي يحوّل الأشخاص الذين اخترتهم إلى محادثة جماعية جديدة. يبقى الإرسال المنفصل.
 # context: Switch in Hushfeed settings > App > Appearance (#372)
 AMOLED dark mode	وضع AMOLED الداكن
+Dark mode	الوضع الداكن
+Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.	يشغّل المظهر الداكن الموجود في TikTok Lite الذي لا يتيح لك اختياره أبدا. أعد تشغيل TikTok Lite لترى التغيير.
 # context: Summary under the AMOLED dark mode switch
 Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	يملأ الوضع الداكن باللون المختار أثناء التعديل، أسود نقي ما لم يُختر لون آخر. أوقف تشغيله للحصول على درجات TikTok الرمادية الداكنة. الوضع الفاتح لا يتغير. أعد تشغيل TikTok لرؤية التغيير.
 # context: Switch in Hushfeed settings > App, under the startup message rows (#377)
@@ -3134,6 +3148,7 @@ Friends in the top tabs	الأصدقاء في التبويبات العلوية
 Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	تنتقل «الأصدقاء» إلى التبويبات أعلى الخلاصة، بجوار «أتابعه»، ويحل «اكتشف» مكانها في الشريط السفلي، كما يرتبها TikTok في بعض البلدان. تبقى منطقتك وخلاصتك كما هما.
 # context: Row title of the Inbox switch that lifts the app's cap on pinned chats
 Pin more chats	تثبيت المزيد من المحادثات
+Ping	البينغ
 # context: Summary under that switch; 5 is the cap TikTok's app usually puts on pinned chats
 Lifts the app's limit on pinned chats in the Inbox, usually 5, so you can pin more.	يزيل حد التطبيق على الدردشات المثبتة في صندوق الوارد، عادة 5، لتتمكن من تثبيت المزيد.
 # context: Row title of the Comments switch that hides voice comments
@@ -3430,7 +3445,8 @@ Unknown (TikTok didn't send it)	غير معروف (لم يرسله TikTok)
 A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	تحصل ورقة مشاركة الملف الشخصي على زر حقائق الحساب. يعرض ما أرسله TikTok بالفعل عن الحساب: تاريخ انضمامه، ومنطقته ولغته، ومستوى الإهداء ومعرّف SecUID، وعدد منشوراته والفيديوهات التي أعجبته والمفضلة وإعادات النشر، وآخر تغيير لاسم المستخدم واسم العرض، وما إذا كان خاصًا وما إذا كانت مقاطع الفيديو التي أعجبته عامة. لا يتم جلب أي شيء إضافي.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	إظهار معرّف الغرفة واتصالك
-Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	يضيف سطرًا صغيرًا إلى غرف LIVE فيه معرّف الغرفة وحالة اتصالك أنت بالبث، كما يقيسها مشغّل TikTok: البينغ والتأخير وسرعة التنزيل. اضغط على السطر لنسخ معرّف الغرفة.
+Show the room line	إظهار سطر الغرفة
+Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.	يضيف سطرًا صغيرًا إلى غرف LIVE فيه معرّف الغرفة وحالة اتصالك أنت بالبث، كما يقيسها مشغّل TikTok: البينغ والتأخير وسرعة التنزيل. اضغط على السطر لتصغيره إلى نقطة، واضغط على النقطة لإعادته. اضغط مطولًا على السطر لنسخ معرّف الغرفة.
 Room ID %1$s	معرّف الغرفة %1$s
 Ping %1$s ms	البينغ %1$s مللي ث
 Latency %1$s s	التأخير %1$s ث
@@ -3464,7 +3480,7 @@ Adds three stops below the smallest size on TikTok's own Text size slider, in Se
 UI size	حجم الواجهة
 Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.	يصغّر واجهة TikTok بالكامل، النصوص والأزرار معًا، ليتسع المزيد على الشاشة. القيمة 100 تتركها كما هي. أعد تشغيل TikTok لرؤية التغيير.
 Show how long a LIVE has been on	إظهار مدة بث LIVE
-Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.	يضيف سطرًا صغيرًا إلى غرف LIVE يبيّن منذ متى والمضيف في بث مباشر، محسوبًا من بدء الغرفة. وإذا كان معرّف الغرفة مفعّلًا أيضًا، يظهر تحته.
+Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot.	يضيف سطرًا صغيرًا إلى غرف LIVE يبيّن منذ متى والمضيف في بث مباشر، محسوبًا من بدء الغرفة. وإذا كان معرّف الغرفة مفعّلًا أيضًا، يظهر تحته. اضغط على السطر لتصغيره إلى نقطة.
 LIVE for %1$s	مدة LIVE %1$s
 Show exact LIVE battle scores	إظهار نتائج معارك LIVE الدقيقة
 In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.	في معركة LIVE، يقيّد TikTok النتائج الكبيرة التي يراها المشاهدون بينما يرى المضيف الرقم كاملًا. يعرض هذا النتيجة كاملة في شريط المعركة ونوافذ المضيفين المشاركين.
@@ -3494,6 +3510,8 @@ The buttons, caption and tabs fade away instead of vanishing at once, and a touc
 # context: #461 Date instead of age, a switch under Write the month as a word
 Date instead of age	التاريخ بدل العمر
 Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.	تعرض الفيديوهات الحديثة تاريخ نشرها بجانب اسم صانع المحتوى، مثل 10-12، بدلًا من عمر مثل منذ يومين. يغيّر «اليوم قبل الشهر» و«اكتب الشهر بالاسم» شكله بالطريقة نفسها.
+Use this date format everywhere	استخدم تنسيق التاريخ هذا في كل مكان
+Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.	يكتب تواريخ التعليقات وعناوين التاريخ في الدردشات وتواريخ نتائج البحث بالطريقة التي تكتب بها الصفوف الثلاثة أعلاه التاريخ بجانب اسم صانع المحتوى.
 # context: #503 Keep your place in chats, an Inbox switch under Show message times; the down arrow is the button that jumps a chat to its newest message
 Keep your place in chats	الحفاظ على موضعك في الدردشات
 A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.	تبقى الدردشة التي مررت فيها للأعلى حيث كنت عند عودتك من فيديو أو عند إرسال رد. إرسال رسالة عادية أو النقر على سهم الأسفل لا يزال ينقلك إلى الأحدث.

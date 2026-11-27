@@ -636,20 +636,20 @@ final class Looks {
     static final String TILE_PATH_SHAPE = "Landroid/graphics/drawable/shapes/PathShape;-><init>(Landroid/graphics/Path;FF)V";
     static final String TILE_DRAW_OVAL = "Landroid/graphics/Canvas;->drawOval(Landroid/graphics/RectF;Landroid/graphics/Paint;)V";
 
-    /** Mirrors AvatarShape.kt's tileShapeFlag: a (Z)V that makes an OvalShape and a RectShape, sets one, and branches first on the flag. */
+    /** Mirrors AvatarShape.kt's tileShapeFlag: a (Z)V that makes an OvalShape and a RectShape, sets one with one setShape, and branches first on the flag. */
     static boolean tileShapeFlag(Method method) {
         if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"V".equals(method.getReturnType()) || method.getParameterTypes().size() != 1 ||
             !"Z".contentEquals(method.getParameterTypes().get(0)) || method.getImplementation() == null) return false;
         var code = instructions(method);
         var created = new HashSet<String>();
-        boolean sets = false;
+        int sets = 0;
         Instruction branch = null;
         for (var i : code) {
             if (i.getOpcode() == Opcode.NEW_INSTANCE && ((ReferenceInstruction) i).getReference() instanceof TypeReference type) created.add(type.getType());
-            if (TILE_SET_SHAPE.equals(ref(i))) sets = true;
+            if (TILE_SET_SHAPE.equals(ref(i))) sets++;
             if (branch == null && i instanceof OffsetInstruction) branch = i;
         }
-        if (!created.contains("Landroid/graphics/drawable/shapes/OvalShape;") || !created.contains("Landroid/graphics/drawable/shapes/RectShape;") || !sets) return false;
+        if (!created.contains("Landroid/graphics/drawable/shapes/OvalShape;") || !created.contains("Landroid/graphics/drawable/shapes/RectShape;") || sets != 1) return false;
         int flag = parameterSlot(method, 1);
         if (branch == null || (branch.getOpcode() != Opcode.IF_EQZ && branch.getOpcode() != Opcode.IF_NEZ) || register(branch) != flag) return false;
         return flag <= 15 && !mediaTargets(method).contains(0);

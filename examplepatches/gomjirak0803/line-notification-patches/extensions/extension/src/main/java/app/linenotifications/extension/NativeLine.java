@@ -35,7 +35,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import app.linenotifications.extension.core.NotificationPolicy;
 
-/** Adapter for the inspected 26.16.0 / 261600106 DEX only. Never writes LINE's database. */
+/** Adapter for the inspected 26.19.0 / 261900178 DEX only. Never writes LINE's database. */
 final class NativeLine {
     private static final int MAX_CACHED_AVATARS = 8;
     private static final int MAX_CHAT_LIST_CACHE = 256;
@@ -91,9 +91,9 @@ final class NativeLine {
     }
 
     static String account() throws ReflectiveOperationException {
-        Class<?> providerType = type("ap3.b");
-        Object key = providerType.getField("k0").get(null);
-        Object provider = type("sc0.f").getMethod("a", Context.class, type("sc0.a"))
+        Class<?> providerType = type("dw3.b");
+        Object key = providerType.getField("M1").get(null);
+        Object provider = type("bd0.f").getMethod("a", Context.class, type("bd0.a"))
                 .invoke(null, Settings.context(), key);
         Object profile = providerType.getMethod("getProfile").invoke(provider);
         String account = (String) field(profile, "b");
@@ -102,17 +102,19 @@ final class NativeLine {
     }
 
     static boolean previewsAllowed() throws ReflectiveOperationException {
-        return (Boolean) type("nn8.i").getMethod("c").invoke(null);
+        return (Boolean) type("ch8.i").getMethod("c").invoke(null);
     }
 
     static boolean muted(String chat) throws ReflectiveOperationException {
-        Object settings = type("nn8.c").getConstructor(boolean.class).newInstance(false);
-        Object dto = settings.getClass().getMethod("a", String.class).invoke(settings, chat);
-        return !(Boolean) dto.getClass().getMethod("c").invoke(dto);
+        Object key = type("ch8.c$a").getField("c").get(null);
+        Object settings = type("bd0.f").getMethod("a", Context.class, type("bd0.a"))
+                .invoke(null, Settings.context(), key);
+        Object dto = type("ch8.c").getMethod("a", String.class).invoke(settings, chat);
+        return !(Boolean) field(dto, "b");
     }
 
     static boolean notificationEnabled(Object manager, String chat) throws ReflectiveOperationException {
-        return (Boolean) type("wk8.l0").getMethod("x", String.class).invoke(manager, chat);
+        return (Boolean) type("ke8.z").getMethod("z", String.class).invoke(manager, chat);
     }
 
     static final class Chat {
@@ -124,12 +126,12 @@ final class NativeLine {
     }
 
     static Chat chat(String chatId) throws ReflectiveOperationException {
-        Object manager = type("wk8.a2").getMethod("a", Context.class, boolean.class)
+        Object manager = type("ke8.o1").getMethod("a", Context.class, boolean.class)
                 .invoke(null, Settings.context(), false);
-        Object repository = type("wk8.l0").getMethod("r").invoke(manager);
-        Object data = type("ue3.k").getMethod("u1", String.class).invoke(repository, chatId);
+        Object repository = type("ke8.z").getMethod("t").invoke(manager);
+        Object data = type("yl3.e").getMethod("y1", String.class).invoke(repository, chatId);
         if (data == null) return null;
-        int unread = (Integer) field(field(data, "n"), "c");
+        int unread = (Integer) field(field(data, "n"), "b");
         if (unread < 0) throw new IllegalStateException("Invalid unread metadata");
         return new Chat((String) field(data, "b"), (String) field(data, "m"), unread);
     }
@@ -500,20 +502,21 @@ final class NativeLine {
         Object glideManager = null;
         Object futureTarget = null;
         try {
-            Object model = type("e80.l0").getConstructor(String.class, String.class, boolean.class)
+            Object model = type("x55.e").getConstructor(String.class, String.class, boolean.class)
                     .newInstance(mid, picturePath, true);
             Object retriever = type("com.bumptech.glide.c").getMethod("c", Context.class).invoke(null, context);
-            glideManager = type("xn.o").getMethod("f", Context.class).invoke(retriever, context);
-            Object request = type("com.bumptech.glide.o").getMethod("g").invoke(glideManager);
-            request = type("com.bumptech.glide.n").getMethod("b0", Object.class).invoke(request, model);
-            Class<?> optionsType = type("ao.a");
-            Class<?> strategyType = type("kn.l");
+            glideManager = type("qo.l").getMethod("f", Context.class).invoke(retriever, context);
+            Object request = type("com.bumptech.glide.o").getMethod("j").invoke(glideManager);
+            request = type("com.bumptech.glide.n").getMethod("W", Object.class).invoke(request, model);
+            Class<?> optionsType = type("to.a");
+            Class<?> strategyType = type("co.l");
             Object diskData = strategyType.getField("b").get(null);
-            request = optionsType.getMethod("h", strategyType).invoke(request, diskData);
-            request = optionsType.getMethod("s", boolean.class).invoke(request, true); // onlyRetrieveFromCache(true)
-            request = optionsType.getMethod("u", int.class, int.class).invoke(request, sizePx, sizePx);
+            request = optionsType.getMethod("g", strategyType).invoke(request, diskData);
+            request = optionsType.getMethod("r", boolean.class).invoke(request, true); // onlyRetrieveFromCache(true)
+            request = optionsType.getMethod("t", int.class, int.class).invoke(request, sizePx, sizePx);
             request = optionsType.getMethod("d").invoke(request); // circleCrop()
-            futureTarget = type("com.bumptech.glide.n").getMethod("g0").invoke(request);
+            futureTarget = type("com.bumptech.glide.n").getMethod("X", int.class, int.class)
+                    .invoke(request, Integer.MIN_VALUE, Integer.MIN_VALUE);
             if (!(futureTarget instanceof Future<?>)) return null;
             Object result = ((Future<?>) futureTarget).get(AVATAR_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             if (!(result instanceof Bitmap)) return null;
@@ -526,7 +529,7 @@ final class NativeLine {
         } finally {
             if (glideManager != null && futureTarget != null) {
                 try {
-                    type("com.bumptech.glide.o").getMethod("n", type("bo.j")).invoke(glideManager, futureTarget);
+                    type("com.bumptech.glide.o").getMethod("n", type("uo.i")).invoke(glideManager, futureTarget);
                 } catch (ReflectiveOperationException | RuntimeException ignored) { }
             }
         }
@@ -651,10 +654,10 @@ final class NativeLine {
         long[] ids = NotificationPolicy.parseStickerIds(cand.parameter);
         if (ids != null) {
             try {
-                Class<?> mgrType = type("su5.d");
-                Object key = mgrType.getField("sa").get(null);
-                Object mgr = type("sc0.f").getMethod("a", Context.class, type("sc0.a")).invoke(null, context, key);
-                for (String method : new String[]{"n", "k", "m"}) {
+                Class<?> mgrType = type("f16.d");
+                Object key = mgrType.getField("W2").get(null);
+                Object mgr = type("bd0.f").getMethod("a", Context.class, type("bd0.a")).invoke(null, context, key);
+                for (String method : new String[]{"p", "k", "o"}) {
                     Object fileObj = mgrType.getMethod(method, long.class, long.class).invoke(mgr, ids[0], ids[2]);
                     if (fileObj instanceof File) {
                         Bitmap decoded = decodeLocalFile((File) fileObj, STICKER_MAX_DIM, false);
@@ -676,13 +679,13 @@ final class NativeLine {
         }
         if (ids != null) {
             try {
-                Class<?> urlType = type("su5.o");
-                Object key = urlType.getField("va").get(null);
-                Object urlGen = type("sc0.f").getMethod("a", Context.class, type("sc0.a")).invoke(null, context, key);
-                Object resData = type("zu5.d")
-                        .getConstructor(long.class, long.class, long.class, type("zu5.e"), String.class)
+                Class<?> urlType = type("f16.p");
+                Object key = urlType.getField("Z2").get(null);
+                Object urlGen = type("bd0.f").getMethod("a", Context.class, type("bd0.a")).invoke(null, context, key);
+                Object resData = type("n16.e")
+                        .getConstructor(long.class, long.class, long.class, type("n16.f"), String.class)
                         .newInstance(ids[0], ids[1], ids[2], null, null);
-                Object derivedUrl = urlType.getMethod("h", type("zu5.d")).invoke(urlGen, resData);
+                Object derivedUrl = urlType.getMethod("o", type("n16.e")).invoke(urlGen, resData);
                 if (derivedUrl instanceof String && !((String) derivedUrl).isEmpty()) {
                     Bitmap loaded = glideBitmap(context, derivedUrl, STICKER_MAX_DIM, remainingMs);
                     if (loaded != null) return loaded;
@@ -696,21 +699,21 @@ final class NativeLine {
                                                     String messageId, MediaCandidate cand, long remainingMs) {
         if (cand.localId > 0L) {
             try {
-                Class<?> mgrType = type("j31.a");
-                Object key = mgrType.getField("I4").get(null);
-                Object fileMgr = type("sc0.f").getMethod("a", Context.class, type("sc0.a")).invoke(null, context, key);
-                Class<?> msgKeyType = type("j31.c");
+                Class<?> mgrType = type("q41.a");
+                Object key = mgrType.getField("C8").get(null);
+                Object fileMgr = type("bd0.f").getMethod("a", Context.class, type("bd0.a")).invoke(null, context, key);
+                Class<?> msgKeyType = type("q41.c");
                 Object msgKey = msgKeyType.getConstructor(String.class, long.class).newInstance(chat, cand.localId);
-                Object thumbObj = mgrType.getMethod("e", msgKeyType).invoke(fileMgr, msgKey);
+                Object thumbObj = mgrType.getMethod("a", msgKeyType).invoke(fileMgr, msgKey);
                 if (thumbObj instanceof File) {
                     Bitmap decoded = decodeLocalFile((File) thumbObj, PHOTO_MAX_DIM, true);
                     if (decoded != null) return decoded;
                 }
                 if (cand.attachmentType == 1 || cand.attachmentType == 21) {
-                    Class<?> kindType = type("j31.e");
+                    Class<?> kindType = type("q41.e");
                     for (String kindName : new String[]{"IMAGE_STANDARD", "IMAGE_ORIGINAL"}) {
                         Object kind = kindType.getField(kindName).get(null);
-                        Object mediaObj = mgrType.getMethod("k", msgKeyType, kindType).invoke(fileMgr, msgKey, kind);
+                        Object mediaObj = mgrType.getMethod("j", msgKeyType, kindType).invoke(fileMgr, msgKey, kind);
                         if (mediaObj instanceof File) {
                             Bitmap decoded = decodeLocalFile((File) mediaObj, PHOTO_MAX_DIM, true);
                             if (decoded != null) return decoded;
@@ -733,9 +736,9 @@ final class NativeLine {
         String obsPop = NotificationPolicy.parameterValue(cand.parameter, "OBS_POP");
         Object obsEnc = buildObsEncryptionData(cand.parameter);
         try {
-            Object glideModel = type("e80.d")
+            Object glideModel = type("p80.e")
                     .getConstructor(String.class, String.class, long.class, String.class,
-                            type("lg1.a$c"), String.class, boolean.class)
+                            type("fi1.a$c"), String.class, boolean.class)
                     .newInstance(chat, messageId, cand.localId, previewUrl, obsEnc, obsPop, false);
             Bitmap loaded = glideBitmap(context, glideModel, PHOTO_MAX_DIM, remainingMs);
             if (loaded != null) return loaded;
@@ -756,7 +759,7 @@ final class NativeLine {
             if (raw.length == 0) return null;
             List<Byte> bytes = new ArrayList<>(raw.length);
             for (byte b : raw) bytes.add(b);
-            return type("lg1.a$c")
+            return type("fi1.a$c")
                     .getConstructor(String.class, String.class, List.class)
                     .newInstance(sid, oid, bytes);
         } catch (ReflectiveOperationException | RuntimeException ignored) {
@@ -783,15 +786,16 @@ final class NativeLine {
         Object futureTarget = null;
         try {
             Object retriever = type("com.bumptech.glide.c").getMethod("c", Context.class).invoke(null, context);
-            glideManager = type("xn.o").getMethod("f", Context.class).invoke(retriever, context);
-            Object request = type("com.bumptech.glide.o").getMethod("g").invoke(glideManager);
-            request = type("com.bumptech.glide.n").getMethod("b0", Object.class).invoke(request, model);
-            Class<?> optionsType = type("ao.a");
-            Class<?> strategyType = type("kn.l");
-            Object diskAuto = strategyType.getField("d").get(null); // DiskCacheStrategy.AUTOMATIC (Lkn/l$e;)
-            request = optionsType.getMethod("h", strategyType).invoke(request, diskAuto);
-            request = optionsType.getMethod("u", int.class, int.class).invoke(request, maxDim, maxDim);
-            futureTarget = type("com.bumptech.glide.n").getMethod("g0").invoke(request);
+            glideManager = type("qo.l").getMethod("f", Context.class).invoke(retriever, context);
+            Object request = type("com.bumptech.glide.o").getMethod("j").invoke(glideManager);
+            request = type("com.bumptech.glide.n").getMethod("W", Object.class).invoke(request, model);
+            Class<?> optionsType = type("to.a");
+            Class<?> strategyType = type("co.l");
+            Object diskAuto = strategyType.getField("d").get(null); // DiskCacheStrategy.AUTOMATIC (Lco/l$e;)
+            request = optionsType.getMethod("g", strategyType).invoke(request, diskAuto);
+            request = optionsType.getMethod("t", int.class, int.class).invoke(request, maxDim, maxDim);
+            futureTarget = type("com.bumptech.glide.n").getMethod("X", int.class, int.class)
+                    .invoke(request, Integer.MIN_VALUE, Integer.MIN_VALUE);
             if (!(futureTarget instanceof Future<?>)) return null;
             Object result = ((Future<?>) futureTarget).get(timeoutMs, TimeUnit.MILLISECONDS);
             if (!(result instanceof Bitmap)) return null;
@@ -803,7 +807,7 @@ final class NativeLine {
         } finally {
             if (glideManager != null && futureTarget != null) {
                 try {
-                    type("com.bumptech.glide.o").getMethod("n", type("bo.j")).invoke(glideManager, futureTarget);
+                    type("com.bumptech.glide.o").getMethod("n", type("uo.i")).invoke(glideManager, futureTarget);
                 } catch (ReflectiveOperationException | RuntimeException ignored) { }
             }
         }

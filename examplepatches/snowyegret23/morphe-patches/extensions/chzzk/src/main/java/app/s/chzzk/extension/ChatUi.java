@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.Gravity;
@@ -13,11 +14,14 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public final class ChatUi {
     private static final long CATCH_UP_MIN_ADVANCE_MS = 1000;
@@ -26,6 +30,10 @@ public final class ChatUi {
     private static WeakReference<Activity> activity = new WeakReference<>(null);
     private static WeakReference<Object> coordinates = new WeakReference<>(null);
     private static ResizeHandle handle;
+    private static ChatNavigation navigation;
+    private static WeakReference<Object> chatList = new WeakReference<>(null);
+    private static WeakReference<Object> chatModel = new WeakReference<>(null);
+    private static final Map<Object, Integer> highlights = new WeakHashMap<>();
     private static Object positionCallback;
     private static WeakReference<Object> clickOwner = new WeakReference<>(null);
     private static Object liveClick;
@@ -42,6 +50,12 @@ public final class ChatUi {
             if (handle.getParent() instanceof ViewGroup) ((ViewGroup) handle.getParent()).removeView(handle);
             handle = null;
         }
+        if (navigation != null && navigation.getParent() instanceof ViewGroup) {
+            ((ViewGroup) navigation.getParent()).removeView(navigation);
+        }
+        navigation = null;
+        chatList.clear();
+        chatModel.clear();
         activity = new WeakReference<>(host);
         coordinates.clear();
         dragPercent = -1;
@@ -59,6 +73,24 @@ public final class ChatUi {
     public static void renderRewind(Object viewModel, Object composer) {}
     public static void renderCatchUp(Object viewModel, Object composer) {}
     public static void addPlayerSettings(List<?> items) {}
+    public static int textLength(Object builder) { return 0; }
+    public static void highlightText(Object builder, int start, int end) {}
+    public static boolean jumpChat(Object state, Object model, boolean latest) { return false; }
+
+    public static void captureChat(Object state, Object model) {
+        if (chatList.get() != state) chatList = new WeakReference<>(state);
+        if (chatModel.get() != model) chatModel = new WeakReference<>(model);
+    }
+
+    public static void finishMessage(Object builder) {
+        Integer start;
+        synchronized (highlights) { start = highlights.remove(builder); }
+        if (start == null) return;
+        int end = textLength(builder);
+        if (end > start) highlightText(builder, start, end);
+    }
+
+    public static int deviceIcon(int kind) { return icon("s_chzzk_device_" + (kind == 1 ? "pc" : kind == 3 ? "ios" : "phone")); }
 
     public static int catchUpIcon() { return icon("s_chzzk_live_catchup"); }
     public static int rewindIcon() { return icon("s_chzzk_live_rewind"); }
@@ -77,7 +109,14 @@ public final class ChatUi {
     }
 
     public static void appendHeader(Object builder, Object message, Object style, Object density, Map<?, ?> inline) {
+        finishMessage(builder);
         if (!"USER".equals(ChzzkSettings.messageKind(message))) return;
+        if (ChzzkSettings.enabled("highlight_streamer")) {
+            String role = ChzzkSettings.messageRole(message);
+            if ("STREAMER".equals(role) || "STREAMING_CHANNEL_OWNER".equals(role)) {
+                synchronized (highlights) { highlights.put(builder, textLength(builder)); }
+            }
+        }
         boolean showTime = ChzzkSettings.enabled("timestamps");
         boolean showDevice = ChzzkSettings.enabled("device_icons");
         if (!showTime && !showDevice) return;
@@ -195,10 +234,73 @@ public final class ChatUi {
                 handle = new ResizeHandle(host);
                 root.addView(handle, new FrameLayout.LayoutParams(handle.dp(80), handle.dp(88), Gravity.TOP | Gravity.LEFT));
             }
+            if (navigation == null) {
+                ViewGroup root = (ViewGroup) host.getWindow().getDecorView();
+                navigation = new ChatNavigation(host);
+                root.addView(navigation, new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.LEFT));
+            }
             handle.removeCallbacks(handle);
             handle.post(handle);
         });
         return positionCallback;
+    }
+
+    private static final class ChatNavigation extends LinearLayout {
+        private final Activity host;
+
+        ChatNavigation(Activity host) {
+            super(host);
+            this.host = host;
+            setOrientation(VERTICAL);
+            setElevation(dp(8));
+            GradientDrawable background = new GradientDrawable();
+            background.setColor(0xe6202227);
+            background.setCornerRadius(dp(12));
+            setBackground(background);
+            button("↑", "채팅 맨 위로 이동", false);
+            button("↓", "채팅 맨 아래로 이동", true);
+            setVisibility(GONE);
+        }
+
+        private int dp(float value) { return Math.round(value * getResources().getDisplayMetrics().density); }
+
+        @Override protected void onDetachedFromWindow() {
+            if (navigation == this) navigation = null;
+            super.onDetachedFromWindow();
+        }
+
+        private void button(String label, String description, boolean latest) {
+            TextView button = new TextView(host);
+            button.setText(label);
+            button.setTextSize(22);
+            button.setTextColor(0xfff2f4f7);
+            button.setGravity(Gravity.CENTER);
+            button.setContentDescription(description);
+            button.setFocusable(true);
+            android.util.TypedValue selectable = new android.util.TypedValue();
+            if (host.getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, selectable, true)) {
+                button.setBackgroundResource(selectable.resourceId);
+            }
+            button.setOnClickListener(view -> {
+                Object state = chatList.get();
+                Object model = chatModel.get();
+                if (state == null || model == null || !jumpChat(state, model, latest)) {
+                    Toast.makeText(host, "이동할 채팅이 없습니다.", Toast.LENGTH_SHORT).show();
+                }
+            });
+            addView(button, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        }
+
+        void update(float[] bounds, int[] origin) {
+            boolean visible = bounds != null && chatList.get() != null && chatModel.get() != null
+                && ChzzkSettings.enabled("chat_jump_buttons")
+                && bounds[2] - bounds[0] >= dp(72) && bounds[3] - bounds[1] >= dp(224)
+                && !host.isFinishing() && !host.isDestroyed();
+            setVisibility(visible ? VISIBLE : GONE);
+            if (!visible) return;
+            setX(bounds[2] - origin[0] - dp(56));
+            setY(bounds[3] - origin[1] - dp(206));
+        }
     }
 
     private static final class ResizeHandle extends View implements Runnable {
@@ -227,6 +329,9 @@ public final class ChatUi {
             if (handle == this) {
                 handle = null;
                 coordinates.clear();
+                chatList.clear();
+                chatModel.clear();
+                if (navigation != null) navigation.setVisibility(GONE);
                 dragPercent = -1;
             }
             super.onDetachedFromWindow();
@@ -245,6 +350,7 @@ public final class ChatUi {
             float[] bounds = position == null ? null : chatBounds(position);
             View root = host.getWindow().getDecorView();
             root.getLocationInWindow(origin);
+            if (navigation != null) navigation.update(bounds, origin);
             boolean visible = bounds != null && ChzzkSettings.enabledByDefault("drag_chat_width")
                 && bounds[0] - origin[0] > root.getWidth() * 0.15f
                 && bounds[2] - bounds[0] >= dp(90) && bounds[3] - bounds[1] >= dp(100)

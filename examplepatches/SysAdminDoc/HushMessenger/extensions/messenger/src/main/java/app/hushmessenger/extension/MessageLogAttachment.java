@@ -1,6 +1,8 @@
 package app.hushmessenger.extension;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.net.Uri;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +30,10 @@ import java.util.concurrent.TimeUnit;
  * message carries attachments, an attachment carries its audio, image or video, the audio has exactly one address, the
  * image has maps of addresses with a size against each, and the video has its own address beside its thumbnail's. Those
  * type names are the same in every build, while the field names are not, so nothing here has to be recorded per build.
+ *
+ * In an encrypted chat the picture's address isn't a server's but one Messenger serves from inside the app, naming the
+ * preview first and the file itself second, and it stands for a video as well as a photo, since a video arrives behind
+ * its preview picture. That file is read through Messenger's own server off its thread, and the bytes say what it is.
  */
 final class MessageLogAttachment {
     private MessageLogAttachment() {}
@@ -39,6 +45,8 @@ final class MessageLogAttachment {
     private static final String IMAGE_URL = "com.facebook.messaging.model.attachment.ImageUrl";
     private static final String VIDEO_DATA = "com.facebook.messaging.model.attachment.VideoData";
     private static final String URI = "android.net.Uri";
+    /** What follows the package name in the address of media Messenger serves from inside the app. */
+    private static final String IN_APP_SERVER = ".tam-attachment";
 
     /** What an entry's media is when the kept file is a voice clip. A photo keeps the empty kind a picture always had. */
     static final String AUDIO = "audio";
@@ -77,13 +85,18 @@ final class MessageLogAttachment {
     static java.util.function.Function<String, byte[]> download = MessageLogAttachment::get;
     /** The same for asking how big a file is without fetching it. */
     static java.util.function.ToLongFunction<String> measure = MessageLogAttachment::length;
+    /** The same for media Messenger serves from inside the app. */
+    static java.util.function.Function<String, byte[]> openInApp = MessageLogAttachment::readInApp;
 
     /**
      * What to fetch for one message and what the file will be. A video arrives with its own address and its thumbnail's,
      * and nothing on the message says which is which, so both are carried here and told apart off Messenger's thread.
+     * Media an encrypted chat keeps inside the app has no kind here: its addresses are tried in turn, and the file read
+     * says whether it's a photo or a video.
      */
     static final class Found {
         final String[] addresses;
+        /** Null for media read from inside the app, whose kind only the file itself shows. */
         final String kind;
 
         Found(String address, String kind) {
@@ -130,8 +143,11 @@ final class MessageLogAttachment {
         return prefs != null && prefs.getBoolean(key, false) && Settings.wouldUse(MessageLog.KEY);
     }
 
-    /** The list fields of [type], which is where attachments sit. Every list is looked at, since none is named here. */
-    private static Field[] fields(Class<?> type) {
+    /**
+     * The list fields of [type], which is where attachments sit. Every list is looked at, since none is named here.
+     * {@link MessageLogLink} walks the same lists for a shared address.
+     */
+    static Field[] fields(Class<?> type) {
         Field[] known = FIELDS.get(type);
         if (known != null) return known;
         List<Field> lists = new ArrayList<>();
@@ -162,12 +178,33 @@ final class MessageLogAttachment {
             String[] addresses = video == null ? null : addressesOn(video);
             if (addresses != null) return new Found(addresses, VIDEO);
         }
-        if (kept(PHOTO)) {
-            Object image = only(attachment, IMAGE_DATA);
-            String address = image == null ? null : largest(image);
-            if (address != null) return new Found(address, PHOTO);
-        }
-        return null;
+        Object image = only(attachment, IMAGE_DATA);
+        String address = image == null ? null : largest(image);
+        if (address == null) return null;
+        // An encrypted chat's picture may be a video's preview, so it's carried with either switch on and sorted later.
+        if (inApp(address)) return kept(PHOTO) || kept(VIDEO) ? new Found(inAppAddresses(address), null) : null;
+        return kept(PHOTO) ? new Found(address, PHOTO) : null;
+    }
+
+    /** Whether [address] is one Messenger serves from inside this app, the way it hands over an encrypted chat's media. */
+    static boolean inApp(String address) {
+        Context context = Settings.appContext;
+        return context != null && address != null
+            && address.startsWith("content://" + context.getPackageName() + IN_APP_SERVER + "/");
+    }
+
+    /**
+     * The addresses to read in-app media at [address] from, best first. Messenger's address names the message, then the
+     * preview, then the file itself, and its server answers with the first of the two it can find, which is the preview.
+     * So the file itself is asked for on its own first, and the address as it came follows for when it can't be had.
+     */
+    static String[] inAppAddresses(String address) {
+        Uri uri = Uri.parse(address);
+        List<String> path = uri.getPathSegments();
+        if (path.size() < 3) return new String[] {address};
+        String itself = new Uri.Builder().scheme(uri.getScheme()).encodedAuthority(uri.getEncodedAuthority())
+            .appendPath(path.get(0)).appendPath(path.get(2)).encodedQuery(uri.getEncodedQuery()).build().toString();
+        return new String[] {itself, address};
     }
 
     /** Every address [video] carries that's the message's own, or null when it carries none. */
@@ -205,7 +242,8 @@ final class MessageLogAttachment {
             if (!(sizes instanceof Map)) continue;
             for (Object value : ((Map<?, ?>) sizes).values()) {
                 if (value == null || !IMAGE_URL.equals(value.getClass().getName())) continue;
-                String address = signed(only(value, String.class.getName()));
+                Object held = only(value, String.class.getName());
+                String address = held != null && inApp(held.toString()) ? held.toString() : signed(held);
                 if (address == null) continue;
                 long area = area(value);
                 if (area <= widest) continue;
@@ -271,21 +309,28 @@ final class MessageLogAttachment {
     /** {@link #keep} on the calling thread. Returns the name it sealed the file under, or "". */
     static String keepNow(String thread, String id, Found found) {
         Context context = Settings.appContext;
-        if (context == null || found == null || !kept(found.kind)) return "";
-        String name = name(thread, id, found.kind);
+        if (context == null || found == null || (found.kind != null && !kept(found.kind))) return "";
         try {
             // Messenger builds one message's notification twice, from the push and again from the sync, and the second
-            // reaches here with the same name. One fetch is enough.
-            File kept = MessageLogMedia.file(context, name);
-            if (kept != null && kept.isFile()) return name;
+            // reaches here with the same name. One fetch is enough. Media read from inside the app can only be named
+            // once it's read, so that check waits until then.
+            if (found.kind != null) {
+                String name = name(thread, id, found.kind);
+                File kept = MessageLogMedia.file(context, name);
+                if (kept != null && kept.isFile()) return name;
+            }
             byte[] media = fetch(found);
             if (media == null || media.length == 0) return "";
-            if (media.length > max(found.kind)) return "";
+            String kind = found.kind != null ? found.kind : kindOf(media);
+            if (kind == null || !kept(kind) || media.length > max(kind)) return "";
+            String name = name(thread, id, kind);
+            File kept = MessageLogMedia.file(context, name);
+            if (found.kind == null && kept != null && kept.isFile()) return name;
             File dir = new File(context.getFilesDir(), MessageLogMedia.DIR);
             if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("can't make " + MessageLogMedia.DIR);
             MessageLog.sealInto(dir, name, media);
             // An entry that already has its media keeps it, and the file just sealed is dropped by the next tidy.
-            MessageLog.attachNow(thread, id, name, found.kind);
+            MessageLog.attachNow(thread, id, name, kind);
             return name;
         } catch (Throwable failure) {
             Settings.hookFailedPrivately(MessageLog.KEY, "Can't keep a message's media in the log", failure);
@@ -309,9 +354,17 @@ final class MessageLogAttachment {
 
     /**
      * The media for [found]. Where the server wouldn't say how big either of a video's addresses is, both are fetched and
-     * the bigger one wins, since that's the only thing left that tells a video from its own thumbnail.
+     * the bigger one wins, since that's the only thing left that tells a video from its own thumbnail. Media from inside
+     * the app is read from the first of its addresses that answers, since they're in order, best first.
      */
     static byte[] fetch(Found found) {
+        if (found.kind == null) {
+            for (String each : found.addresses) {
+                byte[] media = openInApp.apply(each);
+                if (media != null && media.length > 0) return media;
+            }
+            return null;
+        }
         String address = pick(found);
         if (address != null) return download.apply(address);
         byte[] best = null;
@@ -370,19 +423,85 @@ final class MessageLogAttachment {
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return null;
             if (connection.getContentLength() > MAX_VIDEO_BYTES) return null;
             try (InputStream in = connection.getInputStream()) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                byte[] buffer = new byte[16384];
-                int read;
-                while ((read = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, read);
-                    if (out.size() > MAX_VIDEO_BYTES) return null;
-                }
-                return out.toByteArray();
+                return readCapped(in);
             }
         } catch (Exception unreachable) {
             return null;
         } finally {
             if (connection != null) connection.disconnect();
         }
+    }
+
+    /**
+     * The bytes Messenger serves from inside the app at [address], or null when it can't find the file or the file is past
+     * the biggest kind's size. Its server answers only a typed open, the way Messenger's own screens ask, so that's how
+     * it's asked. It may wait a few seconds on Messenger's store, which is fine on the fetcher's thread.
+     */
+    private static byte[] readInApp(String address) {
+        Context context = Settings.appContext;
+        if (context == null) return null;
+        try (AssetFileDescriptor file = context.getContentResolver()
+                .openTypedAssetFileDescriptor(Uri.parse(address), "*/*", null)) {
+            if (file == null || file.getLength() > MAX_VIDEO_BYTES) return null;
+            try (InputStream in = file.createInputStream()) {
+                return readCapped(in);
+            }
+        } catch (Exception unreadable) {
+            return null;
+        }
+    }
+
+    /** All of [in], or null once it runs past the biggest kind's size. */
+    private static byte[] readCapped(InputStream in) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[16384];
+        int read;
+        while ((read = in.read(buffer)) != -1) {
+            out.write(buffer, 0, read);
+            if (out.size() > MAX_VIDEO_BYTES) return null;
+        }
+        return out.toByteArray();
+    }
+
+    /**
+     * What [media] is, read off its opening bytes, for a file nothing else describes: PHOTO for a picture, VIDEO or AUDIO
+     * for an MP4 or WebM by the tracks it holds, AUDIO for an Ogg clip, or null for anything else, which isn't kept.
+     */
+    static String kindOf(byte[] media) {
+        if (startsAt(media, 0, 0xFF, 0xD8, 0xFF) || startsAt(media, 0, 0x89, 'P', 'N', 'G')
+            || startsAt(media, 0, 'G', 'I', 'F', '8') || (startsAt(media, 0, 'R', 'I', 'F', 'F') && startsAt(media, 8, 'W', 'E', 'B', 'P'))) {
+            return PHOTO;
+        }
+        if (startsAt(media, 4, 'f', 't', 'y', 'p')) {
+            if (startsAt(media, 8, 'h', 'e', 'i', 'c') || startsAt(media, 8, 'h', 'e', 'i', 'x')
+                || startsAt(media, 8, 'm', 'i', 'f', '1') || startsAt(media, 8, 'a', 'v', 'i', 'f')) return PHOTO;
+            return trackKind(media);
+        }
+        if (startsAt(media, 0, 0x1A, 0x45, 0xDF, 0xA3)) return VIDEO;
+        if (startsAt(media, 0, 'O', 'g', 'g', 'S')) return AUDIO;
+        return null;
+    }
+
+    /**
+     * VIDEO when an MP4 holds a picture track, AUDIO when its tracks are all sound, the way a voice clip's are. Each
+     * track names its kind eight bytes past its handler's tag, wherever in the file the tracks are listed.
+     */
+    private static String trackKind(byte[] media) {
+        boolean sound = false;
+        for (int at = 0; at + 16 <= media.length; at++) {
+            if (media[at] != 'h' || !startsAt(media, at, 'h', 'd', 'l', 'r')) continue;
+            if (startsAt(media, at + 12, 'v', 'i', 'd', 'e')) return VIDEO;
+            if (startsAt(media, at + 12, 's', 'o', 'u', 'n')) sound = true;
+        }
+        return sound ? AUDIO : VIDEO;
+    }
+
+    /** Whether [media] holds [expected] at [at]. */
+    private static boolean startsAt(byte[] media, int at, int... expected) {
+        if (media == null || at < 0 || media.length < at + expected.length) return false;
+        for (int i = 0; i < expected.length; i++) {
+            if ((media[at + i] & 0xFF) != expected[i]) return false;
+        }
+        return true;
     }
 }

@@ -36,6 +36,7 @@ val hideMessageAdsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_ADS_IN_MESSAGES)
         var adRowClass: String? = null
         classDefForEach { classDef ->
             if (classDef.superclass != "Ljava/lang/Object;" && classDef.type != "Ljava/lang/Object;") {
@@ -108,6 +109,7 @@ val hideMessageAdsPatch = bytecodePatch(
             ExternalLabel("nezumi_next_message_ad", instructions[match.nextIndex]),
         )
 
+        registerHooks(PatchId.HIDE_ADS_IN_MESSAGES, match.method)
         attachNezumiSettings("attachMessageAds")
     }
 }

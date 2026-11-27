@@ -16,6 +16,13 @@ dependencies {
     patchListGeneratorClasspath(libs.gson)
 }
 tasks {
+    named<ProcessResources>("processResources") {
+        val bundleVersion = project.version.toString()
+        inputs.property("futatabiBundleVersion", bundleVersion)
+        doLast {
+            destinationDir.resolve("futatabi-patch-version.txt").writeText(bundleVersion, Charsets.UTF_8)
+        }
+    }
     named<Jar>("jar") {
         from(rootProject.file("LICENSE")) { into("META-INF") }
         from(rootProject.file("THIRD_PARTY_NOTICES")) { into("META-INF/THIRD_PARTY_NOTICES") }

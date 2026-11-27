@@ -65,9 +65,6 @@ public final class LichessPuzzles {
     private static volatile boolean freezeActive;
     private static volatile long unfreezeAt;
 
-    /** The hub's empty/loading user data; it must not replace the real XP/level. */
-    private static final String EMPTY_USER = "com.chess.features.puzzles.home.ui.a2$b";
-
     private static final Function0<Object> SOLVE = () -> {
         solve();
         return null;
@@ -83,9 +80,13 @@ public final class LichessPuzzles {
     private static String converterMethod() { return ""; }
     private static String resultClass() { return ""; }
     private static String scoreClass() { return ""; }
-    private static String problemIdGetter() { return ""; }
+    private static String legacyPathResultClass() { return ""; }
+    private static String problemIdField() { return ""; }
     private static String puzzleDbField() { return ""; }
     private static String puzzleDbClear() { return ""; }
+    /** The hub's empty user data while it loads; it must not replace the real XP and level. */
+    private static String emptyUserClass() { return ""; }
+    private static String ratingStatsClass() { return ""; }
 
     public static boolean enabled() {
         return Features.lichessPuzzlesPatched() && Features.isEnabled(Features.LICHESS_PUZZLES);
@@ -146,7 +147,7 @@ public final class LichessPuzzles {
             if (SystemClock.uptimeMillis() < unfreezeAt) return frozenUser;
             freezeActive = false;
         }
-        if (user != null && !user.getClass().getName().equals(EMPTY_USER)) lastUser = user;
+        if (user != null && !user.getClass().getName().equals(emptyUserClass())) lastUser = user;
         return user != null ? user : lastUser;
     }
 
@@ -314,7 +315,7 @@ public final class LichessPuzzles {
     public static Object solved(Object repository, Object solution) {
         if (!active || solution == null) return null;
         try {
-            long id = ((Number) solution.getClass().getMethod(problemIdGetter()).invoke(solution)).longValue();
+            long id = solution.getClass().getField(problemIdField()).getLong(solution);
             Context context = Utils.context();
             if (context == null) return null;
             PuzzleStore store = PuzzleStore.get(context);
@@ -365,8 +366,18 @@ public final class LichessPuzzles {
                 pathResult = constructor.newInstance(0, null, null, empty);
             }
         }
-        Object score = Class.forName(scoreClass()).getConstructor(pathResultClass, ratingClass, Throwable.class)
-            .newInstance(pathResult, rating, null);
+        // The empty path result in the wrapper the score takes, as chess.com's own fallback does.
+        Class<?> legacyClass = Class.forName(legacyPathResultClass());
+        Object legacy = legacyClass.getConstructor(pathResultClass).newInstance(pathResult);
+        // (path result, rating, error): the error's type is whatever chess.com narrowed it to.
+        Object score = null;
+        for (Constructor<?> constructor : Class.forName(scoreClass()).getConstructors()) {
+            Class<?>[] types = constructor.getParameterTypes();
+            if (types.length == 3 && types[0].isAssignableFrom(legacyClass) && types[1] == ratingClass) {
+                score = constructor.newInstance(legacy, rating, null);
+            }
+        }
+        if (score == null) throw new IllegalStateException("No score constructor");
         Class<?> result = Class.forName(resultClass());
         for (Constructor<?> constructor : result.getConstructors()) {
             if (constructor.getParameterTypes().length == 2) return constructor.newInstance(solution, score);
@@ -415,6 +426,32 @@ public final class LichessPuzzles {
     /** The Lichess puzzle rating, shown where chess.com shows its own during a Lichess session. */
     public static int rating() {
         return (int) Math.round(glicko().rating);
+    }
+
+    /** A rating chess.com stores while a session runs: the Lichess one. */
+    public static int sessionRating(int rating) {
+        return active ? rating() : rating;
+    }
+
+    /** The puzzle screen's mode as its settings store it: rated, during a session. */
+    public static Object sessionMode(Object mode) {
+        return active && mode instanceof Enum ? enumValue(((Enum<?>) mode).getDeclaringClass(), "REGULAR") : mode;
+    }
+
+    /** During a session guest mode counts as never started, so an empty queue waits for Lichess puzzles. */
+    public static boolean guestModeStarted(boolean started) {
+        return started && !active;
+    }
+
+    /** Guest mode loads no rating stats; a session gets empty ones, which carry the Lichess rating. */
+    public static Object ratingStats(Object stats) {
+        if (stats != null || !active) return stats;
+        try {
+            return Class.forName(ratingStatsClass()).getConstructor().newInstance();
+        } catch (Throwable throwable) {
+            Utils.logError("Rating stats not made", throwable);
+            return null;
+        }
     }
 
     /** The rating as Lichess shows it: a ? while it is provisional. */

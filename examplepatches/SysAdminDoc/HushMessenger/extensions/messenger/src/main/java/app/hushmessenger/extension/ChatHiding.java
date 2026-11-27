@@ -117,6 +117,7 @@ public final class ChatHiding {
         }
         SpecialContacts.menuRow(target, summary, rows);
         MessageLogButton.chatRow(target, summary, rows);
+        PreviewTaps.menuRow(target, rows);
     }
 
     /** A row of ours in the first empty slot, or on the end of a full menu. */
@@ -128,6 +129,14 @@ public final class ChatHiding {
 
     /** The chat menu's tap asks this first. False for Messenger's own rows, which it then handles as before. */
     public static boolean menuTapped(Object menu, int id) {
+        if (id == PreviewTaps.ROW_ID) {
+            try {
+                PreviewTaps.tapped(route(), menu);
+            } catch (Throwable error) {
+                Settings.hookFailed(PreviewTaps.KEY, "Can't open the chat", error);
+            }
+            return true;
+        }
         if (id == SpecialContacts.ROW_ID) {
             try {
                 Route target = route();

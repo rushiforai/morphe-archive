@@ -22,20 +22,22 @@
   <a href="https://github.com/edbfi/apk-patches/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/apk-patches/ci.yml?branch=main&amp;event=push&amp;label=CI&amp;style=flat" alt="CI"></a>
 </p>
 
-Each release has two bundles: one for [ReVanced](https://revanced.app) and one for [Morphe](https://morphe.software).
+Download the [ReVanced](https://revanced.app) and [Morphe](https://morphe.software) bundles from
+[Releases](https://github.com/edbfi/apk-patches/releases). See [Reseam preview](#reseam-preview) for Manager
+source and local build instructions.
 
 ## Supported apps
 
-| App | Package | ReVanced | Morphe |
-| --- | --- | --- | --- |
-| rif is fun | `com.andrewshu.android.reddit` | [12 patches](docs/revanced/rifisfun.md) | [12 patches](docs/morphe/rifisfun.md) |
-| Sync for Reddit | `com.laurencedawson.reddit_sync` | [15 patches](docs/revanced/syncforreddit.md) | [15 patches](docs/morphe/syncforreddit.md) |
+| App | Package | ReVanced | Morphe | Reseam preview |
+| --- | --- | --- | --- | --- |
+| rif is fun | `com.andrewshu.android.reddit` | [12 patches](docs/revanced/rifisfun.md) | [12 patches](docs/morphe/rifisfun.md) | [12 patches](docs/reseam/rifisfun.md) |
+| Sync for Reddit | `com.laurencedawson.reddit_sync` | [15 patches](docs/revanced/syncforreddit.md) | [15 patches](docs/morphe/syncforreddit.md) | [15 patches](docs/reseam/syncforreddit.md) |
 
-Each link opens that bundle's page for the app: its patches, options, known issues and tested version. The two bundles
-are built from separate code, so their patches can differ.
+Each link opens the app page for an edition with its patches, options, known issues and app versions. Each edition has
+its own code and patch list.
 
-**Patch the tested version.** ReVanced Manager and both CLIs skip these patches on other versions unless you force
-them, and Morphe Manager asks you to confirm. Other versions are untested.
+**Patch the version listed for your edition.** ReVanced Manager, ReVanced CLI and Morphe CLI skip patches on other
+versions unless you force them, and Morphe Manager asks you to confirm.
 
 ## Install
 
@@ -115,9 +117,69 @@ java -jar morphe-desktop-<version>-all.jar patch -p https://github.com/edbfi/apk
   [Verify it](#verify-a-download) first.
 - It signs patched APKs with signature scheme v2 only, so they install on Android 7.0 or later.
 
+### Reseam preview
+
+Use Reseam Manager 1.0.1 and put the [Reseam 1.0.1 CLI](https://github.com/Reseam/reseam/releases/tag/v1.0.1)
+on your `PATH` as `reseam`. The CLI needs Java 17 or newer. On arm64 Linux, use the x64 JVM and wrapper
+described in [AGENTS.md](AGENTS.md#reseam-reseam).
+In Manager, open **Settings → Patch sources → Add patch source**. For a local build, use the loopback URL below.
+For the `patches.json` asset in the [latest release](https://github.com/edbfi/apk-patches/releases/latest), use
+`https://github.com/edbfi/apk-patches/releases/latest/download/patches.json`.
+Verify the displayed signer before adding the source. Use **Pick an APK** to open the version listed on the app page.
+
+For a local preview, generate your own test signer and use its public key in Manager or the CLI.
+`just reseam-check` verifies this flow with a temporary key. To keep a test bundle for manual use, run:
+
+```sh
+just reseam-build
+mkdir -p tmp/reseam-preview
+reseam bundle keygen --out tmp/reseam-preview/bundle.key
+reseam bundle pubkey --key tmp/reseam-preview/bundle.key > tmp/reseam-preview/bundle.pub
+reseam bundle sign --key tmp/reseam-preview/bundle.key \
+  --out tmp/reseam-preview/edbfi-patches.reseam reseam/build/reseam/unsigned/edbfi-patches.reseam
+```
+
+For Manager, publish the test bundle to a local directory and serve it to an adb-connected device:
+
+```sh
+printf '%s\n' 'Local preview' > tmp/reseam-preview/notes.md
+reseam release patches tmp/reseam-preview/edbfi-patches.reseam \
+  --tag v0.0.0 --notes tmp/reseam-preview/notes.md \
+  --to tmp/reseam-preview/site --public-url http://127.0.0.1:18765
+adb reverse tcp:18765 tcp:18765
+python3 -m http.server 18765 --bind 127.0.0.1 --directory tmp/reseam-preview/site
+```
+
+Add `http://127.0.0.1:18765/patches.json` in Manager and compare the displayed signer with
+`tmp/reseam-preview/bundle.pub`. After testing, stop the server and run `adb reverse --remove tcp:18765`.
+For an official bundle, compare the signer with `keys/reseam-signing.pub` in the matching release tag.
+
+```sh
+reseam patch app.apk --bundle tmp/reseam-preview/edbfi-patches.reseam \
+  --trust "$(cat tmp/reseam-preview/bundle.pub)" --output patched.apk
+```
+
+Reseam Manager 1.0.1 requires Android 8.0 or later. The Sync and rif APKs produced by
+Manager and CLI 1.0.1 use APK Signature Scheme v2 and require Android 7.0 or later.
+To update an existing ECDSA P-256 installation, put its original key and certificate in a
+password-protected PKCS#12 (`.p12`) file with a single private-key entry.
+In Manager, use **Settings → Signing key → Import**. With the CLI, add
+`--keystore signing.p12` to the command above and set `RESEAM_KEYSTORE_PASSWORD` to the
+file's password.
+
+For an existing RSA-signed installation, re-sign a copy of the output with its original
+key and certificate.
+
+For either signing key type, run the following command on the update and on a copy of the
+installed APK. Verify that the signer certificate SHA-256 digests match before updating.
+
+```sh
+apksigner verify --min-sdk-version 24 --verbose --print-certs patched.apk
+```
+
 ## Verify a download
 
-Both bundles are signed with the [public key](keys/release-signing.asc), fingerprint
+The ReVanced and Morphe bundles are signed with the [public key](keys/release-signing.asc), fingerprint
 `7B40 A51F C15C 376F 09D1  6979 893C 92F2 3E64 7FC8`.
 
 - **ReVanced CLI** checks the `.rvp` with the command above.
@@ -152,8 +214,8 @@ Problems with ReVanced Manager, the ReVanced CLI or ReVanced's own patches go to
 
 ## Request a patch
 
-Use the [Patch request](https://github.com/edbfi/apk-patches/issues/new?template=3-patch-request.yml) form, for a new
-app or one already supported, and say which bundle you want it in: ReVanced, Morphe or both.
+Use the [Patch request](https://github.com/edbfi/apk-patches/issues/new?template=3-patch-request.yml) form for a new
+app or one already supported. Select the editions you want the patch in.
 
 ## Contribute
 

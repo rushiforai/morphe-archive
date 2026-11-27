@@ -180,15 +180,19 @@ public final class LrclibController {
         final WeakReference<Object> fragmentRef;
         final WeakReference<View> rootRef;
         final WeakReference<TextView> pillRef;
-        final WeakReference<View> controlsRef;
+        final WeakReference<View> controlsAnchorRef;
+        final WeakReference<View> controlsFadeRef;
+        int controlsTargetVisibility;
         int lastControlsTop = 0;
         CharSequence originalNoLyricsText;
 
-        PillBinding(Object fragment, View root, TextView pill, View controls) {
+        PillBinding(Object fragment, View root, TextView pill, View controlsAnchor, View controlsFade) {
             this.fragmentRef = new WeakReference<>(fragment);
             this.rootRef = new WeakReference<>(root);
             this.pillRef = new WeakReference<>(pill);
-            this.controlsRef = new WeakReference<>(controls);
+            this.controlsAnchorRef = new WeakReference<>(controlsAnchor);
+            this.controlsFadeRef = new WeakReference<>(controlsFade);
+            this.controlsTargetVisibility = controlsFade != null ? controlsFade.getVisibility() : View.VISIBLE;
         }
     }
 
@@ -633,28 +637,47 @@ public final class LrclibController {
         return combined;
     }
 
-    public static void onControlsVisibilityChanged(Object fragment, int visibility, boolean skip) {
-        if (skip) return;
+    public static void onControlsAnimationStart(Object fragment, int visibility) {
         PillBinding binding = pillBindings.get(fragment);
         if (binding == null) return;
+        binding.controlsTargetVisibility = visibility;
         TextView pill = binding.pillRef.get();
         if (pill == null) return;
-        if (LrclibReflection.isHidden(fragment) || !LrclibReflection.isResumed(fragment)) return;
 
         Context ctx = pill.getContext();
         if (!LrclibPrefs.isEnabled(ctx) || !LrclibPrefs.isShowLyricsPill(ctx)) {
             pill.setVisibility(View.GONE);
             return;
         }
+        if (visibility == View.VISIBLE && pill.getVisibility() != View.GONE) {
+            if (pill.getVisibility() != View.VISIBLE) {
+                View controlsFade = binding.controlsFadeRef.get();
+                pill.setAlpha(controlsFade != null ? controlsFade.getAlpha() : 0.0f);
+            }
+            pill.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public static void onControlsAnimationEnd(Object fragment, int visibility, boolean cancelled) {
+        if (cancelled) return;
+        PillBinding binding = pillBindings.get(fragment);
+        if (binding == null) return;
+        binding.controlsTargetVisibility = visibility;
+        TextView pill = binding.pillRef.get();
+        if (pill == null) return;
+
+        Context ctx = pill.getContext();
+        if (!LrclibPrefs.isEnabled(ctx) || !LrclibPrefs.isShowLyricsPill(ctx)) {
+            pill.setVisibility(View.GONE);
+            return;
+        }
+        if (pill.getVisibility() == View.GONE) return;
         if (visibility == View.VISIBLE) {
-            if (pill.getVisibility() != View.GONE) {
-                pill.setVisibility(View.VISIBLE);
-                pill.setAlpha(1.0f);
-            }
+            pill.setVisibility(View.VISIBLE);
+            pill.setAlpha(1.0f);
         } else {
-            if (pill.getVisibility() == View.VISIBLE) {
-                pill.setVisibility(visibility);
-            }
+            pill.setVisibility(View.INVISIBLE);
+            pill.setAlpha(0.0f);
         }
     }
 
@@ -1406,7 +1429,8 @@ public final class LrclibController {
         final ViewGroup container = (ViewGroup) rootView;
         Context ctx = container.getContext();
         int controlsId = LrclibStrings.id(ctx, "id", "controls");
-        final View controls = controlsId != 0 ? container.findViewById(controlsId) : null;
+        final View controlsAnchor = controlsId != 0 ? container.findViewById(controlsId) : null;
+        final View controlsFade = resolveControlsFadeTarget(container, controlsAnchor);
 
         TextView pill = container.findViewWithTag(TAG_PILL_VIEW);
         if (pill == null) {
@@ -1417,7 +1441,7 @@ public final class LrclibController {
             ));
         }
 
-        final PillBinding binding = new PillBinding(fragment, rootView, pill, controls);
+        final PillBinding binding = new PillBinding(fragment, rootView, pill, controlsAnchor, controlsFade);
         int noLyricsId = LrclibStrings.id(ctx, "id", "no_lyrics_available_message");
         if (noLyricsId != 0) {
             View msg = rootView.findViewById(noLyricsId);
@@ -1436,13 +1460,33 @@ public final class LrclibController {
 
         final TextView finalPill = pill;
         View.OnLayoutChangeListener layoutListener = (v, l, t, r, b, ol, ot, or2, ob) ->
-                positionLyricsPill(container, controls, finalPill, binding);
+                positionLyricsPill(container, controlsAnchor, finalPill, binding);
         container.addOnLayoutChangeListener(layoutListener);
-        if (controls != null) controls.addOnLayoutChangeListener(layoutListener);
+        if (controlsAnchor != null) controlsAnchor.addOnLayoutChangeListener(layoutListener);
         pill.addOnLayoutChangeListener(layoutListener);
 
-        positionLyricsPill(container, controls, pill, binding);
+        positionLyricsPill(container, controlsAnchor, pill, binding);
         refreshPillForFragment(fragment);
+    }
+
+    private static View resolveControlsFadeTarget(ViewGroup container, View controlsAnchor) {
+        Context ctx = container.getContext();
+        int playerControlsId = LrclibStrings.id(ctx, "id", "player_controls");
+        if (playerControlsId != 0) {
+            if (controlsAnchor != null) {
+                View nested = controlsAnchor.findViewById(playerControlsId);
+                if (nested != null) return nested;
+            }
+            View inContainer = container.findViewById(playerControlsId);
+            if (inContainer != null) return inContainer;
+        }
+        if (controlsAnchor instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) controlsAnchor;
+            if (group.getChildCount() > 0) {
+                return group.getChildAt(0);
+            }
+        }
+        return controlsAnchor;
     }
 
     private static TextView createLyricsPillView(Context ctx) {
@@ -1862,9 +1906,13 @@ public final class LrclibController {
             if (loadingView != null) {
                 loadingView.setVisibility(View.GONE);
             }
-            View controlsForRestore = binding.controlsRef.get();
-            if (controlsForRestore != null
-                    && (controlsForRestore.getVisibility() != View.VISIBLE || controlsForRestore.getAlpha() < 0.99f)) {
+            View controlsForRestore = binding.controlsFadeRef.get();
+            boolean hasControlsForRestore = controlsForRestore != null;
+            if (LyricsPillVisibilityPolicy.shouldRestoreControls(
+                    hasControlsForRestore,
+                    hasControlsForRestore ? controlsForRestore.getVisibility() : View.VISIBLE,
+                    hasControlsForRestore ? controlsForRestore.getAlpha() : 1.0f,
+                    binding.controlsTargetVisibility)) {
                 LrclibReflection.showPlayerControls(fragment);
             }
             if (noLyricsView instanceof TextView) {
@@ -1960,15 +2008,21 @@ public final class LrclibController {
         pill.setBackground(makePillBackground(ctx, pillBg, pillStroke));
         pill.setContentDescription(LrclibStrings.text(ctx, "sheet_title") + ": " + label);
 
-        View controls = binding.controlsRef.get();
-        boolean controlsVisible = controls == null || (controls.getVisibility() == View.VISIBLE && controls.getAlpha() > 0.05f);
-        pill.setVisibility(controlsVisible ? View.VISIBLE : View.INVISIBLE);
-        if (controlsVisible) {
-            pill.setAlpha(controls != null ? controls.getAlpha() : 1.0f);
-        }
+        View controlsAnchor = binding.controlsAnchorRef.get();
+        View controlsFade = binding.controlsFadeRef.get();
+        boolean hasControlsFade = controlsFade != null;
+        LyricsPillVisibilityPolicy.Decision decision = LyricsPillVisibilityPolicy.resolveForRefresh(
+                hasControlsFade,
+                hasControlsFade ? controlsFade.getVisibility() : View.VISIBLE,
+                hasControlsFade ? controlsFade.getAlpha() : 1.0f,
+                binding.controlsTargetVisibility,
+                pill.getVisibility(),
+                pill.getAlpha());
+        pill.setVisibility(decision.visibility);
+        pill.setAlpha(decision.alpha);
 
         if (root instanceof ViewGroup) {
-            positionLyricsPill((ViewGroup) root, controls, pill, binding);
+            positionLyricsPill((ViewGroup) root, controlsAnchor, pill, binding);
         }
     }
 

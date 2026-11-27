@@ -7,7 +7,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -121,6 +123,7 @@ public final class RamblerEnhancementsActivity extends Activity {
     public static final String SECTION_DICTIONARY = "dictionary";
     public static final String SECTION_CONTACTS = "contacts";
     public static final String SECTION_HISTORY = "history";
+    public static final String SECTION_HISTORY_LIST = "history_list";
     public static final String SECTION_BACKUP = "backup";
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -269,6 +272,7 @@ public final class RamblerEnhancementsActivity extends Activity {
                 || SECTION_PRODUCTIVITY.equals(section)
                 || SECTION_DICTIONARY.equals(section)
                 || SECTION_HISTORY.equals(section)
+                || SECTION_HISTORY_LIST.equals(section)
                 || SECTION_BACKUP.equals(section)) {
             return section;
         }
@@ -294,6 +298,9 @@ public final class RamblerEnhancementsActivity extends Activity {
         }
         if (SECTION_HISTORY.equals(normalized)) {
             return "Dictation stats & history";
+        }
+        if (SECTION_HISTORY_LIST.equals(normalized)) {
+            return "Dictation history";
         }
         if (SECTION_BACKUP.equals(normalized)) {
             return "Backup & restore";
@@ -335,6 +342,9 @@ public final class RamblerEnhancementsActivity extends Activity {
         } else if (SECTION_HISTORY.equals(activeSection)
                 && RamblerDynamicConfig.FEATURE_PRODUCTIVITY_TOOLS) {
             buildHistorySection();
+        } else if (SECTION_HISTORY_LIST.equals(activeSection)
+                && RamblerDynamicConfig.FEATURE_PRODUCTIVITY_TOOLS) {
+            buildHistoryListSection();
         } else if (SECTION_BACKUP.equals(activeSection)) {
             buildBackupSection();
         } else {
@@ -416,23 +426,44 @@ public final class RamblerEnhancementsActivity extends Activity {
         if (RamblerDynamicConfig.FEATURE_PRODUCTIVITY_TOOLS) {
             boolean sendOn = RamblerEnhancementsSettings.readVoiceSendEnabled(this);
             boolean searchOn = RamblerEnhancementsSettings.readVoiceSearchEnabled(this);
+            boolean autoSearchOn = RamblerEnhancementsSettings.readAutoSearchOnCommitEnabled(this);
+            int autoSearchAppCount = RamblerEnhancementsSettings.readAutoSearchApps(this).size();
+            boolean autoSearchActive = autoSearchOn && autoSearchAppCount > 0;
+            boolean autoLearnOn = RamblerEnhancementsSettings.readAutoLearnFixesEnabled(this);
+            int learnedActiveCount = RamblerLearnedFixes.readActiveFixes(this).size();
             int snippetCount = RamblerTextPipeline.readSnippets(this).size();
             int replaceCount = RamblerTextPipeline.readReplaceRules(this).size();
             String badge;
-            if (sendOn && searchOn) {
+            if (autoSearchActive && sendOn) {
+                badge = "Auto-search · Send";
+            } else if (autoSearchActive) {
+                badge = "Auto-search (" + autoSearchAppCount + ")";
+            } else if (sendOn && searchOn) {
                 badge = "Send · Search";
             } else if (sendOn) {
                 badge = "Send ON";
             } else if (searchOn) {
                 badge = "Search ON";
+            } else if (autoLearnOn && learnedActiveCount > 0) {
+                badge = learnedActiveCount + " learned";
             } else if (snippetCount + replaceCount > 0) {
                 int total = snippetCount + replaceCount;
                 badge = total + (total == 1 ? " rule" : " rules");
+            } else if (autoLearnOn) {
+                badge = "Auto-learn ON";
             } else {
                 badge = "Off";
             }
-            String summary = "Send " + (sendOn ? "ON" : "OFF")
-                    + " · Search " + (searchOn ? "ON" : "OFF")
+            String autoSearchPart = autoSearchOn
+                    ? ("Auto-search " + autoSearchAppCount + (autoSearchAppCount == 1 ? " app" : " apps"))
+                    : "Auto-search OFF";
+            String autoLearnPart = autoLearnOn
+                    ? (learnedActiveCount > 0
+                            ? ("Auto-learn (" + learnedActiveCount + ")")
+                            : "Auto-learn ON")
+                    : "Auto-learn OFF";
+            String summary = autoSearchPart
+                    + " · " + autoLearnPart
                     + " · " + snippetCount + (snippetCount == 1 ? " snippet" : " snippets")
                     + " · " + replaceCount + " replace";
             addRow("Voice actions, snippets & replace", summary, badge, true,
@@ -486,7 +517,7 @@ public final class RamblerEnhancementsActivity extends Activity {
         RamblerWaveformDialogs.Palette pal = RamblerWaveformDialogs.palette(this);
         TextView creditView = new TextView(this);
         creditView.setText(
-                "Waveforms ported from Hex by Anomaly (github.com/anomalyco/hex, MIT). "
+                "Waveforms & auto-learn ported from Hex by Anomaly (github.com/anomalyco/hex, MIT). "
                         + "Rambler enhancements adapted with credit to nl-morphe-patches (GPLv3) "
                         + "and designed to work alongside GboardWu.");
         creditView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
@@ -860,6 +891,36 @@ public final class RamblerEnhancementsActivity extends Activity {
                                 refreshUi();
                             }));
         }
+
+        addSectionHeader("Quick access");
+        addToggleRow(
+                "Toolbar quick-access button",
+                "Adds a draggable \"Rambler\" button in Gboard's 4-dots toolbar menu so you can pin it to the top bar for 1-tap access.",
+                RamblerEnhancementsSettings.readToolbarButtonEnabled(this),
+                checked -> {
+                    RamblerEnhancementsSettings.writeToolbarButtonEnabled(this, checked);
+                    RamblerToolbarAccessPoint.refreshRegisteredControllers(this);
+                    refreshUi();
+                });
+        boolean spacebarEnabled =
+                RamblerEnhancementsSettings.readSpacebarLongPressRamblerEnabled(this);
+        addToggleRow(
+                "Long-press spacebar for Rambler",
+                "Hold the spacebar stationary to trigger Rambler right under your thumb (sliding on the spacebar still moves the cursor; use the bottom-right keyboard button to switch keyboards).",
+                spacebarEnabled,
+                checked -> {
+                    RamblerEnhancementsSettings.writeSpacebarLongPressRamblerEnabled(this, checked);
+                    refreshUi();
+                });
+        if (spacebarEnabled) {
+            String currentMode = RamblerEnhancementsSettings.readSpacebarLongPressMode(this);
+            addRow(
+                    "Spacebar trigger mode",
+                    describeSpacebarMode(currentMode),
+                    displaySpacebarMode(currentMode),
+                    true,
+                    () -> showSpacebarModeDialog(currentMode));
+        }
     }
 
     private void buildProductivitySection() {
@@ -923,6 +984,62 @@ public final class RamblerEnhancementsActivity extends Activity {
                             }));
         }
 
+        addSectionHeader("Search bars");
+        boolean searchStripPeriodOn =
+                RamblerEnhancementsSettings.readSearchStripTrailingPeriod(this);
+        addToggleRow(
+                "Auto-strip period in search bars",
+                "Automatically removes a trailing period when dictating into Search bars and browser address bars (preserves abbreviations like \"Dr.\" or \"e.g.\").",
+                searchStripPeriodOn,
+                checked -> {
+                    RamblerEnhancementsSettings.writeSearchStripTrailingPeriod(this, checked);
+                    refreshUi();
+                });
+
+        boolean autoSearchOn = RamblerEnhancementsSettings.readAutoSearchOnCommitEnabled(this);
+        java.util.Set<String> autoSearchApps =
+                RamblerEnhancementsSettings.readAutoSearchApps(this);
+        Runnable openAutoSearchAppPicker = () -> withInstalledApps((apps, map) ->
+                RamblerAppRuleDialogs.showAppPickerDialog(
+                        this,
+                        "Auto-search apps",
+                        "Dictation automatically submits Search bars (and browser address bars) only in the apps you select here.",
+                        RamblerEnhancementsSettings.readAutoSearchApps(this),
+                        apps,
+                        picked -> {
+                            RamblerEnhancementsSettings.writeAutoSearchApps(this, picked);
+                            showToast(picked.isEmpty()
+                                    ? "Cleared auto-search apps."
+                                    : "Auto-search enabled for " + picked.size() + " app(s).");
+                            refreshUi();
+                        }));
+        addToggleRow(
+                "Auto-search on commit",
+                "Immediately submits the search right after dictation finishes in your selected apps (no need to tap Search or say \"hit search\"). Only fires in Search bars and browser address bars.",
+                autoSearchOn,
+                checked -> {
+                    RamblerEnhancementsSettings.writeAutoSearchOnCommitEnabled(this, checked);
+                    refreshUi();
+                    if (checked && RamblerEnhancementsSettings.readAutoSearchApps(this).isEmpty()) {
+                        openAutoSearchAppPicker.run();
+                    }
+                });
+        if (autoSearchOn || !autoSearchApps.isEmpty()) {
+            String appsSubtitle = autoSearchApps.isEmpty()
+                    ? "No apps selected yet — tap to pick apps (e.g. Chrome, YouTube, Play Store, Settings)."
+                    : RamblerCustomInstructionRules.formatPackageList(
+                            autoSearchApps, packageLabelCache, 4);
+            String appsBadge = autoSearchApps.isEmpty()
+                    ? "Select apps"
+                    : autoSearchApps.size() + (autoSearchApps.size() == 1 ? " app" : " apps");
+            addRow(
+                    "Apps for auto-search",
+                    appsSubtitle,
+                    appsBadge,
+                    true,
+                    openAutoSearchAppPicker);
+        }
+
         addSectionHeader("Voice snippets");
         List<RamblerTextPipeline.SnippetRule> snippets = RamblerTextPipeline.readSnippets(this);
         for (RamblerTextPipeline.SnippetRule snippet : snippets) {
@@ -962,6 +1079,72 @@ public final class RamblerEnhancementsActivity extends Activity {
                             refreshUi();
                         },
                         null));
+
+        addSectionHeader("Auto-learn from fixes (Beta)");
+        boolean autoLearnOn = RamblerEnhancementsSettings.readAutoLearnFixesEnabled(this);
+        addToggleRow(
+                "Auto-learn from my fixes",
+                "BETA",
+                "Opt-in beta: watches each dictation locally in memory for 60s (never in password fields). After you fix the same misheard word twice, Rambler learns it automatically and retires false rules if you later keep the original.",
+                autoLearnOn,
+                checked -> {
+                    RamblerEnhancementsSettings.writeAutoLearnFixesEnabled(this, checked);
+                    refreshUi();
+                });
+        if (autoLearnOn) {
+            addToggleRow(
+                    "Toast when auto-learned",
+                    "Show a brief notification whenever Rambler automatically learns a new fix.",
+                    RamblerEnhancementsSettings.readAutoLearnToastEnabled(this),
+                    checked -> {
+                        RamblerEnhancementsSettings.writeAutoLearnToastEnabled(this, checked);
+                        refreshUi();
+                    });
+        }
+        List<RamblerLearnedFixes.FixRecord> allLearnedRecords =
+                RamblerLearnedFixes.readRecords(this);
+        if (autoLearnOn || !allLearnedRecords.isEmpty()) {
+            List<RamblerLearnedFixes.FixRecord> learnedList =
+                    RamblerLearnedFixes.learned(allLearnedRecords);
+            java.util.Set<String> disabledLearnedIds = RamblerLearnedFixes.readDisabledIds(this);
+            int activeLearnedCount =
+                    RamblerLearnedFixes.active(learnedList, disabledLearnedIds).size();
+            int pausedLearnedCount = Math.max(0, learnedList.size() - activeLearnedCount);
+            int trackingLearnedCount = RamblerLearnedFixes.tracking(allLearnedRecords).size();
+            String learnedBadge;
+            if (activeLearnedCount > 0) {
+                learnedBadge = activeLearnedCount + " active";
+            } else if (trackingLearnedCount > 0) {
+                learnedBadge = trackingLearnedCount + " tracking";
+            } else if (pausedLearnedCount > 0) {
+                learnedBadge = pausedLearnedCount + " paused";
+            } else {
+                learnedBadge = "0 learned";
+            }
+            String learnedSummary;
+            if (learnedList.isEmpty() && trackingLearnedCount == 0) {
+                learnedSummary = "No learned fixes yet. Fix a misheard word twice after dictating and Rambler will auto-learn it.";
+            } else {
+                List<String> learnedParts = new ArrayList<String>();
+                if (activeLearnedCount > 0) {
+                    learnedParts.add(activeLearnedCount + " active");
+                }
+                if (pausedLearnedCount > 0) {
+                    learnedParts.add(pausedLearnedCount + " paused");
+                }
+                if (trackingLearnedCount > 0) {
+                    learnedParts.add(trackingLearnedCount + " tracking (1/2)");
+                }
+                learnedSummary = joinMiddleDot(learnedParts)
+                        + " · Tap to review, pause, promote, or delete.";
+            }
+            addRow(
+                    "Learned fixes",
+                    learnedSummary,
+                    learnedBadge,
+                    true,
+                    () -> RamblerProductivityDialogs.showLearnedFixesDialog(this, this::refreshUi));
+        }
 
         addSectionHeader("Find & replace");
         List<RamblerTextPipeline.ReplaceRule> replaceRules =
@@ -1217,13 +1400,9 @@ public final class RamblerEnhancementsActivity extends Activity {
     }
 
     private void buildHistorySection() {
-        ensureInstalledAppsLoadedAsync();
-        RamblerWaveformDialogs.Palette pal = RamblerWaveformDialogs.palette(this);
         boolean statsOn = RamblerEnhancementsSettings.readStatsEnabled(this);
         boolean historyOn = RamblerEnhancementsSettings.readHistoryEnabled(this);
-        List<RamblerTextPipeline.HistoryEntry> entries =
-                new ArrayList<RamblerTextPipeline.HistoryEntry>(
-                        RamblerTextPipeline.readHistory(this));
+        int savedCount = RamblerTextPipeline.readHistory(this).size();
 
         LinearLayout statsCard = RamblerStatsCardView.buildCard(
                 this, false, null, this::refreshUi);
@@ -1253,7 +1432,24 @@ public final class RamblerEnhancementsActivity extends Activity {
                     refreshUi();
                 });
 
-        // Inline search bar + Clear all button
+        addRow(
+                "View dictation history",
+                savedCount == 0
+                        ? "No dictations saved yet. Tap to open history."
+                        : "Tap to browse, search, copy, or delete your saved local dictations.",
+                savedCount == 0 ? "Empty" : (savedCount + " saved"),
+                true,
+                () -> openSection(SECTION_HISTORY_LIST));
+    }
+
+    private void buildHistoryListSection() {
+        ensureInstalledAppsLoadedAsync();
+        RamblerWaveformDialogs.Palette pal = RamblerWaveformDialogs.palette(this);
+        List<RamblerTextPipeline.HistoryEntry> entries =
+                new ArrayList<RamblerTextPipeline.HistoryEntry>(
+                        RamblerTextPipeline.readHistory(this));
+
+        // Search bar + Clear all button
         LinearLayout searchRow = new LinearLayout(this);
         searchRow.setOrientation(LinearLayout.HORIZONTAL);
         searchRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -1327,6 +1523,15 @@ public final class RamblerEnhancementsActivity extends Activity {
                     RamblerProductivityDialogs.copyToClipboard(this, entry.text);
                     showToast("Copied to clipboard.");
                 });
+                card.setOnLongClickListener(v -> {
+                    RamblerFixAndLearnDialog.show(
+                            this,
+                            entry,
+                            appName,
+                            RamblerDynamicConfig.FEATURE_PERSONAL_DICTIONARY,
+                            null);
+                    return true;
+                });
 
                 LinearLayout metaRow = new LinearLayout(this);
                 metaRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -1340,6 +1545,20 @@ public final class RamblerEnhancementsActivity extends Activity {
                 meta.setTextColor(pal.accent);
                 metaRow.addView(meta, new LinearLayout.LayoutParams(
                         0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+                TextView fixBtn = new TextView(this);
+                fixBtn.setText("Fix & learn");
+                fixBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+                fixBtn.setTypeface(Typeface.DEFAULT_BOLD);
+                fixBtn.setTextColor(pal.accent);
+                fixBtn.setPadding(dp(8), dp(2), dp(8), dp(2));
+                fixBtn.setOnClickListener(v -> RamblerFixAndLearnDialog.show(
+                        this,
+                        entry,
+                        appName,
+                        RamblerDynamicConfig.FEATURE_PERSONAL_DICTIONARY,
+                        null));
+                metaRow.addView(fixBtn);
 
                 TextView delBtn = new TextView(this);
                 delBtn.setText("Delete");
@@ -1689,6 +1908,15 @@ public final class RamblerEnhancementsActivity extends Activity {
             String summary,
             boolean initialChecked,
             BooleanConsumer onToggle) {
+        addToggleRow(title, null, summary, initialChecked, onToggle);
+    }
+
+    private void addToggleRow(
+            String title,
+            String tagBadge,
+            String summary,
+            boolean initialChecked,
+            BooleanConsumer onToggle) {
         RamblerWaveformDialogs.Palette pal = RamblerWaveformDialogs.palette(this);
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
@@ -1701,12 +1929,41 @@ public final class RamblerEnhancementsActivity extends Activity {
         topLine.setOrientation(LinearLayout.HORIZONTAL);
         topLine.setGravity(Gravity.CENTER_VERTICAL);
 
+        LinearLayout titleWrap = new LinearLayout(this);
+        titleWrap.setOrientation(LinearLayout.HORIZONTAL);
+        titleWrap.setGravity(Gravity.CENTER_VERTICAL);
+
         TextView titleView = new TextView(this);
         titleView.setText(title);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         titleView.setTypeface(Typeface.DEFAULT_BOLD);
         titleView.setTextColor(pal.primary);
-        topLine.addView(titleView, new LinearLayout.LayoutParams(
+        titleWrap.addView(titleView, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        if (tagBadge != null && !tagBadge.isEmpty()) {
+            TextView pill = new TextView(this);
+            pill.setText(tagBadge);
+            pill.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+            pill.setTypeface(Typeface.DEFAULT_BOLD);
+            pill.setTextColor(pal.accent);
+            pill.setPadding(dp(7), dp(2), dp(7), dp(2));
+            GradientDrawable pillBg = new GradientDrawable();
+            pillBg.setShape(GradientDrawable.RECTANGLE);
+            pillBg.setCornerRadius(dp(99));
+            pillBg.setColor(Color.argb(
+                    38, Color.red(pal.accent), Color.green(pal.accent), Color.blue(pal.accent)));
+            pillBg.setStroke(
+                    Math.max(1, dp(1)),
+                    Color.argb(110, Color.red(pal.accent), Color.green(pal.accent), Color.blue(pal.accent)));
+            pill.setBackground(pillBg);
+            LinearLayout.LayoutParams pillParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            pillParams.leftMargin = dp(8);
+            titleWrap.addView(pill, pillParams);
+        }
+
+        topLine.addView(titleWrap, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
 
         Switch toggle = new Switch(this);
@@ -1760,6 +2017,59 @@ public final class RamblerEnhancementsActivity extends Activity {
                         onSave.accept(input.getText() == null ? "" : input.getText().toString()))
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void showSpacebarModeDialog(String currentMode) {
+        final String[] values = {
+                RamblerEnhancementsSettings.SPACEBAR_MODE_HYBRID,
+                RamblerEnhancementsSettings.SPACEBAR_MODE_HOLD,
+                RamblerEnhancementsSettings.SPACEBAR_MODE_TOGGLE
+        };
+        final String[] items = {
+                "Smart hybrid (Recommended)\nQuick release stays hands-free; keep holding while speaking and release to transcribe.",
+                "Hold to talk (Push-to-Talk)\nHold the spacebar while speaking; lifting your thumb immediately stops & transcribes.",
+                "Toggle (Hands-free)\nHold to start, lift your thumb and talk freely; stop via auto-stop, mic button, or another long-press."
+        };
+        int checkedIndex = 0;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equals(currentMode)) {
+                checkedIndex = i;
+                break;
+            }
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Spacebar trigger mode")
+                .setSingleChoiceItems(items, checkedIndex, (dialog, which) -> {
+                    if (which >= 0 && which < values.length) {
+                        String chosen = values[which];
+                        RamblerEnhancementsSettings.writeSpacebarLongPressMode(this, chosen);
+                        showToast("Spacebar mode: " + displaySpacebarMode(chosen));
+                        refreshUi();
+                    }
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private static String displaySpacebarMode(String mode) {
+        if (RamblerEnhancementsSettings.SPACEBAR_MODE_HOLD.equals(mode)) {
+            return "Hold to talk";
+        }
+        if (RamblerEnhancementsSettings.SPACEBAR_MODE_TOGGLE.equals(mode)) {
+            return "Toggle";
+        }
+        return "Smart hybrid";
+    }
+
+    private static String describeSpacebarMode(String mode) {
+        if (RamblerEnhancementsSettings.SPACEBAR_MODE_HOLD.equals(mode)) {
+            return "Push-to-Talk: keep holding the spacebar while speaking; releasing immediately stops & transcribes.";
+        }
+        if (RamblerEnhancementsSettings.SPACEBAR_MODE_TOGGLE.equals(mode)) {
+            return "Hands-free toggle: hold spacebar to start, lift your thumb and talk freely; stop via auto-stop, mic, or another long-press.";
+        }
+        return "Smart hybrid: quick release stays hands-free; keep holding while speaking (>0.6s) and release to stop & transcribe.";
     }
 
     private void showConfirmDialog(String title, String message, Runnable onConfirm) {

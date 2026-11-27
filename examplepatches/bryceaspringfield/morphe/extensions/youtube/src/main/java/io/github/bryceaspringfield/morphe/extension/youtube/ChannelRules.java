@@ -1,26 +1,10 @@
 package io.github.bryceaspringfield.morphe.extension.youtube;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Filters scoped to channels, one rule a line in {@link XSettings#CHANNEL_RULES}:
- * <pre>
- *   @handle: all              every video of the channel
- *   @handle: live             its live streams (and premieres while live)
- *   @handle: shorts           its Shorts
- *   @handle: playlists        its playlists and mixes
- *   @handle: &lt;5:00          its videos shorter than 5 minutes (m:ss, h:mm:ss, or minutes)
- *   @handle: &gt;1:00:00       its videos longer than an hour
- *   @handle: comments: word   comments containing the word, under the channel's videos
- *   @handle: word             its videos whose title or text contains the word ("phrase" for whole words)
- * </pre>
- * The channel is an @handle, a channel ID (UC...), or the channel's name as shown. Several rules for a channel may
- * share a line, separated by commas: "@handle: live, shorts, &lt;3:00". Lines starting with # are notes.
- */
 final class ChannelRules {
 
     enum Kind {ALL, LIVE, SHORTS, PLAYLISTS, SHORTER, LONGER, COMMENT_KEYWORD, KEYWORD}
@@ -99,7 +83,6 @@ final class ChannelRules {
         for (String line : text.split("\n")) {
             line = line.trim();
             if (line.isEmpty() || line.startsWith("#")) continue;
-            // The channel ends at the first colon, unless the colon belongs to a URL (https:).
             int colon = line.indexOf(':');
             while (colon > 0 && line.startsWith("//", colon + 1)) colon = line.indexOf(':', colon + 1);
             if (colon <= 0) continue;
@@ -140,7 +123,6 @@ final class ChannelRules {
         if (!kw.isEmpty()) out.add(new Rule(channel, kind, 0, kw, whole));
     }
 
-    /** Whether a lowercase text contains a keyword, as whole words when asked. */
     static boolean containsKeyword(String text, String keyword, boolean wholeWord) {
         if (!wholeWord) return text.contains(keyword);
         int from = 0;
@@ -155,8 +137,6 @@ final class ChannelRules {
         }
     }
 
-    /** The first rule hiding a feed item, or null. */
-    
     static Rule match(VideoItem item) {
         for (Rule r : get()) {
             if (r.kind == Kind.COMMENT_KEYWORD || !item.isChannel(r.channel)) continue;
@@ -175,7 +155,6 @@ final class ChannelRules {
         return null;
     }
 
-    /** Whether a list of channels (one a line, or commas: a name, an @handle, or an ID) names the channel with this ID and name. */
     static boolean listed(String list, String channelId, String channelName, String channelHandle) {
         if (list == null) return false;
         for (String line : list.split("[\\n,;]")) {
@@ -191,7 +170,6 @@ final class ChannelRules {
         return false;
     }
 
-    /** The comment keywords of the channel whose video plays, given its channel ID and name. */
     static List<Rule> commentRules(String channelId, String channelName) {
         List<Rule> out = new ArrayList<>();
         for (Rule r : get()) {

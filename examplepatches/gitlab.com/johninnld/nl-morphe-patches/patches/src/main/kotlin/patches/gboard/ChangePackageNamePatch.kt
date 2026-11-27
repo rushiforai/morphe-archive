@@ -38,6 +38,7 @@ private val identities = listOf(
     Identity("provider", "android:authorities", suffix = ".train.androidx-startup"),
     Identity("provider", "android:authorities", suffix = ".clipboard_content"),
     Identity("provider", "android:authorities", suffix = ".gboard_patches", optional = true),
+    Identity("provider", "android:authorities", suffix = ".local-model-host-apks", optional = true),
     Identity("provider", "android:authorities", suffix = ".fileprovider"),
     Identity("provider", "android:authorities", suffix = ".inputactionprovider"),
     Identity("provider", "android:authorities", suffix = ".mlkitinitprovider"),

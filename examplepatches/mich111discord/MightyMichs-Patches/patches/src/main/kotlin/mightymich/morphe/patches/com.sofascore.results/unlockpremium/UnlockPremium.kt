@@ -14,13 +14,13 @@ val unlockPremiumPatch = bytecodePatch(
     compatibleWith(SofaScorePremiumCompatibility.SOFASCORE_PREMIUM)
 
     val getHasPremiumFingerprint = Fingerprint(
-        definingClass = "Lcom/sofascore/local_persistence/UserAccount;",
+        definingClass = "Lcom/sofascore/local_persistance/UserAccount;",
         name = "getHasPremium",
-        returnType = "Z"
+        returnType = "Ljava/lang/Boolean;"
     )
 
     val getForceHideAdsFingerprint = Fingerprint(
-        definingClass = "Lcom/sofascore/local_persistence/UserAccount;",
+        definingClass = "Lcom/sofascore/local_persistance/UserAccount;",
         name = "getForceHideAds",
         returnType = "Z"
     )
@@ -33,7 +33,9 @@ val unlockPremiumPatch = bytecodePatch(
                 0,
                 """
                     const/4 v0, 0x1
-                    return v0
+                    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+                    move-result-object v0
+                    return-object v0
                 """
             )
         }

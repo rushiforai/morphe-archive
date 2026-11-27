@@ -20,15 +20,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Morphe's logo, loading animation, and launcher icon in place of Reddit's, when the Morphe branding patch added them to
- * the app. Each load of a Reddit loader or Snoo resource ID passes through here; Reddit's stays until its switch is
- * turned on. The launcher icon is a launcher entry of its own, disabled until its switch enables it.
- */
 @SuppressWarnings("unused")
 public final class Branding {
 
-    /** The launcher entry the patch adds, showing the Morphe icon. */
     private static final String LAUNCHER = "launcher.morphe";
     private static final String DEFAULT_LAUNCHER = "launcher.default";
 
@@ -38,26 +32,22 @@ public final class Branding {
     private Branding() {
     }
 
-    /** Injection point: the loading animation to show in place of Reddit's {@code id}. */
     public static int loader(int id) {
         if (!getBoolean(MORPHE_LOADER)) return id;
         if (loaderId < 0) loaderId = resource("morphe_reddit_loader", "raw");
         return loaderId != 0 ? loaderId : id;
     }
 
-    /** Injection point: the logo to show in place of Reddit's Snoo {@code id}. */
     public static int logo(int id) {
         if (!getBoolean(MORPHE_LOGO)) return id;
         if (logoId < 0) logoId = resource("morphe_reddit_logo", "drawable");
         return logoId != 0 ? logoId : id;
     }
 
-    /** Whether the app holds Morphe's branding files, which only the Morphe branding patch adds. */
     static boolean available() {
         return resource("morphe_reddit_loader", "raw") != 0;
     }
 
-    /** Whether the app holds the Morphe launcher entry. */
     static boolean launcherAvailable(Context context) {
         try {
             context.getPackageManager().getComponentEnabledSetting(new ComponentName(context, LAUNCHER));
@@ -76,10 +66,6 @@ public final class Branding {
         }
     }
 
-    /**
-     * Shows the Morphe launcher icon in place of the icons enabled now, which return when it is turned off. Another
-     * patch's icon choice (e.g., Morphe Patches' App icon) is one of those launcher entries.
-     */
     static void setLauncher(Context context, boolean on) {
         PackageManager pm = context.getPackageManager();
         String pkg = context.getPackageName();

@@ -12,9 +12,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
  * unpatched app reports in `X-Android-Cert` and which LINE's Firebase API key is allow-listed
  * against.
  *
- * The inspected `base.apk` (26.16.0) uses APK signing-key rotation, so it carries two
+ * The inspected `base.apk` (26.19.0) uses APK signing-key rotation, so it carries two
  * certificates: the lineage-ROOT / original key (Android SDK 24–32) and a rotated key (SDK
- * 33+). `rl.a.a` reads the cert via the deprecated `GET_SIGNATURES`. For a rotated app, it
+ * 33+). `fs.a.a` reads the cert via the deprecated `GET_SIGNATURES`. For a rotated app, it
  * returns the ORIGINAL (lineage-root) certificate for backward compatibility, so this is the
  * SDK 24–32 signer.
  *
@@ -35,7 +35,7 @@ val fixPushNotificationsPatch = bytecodePatch(
     // `setRequestProperty(key, value)`, where `value` holds the cert hash computed at run time.
     // Overwrite that value register with the original LINE cert hash right before the call, so a
     // re-signed build reports the allow-listed SHA-1. Only these call sites change. The shared
-    // `rl.a`/`rl.h` helpers stay intact.
+    // `fs.a`/`fs.g` helpers stay intact.
     execute {
         listOf(
             FisRequestBuilderFingerprint,

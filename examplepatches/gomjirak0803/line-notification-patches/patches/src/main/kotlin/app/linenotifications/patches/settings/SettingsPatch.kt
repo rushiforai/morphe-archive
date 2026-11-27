@@ -168,7 +168,9 @@ val notificationSettingsPatch = bytecodePatch(
 
         // The new row: v4 = the row, v5 .. are its arguments. Each argument that has no role of
         // its own (the subtitle, the providers, the analytics function) is copied from the field
-        // where "About LINE" keeps it. v3 holds "About LINE".
+        // where "About LINE" keeps it. v3 holds "About LINE". When a copied argument lands above
+        // v15 (outside 4-bit iget*/const/4 range), v1 is used as a low scratch register: v1 is
+        // outside {v4 .. lastRegister} and unconditionally reset to 0 before the Profile search.
         val argumentSmali = types.indices.joinToString("\n") { index ->
             val register = 5 + index
             when (index) {
@@ -178,7 +180,7 @@ val notificationSettingsPatch = bytecodePatch(
                     move-result-object v$register
                 """
                 2 -> "" // v7 already holds the title id.
-                eventIndex -> "const/4 v$register, 0x0"
+                eventIndex -> if (register <= 15) "const/4 v$register, 0x0" else "const/16 v$register, 0x0"
                 clickIndex -> """
                     new-instance v$register, $CLICK
                     invoke-direct {v$register}, $CLICK-><init>()V
@@ -190,15 +192,27 @@ val notificationSettingsPatch = bytecodePatch(
                 maskIndex -> "const v$register, $mask"
                 else -> {
                     val field = fieldOfArgument(rowCtor, index)
-                    if (register > 15) throw PatchException("Row argument $index needs register v$register")
+                    if (register > 255) throw PatchException("Row argument $index needs register v$register")
                     when (field.type) {
-                        "I", "Z" -> "iget v$register, v3, $field"
+                        "I", "Z" -> {
+                            val op = if (field.type == "Z") "iget-boolean" else "iget"
+                            if (register <= 15) "$op v$register, v3, $field"
+                            else """
+                                $op v1, v3, $field
+                                move/from16 v$register, v1
+                            """
+                        }
                         "J", "D" -> throw PatchException("Wide row argument $index is not supported")
-                        types[index] -> "iget-object v$register, v3, $field"
+                        types[index] ->
+                            if (register <= 15) "iget-object v$register, v3, $field"
+                            else """
+                                iget-object v1, v3, $field
+                                move-object/from16 v$register, v1
+                            """
                         // The field has another type than the argument: it holds the default
                         // that the constructor builds when the mask marks the argument unused.
                         // "About LINE" leaves such an argument unset, so pass null.
-                        else -> "const/4 v$register, 0x0"
+                        else -> if (register <= 15) "const/4 v$register, 0x0" else "const/16 v$register, 0x0"
                     }
                 }
             }
@@ -363,7 +377,7 @@ private fun BytecodePatchContext.fieldOfArgument(ctor: MethodReference, argument
                 }
             }
 
-            Opcode.IPUT_OBJECT, Opcode.IPUT -> {
+            Opcode.IPUT_OBJECT, Opcode.IPUT, Opcode.IPUT_BOOLEAN -> {
                 val put = instruction as TwoRegisterInstruction
                 if (put.registerA in value && put.registerB in self) {
                     return (instruction as ReferenceInstruction).reference as FieldReference

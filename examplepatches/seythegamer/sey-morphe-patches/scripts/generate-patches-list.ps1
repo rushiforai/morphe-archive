@@ -12,7 +12,7 @@
 # The version must match patches-bundle.json and the bundle manifest.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.2.6'
+    [string]$Version = '1.2.7'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -75,9 +75,10 @@ $twitchTv = [ordered]@{
 $patches = @(
     [ordered]@{
         name               = 'CHAT SIZE'
-        description        = 'Resize the chat in the VIDEO/CHAT view: default (100%), ' +
-                             '125%, 90%, 85% and 80%. The video and the chat panel always ' +
-                             'meet at the same edge. Requires the SEYTTINGS patch.'
+        description        = 'Resize the chat in the VIDEO/CHAT view with three options: ' +
+                             'Native (stock), Twitch-like (Twitch TV ratio) and Big. The ' +
+                             'video and the chat panel always meet at the same edge. ' +
+                             'Requires the SEYTTINGS patch.'
         default            = $true
         category           = $null
         compatiblePackages = @($kickTv)
@@ -85,9 +86,9 @@ $patches = @(
     },
     [ordered]@{
         name               = 'CHAT TEXT SIZE'
-        description        = 'Render chat messages with a larger, Twitch-like TV text ' +
-                             'size. Pick 16 sp (default), 15 sp, 13 sp or the stock ' +
-                             '11 sp in SEYTTINGS. Requires the SEYTTINGS patch.'
+        description        = 'Two options: Native (stock KICK text and spacing) or ' +
+                             'Twitch-like (larger 16 sp text, a wider 10 dp gap, lighter message text ' +
+                             'and bolder usernames). Toggle in SEYTTINGS. Requires the SEYTTINGS patch.'
         default            = $true
         category           = $null
         compatiblePackages = @($kickTv)
@@ -96,8 +97,8 @@ $patches = @(
     [ordered]@{
         name               = 'EMOTES'
         description        = 'Shows 7TV, BTTV and FFZ emotes in the KICK TV chat. ' +
-                             'One toggle in SEYTTINGS enables or disables all providers. ' +
-                             'Requires the SEYTTINGS patch.'
+                             'One toggle enables all providers, plus a Native/Twitch-like ' +
+                             'emote size option. Requires the SEYTTINGS patch.'
         default            = $true
         category           = $null
         compatiblePackages = @($kickTv)
@@ -152,6 +153,26 @@ $patches = @(
                              'Following or Settings) automatically when KICK ' +
                              'starts. Pick it in SEYTTINGS. Requires the ' +
                              'SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($kickTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'CHAT BACKGROUND'
+        description        = 'Replaces the KICK chat background with pure black ' +
+                             '(#000000) for AMOLED screens. Toggle it in SEYTTINGS. ' +
+                             'Requires the SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($kickTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'DEFAULT SPLIT VIEW'
+        description        = 'Opens streams in the video/chat split view by default ' +
+                             'instead of the small overlay chat. Toggle it in SEYTTINGS. ' +
+                             'Requires the SEYTTINGS patch.'
         default            = $true
         category           = $null
         compatiblePackages = @($kickTv)

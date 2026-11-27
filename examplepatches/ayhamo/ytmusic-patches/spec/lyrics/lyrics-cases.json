@@ -1,0 +1,67 @@
+{
+ "notes": {
+  "_about": "Shared lyrics cases (spec/lyrics/lyrics.md). Every port reads this file. Times in ms. A line is {start, end}; agent ids as in TTML.",
+  "activeLines": "lyrics.md §2.1-2.2, 2.7. Metrolist LyricsRetiming.kt:362-460 read without its memory: the lines active at the position (lead 660; a duet's second voice max(250, 660 - 150) word-synced, max(250, 660 - 250) line-synced; overlaps under 250 trimmed). leadMs 0: lyrics by real timing. Expect the active indices.",
+ "currentLine": "lyrics.md §2.4. Metrolist LyricsUtils.kt:111-121 (findCurrentLineIndex): line i is current while the next line's start is at or after position + 100; -1 before the first. Input: line starts and the position.",
+  "offset": "lyrics.md §3. Metrolist LyricsUtils.kt:94-107: offset = song + global; lyrics position = player position + offset; a seek by lyrics goes to max(0, lyric time - offset).",
+  "sides": "lyrics.md §5.2. Metrolist LyricsUtils.kt:160-235 (assignLineAlignments). agents: optional {id: 'person' | 'group' | 'other'}; a line's agent may be null. respect: the sides setting. Expect left, right or center per line.",
+  "gaps": "lyrics.md §6.1. Metrolist LyricsListIndexing.kt:28-53. A line starts at min(its tag, its first timed word) (5f58b4081). Expect [start, end] per gap, in order.",
+  "parse": "lyrics.md §11.6. Metrolist MlxParser.kt (EnhancedLrcPrefixTest, 0bc6ec068; LyricsEditor BOM, 459059bb2). input: {format: lrc | enhancedLrc, text}. Expect per line its start and, for word lines, [text, start] per word plus 'bg' for a background vocal.",
+  "lrcOffset": "lyrics.md §3.5, the LRC standard (Morphe LRCParser.java:719; the reverse of Metrolist LrcTiming.kt): the last [offset:N] on a line of its own, taken from every time, none below 0. Same input and expect as parse."
+ },
+ "currentLine": [
+  { "name": "before the first line", "input": { "starts": [1000, 5000, 9000], "position": 500 }, "expect": -1 },
+  { "name": "100 ms before the second line: still the first", "input": { "starts": [1000, 5000, 9000], "position": 4900 }, "expect": 0 },
+  { "name": "99 ms before the second line: the second", "input": { "starts": [1000, 5000, 9000], "position": 4901 }, "expect": 1 },
+  { "name": "on the second line", "input": { "starts": [1000, 5000, 9000], "position": 6000 }, "expect": 1 },
+  { "name": "after the last line starts", "input": { "starts": [1000, 5000, 9000], "position": 20000 }, "expect": 2 }
+ ],
+ "offset": [
+  { "name": "song and global add up", "input": { "song": 300, "global": -100, "player": 10000 }, "expect": { "offset": 200, "lyrics": 10200, "seekTo": 10000 } },
+  { "name": "a positive offset shows lyrics earlier", "input": { "song": 500, "global": 0, "player": 1000 }, "expect": { "offset": 500, "lyrics": 1500, "seekTo": 1000 } },
+  { "name": "a seek by lyrics never goes below 0", "input": { "song": 500, "global": 0, "player": 0, "lyricTime": 200 }, "expect": { "offset": 500, "lyrics": 500, "seekTo": 0 } }
+ ],
+ "sides": [
+  { "name": "two singers alternate, a group is centred", "input": { "lines": ["v1", "v2", "v1", "v1000", "v2"], "respect": true }, "expect": ["left", "right", "left", "center", "right"] },
+  { "name": "the first singer 'other' starts on the right", "input": { "lines": ["v2000", "v2000", "v1"], "respect": true }, "expect": ["right", "right", "left"] },
+  { "name": "85% or more on the right: all swapped", "input": { "lines": ["o1", "o1", "o1"], "respect": true }, "expect": ["left", "left", "left"] },
+  { "name": "types from the agent list win over the id", "input": { "lines": ["a", "b", "c"], "agents": { "a": "person", "b": "group", "c": "person" }, "respect": true }, "expect": ["left", "center", "right"] },
+  { "name": "no singer: the view's alignment (centre)", "input": { "lines": [null, "v1", null], "respect": true }, "expect": ["center", "left", "center"] },
+  { "name": "sides off: centre, a group too", "input": { "lines": ["v1", "v2", "v1000"], "respect": false }, "expect": ["center", "center", "center"] }
+ ],
+ "gaps": [
+  { "name": "an intro and a gap between lines", "input": { "lines": [{ "start": 9000, "end": 12000 }, { "start": 13000, "end": 15000 }, { "start": 23000, "end": 26000 }] }, "expect": [[0, 8200], [15310, 22200]] },
+  { "name": "a first line at 6999: no intro; exactly 7000 between lines is a gap", "input": { "lines": [{ "start": 6999, "end": 8000 }, { "start": 15000, "end": 16000 }] }, "expect": [[8310, 14200]] },
+  { "name": "the latest end counts, not the last line's", "input": { "lines": [{ "start": 1000, "end": 9000 }, { "start": 2000, "end": 3000 }, { "start": 11000, "end": 12000 }] }, "expect": [] },
+  { "name": "a word before its line's tag: the countdown ends at the first word (Metrolist 5f58b4081)", "input": { "lines": [{ "start": 1000, "end": 3000 }, { "start": 12000, "end": 14000, "words": [{ "start": 11000, "end": 11400 }, { "start": 12200, "end": 13000 }] }] }, "expect": [[3310, 10200]] },
+  { "name": "a first word after its tag changes nothing; a zero-length word doesn't count", "input": { "lines": [{ "start": 9000, "end": 11000, "words": [{ "start": 8000, "end": 8000 }, { "start": 9500, "end": 10000 }] }] }, "expect": [[0, 8200]] }
+ ],
+ "activeLines": [
+  {"name": "660 ms before the next line: still this one", "input": {"lines": [{"start": 0, "end": 4000}, {"start": 4000, "end": 8000}], "position": 3300, "wordSynced": false}, "expect": [0]},
+  {"name": "within 660 ms of the next line: the next one", "input": {"lines": [{"start": 0, "end": 4000}, {"start": 4000, "end": 8000}], "position": 3400, "wordSynced": false}, "expect": [1]},
+  {"name": "lyrics by real timing: no lead", "input": {"lines": [{"start": 0, "end": 4000}, {"start": 4000, "end": 8000}], "position": 3400, "wordSynced": false, "leadMs": 0}, "expect": [0]},
+  {"name": "lyrics by real timing: the next line on its start", "input": {"lines": [{"start": 0, "end": 4000}, {"start": 4000, "end": 8000}], "position": 4000, "wordSynced": false, "leadMs": 0}, "expect": [1]},
+  {"name": "a duet, word-synced: the second voice 510 ms ahead, both active", "input": {"lines": [{"start": 0, "end": 6000}, {"start": 3000, "end": 8000}], "position": 2500, "wordSynced": true}, "expect": [0, 1]},
+  {"name": "a duet, word-synced: 511 ms ahead is too early", "input": {"lines": [{"start": 0, "end": 6000}, {"start": 3000, "end": 8000}], "position": 2489, "wordSynced": true}, "expect": [0]},
+  {"name": "a duet, line-synced: 410 ms ahead", "input": {"lines": [{"start": 0, "end": 6000}, {"start": 3000, "end": 8000}], "position": 2600, "wordSynced": false}, "expect": [0, 1]},
+  {"name": "a duet, line-synced: 500 ms ahead is too early", "input": {"lines": [{"start": 0, "end": 6000}, {"start": 3000, "end": 8000}], "position": 2500, "wordSynced": false}, "expect": [0]},
+  {"name": "an overlap under 250 ms is trimmed, not a duet", "input": {"lines": [{"start": 0, "end": 4100}, {"start": 4000, "end": 8000}], "position": 3400, "wordSynced": false}, "expect": [1]},
+  {"name": "before the first line: none until 660 ms ahead", "input": {"lines": [{"start": 5000, "end": 9000}], "position": 4300, "wordSynced": false}, "expect": []},
+  {"name": "660 ms ahead of the first line: active", "input": {"lines": [{"start": 5000, "end": 9000}], "position": 4340, "wordSynced": false}, "expect": [0]},
+  {"name": "after the last line's end: none", "input": {"lines": [{"start": 0, "end": 4000}], "position": 4000, "wordSynced": false}, "expect": []}
+ ],
+ "parse": [
+  {"name": "text before the first word tag starts at the line tag (Metrolist 0bc6ec068)", "input": {"format": "enhancedLrc", "text": "[00:01.00]First <00:01.50>word<00:02.00>"}, "expect": [{"start": 1000, "words": [["First", 1000], ["word", 1500]]}]},
+  {"name": "a line tag after the first word tag: the leading text starts at that word, never later", "input": {"format": "enhancedLrc", "text": "[00:01.75]First <00:01.50>word<00:02.00>"}, "expect": [{"start": 1750, "words": [["First", 1500], ["word", 1500]]}]},
+  {"name": "an inline background vocal keeps its own leading text, marked bg", "input": {"format": "enhancedLrc", "text": "[00:01.00]<00:01.00>Lead<00:02.00> [bg:Echo <00:01.50>now<00:02.00>]"}, "expect": [{"start": 1000, "words": [["Lead", 1000], ["Echo", 1000, "bg"], ["now", 1500, "bg"]]}]},
+  {"name": "a BOM before the first tag is ignored (Metrolist 459059bb2)", "input": {"format": "lrc", "text": "﻿[00:01.00]a\n[00:03.00]b"}, "expect": [{"start": 1000}, {"start": 3000}]},
+  {"name": "a BOM before an enhanced LRC line is ignored", "input": {"format": "enhancedLrc", "text": "﻿[00:01.00]<00:01.00>a <00:01.50>b<00:02.00>"}, "expect": [{"start": 1000, "words": [["a", 1000], ["b", 1500]]}]}
+ ],
+ "lrcOffset": [
+  {"name": "a positive offset shows the lyrics earlier (the LRC standard)", "input": {"format": "lrc", "text": "[ar:x]\n[offset:+500]\n[00:01.00]a\n[00:03.00]b"}, "expect": [{"start": 500}, {"start": 2500}]},
+  {"name": "a positive offset past a line's time: never below 0", "input": {"format": "lrc", "text": "[offset:1500]\n[00:01.00]a\n[00:03.00]b"}, "expect": [{"start": 0}, {"start": 1500}]},
+  {"name": "a negative offset shows them later", "input": {"format": "lrc", "text": "[offset:-1500]\n[00:01.00]a\n[00:03.00]b"}, "expect": [{"start": 2500}, {"start": 4500}]},
+  {"name": "the last [offset:] counts; word times move with their line", "input": {"format": "enhancedLrc", "text": "[offset:100]\n[offset:250]\n[00:01.00]<00:01.00>a <00:01.50>b<00:02.00>"}, "expect": [{"start": 750, "words": [["a", 750], ["b", 1250]]}]},
+  {"name": "an [offset:] inside a line isn't one", "input": {"format": "lrc", "text": "[00:01.00]a [offset:500]\n[00:03.00]b"}, "expect": [{"start": 1000}, {"start": 3000}]}
+ ]
+}

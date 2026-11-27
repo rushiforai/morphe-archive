@@ -27,6 +27,7 @@ import com.facebook.graphql.model.GraphQLComment;
 import com.facebook.graphql.model.GraphQLPagesYouMayLikeFeedUnit;
 import com.facebook.graphql.model.GraphQLStory;
 import com.facebook.graphservice.tree.TreeJNI;
+import com.facebook.timeline.dashboard.tab.TimelineTab;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -106,6 +107,7 @@ import app.morphe.extension.facebook.feed.PostPrompts;
 import app.morphe.extension.facebook.feed.LikeButtonFaces;
 import app.morphe.extension.facebook.feed.AskBeforeLike;
 import app.morphe.extension.facebook.feed.ProfilePictures;
+import app.morphe.extension.facebook.feed.FriendsTabSuggestionsForTests;
 import app.morphe.extension.facebook.feed.ProfileSuggestionsForTests;
 import app.morphe.extension.facebook.feed.RelatedPosts;
 import app.morphe.extension.facebook.feed.TranslateCommentsForTests;
@@ -118,6 +120,7 @@ import app.morphe.extension.facebook.comments.CommentBlock;
 import app.morphe.extension.facebook.comments.CommentSheetOptions;
 import app.morphe.extension.facebook.comments.FakeReplyPager;
 import app.morphe.extension.facebook.comments.FullHeightComments;
+import app.morphe.extension.facebook.comments.HeldComment;
 import app.morphe.extension.facebook.comments.LiveCommentBar;
 import app.morphe.extension.facebook.comments.MetaAiSummaries;
 import app.morphe.extension.facebook.comments.ReactorBlock;
@@ -157,6 +160,7 @@ import app.morphe.extension.facebook.misc.ShareSheetGroups;
 import app.morphe.extension.facebook.misc.ShareSheetPeople;
 import app.morphe.extension.facebook.navigation.BottomTabBar;
 import app.morphe.extension.facebook.navigation.TopBarButtons;
+import app.morphe.extension.facebook.navigation.ProfileTabHold;
 import app.morphe.extension.facebook.navigation.TabBarScrollAway;
 import app.morphe.extension.facebook.navigation.TranslucentBarsForTests;
 import app.morphe.extension.facebook.navigation.RoundedTabBarForTests;
@@ -168,6 +172,7 @@ import app.morphe.extension.facebook.navigation.ReelsTabForTests;
 import app.morphe.extension.facebook.navigation.TabBadgesForTests;
 import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
 import app.morphe.extension.facebook.notifications.NotificationKindsForTests;
+import app.morphe.extension.facebook.profile.FriendListForTests;
 import app.morphe.extension.facebook.profile.ProfileNotesForTests;
 import app.morphe.extension.facebook.reels.DoubleTapLike;
 import app.morphe.extension.facebook.reels.DoubleTapSkip;
@@ -192,6 +197,7 @@ import app.morphe.extension.facebook.reels.StillWatching;
 import app.morphe.extension.facebook.reels.TapShowsControls;
 import app.morphe.extension.facebook.reels.WatchAgain;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
+import app.morphe.extension.facebook.search.PreSearchSections;
 import app.morphe.extension.facebook.search.PreSearchSectionsForTests;
 import app.morphe.extension.facebook.search.SearchDateRange;
 import app.morphe.extension.facebook.search.SearchDateRangeForTests;
@@ -326,6 +332,9 @@ public class PausedHooksTest {
     /** Stands in for Facebook's story navigation reasons, which the last-card tap goes by. */
     private enum NavigationReason { TAP_FORWARD }
 
+    /** Stands in for Facebook's kinds of option a held comment offers (#607). */
+    private enum HeldOption { REPLY }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -448,6 +457,8 @@ public class PausedHooksTest {
                 () -> FeedGuardForTests.hides(Category.ORGANIC, FeedGuardForTests.storiesRow(true)),
                 // Your own profile's People you may know carousel builds nothing.
                 ProfileSuggestionsForTests::hidesTheCarousel,
+                // The Friends tab's list goes without its People you may know section.
+                FriendsTabSuggestionsForTests::dropsTheSuggestions,
                 // A post opened from a notification is asked for without its list of more posts.
                 () -> !NotificationFooter.show(true),
                 // The end of the feed is built without its Find friends card.
@@ -460,6 +471,8 @@ public class PausedHooksTest {
                 SuggestedGroupsCard::hideDiscoverRow,
                 // The search screen draws its For you section as an empty row.
                 PreSearchSectionsForTests::drawsForYouEmpty,
+                // The search screen is built from rows where Facebook would draw it as one server page.
+                () -> !PreSearchSections.serverPage(true),
                 // The socket under a post's buttons gets a no for the Related posts list.
                 () -> RelatedPosts.holds(RelatedPosts.PLUGIN),
                 // So does the comment screen's socket under the comments.
@@ -707,6 +720,8 @@ public class PausedHooksTest {
         // Your own profile's count line shows the number you typed.
         probes.put(PatchFamily.LOCAL_PROFILE_COUNTS,
                 Collections.singletonList(app.morphe.extension.facebook.profile.LocalProfileCountsForTests::swapsAFriendsCount));
+        // Your own friends list, read to its end, is kept on the phone.
+        probes.put(PatchFamily.FRIEND_LIST, Collections.singletonList(FriendListForTests::keepsAList));
         // A post's row loses Facebook's own Save and Like, a video post's row gets Download, and the
         // row goes without its own tap. With every switch on, hiding Save wins over adding it (#541).
         probes.put(PatchFamily.POST_ACTION_BUTTONS, Arrays.asList(
@@ -1048,8 +1063,10 @@ public class PausedHooksTest {
         // With the bar at the bottom, Facebook's check of whether it slides away answers yes. The top
         // bar's entry is told to move 0 and fade by 0. (A kept bottom bar has its own test: with every
         // switch on, the slide wins over it.) Facebook's big screen layout gate is answered no. A frame
-        // of the main screen makes the top bar's background see-through.
+        // of the main screen makes the top bar's background see-through. A long press on the profile
+        // tab is taken, opening the Activity log.
         probes.put(PatchFamily.BOTTOM_TAB_BAR, Arrays.asList(
+                () -> ProfileTabHold.held(new View(RuntimeEnvironment.getApplication()), new TimelineTab()),
                 () -> BottomTabBar.override(TriState.NO.ordinal()) == TriState.YES.ordinal(),
                 BottomTabBar::phoneLayout,
                 TabBarScrollAway::slidesAway,
@@ -1132,8 +1149,13 @@ public class PausedHooksTest {
                 () -> CommentSheetOptions.incomingTypers(3) == 0,
                 () -> CommentSheetOptions.newCommentsPill("3 new comments").isEmpty(),
                 CommentSheetOptions::holdsEmojiRow,
+                // A held comment loses its Reply and its reactions (#607).
+                () -> HeldComment.dropsOption(HeldOption.REPLY),
+                () -> HeldComment.reactions(new Object()) == null,
                 // Comments open with the keyboard closed (#594).
                 () -> !CommentSheetOptions.keyboardOnFirstLoad(true),
+                // A tap on a post's text, flyout context 5, leaves its comments closed (#594).
+                () -> CommentSheetOptions.keepsCommentsClosed(5),
                 () -> {
                     // The bar along the bottom of a live video is held gone (#537).
                     View bar = new View(RuntimeEnvironment.getApplication());

@@ -13,6 +13,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -130,33 +131,35 @@ final class LocalAnalysisFlow {
 
         try {
             // Parse PGN using the app's native parser
-            Class<?> qClass = Class.forName("com.chess.chessboard.pgn.q");
+            Class<?> qClass = Class.forName(GameReviewExtension.pgnParserClass());
             Class<?> fenTypeClass = Class.forName("com.chess.chessboard.fen.FenParser$FenType");
             Object fenTypeC = fenTypeClass.getField("c").get(null);
 
-            Method parsePgnMethod = qClass.getMethod("a", String.class, boolean.class, boolean.class, fenTypeClass);
+            Method parsePgnMethod = qClass.getMethod(GameReviewExtension.pgnParserMethod(), String.class, boolean.class, boolean.class, fenTypeClass);
             Object gameObj = parsePgnMethod.invoke(null, pgn, true, true, fenTypeC);
 
-            Method getMovesMethod;
-            try {
-                getMovesMethod = gameObj.getClass().getMethod("getMoves");
-            } catch (NoSuchMethodException e) {
-                getMovesMethod = gameObj.getClass().getMethod("b");
+            // The parsed game keeps its moves (its one list) and its starting position in fields.
+            List<?> moves = null;
+            for (Field field : gameObj.getClass().getDeclaredFields()) {
+                if (List.class.isAssignableFrom(field.getType())) {
+                    field.setAccessible(true);
+                    moves = (List<?>) field.get(gameObj);
+                }
             }
-            List<?> moves = (List<?>) getMovesMethod.invoke(gameObj);
+            if (moves == null) throw new IllegalStateException("The parsed game has no moves");
             int totalMoves = moves.size();
 
-            Method getStartingPositionMethod;
-            try {
-                getStartingPositionMethod = gameObj.getClass().getMethod("getStartingPosition");
-            } catch (NoSuchMethodException e) {
-                getStartingPositionMethod = gameObj.getClass().getMethod("c");
-            }
-            Object startingPosition = getStartingPositionMethod.invoke(gameObj);
+            Field startField = gameObj.getClass().getDeclaredField(GameReviewExtension.pgnStartField());
+            startField.setAccessible(true);
+            Object startingPosition = startField.get(gameObj);
             String startingFen = extractFen(startingPosition);
 
+            // A move's UCI text: chess.com converts a history entry (position, move, flag).
             Class<?> moveConverterClass = Class.forName("com.chess.chessboard.compengine.MoveConverterKt");
-            Method moveConvertMethod = moveConverterClass.getMethod("b", Class.forName("com.chess.chessboard.l"));
+            Class<?> historyClass = Class.forName(GameReviewExtension.historyClass());
+            Method moveConvertMethod = moveConverterClass.getMethod(GameReviewExtension.moveTextMethod(), historyClass);
+            Constructor<?> historyEntry = historyClass.getConstructor(
+                Class.forName(GameReviewExtension.positionClass()), Class.forName("com.chess.chessboard.l"), boolean.class);
 
             // Extract every FEN and played move once.
             String[] fens = new String[totalMoves + 1];
@@ -164,14 +167,16 @@ final class LocalAnalysisFlow {
             fens[0] = startingFen;
             for (int i = 0; i < totalMoves; i++) {
                 Object csrmm = moves.get(i);
-                fens[i + 1] = extractFen(getPositionAfter(csrmm));
+                Object after = getPositionAfter(csrmm);
+                fens[i + 1] = extractFen(after);
                 Method getRawMoveMethod;
                 try {
                     getRawMoveMethod = csrmm.getClass().getMethod("getRawMove");
                 } catch (NoSuchMethodException e) {
                     getRawMoveMethod = csrmm.getClass().getMethod("a");
                 }
-                playedLans[i] = (String) moveConvertMethod.invoke(null, getRawMoveMethod.invoke(csrmm));
+                Object entry = historyEntry.newInstance(after, getRawMoveMethod.invoke(csrmm), false);
+                playedLans[i] = (String) moveConvertMethod.invoke(null, entry);
             }
 
             // Stockfish-safe move list (standard castling notation) + lightweight boards.

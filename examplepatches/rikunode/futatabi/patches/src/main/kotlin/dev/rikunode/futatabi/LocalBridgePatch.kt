@@ -47,16 +47,9 @@ private val bridgeManifestPatch = resourcePatch {
             ) {
                 val activity = document.createElement("activity")
                 activity.setAttribute("android:name", activityName)
-                activity.setAttribute("android:exported", "true")
-                activity.setAttribute("android:label", "futatabi 投稿")
-                val intentFilter = document.createElement("intent-filter")
-                val action = document.createElement("action")
-                action.setAttribute("android:name", "android.intent.action.MAIN")
-                intentFilter.appendChild(action)
-                val category = document.createElement("category")
-                category.setAttribute("android:name", "android.intent.category.LAUNCHER")
-                intentFilter.appendChild(category)
-                activity.appendChild(intentFilter)
+                // Internal catalog login button opens this Activity explicitly.
+                activity.setAttribute("android:exported", "false")
+                activity.setAttribute("android:label", "futatabi")
                 application.appendChild(activity)
             }
             val replyName = "dev.rikunode.futatabi.bridge.ThreadReplyActivity"

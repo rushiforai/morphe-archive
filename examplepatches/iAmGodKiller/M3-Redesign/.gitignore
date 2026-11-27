@@ -1,0 +1,25 @@
+# Build & local workspace artifacts
+.morphe-build/
+dist/
+build/
+.gradle/
+local.properties
+*.mpp
+*.mpe
+*.apk
+*.keystore
+*.jks
+
+# Editor / OS / temporary files
+.idea/
+.vscode/
+*.iml
+*.bak
+*.log
+.DS_Store
+Thumbs.db
+__pycache__/
+*.py[cod]
+
+# AI Studio internal metadata (keep out of public GitHub commits)
+metadata.json

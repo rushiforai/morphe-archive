@@ -1,3 +1,10 @@
+## [0.3.9](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.8...v0.3.9) (2026-11-26)
+
+### 🔧 Improvements
+
+* ship JS adapters as deltas and match the official bundle build
+
+
 ## [0.3.8](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.7...v0.3.8) (2026-11-26)
 
 ### 🐛 Bug Fixes

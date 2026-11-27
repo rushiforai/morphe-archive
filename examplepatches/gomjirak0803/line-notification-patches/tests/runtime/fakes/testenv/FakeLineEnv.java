@@ -74,12 +74,38 @@ public final class FakeLineEnv {
         }
     }
 
+    public static final class GlideRequestRecord {
+        public final Object model;
+        public final co.l strategy;
+        public final Boolean onlyCache;
+        public final int overrideWidth;
+        public final int overrideHeight;
+        public final boolean circleCrop;
+        public final int submitWidth;
+        public final int submitHeight;
+
+        public GlideRequestRecord(Object model, co.l strategy, Boolean onlyCache,
+                                  int overrideWidth, int overrideHeight, boolean circleCrop,
+                                  int submitWidth, int submitHeight) {
+            this.model = model;
+            this.strategy = strategy;
+            this.onlyCache = onlyCache;
+            this.overrideWidth = overrideWidth;
+            this.overrideHeight = overrideHeight;
+            this.circleCrop = circleCrop;
+            this.submitWidth = submitWidth;
+            this.submitHeight = submitHeight;
+        }
+    }
+
     public static volatile String activeAccount = "u_acc_1";
     public static volatile boolean previewsAllowed = true;
     public static volatile boolean throwOnPreviewsAllowed = false;
     public static volatile boolean throwOnMessageQuery = false;
     public static volatile boolean nextNativeMuteSuccess = true;
     public static volatile boolean deferNativeMuteCallback = false;
+    public static volatile boolean deferNativeReadCallback = false;
+    public static volatile int nativeReadSubscribeCalls = 0;
     public static volatile Runnable onAvatarLoad = null;
     public static volatile Runnable onPreviewsAllowedCheck = null;
     public static volatile Runnable onMutedCheck = null;
@@ -87,6 +113,8 @@ public final class FakeLineEnv {
     public static final List<MessageRow> MESSAGES = new ArrayList<MessageRow>();
     public static final Map<String, ContactRow> CONTACTS = new HashMap<String, ContactRow>();
     public static final List<NativeMuteCall> NATIVE_MUTE_CALLS = new ArrayList<NativeMuteCall>();
+    public static final List<j34.l> READ_CLEANUP_CALLS = new ArrayList<j34.l>();
+    public static final List<GlideRequestRecord> GLIDE_REQUESTS = new ArrayList<GlideRequestRecord>();
     public static final List<String> QUERIES = new ArrayList<String>();
     public static int chatListRefreshCount = 0;
     private static long nextRowId = 1L;
@@ -94,6 +122,8 @@ public final class FakeLineEnv {
     private static String pendingMuteChat;
     private static boolean pendingMuteDesired;
     private static java.util.concurrent.CountDownLatch deferredMuteInstalled;
+    private static q08.b pendingReadObserver;
+    private static String pendingReadChat;
 
     private FakeLineEnv() {}
 
@@ -104,6 +134,8 @@ public final class FakeLineEnv {
         throwOnMessageQuery = false;
         nextNativeMuteSuccess = true;
         deferNativeMuteCallback = false;
+        deferNativeReadCallback = false;
+        nativeReadSubscribeCalls = 0;
         onAvatarLoad = null;
         onPreviewsAllowedCheck = null;
         onMutedCheck = null;
@@ -111,12 +143,16 @@ public final class FakeLineEnv {
         MESSAGES.clear();
         CONTACTS.clear();
         NATIVE_MUTE_CALLS.clear();
+        READ_CLEANUP_CALLS.clear();
+        GLIDE_REQUESTS.clear();
         QUERIES.clear();
         chatListRefreshCount = 0;
         nextRowId = 1L;
         pendingContinuation = null;
         pendingMuteChat = null;
         deferredMuteInstalled = null;
+        pendingReadObserver = null;
+        pendingReadChat = null;
     }
 
     public static synchronized java.util.concurrent.CountDownLatch prepareDeferredNativeMute() {
@@ -149,12 +185,12 @@ public final class FakeLineEnv {
             if (deferredMuteInstalled != null) {
                 deferredMuteInstalled.countDown();
             }
-            return ct8.a.COROUTINE_SUSPENDED;
+            return rm8.a.COROUTINE_SUSPENDED;
         }
         if (nextNativeMuteSuccess) {
             ChatRow row = CHATS.get(chatId);
             if (row != null) row.nativeMuted = !desiredEnabled;
-            return ig3.t.c.a;
+            return ln3.u.c.a;
         }
         return new Object();
     }
@@ -169,10 +205,75 @@ public final class FakeLineEnv {
             if (success) {
                 ChatRow row = CHATS.get(chatId);
                 if (row != null) row.nativeMuted = !desired;
-                cont.resumeWith(ig3.t.c.a);
+                cont.resumeWith(ln3.u.c.a);
             } else {
                 cont.resumeWith(new Object());
             }
         }
+    }
+
+    public static synchronized void recordReadCleanup(j34.l[] targets) {
+        if (targets == null) return;
+        for (j34.l target : targets) {
+            if (target != null) READ_CLEANUP_CALLS.add(target);
+        }
+    }
+
+    public static synchronized List<j34.l> getReadCleanupCallsSnapshot() {
+        return new ArrayList<j34.l>(READ_CLEANUP_CALLS);
+    }
+
+    public static void handleNativeReadCall(String chatId, q08.b observer) {
+        synchronized (FakeLineEnv.class) {
+            nativeReadSubscribeCalls++;
+        }
+        observer.b(new r08.b() {
+            @Override public void dispose() {}
+        });
+        boolean defer;
+        synchronized (FakeLineEnv.class) {
+            defer = deferNativeReadCallback;
+            if (defer) {
+                pendingReadObserver = observer;
+                pendingReadChat = chatId;
+                return;
+            }
+            ChatRow row = CHATS.get(chatId);
+            if (row != null) row.unread = 0;
+        }
+        observer.onComplete();
+    }
+
+    public static void completeDeferredNativeRead(Throwable error) {
+        q08.b obs;
+        String chatId;
+        synchronized (FakeLineEnv.class) {
+            obs = pendingReadObserver;
+            chatId = pendingReadChat;
+            pendingReadObserver = null;
+            pendingReadChat = null;
+            if (obs != null && error == null) {
+                ChatRow row = CHATS.get(chatId);
+                if (row != null) row.unread = 0;
+            }
+        }
+        if (obs != null) {
+            if (error == null) {
+                obs.onComplete();
+            } else {
+                obs.onError(error);
+            }
+        }
+    }
+
+    public static synchronized void recordGlideRequest(Object model, co.l strategy, Boolean onlyCache,
+                                                       int overrideWidth, int overrideHeight, boolean circleCrop,
+                                                       int submitWidth, int submitHeight) {
+        GLIDE_REQUESTS.add(new GlideRequestRecord(
+                model, strategy, onlyCache, overrideWidth, overrideHeight, circleCrop, submitWidth, submitHeight));
+    }
+
+    public static synchronized List<GlideRequestRecord> getGlideRequestsSnapshot() {
+        return new ArrayList<GlideRequestRecord>(GLIDE_REQUESTS);
     }
 }

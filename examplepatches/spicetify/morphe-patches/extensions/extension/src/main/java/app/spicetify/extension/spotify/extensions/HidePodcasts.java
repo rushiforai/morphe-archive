@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class HidePodcasts {
     /** "Also hide audiobooks", in SharedPreferences {@code "spicetify_extensions"}: on until turned off, as on desktop. */
     private static final String HIDE_AUDIOBOOKS = "hide_audiobooks";
-    /** The app's own podcast prefixes ({@code Lp/c4c;->R}) and its show scheme, which audiobooks share. */
+    /** The app's own podcast prefixes ({@code Lp/a3t1;->M}) and its show scheme, which audiobooks share. */
     private static final String[] PODCAST_PREFIXES =
             {"spotify:show:", "spotify:episode:", "spotify:podcast-chapter:", "spotify:clip:"};
     /**
@@ -67,7 +67,7 @@ public final class HidePodcasts {
     }
 
     /**
-     * P1, {@code Lp/mz1;->g0}: whether to drop a Home {@code Section} before Spotify maps it. True when
+     * P1, {@code Lp/w4u;->k}: whether to drop a Home {@code Section} before Spotify maps it. True when
      * its items have at least one URI and all of them are podcasts', and, with audiobooks hidden, for the
      * audiobook InlineCard (case 34), which has no items.
      */
@@ -96,14 +96,14 @@ public final class HidePodcasts {
         }
     }
 
-    /** P3, {@code Lp/xqw;->a}: Home's chips without Podcasts, its Following chip and, with audiobooks hidden, Audiobooks. */
+    /** P3, {@code Lp/x820;->a}: Home's chips without Podcasts, its Following chip and, with audiobooks hidden, Audiobooks. */
     public static List<?> filterHomeChips(List<?> chips) {
         try {
             Context context = on();
             if (context == null) return chips;
             boolean audiobooks = audiobooksHidden(context);
             return without(chips, HOME_CHIPS, chip -> {
-                Object id = chip.getClass().getField("a").get(chip); // Lp/ztx;->a, the server's chip id
+                Object id = chip.getClass().getField("a").get(chip); // Lp/fg30;->a, the server's chip id
                 return "podcasts-chip".equals(id) || "podcasts-following-chip".equals(id)
                         || audiobooks && "audiobooks-chip".equals(id);
             });
@@ -114,7 +114,7 @@ public final class HidePodcasts {
     }
 
     /**
-     * P4, {@code Lp/bzw0;->b}: whether to drop a search result before Spotify maps it. Shows, episodes and
+     * P4, {@code Lp/ne81;->b}: whether to drop a search result before Spotify maps it. Shows, episodes and
      * chapters go by their type, audiobooks only while hidden, a section when everything in it goes, and
      * anything else by its URI. The URI never decides an audiobook, since it's a show URI too.
      */
@@ -131,18 +131,18 @@ public final class HidePodcasts {
         }
     }
 
-    /** P5, {@code Lp/ipy;-><init>}: Search's filter chips without Podcasts and, with audiobooks hidden, Audiobooks. */
+    /** P5, {@code Lp/rh40;-><init>}: Search's filter chips without Podcasts and, with audiobooks hidden, Audiobooks. */
     public static ArrayList<?> filterSearchChips(ArrayList<?> chips) {
         try {
             Context context = on();
             if (context == null) return chips;
             boolean audiobooks = audiobooksHidden(context);
             return (ArrayList<?>) without(chips, SEARCH_CHIPS, chip -> {
-                Object type = chip.getClass().getField("b").get(chip); // Lp/gpy;->b, an Lp/fpy;
+                Object type = chip.getClass().getField("b").get(chip); // Lp/ph40;->b, an Lp/oh40;
                 if (type == null) return false;
                 String kind = type.getClass().getName();
-                if (kind.equals("p.cpy")) return type.getClass().getField("a").getInt(type) == 2; // PODCAST_AND_EPISODES
-                return audiobooks && kind.equals("p.dpy") && type.getClass().getField("a").getInt(type) == 3; // AUDIOBOOK
+                if (kind.equals("p.jh40")) return type.getClass().getField("a").getInt(type) == 2; // PODCAST_AND_EPISODES
+                return audiobooks && kind.equals("p.kh40") && type.getClass().getField("a").getInt(type) == 3; // AUDIOBOOK
             });
         } catch (Throwable e) {
             failed(SEARCH_CHIPS, e);
@@ -151,7 +151,7 @@ public final class HidePodcasts {
     }
 
     /**
-     * P6, in {@code Lp/b90;->invoke}: the Your Library chips that {@code Lp/k770;->a} built, without
+     * P6, in {@code Lp/sfu;->invoke}: the Your Library chips that {@code Lp/x1e0;->a} built, without
      * Podcasts and, with audiobooks hidden, Books and Authors. Downloaded podcasts and books are children
      * of the Downloaded chip, out of reach.
      */
@@ -161,7 +161,7 @@ public final class HidePodcasts {
             if (context == null) return chips;
             boolean audiobooks = audiobooksHidden(context);
             return without(chips, LIBRARY_CHIPS, chip -> {
-                Object id = chip.getClass().getMethod("getId").invoke(chip); // Lp/j770;->getId(), a kept name
+                Object id = chip.getClass().getMethod("getId").invoke(chip); // Lp/w1e0;->getId(), a kept name
                 return "podcasts".equals(id) || audiobooks && ("books".equals(id) || "authors".equals(id));
             });
         } catch (Throwable e) {

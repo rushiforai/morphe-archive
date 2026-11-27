@@ -1,4 +1,8 @@
 * text=auto
 *.sh text eol=lf
 *.kt text eol=lf
+*.mjs text eol=lf
 *.yml text eol=lf
+*.sha256 text eol=lf
+*.tsv text eol=lf
+docs/versions/**/*.json text eol=lf

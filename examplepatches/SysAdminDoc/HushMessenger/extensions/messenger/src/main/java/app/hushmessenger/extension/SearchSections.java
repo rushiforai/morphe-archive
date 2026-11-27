@@ -28,6 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * chat's thread type. The patch proves that check and writes its name into HostScreens.aiUserRoute; without it a
  * person's row goes by its types alone.
  *
+ * Hide people you don't know in search goes by Messenger's own words too: the sections it fills with people you aren't
+ * friends with, the groups a typed search files them under, and the row types it gives them anywhere else. Friends,
+ * groups and chats keep their own types, so they stay.
+ *
  * Opening a chat goes through one launcher, which the patch asks first: with Block Meta AI chats on, a chat whose thread
  * type is one of Meta AI's never opens, from search, a link or the chat list. A group with an AI bot in it still opens,
  * since people are in it too.
@@ -39,6 +43,7 @@ public final class SearchSections {
     static final String SUGGESTED = "search_suggested";
     static final String REELS = "search_reels";
     static final String AI_CHATS = "ai_chat_block";
+    static final String STRANGERS = "search_strangers";
     private static final String META_AI = "meta_ai";
 
     /** The section types each switch drops. */
@@ -50,6 +55,17 @@ public final class SearchSections {
         "AI_AGENT_PROMPT", "META_AI_VOICE", "META_AI_SNIPPET", "META_AI_SNIPPET_PROMPT");
     /** The groups a typed search files Meta AI's own entries under: its bots, its "ask" row and its answer. */
     static final Set<String> AI_GROUPS = Set.of("AI_BOTS", "META_AI_TYPEAHEAD", "META_AI_SNIPPET");
+    /**
+     * The sections a search fills with people you aren't friends with (#207), the people Messenger's server finds
+     * besides your friends and the ones it already had on the phone.
+     */
+    static final Set<String> STRANGER_SECTIONS = Set.of("SERVER_MORE_PEOPLE", "LOCAL_NON_CONTACT_USERS", "QUERY_MORE_PEOPLE",
+        "QUERY_MORE_PEOPLE_ON_MESSENGER", "DISCOVER_PEOPLE");
+    /** The groups a typed search files those people under, Instagram accounts you do and don't follow included. */
+    static final Set<String> STRANGER_GROUPS = Set.of("NONCONTACTS", "IG_NONCONTACT_FOLLOWINGS", "IG_NONCONTACT_NONFOLLOWINGS",
+        "QUERY_MORE_PEOPLE", "QUERY_MORE_PEOPLE_ON_MESSENGER", "DISCOVER_PEOPLE");
+    /** The row types such a person comes as in any section. */
+    static final Set<String> STRANGER_ROWS = Set.of("NON_CONTACT", "DISCOVER_PEOPLE");
     /** The thread types Block Meta AI chats keeps closed. Groups with an AI bot in them aren't here. */
     static final Set<String> AI_THREADS = Set.of("AI_BOT", "BIZ_AI_AGENT", "AI_PROFILE", "AI_AGENT");
     private static final String META_AI_THREAD = "META_AI_";
@@ -76,13 +92,15 @@ public final class SearchSections {
         try {
             if (sections == null || sections.isEmpty()) return sections;
             boolean ai = Settings.wouldUse(META_AI), suggested = Settings.wouldUse(SUGGESTED), reels = Settings.wouldUse(REELS);
-            if (!ai && !suggested && !reels) return sections;
+            boolean strangers = Settings.wouldUse(STRANGERS);
+            if (!ai && !suggested && !reels && !strangers) return sections;
             List<Object> kept = null;
             for (int i = 0; i < sections.size(); i++) {
                 Object section = sections.get(i);
-                String hiddenBy = hiddenBy(enumNames(section), ai, suggested, reels);
+                String hiddenBy = hiddenBy(enumNames(section), ai, suggested, reels, strangers);
                 // A typed search's result holds no sections: its rows and headings come one by one, each in a wrapper.
                 if (hiddenBy == null && ai && aiEntry(section)) hiddenBy = META_AI;
+                if (hiddenBy == null && strangers && strangerEntry(section)) hiddenBy = STRANGERS;
                 if (hiddenBy != null) {
                     Settings.enabled(hiddenBy);
                     if (kept == null) kept = new ArrayList<>(sections.subList(0, i));
@@ -92,34 +110,44 @@ public final class SearchSections {
             }
             return kept == null ? sections : kept;
         } catch (Throwable error) {
-            Settings.hookFailedPrivately(META_AI, "Can't look over search's sections", error);
+            Settings.hookFailedPrivately(Settings.wouldUse(META_AI) ? META_AI : STRANGERS, "Can't look over search's sections", error);
             return sections;
         }
     }
 
-    private static String hiddenBy(List<String> types, boolean ai, boolean suggested, boolean reels) {
+    private static String hiddenBy(List<String> types, boolean ai, boolean suggested, boolean reels, boolean strangers) {
         for (String type : types) {
             if (ai && AI_SECTIONS.contains(type)) return META_AI;
             if (suggested && SUGGESTED_SECTIONS.contains(type)) return SUGGESTED;
             if (reels && REELS_SECTIONS.contains(type)) return REELS;
+            if (strangers && STRANGER_SECTIONS.contains(type)) return STRANGERS;
         }
         return null;
     }
 
-    /** A section's rows, without Meta AI's with Hide Meta AI on. [type] is the section's own type. */
+    /**
+     * A section's rows, without Meta AI's with Hide Meta AI on and without the people you aren't friends with while Hide
+     * people you don't know in search is on. [type] is the section's own type.
+     */
     public static List<?> items(Object type, List<?> items) {
+        boolean ai = false;
         try {
-            if (items == null || items.isEmpty() || !Settings.wouldUse(META_AI)) return items;
-            if (type instanceof Enum && AI_SECTIONS.contains(((Enum<?>) type).name())) {
-                Settings.enabled(META_AI);
+            if (items == null || items.isEmpty()) return items;
+            ai = Settings.wouldUse(META_AI);
+            boolean strangers = Settings.wouldUse(STRANGERS);
+            if (!ai && !strangers) return items;
+            String section = type instanceof Enum ? ((Enum<?>) type).name() : null;
+            String whole = ai && AI_SECTIONS.contains(section) ? META_AI : strangers && STRANGER_SECTIONS.contains(section) ? STRANGERS : null;
+            if (whole != null) {
+                Settings.enabled(whole);
                 return Collections.emptyList();
             }
             List<Object> kept = null;
             for (int i = 0; i < items.size(); i++) {
                 Object item = items.get(i);
-                boolean ai = aiRow(item);
-                if (ai) {
-                    Settings.enabled(META_AI);
+                String hiddenBy = ai && aiRow(item) ? META_AI : strangers && strangerRow(item) ? STRANGERS : null;
+                if (hiddenBy != null) {
+                    Settings.enabled(hiddenBy);
                     if (kept == null) kept = new ArrayList<>(items.subList(0, i));
                 } else if (kept != null) {
                     kept.add(item);
@@ -127,9 +155,28 @@ public final class SearchSections {
             }
             return kept == null ? items : kept;
         } catch (Throwable error) {
-            Settings.hookFailedPrivately(META_AI, "Can't look over search's rows", error);
+            Settings.hookFailedPrivately(ai ? META_AI : STRANGERS, "Can't look over search's rows", error);
             return items;
         }
+    }
+
+    /** Whether [entry] is a typed search's heading or row for people you aren't friends with, or the wrapper around one. */
+    static boolean strangerEntry(Object entry) throws ReflectiveOperationException {
+        if (entry == null) return false;
+        for (Field field : entryFields(entry.getClass())) {
+            Object value = field.get(entry);
+            if (value instanceof Enum) {
+                if (STRANGER_GROUPS.contains(((Enum<?>) value).name())) return true;
+            } else if (value != null && holdsRow(field.getType()) && strangerRow(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static boolean strangerRow(Object item) throws ReflectiveOperationException {
+        for (String name : enumNames(item)) if (STRANGER_ROWS.contains(name)) return true;
+        return false;
     }
 
     /**

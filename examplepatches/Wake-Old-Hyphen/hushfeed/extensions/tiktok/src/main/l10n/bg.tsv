@@ -312,10 +312,12 @@ Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post d
 Captions	Субтитри
 Captions, gestures and on-screen controls	Субтитри, жестове и контроли на екрана
 Capture crash reports locally	Локално записване на отчетите за сривове
+Free memory early	Ранно освобождаване на паметта
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.	Избери от %1$d до %2$d видеа. Стойностите извън този диапазон използват най-близката валидна граница. Рестартирай TikTok, за да се приложи това.
 Choose a backup file. Your current settings are kept for Undo.	Избери файл с резервно копие. Текущите ти настройки се пазят, за да можеш да отмениш.
 Pick a folder on internal storage, not an SD card	Избери папка във вътрешната памет, а не на SD карта
-Choose a preset to fill the SIM details.	Избери готова настройка, за да попълниш данните за SIM.
+Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts.	Отбележи една готова настройка, за да попълниш данните за SIM, или няколко, за да се ползва различна при всяко стартиране на TikTok.
+A different preset each time TikTok starts, in this order: %1$s	Различна готова настройка при всяко стартиране на TikTok, в този ред: %1$s
 Choose a subfolder under %1$s.	Избери подпапка в %1$s.
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.	Избери действията, които да се премахнат от менюто за споделяне. Имената, които си въвел ръчно и TikTok още не е показал, остават в списъка по-горе.
 Choose what reaches your feed	Избери какво да стига до лентата ти
@@ -470,6 +472,7 @@ Top right double tap	Двойно докосване горе вдясно
 Bottom left double tap	Двойно докосване долу вляво
 Bottom right double tap	Двойно докосване долу вдясно
 Download original photos	Изтегляне на оригиналните снимки
+Download speed	Скорост на изтегляне
 Destination updated	Местоназначението е обновено
 Downloads	Изтегляния
 Drag to move, release to place	Плъзни, за да преместиш, пусни, за да поставиш
@@ -615,6 +618,7 @@ Hide message streaks	Скриване на поредиците със съоб�
 Hide new follower notifications	Скриване на известията за нови последователи
 Hide new followers	Скриване на новите последователи
 Hide paid partnerships	Скриване на платените партньорства
+Hide parts of the room line	Скриване на части от реда на стаята
 Hide people and options by name	Скриване на хора и опции по име
 Hide photo posts	Скриване на публикациите със снимки
 Hide picture comments	Скриване на коментарите с изображения
@@ -746,6 +750,7 @@ Larger (1.25x)	По-голям размер (1.25x)
 Last original value	Последна оригинална стойност
 Last recording: %1$d gates.	Последен запис: %1$d гейта.
 Last recording: 1 gate.	Последен запис: 1 гейт.
+Latency	Забавяне
 Layout	Оформление
 Layout, search, profile and system	Оформление, търсене, профил и система
 Leave maximum empty to keep it unlimited.	Остави максимума празен, за да е без ограничение.
@@ -1006,6 +1011,7 @@ Save media	Запазване на медия
 Saves your Hushfeed settings and Feature Gate Lab rules to a file.	Запазва настройките ти на Hushfeed и правилата от Feature Gate Lab във файл.
 Save subtitles beside videos	Запазване на субтитри до видеата
 Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.	Запазва последния отчет за срив на TikTok на този телефон, за да влезе в диагностичния отчет.
+Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.	Моли TikTok да изчисти кеша си, когато паметта му наближи прага, при който Android затваря главния екран и емисията започва отначало.
 Save the original sound	Запазване на оригиналния звук
 Save the sound as well	Запазване и на звука
 Save videos without sound	Запазване на видеата без звук
@@ -1599,6 +1605,9 @@ Save again	Запази отново
 The saved-video choice couldn't open. Try again.	Изборът за запазено видео не се отвори. Опитай пак.
 The saved-video choice is still open	Изборът за запазеното видео още е отворен
 No full file for this video. Try again later.	Няма пълен файл за това видео. Опитай пак по-късно.
+Subscriber-only posts can't be saved	Публикации само за абонати не могат да се запазват
+Copy-protected videos can't be saved	Видеа със защита от копиране не могат да се запазват
+Not saved. The file wasn't a playable video.	Не е запазено. Файлът не е видео за възпроизвеждане.
 Saving video to %1$s	Запазване на видеото в %1$s
 Video and details saved to %1$s	Видеото и данните са запазени в %1$s
 Saved, but a later save may make a second copy	Запазено, но следващо запазване може да създаде второ копие
@@ -1855,6 +1864,7 @@ Brightness	Яркост
 Volume	Сила на звука
 Left edge strip	Лява крайна ивица
 Right edge strip	Дясна крайна ивица
+Room ID	ID на стаята
 Stop search results playing on their own	Спиране на автоматичното пускане в резултатите от търсенето
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	Видеата в резултатите от търсенето показват корицата си и се пускат, когато ги отвориш. Лентата и видеата, които отваряш, се пускат както обикновено.
 In a chat	В чат
@@ -1862,8 +1872,6 @@ Hide call buttons	Скриване на бутоните за обаждане
 The voice and video call buttons leave the top of a chat. Calls still ring, and the chat details button stays.	Бутоните за гласово и видеообаждане изчезват от горната част на чата. Обажданията пак звънят, а бутонът за подробности за чата остава.
 Hide sticker suggestions	Скриване на предложенията за стикери
 The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.	Банерът с предложени стикери спира да се показва в чата. Твоите стикери остават в избора на стикери.
-Hide suggested replies	Скриване на предложените отговори
-TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.	Предложените от TikTok отговори и въвеждащият им банер спират да се показват в чата. Съобщенията, които пишеш или получаваш, не се засягат.
 Hide online status	Скриване на онлайн статуса
 Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.	Приятелите няма да виждат зелена точка или „Активен сега“, докато си в TikTok. Изисква включен „Режим призрак“. Техният статус може да спре да се обновява при теб, а последният ти статус може да остане видим известно време.
 Stop LIVE previews opening by themselves	Спиране на самостоятелното отваряне на LIVE прегледите
@@ -2267,6 +2275,7 @@ The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on 
 Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	Широките видеа, на които TikTok го позволява, получават бутон „Добави едноредов коментар“ под видеото и лента за едноредови коментари на цял екран. Другите видеа остават същите.
 
 Pick videos to save from profile grids	Избиране на видеа за запазване от мрежите на профилите
+Pick what to leave off the small line with the room ID and your connection. The rest stays on it.	Избери какво да махнеш от малкия ред с ID на стаята и връзката ти. Останалото остава на него.
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Слага кръгче на всяко видео в мрежата на профил, „Харесани“ или „Любими“. Избери до %1$s, после докосни „Запази“, за да се запазят едно след друго, с брояч и бутон „Отказ“.
 Pick for saving	Избери за запазване
 You can pick up to %1$s at a time	Можеш да избереш до %1$s наведнъж
@@ -2522,7 +2531,6 @@ autoplay auto play	автоматично възпроизвеждане авт�
 picture in picture PiP	картина в картината PiP
 search suggestions	предложения за търсене
 AI chat	AI чат
-AI Tako	AI Tako чат
 save photos	запазване на снимки
 download button	бутон за изтегляне
 It's in %1$s, under %2$s. Tap to go there.	Намира се в %1$s, под %2$s. Докосни, за да отидеш там.
@@ -2545,6 +2553,8 @@ Leave after no touch	Излизане след време без докосва�
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	Нула изключва това. След толкова минути без докосване на екрана видеото спира и TikTok минава на заден план, за случаите, когато заспиш, докато гледаш. Всяко докосване започва изчакването отначало.
 Left TikTok after no touch	Излизане от TikTok поради липса на докосване
 Show when an account was made	Показване на датата на създаване на акаунта
+Show how many videos a profile has	Показване на броя видеоклипове в профила
+Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them.	Под @потребителското име в профила, включително в твоя, показва колко видеоклипа има според TikTok.
 Show what changed since your last visit	Показване на промените от последното ти посещение
 Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	Под @потребителското име в профил показва как са се променили последователите, следваните, харесванията и видеата му, откакто го отвори последно. Числата се пазят само на този телефон.
 Since %1$s: %2$s	От %1$s: %2$s
@@ -2679,7 +2689,7 @@ Read receipts shown	Потвържденията за прочитане се п
 Compact long-press menu everywhere	Компактно меню при дълго натискане навсякъде
 A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.	Дълго натискане на видео отваря малкото меню за споделяне на TikTok и в „За вас“, същото като при видеата на създател. Има предимство пред двата превключвателя за пълното меню по-горе. Изисква „Дълго натискане“ да е на „По подразбиране на TikTok“.
 Hide streak pop-ups	Скриване на изскачащите прозорци за поредици
-Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	Спира известията за поредици, които се плъзгат върху TikTok, както и съобщенията и съветите за поредици, които той добавя в чатовете ти.
+Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats.	Спира известията за поредици, които се плъзгат върху TikTok, поканата за Streak Pet във входящите, както и съобщенията и съветите за поредици, които той добавя в чатовете ти.
 Long press on For You opens my watch history	Дълго натискане на „За вас“ отваря моята история на гледане
 Instead of these settings. The list has a button that brings you back here.	Вместо тези настройки. Списъкът има бутон, който те връща тук.
 Long press on Profile opens my watch history	Дълго натискане на „Профил“ отваря моята история на гледане
@@ -2780,7 +2790,9 @@ dialog popup greeting	диалог изскачащ прозорец поздр�
 Don't show again	Не показвай повече
 # context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
 Stop the blink under the bar	Спиране на премигването под лентата
+Pages under the bar	Страници под лентата
 If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Ако видеото в лентата премигва, когато плъзгаш с включена „Прозрачна долна лента“, това го изобразява вътре в TikTok вместо на отделен слой. Може да харчи малко повече батерия. Изисква „Прозрачна долна лента“.
+Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.	Позволява мрежата „Общност“ в Начало и другите страници, които свършват над разделите, да продължат под прозрачната лента, така че да прозират през нея вместо черната или бялата ивица. Последният ред пак може да се превърти над разделите. Изисква „Прозрачна долна лента“.
 # context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
 Bend the video at the edges	Пречупване на видеото по краищата
 The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	Краищата на стъклената капсула пречупват размазаното видео зад тях като ръб на истинско стъкло, а цветовете му изглеждат малко по-наситени. Изисква „Размазване на видеото зад лентата“ и Android 13 или по-нов.
@@ -2833,6 +2845,8 @@ Hide Send to new group	Скриване на „Изпрати до нова г�
 Hides the button that turns the people you picked into a new group chat. Send separately stays.	Скрива бутона, който прави от избраните хора нов групов чат. „Изпрати поотделно“ остава.
 # context: Switch in Hushfeed settings > App > Appearance (#372)
 AMOLED dark mode	AMOLED тъмен режим
+Dark mode	Тъмен режим
+Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.	Включва тъмната тема, която TikTok Lite има, но никога не дава да избереш. Рестартирай TikTok Lite, за да видиш промяната.
 # context: Summary under the AMOLED dark mode switch
 Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	Запълва тъмния режим с цвета, избран при пачването, чисто черно, ако не е избран друг. Изключи го за тъмносивите тонове на TikTok. Светлият режим не се променя. Рестартирай TikTok, за да видиш промяната.
 # context: Switch in Hushfeed settings > App, under the startup message rows (#377)
@@ -2886,6 +2900,7 @@ Friends in the top tabs	„Приятели“ в горните раздели
 Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	„Приятели“ се премества горе при разделите на лентата, до „Следвате“, а „Откриване“ заема мястото му в долната лента, както TikTok го подрежда в някои държави. Регионът и лентата ти остават същите.
 # context: Row title of the Inbox switch that lifts the app's cap on pinned chats
 Pin more chats	Закачване на повече чатове
+Ping	Пинг
 # context: Summary under that switch; 5 is the cap TikTok's app usually puts on pinned chats
 Lifts the app's limit on pinned chats in the Inbox, usually 5, so you can pin more.	Премахва ограничението на приложението за закачени чатове във „Входящи“, обикновено 5, за да можеш да закачиш повече.
 # context: Row title of the Comments switch that hides voice comments
@@ -3162,7 +3177,8 @@ Unknown (TikTok didn't send it)	Неизвестно (TikTok не го изпр�
 A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Менюто за споделяне на профил получава бутон „Факти за акаунта“. Той показва какво вече е изпратил TikTok за акаунта: кога е създаден, регионът и езикът му, нивото на дарител и SecUID, колко публикации, харесани видеа, любими и повторни публикации има, кога за последно са сменени потребителското име и показваното име, дали е частен и дали харесаните му видеа са публични. Нищо допълнително не се изтегля.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Показване на ID на стаята и връзката ти
-Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	Добавя малък ред в LIVE стаите с ID на стаята и състоянието на твоята връзка с излъчването според плейъра на TikTok: пинг, забавяне и скорост на изтегляне. Докосни реда, за да копираш ID на стаята.
+Show the room line	Показване на реда на стаята
+Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.	Добавя малък ред в LIVE стаите с ID на стаята и състоянието на твоята връзка с излъчването според плейъра на TikTok: пинг, забавяне и скорост на изтегляне. Докосни реда, за да го смалиш до точка, и докосни точката, за да го върнеш. Задръж реда, за да копираш ID на стаята.
 Room ID %1$s	ID на стаята %1$s
 Ping %1$s ms	Пинг %1$s мс
 Latency %1$s s	Забавяне %1$s с
@@ -3196,7 +3212,7 @@ Adds three stops below the smallest size on TikTok's own Text size slider, in Se
 UI size	Размер на интерфейса
 Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.	Смалява целия интерфейс на TikTok, и текста, и бутоните, за да се побира повече на екрана. 100 го оставя такъв, какъвто е. Рестартирай TikTok, за да видиш промяната.
 Show how long a LIVE has been on	Показване от колко време тече LIVE
-Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.	Добавя малък ред в LIVE стаите с това от колко време водещият е на живо, броено от началото на стаята. Ако и ID на стаята е включено, редът е под него.
+Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot.	Добавя малък ред в LIVE стаите с това от колко време водещият е на живо, броено от началото на стаята. Ако и ID на стаята е включено, редът е под него. Докосни реда, за да го смалиш до точка.
 LIVE for %1$s	На живо от %1$s
 Show exact LIVE battle scores	Показване на точните резултати в LIVE битките
 In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.	В LIVE битка TikTok съкращава големите резултати, които зрителите виждат, а водещият вижда цялото число. Това показва целия резултат в лентата на битката и в прозорците на съводещите.
@@ -3226,6 +3242,8 @@ The buttons, caption and tabs fade away instead of vanishing at once, and a touc
 # context: #461 Date instead of age, a switch under Write the month as a word
 Date instead of age	Дата вместо изминало време
 Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.	Скорошните видеа показват датата на публикуване до името на създателя, например 10-12, вместо изминалото време, например преди 2 д. „Ден преди месеца“ и „Изписване на месеца с дума“ я променят по същия начин.
+Use this date format everywhere	Използване на този формат на датата навсякъде
+Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.	Изписва датите на коментарите, заглавията с дати в чатовете и датите в резултатите от търсенето така, както трите реда по-горе изписват датата до името на създателя.
 # context: #503 Keep your place in chats, an Inbox switch under Show message times; the down arrow is the button that jumps a chat to its newest message
 Keep your place in chats	Запазване на мястото ти в чатовете
 A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.	Ако превъртиш нагоре в чат, той остава на същото място, когато се върнеш от видео или изпратиш отговор. Изпращането на обикновено съобщение или докосването на стрелката надолу пак те води до най-новото.

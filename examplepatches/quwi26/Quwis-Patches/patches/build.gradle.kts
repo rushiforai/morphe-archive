@@ -16,6 +16,9 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")
     }
+    // "Floating glass bottom bar" is not finished yet, so it stays out of the bundle (and out of
+    // patches-list.json) until it is: a file in this source set would become a 28th patch.
+    sourceSets["main"].kotlin.exclude("**/GlassBottomBarPatch.kt")
 }
 
 // Separate configuration so gson is available at runtime for the

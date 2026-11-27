@@ -4,17 +4,15 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import dev.jason.gboardpatches.patches.gboard.shared.GboardExpressionCorpusPatchState
 import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
 import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
 import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
+import dev.jason.gboardpatches.patches.gboard.shared.gboardCompatibility18_8
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
 import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
@@ -27,45 +25,45 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalo
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgva;"
-
 internal val gboardSymbolFooterOrderBytecodePatch = bytecodePatch(
     description = "依使用者設定重排 expression footer corpus list。"
 ) {
+    compatibleWith(gboardCompatibility18_8())
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        val methods = mutableClass(EXPRESSION_CORPUS_MANAGER_CLASS).methods.filter {
-            it.name == TARGET_METHOD_NAME &&
-                it.returnType == TARGET_RETURN_TYPE &&
-                it.parameterTypes == TARGET_PARAMETERS
+        val targets = symbolFooterOrderTargets(this)
+        val methods = mutableClass(targets.corpusList.ownerDescriptor).methods.filter {
+            targets.corpusList.matches(it)
         }
         check(methods.size == 1) {
-            "Expected exactly one $TARGET_DESCRIPTOR target"
+            "Expected exactly one ${targets.corpusList.reference} target"
         }
         val mutableMethod = methods.single()
-        val patchedMethod = mutableMethod.applySymbolFooterOrderDelegate()
+        val patchedMethod = mutableMethod.applySymbolFooterOrderDelegate(targets)
         if (patchedMethod !== mutableMethod) {
-            val ownerMethods = mutableClass(EXPRESSION_CORPUS_MANAGER_CLASS).methods
+            val ownerMethods = mutableClass(targets.corpusList.ownerDescriptor).methods
             check(ownerMethods.remove(mutableMethod) && ownerMethods.add(patchedMethod)) {
-                "Could not replace expanded $TARGET_DESCRIPTOR"
+                "Could not replace expanded ${targets.corpusList.reference}"
             }
         }
     }
 }
 
-internal fun MutableMethod.applySymbolFooterOrderDelegate(): MutableMethod {
-    requireExactTarget()
+internal fun MutableMethod.applySymbolFooterOrderDelegate(
+    targets: SymbolFooterOrderTargets,
+): MutableMethod {
+    requireExactTarget(targets)
     return applyVerified(
         VerifiedTransformationPlan(
-            targetName = TARGET_DESCRIPTOR,
-            classify = MutableMethod::classifySymbolFooterOrder,
+            targetName = targets.corpusList.reference,
+            classify = { stock -> stock.classifySymbolFooterOrder(targets) },
             mutate = { stock ->
-                stock.expandRegisters().also { expanded ->
+                stock.expandRegisters(targets).also { expanded ->
                     expanded.addInstructions(0, ENTRY_PARAMETER_COPIES)
                     expanded.addInstructions(
-                        expanded.singleReturnIndex(),
-                        buildReorderDelegate(LEGACY_P0_REGISTER),
+                        expanded.singleReturnIndex(targets),
+                        buildReorderDelegate(LEGACY_P0_REGISTER, targets.corpusList.returnType),
                     )
                 }
             },
@@ -73,62 +71,63 @@ internal fun MutableMethod.applySymbolFooterOrderDelegate(): MutableMethod {
     )
 }
 
-private fun MutableMethod.classifySymbolFooterOrder(): VerifiedTransformationState =
-    when (requireGboardExpressionCorpusPatchState()) {
+private fun MutableMethod.classifySymbolFooterOrder(
+    targets: SymbolFooterOrderTargets,
+): VerifiedTransformationState =
+    when (
+        requireGboardExpressionCorpusPatchState(targets.corpusList, targets.fingerprints)
+    ) {
         GboardExpressionCorpusPatchState.STOCK,
         GboardExpressionCorpusPatchState.CUSTOM_ONLY -> {
             val registerCount = implementation?.registerCount
-                ?: error("No instructions in $TARGET_DESCRIPTOR")
+                ?: error("No instructions in ${targets.corpusList.reference}")
             check(registerCount == STOCK_REGISTER_COUNT) {
-                "Unexpected register count in $TARGET_DESCRIPTOR: $registerCount"
+                "Unexpected register count in ${targets.corpusList.reference}: $registerCount"
             }
-            validateStockShape()
+            validateStockShape(targets)
             VerifiedTransformationState.STOCK
         }
         GboardExpressionCorpusPatchState.TAB_ONLY,
         GboardExpressionCorpusPatchState.COMPOSED -> {
-            validateCompletedPatch()
+            validateCompletedPatch(targets)
             VerifiedTransformationState.PATCHED
         }
     }
 
-private fun MutableMethod.requireExactTarget() {
-    check(
-        definingClass == EXPRESSION_CORPUS_MANAGER_CLASS &&
-            name == TARGET_METHOD_NAME &&
-            returnType == TARGET_RETURN_TYPE &&
-            parameterTypes == TARGET_PARAMETERS,
-    ) {
+private fun MutableMethod.requireExactTarget(targets: SymbolFooterOrderTargets) {
+    check(targets.corpusList.matches(this)) {
         "Refusing non-target Symbol Footer method " +
             "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
     }
 }
 
-private fun MutableMethod.validateStockShape() {
-    val implementation = implementation ?: error("No instructions in $TARGET_DESCRIPTOR")
+private fun MutableMethod.validateStockShape(targets: SymbolFooterOrderTargets) {
+    val implementation = implementation
+        ?: error("No instructions in ${targets.corpusList.reference}")
     val instructions = implementation.instructions
-    check(singleReturnIndex() == instructions.lastIndex) {
-        "$TARGET_DESCRIPTOR must end at its single RETURN_OBJECT"
+    check(singleReturnIndex(targets) == instructions.lastIndex) {
+        "${targets.corpusList.reference} must end at its single RETURN_OBJECT"
     }
     check((instructions.last() as OneRegisterInstruction).registerA == LEGACY_P0_REGISTER) {
-        "$TARGET_DESCRIPTOR must return legacy p0/v$LEGACY_P0_REGISTER"
+        "${targets.corpusList.reference} must return legacy p0/v$LEGACY_P0_REGISTER"
     }
     check(instructions.count { it.isMethodReference(FINAL_COLLECT_DESCRIPTOR) } == 2) {
-        "$TARGET_DESCRIPTOR must contain exactly two Stream.collect calls"
+        "${targets.corpusList.reference} must contain exactly two Stream.collect calls"
     }
-    check(instructions.count { it.isMethodReference(RECEIVER_LAST_USE_DESCRIPTOR) } == 1) {
-        "$TARGET_DESCRIPTOR must contain the exact final original-receiver use"
+    check(instructions.count { it.isMethodReference(targets.receiverConstructor) } == 1) {
+        "${targets.corpusList.reference} must contain the exact final original-receiver use"
     }
     check(instructions.count { it.isMethodReference(FOOTER_RUNTIME_DESCRIPTOR) } == 0) {
-        "$TARGET_DESCRIPTOR contains an orphan Symbol Footer delegate"
+        "${targets.corpusList.reference} contains an orphan Symbol Footer delegate"
     }
 }
 
-private fun MutableMethod.validateCompletedPatch() {
-    requireExactTarget()
-    val implementation = implementation ?: error("No instructions in $TARGET_DESCRIPTOR")
+private fun MutableMethod.validateCompletedPatch(targets: SymbolFooterOrderTargets) {
+    requireExactTarget(targets)
+    val implementation = implementation
+        ?: error("No instructions in ${targets.corpusList.reference}")
     check(implementation.registerCount == PATCHED_REGISTER_COUNT) {
-        "Malformed expanded register state in $TARGET_DESCRIPTOR"
+        "Malformed expanded register state in ${targets.corpusList.reference}"
     }
     val instructions = implementation.instructions
     check(
@@ -142,9 +141,9 @@ private fun MutableMethod.validateCompletedPatch() {
                 "MOVE_FROM16", LEGACY_P2_REGISTER, PATCHED_P2_REGISTER,
             ),
     ) {
-        "$TARGET_DESCRIPTOR entry parameter copies are missing or malformed"
+        "${targets.corpusList.reference} entry parameter copies are missing or malformed"
     }
-    val returnIndex = singleReturnIndex()
+    val returnIndex = singleReturnIndex(targets)
     check((instructions[returnIndex] as OneRegisterInstruction).registerA == LEGACY_P0_REGISTER)
     check(
         instructions.size > 3 &&
@@ -156,17 +155,18 @@ private fun MutableMethod.validateCompletedPatch() {
                 "CHECK_CAST", LEGACY_P0_REGISTER,
             ),
     ) {
-        "$TARGET_DESCRIPTOR final Symbol Footer delegate is missing or malformed"
+        "${targets.corpusList.reference} final Symbol Footer delegate is missing or malformed"
     }
     check(instructions.count { it.isMethodReference(FOOTER_RUNTIME_DESCRIPTOR) } == 1) {
-        "$TARGET_DESCRIPTOR must contain exactly one Symbol Footer delegate"
+        "${targets.corpusList.reference} must contain exactly one Symbol Footer delegate"
     }
     check(instructions.count { it.isMethodReference(FINAL_COLLECT_DESCRIPTOR) } == 2)
-    check(instructions.count { it.isMethodReference(RECEIVER_LAST_USE_DESCRIPTOR) } == 1)
+    check(instructions.count { it.isMethodReference(targets.receiverConstructor) } == 1)
 }
 
-private fun MutableMethod.expandRegisters(): MutableMethod {
-    val stock = implementation ?: error("No instructions in $TARGET_DESCRIPTOR")
+private fun MutableMethod.expandRegisters(targets: SymbolFooterOrderTargets): MutableMethod {
+    val stock = implementation
+        ?: error("No instructions in ${targets.corpusList.reference}")
     return ImmutableMethod(
         definingClass,
         name,
@@ -184,13 +184,14 @@ private fun MutableMethod.expandRegisters(): MutableMethod {
     ).toMutable()
 }
 
-private fun MutableMethod.singleReturnIndex(): Int {
-    val instructions = implementation?.instructions ?: error("No instructions in $TARGET_DESCRIPTOR")
+private fun MutableMethod.singleReturnIndex(targets: SymbolFooterOrderTargets): Int {
+    val instructions = implementation?.instructions
+        ?: error("No instructions in ${targets.corpusList.reference}")
     val returns = returnInstructionIndices().filter {
         instructions[it].isOpcode("RETURN_OBJECT")
     }
     check(returns.size == 1) {
-        "$TARGET_DESCRIPTOR must contain exactly one RETURN_OBJECT"
+        "${targets.corpusList.reference} must contain exactly one RETURN_OBJECT"
     }
     return returns.single()
 }
@@ -219,12 +220,12 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction?.isExa
         LEGACY_P0_REGISTER,
     ) == true
 
-private fun buildReorderDelegate(register: Int): String = """
+private fun buildReorderDelegate(register: Int, returnType: String): String = """
     ${RuntimeCallEmitter.invoke(FOOTER_RUNTIME_CALL, "p0, v$register")}
 
     move-result-object v$register
 
-    check-cast v$register, $TARGET_RETURN_TYPE
+    check-cast v$register, $returnType
 """.trimIndent()
 
 private val ENTRY_PARAMETER_COPIES = """
@@ -233,19 +234,12 @@ private val ENTRY_PARAMETER_COPIES = """
     move/from16 v$LEGACY_P2_REGISTER, p2
 """.trimIndent()
 
-private const val TARGET_METHOD_NAME = "a"
-private const val TARGET_RETURN_TYPE = "Lwhe;"
-private val TARGET_PARAMETERS = listOf("Landroid/view/inputmethod/EditorInfo;", "Z")
-private const val TARGET_DESCRIPTOR =
-    "Lgva;->a(Landroid/view/inputmethod/EditorInfo;Z)Lwhe;"
 private val FOOTER_RUNTIME_CALL =
     RuntimeCallId.SYMBOL_FOOTER_ORDER_RUNTIME_REORDER_EXPRESSION_CORPUS_LIST
 private val FOOTER_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(FOOTER_RUNTIME_CALL).reference
 private const val FINAL_COLLECT_DESCRIPTOR =
     "Lj$/util/stream/Stream;->collect" +
         "(Lj$/util/stream/Collector;)Ljava/lang/Object;"
-private const val RECEIVER_LAST_USE_DESCRIPTOR =
-    "Lguy;-><init>(Lgva;Landroid/view/inputmethod/EditorInfo;Z)V"
 private const val STOCK_REGISTER_COUNT = 14
 private const val PATCHED_REGISTER_COUNT = 17
 private const val LEGACY_P0_REGISTER = 11

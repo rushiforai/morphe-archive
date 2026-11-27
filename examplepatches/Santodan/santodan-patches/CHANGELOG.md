@@ -1,3 +1,10 @@
+## [0.21.3](https://github.com/Santodan/santodan-patches/compare/v0.21.2...v0.21.3) (2026-11-26)
+
+### 🚀 Updated App Support
+
+* **carscanner:** support 2.2.52 and add a structural experimental fallback [skip ci] ([d75c1fe](https://github.com/Santodan/santodan-patches/commit/d75c1fefdb87751acf0575ba6634424b7624c6f8))
+* **fylo:** support 2.9 and generalize the experimental matcher [skip ci] ([270cb02](https://github.com/Santodan/santodan-patches/commit/270cb02647cefcd8b938740116e52a553bb88c20))
+
 ## [0.21.2](https://github.com/Santodan/santodan-patches/compare/v0.21.1...v0.21.2) (2026-11-24)
 
 ### 🚀 Updated App Support

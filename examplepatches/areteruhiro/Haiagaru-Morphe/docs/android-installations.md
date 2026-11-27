@@ -4110,3 +4110,20 @@ Success。
 - 2026-11-26T11:04:18.169335+09:00 公開候補／公開版 wifi-media-options-final-20261126: 226 / jp.co.airfront.android.a2chMate.haiagaru.reporter226 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/chatmate226.apk` SHA-256 `3be9172aac6eb0c25ceec5098830d0cf72717ba322a14aebc065e3be3648ece3`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/candidate.mpp` SHA-256 `485c5271d66fb211c7a4a8e69a205be4b76df1fce991d8f81fa48d0cf21da886`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
 
 - 2026-11-26T11:05:46.989608+09:00 公開候補／公開版 wifi-media-options-final-20261126: 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / ADB d5497008 / 既存署名照合・install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/chatmate242.apk` SHA-256 `10706db81789e683fcad4543fd5044ab0634d87c02b168c78e28aaa1affea6e2`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/official-release-check/wifi-media-options-final-20261126/candidate.mpp` SHA-256 `485c5271d66fb211c7a4a8e69a205be4b76df1fce991d8f81fa48d0cf21da886`、署名SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`。
+
+## 2026-11-26 Haiagaru Edge NG Performance add-on / 191 reporter
+
+- d5497008 / Mi Note10 / Android 11。隔離パッケージ `jp.co.airfront.android.a2chMate.haiagaru.reporter191` に既存署名を照合して `install -r`。通常版ChMateは置換せず、アプリデータ消去なし。
+- MPP: `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/addons/haiagaru-edge-ng-performance-addon/dist/haiagaru-edge-ng-performance-addon-1.0.0.mpp`
+- MPP SHA-256: `DBA7179844E025D1CE4B06FD2531D3540EC67CEDD9AF313E432A8D0893C4DF92`
+- 検証APK: `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/edge-ng-performance-addon/reporter191-signed.apk`
+- APK SHA-256: `06978FFEE00D91246A00B1BA1E52A406696E1D70868DE9C3173B5EB7662F157C`
+- 証明書SHA-256: `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`
+- Patch result: `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/edge-ng-performance-addon/reporter191-result.json`。公式Haiagaruと追加パッチを同時適用し、対象メソッド4本のfingerprint照合成功。
+- Frida 17.18: 合成データでルール一致・adapter別ID再計算・本文キャッシュ共有の4項目成功。1000レス/234ルールで公式792.97ms、追加初回256.14ms、同本文の再走査5.60ms、ID集合一致。画面UI時間や実バックアップの測定ではない。
+- ホストテスト: `scripts/edge-ng-performance/run-host-tests.ps1`、10チェック成功。
+- 詳細: `docs/edge-ng-performance-addon-20261126.md`
+
+- 2026-11-27 NG高速化・ぬこ・リンクカード 191 / jp.co.airfront.android.a2chMate.haiagaru.reporter191 / ADB d5497008 / install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/release155-candidate/test191.apk` SHA-256 `6d5380dd3ed863c681a7d63f9fa47293ef5dd9ab589a3d7794d2d478c58b84d9`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/release155-candidate/candidate.mpp` SHA-256 `530340df116ed4b515e40ae58160f07850ac7d99bcc666982928bcd33110c2a9`、署名 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
+
+- 2026-11-27 242カード付き本文の超長押し選択 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / ADB d5497008 / install -r Success。APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/card-selection-candidate/test242.apk` SHA-256 `e8676fe2e18d1ab84cc8302d9cd8368f119f3a6040d2cab94062b58e5c56b5a8`、MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-official-20261123/build/card-selection-candidate/candidate.mpp` SHA-256 `dc2069754cd4549be01ff9f3fbb6cbdfccd1ef5367ea2931bb679f33875c7920`、署名 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。

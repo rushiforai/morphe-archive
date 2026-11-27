@@ -30,6 +30,7 @@ public final class GboardAiVoiceSettingsGroupFeature
                 GboardSettingsText.get(context,
                         R.string.gboard_patches_group_keyboard_empty_summary),
                 Arrays.asList(
+                        new dev.jason.gboardpatches.extension.sharedmodel.SharedLocalAiSettingsFeature(context),
                         new GboardAiWritingToolsSettingsFeature(context),
                         new GboardAdvancedVoiceSettingsFeature(context),
                         new GboardBluetoothMicrophoneSettingsFeature(context),

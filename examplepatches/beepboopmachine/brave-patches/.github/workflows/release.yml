@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build patches bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew :patches:buildAndroid generatePatchesList --no-daemon
+
+      - name: Publish GitHub Release (on version tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          BUNDLE=$(find patches/build/libs -maxdepth 1 -name "patches-*.mpp" ! -name "*-sources.mpp" ! -name "*-javadoc.mpp" | head -n 1)
+          if [ -z "$BUNDLE" ]; then
+            echo "No compiled .mpp bundle found in patches/build/libs"
+            exit 1
+          fi
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "v$VERSION" --notes "Brave Morphe Patches $TAG"
+          gh release upload "$TAG" "$BUNDLE" --clobber

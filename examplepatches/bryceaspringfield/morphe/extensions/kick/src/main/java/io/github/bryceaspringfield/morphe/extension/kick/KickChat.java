@@ -11,10 +11,6 @@ import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
 
-/**
- * A chat socket's listener, passing on every message but the chat messages the filters hide (Pusher events whose
- * data is a chat message from a hidden user or with a hidden word).
- */
 final class KickChat extends WebSocketListener {
 
     private static final Set<String> EVENTS_SEEN = Collections.synchronizedSet(new HashSet<>());
@@ -58,11 +54,6 @@ final class KickChat extends WebSocketListener {
 
     private static int framesLogged;
 
-    /**
-     * The frame without its hidden chat messages; null when every message of the frame is hidden. KICK's chat runs
-     * on Centrifugo (one JSON reply a line, a publication at push.pub.data); Pusher frames (event and data) are read
-     * too.
-     */
     static String filter(String text) {
         try {
             if (text == null || text.length() > 500_000) return text;
@@ -113,11 +104,6 @@ final class KickChat extends WebSocketListener {
         }
     }
 
-    /**
-     * A binary frame without its hidden chat messages; null when every message is hidden. Centrifugo's protobuf
-     * protocol sends replies one after another, each led by its length as a varint; a publication's data is the
-     * chat message's JSON, kept as is inside the reply's bytes, and is read by matching its braces.
-     */
     static ByteString filterBinary(ByteString bytes) {
         try {
             byte[] b = bytes.toByteArray();
@@ -169,7 +155,6 @@ final class KickChat extends WebSocketListener {
         return false;
     }
 
-    /** True when the reply between from and to holds a chat message's JSON which the filters hide. */
     private static boolean hiddenReply(byte[] b, int from, int to, KickHttp.Filters f) {
         for (int i = from; i < to; i++) {
             if (b[i] != '{') continue;

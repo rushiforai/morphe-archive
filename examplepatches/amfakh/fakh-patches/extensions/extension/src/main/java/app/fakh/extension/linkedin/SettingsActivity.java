@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.RowDrag;
 import app.fakh.extension.shared.TabSheet;
 
@@ -121,6 +122,11 @@ public final class SettingsActivity extends Activity {
 
         Category toggle(String key, boolean def, String title, String summary) {
             return toggle(key, def, title, summary, null);
+        }
+
+        /** A toggle only when the patch of its feature was applied. */
+        Category feature(String key, boolean def, String title, String summary) {
+            return Features.has(key) ? toggle(key, def, title, summary) : this;
         }
 
         Category toggle(String key, boolean def, String title, String summary, Runnable onChange) {
@@ -212,29 +218,31 @@ public final class SettingsActivity extends Activity {
         }
 
         Category feed = new Category("Feed");
-        if (Settings.isFeedFiltersIncluded()) {
-            feed.header("Muted")
-                    .value("Muted words", mutedRow(Settings.MUTED_WORDS, "Muted words",
-                            "Hide posts with these words.",
-                            "One word or phrase per line, in any letter case. A post is hidden when its text, or "
-                                    + "the text of the post it reposts, matches."))
-                    .value("Muted authors", mutedRow(Settings.MUTED_AUTHORS, "Muted authors",
-                            "Hide posts from these people and pages.",
-                            "One name per line, in any letter case. A post is hidden when its author, or the "
-                                    + "author of the post it reposts, matches."))
-                    .header("Hide posts")
-                    .toggle(Settings.HIDE_CELEBRATIONS, false, "Hide celebration posts",
-                            "Work anniversaries and new jobs.")
-                    .toggle(Settings.HIDE_FEED_JOBS, false, "Hide job posts", null)
-                    .toggle(Settings.HIDE_REPOSTS, false, "Hide network activity",
-                            "Likes, comments and reposts of people you know.")
-                    .toggle(Settings.HIDE_VIDEO_POSTS, false, "Hide video posts", null)
-                    .header("Hide extras")
-                    .toggle(Settings.HIDE_RECOMMENDATIONS, false, "Hide \"Recommended for you\"",
-                            "Lists of people and pages to follow.")
-                    .toggle(Settings.HIDE_GAMES, false, "Hide puzzle games", null)
-                    .toggle(Settings.HIDE_NEW_POSTS_PILL, false, "Hide the \"New posts\" button", null);
+        feed.header("Muted");
+        if (Features.has(Settings.MUTED_WORDS_LIST)) {
+            feed.value("Muted words", mutedRow(Settings.MUTED_WORDS, "Muted words",
+                    "Hide posts with these words.",
+                    "One word or phrase per line, in any letter case. A post is hidden when its text, or "
+                            + "the text of the post it reposts, matches."));
         }
+        if (Features.has(Settings.MUTED_AUTHORS_LIST)) {
+            feed.value("Muted authors", mutedRow(Settings.MUTED_AUTHORS, "Muted authors",
+                    "Hide posts from these people and pages.",
+                    "One name per line, in any letter case. A post is hidden when its author, or the "
+                            + "author of the post it reposts, matches."));
+        }
+        feed.header("Hide posts")
+                .feature(Settings.HIDE_CELEBRATIONS, false, "Hide celebration posts",
+                        "Work anniversaries and new jobs.")
+                .feature(Settings.HIDE_FEED_JOBS, false, "Hide job posts", null)
+                .feature(Settings.HIDE_REPOSTS, false, "Hide network activity",
+                        "Likes, comments and reposts of people you know.")
+                .feature(Settings.HIDE_VIDEO_POSTS, false, "Hide video posts", null)
+                .header("Hide extras")
+                .feature(Settings.HIDE_RECOMMENDATIONS, false, "Hide \"Recommended for you\"",
+                        "Lists of people and pages to follow.")
+                .feature(Settings.HIDE_GAMES, false, "Hide puzzle games", null)
+                .feature(Settings.HIDE_NEW_POSTS_PILL, false, "Hide the \"New posts\" button", null);
         feed.header("Position");
         if (Settings.isKeepFeedIncluded()) {
             feed.toggle(Settings.KEEP_FEED, true, "Keep feed position on reopen", null);
@@ -249,16 +257,14 @@ public final class SettingsActivity extends Activity {
         if (Settings.isCopyTextIncluded()) {
             posts.toggle(Settings.COPY_TEXT, true, "Copy text", "Adds Copy text to the ⋯ menu of posts and comments.");
         }
-        if (Settings.isFeedFiltersIncluded()) {
-            posts.toggle(Settings.HIDE_TRANSLATION, false, "Hide \"Show translation\"", null)
-                    .header("Details")
-                    .toggle(Settings.FOCUS_MODE, false, "Hide engagement counts", "Hide like, comment, and repost counts.")
-                    .toggle(Settings.HIDE_POST_FOLLOW, false, "Hide Follow and Connect", null)
-                    .toggle(Settings.HIDE_DEGREE, false, "Hide connection degree",
-                            "The 1st, 2nd and 3rd next to names.")
-                    .toggle(Settings.EXACT_POST_TIME, false, "Show exact post time",
-                            "Instead of 3d or 5h.");
-        }
+        posts.feature(Settings.HIDE_TRANSLATION, false, "Hide \"Show translation\"", null)
+                .header("Details")
+                .feature(Settings.FOCUS_MODE, false, "Hide engagement counts", "Hide like, comment, and repost counts.")
+                .feature(Settings.HIDE_POST_FOLLOW, false, "Hide Follow and Connect", null)
+                .feature(Settings.HIDE_DEGREE, false, "Hide connection degree",
+                        "The 1st, 2nd and 3rd next to names.")
+                .feature(Settings.EXACT_POST_TIME, false, "Show exact post time",
+                        "Instead of 3d or 5h.");
         posts.header("Actions");
         if (Settings.isDisableDoubleTapLikeIncluded()) {
             posts.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Turn off double-tap to like", null);
@@ -266,21 +272,17 @@ public final class SettingsActivity extends Activity {
         if (Settings.isScreenshotShareIncluded()) {
             posts.toggle(Settings.NO_SCREENSHOT_SHARE, true, "Turn off screenshot share sheet", null);
         }
-        if (Settings.isFeedFiltersIncluded()) {
-            posts.header("Comments")
-                    .toggle(Settings.NEWEST_COMMENTS, false, "Most recent comments first", null);
-        }
+        posts.header("Comments")
+                .feature(Settings.NEWEST_COMMENTS, false, "Most recent comments first", null);
         categories.add(posts);
 
         Category video = new Category("Video & viewers");
         if (Settings.isViewerTapToHideIncluded()) {
             video.toggle(Settings.VIEWER_TAP_TO_HIDE, true, "Tap to hide controls in viewers", null);
         }
-        if (Settings.isVideoTabIncluded()) {
-            video.toggle(Settings.VIDEO_TAB_TIME, true, "Show video time", null)
-                    .header("Video tab")
-                    .toggle(Settings.VIDEO_TAB_AUTO_SCROLL, false, "Auto-scroll videos", null);
-        }
+        video.feature(Settings.VIDEO_TAB_TIME, true, "Show video time", null)
+                .header("Video tab")
+                .feature(Settings.VIDEO_TAB_AUTO_SCROLL, false, "Auto-scroll videos", null);
         categories.add(video);
 
         Category navigation = new Category("Navigation bar");
@@ -289,7 +291,8 @@ public final class SettingsActivity extends Activity {
             navigation.toggle(Settings.SWIPE_TABS, true, "Swipe between tabs", null);
         }
         if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()
-                || Settings.isAlwaysShowNavigationBarIncluded() || Settings.isMaterialTabIconsIncluded()) {
+                || Settings.isAlwaysShowNavigationBarIncluded() || Settings.isMaterialTabIconsIncluded()
+                || Features.has(Settings.HIDE_TAB_LABELS) || Features.has(Settings.HIDE_TAB_BADGES)) {
             List<String[]> tabSpecs = orderedTabs();
             List<Item> tabs = new ArrayList<>();
             for (String[] tab : tabSpecs) tabs.add(tab[1] == null ? fixed(tab[2]) : choice(tab[1], tabDefault(tab[0]), tab[2]));
@@ -305,11 +308,10 @@ public final class SettingsActivity extends Activity {
             if (Settings.isAlwaysShowNavigationBarIncluded()) {
                 navigation.toggle(Settings.ALWAYS_SHOW_NAVIGATION_BAR, false, "Always show navigation bar", null);
             }
+            navigation.feature(Settings.HIDE_TAB_LABELS, false, "Hide tab labels", null)
+                    .feature(Settings.HIDE_TAB_BADGES, false, "Hide notification badges", null);
             if (Settings.isNavigationBarIncluded()) {
-                navigation.toggle(Settings.HIDE_TAB_LABELS, false, "Hide tab labels", null)
-                        .toggle(Settings.HIDE_TAB_BADGES, false, "Hide notification badges", null)
-                        .header("Buttons")
-                        .sheet("Navigation bar tabs", tabs, () -> showTabsSheet(tabSpecs, tabs));
+                navigation.header("Buttons").sheet("Navigation bar tabs", tabs, () -> showTabsSheet(tabSpecs, tabs));
             }
         }
         // Titled here too for when the tabs sheet is left out.
@@ -333,8 +335,12 @@ public final class SettingsActivity extends Activity {
                 for (MoreMenu.Item item : MoreMenu.items()) icons.add(moreIcon(item.id));
                 showSheet("Items in the More tab", "Choose which items the More tab lists.", moreItems, icons);
             });
+        }
+        if (Features.has(Settings.MOVE_MORE_ITEMS)) {
             navigation.toggle(Settings.MOVE_MORE_ITEMS, Settings.moveMoreItems(),
                     "Show More tab items in profile menu", null);
+        }
+        if (Features.has(Settings.GAMES_SHORTCUT)) {
             navigation.toggle(Settings.GAMES_SHORTCUT, true, "Puzzle games shortcut", null,
                     () -> GamesShortcut.update(this));
         }
@@ -413,20 +419,19 @@ public final class SettingsActivity extends Activity {
 
         Category chat = new Category("Chat & privacy");
         chat.header("Messaging");
-        if (Settings.isMessagingIncluded()) {
-            chat.toggle(Settings.HIDE_SPONSORED_MESSAGES, true, "Hide sponsored messages", null)
-                    .toggle(Settings.GHOST_MODE, false, "Ghost mode",
-                            "Don't send typing or seen status. Mark chats as read from the chat list.")
-                    .toggle(Settings.MARK_READ_AFTER_REPLY, true, "Mark as read when you reply",
-                            "With ghost mode on, a chat you reply to is marked as read.");
+        chat.feature(Settings.HIDE_SPONSORED_MESSAGES, true, "Hide sponsored messages", null)
+                .feature(Settings.GHOST_MODE, false, "Ghost mode",
+                        "Don't send typing or seen status. Mark chats as read from the chat list.");
+        // Acts only with ghost mode, so it is listed only with it.
+        if (Features.has(Settings.GHOST_MODE)) {
+            chat.feature(Settings.MARK_READ_AFTER_REPLY, true, "Mark as read when you reply",
+                    "With ghost mode on, a chat you reply to is marked as read.");
         }
-        chat.header("Links");
-        if (Settings.isOpenLinksDirectlyIncluded()) {
-            chat.toggle(Settings.OPEN_LINKS_DIRECTLY, true, "Open links directly",
-                    "Skip LinkedIn's warning page in posts and chats.");
-            chat.toggle(Settings.RESOLVE_SHORT_LINKS, true, "Expand lnkd.in links",
-                    "Open the real address instead of the redirect.");
-        }
+        chat.header("Links")
+                .feature(Settings.OPEN_LINKS_DIRECTLY, true, "Open links directly",
+                        "Skip LinkedIn's warning page in posts and chats.")
+                .feature(Settings.RESOLVE_SHORT_LINKS, true, "Expand lnkd.in links",
+                        "Open the real address instead of the redirect.");
         if (Settings.isSanitizeShareLinksIncluded()) {
             chat.toggle(Settings.SANITIZE_SHARE_LINKS, true, "Clean share links",
                     "Strip tracking from LinkedIn links you copy or share.");
@@ -845,7 +850,21 @@ public final class SettingsActivity extends Activity {
                 {"Hide promoted jobs", Settings.isHidePromotedJobsIncluded()},
                 {"Hide suggested posts", Settings.isHideSuggestedIncluded()},
                 {"Hide Premium upsells", Settings.isHidePremiumIncluded()},
-                {"Feed filters", Settings.isFeedFiltersIncluded()},
+                {"Muted words", Features.has(Settings.MUTED_WORDS_LIST)},
+                {"Muted authors", Features.has(Settings.MUTED_AUTHORS_LIST)},
+                {"Hide celebration posts", Features.has(Settings.HIDE_CELEBRATIONS)},
+                {"Hide job posts", Features.has(Settings.HIDE_FEED_JOBS)},
+                {"Hide network activity", Features.has(Settings.HIDE_REPOSTS)},
+                {"Hide video posts", Features.has(Settings.HIDE_VIDEO_POSTS)},
+                {"Hide \"Recommended for you\"", Features.has(Settings.HIDE_RECOMMENDATIONS)},
+                {"Hide puzzle games", Features.has(Settings.HIDE_GAMES)},
+                {"Hide the \"New posts\" button", Features.has(Settings.HIDE_NEW_POSTS_PILL)},
+                {"Hide \"Show translation\"", Features.has(Settings.HIDE_TRANSLATION)},
+                {"Hide engagement counts", Features.has(Settings.FOCUS_MODE)},
+                {"Hide Follow and Connect", Features.has(Settings.HIDE_POST_FOLLOW)},
+                {"Hide connection degree", Features.has(Settings.HIDE_DEGREE)},
+                {"Show exact post time", Features.has(Settings.EXACT_POST_TIME)},
+                {"Most recent comments first", Features.has(Settings.NEWEST_COMMENTS)},
                 {"Disable double-tap like", Settings.isDisableDoubleTapLikeIncluded()},
                 {"Expand posts", Settings.isExpandPostsIncluded()},
                 {"Swipe between tabs", Settings.isSwipeTabsIncluded()},
@@ -854,10 +873,14 @@ public final class SettingsActivity extends Activity {
                 {"Disable screenshot share sheet", Settings.isScreenshotShareIncluded()},
                 {"Hide top bar buttons", Settings.isTopBarButtonsIncluded()},
                 {"Tap to hide controls in viewers", Settings.isViewerTapToHideIncluded()},
-                {"Video tab", Settings.isVideoTabIncluded()},
+                {"Show video time", Features.has(Settings.VIDEO_TAB_TIME)},
+                {"Auto-scroll videos", Features.has(Settings.VIDEO_TAB_AUTO_SCROLL)},
                 {"Download media", Settings.isDownloadMediaIncluded()},
-                {"Messaging", Settings.isMessagingIncluded()},
+                {"Hide sponsored messages", Features.has(Settings.HIDE_SPONSORED_MESSAGES)},
+                {"Ghost mode", Features.has(Settings.GHOST_MODE)},
+                {"Mark as read when you reply", Features.has(Settings.MARK_READ_AFTER_REPLY)},
                 {"Open links directly", Settings.isOpenLinksDirectlyIncluded()},
+                {"Expand lnkd.in links", Features.has(Settings.RESOLVE_SHORT_LINKS)},
                 {"Sanitize share links", Settings.isSanitizeShareLinksIncluded()},
                 {"Disable analytics", Settings.isBlockTrackingIncluded()},
                 {"Anonymous profile viewing", Settings.isAnonymousProfileViewingIncluded()},
@@ -868,8 +891,12 @@ public final class SettingsActivity extends Activity {
                 {"Glass navigation bar", Settings.isGlassNavigationBarIncluded()},
                 {"Material icons in the navigation bar", Settings.isMaterialTabIconsIncluded()},
                 {"Navigation bar", Settings.isNavigationBarIncluded()},
+                {"Hide tab labels", Features.has(Settings.HIDE_TAB_LABELS)},
+                {"Hide notification badges", Features.has(Settings.HIDE_TAB_BADGES)},
                 {"Always show navigation bar", Settings.isAlwaysShowNavigationBarIncluded()},
                 {"More tab", Settings.isMoreMenuIncluded()},
+                {"Show More tab items in profile menu", Features.has(Settings.MOVE_MORE_ITEMS)},
+                {"Puzzle games shortcut", Features.has(Settings.GAMES_SHORTCUT)},
                 {"GmsCore support", Settings.isGmsCoreSupportIncluded()},
         };
     }

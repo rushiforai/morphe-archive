@@ -39,6 +39,39 @@ private const val OBJECT = "Ljava/lang/Object;"
 private const val COLLECTION = "Ljava/util/Collection;"
 private const val KOTLIN_COLLECTIONS = "Lkotlin/collections/CollectionsKt;"
 private const val STRING_NAME = "morphe_sleep_timer"
+private const val ICON_NAME = "morphe_sleep_timer_icon"
+
+/**
+ * Clock icon for the menu item, drawn with a thicker stroke than SoundCloud's own thin one.
+ * To make it lighter or heavier, change both strokeWidth values (24 dp icon; 2.4 is slightly
+ * bolder than a regular 2 dp line). It is tinted with the theme's primary text colour, so it
+ * matches the item's title; if the app applies its own tint to menu icons, that tint wins.
+ */
+private val SLEEP_TIMER_ICON_XML = """<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?android:attr/textColorPrimary">
+    <group
+    android:pivotX="12"
+    android:pivotY="12"
+    android:scaleX="1.2"
+    android:scaleY="1.2">
+    <path
+        android:pathData="M12,3.6a8.4,8.4 0,1 1,0 16.8a8.4,8.4 0,1 1,0 -16.8z"
+        android:strokeWidth="1.6"
+        android:strokeColor="#FFFFFFFF" />
+    <path
+        android:pathData="M12,7.4V12L15.3,14.1"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeColor="#FFFFFFFF" />
+        </group>
+</vector>
+"""
 
 /** Launcher Activity (dotted class name), filled in by [sleepTimerResourcePatch]. */
 private var launcherActivity: String? = null
@@ -138,6 +171,10 @@ internal val sleepTimerResourcePatch = resourcePatch {
                 doc.documentElement.appendChild(element)
             }
         }
+        val icon = get("res/drawable/$ICON_NAME.xml", false)
+        icon.parentFile.mkdirs()
+        icon.writeText(SLEEP_TIMER_ICON_XML)
+
         launcherActivity = launcherActivityOf(get("AndroidManifest.xml"))
         applicationClass = applicationClassOf(get("AndroidManifest.xml"))
     }
@@ -146,8 +183,7 @@ internal val sleepTimerResourcePatch = resourcePatch {
 @Suppress("unused")
 val sleepTimerMenuPatch = bytecodePatch(
     name = "Sleep timer in track menu",
-    description = "Adds a \"Таймер сна\" item to the track menu. It opens a dialog with 15, 30, 45 and " +
-        "60 minute options and pauses playback when the time is up.",
+    description = "Adds a customizable sleep timer to SoundCloud with a circular time selector, saved presets, and one-tap controls to start, stop, or extend playback time.",
     default = true,
 ) {
     compatibleWith(soundcloud)

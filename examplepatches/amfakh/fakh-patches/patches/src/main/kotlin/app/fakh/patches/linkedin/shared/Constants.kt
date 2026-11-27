@@ -71,6 +71,9 @@ object Constants {
     val VIEWER_TAP_TO_HIDE = Feature("viewer_tap_to_hide", "Tap to hide controls in viewers", "Feed")
     val EXPAND_POSTS = Feature("expand_posts", "Expand posts by default", "Feed", default = false)
     val FOCUS_MODE = Feature("focus_mode", "Hide engagement counts", "Feed", default = false)
+    // Not switches: they list the Muted words and Muted authors rows, which save text.
+    val MUTED_WORDS_LIST = Feature("muted_words_list", "Muted words", "Feed")
+    val MUTED_AUTHORS_LIST = Feature("muted_authors_list", "Muted authors", "Feed")
     val HIDE_CELEBRATIONS = Feature("hide_celebrations", "Hide celebration posts", "Feed", default = false)
     val HIDE_FEED_JOBS = Feature("hide_feed_jobs", "Hide job posts", "Feed", default = false)
     val HIDE_REPOSTS = Feature("hide_reposts", "Hide network activity", "Feed", default = false)
@@ -87,6 +90,8 @@ object Constants {
     val LIQUID_GLASS = Feature("liquid_glass", "Background blur", "Navigation bar", dependsOn = GLASS_NAVIGATION_BAR, default = false)
     val MATERIAL_TAB_ICONS = Feature("material_tab_icons", "Material icons", "Navigation bar", default = false)
     val ALWAYS_SHOW_NAVIGATION_BAR = Feature("always_show_navigation_bar", "Always show navigation bar", "Navigation bar", default = false)
+    /** Not a switch: lists the Navigation bar tabs sheet, which saves its own rows. */
+    val NAVIGATION_TABS = Feature("navigation_tabs", "Navigation bar tabs", "Navigation bar")
     val HIDE_TAB_LABELS = Feature("hide_tab_labels", "Hide tab labels", "Navigation bar", default = false)
     val HIDE_TAB_BADGES = Feature("hide_tab_badges", "Hide notification badges", "Navigation bar", default = false)
     val SHOW_TOP_BAR_POST = Feature("show_top_bar_post", "Post", "Top bar")
@@ -94,6 +99,8 @@ object Constants {
     val FEED_SORT_BUTTON = Feature("feed_sort_button", "Feed sort", "Top bar", default = false)
     val VIDEO_TAB_TIME = Feature("video_tab_time", "Show video time", "Video tab")
     val VIDEO_TAB_AUTO_SCROLL = Feature("video_tab_auto_scroll", "Auto-scroll videos", "Video tab", default = false)
+    /** Not a switch: lists the Items in the More tab sheet, which saves its own rows. */
+    val MORE_TAB_ITEMS = Feature("more_tab_items", "Items in the More tab", "More tab")
     val MOVE_MORE_ITEMS = Feature("move_more_items", "Show More tab items in profile menu", "More tab")
     val GAMES_SHORTCUT = Feature("games_shortcut", "Puzzle games shortcut", "More tab")
     val REMOVE_GAPS_AND_DIVIDERS = Feature("remove_gaps_and_dividers", "Hide gaps and dividers", "Appearance")

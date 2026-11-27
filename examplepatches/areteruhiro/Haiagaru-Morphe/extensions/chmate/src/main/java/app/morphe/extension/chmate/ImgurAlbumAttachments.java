@@ -431,6 +431,12 @@ public final class ImgurAlbumAttachments {
                 Map<String,Integer> albumPositions=new LinkedHashMap<>();
                 ParsedBody source; synchronized(PARSED){source=PARSED.get(model);}
                 if(source!=null){
+                    for(String attachment:urls){
+                        String video=XMediaAttachments.sourceVideo(attachment);
+                        if(video==null)continue;
+                        int position=source.body.indexOf(video);
+                        if(position>=0)albumPositions.put(attachment,position);
+                    }
                     Matcher albums=ALBUM.matcher(source.body);
                     synchronized(CACHE){while(albums.find()){
                         Entry entry=CACHE.get(albums.group(1));if(entry==null||entry.images==null)continue;

@@ -46,7 +46,7 @@ final class Engagement {
             // NewX lists shown posts in impression events; results events mostly carry media.
             // Posts are counted once by id, so seeing one in both is harmless.
             if (name.endsWith(":impression") || name.endsWith(":results")) countShown(list);
-            if (!Settings.zeroEngagement() || !Filters.any()) return false;
+            if (!Settings.zeroEngagement() || Filters.rules().isEmpty()) return false;
 
             List<Object> kept = new ArrayList<>(list.size());
             for (Object item : list) {
@@ -97,8 +97,7 @@ final class Engagement {
             Long author = details == null ? null : (Long) authorId.get(details);
             Long id = (Long) itemId.get(item);
             if (author == null || id == null) continue;
-            String handle = Users.handleFor(author);
-            Stats.postShown(id, handle == null ? null : Lookup.peek(handle));
+            Stats.postShown(id, author);
         }
     }
 
@@ -113,8 +112,8 @@ final class Engagement {
             Object details = tweetDetails.get(item);
             Long author = details == null ? null : (Long) authorId.get(details);
             if (author == null) return false;
-            String handle = Users.handleFor(author);
-            return handle != null && Filters.actionFor(Lookup.peek(handle)) != Filters.Action.NONE;
+            Long id = (Long) itemId.get(item);
+            return Verdicts.forEvent(author, id == null ? 0 : id) != 0;
         } catch (IllegalAccessException e) {
             return false;
         }

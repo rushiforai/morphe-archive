@@ -25,7 +25,10 @@ X-Posed
 =======
 
 This project ports parts of X-Posed (https://github.com/xaitax/x-account-location-device):
-the badge design and colors, the country, alias and region tables, and the icon paths.
+the badge design and colors, the country, alias and region tables, the region memberships
+(based on UN M49) and their descriptions, the list of post languages, the icon paths, and the
+filter rules with their matching behaviour and help texts. The tables in CountryData.java are
+generated from X-Posed 4.4.0 (commit 7e93b04) by tools/generate-country-data.mjs.
 X-Posed is licensed under the MIT License:
 
     Copyright (c) Alexander Hagenah
@@ -47,6 +50,31 @@ X-Posed is licensed under the MIT License:
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
+
+
+Lucide
+======
+
+The line icons of the filter screens (Icons.java) are Lucide 0.468.0 icons
+(https://github.com/lucide-icons/lucide), as X-Posed's settings use them. Lucide is licensed
+under the ISC License:
+
+    ISC License
+
+    Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT).
+    All other copyright (c) for Lucide are held by Lucide Contributors 2022.
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
 xposed-patches

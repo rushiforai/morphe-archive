@@ -6,8 +6,8 @@ import app.morphe.patcher.patch.Compatibility
 internal object Constants {
     const val CHESSCOM_PACKAGE = "com.chess"
 
-    // The only version the fingerprints are verified against (versionCode 280075).
-    const val CHESSCOM_VERSION = "4.10.18-googleplay"
+    // The only version the fingerprints are verified against (versionCode 280131).
+    const val CHESSCOM_VERSION = "4.10.29-googleplay"
 
     val COMPATIBILITY = Compatibility(
         packageName = CHESSCOM_PACKAGE,

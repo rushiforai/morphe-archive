@@ -5,7 +5,7 @@ import org.w3c.dom.Element
 import java.util.Properties
 
 /** The Spotify version whose color resources `theme/<version>.properties` lists. */
-internal const val THEME_TARGET_VERSION = "9.1.80.2221"
+internal const val THEME_TARGET_VERSION = "9.2.4.2644"
 
 /** The overlayable the extension's overlay targets. */
 internal const val THEME_OVERLAYABLE = "SpicetifyTheme"

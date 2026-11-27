@@ -26,7 +26,7 @@ import java.util.zip.ZipOutputStream;
 
 /**
  * The choices that live in files instead of preferences: the home header picture and its words' font, the tab
- * pictures, your own font, the auto reply pictures and who Special contacts follows. Save to a file carries them in a zip beside the same text the
+ * pictures, your own font, your own chat sounds, the auto reply pictures and who Special contacts follows. Save to a file carries them in a zip beside the same text the
  * clipboard carries. Read a file puts each one back through the copy its own row makes, under that row's limits, so a
  * backup can't save anything a pick couldn't. Special contacts go in as who's followed, never what was seen of them.
  */
@@ -39,6 +39,8 @@ final class ChoiceFiles {
     static final String HEADER_FONT = "header-font";
     static final String HEADER_FONT_NAME = "header-font-name.txt";
     static final String TAB = "tab-";
+    /** #224: a picked chat sound, under the name of the sound it plays instead of. */
+    static final String CHAT_SOUND = "sound-";
     static final String AUTO_REPLY = "auto-reply/";
     static final String SPECIAL = "special/";
     /** Everything one backup holds unpacked. A whole font and twenty reply pictures fit. */
@@ -90,6 +92,7 @@ final class ChoiceFiles {
         if (installed.contains(TabIcons.KEY)) for (String key : TabIcons.SHOWN) if (TabIcons.file(context, key).isFile()) return true;
         if (installed.contains(OwnFont.KEY) && !prefs.getString(OwnFont.NAME_KEY, "").isEmpty() && FontFile.file(context).isFile())
             return true;
+        if (installed.contains(OwnChatSounds.KEY) && OwnChatSounds.anyPicked(context)) return true;
         if (installed.contains(AutoReply.KEY)) for (String name : pictures(prefs)) if (AutoReplyPicture.fileFor(context, name).isFile())
             return true;
         if (installed.contains(SpecialContacts.KEY)) for (String account : SpecialContacts.accounts(context)) {
@@ -131,6 +134,8 @@ final class ChoiceFiles {
         if (installed.contains(TabIcons.KEY))
             for (String key : TabIcons.SHOWN) add(sink, TAB + key + ".png", TabIcons.file(context, key), MAX_PICTURE);
         if (installed.contains(OwnFont.KEY)) addFont(sink, FONT, FONT_NAME, FontFile.file(context), prefs, OwnFont.NAME_KEY);
+        if (installed.contains(OwnChatSounds.KEY))
+            for (String sound : OwnChatSounds.SOUNDS) add(sink, CHAT_SOUND + sound, OwnChatSounds.file(context, sound), OwnChatSounds.MAX_BYTES);
         if (installed.contains(AutoReply.KEY))
             for (String name : pictures(prefs)) add(sink, AUTO_REPLY + name, AutoReplyPicture.fileFor(context, name), MAX_REPLY_PICTURE);
         if (installed.contains(SpecialContacts.KEY)) for (String account : SpecialContacts.accounts(context)) {
@@ -180,6 +185,7 @@ final class ChoiceFiles {
         if (FONT.equals(name) || HEADER_FONT.equals(name)) return FontFile.MAX_BYTES;
         if (FONT_NAME.equals(name) || HEADER_FONT_NAME.equals(name)) return MAX_FONT_NAME_BYTES;
         if (tab(name) != null) return MAX_PICTURE;
+        if (chatSound(name) != null) return OwnChatSounds.MAX_BYTES;
         if (name.startsWith(AUTO_REPLY) && AutoReplyPicture.validName(name.substring(AUTO_REPLY.length()))) return MAX_REPLY_PICTURE;
         if (account(name) != null) return MAX_SPECIAL;
         return -1;
@@ -190,6 +196,13 @@ final class ChoiceFiles {
         if (!name.startsWith(TAB) || !name.endsWith(".png")) return null;
         String key = name.substring(TAB.length(), name.length() - ".png".length());
         return Arrays.asList(TabIcons.SHOWN).contains(key) ? key : null;
+    }
+
+    /** The sound a chat sound entry is for, or null when [name] isn't one for a sound the settings offer. */
+    private static String chatSound(String name) {
+        if (!name.startsWith(CHAT_SOUND)) return null;
+        String sound = name.substring(CHAT_SOUND.length());
+        return Arrays.asList(OwnChatSounds.SOUNDS).contains(sound) ? sound : null;
     }
 
     /** The account a Special contacts entry is for, or null when [name] isn't one. */
@@ -256,7 +269,7 @@ final class ChoiceFiles {
             byte[] bytes = file.getValue();
             if (FONT_NAME.equals(name) || HEADER_FONT_NAME.equals(name)) continue;
             String owner = HEADER.equals(name) || HEADER_FONT.equals(name) ? HomeHeader.KEY : FONT.equals(name) ? OwnFont.KEY
-                : name.startsWith(TAB) ? TabIcons.KEY
+                : name.startsWith(TAB) ? TabIcons.KEY : name.startsWith(CHAT_SOUND) ? OwnChatSounds.KEY
                 : name.startsWith(AUTO_REPLY) ? AutoReply.KEY : SpecialContacts.KEY;
             if (!installed.contains(owner)) {
                 result.unavailable++;
@@ -270,6 +283,7 @@ final class ChoiceFiles {
                     HomeHeaderPicture.MAX_HEIGHT, HomeHeader::forget);
                 else if (name.startsWith(TAB)) changed = picture(bytes, TabIcons.file(context, tab(name)), TabIcons.MAX_SIDE,
                     TabIcons.MAX_SIDE, TabIcons::forget);
+                else if (name.startsWith(CHAT_SOUND)) changed = chatSoundBack(bytes, OwnChatSounds.file(context, chatSound(name)));
                 else if (FONT.equals(name)) changed = font(prefs, bytes, files.get(FONT_NAME), FontFile.file(context), OwnFont.NAME_KEY);
                 else if (HEADER_FONT.equals(name)) {
                     changed = font(prefs, bytes, files.get(HEADER_FONT_NAME), HomeHeader.fontFile(context), HomeHeader.FONT_NAME);
@@ -299,6 +313,18 @@ final class ChoiceFiles {
             return true;
         } catch (HomeHeaderPicture.Refused refused) {
             android.util.Log.w("HushMessenger", "A restored picture was turned down: " + refused.reason);
+            return null;
+        }
+    }
+
+    /** A chat sound back into [target], checked the way a picked one is. Same answers as {@link #picture}. */
+    private static Boolean chatSoundBack(byte[] bytes, File target) {
+        if (Arrays.equals(bytes, HomeHeaderPicture.keep(target))) return false;
+        try {
+            OwnChatSounds.copy(new ByteArrayInputStream(bytes), target, () -> true);
+            return true;
+        } catch (OwnChatSounds.Refused refused) {
+            android.util.Log.w("HushMessenger", "A restored chat sound was turned down: " + refused.reason);
             return null;
         }
     }

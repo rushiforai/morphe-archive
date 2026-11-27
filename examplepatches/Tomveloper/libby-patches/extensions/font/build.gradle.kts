@@ -10,7 +10,7 @@ android {
 val fontUiDir = layout.projectDirectory.dir("src/main/font-ui")
 val generatedFontUiDir = layout.buildDirectory.dir("generated/fontUi/java").get().asFile
 
-val generateFontUi by tasks.registering {
+val generateFontUi = tasks.register("generateFontUi") {
     inputs.files(
         fontUiDir.file("section.html"),
         fontUiDir.file("section.css"),

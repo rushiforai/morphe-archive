@@ -13,9 +13,12 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
+import app.noam.patches.chesscom.shared.fieldForLabel
+import app.noam.patches.chesscom.shared.filterStores
 import app.noam.patches.chesscom.shared.markFeaturePatched
 
 private const val BOT_UNLOCK = "${Constants.EXTENSION_PACKAGE}/botunlock/BotUnlock;"
+private const val PERSONALITY_BOT = "Lcom/chess/features/versusbots/Bot\$PersonalityBot;"
 
 @Suppress("unused")
 val botUnlockPatch = bytecodePatch(
@@ -29,33 +32,13 @@ val botUnlockPatch = bytecodePatch(
     execute {
         markFeaturePatched("botUnlockPatched")
 
-        // Bot.PersonalityBot.i() -> boolean (canPlay)
-        BotPersonalityBotGetCanPlayFingerprint.method.apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { }, $BOT_UNLOCK->enabled()Z
-                    move-result v0
-                    if-eqz v0, :original
-                    const/4 v0, 0x1
-                    return v0
-                """,
-                ExternalLabel("original", getInstruction(0)),
-            )
-        }
-
-        // Bot.PersonalityBot.E() -> boolean (requiresAccountActivation)
-        BotPersonalityBotGetRequiresActivationFingerprint.method.apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { }, $BOT_UNLOCK->enabled()Z
-                    move-result v0
-                    if-eqz v0, :original
-                    const/4 v0, 0x0
-                    return v0
-                """,
-                ExternalLabel("original", getInstruction(0)),
+        // Bot.PersonalityBot's canPlay and requires-account-activation flags: its fields are read
+        // directly (no getters), so they are set as its constructor stores them.
+        mutableClassDefBy(PERSONALITY_BOT).apply {
+            filterStores(fieldForLabel(", canPlay=", "Z"), "$BOT_UNLOCK->canPlay(Z)Z")
+            filterStores(
+                fieldForLabel(", isAssociatedWithCampaignThatRequiresAccountActivation=", "Z"),
+                "$BOT_UNLOCK->requiresActivation(Z)Z",
             )
         }
 
@@ -104,7 +87,7 @@ val botUnlockPatch = bytecodePatch(
             )
         }
 
-        // h9 (LockedBots).a(Bot) -> boolean (isLocked)
+        // The bots screen's locked-bot check: a(Bot) -> isLocked
         LockedBotsCheckFingerprint.method.apply {
             addInstructionsWithLabels(
                 0,

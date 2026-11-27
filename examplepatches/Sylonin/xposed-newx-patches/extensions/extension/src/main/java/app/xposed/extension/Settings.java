@@ -13,24 +13,27 @@ final class Settings {
     static final String BADGE_DEVICES = "badge_devices";
     static final String BADGE_VPN = "badge_vpn";
     static final String BADGE_INFO = "badge_info";
-    static final String FILTER_MODE = "filter_mode";
-    static final String FILTER_LOCATIONS = "filter_locations";
     static final String ZERO_ENGAGEMENT = "zero_engagement";
     static final String COMMUNITY_CACHE = "community_cache";
     static final String HIGHLIGHT_CONTRAST = "highlight_contrast";
-
-    static final String MODE_HIGHLIGHT = "highlight";
-    static final String MODE_HIDE = "hide";
+    static final String DEVICE_COUNTRY = "device_country";
+    static final String PROFILE_DETAILS = "profile_details";
+    /** Hide or highlight, from before it moved into each filter profile. */
+    static final String LEGACY_FILTER_MODE = "filter_mode";
 
     private static volatile SharedPreferences prefs;
     private static volatile Badge badge;
+    private static volatile FilterMatcher.Sources sources;
     // Held strongly: SharedPreferences only keeps weak references to listeners.
-    private static final SharedPreferences.OnSharedPreferenceChangeListener invalidate = (p, key) -> badge = null;
+    private static final SharedPreferences.OnSharedPreferenceChangeListener invalidate = (p, key) -> {
+        badge = null;
+        sources = null;
+    };
 
     /** Badge settings read together, once per change instead of on every bind. */
     static final class Badge {
         final BadgeStyle.Size size;
-        final boolean background, flags, devices, vpn, info;
+        final boolean background, flags, devices, vpn, info, deviceCountry;
 
         private Badge() {
             size = badgeSize();
@@ -39,6 +42,7 @@ final class Settings {
             devices = bool(BADGE_DEVICES, false);
             vpn = bool(BADGE_VPN, false);
             info = bool(BADGE_INFO, true);
+            deviceCountry = bool(DEVICE_COUNTRY, false);
         }
     }
 
@@ -59,6 +63,7 @@ final class Settings {
                 p.registerOnSharedPreferenceChangeListener(invalidate);
                 prefs = p;
                 badge = null;
+                sources = null;
             }
         }
     }
@@ -73,8 +78,11 @@ final class Settings {
         return "small".equals(s) ? BadgeStyle.Size.SMALL : "large".equals(s) ? BadgeStyle.Size.LARGE : BadgeStyle.Size.MEDIUM;
     }
 
-    static boolean highlightMode() {
-        return !MODE_HIDE.equals(string(FILTER_MODE, MODE_HIGHLIGHT));
+    /** "Use device country" and "Use profile details", one instance per change so caches can compare it. */
+    static FilterMatcher.Sources sources() {
+        FilterMatcher.Sources s = sources;
+        if (s == null) sources = s = new FilterMatcher.Sources(bool(DEVICE_COUNTRY, false), bool(PROFILE_DETAILS, true));
+        return s;
     }
 
     /** Tint opacity multiplier and rail width in dp for highlighted posts; "standard" is X-Posed's look. */

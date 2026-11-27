@@ -79,8 +79,20 @@ jobs:
       - name: Prepare release notes
         shell: pwsh
         run: |
-          $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
-          $notes = [string]$bundle.description
+          $version = "${{ steps.metadata.outputs.version }}"
+          $notes = ""
+          if (Test-Path -LiteralPath "CHANGELOG.md") {
+              $changelog = Get-Content -LiteralPath "CHANGELOG.md" -Raw
+              $escaped = [regex]::Escape($version)
+              $m = [regex]::Match($changelog, "(?ms)^## \[$escaped\][^\r\n]*\r?\n(.*?)(?=^## \[|\z)")
+              if ($m.Success) {
+                  $notes = $m.Groups[1].Value.Trim()
+              }
+          }
+          if ([string]::IsNullOrWhiteSpace($notes)) {
+              $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
+              $notes = [string]$bundle.description
+          }
           if ([string]::IsNullOrWhiteSpace($notes)) {
               $notes = "Release $env:GITHUB_REF_NAME."
           }

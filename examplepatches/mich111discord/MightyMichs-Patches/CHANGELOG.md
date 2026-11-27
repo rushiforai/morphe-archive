@@ -1,3 +1,14 @@
+## [1.18.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.17.0...v1.18.0) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **sofascore:** correct UserAccount package typo in fingerprints ([f7b1732](https://github.com/mich111discord/MightyMichs-Patches/commit/f7b1732b0cde314d7c269b524e2ce5e5b5332979))
+* **whatsapp:** support 2.26.46.x and stop keep-deleted VerifyError ([2e72c9f](https://github.com/mich111discord/MightyMichs-Patches/commit/2e72c9fbcd8d665809fd673a34e350ca2dc4a8a9))
+
+### ✨ New Features
+
+* **sofascore:** support 26.11.09 ([e15fa17](https://github.com/mich111discord/MightyMichs-Patches/commit/e15fa176c96853e9695e0f9908c217d5f289843f))
+
 ## [1.17.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.16.0...v1.17.0) (2026-11-19)
 
 ### 🐛 Bug Fixes

@@ -876,7 +876,7 @@ A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	T
 # context: switch title under Comments and writing; on, a tap on Like under a comment asks first
 Ask before liking a comment	Demander avant d'aimer un commentaire
 # context: summary of that switch
-A tap on Like under a comment asks first, and only Continue likes or unlikes it.	Toucher J'aime sous un commentaire demande d'abord confirmation, et seul Continuer ajoute ou retire le J'aime.
+A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only Continue goes ahead.	Toucher J'aime sous un commentaire, ou choisir une réaction en maintenant un commentaire, demande d'abord confirmation, et seul Continuer l'envoie.
 # context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
 Like or unlike this post?	Aimer ou ne plus aimer cette publication ?
 # context: the same question for a reel
@@ -1858,6 +1858,10 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	Bouton Picture-in-picture
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Affiche un petit bouton sur le bord gauche d'un reel ou d'une vidéo dont la fenêtre est prête. Touchez-le pour ouvrir la fenêtre tout de suite. Fonctionne avec Picture-in-picture activé.
+# context: switch title under Picture-in-picture on the Playback page; on, when a reel ends in the small picture-in-picture window, the next reel plays there
+Next reel in the window	Reel suivant dans la fenêtre
+# context: summary of that switch; "the window" is the small picture-in-picture window
+When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window instead of the same one again. Works with Picture-in-picture on.	Quand un reel se termine dans la fenêtre Picture-in-picture, le reel suivant de Reels est lu dans la fenêtre au lieu du même. Fonctionne avec Picture-in-picture activé.
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Continuer la lecture en arrière-plan
 Next reel in the background	Reel suivant en arrière-plan
@@ -1985,8 +1989,8 @@ Hides the stacked reaction icons in the corner of a comment. The space stays, so
 Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	Masque le nombre à côté des icônes de réaction d'un commentaire. Les icônes restent, et les toucher ouvre toujours la liste des réactions.
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	Télécharger en premier dans les menus des publications
-# context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
-Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.	Déplace Télécharger sur le téléphone et Enregistrer la photo de la fin du menu à trois points d'une publication au début de sa liste d'options. Les premières lignes de Facebook restent au-dessus (sur les publications avec photo, la liste est la page Plus d'options). Une publication sans rien à enregistrer n'a ni l'un ni l'autre.
+# context: summary of that switch; "Download to phone", "Save photo" and "Playback speed" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
+Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.	Déplace Télécharger sur le téléphone et Enregistrer la photo de Plus d'options vers la première page du menu à trois points d'une publication, au-dessus de Vitesse de lecture. Une publication sans rien à enregistrer n'a ni l'un ni l'autre.
 # context: row title under Menu; opens a list of the Menu's tiles to hide, such as Marketplace and Gaming
 Menu tiles to hide	Vignettes du Menu à masquer
 # context: title of the list of Menu tiles to hide
@@ -2105,6 +2109,10 @@ A saved video that ends stays on screen instead of opening the next one. Swipe u
 Show saved posts in the row	Afficher les publications enregistrées dans la suite
 # context: summary of that switch
 A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	Une publication enregistrée dans la suite reste à l'écran au lieu d'être sautée. Balayez vers le haut après sa fin pour la vidéo enregistrée suivante, ou vers le bas après son début pour la précédente.
+# context: switch title under Reels and Watch; on, a reel opened from a Reels row in the news feed (the strip of reels you scroll sideways) goes on to the next reel in that row instead of a suggested reel
+Play the feed's Reels row in order	Lire dans l'ordre la rangée de reels du fil
+# context: summary of that switch; the feed is Facebook's News Feed, so use Facebook's name for it in your language if you know it
+A reel you open from a Reels row in your feed goes on to the next one in that row when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	Un reel ouvert depuis une rangée de reels de votre fil passe au suivant de cette rangée quand il se termine ou quand vous balayez vers le haut, au lieu d'un reel suggéré. Balayez vers le bas pour revenir au précédent.
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	Passer « Vous regardez toujours ? »
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2146,6 +2154,9 @@ Hides the For you searches Facebook suggests when you open search. Your recent s
 Hide "People you may know" in search	Masquer « Vous connaissez peut-être » dans la recherche
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	Masque la rangée Vous connaissez peut-être que Facebook affiche quand vous ouvrez la recherche. Vos recherches récentes et les suggestions pendant la saisie restent.
+# context: switch title under News feed; People you may know is the list of friend suggestions Facebook shows in its Friends tab below your friend requests, as in Hide "People you may know"
+Hide "People you may know" in the Friends tab	Masquer « Vous connaissez peut-être » dans l'onglet Amis
+Hides the People you may know list in the Friends tab. Your friend requests stay.	Masque la liste Vous connaissez peut-être dans l'onglet Amis. Vos demandes d'ami restent.
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	Ne pas enregistrer l'historique de recherche
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
@@ -2689,6 +2700,34 @@ Digits only, up to 10. Your own profile shows this number on this phone. Leave i
 Facebook's real number shows. Type digits to show your own.	Le vrai nombre de Facebook s'affiche. Saisissez des chiffres pour afficher le vôtre.
 # context: summary of that row; %1$s is the number typed, already grouped for the language
 Your profile shows %1$s on this phone.	Votre profil affiche %1$s sur ce téléphone.
+# context: switch title under News feed; on, your own Facebook friends list is kept on this phone each time you scroll it to the end, so you can see who is no longer on it
+Keep track of your friends list	Suivre votre liste d'amis
+# context: summary of that switch; Profile > Friends > All friends is the path to the list in Facebook, so use Facebook's own names for those screens in your language
+Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on this phone and tells you who's no longer on it since the time before. Someone who unfriended you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.	Chaque fois que vous faites défiler votre propre liste Profil > Amis > Tous les amis jusqu'au bout, une copie est gardée sur ce téléphone et vous savez qui n'y est plus depuis la fois précédente. Quelqu'un qui vous a retiré de ses amis, quelqu'un que vous avez retiré et un compte fermé apparaissent de la même façon. Rien ne quitte votre téléphone.
+# context: row title and list title; the people who were on your Facebook friends list and aren't any more
+Friends no longer on your list	Amis qui ne sont plus dans votre liste
+# context: summary of that row
+People who were on your friends list one time you scrolled it to the end and weren't the next. Tap one to open their profile.	Les personnes qui étaient dans votre liste d'amis une fois que vous l'avez fait défiler jusqu'au bout et n'y étaient plus la fois suivante. Touchez-en une pour ouvrir son profil.
+# context: toast the first time your friends list is kept; %1$d is how many friends are on it
+Hushfacebook kept a copy of your %1$d friends. Next time you scroll the list to its end, it tells you who's no longer on it.	Hushfacebook a gardé une copie de vos %1$d amis. La prochaine fois que vous ferez défiler la liste jusqu'au bout, il vous dira qui n'y est plus.
+# context: toast; %1$s is one person's name
+%1$s is no longer on your friends list.	%1$s n'est plus dans votre liste d'amis.
+# context: toast; %1$s is two or three people's names separated by commas
+No longer on your friends list: %1$s.	Ne sont plus dans votre liste d'amis : %1$s.
+# context: toast; %1$s is three people's names separated by commas, %2$d how many other people
+No longer on your friends list: %1$s and %2$d more.	Ne sont plus dans votre liste d'amis : %1$s et %2$d autres.
+# context: toast when tapping a person in that list doesn't open their profile
+Their profile can't open here.	Ce profil ne peut pas s'ouvrir ici.
+# context: shown in place of a person's name when Facebook gave none
+Someone without a name	Quelqu'un sans nom
+# context: second line of a person in that list; %1$s is the date they were last seen on your list, %2$s the date they were first missing
+Gone between %1$s and %2$s	Parti entre le %1$s et le %2$s
+# context: line above that list before your friends list was ever kept
+No copy of your friends list yet.	Pas encore de copie de votre liste d'amis.
+# context: line above that list; %1$s is a date, %2$d how many friends were on the list then
+Your list was last read to its end on %1$s, with %2$d friends.	Votre liste a été lue jusqu'au bout pour la dernière fois le %1$s, avec %2$d amis.
+# context: shown while that list is empty; Keep track of your friends list is the switch's title
+Nobody yet. With Keep track of your friends list on, scroll Profile > Friends > All friends to its end now and then. Anyone who drops off between two of those reads shows up here.	Personne pour l'instant. Avec Suivre votre liste d'amis activé, faites défiler de temps en temps Profil > Amis > Tous les amis jusqu'au bout. Toute personne qui disparaît entre deux de ces lectures apparaît ici.
 # context: switch title under Stories; the stories row at the top of Home shown as round pictures
 Round stories tray	Barre des stories ronde
 # context: summary of that switch
@@ -2759,6 +2798,10 @@ Switches that are on	Options activées
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	Toutes les options que vous avez activées, dans une seule liste. Désactivez-en une ici et elle est désactivée partout.
 No switches are on yet.	Aucune option n'est encore activée.
 Turned off lately	Désactivées récemment
+# context: one of three order choices above the Switches that are on list; lists the switches in the order the settings page has them (the other two are A to Z and Newest)
+Page order	Comme sur la page
+# context: the second order choice there; lists the switches alphabetically by their titles
+A to Z	De A à Z
 Emoji after the logo	Emoji après le logo
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	Un emoji affiché juste après le logo Facebook en haut de l'Accueil, dans ses propres couleurs. Laissez vide pour n'en avoir aucun.
 No emoji after the logo. Type one to show it there.	Aucun emoji après le logo. Saisissez-en un pour l'afficher à cet endroit.
@@ -2870,12 +2913,26 @@ Bar opacity	Opacité des barres
 How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	Part de leur couleur que gardent les barres transparentes, en pourcentage, de %1$s à %2$s. Une valeur plus basse laisse mieux voir le fil et son flou. Laissez vide pour %3$s, ou %4$s sur le flou.
 The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	Les barres gardent %1$s pour cent de leur couleur, ou %2$s pour cent sur le flou. Saisissez un nombre pour le modifier.
 The see-through bars keep %1$s percent of their color.	Les barres transparentes gardent %1$s pour cent de leur couleur.
+# context: row title under Appearance, right under Bar opacity; picks how strongly the see-through top bar and tab bar blur the feed behind them
+Blur strength	Intensité du flou
+# context: message of that row's number box; %1$s is 0 (no blur), %2$s the most, %3$s the usual amount
+How much the see-through bars blur the feed behind them, in percent of the usual blur, from %1$s, no blur, to %2$s. Leave it blank for %3$s. The blur needs Android 12 or newer.	À quel point les barres transparentes floutent le fil derrière elles, en pourcentage du flou habituel, de %1$s, sans flou, à %2$s. Laissez vide pour %3$s. Le flou demande Android 12 ou plus récent.
+# context: summary of that row while it's blank
+The see-through bars blur the feed behind them the usual amount. Type a number to change it.	Les barres transparentes floutent le fil derrière elles comme d'habitude. Saisissez un nombre pour le modifier.
+# context: summary of that row when it's 0
+The see-through bars show the feed behind them sharp, with no blur.	Les barres transparentes montrent le fil derrière elles net, sans flou.
+# context: summary of that row; %1$s is the number typed
+The see-through bars blur the feed behind them %1$s percent of the usual amount.	Les barres transparentes floutent le fil derrière elles à %1$s pour cent du flou habituel.
 Tab bar width	Largeur de la barre d'onglets
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Pourcentage de la largeur de l'écran, de %1$s à %2$s. Les icônes grandissent et rétrécissent avec. Laissez vide pour %3$s.
 The rounded tab bar is %1$s percent of the screen wide.	La barre d'onglets arrondie fait %1$s pour cent de la largeur de l'écran.
 Tab bar height	Hauteur de la barre d'onglets
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	Pourcentage de sa pleine hauteur que garde la barre d'onglets arrondie, de %1$s à %2$s, rognée au-dessus et en dessous des icônes. Au-delà de 100, elle devient plus haute, surtout vers le bas de l'écran. Laissez vide pour %3$s.
 The rounded tab bar keeps %1$s percent of its height.	La barre d'onglets arrondie garde %1$s pour cent de sa hauteur.
+# context: switch title under Appearance, right under Tab bar height; gives the rounded tab bar a glass look
+Glass tab bar	Barre d'onglets en verre
+# context: description of that switch; Rounded tab bar is the switch a few rows above it, the pill is that rounded tab bar, and the highlight is the faint pill behind the selected tab's icon
+With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the highlight behind the tab you're on slides over when you pick another tab.	Avec Barre d'onglets arrondie activée, la barre prend un bord de verre clair et une ombre douce, et la surbrillance derrière l'onglet où vous êtes glisse jusqu'à celui que vous choisissez.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	Signaler les nouveaux paramètres
 # context: choice in that row; the dot goes once the page holding the setting is left
@@ -3197,7 +3254,23 @@ Hide hashtags in reel captions	Masquer les hashtags dans les légendes des reels
 Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	Retire les hashtags des légendes des reels, comme le bloc de tags à la fin. Un hashtag qui fait partie d'une phrase reste. Un changement s'applique à partir du reel suivant.
 Keep the keyboard closed when comments open	Garder le clavier fermé à l'ouverture des commentaires
 Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	Les commentaires s'ouvrent sans faire apparaître le clavier, même sur une publication sans commentaire. Touchez la zone de commentaire quand vous voulez écrire.
+Post text doesn't open comments	Le texte d'une publication n'ouvre pas les commentaires
+A tap on a post's text no longer opens its comments. The Comment button still does.	Toucher le texte d'une publication n'ouvre plus ses commentaires. Le bouton Commenter les ouvre toujours.
 Settings language	Langue des paramètres
 Same as Facebook	Comme Facebook
 Show feed reels uncropped	Afficher les reels du fil sans recadrage
 Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Les reels de votre fil montrent toute l'image dans leur propre format, au lieu d'être recadrés au cadre de Facebook. Les reels affichés après un changement l'appliquent.
+Remix this reel	Remixer ce reel
+Hold the profile tab for Activity log	Maintenir l'onglet du profil pour l'historique personnel
+Press and hold the profile tab to open your Activity log instead of switching accounts. On accounts with a Menu tab in its place, that tab does it. You can still switch accounts from the Menu.	Maintenez l'onglet du profil pour ouvrir votre historique personnel au lieu de changer de compte. Sur les comptes qui ont l'onglet Menu à sa place, c'est cet onglet qui le fait. Vous pouvez toujours changer de compte depuis le Menu.
+React to this comment?	Réagir à ce commentaire ?
+Hide reactions on a held comment	Masquer les réactions lors d'un appui long sur un commentaire
+Hide Reply on a held comment	Masquer Répondre lors d'un appui long sur un commentaire
+Hide Copy on a held comment	Masquer Copier lors d'un appui long sur un commentaire
+Hide Report on a held comment	Masquer Signaler lors d'un appui long sur un commentaire
+Hide the Hide comment option	Masquer l'option Masquer le commentaire
+Holding a comment no longer shows the row of reactions above it. Like under the comment still works.	Un appui long sur un commentaire n'affiche plus la rangée de réactions au-dessus. J'aime sous le commentaire fonctionne toujours.
+Holding a comment no longer offers Reply. The Reply under the comment stays.	Un appui long sur un commentaire ne propose plus Répondre. Le bouton Répondre sous le commentaire reste.
+Holding a comment no longer offers Copy.	Un appui long sur un commentaire ne propose plus Copier.
+Holding a comment no longer offers Report comment or Report to group admins.	Un appui long sur un commentaire ne propose plus Signaler le commentaire ni Signaler aux administrateurs du groupe.
+Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.	Un appui long sur un commentaire ne propose plus Masquer le commentaire. Si un commentaire n'a plus rien à proposer, l'appui long ne fait plus rien.

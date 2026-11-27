@@ -12,12 +12,13 @@ Every patch can be selected on its own in Morphe Manager.
 
 | Patch | What it does |
 |---|---|
-| Claim daily bonus automatically | Claims the free daily wheel spin in the background as soon as it is ready, without opening the wheel. |
+| Claim daily bonus automatically | Claims the free daily wheel spin in the background when it is ready; the chip counter counts up. |
 | Auto-collect daily wheel | Opening the daily wheel with a free spin spins it, collects the chips and closes it. |
 | Auto-open packs | Opening "My packs" opens every unopened collection pack one after another. |
-| Fast pack opening | Shows all cards of a pack at once and skips the pauses between packs. |
+| Fast pack opening | Shows all cards of a pack at once and skips the pauses between packs, star packs included. |
 | Remove ads | Removes the full-screen ads before Solo games. Optional reward videos stay. |
 | Fast startup on VPN | Stops the loading screen from hanging when a download stalls, e.g. behind a VPN. |
+| Rotate in both landscape directions | The game turns with the phone when it is held upside down in landscape. |
 | MicroG-RE support | Allows Google sign-in through MicroG-RE (needed after patching). |
 
 ### Supported version
@@ -55,11 +56,11 @@ build. A game update needs the addresses to be derived again (see [docs/belote.m
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.0.0](https://github.com/smtgpm/morphe-patches-smtgpm/releases/tag/v1.0.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**7 patches** across **1 app**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
+> **[v1.1.0](https://github.com/smtgpm/morphe-patches-smtgpm/releases/tag/v1.1.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**8 patches** across **1 app**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
 | # | App | Patches | Version | Package |
 |---|---|---|---|---|
-| 1 | [**Belote.com**](PATCHES.md#belotecom-comgameduellmobilebelote) | 7 | `2.12.9` | [`com.gameduell.mobile.belote`](https://play.google.com/store/apps/details?id=com.gameduell.mobile.belote) |
+| 1 | [**Belote.com**](PATCHES.md#belotecom-comgameduellmobilebelote) | 8 | `2.12.9` | [`com.gameduell.mobile.belote`](https://play.google.com/store/apps/details?id=com.gameduell.mobile.belote) |
 <!-- PATCHES_END -->
 
 ## 🛠️ Building locally

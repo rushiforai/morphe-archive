@@ -33,6 +33,8 @@ quick_access	Hızlı erişim
 access_help	'Patch controls' veya 'Restart Messenger' kısayolları için Messenger'ın ana ekran simgesine uzun bas. HushMessenger ayarlarını uygulama çekmecenden de açabilirsin.
 hide_drawer_icon	Uygulama çekmecesi simgesini gizle
 hide_drawer_icon_help	Ayarlara yine Messenger'ın Menü'sünden veya ana ekran simgesindeki kısayoldan ulaşabilirsin.
+settings_in_recents	Ayarlar son uygulamalarda
+settings_in_recents_help	Ayarlardan Ana ekran veya Son uygulamalar düğmesiyle çıkarsan kartı Son uygulamalar'da kalır, böylece kaldığın yere dönebilirsin. Geri ile kapatırsan kart kalmaz. Bu kapalıyken kart, çıktığın anda kaybolur.
 hide_menu_row	Menü satırını gizle
 hide_menu_row_help	HushMessenger satırını Messenger'ın Menü sekmesinden ve yan menüsünden kaldırır. Buraya dönmek için Sohbetler'in üstündeki Messenger logosuna uzun bas ya da Messenger'ın ana ekran simgesine uzun basıp 'Patch controls' kısayoluna dokun. İkisi de kalmazsa satır geri gelir.
 menu_row_needs_shortcut	Önce bu ayarları bir kez uzun basma kısayolundan aç (Messenger'ın ana ekran simgesine uzun bas, sonra 'Patch controls' kısayoluna dokun). Böylece satır olmadan da geri dönebilirsin.
@@ -60,8 +62,8 @@ menu_row_needs_way	Satır olmadan da geri dönebilmek için önce simge kısayol
 hide_menu_row_help_without_shortcut	HushMessenger satırını Messenger'ın Menü sekmesinden ve yan menüsünden kaldırır. Buraya dönmek için Sohbetler'in üstündeki Messenger logosuna uzun bas. Logoya uzun basmayı kapatırsan satır geri gelir.
 hide_menu_row_help_plain	HushMessenger satırını Messenger'ın Menü sekmesinden ve yan menüsünden kaldırır.
 menu_tab	Menü sekmesi
-menu_rows_help	Messenger'ın Menü sekmesine koyduğu satırlar, örneğin Topluluklar veya Kanal davetleri. Hiç açmadıklarını gizle. Her satır, Menü sekmesi onu bir kez gösterdikten sonra burada görünür.
-menu_rows_empty	Messenger'ın Menü sekmesini bir kez aç, satırları gizleyebilmen için burada görünür.
+menu_rows_help	Messenger'ın Menü sekmesine veya yan menüsüne koyduğu satırlar, örneğin Topluluklar veya Kanal davetleri. Hiç açmadıklarını gizle. Her satır, Messenger onu bir kez gösterdikten sonra burada görünür.
+menu_rows_empty	Messenger'ın Menü sekmesini veya yan menüsünü bir kez aç, satırları gizleyebilmen için burada görünür.
 menu_log_out	Menü sekmesinde Çıkış yap satırı
 menu_log_out_help	Messenger'ın Menü sekmesinde, Ayarlar'ın altına Çıkış yap'ı koyar. Messenger'ın kendi Çıkış yap seçeneğiyle aynı şekilde çıkış yapar.
 way_menu	HushMessenger ayarlarını Messenger'ın Menü sekmesindeki veya yan menüsündeki satırından aç.
@@ -176,6 +178,8 @@ call_captions_no_recognizer	Telefonunda cihaz üzerinde konuşma tanıma yok, bu
 call_captions_no_translator	Telefonunda cihaz üzerinde çeviri yok, bu yüzden altyazılar konuşulan dilde kalır.
 call_captions_untranslated	Telefonun bu dil çiftini çeviremiyor, altyazılar konuşulduğu gibi kalır.
 call_captions_unavailable	Telefonun bu dili tanıyamıyor. HushMessenger ayarlarından başka bir dil seç.
+call_captions_checking	Telefonunda %1$s kontrol ediliyor
+call_captions_cant_hear	Telefonun %1$s için kendi başına altyazı oluşturamıyor. Başka bir dil seç.
 call_captions_downloading	Telefonun bu dili indiriyor. Altyazılar indirme bitince başlar.
 call_captions_stopped	Bu arama için altyazılar durdu.
 call_captions_no_voice	Telefonunda bu dil için ses yok, bu yüzden altyazılar sesli okunmaz.
@@ -192,6 +196,16 @@ hidden_chats_failed	Bu sohbet gizlenemedi
 hidden_chats_empty	Sohbet listenden gizlediğin sohbetler burada görünür.
 hidden_chats_unhide	Gizlemeyi kaldır
 hidden_chats_unnamed	Sohbet
+chat_preview_taps_open	Sohbeti aç
+chat_preview_taps_gone	Sohbet listenden aç
+# context: confirm_strangers_held, the toast after that switch holds a Send, asking for a second tap
+confirm_strangers_held	Henüz arkadaşın değil. Gönder'e tekrar dokun.
+# context: remove_contact_row, the row this switch adds to the menu you get by holding a person who isn't a friend. Messenger's own old row was called Remove contact.
+remove_contact_row	Kişiyi kaldır
+# context: remove_contact_done, the toast after that row took the person out of your Messenger contacts
+remove_contact_done	Kişilerinden kaldırıldı
+# context: remove_contact_failed, the toast when that row couldn't take the person out of your contacts
+remove_contact_failed	Bu kişi kaldırılamadı
 special_contacts_track	Bu kişiyi takip et
 special_contacts_untrack	Takibi bırak
 special_contacts_tracked	Bu kişi artık takipte
@@ -236,6 +250,8 @@ invisible_buttons_group_ours	HushMessenger düğmeleri
 invisible_buttons_group_other	Diğer
 tab_bar_slide	Sekme çubuğu boyunca kaydır
 tab_bar_slide_help	Parmağını alttaki sekme çubuğu boyunca kaydır, bir vurgu sekmeden sekmeye onu izler. Altındaki sekmeyi açmak için parmağını kaldır. Dokunmak eskisi gibi çalışır ve bu, Sekmeler arasında kaydırma kapalıyken de çalışır. Açtıktan sonra Messenger'ı yeniden başlat.
+tab_swipe_follow	Sayfa parmağını izlesin
+tab_swipe_follow_help	Sekmeler arasında kaydırırken sayfa parmağınla birlikte hareket eder, parmağını kaldırınca sonraki sekme yandan kayarak gelir. Kısa bir kaydırma sayfayı geri getirir. Sekme çubuğu yerinde kalır.
 message_actions_hidden_label	%1$s (gizli)
 message_actions_move_up	%1$s öğesini yukarı taşı
 message_actions_move_down	%1$s öğesini aşağı taşı
@@ -334,6 +350,27 @@ tab_icons_tab_metaai	Meta AI
 tab_icons_tab_jewel	Facebook
 tab_icons_tab_more	Menü
 tab_icons_tab_mesetting	Profilin
+tab_icons_size	Simge boyutu
+tab_icons_size_help	Resimlerin ve çizgi simgeler bu boyutta çizilir. %1$s, Messenger'ın bir simgeye ayırdığı alanın tamamını doldurur, %2$s ise aşağı yukarı Messenger'ın kendi simgeleri kadardır. Değişikliği görmek için Messenger'ı yeniden başlat.
+tab_icons_size_picked	Simgeler, Messenger yeniden başlayınca %1$s olur
+own_chat_sounds_help	Gönderiliyor mesajın giderken, Gönderildi mesaj ulaştığında, Uygulama içi mesaj ise Messenger açıkken bir mesaj geldiğinde çalar. Herhangi biri için en fazla %1$d MB'lık bir .ogg, .mp3, .m4a veya .wav dosyası seç.
+own_chat_sounds_sound_send	Gönderiliyor
+own_chat_sounds_sound_sent	Gönderildi
+own_chat_sounds_sound_in_app	Uygulama içi mesaj
+own_chat_sounds_choose	Seç
+own_chat_sounds_remove	Kaldır
+own_chat_sounds_stock	Messenger'ın sesi
+own_chat_sounds_yours	Senin sesin
+own_chat_sounds_copying	Kopyalanıyor...
+own_chat_sounds_saved	Ses kaydedildi.
+own_chat_sounds_removed	Yine Messenger'ın sesi çalacak.
+own_chat_sounds_remove_failed	O ses kaldırılamadı.
+own_chat_sounds_not_sound	O dosya ses olarak çalınmıyor.
+own_chat_sounds_too_large	Sesler en fazla %1$d MB olabilir.
+own_chat_sounds_unreadable	O dosya açılamadı.
+own_chat_sounds_not_saved	Ses kaydedilemedi.
+own_chat_sounds_busy	Önceki dosya hâlâ kopyalanıyor.
+own_chat_sounds_timeout	Dosya çok uzun sürdü. Tekrar dene.
 quiet_calls_chosen	Yalnızca seçilen sohbetler
 quiet_calls_chosen_help	Aşağıda açtığın sohbetlerden gelen aramalar sessizce gelir. Diğer tüm aramalar her zamanki gibi çalar.
 quiet_calls_recent_empty	Seni arayan sohbetler burada görünür, en yenisi en üstte.
@@ -773,6 +810,9 @@ chat_jump_loading	Eski mesajlar yükleniyor (şu ana kadar %1$d)
 chat_jump_loading_plain	Eski mesajlar yükleniyor
 chat_jump_seeking	O gün aranıyor
 chat_jump_cancel	İptal
+pinned_bar_one	Sabitlenmiş mesaj
+pinned_bar_many	%1$d sabitlenmiş mesaj
+pinned_bar_attachment	Bir ek
 chat_jump_start	Sohbetin başı burası
 chat_jump_found	O günün ilk mesajı burada
 chat_jump_next	O gün mesaj yok, işte sonraki mesaj
@@ -814,12 +854,19 @@ search_suggested.title	Aramada Önerilenleri gizle
 search_suggested.description	Bir şey yazmadan önce aramanın üstünde çıkan önerilen kişileri gizler. Kişiler, onları aradığında yine çıkar.
 search_reels.title	Aramada son reels'leri gizle
 search_reels.description	Bir şey yazmadan önce son izlediğin reels'leri aramadan gizler.
+search_strangers.title	Aramada tanımadığın kişileri gizle
+search_strangers.description	Aramaya bir şey yazarken arkadaşın olmayan kişileri gizler, böylece yanlışlıkla bir yabancıya mesaj atmazsın. Arkadaşların ve grupların yine görünür.
+# context: confirm_strangers, the Inbox switch that holds the first Send in a chat with someone who isn't a friend
+confirm_strangers.title	Tanımadığın kişilere yazmadan önce sor
+confirm_strangers.description	Arkadaşın olmayan biriyle sohbette ilk gönderimi bekletir ve Gönder'e tekrar dokunmanı ister. 5 saniye içinde ikinci dokunuş onu mesaj isteği olarak gönderir. Gruplar, sayfalar ve sana yazmış kişilerle olan sohbetler hemen gönderilir.
 longer_notes.title	Daha uzun notlar yaz
-longer_notes.description	Notlara 60 yerine en fazla 2000 karakter yazmanı sağlar. Uzun bir notun yayınlanıp yayınlanmayacağına Facebook karar verir.
+longer_notes.description	Notlara 60 yerine en fazla 600 karakter yazmanı sağlar. Uzun bir notun yayınlanıp yayınlanmayacağına Facebook karar verir.
 chat_preview.title	Uzun basınca sohbet önizlemesi
 chat_preview.description	Bir sohbete basılı tutarak, sohbeti açmadan Messenger'ın kendi önizlemesinde ona göz at. Sohbetin menüsü de önizlemenin altında olur.
 chat_preview_size.title	Daha büyük sohbet önizlemesi
 chat_preview_size.description	Bir sohbete basılı tuttuğunda açılan önizlemede sohbete daha fazla yer verir ve orada geriye doğru kaydırmana izin verir. Altındaki menünün yüksekliği sabit kalır ve daha fazla öğe olduğunda kaydırılır.
+chat_preview_taps.title	Dokunuşlar sohbet önizlemesinde kalsın
+chat_preview_taps.description	Bir sohbete basılı tuttuğunda açılan önizlemede sohbete dokunmak artık onu açmaz. Dokunuşların sohbetin kendisine gider, böylece en yeni mesaja inen ok çalışır. Altındaki menünün en üstündeki Sohbeti aç ise sohbeti açar.
 mark_read_action.title	Okundu işaretleme seçeneğini gizle
 mark_read_action.description	Sohbet listende bir sohbete basılı tuttuğunda açılan menüdeki Okundu olarak işaretle seçeneğini gizler, böylece bir sohbeti yanlışlıkla okundu olarak işaretleyemezsin. Okunmadı olarak işaretle kalır.
 pinned_chats.title	Daha fazla sohbet sabitle
@@ -832,6 +879,9 @@ chat_menu_items.title	Sohbet menüsü öğelerini gizle
 chat_menu_items.description	Sohbet listende bir sohbete basılı tuttuğunda açılan menüden seçtiğin öğeleri gizler. Herhangi bir sohbete bir kez basılı tut, o menünün öğeleri seçmen için bu anahtarın altında görünür.
 profile_menu_items.title	Profil menüsü öğelerini gizle
 profile_menu_items.description	Sohbette birinin mesajının yanındaki fotoğrafına dokununca açılan menüden seçtiğin öğeleri gizler. Bir fotoğrafa bir kez dokun, o menünün öğeleri seçmen için bu anahtarın altında görünür.
+# context: remove_contact, the Chat menu switch that adds Remove contact to the menu you get by holding a person who isn't a friend
+remove_contact.title	Kişiyi kaldır seçeneğini göster
+remove_contact.description	Arkadaşın olmayan kişiler için, Kişiler sekmesinde, kişilerinde veya aramada birine basılı tutunca açılan menüye Kişiyi kaldır seçeneğini geri ekler. Kişiyi engellemeden Messenger kişilerinden çıkarır.
 facebook.title	Facebook kısayollarını gizle
 facebook.description	Facebook düğmelerini, profil ve paylaşım kısayollarını ve Menü sekmesindeki Meta'dan diğerleri ile Abonelikler bölümlerini gizler. Yalnızca Messenger kullanıyorsan işine yarar.
 meta_ai.title	Meta AI'ı gizle
@@ -913,7 +963,7 @@ local_chat_search.description	Bir sohbetin arama sonuçlarına, bu telefonda kay
 chat_jump.title	İlk mesaja veya bir tarihe git
 chat_jump.description	Sohbetin ilk mesajına veya seçtiğin bir güne gitmek için üstteki sohbet adına uzun bas. Sohbetin sol alt köşesindeki ok ilk mesaja götürür, oka uzun basarsan bir gün sorar. Messenger bir sohbeti sayfa sayfa yüklediği için oraya varana kadar ekranda bir sayaçla geriye kaydırır ve İptal bunu durdurur. Ancak Messenger'ın yükleyebildiği kadar geriye gidebilir.
 pinned_bar.title	Sabitlenmiş mesajları göster
-pinned_bar.description	Bir sohbetin sabitlenmiş mesajlarını adının altındaki bir çubukta gösterir. Messenger'da bu çubuk zaten var ama yalnızca bazı sohbetlerde açıyor.
+pinned_bar.description	Uçtan uca şifreli sohbetlerde, sohbetin adının altında en yeni sabitlenmiş mesajını gösteren bir çubuk gösterir. Mesaja gitmek için çubuğa dokunun.
 landscape.title	Yatay moda izin ver
 landscape.description	Daha geniş bir klavye ve daha büyük fotoğraf ve videolar için Messenger'ın telefonunla birlikte yan dönmesini sağlar. Telefonunun otomatik döndürme ayarına uyar. Aramalar, kamera, ödemeler ve birkaç ekran daha dik kalır. Değiştirdikten sonra Messenger'ı yeniden başlat.
 chat_bar_plus.title	Sohbet çubuğu düğmeleri + menüsünde
@@ -1004,6 +1054,8 @@ restricted_notify.title	Kısıtlanan sohbetler için bildir
 restricted_notify.description	Kısıtladığın kişilerle olan sohbetler, uçtan uca şifreli olmadıkça diğer sohbetlerin gibi sana bildirim gönderir. Sessize aldığın bir sohbet sessiz kalır. Kısıtlanan kişiler yine de ne zaman aktif olduğunu veya mesajlarını ne zaman okuduğunu göremez.
 open_chat_sound.title	Açık sohbette ses
 open_chat_sound.description	Açık olan sohbetine bir mesaj geldiğinde Messenger'ın uygulama içi mesaj sesini çalar. Messenger bunu beğeniler ve çıkartmalar için zaten yapıyor. Telefon sessizdeyse ya da Messenger'ın kendi uygulama içi sesler ayarı kapalıysa yine ses çıkmaz.
+own_chat_sounds.title	Kendi sohbet seslerin
+own_chat_sounds.description	Mesaj gönderirken, mesaj ulaştığında ve Messenger açıkken yeni bir mesaj geldiğinde Messenger'ın sesleri yerine senin seçtiğin ses dosyalarını çalar. Onları aşağıdan seç. Dokunmadıkların Messenger'ın kendi sesi olarak kalır ve her birinin ne zaman çalacağına yine Messenger karar verir.
 passkey_login.title	Geçiş anahtarıyla girişi atla
 passkey_login.description	Giriş yaparken bu telefondaki geçiş anahtarı artık sunulmaz, böylece Facebook girişi oturum açtığın başka bir cihazdan onaylamanı ister, geçiş anahtarı olmayan bir hesapta yaptığı gibi. Yamalı bir Messenger, Facebook'un geçiş anahtarı kontrolünü geçemez ve bazı girişlerin tarayıcı kontrolünde dönüp durmasının nedeni bu. Açıkken Messenger şifreli yedeklemeleri için de geçiş anahtarı kullanamaz, bu yüzden bir giriş takılmadıkça kapalı bırak. Oturum açmadan bu ayarlara ulaşmak için Messenger'ın ana ekran simgesine uzun bas.
 recovery_code_row.title	40 karakterlik kod seçeneğini göster

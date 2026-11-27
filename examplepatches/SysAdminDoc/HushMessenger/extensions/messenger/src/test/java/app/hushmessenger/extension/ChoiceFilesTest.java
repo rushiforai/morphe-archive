@@ -97,6 +97,10 @@ public class ChoiceFilesTest {
             delete(TabIcons.file(context, key));
             delete(HomeHeaderPicture.partial(TabIcons.file(context, key)));
         }
+        for (String sound : OwnChatSounds.SOUNDS) {
+            delete(OwnChatSounds.file(context, sound));
+            delete(HomeHeaderPicture.partial(OwnChatSounds.file(context, sound)));
+        }
         HomeHeader.forget();
         TabIcons.forget();
         delete(AutoReplyPicture.directory(context));

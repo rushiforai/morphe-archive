@@ -1,7 +1,8 @@
 package app.xperia.patches.sony.camera
 
 import app.xperia.patches.sony.SONY_CAMERA
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import org.w3c.dom.Element
 
 /**
@@ -9,7 +10,7 @@ import org.w3c.dom.Element
  * visibility) and nobody declares the Sony permissions it needs. On stock both are system apps.
  */
 @Suppress("unused")
-val cameraCommonVisibilityPatch = resourcePatch(
+val cameraCommonVisibilityPatch = patch(
     name = "Camera common visibility",
     description = "Lets the camera app see and use com.sonymobile.cameracommon (camera status provider, " +
             "gyro calibration) when both are sideloaded: adds the <queries> entry and declares the " +

@@ -1,0 +1,9 @@
+{
+  "format": "gboard-version-bindings.v1",
+  "target_version": "18.5.4",
+  "profile_version": "1.6.0",
+  "projection_sha256": "ce992bb07dcf0fe4735746ce133cb9f43f91d42159da9ce3dec751f358778e4c",
+  "profile_sha256": "6ff8c6c1c5adc99577a56872aa1339b97076ca1ad2d11505be1b6a62e145b3e5",
+  "port_bundle_sha256": "851cef53360f3e6c4fc6cab41775e417f260e44f94deea960623ed7b24644c76",
+  "bindings": {}
+}

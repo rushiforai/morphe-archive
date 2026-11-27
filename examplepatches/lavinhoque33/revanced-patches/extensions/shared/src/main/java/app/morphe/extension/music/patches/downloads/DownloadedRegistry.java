@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-17.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
@@ -169,8 +170,14 @@ final class DownloadedRegistry {
         List<String> videoIds = sourceId == null ? null : sources.get(sourceId);
         if (videoIds == null || pending.contains(sourceId)) return false;
 
-        List<String> available = PlaylistPage.available(videoIds);
-        return !available.isEmpty() && available.stream().allMatch(this::isDownloaded);
+        boolean hasAvailable = false;
+        for (int index = 0; index < videoIds.size(); index++) {
+            String videoId = videoIds.get(index);
+            if (!PlaylistPage.isAvailable(videoId)) continue;
+            if (!isDownloaded(videoId)) return false;
+            hasAvailable = true;
+        }
+        return hasAvailable;
     }
 
     /**

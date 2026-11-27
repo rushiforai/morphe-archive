@@ -51,18 +51,24 @@ public final class VerifyFylo {
     }
     static boolean diamond(Method method, int changed, boolean none) {
         var body = FyloProPatch.instructions(method);
-        int branch = changed - (method.getName().equals("<init>") ? 2 : 3);
-        int[] regs = new int[method.getImplementation().getRegisterCount()];
-        // Native startup already seeded the boolean output register with true.
-        regs[FyloProPatch.reg(body.get(changed))] = 1;
-        int pc = none ? FyloProPatch.target(body, branch) : branch + 1;
+        // The NONE (false) branch is the IF_EQ taken target; the pro branch is the fall-through.
+        int branch = FyloProPatch.ifEqTargeting(body, changed);
+        if (branch < 0) throw new AssertionError("Diamond branch not found");
+        Map<Integer, Integer> regs = new HashMap<>();
+        int pc = none ? changed : branch + 1;
         for (int steps = 0; steps < 8; steps++) {
             var i = body.get(pc);
-            if (i.getOpcode() == Opcode.CONST_4) regs[FyloProPatch.reg(i)] = ((NarrowLiteralInstruction)i).getNarrowLiteral();
-            else if (i.getOpcode() == Opcode.MOVE) regs[FyloProPatch.reg(i)] = regs[((TwoRegisterInstruction)i).getRegisterB()];
+            if (FyloProPatch.isConst(i.getOpcode())) regs.put(FyloProPatch.reg(i), (int)((NarrowLiteralInstruction)i).getNarrowLiteral());
+            else if (FyloProPatch.isMove(i.getOpcode())) {
+                int src = ((TwoRegisterInstruction)i).getRegisterB();
+                regs.put(FyloProPatch.reg(i), regs.containsKey(src) ? regs.get(src) : FyloProPatch.constValue(body, pc, src));
+            } else if (i.getOpcode() == Opcode.NOP) { pc++; continue; }
             else if (i.getOpcode() == Opcode.GOTO) { pc = FyloProPatch.target(body, pc); continue; }
-            else if (i.getOpcode() == Opcode.INVOKE_STATIC) return regs[((FiveRegisterInstruction)i).getRegisterC()] == 1;
-            else throw new AssertionError("Unexpected diamond opcode " + i.getOpcode());
+            else if (i.getOpcode() == Opcode.INVOKE_STATIC) {
+                int arg = ((FiveRegisterInstruction)i).getRegisterC();
+                Integer value = regs.containsKey(arg) ? regs.get(arg) : FyloProPatch.constValue(body, pc, arg);
+                return value != null && value == 1;
+            } else throw new AssertionError("Unexpected diamond opcode " + i.getOpcode());
             pc++;
         }
         throw new AssertionError("Diamond did not terminate");
@@ -71,7 +77,9 @@ public final class VerifyFylo {
         if (args[0].equals("--apk")) { auditApk(args[1], args[2]); return; }
         var classes = VerifyMonet.read(args[0]);
         var plan = FyloProPatch.findUnique(classes);
-        require(plan.seedIndex == 37 && plan.refreshIndex == 7 && plan.license != null, "Reviewed 2.6 locations differ");
+        require(plan.seed.toString().equals(FyloProPatch.REVIEWED_SEED)
+            && plan.refresh.toString().equals(FyloProPatch.REVIEWED_REFRESH)
+            && plan.seedIndex == 210 && plan.refreshIndex == 10 && plan.license != null, "Reviewed 2.9 locations differ");
         reject(List.of());
         var duplicated = new ArrayList<ClassDef>(classes);
         duplicated.add(classes.stream().filter(c -> c.getType().equals(plan.seed.getDefiningClass())).findFirst().orElseThrow());
@@ -103,7 +111,7 @@ public final class VerifyFylo {
                 if (m.equals(plan.refresh)) verifyMethod(plan.refresh, m, plan.refreshIndex);
             }
         }
-        System.out.println("PASS: unique Fylo 2.6 Pro flow; startup/refresh NONE and owned states; missing, ambiguous, changed and patched rejection; DEX write/reload");
+        System.out.println("PASS: unique Fylo 2.9 Pro flow; startup/refresh NONE and owned states; missing, ambiguous, changed and patched rejection; DEX write/reload");
     }
 
     static void auditApk(String originalPath, String patchedPath) throws Exception {

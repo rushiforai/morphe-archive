@@ -14,7 +14,9 @@ object Constants {
             AppTarget(version = "1.2.7", versionCodes = mapOf(), description = "Older target · pre-2.7.21"),
             AppTarget(version = "2.7.17", versionCodes = mapOf(), description = "Older target · pre-2.7.21"),
             AppTarget(version = "2.7.21", versionCodes = mapOf(), description = "Verified 2026-10-19 · vc204"),
-            AppTarget(version = "2.7.24", versionCodes = mapOf(), description = "Verified 2026-10-27 · vc207")
+            AppTarget(version = "2.7.24", versionCodes = mapOf(), description = "Verified 2026-10-27 · vc207"),
+            AppTarget(version = "2.7.27", versionCodes = mapOf(), description = "Verified 2026-11-26 · vc210"),
+            AppTarget(version = "2.7.28", versionCodes = mapOf(), description = "Verified 2026-11-26 · vc211")
         )
     )
 
@@ -25,7 +27,8 @@ object Constants {
         appIconColor = 0x3DB8FF,
         targets = listOf(
             AppTarget(version = "2.7.21", versionCodes = mapOf(), description = "Verified 2026-10-19 · vc204"),
-            AppTarget(version = "2.7.24", versionCodes = mapOf(), description = "Verified 2026-10-27 · vc207")
+            AppTarget(version = "2.7.24", versionCodes = mapOf(), description = "Verified 2026-10-27 · vc207"),
+            AppTarget(version = "2.7.28", versionCodes = mapOf(), description = "Verified 2026-11-26 · vc211")
         )
     )
 }

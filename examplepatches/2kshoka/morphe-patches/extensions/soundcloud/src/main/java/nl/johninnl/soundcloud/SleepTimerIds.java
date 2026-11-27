@@ -8,7 +8,9 @@ import android.content.Context;
  * survives repacks without pinning public.xml ids:
  *
  *   string   "morphe_sleep_timer"  -> added by the sleep-timer resource patch
- *   drawable "ic_actions_timer"    -> SoundCloud action icon (falls back to ic_actions_behind_track)
+ *   drawable "morphe_sleep_timer_icon" -> bolder clock added by the sleep-timer resource patch
+ *   drawable "ic_actions_timer"    -> SoundCloud's own icon, used if ours is missing
+ *                                     (then falls back to ic_actions_behind_track)
  *
  * titleId()/iconId() never return 0 (a 0 title would crash the bottom sheet when
  * it is rendered). If the real resource cannot be resolved, a framework resource
@@ -36,7 +38,8 @@ public final class SleepTimerIds {
     public static int iconId() {
         int id = iconId;
         if (id != 0) return id;
-        id = resolve("ic_actions_timer", "drawable");
+        id = resolve("morphe_sleep_timer_icon", "drawable");
+        if (id == 0) id = resolve("ic_actions_timer", "drawable");
         // ic_actions_behind_track is the icon of the existing "Info" menu item, so it is
         // known to exist in the app; use it if the timer icon is missing.
         if (id == 0) id = resolve("ic_actions_behind_track", "drawable");

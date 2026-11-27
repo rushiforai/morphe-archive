@@ -1,16 +1,4 @@
 #!/usr/bin/env python3
-"""Builds the list of accounts Bot Bouncer flags as bots or karma farmers.
-
-Bot Bouncer posts each account it flags to r/BotBouncer, titled "Overview for NAME" and flaired with its status. This
-script reads those posts from the Arctic Shift archive (https://arctic-shift.photon-reddit.com), keeps the accounts
-flaired banned, merges them into the previous list, and writes one lowercase name a line, gzipped and sorted.
-
-    karma_farmers.py OUT.txt.gz [--previous OLD.txt.gz] [--days 365] [--workers 1]
-
---workers splits the period into that many time ranges, read in parallel.
-
-The previous file's first line, "# after <unix time>", is where the next run resumes.
-"""
 import argparse
 import concurrent.futures
 import gzip
@@ -46,7 +34,6 @@ def fetch(after, before=None):
 
 
 def read_range(after, before, label):
-    """Names flaired banned in posts made after `after` and before `before` (None: now); returns names, last time."""
     names, pages, last_seen = set(), 0, after
     while True:
         posts = fetch(after, before)
@@ -83,7 +70,6 @@ def main():
                 after = int(first[2])
             names.update(line.strip() for line in f if line.strip())
     start, now = len(names), int(time.time())
-    # Each worker reads one time range; the last range is open-ended, and its last post sets the next run's start.
     edges = [after + (now - after) * i // args.workers for i in range(args.workers)] + [None]
     with concurrent.futures.ThreadPoolExecutor(args.workers) as pool:
         results = list(pool.map(lambda i: read_range(edges[i], edges[i + 1], f"range {i + 1}"), range(args.workers)))

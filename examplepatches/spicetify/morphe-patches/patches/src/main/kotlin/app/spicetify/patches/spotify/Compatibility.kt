@@ -12,10 +12,9 @@ val spotifyCompatibility = Compatibility(
     appIconColor = 0x1DB954,
     targets = listOf(
         AppTarget(
-            version = "9.1.80.2221",
-            versionCodes = mapOf(SupportedAbi.ARM64_V8A to 145767611),
-            isExperimental = true,
-            description = "Experimental Android customization patches; runtime compatibility is still being verified.",
+            version = "9.2.4.2644",
+            versionCodes = mapOf(SupportedAbi.ARM64_V8A to 148916300),
+            isExperimental = false,
         ),
     ),
 )

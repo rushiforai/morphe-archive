@@ -266,6 +266,11 @@ internal const val GRAPHQL_COMMENT = "Lcom/facebook/graphql/model/GraphQLComment
  * finds both flags and hands the extension their values as the params are built; a build where
  * they can't be found keeps the rest of the patch, with a warning saying what the switch won't do.
  *
+ * Post text doesn't open comments (#594): every tap that opens a feed post's comments goes through
+ * one launcher, handed params that say what was tapped. CommentTextTap.kt finds it and asks the
+ * extension first thing, so a tap on the post's text opens nothing while the Comment button still
+ * opens comments. A build without the launcher warns and keeps the rest.
+ *
  * Hide related groups: what comes after a post's comments is drawn through another socket, the one
  * that names itself [BOTTOM_SOCKET] in the two comment surfaces' methods going through its plugins
  * (581 `LX/Aco;->A0j` and `LX/BIE;->A0j`, 580 `LX/B8E;->A1S` and `LX/BLp;->A1S`, 577 `LX/AeD;->A3Y`
@@ -394,6 +399,12 @@ internal const val GRAPHQL_COMMENT = "Lcom/facebook/graphql/model/GraphQLComment
  * equality methods ([commentFilter] has the detail). A build where they don't fit keeps the rest of
  * the patch, with that switch doing nothing and a warning saying why.
  *
+ * What a held comment offers (#607): the glimpse a held comment opens takes each option, and its
+ * row of reactions, through hooks of their own, and a comment left with nothing doesn't open the
+ * older comment sheet instead ([holdHeldCommentParts] has the detail). Where an account gets that
+ * older sheet in place of the glimpse, its plugin rows, its own rows and its reaction row go through
+ * hooks of their own too ([holdHeldCommentSheet]).
+ *
  * Hide who is typing in comments (#170), Hide the new comments pop-up (#185) and Show every reaction
  * on comments (#241) are nameless patches this one carries, [incomingCommentTypingPatch],
  * [newCommentsPillPatch] and [commentReactionRowPatch].
@@ -406,7 +417,7 @@ val commentSheetOptionsPatch = patch(
     name = "Comment sheet options",
     description = "Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and " +
         "sticker buttons, show every reply without tapping View replies, load a whole reply thread as you " +
-        "scroll, close an open reply thread with a Hide replies button, open more replies with a tap anywhere on their row, hide the comments under feed posts, hide the thumbs-down on comments or turn it into a Block button, put Block on reaction lists, hide Like on comments, hide Reply on comments, hide badges like Top fan on comments, hide Related groups under group posts, hide comments with shop links or your words, show only the comments a search matches, hide who is typing and the new comments pop-up, keep every reaction beside a comment's count, hide the emoji row over the comment box, keep the keyboard closed when comments open, hide the line over the comment box, hide the comment box under full-screen videos, and hide the comment box and reactions along the bottom of live videos. Starts off. Turn on the parts you want in " +
+        "scroll, close an open reply thread with a Hide replies button, open more replies with a tap anywhere on their row, hide the comments under feed posts, hide the thumbs-down on comments or turn it into a Block button, put Block on reaction lists, hide Like on comments, hide Reply on comments, hide badges like Top fan on comments, hide Related groups under group posts, hide comments with shop links or your words, show only the comments a search matches, hide who is typing and the new comments pop-up, keep every reaction beside a comment's count, hide the emoji row over the comment box, keep the keyboard closed when comments open, stop a tap on a post's text from opening its comments, hide the reactions, Reply, Copy, Report and Hide comment a held comment offers, hide the line over the comment box, hide the comment box under full-screen videos, and hide the comment box and reactions along the bottom of live videos. Starts off. Turn on the parts you want in " +
         "Hushfacebook settings > Comments and writing.",
 ) {
     category("Comments")
@@ -559,6 +570,12 @@ val commentSheetOptionsPatch = patch(
         hideLiveCommentBar(PATCH)
         // #594: the params comments open with, on their own; a build without them warns and keeps the rest.
         keepCommentKeyboardClosed(PATCH)
+        // #594: the launcher comments open through; a build without it warns and keeps the rest.
+        keepCommentsClosedOnTextTap(PATCH)
+        // #607: what a held comment offers, three hooks on their own; a build without one warns and keeps the rest.
+        holdHeldCommentParts(PATCH)
+        // #607: the older comment sheet some accounts get in its place, three hooks of its own the same way.
+        holdHeldCommentSheet(PATCH)
         enableStatus("commentSheetOptions")
     }
 }

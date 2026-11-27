@@ -1,7 +1,5 @@
 package io.github.bryceaspringfield.morphe.patches.youtube
 
-// The YouTube versions Morphe Patches v2.2.0-dev.4 supports, kept equal to its own list, since this bundle is used beside it.
-
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
@@ -13,9 +11,7 @@ internal object Constants {
         apkFileType = ApkFileType.APK_REQUIRED,
         appIconColor = 0xFF0033,
         signatures = setOf(
-            // Android 13+
             "5aad2bee6db95d17e05a08d7d1e64c10a1511879154483916b6ae6c7fd9cb0c6",
-            // Android 7+
             "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a"
         ),
         targets = listOf(
@@ -49,11 +45,11 @@ internal object Constants {
                 minSdk = 29
             ),
             AppTarget(
-                version = "21.28.208", // Last version with different miniplayers.
+                version = "21.28.208",
                 minSdk = 29
             ),
             AppTarget(
-                version = "21.23.492", // Last version for Android 9.0
+                version = "21.23.492",
                 minSdk = 28
             ),
             AppTarget(
@@ -61,7 +57,7 @@ internal object Constants {
                 minSdk = 28
             ),
             AppTarget(
-                version = "20.26.46", // Last version for Android 8.0
+                version = "20.26.46",
                 minSdk = 26
             )
         )

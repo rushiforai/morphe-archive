@@ -7,6 +7,7 @@ import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.rewrite
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -18,7 +19,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 internal fun BytecodePatchContext.addSettingsEntry() {
     val composerType = "Landroidx/compose/runtime/Composer;"
-    val screen = mutableClassDefBy("Lcom/navercorp/game/android/community/app/ui/setting/SettingsScreenKt;")
+    val screen = mutableClassDefBy(chzzkType("Lcom/navercorp/game/android/community/app/ui/setting/SettingsScreenKt;"))
     val row = screen.methods.single {
         it.name == "d" && it.parameterTypeNames == listOf(
             "Ljava/lang/String;", "Ljava/lang/String;", "Z", "Z", "Ljava/lang/String;",
@@ -47,17 +48,18 @@ internal fun BytecodePatchContext.addSettingsEntry() {
         return-void
     """.trimIndent())
     screen.methods.add(entry)
-    val latest = packageMetadata.versionName == "3.17.0"
-    val listOwner = if (latest) "Ld1;" else if (packageMetadata.versionName in listOf("3.15.0", "3.15.2", "3.16.0")) "Lx0;" else "Lu0;"
+    val minified = packageMetadata.versionName == "3.18.0"
+    val latest = minified || packageMetadata.versionName == "3.17.0"
+    val listOwner = if (minified) "Lr2;" else if (latest) "Ld1;" else if (packageMetadata.versionName in listOf("3.15.0", "3.15.2", "3.16.0")) "Lx0;" else "Lu0;"
     val list = mutableClassDefBy(listOwner).methods.single { method ->
         method.implementation?.instructions?.any {
-            if (latest) (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f120ff9
+            if (latest) (it as? NarrowLiteralInstruction)?.narrowLiteral == (if (minified) 0x7f121024 else 0x7f120ff9)
             else it.getReference<StringReference>()?.string == "시청 환경 설정"
         } == true
     }
     val instructions = list.implementation!!.instructions
     val heading = instructions.indexOfFirst {
-        if (latest) (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f120ff9
+        if (latest) (it as? NarrowLiteralInstruction)?.narrowLiteral == (if (minified) 0x7f121024 else 0x7f120ff9)
             else it.getReference<StringReference>()?.string == "시청 환경 설정"
     }
     val call = instructions.drop(heading + 1).first {

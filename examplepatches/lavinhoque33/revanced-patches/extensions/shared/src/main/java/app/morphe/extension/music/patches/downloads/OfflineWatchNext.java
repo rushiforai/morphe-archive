@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-08.
  * Modified by lavinhoque33, 2026-11-14.
  */
@@ -70,6 +71,9 @@ final class OfflineWatchNext {
     static final int PANEL_CURRENT_INDEX_FIELD = 3;
     static final int PANEL_PLAYLIST_ID_FIELD = 5;
     static final int PANEL_COUNT_FIELD = 6;
+    private static final int PANEL_MUSIC_CONFIG_FIELD = 34;
+    private static final int PANEL_MUSIC_CONFIG_EXTENSION = 79_971_800;
+    private static final int PANEL_SHUFFLE_MODE_FIELD = 3;
     static final int ITEM_TRACK_FIELD = 51_779_701;
     static final int TRACK_TITLE_FIELD = 1;
     static final int TRACK_BYLINE_FIELD = 2;
@@ -80,6 +84,8 @@ final class OfflineWatchNext {
     static final int TRACK_ENDPOINT_FIELD = 7;
     static final int TRACK_VIDEO_ID_FIELD = 10;
     static final int TRACK_SHORT_BYLINE_FIELD = 12;
+    private static final int TRACK_MENU_FIELD = 20;
+    private static final int MENU_RENDERER_FIELD = 66_439_850;
 
     /** Text message: 1 runs (each run: 1 text), 4 plain text. */
     static final int TEXT_RUNS_FIELD = 1;
@@ -106,6 +112,10 @@ final class OfflineWatchNext {
      * {@code currentIndex}.
      */
     static byte[] build(String playlistId, List<Item> items, int currentIndex) {
+        return build(playlistId, items, currentIndex, false);
+    }
+
+    static byte[] build(String playlistId, List<Item> items, int currentIndex, boolean shuffledStart) {
         if (playlistId == null || playlistId.isEmpty()) throw new IllegalArgumentException("playlistId is empty");
         if (items == null || items.isEmpty()) throw new IllegalArgumentException("a queue needs at least one item");
         if (currentIndex < 0 || currentIndex >= items.size()) {
@@ -113,7 +123,7 @@ final class OfflineWatchNext {
         }
 
         Item current = items.get(currentIndex);
-        return response(panel(playlistId, items, currentIndex),
+        return response(panel(playlistId, items, currentIndex, shuffledStart),
                 OfflineWatchCommand.build(current.videoId(), playlistId, currentIndex, current.musicVideoType()));
     }
 
@@ -153,20 +163,42 @@ final class OfflineWatchNext {
                 .toByteArray();
     }
 
-    private static byte[] panel(String playlistId, List<Item> items, int currentIndex) {
+    private static byte[] panel(String playlistId, List<Item> items, int currentIndex, boolean shuffledStart) {
         ProtoWriter panel = new ProtoWriter();
         for (int index = 0; index < items.size(); index++) {
             byte[] track = track(items.get(index), playlistId, index, index == currentIndex);
             panel.message(PANEL_ITEMS_FIELD, new ProtoWriter().message(ITEM_TRACK_FIELD, track).toByteArray());
         }
-        return panel
-                .int32(PANEL_CURRENT_INDEX_FIELD, currentIndex)
+        panel.int32(PANEL_CURRENT_INDEX_FIELD, currentIndex)
                 .string(PANEL_PLAYLIST_ID_FIELD, playlistId)
-                .int32(PANEL_COUNT_FIELD, items.size())
-                .toByteArray();
+                .int32(PANEL_COUNT_FIELD, items.size());
+        if (shuffledStart) {
+            // Native mode metadata accompanies only the fresh response; stock reorders the committed occurrences.
+            byte[] state = new ProtoWriter().bool(PANEL_SHUFFLE_MODE_FIELD, true).toByteArray();
+            byte[] extension = new ProtoWriter().message(PANEL_MUSIC_CONFIG_EXTENSION, state).toByteArray();
+            panel.message(PANEL_MUSIC_CONFIG_FIELD, extension);
+        }
+        return panel.toByteArray();
     }
 
     private static byte[] track(Item item, String playlistId, int index, boolean selected) {
+        ProtoWriter track = trackMetadata(item)
+                .message(TRACK_POSITION_FIELD, runsText(String.valueOf(index + 1)))
+                .bool(TRACK_SELECTED_FIELD, selected);
+        return trackEndpoint(track, item, OfflineWatchCommand.build(
+                item.videoId(), playlistId, index, item.musicVideoType())).toByteArray();
+    }
+
+    /** The raw playlist-panel renderer for a new occurrence; the queue owner supplies its position and selection. */
+    static byte[] queueRow(Item item, byte[] watchCommand, @Nullable byte[] menu) {
+        ProtoWriter track = trackEndpoint(trackMetadata(item), item, watchCommand);
+        if (menu != null) {
+            track.message(TRACK_MENU_FIELD, new ProtoWriter().message(MENU_RENDERER_FIELD, menu).toByteArray());
+        }
+        return track.toByteArray();
+    }
+
+    private static ProtoWriter trackMetadata(Item item) {
         if (item.videoId() == null || item.videoId().isEmpty()) throw new IllegalArgumentException("videoId is empty");
 
         ProtoWriter track = new ProtoWriter().message(TRACK_TITLE_FIELD, plainText(nullToEmpty(item.title())));
@@ -178,14 +210,13 @@ final class OfflineWatchNext {
         }
         if (item.durationMs() > 0) track.message(TRACK_LENGTH_FIELD, runsText(formatLength(item.durationMs())));
 
-        return track
-                .message(TRACK_POSITION_FIELD, runsText(String.valueOf(index + 1)))
-                .bool(TRACK_SELECTED_FIELD, selected)
-                .message(TRACK_ENDPOINT_FIELD,
-                        OfflineWatchCommand.build(item.videoId(), playlistId, index, item.musicVideoType()))
+        return track;
+    }
+
+    private static ProtoWriter trackEndpoint(ProtoWriter track, Item item, byte[] watchCommand) {
+        return track.message(TRACK_ENDPOINT_FIELD, watchCommand)
                 .string(TRACK_VIDEO_ID_FIELD, item.videoId())
-                .message(TRACK_SHORT_BYLINE_FIELD, plainText(nullToEmpty(item.artist())))
-                .toByteArray();
+                .message(TRACK_SHORT_BYLINE_FIELD, plainText(nullToEmpty(item.artist())));
     }
 
     /** The byline as separate runs: artist, separator, album; a missing part drops its separator too. */

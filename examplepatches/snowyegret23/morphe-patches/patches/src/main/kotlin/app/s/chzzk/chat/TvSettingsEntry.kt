@@ -8,6 +8,7 @@ import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.rewrite
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -22,7 +23,7 @@ internal fun BytecodePatchContext.addTvSettingsEntry() {
         sget-object v0, ${unit.smaliReference}
         return-object v0
     """)
-    val button = classDefBy("${COMMUNITY}tv/ui/component/SettingButtonKt;").methods.single { it.name == "a" }
+    val button = classDefBy(chzzkType("${COMMUNITY}tv/ui/component/SettingButtonKt;")).methods.single { it.name == "a" }
     check(button.parameterTypes.size == 11)
     val owner = mutableClassDefBy(TV_SETTINGS)
     val original = owner.methods.single { it.name == "renderEntry" }
@@ -49,14 +50,14 @@ internal fun BytecodePatchContext.addTvSettingsEntry() {
     """.trimIndent())
     owner.methods.remove(original)
     owner.methods.add(render)
-    val menu = mutableClassDefBy("${COMMUNITY}tv/ui/setting/SettingScreenKt;").methods.single { it.name == "c" }
+    val menu = mutableClassDefBy(chzzkType("${COMMUNITY}tv/ui/setting/SettingScreenKt;")).methods.single { it.name == "c" }
     val items = menu.implementation!!.instructions.withIndex().first {
-        it.value.getReference<FieldReference>()?.definingClass == "${COMMUNITY}tv/ui/setting/SettingMenu;"
+        it.value.getReference<FieldReference>()?.definingClass == chzzkType("${COMMUNITY}tv/ui/setting/SettingMenu;")
     }
     menu.addInstructions(items.index, "invoke-static/range {p2 .. p2}, $TV_SETTINGS->renderEntry(Ljava/lang/Object;)V")
 
-    val viewType = "${COMMUNITY}core/feature/feature/player/BasePlayerView;"
-    val modelType = "${COMMUNITY}core/feature/feature/player/BasePlayerViewModel;"
+    val viewType = chzzkType("${COMMUNITY}core/feature/feature/player/BasePlayerView;")
+    val modelType = chzzkType("${COMMUNITY}core/feature/feature/player/BasePlayerViewModel;")
     val view = mutableClassDefBy(viewType)
     val model = view.methods.single { it.name == "getViewModel" && it.returnType == modelType }
     owner.methods.single { it.name == "playerModel" }.rewrite("""
@@ -67,7 +68,7 @@ internal fun BytecodePatchContext.addTvSettingsEntry() {
     """)
     val attached = view.methods.single { it.name == "onAttachedToWindow" }
     val end = attached.implementation!!.instructions.withIndex().single { it.value.opcode == Opcode.RETURN_VOID }.index
-    val overlayType = "${COMMUNITY}tv/feature/overlayplayer/OverlayPlayerView;"
+    val overlayType = chzzkType("${COMMUNITY}tv/feature/overlayplayer/OverlayPlayerView;")
     classDefBy(overlayType)
     check(attached.localRegisterCount == 1)
     attached.addInstructionsWithLabels(end, """

@@ -1,0 +1,159 @@
+{
+  "base_sha256": "d834ee67b3a503e5a12e35d9edb831a62054aaf07dd1fce97e70c25b8279cd2c",
+  "contract_note": "Declarations GboardRamblerClipHistory reaches by reflection; each line must exist in the base smali.",
+  "contract": [
+    {
+      "dex": "classes2.dex",
+      "path": "kvw.smali",
+      "line": ".implements Landroid/content/ClipboardManager$OnPrimaryClipChangedListener;"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "kvw.smali",
+      "line": ".method private final v()Z"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "kvw.smali",
+      "line": "    const v0, 0x7f140911"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "kvw.smali",
+      "line": ".field public c:Landroid/content/Context;"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "ksw.smali",
+      "line": ".method public final m()Z"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "aelb.smali",
+      "line": ".method public static f()Z"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "ahbz.smali",
+      "line": ".super Lahav;"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "ahbz.smali",
+      "line": ".method public static I(Landroid/content/Context;)Lahbz;"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "ahav.smali",
+      "line": ".method public final x(IZ)Z"
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "aeij.smali",
+      "line": ".super Landroid/inputmethodservice/InputMethodService;"
+    },
+    {
+      "dex": "classes3.dex",
+      "path": "com/google/android/apps/inputmethod/libs/clipboard/ClipboardKeyboard.smali",
+      "line": ".field private i:Landroid/support/v7/widget/RecyclerView;"
+    }
+  ],
+  "hooks": [
+    {
+      "dex": "classes2.dex",
+      "path": "aeij.smali",
+      "method": "onStartInput(Landroid/view/inputmethod/EditorInfo;Z)V",
+      "sha256": "cff17ef5968385e01baeeb92988f20ce7a7799d7a72118a385e3164eb170f9ae",
+      "edits": [
+        {
+          "anchor": "    .registers 22",
+          "position": "after",
+          "code": "    invoke-static/range {p0 .. p1}, Lcom/akshaykadam/pixelboard/extension/rambler/GboardRamblerClipHistory;->start(Landroid/inputmethodservice/InputMethodService;Landroid/view/inputmethod/EditorInfo;)V"
+        }
+      ]
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "aeij.smali",
+      "method": "onFinishInput()V",
+      "sha256": "0471e917da6fe9be4127a937891fb62954ad2dbaf48306b7f6a7099514947563",
+      "edits": [
+        {
+          "anchor": "    .registers 7",
+          "position": "after",
+          "code": "    invoke-static {}, Lcom/akshaykadam/pixelboard/extension/rambler/GboardRamblerClipHistory;->finish()V"
+        }
+      ]
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "aeij.smali",
+      "method": "onDestroy()V",
+      "sha256": "f6c5e04c6f01320eb1ce1391d83ebbf05a4bd8a792d2ce8313a2f1dfe7d73278",
+      "edits": [
+        {
+          "anchor": "    .registers 12",
+          "position": "after",
+          "code": "    invoke-static {}, Lcom/akshaykadam/pixelboard/extension/rambler/GboardRamblerClipHistory;->finish()V"
+        }
+      ]
+    },
+    {
+      "dex": "classes2.dex",
+      "path": "kvk.smali",
+      "method": "call()Ljava/lang/Object;",
+      "sha256": "56b0f36da0c5c6eb07455dbf18c6e8cb59f4ab3162da527c8a49b3ee16757720",
+      "edits": [
+        {
+          "anchor": "    invoke-virtual {p0, v2, v0, v1, v3}, Lkvw;->b(Landroid/content/Context;Landroid/content/ClipData;Landroid/content/ClipDescription;Z)Lksw;",
+          "position": "before",
+          "code": "    move-object v4, p0"
+        },
+        {
+          "anchor": "    move-result-object p0",
+          "position": "after",
+          "code": "    invoke-static {v4, p0, v0, v1}, Lcom/akshaykadam/pixelboard/extension/rambler/GboardRamblerClipHistory;->capture(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/ClipData;Landroid/content/ClipDescription;)V"
+        }
+      ]
+    },
+    {
+      "dex": "classes3.dex",
+      "path": "com/google/android/apps/inputmethod/libs/clipboard/ClipboardKeyboard.smali",
+      "method": "e(Landroid/view/inputmethod/EditorInfo;Ljava/lang/Object;)V",
+      "sha256": "9a5abed97dd7f50ae0c984cc5813e05eb7c62cb5b73af96ebc5be1c47e3cf860",
+      "edits": [
+        {
+          "anchor": "    return-void",
+          "position": "before",
+          "code": "    invoke-static {v0}, Lcom/akshaykadam/pixelboard/extension/rambler/GboardRamblerClipHistory;->attach(Ljava/lang/Object;)V"
+        }
+      ]
+    },
+    {
+      "dex": "classes3.dex",
+      "path": "com/google/android/apps/inputmethod/libs/clipboard/ClipboardKeyboard.smali",
+      "method": "f()V",
+      "sha256": "bd4a1be8a29c1f447e0eeea145ba1c64cdb9f5f09b21d1a84588fdc8f6d60e51",
+      "edits": [
+        {
+          "anchor": "    .registers 8",
+          "position": "after",
+          "code": "    invoke-static/range {p0 .. p0}, Lcom/akshaykadam/pixelboard/extension/rambler/GboardRamblerClipHistory;->detach(Ljava/lang/Object;)V"
+        }
+      ]
+    },
+    {
+      "dex": "classes3.dex",
+      "path": "com/google/android/apps/inputmethod/libs/clipboard/ClipboardKeyboard.smali",
+      "method": "k(Lcom/google/android/libraries/inputmethod/metadata/KeyboardViewDef;)V",
+      "sha256": "3fb16109da7a69e78bdf7cec494a82a5fb650620ac1d7d1daa46262b0324ca94",
+      "edits": [
+        {
+          "anchor": "    .registers 2",
+          "position": "after",
+          "code": "    invoke-static/range {p0 .. p0}, Lcom/akshaykadam/pixelboard/extension/rambler/GboardRamblerClipHistory;->detach(Ljava/lang/Object;)V"
+        }
+      ]
+    }
+  ]
+}

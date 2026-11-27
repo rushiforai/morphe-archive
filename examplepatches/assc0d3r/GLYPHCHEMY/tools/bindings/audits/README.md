@@ -124,6 +124,58 @@ Expect `resolved: 7` and `unresolved: 0`.
 - The other pointer features still resolve 18.6.3 descriptors for their own units, so this table is
   what they will use when their units are ported — it does not admit them on its own.
 
+## `symbol-footer-18.8.0.kt`
+
+The two members the Emojis, stickers & GIFs tab-order port needs on
+**18.8.0.1022711984-beta-arm64-v8a**, sha256
+`d1406caa270011aaea2a58bf828a3ffd94a58927a53688dc7bcd26e537c4d34b`. They are the `18.8.0` row of
+`GboardSymbolFooterTargets.kt`.
+
+### How the values were derived
+
+1. Not by name, and not from the 18.6.3 descriptor: `Lgva;->a(EditorInfo;Z)Lwhe;` is not in the 18.8
+   APK. The method was found from the structure the patch asserts, scanned over every class:
+   - exactly one `RETURN_OBJECT`, and it is the tail of `collect` -> `move-result-object` ->
+     `check-cast` -> `return-object` in one register;
+   - exactly two `Lj$/util/stream/Stream;->collect(Lj$/util/stream/Collector;)Ljava/lang/Object;` calls;
+   - exactly one `invoke-direct` to an `<init>` whose first parameter is the method's own class - the
+     receiver wrapper the method constructs with `(self, EditorInfo, boolean)`.
+
+   Two methods matched that predicate. The `(EditorInfo;Z)` prototype picks out
+   `Lnxt;->a(Landroid/view/inputmethod/EditorInfo;Z)Lauaz;`, with 14 registers - the same stock
+   register count as 18.6.3 - and `return-object v11`, the register the delegate edits.
+2. `MethodDump` on it shows the same body with every reference renamed: `iget-object v0, v11,
+   Lnxt;->c:Landroid/content/Context;`, the corpus list cast to `Lauaz;` after the second collect, and
+   `new-instance v1  Lnxp;` / `invoke-direct {v1, v11, v12, v13}  Lnxp;-><init>(Lnxt;EditorInfo;Z)V`
+   before the final `map`.
+3. The stock body's structural fingerprint is
+   `1489b9465696f3e789c5628ec24a93fd113b7ab177f77ac7b947f497d95fd445`, the `stock` entry of
+   `GBOARD_EXPRESSION_CORPUS_FINGERPRINTS_18_8`. It was computed with the algorithm in
+   `GboardStructuralFingerprint.kt`; the same tool reproduces the committed 18.6.3 `composed`
+   fingerprint `4f9029e9b07e...` from a patched 18.6.3 APK, which is what makes the 18.8 value
+   trustworthy rather than a guess.
+4. Re-ran the audit against the file in this directory: **2 of 2 resolved**.
+
+### Re-checking
+
+```bash
+JAVA="/c/Program Files/Eclipse Adoptium/jdk-25.0.4.101-hotspot/bin/java"
+"$JAVA" -cp libs/morphe-cli.jar tools/bindings/BindingAudit.java     tools/bindings/audits/symbol-footer-18.8.0.kt     "<the 18.8 APK>"
+```
+
+Expect `resolved: 2` and `unresolved: 0`. `MethodDump <apk> 'Lnxt;' a` reprints the body the
+fingerprint covers.
+
+### Status and limits
+
+- **Resolved and applied** through the public Emojis, stickers & GIFs Tab Order patch; see that
+  commit for the run.
+- Custom Symbols is not offered on 18.8, so only the `stock` and `tabOnly` states exist for this
+  release; the classifier has no `customOnly` or `composed` fingerprint to match there and fails
+  loudly instead of guessing.
+- The footer reorder itself has not been checked on a device: the claim is that the patch applies
+  and its own gates hold, not that the tab order looks right.
+
 ## Proposing replacements
 
 `tools/bindings/ProposeRetarget.java` turns this audit's reasons into ranked candidates for the next

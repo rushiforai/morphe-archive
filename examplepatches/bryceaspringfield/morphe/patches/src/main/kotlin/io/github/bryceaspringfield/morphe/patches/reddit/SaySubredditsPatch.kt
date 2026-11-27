@@ -22,13 +22,11 @@ private const val RESOURCES = "Landroid/content/res/Resources;"
 private const val CONTEXT = "Landroid/content/Context;"
 private val subredditsLogger = Logger.getLogger("SaySubredditsPatch")
 
-/** The framework's Context classes; an app class extending one of these reads strings as a Context. */
 private val FRAMEWORK_CONTEXTS = setOf(
     CONTEXT, "Landroid/content/ContextWrapper;", "Landroid/view/ContextThemeWrapper;", "Landroid/app/Activity;",
     "Landroid/app/Application;", "Landroid/app/Service;", "Landroid/app/IntentService;",
 )
 
-/** Resources' text readers, by name and parameters, each with its return type. */
 private val RESOURCE_READERS = mapOf(
     "getString(I)" to "Ljava/lang/String;",
     "getString(I[Ljava/lang/Object;)" to "Ljava/lang/String;",
@@ -39,17 +37,14 @@ private val RESOURCE_READERS = mapOf(
     "getStringArray(I)" to "[Ljava/lang/String;",
 )
 
-/** Context's text readers. */
 private val CONTEXT_READERS = mapOf(
     "getString(I)" to "Ljava/lang/String;",
     "getString(I[Ljava/lang/Object;)" to "Ljava/lang/String;",
     "getText(I)" to "Ljava/lang/CharSequence;",
 )
 
-/** Leaves a flag among the app's resources, which tells the extension to show the switch. */
 private val saySubredditsFlagPatch = resourcePatch {
     execute {
-        // A new values entry gets no resource ID from the patcher, while a new raw file does.
         get("res/raw/morphe_say_subreddits.txt", copy = false).apply { parentFile.mkdirs() }.writeText("on\n")
     }
 }
@@ -66,7 +61,6 @@ val saySubredditsPatch = bytecodePatch(
     dependsOn(keywordFilterSettingsPatch, saySubredditsFlagPatch)
 
     execute {
-        // Every app class extending a framework Context, found through the superclasses the app's own dex files hold.
         val superclasses = HashMap<String, String?>()
         classDefForEach { superclasses[it.type] = it.superclass }
         val contexts = HashSet(FRAMEWORK_CONTEXTS)
@@ -80,7 +74,6 @@ val saySubredditsPatch = bytecodePatch(
             if (current in contexts) contexts.addAll(seen)
         }
 
-        /** The extension method replacing a call, or null when the call reads no string resource. */
         fun replacement(instruction: Instruction): ImmutableMethodReference? {
             if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) return null
             val method = instruction.getReference<MethodReference>() ?: return null

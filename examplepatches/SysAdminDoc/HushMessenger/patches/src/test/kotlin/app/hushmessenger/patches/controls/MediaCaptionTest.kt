@@ -14,7 +14,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -99,10 +101,105 @@ private fun send(body: String = SEND_BODY) = fixtureMethod(SYNTHETIC_MEDIA_CAPTI
 private fun changed(from: String, to: String) =
     send(SEND_BODY.replaceFirst(from, to).also { check(it != SEND_BODY) })
 
-internal fun mediaCaptionFixture(method: MutableMethod = send()): List<MutableClass> =
-    listOf(fixtureClass(COMPOSER, listOf(method)))
+private const val MESSAGE = "Lcom/facebook/messaging/model/messages/Message;"
+private const val COMPOSER_VIEW = "$COMPOSER->A06:LX/AH0;"
+internal const val SYNTHETIC_MEDIA_CAPTION_EDITOR = "$COMPOSER->A0U($MESSAGE)V"
+private const val EDITOR_HELPER_CALL = "$COMPOSER->$MEDIA_CAPTION_EDITOR_HELPER(${COMPOSER}Ljava/lang/String;)V"
+private const val EDITOR_COPY = "move-object v3, v10"
+private const val EDITOR_SEND = "invoke-static/range {v2 .. v9}, $MEDIA_SEND"
+private const val EDITOR_MARK = "const-string v0, \"Unknown media resource type being sent from Camera\""
+private const val VIEW_READ = "iget-object v0, p0, $COMPOSER_VIEW"
+
+/** The fragment's reader of the typed text as 588 writes it, cut down: the composer view first, refused when it's gone. */
+private val READER_BODY = """
+    $VIEW_READ
+    const-string v1, "Required value was null."
+    if-eqz v0, :gone
+    invoke-interface {v0}, LX/AH0;->BZM()Ljava/lang/String;
+    move-result-object v0
+    return-object v0
+    :gone
+    invoke-static {v1}, LX/001;->A0Q(Ljava/lang/String;)Ljava/lang/IllegalStateException;
+    move-result-object v0
+    throw v0
+""".trimIndent()
+
+/**
+ * The fragment's send of a photo or video back from the editor, as 588 writes it: the message's first media, its kind
+ * as a string, and the plain media send, with the fragment copied in from p0 (v10) right before it.
+ */
+private val EDITOR_BODY = """
+    const-string v0, "Required value was null."
+    iget-object v1, p1, $MESSAGE->A1L:$IMMUTABLE_LIST
+    if-eqz v1, :missing
+    invoke-virtual {v1}, Ljava/util/AbstractCollection;->isEmpty()Z
+    move-result v0
+    if-nez v0, :empty
+    const/4 v0, 0x0
+    invoke-static {v1, v0}, LX/18l;->A0e(Ljava/util/List;I)Ljava/lang/Object;
+    move-result-object v1
+    check-cast v1, Lcom/facebook/ui/media/attachments/model/MediaResource;
+    sget-object v2, $KIND->A0J:$KIND
+    iget-object v6, p1, $MESSAGE->A1O:$MAP
+    iget-object v7, p1, $MESSAGE->A1P:$MAP
+    iget-object v5, p1, $MESSAGE->A0M:Lcom/facebook/messaging/model/messages/MessageRepliedTo;
+    iget-object v0, v1, Lcom/facebook/ui/media/attachments/model/MediaResource;->A0R:LX/8Ie;
+    invoke-virtual {v0}, Ljava/lang/Enum;->ordinal()I
+    move-result v0
+    sparse-switch v0, :kinds
+    $EDITOR_MARK
+    invoke-static {v0}, LX/001;->A0Q(Ljava/lang/String;)Ljava/lang/IllegalStateException;
+    move-result-object v0
+    throw v0
+    :image
+    const-string v8, "image"
+    goto :send
+    :video
+    const-string v8, "video"
+    goto :send
+    :sticker
+    const-string v8, "$EDITOR_STICKER"
+    :send
+    invoke-static {v1}, $IMMUTABLE_LIST->of(Ljava/lang/Object;)$IMMUTABLE_LIST
+    move-result-object v9
+    const/4 v4, 0x0
+    $EDITOR_COPY
+    $EDITOR_SEND
+    return-void
+    :empty
+    invoke-static {}, LX/18k;->A0j()Ljava/lang/IllegalStateException;
+    move-result-object v0
+    throw v0
+    :missing
+    invoke-static {v0}, LX/001;->A0Q(Ljava/lang/String;)Ljava/lang/IllegalStateException;
+    move-result-object v0
+    throw v0
+    :kinds
+    .sparse-switch
+        0x0 -> :image
+        0x1 -> :video
+        0xd -> :sticker
+    .end sparse-switch
+""".trimIndent()
+
+private fun reader(body: String = READER_BODY) = fixtureMethod(TYPED_TEXT, body, 7)
+
+private fun editor(body: String = EDITOR_BODY, flags: Int = AccessFlags.PUBLIC.value) =
+    fixtureMethod(SYNTHETIC_MEDIA_CAPTION_EDITOR, body, 12, flags)
+
+/** The editor's send with each first `from` swapped for the `to` after it, every swap checked to change something. */
+private fun editorChanged(vararg swaps: String) = editor(swaps.toList().chunked(2).fold(EDITOR_BODY) { body, (from, to) ->
+    body.replaceFirst(from, to).also { check(it != body) { "no $from" } }
+})
+
+internal fun mediaCaptionFixture(method: MutableMethod = send(), rest: List<MutableMethod> = listOf(reader(), editor(), mediaCaptionResultMethod())):
+    List<MutableClass> =
+    listOf(fixtureClass(COMPOSER, listOf(method) + rest))
 
 private fun Method.code() = implementation!!.instructions.toList()
+
+/** The code without the nop that pads a switch payload, which an insert ahead of it can add or drop. */
+private fun List<Instruction>.withoutPayloadPadding() = filter { it.opcode != Opcode.NOP }
 
 private fun Instruction.called() = ((this as? ReferenceInstruction)?.reference as? MethodReference)
     ?.let { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -117,6 +214,112 @@ class MediaCaptionTest {
     }
 
     private fun found(classes: List<MutableClass>) = mirroredControls(classes).getValue(MEDIA_CAPTION).map { it.hookId() }.toSet()
+
+    private fun foundEditor(classes: List<MutableClass>) = mirroredControls(classes).getValue(MEDIA_CAPTION_EDITOR).map { it.hookId() }.toSet()
+
+    @Test fun theEditorsSendIsFoundBesideTheComposersSend() {
+        assertEquals(setOf(SYNTHETIC_MEDIA_CAPTION_EDITOR), foundEditor(mediaCaptionFixture()))
+        validateControls(mirroredControls(mediaCaptionFixture()), setOf(MEDIA_CAPTION, MEDIA_CAPTION_EDITOR))
+        val method = editor()
+        val site = method.validateMediaCaptionEditor()
+        assertEquals(method.code().indexOfFirst { it.opcode == Opcode.INVOKE_STATIC_RANGE }, site.at)
+        assertEquals(3, site.fragment)
+        assertEquals(8, site.kind)
+        assertEquals(MEDIA_SEND, site.mediaSend)
+        assertEquals(send().validateMediaCaption().mediaSend, site.mediaSend)
+        assertEquals(COMPOSER_VIEW, reader().composerViewField())
+    }
+
+    // #236: a photo sent from Messenger's editor (Edit on a photo above the box, or the camera) went out by a send
+    // that never reads the composer, so the words stayed behind in the box.
+    @Test fun theWordsGoOutRightBeforeTheEditorsMediaSend() {
+        val send = send()
+        val method = editor()
+        val before = method.code()
+        injectControl(MEDIA_CAPTION, mapOf(MEDIA_CAPTION to listOf(send), MEDIA_CAPTION_EDITOR to listOf(method)))
+        val code = method.code()
+        val at = code.indices.single { code[it].called() == EDITOR_HELPER_CALL }
+        assertEquals(Opcode.INVOKE_STATIC, code[at].opcode)
+        // The fragment and the kind of media, from the media send's own registers, right in front of it.
+        assertEquals(listOf(3, 8), (code[at] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        assertEquals(2, (code[at] as FiveRegisterInstruction).registerCount)
+        assertEquals(MEDIA_SEND, code[at + 1].called())
+        assertEquals(Opcode.MOVE_OBJECT, code[at - 1].opcode)
+        // The switch payload's alignment nop comes and goes with the insert.
+        assertStockKept(before.withoutPayloadPadding(), code.filterIndexed { i, _ -> i != at }.withoutPayloadPadding(), "editor")
+        // The composer's send took its own hook in the same pass.
+        assertEquals(1, send.helperCalls().size)
+    }
+
+    @Test fun anyOtherEditorShapeGetsNoEditorHook() {
+        val cases = mapOf(
+            "no unknown-kind string" to mediaCaptionFixture(rest = listOf(reader(), editorChanged(EDITOR_MARK, "const-string v0, \"Unknown\""))),
+            "a static send" to mediaCaptionFixture(rest = listOf(reader(), editor(flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value))),
+            "another fragment handed over" to mediaCaptionFixture(rest = listOf(reader(), editorChanged(EDITOR_COPY, "move-object v3, v11"))),
+            "a fragment copied before a branch lands" to mediaCaptionFixture(rest = listOf(reader(),
+                editorChanged("\n:send\n", "\n$EDITOR_COPY\n:send\n", "$EDITOR_COPY\n$EDITOR_SEND", EDITOR_SEND))),
+            "p0 written over first" to mediaCaptionFixture(rest = listOf(reader(), editorChanged("const/4 v4, 0x0", "const/4 v4, 0x0\nmove-object v10, v6"))),
+            "two media sends" to mediaCaptionFixture(rest = listOf(reader(), editorChanged(EDITOR_SEND, "$EDITOR_SEND\n$EDITOR_SEND"))),
+            "something after the media send" to mediaCaptionFixture(rest = listOf(reader(), editorChanged("$EDITOR_SEND\nreturn-void", "$EDITOR_SEND\nnop\nreturn-void"))),
+            "a jump onto the media send" to mediaCaptionFixture(rest = listOf(reader(), editorChanged(EDITOR_SEND, ":again\n$EDITOR_SEND",
+                "move-result-object v1\ncheck-cast", "move-result-object v1\nif-eqz v1, :again\ncheck-cast"))),
+            "a media send the composer's send doesn't use" to mediaCaptionFixture(rest = listOf(reader(), editorChanged(EDITOR_SEND,
+                "invoke-static/range {v2 .. v9}, ${MEDIA_SEND.replace("->A0I(", "->A0H(")}"))),
+            "a reader that doesn't check the composer view" to mediaCaptionFixture(rest = listOf(reader(READER_BODY.replaceFirst("if-eqz v0, :gone", "nop")), editor())),
+            "a reader that reads something else first" to mediaCaptionFixture(rest = listOf(reader(READER_BODY.replaceFirst(VIEW_READ, "sget-object v0, LX/AH0;->A00:LX/AH0;")), editor())),
+            "no reader" to mediaCaptionFixture(rest = listOf(editor())),
+            "no composer send" to mediaCaptionFixture(changed("const-string v1, \"ComposeFragment.onSendClicked\"", "const-string v1, \"ComposeFragment.onCreate\"")),
+        )
+        for ((case, classes) in cases) {
+            assertTrue(foundEditor(classes).isEmpty(), case)
+            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), setOf(MEDIA_CAPTION_EDITOR)) }
+        }
+        // The composer's own send keeps its hook when only the editor's changed.
+        assertEquals(setOf(SYNTHETIC_MEDIA_CAPTION), found(mediaCaptionFixture(rest = listOf(reader(), editorChanged(EDITOR_SEND, "$EDITOR_SEND\n$EDITOR_SEND")))))
+    }
+
+    @Test fun theEditorHelperChecksTheViewLeavesStickersAloneAndHandsTheFragmentOn() {
+        val helper = mediaCaptionEditorHelper(COMPOSER, COMPOSER_VIEW)
+        assertEquals(MEDIA_CAPTION_EDITOR_HELPER, helper.name)
+        assertTrue(AccessFlags.STATIC.isSet(helper.accessFlags))
+        assertEquals("V", helper.returnType)
+        assertEquals(listOf(COMPOSER, "Ljava/lang/String;"), helper.parameterTypes.map { it.toString() })
+        val code = helper.code()
+        val done = code.lastIndex
+        assertEquals(Opcode.RETURN_VOID, code[done].opcode)
+        // No composer view: straight out, before anything reads the typed text.
+        assertEquals(Opcode.IGET_OBJECT, code[0].opcode)
+        assertEquals(COMPOSER_VIEW, (code[0] as ReferenceInstruction).reference.toString())
+        assertEquals(1, (code[0] as TwoRegisterInstruction).registerB)
+        assertEquals(Opcode.IF_EQZ, code[1].opcode)
+        assertEquals(done, (code[1] as BuilderOffsetInstruction).target.location.index)
+        // A sticker: straight out too.
+        val sticker = code.indexOfFirst { it.opcode == Opcode.CONST_STRING }
+        assertEquals(EDITOR_STICKER, ((code[sticker] as ReferenceInstruction).reference as StringReference).string)
+        assertEquals("Ljava/lang/String;->equals(Ljava/lang/Object;)Z", code[sticker + 1].called())
+        assertEquals(listOf((code[sticker] as OneRegisterInstruction).registerA, 2),
+            (code[sticker + 1] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        val skip = code.indexOfFirst { it.opcode == Opcode.IF_NEZ }
+        assertEquals(done, (code[skip] as BuilderOffsetInstruction).target.location.index)
+        // Otherwise the fragment goes to the composer's helper with the flag down, which sends the words when the
+        // switch is on and something is typed.
+        val hand = code.indexOfFirst { it.called() == "$COMPOSER->$MEDIA_CAPTION_HELPER(${COMPOSER}I)I" }
+        assertTrue(hand > skip)
+        val flag = (code[hand] as FiveRegisterInstruction).registerD
+        assertEquals(1, (code[hand] as FiveRegisterInstruction).registerC)
+        assertEquals(Opcode.CONST_4, code[hand - 1].opcode)
+        assertEquals(flag, (code[hand - 1] as OneRegisterInstruction).registerA)
+        assertEquals(0, (code[hand - 1] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(done, hand + 1)
+    }
+
+    @Test fun theComposerTakesEachHelperOnlyOnce() {
+        val host = fixtureClass(COMPOSER, listOf(send(), reader(), editor()))
+        host.addMediaCaptionHelper(mediaCaptionEditorHelper(COMPOSER, COMPOSER_VIEW))
+        host.addMediaCaptionHelper(mediaCaptionHelper(COMPOSER, MediaCaptionCalls(TEXT_SEND, TYPED_TEXT, EMPTY_MAP)))
+        assertEquals(setOf(MEDIA_CAPTION_EDITOR_HELPER, MEDIA_CAPTION_HELPER), host.methods.map { it.name }.filter { it.startsWith("hush") }.toSet())
+        assertFailsWith<PatchException> { host.addMediaCaptionHelper(mediaCaptionEditorHelper(COMPOSER, COMPOSER_VIEW)) }
+    }
 
     @Test fun theSendIsFoundWhereThePlainMediaSendStarts() {
         assertEquals(setOf(SYNTHETIC_MEDIA_CAPTION), found(mediaCaptionFixture()))
@@ -233,7 +436,26 @@ class MediaCaptionTest {
             val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             activeProfile = controlProfileFor(code)
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
-            val hooks = findMediaCaption(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })
+            val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
+            val hooks = findMediaCaption(classes)
+            // #236: the editor's send in the same fragment, right before the same media send.
+            val editors = findMediaCaptionEditor(classes, hooks)
+            assertEquals(activeProfile.hooks.getValue(MEDIA_CAPTION_EDITOR), editors.map { it.hookId() }.toSet(), code)
+            assertEquals(1, editors.size, code)
+            validateControls(mapOf(MEDIA_CAPTION_EDITOR to editors), setOf(MEDIA_CAPTION_EDITOR))
+            val editor = MutableMethod(editors.single())
+            val editorBefore = editor.code()
+            val editorSite = editor.validateMediaCaptionEditor()
+            assertEquals(hooks.single().mediaCaptionSite()!!.mediaSend, editorSite.mediaSend, code)
+            editor.injectMediaCaptionEditor()
+            val edited = editor.code()
+            assertEquals(1, edited.count { it.called()?.contains("->$MEDIA_CAPTION_EDITOR_HELPER(") == true }, code)
+            assertEquals(editorSite.mediaSend, edited[editorSite.at + 1].called(), code)
+            assertEquals(listOf(editorSite.fragment, editorSite.kind), (edited[editorSite.at] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) }, code)
+            assertStockKept(editorBefore.withoutPayloadPadding(), edited.filterIndexed { i, _ -> i != editorSite.at }.withoutPayloadPadding(), "$code editor")
+            val readerId = hooks.single().mediaCaptionSite()!!.calls.typedText
+            val view = classes.single { it.type == hooks.single().definingClass }.methods.single { it.hookId() == readerId }.composerViewField()
+            assertTrue(view != null && view.startsWith("${hooks.single().definingClass}->"), code)
             assertEquals(activeProfile.hooks.getValue(MEDIA_CAPTION), hooks.map { it.hookId() }.toSet(), code)
             assertEquals(1, hooks.size, code)
             validateControls(mapOf(MEDIA_CAPTION to hooks), setOf(MEDIA_CAPTION))

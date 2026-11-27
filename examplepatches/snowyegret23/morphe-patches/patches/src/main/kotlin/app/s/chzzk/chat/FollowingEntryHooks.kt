@@ -7,6 +7,7 @@ import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -15,8 +16,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -56,14 +57,14 @@ internal fun BytecodePatchContext.addFollowingEntryHooks() {
     """.trimIndent())
     settings.methods.remove(original)
     settings.methods.add(render)
-    if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) {
+    if (packageMetadata.versionName in setOf("1.3.0", "1.4.0", "1.5.0")) {
         addTvFollowingEntry()
         return
     }
     addProfileFollowEntry()
     val candidates = mutableListOf<String>()
     classDefForEach { owner ->
-        if (owner.type.startsWith(FOLLOWING)) {
+        if (packageMetadata.versionName == "3.18.0" || owner.type.startsWith(FOLLOWING)) {
             owner.methods.filter { method ->
                 method.name == "invoke" && method.parameterTypeNames ==
                     List(3) { "Ljava/lang/Object;" } && method.implementation?.instructions?.let { instructions ->
@@ -71,7 +72,7 @@ internal fun BytecodePatchContext.addFollowingEntryHooks() {
                         it.opcode == Opcode.CHECK_CAST &&
                             it.getReference<TypeReference>()?.type == "Landroidx/compose/foundation/layout/ColumnScope;"
                     } && instructions.any {
-                        it.getReference<MethodReference>()?.definingClass == "${FOLLOWING}FollowingTabScreenKt;"
+                        it.getReference<MethodReference>()?.definingClass == chzzkType("${FOLLOWING}FollowingTabScreenKt;")
                     }
                 } == true
             }.forEach { candidates.add(owner.type) }
@@ -110,9 +111,9 @@ private fun Instruction.registers(): List<Int> = when (this) {
 }
 
 private fun BytecodePatchContext.addProfileFollowEntry() {
-    val channel = "Lcom/navercorp/game/android/community/data/core/entity/channel/StreamingChannelDetail;"
-    val model = "Lcom/navercorp/game/android/community/app/ui/home/channel/ChannelViewModel;"
-    val screen = mutableClassDefBy("Lcom/navercorp/game/android/community/app/ui/home/channel/ChannelScreenKt;")
+    val channel = chzzkType("Lcom/navercorp/game/android/community/data/core/entity/channel/StreamingChannelDetail;")
+    val model = chzzkType("Lcom/navercorp/game/android/community/app/ui/home/channel/ChannelViewModel;")
+    val screen = mutableClassDefBy(chzzkType("Lcom/navercorp/game/android/community/app/ui/home/channel/ChannelScreenKt;"))
         .methods.single {
             it.parameterTypeNames == listOf("Landroidx/compose/ui/Modifier;", model, COMPOSER, "I")
         }
@@ -183,7 +184,7 @@ private fun BytecodePatchContext.addProfileFollowEntry() {
     }
     val buttons = instructions.withIndex().filter {
         it.value.getReference<MethodReference>()?.let { ref ->
-            ref.definingClass == "Lcom/navercorp/game/android/community/ui/common/ui/channel/button/ChannelMotionButtonScreenKt;" &&
+            ref.definingClass == chzzkType("Lcom/navercorp/game/android/community/ui/common/ui/channel/button/ChannelMotionButtonScreenKt;") &&
                 ref.name == "a" && ref.parameterTypeNames.size == 9 && ref.parameterTypeNames[6] == COMPOSER
         } == true
     }
@@ -198,8 +199,8 @@ private fun BytecodePatchContext.addProfileFollowEntry() {
 }
 
 private fun BytecodePatchContext.addTvFollowingEntry() {
-    val owner = mutableClassDefBy("Lcom/navercorp/game/android/community/tv/ui/TvScreenKt;")
-    val nav = "Lcom/navercorp/game/android/community/tv/feature/navigation/NavComposableWithMainTopLevel;"
+    val owner = mutableClassDefBy(chzzkType("Lcom/navercorp/game/android/community/tv/ui/TvScreenKt;"))
+    val nav = chzzkType("Lcom/navercorp/game/android/community/tv/feature/navigation/NavComposableWithMainTopLevel;")
     val method = owner.methods.single {
         it.returnType == "V" && it.parameterTypeNames ==
             listOf("Landroidx/tv/material3/NavigationDrawerScope;", "Landroidx/compose/ui/Modifier;", nav,
@@ -208,7 +209,7 @@ private fun BytecodePatchContext.addTvFollowingEntry() {
     val instructions = method.implementation!!.instructions
     val call = instructions.withIndex().single {
         it.value.getReference<MethodReference>()?.let { ref ->
-            ref.definingClass == "Lcom/navercorp/game/android/community/tv/ui/component/GNBMenuItemKt;" &&
+            ref.definingClass == chzzkType("Lcom/navercorp/game/android/community/tv/ui/component/GNBMenuItemKt;") &&
                 ref.parameterTypeNames.size == 10 && ref.parameterTypeNames[8] == COMPOSER
         } == true
     }.index
@@ -227,7 +228,7 @@ private fun BytecodePatchContext.addTvFollowingEntry() {
         ImmutableMethodImplementation(3, emptyList(), emptyList(), emptyList())
     ))
     bridge.addInstructions(0, """
-        instance-of v0, p1, Lcom/navercorp/game/android/community/tv/ui/home/NavTopLevelFollowingComposable;
+        instance-of v0, p1, ${chzzkType("Lcom/navercorp/game/android/community/tv/ui/home/NavTopLevelFollowingComposable;")}
         if-eqz v0, :done
         invoke-static/range {p0 .. p0}, $SETTINGS->renderFollowingEntry(Ljava/lang/Object;)V
         :done

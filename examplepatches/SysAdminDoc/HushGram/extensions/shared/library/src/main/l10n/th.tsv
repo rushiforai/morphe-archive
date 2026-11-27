@@ -287,6 +287,9 @@ Feed videos and stories wait for your tap. Reels and videos in Explore play as I
 Turn on Tap to play to use this choice.	เปิด "แตะเพื่อเล่น" เพื่อใช้ตัวเลือกนี้
 Resume long videos	เล่นวิดีโอยาวต่อจากเดิม
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	วิดีโอและรีลส์ที่ยาวเกินสองนาทีจะเล่นต่อจากจุดที่คุณดูค้างไว้ เลื่อนแถบเวลาเพื่อเริ่มเล่นจากจุดอื่น ส่วนวิดีโอถ่ายทอดสดและโฆษณาจะเริ่มเล่นตามปกติ
+# context: a switch under Resume long videos (#874). A feed video you scroll past and come back to keeps playing from where it was, only until Instagram closes. The Reels tab is Instagram's own tab.
+Keep your place in feed videos	จำตำแหน่งในวิดีโอฟีด
+A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over as usual.	วิดีโอในฟีดที่คุณเลื่อนผ่านไปจะเล่นต่อจากจุดเดิมเมื่อคุณเลื่อนกลับมา จนกว่าคุณจะปิด Instagram ส่วนรีลส์ในแท็บรีลส์จะเริ่มเล่นใหม่ตามปกติ
 Default playback quality	คุณภาพการเล่นเริ่มต้น
 # context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
 Videos, reels and stories play at the quality below, starting with the next one you open.	วิดีโอ, รีลส์ และสตอรี่จะเล่นตามคุณภาพด้านล่าง โดยเริ่มจากรายการถัดไปที่คุณเปิด
@@ -764,6 +767,9 @@ The latitude and the longitude in degrees, with a comma between them, like 40.75
 Turn off HDR brightness boosts	ปิดการเร่งความสว่าง HDR
 Keep HDR on photo uploads	คง HDR ไว้เมื่ออัปโหลดรูปภาพ
 Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	ทดลอง รูปภาพ Ultra HDR ที่คุณโพสต์จะเก็บ gain map ไว้บน Android 14 ขึ้นไป จึงยังแสดงเป็น HDR ได้ ปิดหากรูปภาพที่คุณโพสต์ดูผิดปกติ
+# context: Keep HDR on video uploads, under Playback next to the photo switch. Instagram encodes a video again before it uploads it; HDR means HLG here.
+Keep HDR on video uploads	คง HDR ไว้เมื่ออัปโหลดวิดีโอ
+Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong or won't upload.	ทดลอง วิดีโอ HDR ที่คุณโพสต์จะเข้ารหัสเป็น HDR บน Android 13 ขึ้นไป ซึ่งบนโทรศัพท์บางรุ่น Instagram จะทำให้เป็น SDR ปิดหากวิดีโอที่คุณโพสต์ดูผิดปกติหรืออัปโหลดไม่ได้
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	สิ่งที่คุณเปิดจากการค้นหาจะไม่ถูกบันทึกไว้ใน "ล่าสุด" ทั้งในแอปและบนฝั่งของ Instagram การค้นหาที่มีอยู่แล้วจะยังคงอยู่จนกว่าคุณจะล้างออก
 Wi-Fi stays as it is. Turn this off to save data on every network.	Wi-Fi จะยังคงเหมือนเดิม ปิดตัวเลือกนี้เพื่อประหยัดข้อมูลในทุกเครือข่าย
 Hide comments	ซ่อนความคิดเห็น
@@ -1909,6 +1915,21 @@ Seek bar button on feed videos	ปุ่มแถบเลื่อนเวล�
 Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	เพิ่มปุ่มขนาดเล็กที่ด้านล่างซ้ายของวิดีโอฟีดเพื่อแสดงหรือซ่อนแถบเลื่อนเวลา สามารถทำงานได้ไม่ว่าจะเปิดหรือปิด "แถบเลื่อนเวลาในวิดีโอฟีด"
 Seek bar	แถบเลื่อนเวลา
 Tint intensity	ความเข้มของโทนสี
+# context: Tab bar: the Tint color list under Tint intensity that picks the glass tab bar's color, its choices' descriptions, the Custom tint color field under it with its dialog message and empty summary, and what both say while another switch is in the way (#875). Light, Dark and AMOLED black are choices in the list; Tint intensity, Custom tint color, Glass tab bar and Material look are rows' names
+Tint color	สีกระจก
+Light	สว่าง
+Dark	มืด
+AMOLED black	ดำ AMOLED
+The glass takes Instagram's own colors, dark or light with its theme.	กระจกใช้สีของ Instagram เอง มืดหรือสว่างตาม Instagram
+Frosted white glass whatever Instagram's theme, with the tab icons dark on it.	กระจกฝ้าสีขาวไม่ว่า Instagram จะมืดหรือสว่าง พร้อมไอคอนแท็บสีเข้มบนกระจก
+Dark gray glass whatever Instagram's theme, with the tab icons white on it.	กระจกสีเทาเข้มไม่ว่า Instagram จะมืดหรือสว่าง พร้อมไอคอนแท็บสีขาวบนกระจก
+A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.	แถบแคปซูลสีดำไม่มีความเงา สำหรับหน้าจอ AMOLED ลด "ความเข้มของโทนสี" เพื่อให้เห็นสิ่งที่อยู่ด้านหลัง
+The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones keep Instagram's colors.	กระจกใช้สีเน้นที่ Android เลือกจากวอลเปเปอร์ของคุณ ใช้ได้บน Android 12 ขึ้นไป โทรศัพท์รุ่นเก่ายังคงใช้สีตาม Instagram
+The glass takes the color you type under Custom tint color.	กระจกใช้สีที่คุณป้อนใน "สีกระจกที่กำหนดเอง"
+Custom tint color	สีกระจกที่กำหนดเอง
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.	รหัสสีแบบฐานสิบหก 6 หลัก เช่น #4A6B82 เมื่อบันทึกแล้ว "สีกระจก" จะเปลี่ยนเป็นกำหนดเอง
+Turn on Glass tab bar to use this choice.	เปิดใช้งาน "แถบแท็บกระจก" เพื่อใช้ตัวเลือกนี้
+Turn off Material look to use this choice.	ปิดใช้งาน "รูปลักษณ์ Material" เพื่อใช้ตัวเลือกนี้
 Refraction intensity	ความเข้มของการหักเหแสง
 Preview of the tab bar	ตัวอย่างแถบแท็บ
 Keep stories playing while zooming	เล่นสตอรี่ต่อไปขณะซูม
@@ -2321,6 +2342,9 @@ Instagram's small window for reels gets a button to pause the reel and play it a
 # context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
 Previous and next in the reels window	ก่อนหน้าและถัดไปในหน้าต่างรีลส์
 Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	หน้าต่างขนาดเล็กของ Instagram สำหรับรีลส์จะมีปุ่มของ Instagram เองสำหรับย้อนกลับไปรีลส์ก่อนหน้าหรือไปยังรีลส์ถัดไป
+# context: a switch on the Playback page under Previous and next in the reels window; photo and carousel reels go in Instagram's small picture in picture window for reels, a carousel shows a dot per page, and the window's Previous and Next buttons turn its pages before moving to another reel (#873)
+Photos and carousels in the reels window	รูปภาพและภาพสไลด์ในหน้าต่างรีลส์
+Photo and carousel reels go in Instagram's small window for reels too. A carousel shows a dot for each page, and Previous and Next go through its pages first.	รีลส์รูปภาพและภาพสไลด์จะเข้าไปอยู่ในหน้าต่างขนาดเล็กของ Instagram สำหรับรีลส์ด้วย ภาพสไลด์จะแสดงจุดสำหรับแต่ละหน้า และปุ่มก่อนหน้าและถัดไปจะเลื่อนผ่านหน้าของภาพสไลด์ก่อน
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	การแสดงภาพซ้อนภาพสำหรับสตอรี่
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	การออกจาก Instagram ขณะที่สตอรี่กำลังเล่นจะย่อขนาดเป็นหน้าต่างขนาดเล็กทับบนแอปอื่นๆ ของคุณ และเล่นสตอรี่ต่อไปเรื่อยๆ ในหน้าต่างนั้น
@@ -2337,6 +2361,8 @@ Break length	ระยะเวลาพัก
 %1$d minutes	%1$d นาที
 Stop background feed refresh	หยุดการรีเฟรชฟีดในพื้นหลัง
 About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	ประมาณทุกครึ่งชั่วโมง Instagram จะปลุกโทรศัพท์ของคุณเพื่อดาวน์โหลดฟีดล่วงหน้า ตัวเลือกนี้จะหยุดการทำงานดังกล่าว ฟีดจะโหลดเมื่อคุณเปิดแอปแทน และข้อความกับการแจ้งเตือนยังคงเข้ามาตามปกติ
+Let Instagram close after account checks	ให้ Instagram ปิดได้หลังการตรวจสอบบัญชี
+When your phone checks its accounts, as it does at startup and when an account changes, Instagram never answers. Android then keeps it running for up to 15 minutes, even after you swipe it away. This answers right away so Instagram can close. Your login is unaffected.	เมื่อโทรศัพท์ตรวจสอบบัญชีต่างๆ เช่น ตอนเปิดเครื่องและเมื่อบัญชีมีการเปลี่ยนแปลง Instagram จะไม่ตอบกลับเลย Android จึงให้แอปทำงานต่อได้นานถึง 15 นาที แม้คุณจะปัดปิดไปแล้ว ตัวเลือกนี้จะตอบกลับทันทีเพื่อให้ Instagram ปิดได้ การเข้าสู่ระบบของคุณไม่ได้รับผลกระทบ
 The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	ขอบแถบเม็ดยาจะหักเหสิ่งที่อยู่ด้านหลังเหมือนกระจกจริง สิ่งที่ผ่านใต้ขอบจึงแสดงกลับหัว ใช้ได้ใน Android 13 ขึ้นไป รีสตาร์ท Instagram หลังจากเปลี่ยนค่านี้
 Hide page number	ซ่อนหมายเลขหน้า
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	นำตัวเลขอย่าง 3/5 ออกจากมุมของรูปภาพหรือวิดีโอในโพสต์แบบเลื่อนดูหลายรูป
@@ -2778,6 +2804,9 @@ HushGram's own files take up %1$s.	ไฟล์ของ HushGram เองใ�
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	เลนส์แก้วใต้นิ้วของคุณ
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	แตะนิ้วค้างไว้บนฟองของแถบแคปซูลแบบแก้วเหลว หรือเลื่อนไปตามแท็บ แล้วฟองจะขยายและหักเหสิ่งที่อยู่ด้านหลังแรงขึ้น เหมือนแก้วใต้ปลายนิ้ว และจะกลับเป็นปกติเมื่อคุณปล่อยนิ้ว การหักเหต้องเปิดเบลอด้านหลังแถบแท็บและใช้ Android 13 ขึ้นไป รีสตาร์ท Instagram หลังจากเปลี่ยนแปลงการตั้งค่า
+# context: Tab bar: switch under Glass lens under your finger that keeps Instagram's Search tab inside the liquid pill with the other tabs instead of in a glass circle of its own, and its description (#875). Search is Instagram's tab, named as it is there; Liquid glass look is another switch's name
+Keep Search in the pill	เก็บแท็บค้นหาไว้ในแถบแคปซูล
+With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass circle of its own. Restart Instagram after changing it.	เมื่อเปิดรูปลักษณ์กระจกเหลว แท็บค้นหาจะอยู่ในแถบแคปซูลร่วมกับแท็บอื่นๆ แทนที่จะอยู่ในวงกลมกระจกแยกต่างหาก โปรดรีสตาร์ท Instagram หลังจากเปลี่ยนการตั้งค่านี้
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	เก็บรายชื่อผู้ดูสตอรี่
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	ทุกครั้งที่คุณเปิดดูว่าใครดูสตอรี่ของคุณ รายชื่อจะถูกเก็บไว้ในโทรศัพท์เครื่องนี้และวางคู่กับผู้ติดตามของคุณ ไม่มีการขออะไรเพิ่มจาก Instagram ปิดแล้วจะหยุดทันที
@@ -3084,3 +3113,11 @@ Settings page logo set.	ตั้งโลโก้หน้าการตั�
 HushGram shows at the top of this page.	HushGram จะแสดงที่ด้านบนของหน้านี้
 # context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
 The top of this page says %1$s.	ด้านบนของหน้านี้จะแสดง %1$s
+# context: Settings > Downloads > switch title, under Name saves by account and post time (#792)
+Date saves by when they were posted	ระบุวันที่ของไฟล์ที่บันทึกตามเวลาที่โพสต์
+# context: Settings > Downloads > summary of Date saves by when they were posted (#792)
+Gives each saved photo and video the time its post went up, so your gallery sorts saves by the post instead of the day you saved them. A save that doesn't know when it was posted keeps the time it was saved.	ใส่เวลาที่โพสต์ขึ้นให้กับรูปภาพและวิดีโอที่บันทึกแต่ละรายการ เพื่อให้แกลเลอรีจัดเรียงไฟล์ที่บันทึกตามโพสต์แทนวันที่คุณบันทึก การบันทึกที่ไม่ทราบเวลาที่โพสต์จะคงเวลาที่บันทึกไว้
+# context: Profiles > title of the switch that adds a Select all button beside Instagram's own Select on the grids in Your activity (#762); Your activity is Instagram's own page in the profile menu, use the name Instagram shows for it in this language
+Select all in Your activity	เลือกทั้งหมดในกิจกรรมของคุณ
+# context: Profiles > summary of Select all in Your activity (#762). Select, Delete and Unlike are Instagram's own buttons on those grids; use the words Instagram shows there in this language
+Adds Select all beside Select on the photo and video grids in Your activity, like your posts, reels and likes. Tick one first and it shows. It only ticks them. Nothing goes until you press Delete or Unlike yourself.	เพิ่มปุ่มเลือกทั้งหมดข้างปุ่มเลือกในตารางรูปภาพและวิดีโอของกิจกรรมของคุณ เช่น โพสต์ รีลส์ และการถูกใจของคุณ ปุ่มนี้จะแสดงเมื่อคุณติ๊กเลือกไว้หนึ่งรายการ ปุ่มนี้แค่ติ๊กเลือกเท่านั้น จะไม่มีอะไรหายไปจนกว่าคุณจะกดลบหรือเลิกถูกใจเอง

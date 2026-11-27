@@ -1,3 +1,20 @@
+## [2.16.0](https://github.com/amfakh/fakh-patches/compare/v2.15.0...v2.16.0) (2026-11-26)
+
+### New Features
+
+* **LinkedIn:** every Fakh Patches setting is its own patch ([dd639f1](https://github.com/amfakh/fakh-patches/commit/dd639f12ae4829c3b5a575395c081d96e34414df))
+* **LinkedIn:** patch categories follow the Fakh Patches pages ([dd639f1](https://github.com/amfakh/fakh-patches/commit/dd639f12ae4829c3b5a575395c081d96e34414df))
+* **LinkedIn:** Expand lnkd.in links works without Open links directly ([dd639f1](https://github.com/amfakh/fakh-patches/commit/dd639f12ae4829c3b5a575395c081d96e34414df))
+
+### Bug Fixes
+
+* **LinkedIn:** split Feed filters into one patch per filter ([dd639f1](https://github.com/amfakh/fakh-patches/commit/dd639f12ae4829c3b5a575395c081d96e34414df))
+* **LinkedIn:** split Messaging into Hide sponsored messages, Ghost mode and Mark as read when you reply ([dd639f1](https://github.com/amfakh/fakh-patches/commit/dd639f12ae4829c3b5a575395c081d96e34414df))
+* **LinkedIn:** split Video tab into Show video time and Auto-scroll videos ([dd639f1](https://github.com/amfakh/fakh-patches/commit/dd639f12ae4829c3b5a575395c081d96e34414df))
+* **LinkedIn:** split Hide tab labels and Hide notification badges out of Navigation bar ([dd639f1](https://github.com/amfakh/fakh-patches/commit/dd639f12ae4829c3b5a575395c081d96e34414df))
+* **LinkedIn:** split Show More tab items in profile menu and Puzzle games shortcut out of More tab ([dd639f1](https://github.com/amfakh/fakh-patches/commit/dd639f12ae4829c3b5a575395c081d96e34414df))
+* **GitHub:** split Hide tab labels out of Navigation bar ([64fff5c](https://github.com/amfakh/fakh-patches/commit/64fff5ccb6a4032d5642ce79e653542b09ee359e))
+
 ## [2.15.0](https://github.com/amfakh/fakh-patches/compare/v2.14.2...v2.15.0) (2026-11-26)
 
 ### New Features

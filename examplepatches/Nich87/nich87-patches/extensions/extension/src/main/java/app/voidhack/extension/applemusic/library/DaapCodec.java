@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 final class DaapCodec {
-    static final int MAX_BODY = 16 * 1024 * 1024;
+    static final int MAX_BODY = 32 * 1024 * 1024;
     private static final int MAX_DEPTH = 16;
     private static final int MAX_NODES = 200000;
     private static final List<String> CONTAINERS = Arrays.asList(
-            "mlog", "avdb", "mlcl", "mlit", "adbs", "apso", "msrv", "mupd", "mebp");
+            "mlog", "avdb", "mlcl", "mlit", "adbs", "adsr", "apso", "msrv", "mupd", "mebp");
 
     private DaapCodec() {}
 
@@ -66,6 +66,13 @@ final class DaapCodec {
             offset = next;
         }
         return Collections.unmodifiableList(nodes);
+    }
+
+    static byte[] itemsRequest(byte[] paginationToken) throws IOException {
+        if (paginationToken == null || paginationToken.length == 0) {
+            return tag("adsr", new byte[0]);
+        }
+        return tag("adsr", tag("mpag", paginationToken));
     }
 
     static byte[] edit(long cloudId, long revision, long time, Map<String, byte[]> fields) throws IOException {

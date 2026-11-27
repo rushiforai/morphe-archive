@@ -68,6 +68,7 @@ plugins:
           nav_translations:
             Home: Start
             Guides: Handleidingen
+            Developers: Ontwikkelaars
             Apps: Apps
             Weather: Weer
             News and reading: Nieuws en lezen
@@ -117,6 +118,8 @@ nav:
       - guides/downloads.md
       - guides/choose-patches.md
       - guides/gboard.md
+      - guides/local-ai.md
+      - guides/gboard-privacy.md
       - guides/shizuku.md
       - guides/shizuku-tv.md
       - guides/android-auto.md
@@ -226,6 +229,13 @@ nav:
           - apps/zoom.md
           - apps/projectivy.md
           - apps/at4k.md
+  - Developers:
+      - developers/local-ai/index.md
+      - developers/local-ai/install.md
+      - developers/local-ai/quickstart.md
+      - developers/local-ai/tasks.md
+      - developers/local-ai/speech.md
+      - developers/local-ai/tools-and-memory.md
   - Learn about tracking:
       - learn/index.md
       - learn/how-tracking-works.md

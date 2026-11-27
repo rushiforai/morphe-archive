@@ -694,6 +694,8 @@ public class ChatJumpTest {
         assertSame(content(), arrow.pageDown.getParent());
         assertEquals("Page up", arrow.pageUp.getContentDescription());
         assertEquals("Page down", arrow.pageDown.getContentDescription());
+        assertTrue("#191: Invisible buttons lists them with HushMessenger's own", InvisibleButtons.isOwn(arrow.button)
+            && InvisibleButtons.isOwn(arrow.pageUp) && InvisibleButtons.isOwn(arrow.pageDown));
         assertTrue(((ChatJump.Chevron) arrow.pageUp.getDrawable()).up);
         assertFalse(((ChatJump.Chevron) arrow.pageDown.getDrawable()).up);
         // At the newest message there's older to go back to and nothing newer.

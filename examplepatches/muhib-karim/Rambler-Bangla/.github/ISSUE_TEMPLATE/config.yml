@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/muhib-karim/Rambler-Bangla/security/advisories/new
+    about: Leaked keys, the patch applying to the wrong build, or text leaking from password fields. Please report privately, not in a public issue.
+  - name: User guide and troubleshooting
+    url: https://github.com/muhib-karim/Rambler-Bangla/blob/main/docs/USER_GUIDE.md
+    about: Setup, the verify, patch and verify flow, exit codes and common fail-closed messages.

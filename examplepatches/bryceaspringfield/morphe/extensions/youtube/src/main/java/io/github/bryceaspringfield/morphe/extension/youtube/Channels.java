@@ -1,13 +1,8 @@
 package io.github.bryceaspringfield.morphe.extension.youtube;
 
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Channel IDs, handles, and names seen together in one buffer, so a rule naming a channel one way matches an item
- * stating it another way (a lockup states the ID or the handle, rarely both).
- */
 final class Channels {
 
     private static final Map<String, String> HANDLE_BY_ID = new ConcurrentHashMap<>();
@@ -17,7 +12,6 @@ final class Channels {
     private Channels() {
     }
 
-    /** Channels seen in feeds, newest last (ID, @handle, name; any may be null), for the filter editor's suggestions. */
     private static final Map<String, String[]> SEEN = java.util.Collections.synchronizedMap(
             new java.util.LinkedHashMap<String, String[]>(128, 0.75f, true) {
                 @Override
@@ -51,17 +45,14 @@ final class Channels {
         }
     }
 
-    
     static String handleOf(String channelId) {
         return channelId == null ? null : HANDLE_BY_ID.get(channelId);
     }
 
-    
     static String idOf(String handle) {
         return handle == null ? null : ID_BY_HANDLE.get(handle);
     }
 
-    
     static String idOfName(String name) {
         return name == null ? null : ID_BY_NAME.get(name.toLowerCase());
     }

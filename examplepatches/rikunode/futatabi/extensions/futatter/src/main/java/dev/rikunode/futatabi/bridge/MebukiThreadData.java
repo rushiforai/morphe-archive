@@ -103,7 +103,7 @@ final class MebukiThreadData {
                 hasAttachment = !attachments.isEmpty();
                 if (attachments.size()>32) throw invalid();
                 for (Object item : attachments) {
-                    String image = thumbnail(object(item));
+                    String image = original(object(item));
                     if (image != null && images.size()<200) {
                         out.append("<p><a href='https://futatabi.invalid/attachment/")
                                 .append(images.size()).append("'>\u753b\u50cf\u3092\u8868\u793a</a></p>");
@@ -171,11 +171,15 @@ final class MebukiThreadData {
 
     /** Confirm the new OP, never infer success from a navigation alone. */
     boolean matchesNewThread(String body,long startedAt) {
-        if (posts.isEmpty()) return false;
+        return matchesNewOwnThread(startedAt) &&
+                posts.get(0).body.replace("\r\n","\n").replace('\r','\n').equals(body);
+    }
+    // The official form permits editing the body. Do not claim exact body matching.
+    boolean matchesNewOwnThread(long startedAt) {
+        if(posts.isEmpty())return false;
         NativePost op=posts.get(0);
         return op.author && !op.deleted && op.hasAttachment && op.replyTo.isEmpty() &&
-                MebukiTurboStream.dateMillis(op.date) >= startedAt &&
-                op.body.replace("\r\n","\n").replace('\r','\n').equals(body);
+                MebukiTurboStream.dateMillis(op.date)>=startedAt;
     }
 
     /** Futaba compatibility structure used by the stock thread parser. */
@@ -219,15 +223,23 @@ final class MebukiThreadData {
         return encoded.toString().getBytes(sjis);
     }
 
-    // Mirrors the public utils Yu(filePath, "sm", createdAt), but only
-    // for an explicitly non-sensitive image on the known official storage.
-    static String thumbnail(Map<?,?> a) {
+    // The official attachment component uses filePath for the original image.
+    // Never expose flagged/sensitive images or URLs outside official storage.
+    static String original(Map<?,?> a) {
         try {
             for (String flag : new String[]{"spoiler","nsfw","gore","other"})
                 if (!Boolean.FALSE.equals(a.get(flag))) return null;
-            if (!string(a.get("fileType")).startsWith("image/")) return null;
-            String path = string(a.get("filePath"));
-            if (!safeImage(path)) return null;
+            if (!string(a.get("fileType")).matches("image/(jpeg|png|gif|webp)")) return null;
+            String path=string(a.get("filePath"));
+            return safeImage(path)?path:null;
+        } catch(Exception ex){return null;}
+    }
+
+    // Catalog thumbnails retain the official small variant.
+    static String thumbnail(Map<?,?> a) {
+        try {
+            String path=original(a);
+            if(path==null)return null;
             long date = MebukiTurboStream.dateMillis(string(a.get("createdAt")));
             String ext = date > MebukiTurboStream.dateMillis("2025-09-30T07:00:00Z") &&
                     date < MebukiTurboStream.dateMillis("2025-10-25T09:30:00Z") ? "jpg" : "webp";

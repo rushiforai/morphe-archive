@@ -35,9 +35,9 @@ private const val PREVIEW_VIEW_CALL = "onCreateView(Landroid/view/LayoutInflater
 
 /**
  * Where the stack gets its sizes, the registers holding the most, the chat's height and the least, and where the tap
- * layer is stored, with the layer's register.
+ * layer is stored, with the layer's register and the preview's own.
  */
-internal class ChatPreviewSizeSite(val stack: Int, val most: Int, val height: Int, val least: Int, val tapLayer: Int, val layer: Int)
+internal class ChatPreviewSizeSite(val stack: Int, val most: Int, val height: Int, val least: Int, val tapLayer: Int, val layer: Int, val fragment: Int)
 
 private fun Instruction.previewMethod() = (this as? ReferenceInstruction)?.reference as? MethodReference
 
@@ -86,8 +86,11 @@ private fun List<Instruction>.previewStackAt(at: Int): Triple<Int, Int, Int>? {
     return Triple(most, height, least)
 }
 
-/** The tap layer's tag, its `setTag`, and the first time the fragment stores that same view, within a few instructions. */
-private fun List<Instruction>.tapLayerAt(at: Int): Pair<Int, Int>? {
+/**
+ * The tap layer's tag, its `setTag`, and the first time the fragment stores that same view, within a few instructions:
+ * the store's index, the layer's register and the fragment's.
+ */
+private fun List<Instruction>.tapLayerAt(at: Int): Triple<Int, Int, Int>? {
     val tag = this[at]
     if ((tag.opcode != Opcode.CONST_STRING && tag.opcode != Opcode.CONST_STRING_JUMBO) || tag.previewString() != PREVIEW_TAP_TAG) return null
     val tagged = getOrNull(at + 1) ?: return null
@@ -99,7 +102,7 @@ private fun List<Instruction>.tapLayerAt(at: Int): Pair<Int, Int>? {
         val step = this[i]
         val field = step.previewField()
         if (step.opcode == Opcode.IPUT_OBJECT && (step as OneRegisterInstruction).registerA == layer &&
-            field?.definingClass == CHAT_PREVIEW_FRAGMENT && field.type == VIEW) return i to layer
+            field?.definingClass == CHAT_PREVIEW_FRAGMENT && field.type == VIEW) return Triple(i, layer, (step as TwoRegisterInstruction).registerB)
         if (step.overwrites(layer)) return null
     }
     return null
@@ -115,10 +118,10 @@ internal fun Method.chatPreviewSizeSite(): ChatPreviewSizeSite? {
     val stacks = code.indices.mapNotNull { at -> code.previewStackAt(at)?.let { at to it } }
     val layers = code.indices.mapNotNull { at -> code.tapLayerAt(at) }
     val (stack, sizes) = stacks.singleOrNull() ?: return null
-    val (tapLayer, layer) = layers.singleOrNull() ?: return null
+    val (tapLayer, layer, fragment) = layers.singleOrNull() ?: return null
     val targets = jumpTargets()
     if (tapLayer <= stack || tapLayer + 1 >= code.size || stack in targets || tapLayer + 1 in targets) return null
-    return ChatPreviewSizeSite(stack, sizes.first, sizes.second, sizes.third, tapLayer, layer)
+    return ChatPreviewSizeSite(stack, sizes.first, sizes.second, sizes.third, tapLayer, layer, fragment)
 }
 
 /** The preview fragment's view builder, taken only when both sites have the tested shape. */
@@ -128,17 +131,33 @@ internal fun findChatPreviewSize(classes: Iterable<ClassDef>): List<Method> =
 private fun chatPreviewSizeChanged(method: Method): Nothing =
     throw PatchException("Messenger controls: the chat preview's layout in ${method.hookId()} no longer matches the tested build")
 
+private const val TAP_LAYER_CALL = "$CHAT_PREVIEW_SIZE_HOST->tapLayer(Landroid/view/View;)V"
+private const val PREVIEW_CALL = "$CHAT_PREVIEW_SIZE_HOST->preview(Ljava/lang/Object;)V"
+
+/**
+ * Whether the view builder already calls the extension. Bigger chat preview and Keep taps in the chat preview share the
+ * hook, and the second patch to reach it leaves it as the first one wrote it.
+ */
+internal fun Method.chatPreviewSizeHooked(): Boolean =
+    implementation?.instructions?.any { it.previewMethod()?.toString() == TAP_LAYER_CALL } == true
+
 internal fun MutableMethod.validateChatPreviewSize() {
+    if (chatPreviewSizeHooked()) return
     chatPreviewSizeSite() ?: chatPreviewSizeChanged(this)
 }
 
 /**
- * The extension hands the tap layer a drag handler once it's stored, then picks the chat's height and the least it may
- * shrink to just before the stack takes them. The later site goes in first so the earlier index still holds.
+ * The extension hands the tap layer a drag handler once it's stored and keeps the preview, then picks the chat's height
+ * and the least it may shrink to just before the stack takes them. The later site goes in first so the earlier index
+ * still holds.
  */
 internal fun MutableMethod.injectChatPreviewSize() {
+    if (chatPreviewSizeHooked()) return
     val site = chatPreviewSizeSite() ?: chatPreviewSizeChanged(this)
-    addInstructions(site.tapLayer + 1, "invoke-static/range {v${site.layer} .. v${site.layer}}, $CHAT_PREVIEW_SIZE_HOST->tapLayer(Landroid/view/View;)V")
+    addInstructions(site.tapLayer + 1, """
+        invoke-static/range {v${site.layer} .. v${site.layer}}, $TAP_LAYER_CALL
+        invoke-static/range {v${site.fragment} .. v${site.fragment}}, $PREVIEW_CALL
+    """.trimIndent())
     addInstructions(site.stack, """
         invoke-static {v${site.height}, v${site.most}}, $CHAT_PREVIEW_SIZE_HOST->height(II)I
         move-result v${site.height}

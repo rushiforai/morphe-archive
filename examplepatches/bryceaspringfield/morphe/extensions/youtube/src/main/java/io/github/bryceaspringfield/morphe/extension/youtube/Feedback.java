@@ -10,19 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/**
- * Automatic "Not interested" feedback with a reason, as the menu sends it: the item's Not interested token (the
- * first feedback token of its buffer, since Not interested is the menu's first item holding one), then the reason
- * token the answer's "Tell us why" dialog states (dismissalFollowUpRenderer.reasons: I've already watched the
- * video, I don't like the video). Each video is reported once a session, as the signed-in user.
- */
 final class Feedback {
 
     enum Reason {WATCHED, DONT_LIKE}
 
     private static final Set<String> SENT = ConcurrentHashMap.newKeySet();
 
-    /** Videos whose red progress bar was seen on Home or under the player; the filter hides them when laid out again. */
     private static final Set<String> WATCHED = ConcurrentHashMap.newKeySet();
 
     private Feedback() {
@@ -36,7 +29,6 @@ final class Feedback {
         if (XSettings.AUTO_DISLIKE_FILTERED.get()) send(item, Reason.DONT_LIKE, why);
     }
 
-    /** Not interested whatever the filters' Not interested switch says (Home's repeated suggestions). */
     static void notInterested(VideoItem item, String why) {
         send(item, Reason.DONT_LIKE, why);
     }
@@ -49,7 +41,6 @@ final class Feedback {
         send(item, Reason.WATCHED, "watched (" + mode + ")");
     }
 
-    /** A feed item whose video this app has played: partly at any part played (2% or more), fully at 90%. */
     static void onFeedItem(VideoItem item) {
         String mode = XSettings.AUTO_WATCHED.get();
         if ("off".equals(mode) || item == null || item.videoId == null) return;
@@ -78,7 +69,6 @@ final class Feedback {
         });
     }
 
-    /** The reason's token from the Not interested answer: by its text in English or Spanish, else by its position. */
     static String reasonToken(JSONObject answer, Reason reason) {
         if (answer == null) return null;
         JSONArray responses = answer.optJSONArray("feedbackResponses");

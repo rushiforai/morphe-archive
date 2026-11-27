@@ -206,6 +206,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 - ﾜｯﾁｮｲ 3f3c-gNc7 様
 - chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
 - rikunode 様（226／242のDroid＋ツールバー対応）
+- tesu tesu（ﾜｯﾁｮｲ 12fb-0bb6 ID:.0MKHNvk00）様（エッヂのNG判定高速化の調査・情報提供）
 
 ## 構成
 

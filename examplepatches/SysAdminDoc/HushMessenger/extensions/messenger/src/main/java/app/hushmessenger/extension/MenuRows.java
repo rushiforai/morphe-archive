@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -147,6 +148,129 @@ final class MenuRows {
             if (name != null && hidden.contains(name)) rows.remove(i);
         }
         return drop;
+    }
+
+    /**
+     * The side menu's sections without the picked rows (#207). Some accounts get a side menu instead of the Menu tab,
+     * and its rows carry the same folder keys, so a row picked in settings leaves both. Messenger's own lists are never
+     * changed: each section, and each row holding rows of its own, gets a shorter copy in their place, and Messenger's
+     * own goes back once nothing is picked or while paused. A section left with no rows goes too, and the side menu
+     * never loses every row.
+     */
+    static List<?> drawer(List<?> sections) {
+        if (sections == null || sections.isEmpty()) return sections;
+        try {
+            Set<String> hidden = Settings.running() ? hidden() : Collections.<String>emptySet();
+            List<Held> own = new ArrayList<>(sections.size());
+            List<Held> held = new ArrayList<>();
+            int drop = 0, keep = 0;
+            for (Object section : sections) {
+                Held rows = Held.of(section);
+                own.add(rows);
+                if (rows == null) continue;
+                held.add(rows);
+                remember(rows.rows);
+                for (Object row : rows.rows) {
+                    String name = name(row);
+                    if (name != null && hidden.contains(name)) {
+                        drop++;
+                        continue;
+                    }
+                    if (name != null) keep++;
+                    Held under = Held.of(row);
+                    if (under == null) continue;
+                    held.add(under);
+                    remember(under.rows);
+                    for (Object inner : under.rows) {
+                        String innerName = name(inner);
+                        if (innerName == null) continue;
+                        if (hidden.contains(innerName)) drop++;
+                        else keep++;
+                    }
+                }
+            }
+            boolean hide = drop > 0 && keep > 0;
+            for (Held rows : held) rows.put(hide ? rows.without(hidden) : null);
+            if (!hide) return sections;
+            List<Object> shown = new ArrayList<>(sections.size());
+            for (int i = 0; i < sections.size(); i++) {
+                Held rows = own.get(i);
+                if (rows != null && rows.emptied()) {
+                    continue;
+                }
+                shown.add(sections.get(i));
+            }
+            return shown;
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
+            Settings.hookFailedPrivately("menu_row", "Can't hide rows in the side menu", error);
+            return sections;
+        }
+    }
+
+    /** The shorter copy of a list of side menu rows, holding on to Messenger's own so it can go back. */
+    private static final class Kept extends ArrayList<Object> {
+        final List<?> original;
+
+        Kept(List<?> original) {
+            super(original.size());
+            this.original = original;
+        }
+    }
+
+    /** A side menu section or row with one list of rows in it, and where that list sits. */
+    private static final class Held {
+        final Object owner;
+        final Field field;
+        /** Messenger's own rows, even when a shorter copy sits in their place. */
+        final List<?> rows;
+        private List<?> current;
+
+        private Held(Object owner, Field field, List<?> current) {
+            this.owner = owner;
+            this.field = field;
+            this.current = current;
+            this.rows = current instanceof Kept ? ((Kept) current).original : current;
+        }
+
+        /** The one list of rows [owner] holds, or null when it holds none, or more than one so it can't tell. */
+        static Held of(Object owner) throws IllegalAccessException {
+            if (owner == null) return null;
+            Field found = null;
+            for (Field field : owner.getClass().getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) || field.getType() != List.class) continue;
+                if (found != null) return null;
+                found = field;
+            }
+            if (found == null) return null;
+            try {
+                found.setAccessible(true);
+            } catch (RuntimeException closed) {
+                return null;
+            }
+            Object value = found.get(owner);
+            return value instanceof List ? new Held(owner, found, (List<?>) value) : null;
+        }
+
+        /** The rows without the picked ones, or null when none of them is picked. */
+        Kept without(Set<String> hidden) {
+            Kept kept = new Kept(rows);
+            for (Object row : rows) {
+                String name = name(row);
+                if (name == null || !hidden.contains(name)) kept.add(row);
+            }
+            return kept.size() == rows.size() ? null : kept;
+        }
+
+        /** Puts [kept] in place of the rows, or Messenger's own back when there's nothing to keep out. */
+        void put(Kept kept) throws IllegalAccessException {
+            if (kept != null) field.set(owner, kept);
+            else if (current != rows) field.set(owner, rows);
+            current = kept != null ? kept : rows;
+        }
+
+        boolean emptied() {
+            return current instanceof Kept && current.isEmpty();
+        }
     }
 
     /** The rows seen so far, in the order the Menu tab first showed them. */

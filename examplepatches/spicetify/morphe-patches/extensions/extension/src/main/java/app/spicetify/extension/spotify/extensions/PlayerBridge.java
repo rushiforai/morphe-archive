@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The line to Spotify's native core for the extensions and the Home pins picker: single
  * esperanto calls and cosmos GETs, and the {@code ContextPlayer/GetState} stream while anything
- * listens to it. It's process-wide, and connects when Spotify builds its
- * {@code SharedCosmosRouterService} (hook H1).
+ * listens to it. It's process-wide, and connects when Spotify builds its cosmos router service
+ * (hook H1), which also tells it when the service shuts its router down.
  * <p>
  * Threading: the router answers on Spotify's core thread. There a callback only copies the body
  * and posts it to the one bridge thread, so it never blocks the core, and every {@link Result} and
@@ -51,7 +51,7 @@ public final class PlayerBridge {
     private static final CopyOnWriteArrayList<StateListener> LISTENERS = new CopyOnWriteArrayList<>();
     /**
      * Guards the router, the stream and the last state. Router callbacks never take it. With it held,
-     * the bridge may take Spotify's router monitor to send, but never the other way around.
+     * the bridge may take the router's read lock to send, and shutdown takes the write lock without it.
      */
     private static final Object LOCK = new Object();
     private static volatile CosmosRouter router;
@@ -78,12 +78,12 @@ public final class PlayerBridge {
     private PlayerBridge() {}
 
     /**
-     * Hook H1, at the end of {@code SharedCosmosRouterService.<init>}: attaches Spotify's router,
-     * then, with the extensions patch installed, starts the extensions that are on. Never throws
-     * into Spotify.
+     * Hook H1, at the end of the cosmos service's constructor, with the service's {@code NativeRouter},
+     * which has just started scheduling: attaches it, then, with the extensions patch installed, starts
+     * the extensions that are on. Never throws into Spotify.
      */
-    public static void onCosmos(Object service) {
-        onCosmos(service, InstalledPatches.extensions());
+    public static void onCosmos(Object nativeRouter) {
+        onCosmos(nativeRouter, InstalledPatches.extensions());
     }
 
     /**
@@ -91,11 +91,11 @@ public final class PlayerBridge {
      * through the bridge. Then no extension starts: one left on from an earlier build couldn't be
      * turned off.
      */
-    static void onCosmos(Object service, boolean extensionsInstalled) {
+    static void onCosmos(Object nativeRouter, boolean extensionsInstalled) {
         try {
-            Context application = application(service);
+            Context application = application(nativeRouter);
             if (application != null) Extensions.setAppContext(application);
-            attach(CosmosRouter.reflective(service));
+            attach(CosmosRouter.reflective(nativeRouter));
             if (!extensionsInstalled) return;
             Context context = Extensions.appContext();
             if (context == null) {
@@ -109,12 +109,25 @@ public final class PlayerBridge {
         }
     }
 
+    /**
+     * H1's second hook, at the start of the cosmos service's shutdown, with the same {@code NativeRouter}, before
+     * Spotify stops and destroys it: the bridge sends nothing to it from now on, and a send already
+     * inside it finishes first. Never throws into Spotify.
+     */
+    public static void onShutdown(Object nativeRouter) {
+        try {
+            CosmosRouter.shutdown(nativeRouter);
+        } catch (Throwable e) {
+            Log.w("Spicetify", "Couldn't mark Spotify's router as shut down", e);
+        }
+    }
+
     /** Spotify's {@code Application}, from {@code ActivityThread} through the router's class loader, or null. */
     @SuppressLint("PrivateApi") // greylisted, contained here, and PatchSettings' context covers a denial
-    private static Context application(Object service) {
+    private static Context application(Object nativeRouter) {
         try {
             Class<?> activityThread = Class.forName("android.app.ActivityThread", false,
-                    service.getClass().getClassLoader());
+                    nativeRouter.getClass().getClassLoader());
             return (Context) activityThread.getMethod("currentApplication").invoke(null);
         } catch (Throwable e) {
             Log.w("Spicetify", "Couldn't find Spotify's application; using the one from its startup", e);
@@ -147,7 +160,7 @@ public final class PlayerBridge {
         }
     }
 
-    /** True while a router is attached and Spotify hasn't destroyed it. */
+    /** True while a router is attached and Spotify hasn't begun to destroy it. */
     static boolean connected() {
         CosmosRouter current = router;
         return current != null && !destroyed(current);

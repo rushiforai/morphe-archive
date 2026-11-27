@@ -130,6 +130,10 @@ A saved video that ends stays on screen instead of opening the next one. Swipe u
 Show saved posts in the row	إظهار المنشورات المحفوظة في التتابع
 # context: summary of that switch
 A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	يبقى المنشور المحفوظ في التتابع على الشاشة بدلًا من تخطيه. اسحب لأعلى بعد نهايته للفيديو المحفوظ التالي، أو لأسفل بعد أعلاه للسابق.
+# context: switch title under Reels and Watch; on, a reel opened from a Reels row in the news feed (the strip of reels you scroll sideways) goes on to the next reel in that row instead of a suggested reel
+Play the feed's Reels row in order	تشغيل صف الريلز في الموجز بالترتيب
+# context: summary of that switch; the feed is Facebook's News Feed, so use Facebook's name for it in your language if you know it
+A reel you open from a Reels row in your feed goes on to the next one in that row when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	ريل تفتحه من صف ريلز في موجزك يستمر إلى التالي في ذلك الصف عندما ينتهي أو عندما تسحب لأعلى، بدلًا من ريل مقترح. اسحب لأسفل للعودة واحدًا.
 A small label at the top of Reels shows the minutes you've watched. Time on other tabs doesn't count, and 15 minutes away starts it over.	ملصق صغير في أعلى ريلز يعرض الدقائق التي شاهدتها. الوقت في التبويبات الأخرى لا يُحسب، و15 دقيقة بعيدًا تبدأ العدّ من جديد.
 A song you add to a photo for your Story plays for up to 30 seconds instead of 15. Applies to the next song you pick.	أغنية تضيفها إلى صورة لقصتك تُعرض حتى 30 ثانية بدلًا من 15. تُطبَّق على الأغنية التالية التي تختارها.
 A story you scrolled past in the Stories tray leaves it the next time you open Facebook, even if you didn't watch it. A new story brings that person back.	قصة تجاوزتها في درج القصص تتركه في المرة التالية التي تفتح فيها فيسبوك، حتى لو لم تشاهدها. قصة جديدة تُعيد ذلك الشخص.
@@ -140,7 +144,7 @@ A tap on a reaction at the bottom of a story asks first, and the story waits. On
 A tap on Follow beside a reel's author asks first, and only Continue follows or unfollows.	نقرة على متابعة بجانب كاتب ريل تسأل أولًا، وفقط متابعة تتابع أو تلغي المتابعة.
 A tap on Follow in a post, beside the poster's name or on its Follow button, asks first, and only Continue follows or unfollows.	نقرة على متابعة في منشور، بجانب اسم الناشر أو على زر متابعة فيه، تسأل أولًا، وفقط متابعة تتابع أو تلغي المتابعة.
 A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	نقرة على إعجاب بجانب ريل تسأل أولًا، وفقط متابعة تُعجب به أو تلغي إعجابك.
-A tap on Like under a comment asks first, and only Continue likes or unlikes it.	نقرة على إعجاب تحت تعليق تسأل أولًا، وفقط متابعة تُعجب به أو تلغي إعجابك.
+A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only Continue goes ahead.	نقرة على إعجاب تحت تعليق، أو تفاعل تختاره بعد الضغط مطولًا على تعليق، تسأل أولًا، وفقط متابعة تُكمل.
 A tap on Like under a post asks first, and only Continue likes or unlikes it.	نقرة على إعجاب تحت منشور تسأل أولًا، وفقط متابعة تُعجب به أو تلغي إعجابك.
 A tap on the empty part of the row under a post, between the buttons and the reaction icons, does nothing instead of opening the comments or who reacted. The buttons work as before.	النقر على الجزء الفارغ من الصف تحت منشور، بين الأزرار وأيقونات التفاعل، لا يفعل شيئًا بدلًا من فتح التعليقات أو من تفاعل. الأزرار تعمل كما كانت.
 A thin gray line between posts in the feed, so posts without photos don't run together on the black page.	خط رمادي رفيع بين المنشورات في الخلاصة، حتى لا تلتصق المنشورات بلا صور ببعضها في الصفحة السوداء.
@@ -914,6 +918,9 @@ Hide the gift button on profiles	إخفاء زر الهدية في الملفا�
 Takes the Send a gift button off other people's profiles. Applies the next time you open a profile.	يزيل زر إرسال هدية من الملفات الشخصية للآخرين. يُطبَّق في المرة التالية التي تفتح فيها ملفًا شخصيًا.
 Hides the other Meta AI buttons Facebook puts under posts. The post's next button shows instead, if it has one.	يخفي أزرار Meta AI الأخرى التي يضعها فيسبوك تحت المنشورات. يظهر زر المنشور التالي بدلًا منها، إن وُجد.
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	يخفي صف الأشخاص الذين قد تعرفهم الذي يعرضه فيسبوك عندما تفتح البحث. عمليات بحثك الأخيرة والاقتراحات أثناء الكتابة تبقى.
+# context: switch title under News feed; People you may know is the list of friend suggestions Facebook shows in its Friends tab below your friend requests, as in Hide "People you may know"
+Hide "People you may know" in the Friends tab	إخفاء الأشخاص الذين قد تعرفهم في تبويب الأصدقاء
+Hides the People you may know list in the Friends tab. Your friend requests stay.	يخفي قائمة الأشخاص الذين قد تعرفهم في تبويب الأصدقاء. طلبات الصداقة تبقى.
 Hides the row of groups to join between posts and the groups card between reels. Posts from groups you're in stay.	يخفي صف المجموعات المقترحة للانضمام بين المنشورات وبطاقة المجموعات بين الريلز. منشورات المجموعات التي أنت فيها تبقى.
 Hides the row of groups to join between posts. Posts from groups you're in stay.	يخفي صف المجموعات المقترحة للانضمام بين المنشورات. منشورات المجموعات التي أنت فيها تبقى.
 Hides the row of Meta AI questions under some posts. The post, its link card and its buttons stay.	يخفي صف أسئلة Meta AI تحت بعض المنشورات. المنشور وبطاقة رابطه وأزراره تبقى.
@@ -1148,7 +1155,7 @@ Move seen stories to the end	نقل القصص المشاهدة إلى النه�
 Move the speaker above the three dots	نقل مكبر الصوت فوق النقاط الثلاث
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	يُنقل شريط تقدم فيديو الخلاصة أقرب إلى الحافة السفلية، مع زر مكبر الصوت وأزرار الأشخاص الموسومين في فيسبوك. يحتاج تشغيل شريط التقدم على فيديوهات الخلاصة.
 Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	يُنقل وجوه تفاعل المنشور من نهاية صف أزراره إلى زر الإعجاب، مباشرة قبل العدّاد. زر الإعجاب يُعجب ويتفاعل كما كان. فيديو يعرض مشاهداته هناك يحصل على وجه تفاعل واحد، أو تفاعلك الخاص بمجرد أن تتفاعل. إخفاء معاينة التفاعل على المنشورات يتجاوزه. يظهر التغيير على المنشورات المرسومة بعده.
-Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.	يُنقل التنزيل إلى الهاتف وحفظ الصورة من نهاية قائمة النقاط الثلاث في المنشور إلى بداية قائمة خياراته. صفوف فيسبوك الخاصة الأعلى تبقى فوقها (في منشورات الصور القائمة هي صفحة المزيد من الخيارات). منشور ليس لديه ما للحفظ لا يحصل على أي منهما.
+Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.	ينقل التنزيل إلى الهاتف وحفظ الصورة من صفحة المزيد من الخيارات إلى الصفحة الأولى من قائمة النقاط الثلاث في المنشور، فوق سرعة التشغيل. منشور ليس لديه ما للحفظ لا يحصل على أي منهما.
 Moves Facebook's tab bar to the bottom, within thumb reach, on accounts that show it at the top. Restart Facebook to see the change.	يُنقل شريط تبويبات فيسبوك إلى الأسفل، في متناول الإبهام، على الحسابات التي تظهره في الأعلى. أعد تشغيل فيسبوك لترى التغيير.
 Moves Facebook's tab bar to the top, under the search row, as older Facebook had it. Restart Facebook to see the change.	يُنقل شريط تبويبات فيسبوك إلى الأعلى، تحت صف البحث، كما كان في فيسبوك الأقدم. أعد تشغيل فيسبوك لترى التغيير.
 Movies and Pictures	Movies and Pictures
@@ -1635,6 +1642,10 @@ Shows a bar along the bottom of a video story that you drag to move through it. 
 Shows a feed video's full length at the right end of its seek bar, in place of the time left. Needs Times on the seek bar on.	يُظهر طول فيديو الخلاصة بالكامل في الطرف الأيمن من شريط تقدمه، بدلاً من الوقت المتبقي. يحتاج تشغيل الأوقات على شريط التقدم.
 Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	يُظهر شريط تقدم فيديو الخلاصة كخط رفيع على حافته السفلية مباشرة، كما في Instagram، دون نقطة حتى تجرّه. الفيديوهات المباشرة تحصل عليه أيضًا بينما يمكن إرجاعها. اتركه في الطرف الأيمن الأبعد للعودة إلى مباشر. أزرار مكبر الصوت والأشخاص الموسومين في فيسبوك تتحرك لأعلى لتجلس فوقه. يحتاج شريط تقدم على فيديوهات الخلاصة أن يكون مفعلًا.
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	يُظهر زرًا صغيرًا على الحافة اليسرى لرييل أو فيديو يكون النافذة جاهزة فيه. اضغط عليه لفتح النافذة فورًا. يعمل مع تشغيل الصورة داخل الصورة.
+# context: switch title under Picture-in-picture on the Playback page; on, when a reel ends in the small picture-in-picture window, the next reel plays there
+Next reel in the window	الريل التالي في النافذة
+# context: summary of that switch; "the window" is the small picture-in-picture window
+When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window instead of the same one again. Works with Picture-in-picture on.	عندما ينتهي ريل في نافذة الصورة داخل الصورة، يُشغَّل الريل التالي من ريلز في النافذة بدلًا من إعادة الريل نفسه. يعمل مع تشغيل الصورة داخل الصورة.
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	يُظهر شريطًا رفيعًا على طول حافة قصة السفلية يمتلئ أثناء تشغيلها، مثل الموجود في ريلز.
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	يُظهر مدى تقدمك في فيديو خلاصة عند الطرف الأيسر من شريط تقدمه، وكم بقي عند الطرف الأيمن. يحتاج شريط تقدم على فيديوهات الخلاصة أن يكون مفعلًا.
 Shows Hushfacebook's logo at the top of Home in place of your words and Facebook's logo. Restart Facebook to see it.	يُظهر شعار Hushfacebook في أعلى الرئيسية بدلاً من كلماتك وشعار فيسبوك. أعد تشغيل فيسبوك لرؤيته.
@@ -1876,12 +1887,26 @@ The report couldn't be copied. Try again.	تعذّر نسخ التقرير. حا
 The report couldn't be saved. Try again.	تعذّر حفظ التقرير. حاول مرة أخرى.
 The rounded tab bar is %1$s percent of the screen wide.	شريط التبويبات المستدير هو %1$s بالمائة من عرض الشاشة.
 The rounded tab bar keeps %1$s percent of its height.	شريط التبويبات المستدير يحتفظ بنسبة %1$s من ارتفاعه.
+# context: switch title under Appearance, right under Tab bar height; gives the rounded tab bar a glass look
+Glass tab bar	شريط تبويبات زجاجي
+# context: description of that switch; Rounded tab bar is the switch a few rows above it, the pill is that rounded tab bar, and the highlight is the faint pill behind the selected tab's icon
+With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the highlight behind the tab you're on slides over when you pick another tab.	مع تشغيل شريط التبويبات المستدير، يحصل الشريط على حافة زجاجية مضيئة وظل ناعم، وينزلق الإبراز خلف التبويب الذي أنت فيه إلى التبويب الذي تختاره.
 The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	صف الرموز التعبيرية فوق صندوق التعليق يزول. ما زلت تستطيع كتابة رموز تعبيرية من لوحة مفاتيحك.
 The saved copy of %1$s is missing. Choose the file again.	النسخة المحفوظة من %1$s مفقودة. اختر الملف مرة أخرى.
 The saved copy of %1$s is missing. Choose the picture again.	النسخة المحفوظة من %1$s مفقودة. اختر الصورة مرة أخرى.
 The SD card you picked isn't in the phone, so videos and photos are saved on the phone's storage until it's back.	بطاقة SD التي اخترتها ليست في الهاتف، لذلك تُحفظ الفيديوهات والصور على تخزين الهاتف حتى تعود.
 The search box didn't open. Type the search again.	لم يُفتح مربع البحث. اكتب البحث مرة أخرى.
 The see-through bars keep %1$s percent of their color.	الأشرطة الشفافة تحتفظ بنسبة %1$s من لونها.
+# context: row title under Appearance, right under Bar opacity; picks how strongly the see-through top bar and tab bar blur the feed behind them
+Blur strength	قوة الضباب
+# context: message of that row's number box; %1$s is 0 (no blur), %2$s the most, %3$s the usual amount
+How much the see-through bars blur the feed behind them, in percent of the usual blur, from %1$s, no blur, to %2$s. Leave it blank for %3$s. The blur needs Android 12 or newer.	مقدار ما تُضبّب به الأشرطة الشفافة الخلاصة خلفها، بالنسبة المئوية من الضباب المعتاد، من %1$s، بلا ضباب، إلى %2$s. اتركه فارغًا لِـ %3$s. يحتاج الضباب إلى Android 12 أو أحدث.
+# context: summary of that row while it's blank
+The see-through bars blur the feed behind them the usual amount. Type a number to change it.	الأشرطة الشفافة تُضبّب الخلاصة خلفها بالمقدار المعتاد. اكتب رقمًا لتغييره.
+# context: summary of that row when it's 0
+The see-through bars show the feed behind them sharp, with no blur.	الأشرطة الشفافة تُظهر الخلاصة خلفها واضحة، بلا ضباب.
+# context: summary of that row; %1$s is the number typed
+The see-through bars blur the feed behind them %1$s percent of the usual amount.	الأشرطة الشفافة تُضبّب الخلاصة خلفها بنسبة %1$s من المقدار المعتاد.
 The selected tab in the tab bar is %1$s. Restart Facebook to see the change.	التبويب المحدد في شريط التبويبات هو %1$s. أعد تشغيل فيسبوك لترى التغيير.
 The selected tab keeps Facebook's color. Type a color code to change it.	التبويب المحدد يحتفظ بلون فيسبوك. اكتب رمز لون لتغييره.
 The setting couldn't finish updating. Its saved value is shown.	تعذّر على الإعداد إنهاء التحديث. قيمته المحفوظة معروضة.
@@ -1950,6 +1975,10 @@ Turn on %1$s to save videos that WhatsApp and these editors accept.	شغّل %1$
 Turn on %1$s to use this.	شغّل %1$s لاستخدام هذا.
 Turn on notifications for this post	تشغيل الإشعارات لهذا المنشور
 Turned off lately	أُوقف مؤخرًا
+# context: one of three order choices above the Switches that are on list; lists the switches in the order the settings page has them (the other two are A to Z and Newest)
+Page order	كما في الصفحة
+# context: the second order choice there; lists the switches alphabetically by their titles
+A to Z	أبجديًا
 Turns every switch and choice that Export settings saves back to how a new install has them. Pause, Debug logging and the update check stay as they are.	يعيد كل مفتاح واختيار يحفظه تصدير الإعدادات إلى حال التثبيت الجديد. الإيقاف المؤقت، وسجل التصحيح، والتحقق من التحديثات تبقى كما هي.
 Type @ before Facebook suggests someone to tag in posts or comments. Your text stays unchanged.	اكتب @ قبل أن يقترح فيسبوك شخصًا لوسمه في المنشورات أو التعليقات. نصك يبقى دون تغيير.
 Type a six-digit color code, like #2ECC71.	اكتب رمز لون من ست خانات، مثل #2ECC71.
@@ -2120,6 +2149,34 @@ Your own words at the top of Home instead of the Facebook logo, up to %1$d chara
 Your phone couldn't put this video together. Try another Download quality.	هاتفك لم يستطع تجميع هذا الفيديو معًا. جرّب جودة تنزيل أخرى.
 Your phone couldn't write the file. Check your free space and try again.	هاتفك لم يستطع كتابة الملف. تحقق من المساحة الفارغة وحاول مرة أخرى.
 Your profile shows %1$s on this phone.	ملفك الشخصي يعرض %1$s على هذا الهاتف.
+# context: switch title under News feed; on, your own Facebook friends list is kept on this phone each time you scroll it to the end, so you can see who is no longer on it
+Keep track of your friends list	تتبّع قائمة أصدقائك
+# context: summary of that switch; Profile > Friends > All friends is the path to the list in Facebook, so use Facebook's own names for those screens in your language
+Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on this phone and tells you who's no longer on it since the time before. Someone who unfriended you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.	في كل مرة تمرّر فيها قائمتك الخاصة في الملف الشخصي > الأصدقاء > كل الأصدقاء حتى نهايتها، يحتفظ بنسخة على هذا الهاتف ويخبرك بمن لم يعد فيها منذ المرة السابقة. من ألغى صداقتك ومن ألغيت صداقته والحساب المغلق تظهر كلها بالطريقة نفسها. لا يغادر أي شيء هاتفك.
+# context: row title and list title; the people who were on your Facebook friends list and aren't any more
+Friends no longer on your list	أصدقاء لم يعودوا في قائمتك
+# context: summary of that row
+People who were on your friends list one time you scrolled it to the end and weren't the next. Tap one to open their profile.	أشخاص كانوا في قائمة أصدقائك مرةً مرّرتها فيها حتى النهاية ولم يكونوا فيها في المرة التالية. اضغط على أحدهم لفتح ملفه الشخصي.
+# context: toast the first time your friends list is kept; %1$d is how many friends are on it
+Hushfacebook kept a copy of your %1$d friends. Next time you scroll the list to its end, it tells you who's no longer on it.	احتفظ Hushfacebook بنسخة من أصدقائك وعددهم %1$d. في المرة القادمة التي تمرّر فيها القائمة حتى نهايتها، سيخبرك بمن لم يعد فيها.
+# context: toast; %1$s is one person's name
+%1$s is no longer on your friends list.	%1$s لم يعد في قائمة أصدقائك.
+# context: toast; %1$s is two or three people's names separated by commas
+No longer on your friends list: %1$s.	لم يعودوا في قائمة أصدقائك: %1$s.
+# context: toast; %1$s is three people's names separated by commas, %2$d how many other people
+No longer on your friends list: %1$s and %2$d more.	لم يعودوا في قائمة أصدقائك: %1$s و%2$d آخرون.
+# context: toast when tapping a person in that list doesn't open their profile
+Their profile can't open here.	لا يمكن فتح ملفه الشخصي هنا.
+# context: shown in place of a person's name when Facebook gave none
+Someone without a name	شخص بلا اسم
+# context: second line of a person in that list; %1$s is the date they were last seen on your list, %2$s the date they were first missing
+Gone between %1$s and %2$s	غادر بين %1$s و%2$s
+# context: line above that list before your friends list was ever kept
+No copy of your friends list yet.	لا توجد نسخة من قائمة أصدقائك بعد.
+# context: line above that list; %1$s is a date, %2$d how many friends were on the list then
+Your list was last read to its end on %1$s, with %2$d friends.	آخر مرة قُرئت فيها قائمتك حتى نهايتها كانت في %1$s، وفيها %2$d صديقًا.
+# context: shown while that list is empty; Keep track of your friends list is the switch's title
+Nobody yet. With Keep track of your friends list on, scroll Profile > Friends > All friends to its end now and then. Anyone who drops off between two of those reads shows up here.	لا أحد بعد. مع تشغيل تتبّع قائمة أصدقائك، مرّر الملف الشخصي > الأصدقاء > كل الأصدقاء حتى النهاية من حين لآخر. أي شخص يختفي منها بين قراءتين يظهر هنا.
 Your settings already match a new install.	إعداداتك بالفعل تطابق تثبيتًا جديدًا.
 Your settings already match that file, so nothing will change.	إعداداتك بالفعل تطابق ذلك الملف، لذلك لن يتغير شيء.
 Your settings are back the way they were before the reset.	إعداداتك عادت كما كانت قبل إعادة الضبط.
@@ -2272,7 +2329,23 @@ Hide hashtags in reel captions	إخفاء الوسوم في تعليقات ال�
 Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	يزيل الوسوم من تعليقات الريلز، مثل مجموعة الوسوم في آخرها. يبقى الوسم الذي هو جزء من جملة. يظهر التغيير من الريل التالي.
 Keep the keyboard closed when comments open	إبقاء لوحة المفاتيح مغلقة عند فتح التعليقات
 Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	تُفتح التعليقات دون أن تظهر لوحة المفاتيح، حتى في منشور ليس عليه تعليقات بعد. اضغط على صندوق التعليق عندما تريد الكتابة.
+Post text doesn't open comments	نص المنشور لا يفتح التعليقات
+A tap on a post's text no longer opens its comments. The Comment button still does.	النقر على نص المنشور لم يعد يفتح تعليقاته. زر التعليق ما زال يفتحها.
 Settings language	لغة الإعدادات
 Same as Facebook	مثل فيسبوك
 Show feed reels uncropped	عرض الريلز في الخلاصة دون قص
 Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	تظهر الريلز في خلاصتك بالصورة كاملة وبشكلها الأصلي، بدلاً من قصها لتناسب إطار فيسبوك. الريلز المرسومة بعد التغيير تلتقطه.
+Remix this reel	إنشاء Remix لهذا الريل
+Hold the profile tab for Activity log	اضغط مطولًا على تبويب الملف الشخصي لفتح سجل النشاطات
+Press and hold the profile tab to open your Activity log instead of switching accounts. On accounts with a Menu tab in its place, that tab does it. You can still switch accounts from the Menu.	اضغط مطولًا على تبويب الملف الشخصي لفتح سجل نشاطاتك بدلًا من تبديل الحساب. في الحسابات التي يظهر فيها تبويب القائمة مكانه، يقوم ذلك التبويب بالمهمة. لا يزال بإمكانك تبديل الحسابات من القائمة.
+React to this comment?	التفاعل مع هذا التعليق؟
+Hide reactions on a held comment	إخفاء التفاعلات عند الضغط مطولا على تعليق
+Hide Reply on a held comment	إخفاء رد عند الضغط مطولا على تعليق
+Hide Copy on a held comment	إخفاء نسخ عند الضغط مطولا على تعليق
+Hide Report on a held comment	إخفاء الإبلاغ عند الضغط مطولا على تعليق
+Hide the Hide comment option	إخفاء خيار إخفاء التعليق
+Holding a comment no longer shows the row of reactions above it. Like under the comment still works.	الضغط مطولا على تعليق لم يعد يعرض صف التفاعلات فوقه. زر إعجاب تحت التعليق ما زال يعمل.
+Holding a comment no longer offers Reply. The Reply under the comment stays.	الضغط مطولا على تعليق لم يعد يعرض خيار رد. يبقى زر رد تحت التعليق.
+Holding a comment no longer offers Copy.	الضغط مطولا على تعليق لم يعد يعرض خيار نسخ.
+Holding a comment no longer offers Report comment or Report to group admins.	الضغط مطولا على تعليق لم يعد يعرض الإبلاغ عن التعليق أو إبلاغ مشرفي المجموعة.
+Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.	الضغط مطولا على تعليق لم يعد يعرض إخفاء التعليق. إذا لم يبق للتعليق ما يعرضه، فلن يحدث شيء عند الضغط عليه مطولا.

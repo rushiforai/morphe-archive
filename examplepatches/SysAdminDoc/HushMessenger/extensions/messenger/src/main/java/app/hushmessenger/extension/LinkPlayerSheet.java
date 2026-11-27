@@ -46,10 +46,12 @@ import android.widget.TextView;
  * button and the open-in-the-app button around them.
  *
  * <p>The frame gets a jar of its own that's emptied when the window opens and again when it closes, refuses
- * third-party cookies, keeps nothing on disk, and has storage, files, content and location all turned off. The
- * privacy host is tried first, and the ordinary one only if that fails to load, which happens on a phone or a router
- * that blocks the privacy host by name. If the second try fails too the window closes and the link goes on to the app
- * it belongs to, so a tap is never swallowed by a frame that stayed blank.
+ * third-party cookies, keeps nothing on disk, and has files, content and location all turned off. Page storage is on,
+ * since TikTok's embed shows only "Server error" without it (#246), and it goes out with the jar. The privacy host is
+ * tried first, and the ordinary one only if that fails to load, which happens on a phone or a router that blocks the
+ * privacy host by name. If the second try fails too the window closes and the link goes on to the app it belongs to,
+ * so a tap is never swallowed by a frame that stayed blank. Only the page itself failing counts: an embed fetches a
+ * lot for itself, and some of that failing is ordinary.
  */
 final class LinkPlayerSheet {
     /** How long the buttons stay up after a tap while the video is playing. */
@@ -168,6 +170,8 @@ final class LinkPlayerSheet {
     private View card() {
         LinearLayout root = new LinearLayout(context);
         this.root = root;
+        // Its buttons sit in a sheet over Messenger, so Invisible buttons lists them with HushMessenger's own (#191).
+        InvisibleButtons.ownView(root);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(16), dp(16), dp(16), dp(16));
 
@@ -213,11 +217,19 @@ final class LinkPlayerSheet {
     private WebView buildFrame() {
         WebView web = new WebView(context);
         web.setBackgroundColor(Color.BLACK);
+        // The frame takes every touch once Hush's buttons have faded, so the frame is where a tap brings them back
+        // (#246). YouTube plays only through those buttons, so a tap there is only that. The other three embeds keep
+        // their own buttons inside the frame, so the touch goes on to them as well.
+        web.setOnTouchListener((touched, event) -> {
+            if (event.getActionMasked() == android.view.MotionEvent.ACTION_UP) showButtons();
+            return embed.ownControls;
+        });
         WebSettings settings = web.getSettings();
-        // The embeds are scripts, so this one has to be on. Everything a script could keep or reach is not.
+        // The embeds are scripts, so this one has to be on. Their page storage is on too, since TikTok's won't start
+        // without it, and the jar empties it with the cookies. Everything else a script could keep or reach is off.
         settings.setJavaScriptEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setDomStorageEnabled(false);
+        settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(false);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
@@ -240,13 +252,17 @@ final class LinkPlayerSheet {
                 // a tap. Everything the embed loads for itself is left alone, and a tap goes to the app it belongs to.
                 if (request == null) return false;
                 if (!request.isForMainFrame() || onEmbedHost(request.getUrl())) return false;
+                android.util.Log.w("HushMessenger", LinkPlayer.KEY + ": the page moved to " + where(request.getUrl())
+                    + ", so the link goes to the app");
                 handOff(request.getUrl());
                 return true;
             }
 
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                // YouTube's embed is a frame inside Hush's own page, so its failure is the one that matters there.
-                if (request != null && !request.isForMainFrame() && !onEmbedHost(request.getUrl())) return;
+                // Called for everything the page fetches, so only the page itself failing closes the window.
+                if (request == null || !isThePage(request.getUrl(), request.isForMainFrame())) return;
+                android.util.Log.w("HushMessenger", LinkPlayer.KEY + ": " + where(request.getUrl()) + " didn't load ("
+                    + (error == null ? "no reason given" : error.getErrorCode() + " " + error.getDescription()) + ")");
                 loadFailed();
             }
         });
@@ -259,6 +275,24 @@ final class LinkPlayerSheet {
         return !host.isEmpty() && host.equals(LinkPlayer.host(Uri.parse(currentHost())));
     }
 
+    /**
+     * Whether a load that failed is the page the window is showing, rather than one of the scripts, pictures, logging
+     * calls and stream pieces it fetches for itself (#246). That's the main frame, or for YouTube, whose page is Hush's
+     * own wrapper, the embed frame the wrapper holds.
+     */
+    boolean isThePage(Uri target, boolean mainFrame) {
+        if (mainFrame) return true;
+        if (!embed.ownControls || target == null) return false;
+        Uri page = Uri.parse(onFallback && embed.fallbackPage != null ? embed.fallbackPage : embed.page);
+        return onEmbedHost(target) && TextUtils.equals(page.getPath(), target.getPath());
+    }
+
+    /** Only the kind of link and its site go in the log, since the rest of it is from a chat. */
+    private static String where(Uri target) {
+        if (target == null) return "a page";
+        return target.getScheme() + "://" + LinkPlayer.host(target);
+    }
+
     /** The host the frame is pointed at, which is the ordinary YouTube one once the privacy host has failed. */
     String currentHost() {
         return onFallback && embed.fallbackPage != null ? LinkPlayer.YOUTUBE_FALLBACK_HOST : embed.host;
@@ -266,7 +300,9 @@ final class LinkPlayerSheet {
 
     private View buildButtons() {
         FrameLayout overlay = new FrameLayout(context);
-        overlay.setOnClickListener(tap -> showButtons());
+        // Over YouTube the buttons take a tap anywhere on the video. Over the other three, only the buttons themselves
+        // do, and the rest goes through to the embed's own play and sound buttons.
+        if (embed.ownControls) overlay.setOnClickListener(tap -> showButtons());
 
         if (embed.ownControls) {
             centre = new ImageView(context);
@@ -410,6 +446,8 @@ final class LinkPlayerSheet {
     void showButtons() {
         if (buttons == null) return;
         handler.removeCallbacks(this.fade);
+        // A fade already under way would carry on over the alpha set here and hide the buttons again (#246).
+        buttons.animate().cancel();
         fadeWaiting = false;
         buttons.setAlpha(1f);
         buttons.setVisibility(View.VISIBLE);
@@ -423,12 +461,13 @@ final class LinkPlayerSheet {
     private void keepButtons() {
         if (buttons == null) return;
         handler.removeCallbacks(this.fade);
+        buttons.animate().cancel();
         fadeWaiting = false;
         buttons.setAlpha(1f);
         buttons.setVisibility(View.VISIBLE);
     }
 
-    private final Runnable fade = new Runnable() {
+    final Runnable fade = new Runnable() {
         @Override public void run() {
             fadeWaiting = false;
             if (closed || buttons == null) return;

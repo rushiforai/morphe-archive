@@ -1,3 +1,13 @@
+## [1.1.0](https://github.com/Parideboy/macrofactor-patches/compare/v1.0.1...v1.1.0) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **build:** pin semantic-release to 25 so npm install resolves ([e9f7297](https://github.com/Parideboy/macrofactor-patches/commit/e9f72976d7edbb075e6ef8c7ef79be2facccd1eb))
+
+### ✨ New Features
+
+* **targapp:** unlock Pro for Targapp 4.10.0 ([17eb296](https://github.com/Parideboy/macrofactor-patches/commit/17eb296aa78af1fb10d962585c2f5d3f22f0c0e2))
+
 ## [1.0.1](https://github.com/Parideboy/macrofactor-patches/compare/v1.0.0...v1.0.1) (2026-11-25)
 
 ### 🐛 Bug Fixes

@@ -9,6 +9,8 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import java.util.Properties
 
@@ -22,29 +24,49 @@ internal val settingsPatch = bytecodePatch {
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/settings/9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/settings/9.2.4.2644.properties")!!.use(::load)
         }
         for (type in NativeSettingsAbi.TYPES) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify settings ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify settings ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify settings ABI changed: $type. Use the verified Spotify 9.2.4.2644 APK.")
             }
         }
 
-        val root = mutableClassDefBy("Lp/xlt;").methods.single { it.name == "create" }
+        // The root list is built as an array of rows and handed to za6.E0 as the last step. The hook
+        // keeps the settings root (v0 right after its cast) in v44, free on this path, and passes it
+        // with the array (v0) to the bridge, which returns the array with the Spicetify row added.
+        val root = mutableClassDefBy("Lp/ec2;").methods.single { it.name == "create" }
         val rootInstructions = root.implementation!!.instructions
-        val insertion = rootInstructions.indices.single { index ->
-            val reference = (rootInstructions[index] as? ReferenceInstruction)?.reference
-            reference.toString() == "Lp/ion;->c:Ljava/lang/Object;" &&
-                (rootInstructions.getOrNull(index + 1) as? ReferenceInstruction)?.reference.toString() == "Lp/dpb;"
-        }
-        // Snapshot proves v6 is the unfrozen list and v2 is still the root factory here.
-        root.addInstructions(insertion,
-            "invoke-static {v6, v2}, ${EXTENSION}nativebridge/SettingsBridge;->append(Ljava/util/List;Lp/ion;)V")
+        val capture = rootInstructions.indices.singleOrNull { index ->
+            val instruction = rootInstructions[index]
+            instruction.opcode == Opcode.CHECK_CAST &&
+                (instruction as ReferenceInstruction).reference.toString() == "Lp/xir;" &&
+                (instruction as OneRegisterInstruction).registerA == 0
+        } ?: throw PatchException("Spotify settings ABI changed: the settings root cast is not in Lp/ec2;->create")
+        val assemble = rootInstructions.indices.singleOrNull { index ->
+            val instruction = rootInstructions[index]
+            instruction.opcode == Opcode.INVOKE_STATIC &&
+                (instruction as ReferenceInstruction).reference.toString() ==
+                "Lp/za6;->E0([Ljava/lang/Object;)Ljava/util/List;" &&
+                (instruction as FiveRegisterInstruction).registerCount == 1 &&
+                instruction.registerC == 0
+        } ?: throw PatchException("Spotify settings ABI changed: the root rows are not collected by Lp/za6;->E0")
+        val rows = rootInstructions.subList(capture, assemble).lastOrNull {
+            it.opcode == Opcode.NEW_ARRAY && (it as ReferenceInstruction).reference.toString() == "[Lp/eaa1;"
+        } ?: throw PatchException("Spotify settings ABI changed: the root rows are not an eaa1 array")
+        check(rows is OneRegisterInstruction && rows.registerA == 0) { "The root rows are not in v0" }
+        // Later index first, so the first insertion does not move the second.
+        root.addInstructions(assemble, """
+            move-object/from16 v45, v0
+            invoke-static/range {v44 .. v45}, ${EXTENSION}nativebridge/SettingsBridge;->append(Lp/xir;[Lp/eaa1;)[Lp/eaa1;
+            move-result-object v0
+        """.trimIndent())
+        root.addInstructions(capture + 1, "move-object/from16 v44, v0")
 
-        val analytics = mutableClassDefBy("Lp/c3g0;").methods.single {
-            it.name == "<init>" && it.parameterTypes == listOf("I", "Lp/ct71;", "I")
+        val analytics = mutableClassDefBy("Lp/p6o0;").methods.single {
+            it.name == "<init>" && it.parameterTypes == listOf("I", "Lp/m0l1;", "B")
         }
         val instructions = analytics.implementation!!.instructions
         val marker = instructions.indexOfFirst {
@@ -52,19 +74,20 @@ internal val settingsPatch = bytecodePatch {
         }
         val switch = (marker + 1 until instructions.size).first { instructions[it].opcode == Opcode.PACKED_SWITCH }
         val sink = (switch + 1 until instructions.size).first {
-            (instructions[it] as? ReferenceInstruction)?.reference.toString() == "Lp/it71;->b:Ljava/lang/String;"
+            (instructions[it] as? ReferenceInstruction)?.reference.toString() == "Lp/s0l1;->b:Ljava/lang/String;"
         }
-        // v7's discriminator and metadata strings have been consumed. All native cases
+        // v13's group discriminator and metadata strings have been consumed. All native cases
         // use v0 for their label, including ad_partners, so leave v0 intact on mismatch.
         analytics.addInstructionsWithLabels(switch, """
-            const/4 v7, -0x1
-            if-ne v5, v7, :native_labels
+            const/4 v13, -0x1
+            if-ne v11, v13, :native_labels
             const-string v0, "spicetify_settings"
             goto/16 :label_sink
         """.trimIndent(), ExternalLabel("native_labels", analytics.getInstruction(switch)),
             ExternalLabel("label_sink", analytics.getInstruction(sink)))
 
-        mutableClassDefBy("Lcom/spotify/music/SpotifyApplication;").methods.single { it.name == "onCreate" }
+        // SpotifyApplication is an empty subclass now; its onCreate is final in the base class Lp/cve1;.
+        mutableClassDefBy("Lp/cve1;").methods.single { it.name == "onCreate" }
             .addInstructions(0,
                 "invoke-static/range {p0 .. p0}, ${EXTENSION}PatchSettings;->initialize(Landroid/content/Context;)V")
     }

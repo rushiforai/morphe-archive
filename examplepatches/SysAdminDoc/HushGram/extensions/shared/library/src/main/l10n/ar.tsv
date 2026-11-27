@@ -164,6 +164,8 @@ A white bar and handle, as they've always been.	شريط ومقبض أبيضان
 A white bar on a strip of frosted glass that blurs the video under it. Before Android 12 the strip is see-through instead.	شريط أبيض على شريط من الزجاج المصنفر يموّه الفيديو تحته. قبل Android 12 يكون الشريط شفافًا بدلًا من ذلك.
 About	حول
 About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	كل نصف ساعة تقريبًا، يوقظ Instagram هاتفك لتنزيل موجزك مسبقًا. هذا يوقف ذلك. يُحمَّل الموجز عند فتح التطبيق بدلًا من ذلك، ولا تزال الرسائل والإشعارات تصل.
+Let Instagram close after account checks	السماح لـ Instagram بالإغلاق بعد فحص الحسابات
+When your phone checks its accounts, as it does at startup and when an account changes, Instagram never answers. Android then keeps it running for up to 15 minutes, even after you swipe it away. This answers right away so Instagram can close. Your login is unaffected.	عندما يفحص هاتفك حساباته، كما يحدث عند التشغيل وعند تغيّر أحد الحسابات، لا يرد Instagram أبدًا. فيُبقيه Android قيد التشغيل لمدة تصل إلى 15 دقيقة، حتى بعد أن تسحبه لإغلاقه. هذا الخيار يرد فورًا ليتمكن Instagram من الإغلاق. لا يتأثر تسجيل دخولك.
 About this account	حول هذا الحساب
 About this account button	زر حول هذا الحساب
 About this reel keeps its summary and Sources, and only the Ask Meta AI box under them goes.	يبقى جزء حول هذا الريل مع ملخصه ومشاهده، ويختفي فقط مربع اسأل Meta AI تحتهما.
@@ -967,6 +969,9 @@ Highest	الأعلى
 History button on Home's header	زر السجل في رأس الرئيسية
 Hold Seen in this chat	اضغط مطوّلًا على Seen في هذه المحادثة
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	اضغط بإصبعك على فقاعة الحبة السائلة، أو اسحبها عبر التبويبات، فتنتفخ الفقاعة وتثني ما خلفها بقوة أكبر كزجاج تحت طرف إصبع. وتنبسط عندما ترفع إصبعك. ويحتاج الانثناء إلى Blur خلف شريط التبويبات و Android 13 أو أحدث. أعد تشغيل Instagram بعد تغييره.
+# context: Tab bar: switch under Glass lens under your finger that keeps Instagram's Search tab inside the liquid pill with the other tabs instead of in a glass circle of its own, and its description (#875). Search is Instagram's tab, named as it is there; Liquid glass look is another switch's name
+Keep Search in the pill	أبقِ البحث داخل الكبسولة
+With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass circle of its own. Restart Instagram after changing it.	عند تفعيل مظهر الزجاج السائل، يبقى البحث داخل الكبسولة مع التبويبات الأخرى بدلاً من دائرة زجاجية خاصة به. أعد تشغيل Instagram بعد تغييره.
 Hold for 2x on feed videos	اضغط مطوّلًا للسرعة 2x على فيديوهات الموجز
 Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared.	اضغط مطوّلًا على تبويب Friends في Reels واختر من الأصدقاء الذين عرضتهم. ثم يُبقي بعدها Reels التي أعجبتهم أو شاركوها فقط.
 Hold the Friends tab to pick friends	اضغط مطوّلًا على تبويب Friends لاختيار الأصدقاء
@@ -1158,6 +1163,9 @@ Instagram's small window for reels gets a button to pause the reel and play it a
 # context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
 Previous and next in the reels window	السابق والتالي في نافذة المقاطع
 Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	تحصل نافذة Instagram الصغيرة للمقاطع على زرّيها للرجوع إلى المقطع السابق أو الانتقال إلى التالي.
+# context: a switch on the Playback page under Previous and next in the reels window; photo and carousel reels go in Instagram's small picture in picture window for reels, a carousel shows a dot per page, and the window's Previous and Next buttons turn its pages before moving to another reel (#873)
+Photos and carousels in the reels window	الصور والعروض الدوّارة في نافذة المقاطع
+Photo and carousel reels go in Instagram's small window for reels too. A carousel shows a dot for each page, and Previous and Next go through its pages first.	تدخل مقاطع الصور والعروض الدوّارة أيضًا نافذة Instagram الصغيرة للمقاطع. يعرض العرض الدوّار نقطة لكل صفحة، ويتنقّل السابق والتالي بين صفحاته أولًا.
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	عند مغادرة Instagram أثناء تشغيل قصة، تتقلص إلى نافذة صغيرة فوق تطبيقاتك الأخرى، حيث تستمر في عرض القصص.
 Left off other profiles: %1$s. The grid of posts stays.	يزيل من الملفات الشخصية الأخرى: %1$s. تبقى شبكة المنشورات.
 Left off the message box: %1$s. Gallery and Voice message are in the plus menu while Gallery and microphone in the plus menu is on. The text box and Send stay.	يزيل من مربع الرسائل: %1$s. تظهر الصور والرسالة الصوتية في قائمة الإضافة بينما يكون معرض الصور والميكروفون في قائمة الإضافة مفعّلًا. يبقى مربع النص وزر إرسال.
@@ -2268,6 +2276,21 @@ Time on each post	الوقت على كل منشور
 Time on the seek bar	الوقت على شريط التقدّم
 Time posted	وقت النشر
 Tint intensity	شدة الصبغة
+# context: Tab bar: the Tint color list under Tint intensity that picks the glass tab bar's color, its choices' descriptions, the Custom tint color field under it with its dialog message and empty summary, and what both say while another switch is in the way (#875). Light, Dark and AMOLED black are choices in the list; Tint intensity, Custom tint color, Glass tab bar and Material look are rows' names
+Tint color	لون الصبغة
+Light	فاتح
+Dark	داكن
+AMOLED black	أسود AMOLED
+The glass takes Instagram's own colors, dark or light with its theme.	يأخذ الزجاج ألوان Instagram نفسها، داكنًا أو فاتحًا حسب سمته.
+Frosted white glass whatever Instagram's theme, with the tab icons dark on it.	زجاج أبيض مصنفر مهما كانت سمة Instagram، مع أيقونات تبويبات داكنة فوقه.
+Dark gray glass whatever Instagram's theme, with the tab icons white on it.	زجاج رمادي داكن مهما كانت سمة Instagram، مع أيقونات تبويبات بيضاء فوقه.
+A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.	كبسولة سوداء بلا لمعان لشاشات AMOLED. خفّض شدة الصبغة ليظهر ما خلفها.
+The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones keep Instagram's colors.	يأخذ الزجاج لون التمييز الذي يختاره Android من خلفية الشاشة. Android 12 والأحدث. تبقى الهواتف الأقدم بألوان Instagram.
+The glass takes the color you type under Custom tint color.	يأخذ الزجاج اللون الذي تكتبه في لون الصبغة المخصص.
+Custom tint color	لون الصبغة المخصص
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.	لون كستة أرقام hex مثل #4A6B82. حفظه يختار مخصّص في لون الصبغة.
+Turn on Glass tab bar to use this choice.	شغّل شريط تبويبات زجاجي لاستخدام هذا الخيار.
+Turn off Material look to use this choice.	أوقف مظهر Material لاستخدام هذا الخيار.
 To add someone, tap Add to Stories priority in their story's menu.	لإضافة شخص، اضغط على أولوية القصص في قائمة قصته.
 To loop one story, tap Loop this story in its menu.	لتكرار قصة واحدة، اضغط على تكرار هذه القصة في قائمتها.
 To loop one video anyway, tap Loop this video in its menu.	لتكرار فيديو واحد على أي حال، اضغط على تكرار هذا الفيديو في قائمته.
@@ -2285,6 +2308,9 @@ Turn it off to leave a chat's top bar as Instagram draws it, with no frosted ban
 Turn off HDR brightness boosts	أوقف تعزيزات سطوع HDR
 Keep HDR on photo uploads	احتفظ بـ HDR عند رفع الصور
 Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	تجريبي. تحتفظ صورة Ultra HDR التي تنشرها بخريطة الكسب على Android 14 والإصدارات الأحدث، لتظل تظهر بتقنية HDR. أوقفه إذا بدت صورة تنشرها غير صحيحة.
+# context: Keep HDR on video uploads, under Playback next to the photo switch. Instagram encodes a video again before it uploads it; HDR means HLG here.
+Keep HDR on video uploads	احتفظ بـ HDR عند رفع الفيديوهات
+Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong or won't upload.	تجريبي. يُرمَّز فيديو HDR الذي تنشره بتقنية HDR على Android 13 والإصدارات الأحدث، بينما يحوّله Instagram إلى SDR على بعض الهواتف. أوقفه إذا بدا فيديو تنشره غير صحيح أو لم يُرفع.
 Turn off Hide the Search tab and restart.	أوقف إخفاء علامة تبويب البحث وأعد التشغيل.
 Turn off Show the whole reel to use this choice.	أوقف إظهار الريل بالكامل لاستخدام هذا الخيار.
 # context: Settings page, Feed: the line under the greyed-out Time in the top corner switch while Time under the tags button is on (#788)
@@ -2372,6 +2398,9 @@ Video resolution	دقة الفيديو
 Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	تُرسل قصص الفيديو التي تنشرها بدقة 1080p وبمعدل بت أعلى، كما لو كانت إعدادة الرفع بأعلى جودة مفعلة في Instagram. مع ذلك، لا يزال Instagram يُصغّر فيديوهات القصص إلى 720p على خوادمه، لذا الفرق الذي يراه المشاهدون صغير. قصص الصور تُرفع بحجم أكبر مما يحتفظ به Instagram.
 Videos and photos use %1$s. Unknown codes are left out.	تستخدم الفيديوهات والصور %1$s. الأكواد غير المعروفة تُستبعد.
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	تستأنف الفيديوهات وReels التي تزيد عن دقيقتين من حيث توقفت. انتقل للبدء من مكان آخر. تبدأ الفيديوهات المباشرة والإعلانات كالمعتاد.
+# context: a switch under Resume long videos (#874). A feed video you scroll past and come back to keeps playing from where it was, only until Instagram closes. The Reels tab is Instagram's own tab.
+Keep your place in feed videos	تذكّر موضعك في مقاطع فيديو الخلاصة
+A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over as usual.	يستأنف فيديو الخلاصة الذي تمرّر بعيدًا عنه من حيث توقفت عندما تعود إليه، حتى تغلق Instagram. تبدأ مقاطع Reels في تبويب Reels من البداية كالمعتاد.
 Videos are named %1$s. Photos are named %2$s followed by the date and time.	تُسمى الفيديوهات %1$s. تُسمى الصور %2$s يليها التاريخ والوقت.
 Videos go to %1$s and photos to %2$s.	تُرسل الفيديوهات إلى %1$s والصور إلى %2$s.
 Videos in Explore wait for your tap. Feed videos, reels and stories play as Instagram plays them.	فيديوهات Explore تنتظر نقراتك. فيديوهات Feed وReels والقصص تُعرض كما يعرضها Instagram.
@@ -2623,3 +2652,11 @@ Settings page logo set.	تم تعيين شعار الإعدادات.
 HushGram shows at the top of this page.	يظهر HushGram في أعلى هذه الصفحة.
 # context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
 The top of this page says %1$s.	أعلى هذه الصفحة يعرض %1$s.
+# context: Settings > Downloads > switch title, under Name saves by account and post time (#792)
+Date saves by when they were posted	تأريخ المحفوظات بوقت نشرها
+# context: Settings > Downloads > summary of Date saves by when they were posted (#792)
+Gives each saved photo and video the time its post went up, so your gallery sorts saves by the post instead of the day you saved them. A save that doesn't know when it was posted keeps the time it was saved.	يمنح كل صورة وفيديو محفوظ وقت نشر منشوره، ليُرتِّب معرض الصور لديك المحفوظات حسب المنشور بدلًا من اليوم الذي حفظتها فيه. المحفوظات التي لا يُعرف وقت نشرها تحتفظ بوقت حفظها.
+# context: Profiles > title of the switch that adds a Select all button beside Instagram's own Select on the grids in Your activity (#762); Your activity is Instagram's own page in the profile menu, use the name Instagram shows for it in this language
+Select all in Your activity	تحديد الكل في نشاطك
+# context: Profiles > summary of Select all in Your activity (#762). Select, Delete and Unlike are Instagram's own buttons on those grids; use the words Instagram shows there in this language
+Adds Select all beside Select on the photo and video grids in Your activity, like your posts, reels and likes. Tick one first and it shows. It only ticks them. Nothing goes until you press Delete or Unlike yourself.	يضيف تحديد الكل بجانب تحديد في شبكات الصور والفيديوهات في نشاطك، مثل منشوراتك ومقاطع Reels والإعجابات. يظهر بعد أن تحدد عنصرًا واحدًا. هو يحددها فقط، ولا يُحذف شيء حتى تضغط حذف أو إلغاء الإعجاب بنفسك.

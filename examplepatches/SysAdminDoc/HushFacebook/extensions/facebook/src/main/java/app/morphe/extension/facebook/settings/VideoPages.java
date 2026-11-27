@@ -337,6 +337,10 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SAVED_POSTS_IN_ROW,
                     L10n.t("A saved post in the row stays on screen instead of being skipped. Swipe up past its end "
                             + "for the next saved video, or down past its top for the one before.")));
+            // Asked as a reel opened from a Reels row in the feed ends or is swiped (#599).
+            reels.addPreference(toggle(context, Settings.FEED_REELS_ROW_IN_ORDER,
+                    L10n.t("A reel you open from a Reels row in your feed goes on to the next one in that row when it "
+                            + "ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.")));
             // Asked before each next video, so a change shows from the next one (#427).
             reels.addPreference(toggle(context, Settings.SKIP_STILL_WATCHING,
                     L10n.t("Reels and videos keep going to the next one without pausing to ask if you're still "
@@ -709,6 +713,10 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.PICTURE_IN_PICTURE_BUTTON,
                         L10n.t("Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open "
                                 + "the window right away. Works with Picture-in-picture on.")));
+                // Asked as each reel in the window ends, so a change counts from the next one.
+                playback.addPreference(toggle(context, Settings.NEXT_REEL_IN_WINDOW,
+                        L10n.t("When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window "
+                                + "instead of the same one again. Works with Picture-in-picture on.")));
             }
             if (build.contains(PatchFamily.BACKGROUND_PLAY)) {
                 // Asked on each stop of a Facebook screen, so a change counts from the next time you leave.
@@ -754,7 +762,7 @@ final class VideoPages {
             }
             if (build.contains(PatchFamily.VIDEO_DOWNLOAD) || build.contains(PatchFamily.PHOTO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.POST_MENU_DOWNLOAD_FIRST,
-                        L10n.t("Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.")));
+                        L10n.t("Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.")));
             }
             if (build.contains(PatchFamily.PHOTO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_PHOTOS,

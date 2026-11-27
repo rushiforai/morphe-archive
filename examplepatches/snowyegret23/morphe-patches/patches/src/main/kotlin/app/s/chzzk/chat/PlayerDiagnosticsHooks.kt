@@ -6,6 +6,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -20,7 +21,7 @@ private const val PARAMS = "${PRISM}player/PlaybackParams;"
 private const val STREAM_SOURCE = "${PRISM}player/MediaStreamSource;"
 private const val STREAM = "${PRISM}MediaStream;"
 private const val LOW_LATENCY = "${PRISM}player/LowLatencyLiveConfiguration;"
-private const val BASE_VIEW = "Lcom/navercorp/game/android/community/core/feature/feature/player/BasePlayerView;"
+private val BytecodePatchContext.BASE_VIEW get() = chzzkType("Lcom/navercorp/game/android/community/core/feature/feature/player/BasePlayerView;")
 
 internal fun BytecodePatchContext.addPlayerDiagnosticsHooks() {
     fun bridge(name: String, registers: Int, body: String) {
@@ -45,6 +46,12 @@ internal fun BytecodePatchContext.addPlayerDiagnosticsHooks() {
     }
 
     val player = classDefBy(NATIVE_PLAYER)
+    if (packageMetadata.versionName in setOf("3.18.0", "1.5.0")) {
+        bridge("isOverlayPlayer", 2, """
+            instance-of v0, p0, ${if (packageMetadata.versionName == "1.5.0") "Lvi1;" else "Lp06;"}
+            return v0
+        """)
+    }
     fun playerMethod(name: String, type: String) = player.methods.single {
         it.name == name && it.parameterTypes.isEmpty() && it.returnType == type
     }

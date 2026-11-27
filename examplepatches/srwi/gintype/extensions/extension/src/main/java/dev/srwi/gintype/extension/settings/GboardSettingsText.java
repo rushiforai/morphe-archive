@@ -1,0 +1,101 @@
+package dev.srwi.gintype.extension.settings;
+
+import android.content.Context;
+
+import java.util.Locale;
+
+public final class GboardSettingsText {
+    private static final String LANGUAGE_ENGLISH = "en";
+
+    private GboardSettingsText() {
+    }
+
+    public static String get(Context context, int resId) {
+        String stableText = resolveStableText(context, resId);
+        if (stableText != null) {
+            return stableText;
+        }
+        return requireContext(context).getString(resId);
+    }
+
+    public static String format(Context context, int resId, Object... args) {
+        String stableText = resolveStableText(context, resId, args);
+        if (stableText != null) {
+            return stableText;
+        }
+        return requireContext(context).getString(resId, args);
+    }
+
+    public static String quantity(Context context, int resId, int quantity) {
+        String stableQuantity = resolveStableQuantity(context, resId, quantity);
+        if (stableQuantity != null) {
+            return stableQuantity;
+        }
+        return requireContext(context).getResources().getQuantityString(resId, quantity, quantity);
+    }
+
+    /** The language the settings page shows its text in for {@code context}. */
+    public static String languageTag(Context context) {
+        return resolveLanguageTag(context);
+    }
+
+    /** The packaged, unformatted text of {@code resId} in {@code languageTag}; null if none. */
+    public static String getInLanguage(int resId, String languageTag) {
+        return GboardSettingsTextCatalog.template(resId, normalizeLanguageTag(languageTag));
+    }
+
+    static String resolveStableTextForTesting(int resId, String languageTag, Object... args) {
+        return resolveStableText(resId, normalizeLanguageTag(languageTag), args);
+    }
+
+    static String resolveStableQuantityForTesting(int resId, String languageTag, int quantity) {
+        return resolveStableQuantity(resId, normalizeLanguageTag(languageTag), quantity);
+    }
+
+    private static String resolveStableText(Context context, int resId, Object... args) {
+        return resolveStableText(resId, resolveLanguageTag(context), args);
+    }
+
+    private static String resolveStableText(int resId, String languageTag, Object... args) {
+        return formatTemplate(
+                languageTag,
+                GboardSettingsTextCatalog.template(resId, languageTag),
+                args);
+    }
+
+    private static String resolveStableQuantity(Context context, int resId, int quantity) {
+        return resolveStableQuantity(resId, resolveLanguageTag(context), quantity);
+    }
+
+    private static String resolveStableQuantity(int resId, String languageTag, int quantity) {
+        return formatTemplate(
+                languageTag,
+                GboardSettingsTextCatalog.quantityTemplate(resId, languageTag, quantity),
+                quantity);
+    }
+
+    private static String formatTemplate(String languageTag, String template, Object... args) {
+        if (template == null) {
+            return null;
+        }
+        if (args == null || args.length == 0) {
+            return template;
+        }
+        return String.format(Locale.US, template, args);
+    }
+
+    private static String resolveLanguageTag(Context context) {
+        return LANGUAGE_ENGLISH;
+    }
+
+    private static String normalizeLanguageTag(String languageTag) {
+        return LANGUAGE_ENGLISH;
+    }
+
+    private static Context requireContext(Context context) {
+        if (context == null) {
+            throw new IllegalStateException("Context required for Gboard settings text lookup.");
+        }
+        return context;
+    }
+}

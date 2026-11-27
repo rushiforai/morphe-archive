@@ -14,11 +14,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Renames communities to subreddits in Reddit's text and the filter's own when the Say subreddits switch is on, with
- * the Spanish words agreeing with comunidad turned masculine (la comunidad, el subreddit). The Say subreddits patch
- * sends the app's reads of its string resources through here; the switch takes effect when Reddit restarts.
- */
 @SuppressWarnings("unused")
 public final class Subreddits {
 
@@ -50,11 +45,9 @@ public final class Subreddits {
     private Subreddits() {
     }
 
-    /** Whether the switch is on, read once a run, since Reddit keeps text it already read. */
     static boolean on() {
         Boolean value = on;
         if (value != null) return value;
-        // Text read before the app or its settings exist stays Reddit's, and the switch is read again next time.
         if (!available() || available == null) return false;
         if (FilterSettings.preferences() == null) return false;
         value = getBoolean(SAY_SUBREDDITS);
@@ -62,7 +55,6 @@ public final class Subreddits {
         return value;
     }
 
-    /** Whether the Say subreddits patch was applied, which leaves a flag among the app's resources. */
     @SuppressLint({"PrivateApi", "DiscouragedApi"})
     static boolean available() {
         Boolean value = available;
@@ -79,37 +71,30 @@ public final class Subreddits {
         return value;
     }
 
-    /** Injection point: Resources.getString(int). */
     public static String getString(Resources resources, int id) {
         return rename(resources.getString(id));
     }
 
-    /** Injection point: Resources.getString(int, Object...). */
     public static String getString(Resources resources, int id, Object[] args) {
         return rename(resources.getString(id, args));
     }
 
-    /** Injection point: Resources.getText(int). */
     public static CharSequence getText(Resources resources, int id) {
         return renameText(resources.getText(id));
     }
 
-    /** Injection point: Resources.getQuantityString(int, int). */
     public static String getQuantityString(Resources resources, int id, int quantity) {
         return rename(resources.getQuantityString(id, quantity));
     }
 
-    /** Injection point: Resources.getQuantityString(int, int, Object...). */
     public static String getQuantityString(Resources resources, int id, int quantity, Object[] args) {
         return rename(resources.getQuantityString(id, quantity, args));
     }
 
-    /** Injection point: Resources.getQuantityText(int, int). */
     public static CharSequence getQuantityText(Resources resources, int id, int quantity) {
         return renameText(resources.getQuantityText(id, quantity));
     }
 
-    /** Injection point: Resources.getStringArray(int). */
     public static String[] getStringArray(Resources resources, int id) {
         String[] texts = resources.getStringArray(id);
         if (!on()) return texts;
@@ -117,22 +102,18 @@ public final class Subreddits {
         return texts;
     }
 
-    /** Injection point: Context.getString(int). */
     public static String getString(Context context, int id) {
         return rename(context.getString(id));
     }
 
-    /** Injection point: Context.getString(int, Object...). */
     public static String getString(Context context, int id, Object[] args) {
         return rename(context.getString(id, args));
     }
 
-    /** Injection point: Context.getText(int). */
     public static CharSequence getText(Context context, int id) {
         return renameText(context.getText(id));
     }
 
-    /** A styled text keeps its styles, and is renamed only when it has none. */
     private static CharSequence renameText(CharSequence text) {
         if (text == null || !on()) return text;
         if (text instanceof String) return rename((String) text);
@@ -142,7 +123,6 @@ public final class Subreddits {
         return renamed.equals(plain) ? text : renamed;
     }
 
-    /** Whether the text holds community or comunidad in any case, before the slower matching. */
     private static boolean mentions(String text) {
         return text.length() >= 9 && (text.contains("ommunit") || text.contains("OMMUNIT") || text.contains("omunidad")
                 || text.contains("OMUNIDAD"));
@@ -183,7 +163,6 @@ public final class Subreddits {
                     words.set(article, "");
                 }
             }
-            // The participles and adjectives after it, across linking verbs (es privada, está restringida).
             for (int k = i + 2; k < words.size() && words.get(k - 1).equals(" "); k += 2) {
                 String word = words.get(k).toLowerCase(Locale.ROOT);
                 String masculine = AFTER.get(word);

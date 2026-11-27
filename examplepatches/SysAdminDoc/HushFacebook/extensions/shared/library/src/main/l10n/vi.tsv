@@ -876,7 +876,7 @@ A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	N
 # context: switch title under Comments and writing; on, a tap on Like under a comment asks first
 Ask before liking a comment	Hỏi trước khi thích bình luận
 # context: summary of that switch
-A tap on Like under a comment asks first, and only Continue likes or unlikes it.	Nhấn nút Thích dưới bình luận sẽ hỏi trước, và chỉ Tiếp tục mới thích hoặc bỏ thích.
+A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only Continue goes ahead.	Nhấn nút Thích dưới bình luận, hoặc chọn cảm xúc khi nhấn giữ một bình luận, sẽ hỏi trước, và chỉ Tiếp tục mới thực hiện.
 # context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
 Like or unlike this post?	Thích hoặc bỏ thích bài viết này?
 # context: the same question for a reel
@@ -1858,6 +1858,10 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	Nút hình trong hình
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Hiện một nút nhỏ ở mép trái của reel hoặc video đã sẵn sàng cửa sổ. Chạm vào để mở cửa sổ ngay. Hoạt động khi bật Hình trong hình.
+# context: switch title under Picture-in-picture on the Playback page; on, when a reel ends in the small picture-in-picture window, the next reel plays there
+Next reel in the window	Reel tiếp theo trong cửa sổ
+# context: summary of that switch; "the window" is the small picture-in-picture window
+When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window instead of the same one again. Works with Picture-in-picture on.	Khi một reel trong cửa sổ hình trong hình kết thúc, reel tiếp theo từ Reels sẽ phát trong cửa sổ thay vì phát lại reel đó. Hoạt động khi bật Hình trong hình.
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Tiếp tục phát trong nền
 Next reel in the background	Reel tiếp theo trong nền
@@ -1985,8 +1989,8 @@ Hides the stacked reaction icons in the corner of a comment. The space stays, so
 Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	Ẩn con số bên cạnh các biểu tượng cảm xúc trên bình luận. Các biểu tượng vẫn còn, và chạm vào chúng vẫn mở danh sách biểu cảm.
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	Tải xuống lên đầu menu bài viết
-# context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
-Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.	Chuyển Tải về điện thoại và Lưu ảnh từ cuối menu ba chấm của bài viết lên đầu danh sách tùy chọn. Các hàng trên cùng của Facebook vẫn ở trên chúng (với bài viết có ảnh, danh sách là trang Tùy chọn khác). Bài viết không có gì để lưu sẽ không có mục nào.
+# context: summary of that switch; "Download to phone", "Save photo" and "Playback speed" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
+Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.	Chuyển Tải về điện thoại và Lưu ảnh từ Tùy chọn khác lên trang đầu của menu ba chấm của bài viết, phía trên Tốc độ phát. Bài viết không có gì để lưu sẽ không có mục nào.
 # context: row title under Menu; opens a list of the Menu's tiles to hide, such as Marketplace and Gaming
 Menu tiles to hide	Ô trong Menu cần ẩn
 # context: title of the list of Menu tiles to hide
@@ -2105,6 +2109,10 @@ A saved video that ends stays on screen instead of opening the next one. Swipe u
 Show saved posts in the row	Hiện bài viết đã lưu trong hàng
 # context: summary of that switch
 A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	Bài viết đã lưu trong hàng sẽ ở lại trên màn hình thay vì bị bỏ qua. Vuốt lên khi đã đến cuối bài để sang video đã lưu tiếp theo, hoặc vuốt xuống khi ở đầu bài để quay lại mục trước.
+# context: switch title under Reels and Watch; on, a reel opened from a Reels row in the news feed (the strip of reels you scroll sideways) goes on to the next reel in that row instead of a suggested reel
+Play the feed's Reels row in order	Phát lần lượt hàng thước phim trong Bảng feed
+# context: summary of that switch; the feed is Facebook's News Feed, so use Facebook's name for it in your language if you know it
+A reel you open from a Reels row in your feed goes on to the next one in that row when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	Thước phim bạn mở từ một hàng thước phim trong Bảng feed sẽ chuyển sang thước phim tiếp theo trong hàng đó khi kết thúc hoặc khi bạn vuốt lên, thay vì một thước phim được đề xuất. Vuốt xuống để quay lại thước phim trước.
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	Bỏ qua "Bạn vẫn đang xem chứ?"
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2146,6 +2154,9 @@ Hides the For you searches Facebook suggests when you open search. Your recent s
 Hide "People you may know" in search	Ẩn "Những người bạn có thể biết" trong tìm kiếm
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	Ẩn hàng Những người bạn có thể biết mà Facebook hiển thị khi bạn mở tìm kiếm. Các tìm kiếm gần đây và gợi ý khi bạn gõ vẫn giữ nguyên.
+# context: switch title under News feed; People you may know is the list of friend suggestions Facebook shows in its Friends tab below your friend requests, as in Hide "People you may know"
+Hide "People you may know" in the Friends tab	Ẩn "Những người bạn có thể biết" trong tab Bạn bè
+Hides the People you may know list in the Friends tab. Your friend requests stay.	Ẩn danh sách Những người bạn có thể biết trong tab Bạn bè. Lời mời kết bạn của bạn vẫn giữ nguyên.
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	Không lưu lịch sử tìm kiếm
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
@@ -2689,6 +2700,34 @@ Digits only, up to 10. Your own profile shows this number on this phone. Leave i
 Facebook's real number shows. Type digits to show your own.	Đang hiện số thật của Facebook. Nhập chữ số để hiện số của bạn.
 # context: summary of that row; %1$s is the number typed, already grouped for the language
 Your profile shows %1$s on this phone.	Hồ sơ của bạn hiện %1$s trên điện thoại này.
+# context: switch title under News feed; on, your own Facebook friends list is kept on this phone each time you scroll it to the end, so you can see who is no longer on it
+Keep track of your friends list	Theo dõi danh sách bạn bè của bạn
+# context: summary of that switch; Profile > Friends > All friends is the path to the list in Facebook, so use Facebook's own names for those screens in your language
+Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on this phone and tells you who's no longer on it since the time before. Someone who unfriended you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.	Mỗi lần bạn cuộn danh sách của chính mình trong Trang cá nhân > Bạn bè > Tất cả bạn bè đến cuối, một bản sao được lưu trên điện thoại này và bạn sẽ biết ai không còn trong đó kể từ lần trước. Người đã hủy kết bạn với bạn, người bạn đã hủy kết bạn và tài khoản đã đóng đều hiện giống nhau. Không có gì rời khỏi điện thoại của bạn.
+# context: row title and list title; the people who were on your Facebook friends list and aren't any more
+Friends no longer on your list	Bạn bè không còn trong danh sách của bạn
+# context: summary of that row
+People who were on your friends list one time you scrolled it to the end and weren't the next. Tap one to open their profile.	Những người có trong danh sách bạn bè của bạn vào một lần bạn cuộn đến cuối và không còn ở lần sau. Nhấn vào một người để mở trang cá nhân của họ.
+# context: toast the first time your friends list is kept; %1$d is how many friends are on it
+Hushfacebook kept a copy of your %1$d friends. Next time you scroll the list to its end, it tells you who's no longer on it.	Hushfacebook đã lưu bản sao %1$d người bạn của bạn. Lần tới khi bạn cuộn danh sách đến cuối, bạn sẽ biết ai không còn trong đó.
+# context: toast; %1$s is one person's name
+%1$s is no longer on your friends list.	%1$s không còn trong danh sách bạn bè của bạn.
+# context: toast; %1$s is two or three people's names separated by commas
+No longer on your friends list: %1$s.	Không còn trong danh sách bạn bè của bạn: %1$s.
+# context: toast; %1$s is three people's names separated by commas, %2$d how many other people
+No longer on your friends list: %1$s and %2$d more.	Không còn trong danh sách bạn bè của bạn: %1$s và %2$d người khác.
+# context: toast when tapping a person in that list doesn't open their profile
+Their profile can't open here.	Không mở được trang cá nhân của họ ở đây.
+# context: shown in place of a person's name when Facebook gave none
+Someone without a name	Một người không có tên
+# context: second line of a person in that list; %1$s is the date they were last seen on your list, %2$s the date they were first missing
+Gone between %1$s and %2$s	Rời đi trong khoảng %1$s đến %2$s
+# context: line above that list before your friends list was ever kept
+No copy of your friends list yet.	Chưa có bản sao danh sách bạn bè của bạn.
+# context: line above that list; %1$s is a date, %2$d how many friends were on the list then
+Your list was last read to its end on %1$s, with %2$d friends.	Danh sách của bạn được đọc đến cuối lần gần nhất vào %1$s, với %2$d người bạn.
+# context: shown while that list is empty; Keep track of your friends list is the switch's title
+Nobody yet. With Keep track of your friends list on, scroll Profile > Friends > All friends to its end now and then. Anyone who drops off between two of those reads shows up here.	Chưa có ai. Khi bật Theo dõi danh sách bạn bè của bạn, thỉnh thoảng hãy cuộn Trang cá nhân > Bạn bè > Tất cả bạn bè đến cuối. Ai biến mất giữa hai lần đọc đó sẽ hiện ở đây.
 # context: switch title under Stories; the stories row at the top of Home shown as round pictures
 Round stories tray	Thanh tin tròn
 # context: summary of that switch
@@ -2759,6 +2798,10 @@ Switches that are on	Công tắc đang bật
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	Mọi công tắc bạn đang bật, trong một danh sách. Tắt một công tắc ở đây thì nó tắt ở mọi nơi.
 No switches are on yet.	Chưa có công tắc nào được bật.
 Turned off lately	Mới tắt gần đây
+# context: one of three order choices above the Switches that are on list; lists the switches in the order the settings page has them (the other two are A to Z and Newest)
+Page order	Theo thứ tự trang
+# context: the second order choice there; lists the switches alphabetically by their titles
+A to Z	Từ A đến Z
 Emoji after the logo	Biểu tượng cảm xúc sau logo
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	Một biểu tượng cảm xúc nằm ngay sau logo Facebook ở đầu Trang chủ, giữ nguyên màu riêng của nó. Để trống nếu không muốn có.
 No emoji after the logo. Type one to show it there.	Chưa có biểu tượng cảm xúc sau logo. Nhập một biểu tượng để hiển thị ở đó.
@@ -2870,12 +2913,26 @@ Bar opacity	Độ mờ đục của thanh
 How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	Thanh trong suốt giữ lại bao nhiêu màu của nó, tính theo phần trăm, từ %1$s đến %2$s. Số nhỏ hơn cho thấy rõ hơn bảng tin và lớp làm mờ của nó. Để trống để dùng %3$s, hoặc %4$s trên lớp làm mờ.
 The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	Thanh giữ lại %1$s phần trăm màu của nó, hoặc %2$s phần trăm trên lớp làm mờ. Nhập một số để thay đổi.
 The see-through bars keep %1$s percent of their color.	Thanh trong suốt giữ lại %1$s phần trăm màu của nó.
+# context: row title under Appearance, right under Bar opacity; picks how strongly the see-through top bar and tab bar blur the feed behind them
+Blur strength	Độ mạnh của lớp làm mờ
+# context: message of that row's number box; %1$s is 0 (no blur), %2$s the most, %3$s the usual amount
+How much the see-through bars blur the feed behind them, in percent of the usual blur, from %1$s, no blur, to %2$s. Leave it blank for %3$s. The blur needs Android 12 or newer.	Thanh trong suốt làm mờ bảng tin phía sau nhiều đến đâu, tính theo phần trăm mức làm mờ thường, từ %1$s, không làm mờ, đến %2$s. Để trống để dùng %3$s. Lớp làm mờ cần Android 12 trở lên.
+# context: summary of that row while it's blank
+The see-through bars blur the feed behind them the usual amount. Type a number to change it.	Thanh trong suốt làm mờ bảng tin phía sau ở mức thường. Nhập một số để thay đổi.
+# context: summary of that row when it's 0
+The see-through bars show the feed behind them sharp, with no blur.	Thanh trong suốt cho thấy bảng tin phía sau rõ nét, không làm mờ.
+# context: summary of that row; %1$s is the number typed
+The see-through bars blur the feed behind them %1$s percent of the usual amount.	Thanh trong suốt làm mờ bảng tin phía sau %1$s phần trăm so với mức thường.
 Tab bar width	Chiều rộng thanh tab
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Phần trăm chiều rộng màn hình, từ %1$s đến %2$s. Các biểu tượng to lên và nhỏ đi theo nó. Để trống để dùng %3$s.
 The rounded tab bar is %1$s percent of the screen wide.	Thanh tab bo tròn rộng %1$s phần trăm màn hình.
 Tab bar height	Chiều cao thanh tab
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	Phần trăm chiều cao đầy đủ mà thanh tab bo tròn giữ lại, từ %1$s đến %2$s, được cắt bớt phía trên và phía dưới các biểu tượng. Trên 100 làm thanh cao hơn, chủ yếu về phía cuối màn hình. Để trống để dùng %3$s.
 The rounded tab bar keeps %1$s percent of its height.	Thanh tab bo tròn giữ lại %1$s phần trăm chiều cao.
+# context: switch title under Appearance, right under Tab bar height; gives the rounded tab bar a glass look
+Glass tab bar	Thanh tab kính
+# context: description of that switch; Rounded tab bar is the switch a few rows above it, the pill is that rounded tab bar, and the highlight is the faint pill behind the selected tab's icon
+With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the highlight behind the tab you're on slides over when you pick another tab.	Khi bật Thanh tab bo tròn, thanh có viền kính sáng và bóng đổ nhẹ, còn vệt sáng phía sau tab bạn đang mở sẽ trượt sang tab bạn chọn.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	Đánh dấu cài đặt mới
 # context: choice in that row; the dot goes once the page holding the setting is left
@@ -3197,7 +3254,23 @@ Hide hashtags in reel captions	Ẩn hashtag trong chú thích reel
 Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	Bỏ hashtag khỏi chú thích reel, như cụm thẻ ở cuối. Hashtag là một phần của câu thì vẫn giữ. Thay đổi hiện từ reel tiếp theo.
 Keep the keyboard closed when comments open	Giữ bàn phím đóng khi mở bình luận
 Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	Bình luận mở ra mà bàn phím không bật lên, kể cả ở bài viết chưa có bình luận nào. Chạm vào ô bình luận khi bạn muốn viết.
+Post text doesn't open comments	Chữ của bài viết không mở bình luận
+A tap on a post's text no longer opens its comments. The Comment button still does.	Chạm vào chữ của bài viết không còn mở bình luận nữa. Nút Bình luận vẫn mở như cũ.
 Settings language	Ngôn ngữ cài đặt
 Same as Facebook	Giống Facebook
 Show feed reels uncropped	Hiện reel trong bảng tin không bị cắt
 Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	Các reel trong bảng tin hiện toàn bộ khung hình theo đúng tỉ lệ của chúng, thay vì bị cắt cho vừa khung của Facebook. Các reel hiện ra sau khi thay đổi sẽ áp dụng.
+Remix this reel	Remix thước phim này
+Hold the profile tab for Activity log	Giữ tab trang cá nhân để mở Nhật ký hoạt động
+Press and hold the profile tab to open your Activity log instead of switching accounts. On accounts with a Menu tab in its place, that tab does it. You can still switch accounts from the Menu.	Giữ tab trang cá nhân để mở Nhật ký hoạt động thay vì chuyển tài khoản. Với tài khoản có tab Menu ở vị trí đó, tab này sẽ làm việc đó. Bạn vẫn có thể chuyển tài khoản từ Menu.
+React to this comment?	Bày tỏ cảm xúc về bình luận này?
+Hide reactions on a held comment	Ẩn cảm xúc khi nhấn giữ bình luận
+Hide Reply on a held comment	Ẩn Trả lời khi nhấn giữ bình luận
+Hide Copy on a held comment	Ẩn Sao chép khi nhấn giữ bình luận
+Hide Report on a held comment	Ẩn Báo cáo khi nhấn giữ bình luận
+Hide the Hide comment option	Ẩn tùy chọn Ẩn bình luận
+Holding a comment no longer shows the row of reactions above it. Like under the comment still works.	Nhấn giữ bình luận sẽ không còn hiện hàng cảm xúc phía trên. Thích dưới bình luận vẫn hoạt động.
+Holding a comment no longer offers Reply. The Reply under the comment stays.	Nhấn giữ bình luận sẽ không còn có Trả lời. Trả lời dưới bình luận vẫn giữ nguyên.
+Holding a comment no longer offers Copy.	Nhấn giữ bình luận sẽ không còn có Sao chép.
+Holding a comment no longer offers Report comment or Report to group admins.	Nhấn giữ bình luận sẽ không còn có Báo cáo bình luận hay Báo cáo với quản trị viên nhóm.
+Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.	Nhấn giữ bình luận sẽ không còn có Ẩn bình luận. Một bình luận không còn gì để chọn thì nhấn giữ sẽ không làm gì cả.

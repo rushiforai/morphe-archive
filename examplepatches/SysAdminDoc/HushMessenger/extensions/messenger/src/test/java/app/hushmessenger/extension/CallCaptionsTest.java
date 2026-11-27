@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -113,6 +114,18 @@ public class CallCaptionsTest {
 
         @Override public void download(Context context, String language) {
             downloaded = language;
+        }
+
+        /** What the recognizer says about a language settings asks about, at once unless [answersLater]. */
+        int hears = CallCaptions.HEARS;
+        boolean answersLater;
+        String triedFor;
+        IntConsumer waiting;
+
+        @Override public void tryHearing(Context context, String language, IntConsumer answer) {
+            triedFor = language;
+            if (answersLater) waiting = answer;
+            else answer.accept(hears);
         }
     }
 
@@ -460,6 +473,99 @@ public class CallCaptionsTest {
             idle();
             assertEquals("fil", Settings.preferences.getString(CallCaptions.SHOWN_LANGUAGE, null));
             assertNull("nothing to download for a language captions are shown in", phone.downloaded);
+        }
+    }
+
+    /** Opens the heard sheet, then every other language, and picks [language] there. */
+    private static Dialog pickFromEveryLanguage(View root, String language) {
+        root.findViewWithTag("call_captions_heard").performClick();
+        idle();
+        Dialog sheet = ShadowDialog.getLatestDialog();
+        sheet.getWindow().getDecorView().findViewWithTag("call_captions_language_other").performClick();
+        idle();
+        sheet.getWindow().getDecorView().findViewWithTag("call_captions_language_" + language).performClick();
+        idle();
+        return sheet;
+    }
+
+    /** #244: Filipino, picked from every language, was only turned down by the S26 Ultra's recognizer once a call began. */
+    @Test public void aLanguageThePhoneTurnsDownIsntSavedAndTheSheetSaysSo() {
+        on(CallCaptions.KEY);
+        choose(CallCaptions.HEARD_LANGUAGE, "es-ES");
+        phone.hears = CallCaptions.HEARS_NEVER;
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = page.get().getWindow().getDecorView();
+            Dialog sheet = pickFromEveryLanguage(root, "fil");
+
+            assertEquals("fil", phone.triedFor);
+            assertTrue("The sheet stays open", sheet.isShowing());
+            View body = sheet.getWindow().getDecorView();
+            TextView why = body.findViewWithTag("call_captions_cant_hear");
+            assertNotNull("and says why", why);
+            assertEquals(new SettingsText(page.get()).get("call_captions_cant_hear", CallCaptions.name("fil")), why.getText().toString());
+            assertNotNull("with the languages to pick from under it", body.findViewWithTag("call_captions_language_fil"));
+            assertEquals("What was saved stays", "es-ES", Settings.preferences.getString(CallCaptions.HEARD_LANGUAGE, null));
+            assertNull("and nothing is fetched", phone.downloaded);
+            assertEquals(new SettingsText(page.get()).get("call_captions_heard", CallCaptions.name("es-ES")),
+                ((Button) root.findViewWithTag("call_captions_heard")).getText().toString());
+
+            phone.hears = CallCaptions.HEARS;
+            body.findViewWithTag("call_captions_language_de").performClick();
+            idle();
+            assertEquals("Another pick from the same list still saves", "de", Settings.preferences.getString(CallCaptions.HEARD_LANGUAGE, null));
+            assertFalse(sheet.isShowing());
+        }
+    }
+
+    @Test public void aLanguageIsSavedOnlyOnceThePhoneTakesIt() {
+        on(CallCaptions.KEY);
+        phone.answersLater = true;
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Dialog sheet = pickFromEveryLanguage(page.get().getWindow().getDecorView(), "fil");
+            TextView asking = sheet.getWindow().getDecorView().findViewWithTag("call_captions_checking");
+            assertEquals(new SettingsText(page.get()).get("call_captions_checking", CallCaptions.name("fil")), asking.getText().toString());
+            assertNull("Nothing saved while the phone is asked", Settings.preferences.getString(CallCaptions.HEARD_LANGUAGE, null));
+            assertNull(phone.downloaded);
+
+            phone.waiting.accept(CallCaptions.HEARS);
+            idle();
+            assertEquals("fil", Settings.preferences.getString(CallCaptions.HEARD_LANGUAGE, null));
+            assertEquals("and its model is fetched", "fil", phone.downloaded);
+            assertFalse(sheet.isShowing());
+        }
+    }
+
+    @Test public void thePhonesLanguageIsAskedAboutOnlyWhenTheRecognizerDoesntHaveIt() {
+        String phoneLanguage = java.util.Locale.getDefault().toLanguageTag();
+        on(CallCaptions.KEY);
+        choose(CallCaptions.HEARD_LANGUAGE, "es-ES");
+        phone.installed = Arrays.asList(phoneLanguage, "es-ES");
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = page.get().getWindow().getDecorView();
+            root.findViewWithTag("call_captions_heard").performClick();
+            idle();
+            ShadowDialog.getLatestDialog().getWindow().getDecorView().findViewWithTag("call_captions_language_phone").performClick();
+            idle();
+            assertNull("The recognizer already has it", phone.triedFor);
+            assertEquals("", Settings.preferences.getString(CallCaptions.HEARD_LANGUAGE, null));
+        }
+
+        choose(CallCaptions.HEARD_LANGUAGE, "es-ES");
+        phone.installed = Collections.singletonList("es-ES");
+        phone.more = Collections.emptyList();
+        phone.hears = CallCaptions.HEARS_NEVER;
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = page.get().getWindow().getDecorView();
+            root.findViewWithTag("call_captions_heard").performClick();
+            idle();
+            Dialog sheet = ShadowDialog.getLatestDialog();
+            sheet.getWindow().getDecorView().findViewWithTag("call_captions_language_phone").performClick();
+            idle();
+            assertEquals("The phone's own language goes past the recognizer too", phoneLanguage, phone.triedFor);
+            assertTrue(sheet.isShowing());
+            assertNotNull(sheet.getWindow().getDecorView().findViewWithTag("call_captions_cant_hear"));
+            assertNotNull("The phone's choices come back", sheet.getWindow().getDecorView().findViewWithTag("call_captions_heard_choices"));
+            assertEquals("es-ES", Settings.preferences.getString(CallCaptions.HEARD_LANGUAGE, null));
         }
     }
 

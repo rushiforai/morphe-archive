@@ -23,8 +23,11 @@ import app.fakh.patches.linkedin.shared.Constants.HIDE_REPOSTS
 import app.fakh.patches.linkedin.shared.Constants.HIDE_SUGGESTED
 import app.fakh.patches.linkedin.shared.Constants.HIDE_TRANSLATION
 import app.fakh.patches.linkedin.shared.Constants.HIDE_VIDEO_POSTS
+import app.fakh.patches.linkedin.shared.Constants.MUTED_AUTHORS_LIST
+import app.fakh.patches.linkedin.shared.Constants.MUTED_WORDS_LIST
 import app.fakh.patches.linkedin.shared.Constants.NEWEST_COMMENTS
 import app.fakh.patches.linkedin.shared.sduiComponentFilterPatch
+import app.fakh.patches.shared.Feature
 import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -44,7 +47,7 @@ val hideSuggestedPostsPatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feed")
+    category("Ads & promotions")
     dependsOn(sduiComponentFilterPatch)
     execute { register(HIDE_SUGGESTED) }
 }
@@ -56,7 +59,7 @@ val hidePromotedJobsPatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Ads")
+    category("Ads & promotions")
     dependsOn(sduiComponentFilterPatch)
     execute { register(HIDE_PROMOTED_JOBS) }
 }
@@ -64,27 +67,143 @@ val hidePromotedJobsPatch = patch(
 @Suppress("unused")
 val expandPostsPatch = patch(
     name = "Expand posts",
-    description = "Adds an option in Fakh Patches (off by default) to show posts expanded by default. Tapping the text collapses them.",
+    description = "Shows posts expanded by default. Tapping the text collapses them.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feed")
+    category("Posts")
     dependsOn(sduiComponentFilterPatch)
     execute { register(EXPAND_POSTS) }
 }
 
+/** A patch that adds one switch of the SDUI filter to the Fakh Patches page [category]. */
+private fun filterSwitchPatch(name: String, description: String, category: String, feature: Feature) =
+    patch(name = name, description = description, default = true) {
+        compatibleWith(COMPATIBILITY_LINKEDIN)
+        category(category)
+        dependsOn(sduiComponentFilterPatch)
+        execute { register(feature) }
+    }
+
 @Suppress("unused")
-val feedFiltersPatch = patch(
-    name = "Feed filters",
-    description = "Adds feed filters to Fakh Patches, such as muted words, celebrations, job posts and video posts. " +
-        "All off by default.",
-    default = true
-) {
-    compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feed")
-    dependsOn(sduiComponentFilterPatch)
-    execute { register(FOCUS_MODE, HIDE_CELEBRATIONS, HIDE_FEED_JOBS, HIDE_REPOSTS, HIDE_VIDEO_POSTS, HIDE_RECOMMENDATIONS, HIDE_GAMES, HIDE_NEW_POSTS_PILL, HIDE_TRANSLATION, HIDE_POST_FOLLOW, HIDE_DEGREE, EXACT_POST_TIME, NEWEST_COMMENTS) }
-}
+val mutedWordsPatch = filterSwitchPatch(
+    "Muted words",
+    "Hides posts with the words or phrases you list.",
+    "Feed",
+    MUTED_WORDS_LIST,
+)
+
+@Suppress("unused")
+val mutedAuthorsPatch = filterSwitchPatch(
+    "Muted authors",
+    "Hides posts by the people and pages you list.",
+    "Feed",
+    MUTED_AUTHORS_LIST,
+)
+
+@Suppress("unused")
+val hideCelebrationsPatch = filterSwitchPatch(
+    "Hide celebration posts",
+    "Hides work anniversaries and new jobs from the feed.",
+    "Feed",
+    HIDE_CELEBRATIONS,
+)
+
+@Suppress("unused")
+val hideFeedJobsPatch = filterSwitchPatch(
+    "Hide job posts",
+    "Hides job cards from the feed.",
+    "Feed",
+    HIDE_FEED_JOBS,
+)
+
+@Suppress("unused")
+val hideRepostsPatch = filterSwitchPatch(
+    "Hide network activity",
+    "Hides the likes, comments and reposts of people you know from the feed.",
+    "Feed",
+    HIDE_REPOSTS,
+)
+
+@Suppress("unused")
+val hideVideoPostsPatch = filterSwitchPatch(
+    "Hide video posts",
+    "Hides video posts from the feed.",
+    "Feed",
+    HIDE_VIDEO_POSTS,
+)
+
+@Suppress("unused")
+val hideRecommendationsPatch = filterSwitchPatch(
+    "Hide \"Recommended for you\"",
+    "Hides the lists of people and pages to follow from the feed.",
+    "Feed",
+    HIDE_RECOMMENDATIONS,
+)
+
+@Suppress("unused")
+val hideGamesPatch = filterSwitchPatch(
+    "Hide puzzle games",
+    "Hides the puzzle games from the feed.",
+    "Feed",
+    HIDE_GAMES,
+)
+
+@Suppress("unused")
+val hideNewPostsPillPatch = filterSwitchPatch(
+    "Hide the \"New posts\" button",
+    "Hides the \"New posts\" button above the feed.",
+    "Feed",
+    HIDE_NEW_POSTS_PILL,
+)
+
+@Suppress("unused")
+val hideTranslationPatch = filterSwitchPatch(
+    "Hide \"Show translation\"",
+    "Hides \"Show translation\" under posts and comments.",
+    "Posts",
+    HIDE_TRANSLATION,
+)
+
+@Suppress("unused")
+val hideEngagementCountsPatch = filterSwitchPatch(
+    "Hide engagement counts",
+    "Hides the like, comment and repost counts of posts.",
+    "Posts",
+    FOCUS_MODE,
+)
+
+@Suppress("unused")
+val hidePostFollowPatch = filterSwitchPatch(
+    "Hide Follow and Connect",
+    "Hides the Follow and Connect buttons on posts and comments.",
+    "Posts",
+    HIDE_POST_FOLLOW,
+)
+
+@Suppress("unused")
+val hideDegreePatch = filterSwitchPatch(
+    "Hide connection degree",
+    "Hides the 1st, 2nd and 3rd next to names.",
+    "Posts",
+    HIDE_DEGREE,
+)
+
+@Suppress("unused")
+val exactPostTimePatch = filterSwitchPatch(
+    "Show exact post time",
+    "Shows the date and time of a post instead of 3d or 5h.",
+    "Posts",
+    EXACT_POST_TIME,
+)
+
+@Suppress("unused")
+val newestCommentsPatch = filterSwitchPatch(
+    "Most recent comments first",
+    "Opens comments sorted by Most recent.",
+    "Posts",
+    NEWEST_COMMENTS,
+)
 
 /**
  * The HomeNavPanelFeature lambda that reads HomeNavPanelAggregateResponse.upsellSlotContent and builds the
@@ -109,7 +228,7 @@ val hidePremiumUpsellsPatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Ads")
+    category("Ads & promotions")
     dependsOn(sduiComponentFilterPatch)
     execute {
         register(HIDE_PREMIUM)

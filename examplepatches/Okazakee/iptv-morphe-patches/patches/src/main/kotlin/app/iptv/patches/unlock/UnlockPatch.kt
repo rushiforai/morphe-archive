@@ -39,7 +39,18 @@ val unlockProPatch = bytecodePatch(
                 """.trimIndent())
             } catch (_: Exception) {}
         } else {
-            RemoteConfigBooleanReaderFingerprint.method.addInstructions(0, """
+            // 2.7.24-2.7.26: Ls43;. 2.7.27: Lj53;. 2.7.28+: Lk53; — identical
+            // method shape, class name changes with each obfuscation map.
+            val reader = try {
+                RemoteConfigBooleanReaderFingerprint.method
+            } catch (_: Exception) {
+                try {
+                    RemoteConfigBooleanReader2728Fingerprint.method
+                } catch (_: Exception) {
+                    RemoteConfigBooleanReader2727Fingerprint.method
+                }
+            }
+            reader.addInstructions(0, """
                 const-string v0, "subscription_needed"
                 invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
                 move-result v0
@@ -65,6 +76,18 @@ val unlockProPatch = bytecodePatch(
         } catch (_: Exception) {}
         try {
             ProEntitlement2724Fingerprint.method.addInstructions(0, """
+                sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                return-object v0
+            """.trimIndent())
+        } catch (_: Exception) {}
+        try {
+            ProEntitlement2728Fingerprint.method.addInstructions(0, """
+                sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                return-object v0
+            """.trimIndent())
+        } catch (_: Exception) {}
+        try {
+            ProEntitlement2727Fingerprint.method.addInstructions(0, """
                 sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
                 return-object v0
             """.trimIndent())

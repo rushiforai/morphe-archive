@@ -2,6 +2,7 @@ package app.template.patches.notesnook.fontswap
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
+import app.template.patches.shared.loadAdapter
 import java.security.MessageDigest
 import java.util.Properties
 import java.util.logging.Logger
@@ -31,7 +32,8 @@ internal val notesnookAppearanceMenuPatch = resourcePatch {
     execute {
         val target = get("assets/index.android.bundle")
         if (!target.isFile) throw PatchException("Notesnook JS bundle not found")
-        val hash = sha256(target.readBytes())
+        val original = target.readBytes()
+        val hash = sha256(original)
         val known = adapters()
         val adapter = known.singleOrNull { it.getProperty("originalSha256") == hash }
         if (adapter == null) {
@@ -41,9 +43,6 @@ internal val notesnookAppearanceMenuPatch = resourcePatch {
             )
             return@execute
         }
-        val name = "notesnook/adapters/${adapter.getProperty("version")}.bundle"
-        val bytes = resource(name)?.use { it.readBytes() } ?: throw PatchException("Missing adapter $name")
-        if (sha256(bytes) != adapter.getProperty("patchedSha256")) throw PatchException("Adapter checksum mismatch: $name")
-        target.writeBytes(bytes)
+        target.writeBytes(loadAdapter("notesnook/adapters", adapter.getProperty("version"), adapter, original))
     }
 }

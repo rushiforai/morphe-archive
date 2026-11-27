@@ -1,8 +1,10 @@
 package app.nogoogle.gboard.patches
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -28,8 +30,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.util.ReferenceUtil
 import org.w3c.dom.Element
 
 private const val EXT = "Lapp/nogoogle/gboard"
@@ -43,6 +47,8 @@ private const val PORTED = "$EXT/extras/PortedFeatures;"
 private const val GIF_BRIDGE = "$EXT/gif/GifBridge;"
 private const val KEYBOARD_PICKER = "$EXT/KeyboardPicker;"
 private const val DICTIONARIES = "$EXT/Dictionaries;"
+private const val CLIPBOARD = "$EXT/ClipboardHistory;"
+private const val BOTTOM_ROW = "$EXT/BottomRow;"
 private const val GIF_EXTENSION_INTERFACE =
     "Lcom/google/android/apps/inputmethod/libs/expression/extension/IGifKeyboardExtension;"
 private const val GIF_SEARCH_KEYBOARD = "Lcom/google/android/apps/inputmethod/libs/search/gif/GifSearchKeyboard;"
@@ -77,12 +83,44 @@ private fun BytecodePatchContext.single(what: String, predicate: (ClassDef, Meth
     return mutable(found.single())
 }
 
+/** Inserts [smali] before the instruction at [index] so that branches to that instruction run it too. */
+private fun MutableMethod.addInstructionsAtLabel(index: Int, smali: String) {
+    // addInstructions leaves the labels on the instruction: a copy of it goes after the new code, and
+    // removing the original moves its labels to the new code.
+    addInstruction(index + 1, getInstruction(index))
+    addInstructions(index + 1, smali)
+    removeInstruction(index)
+}
+
+/** Android 12L, the oldest version the extension is built and tested for. */
+private const val MIN_SDK = 32
+
+/** Gboard 18.5 says it runs on Android 8 and up: the patched keyboard installs from 12L up only. */
+private val minimumAndroidPatch = resourcePatch {
+    execute {
+        document("AndroidManifest.xml").use { doc ->
+            val usesSdk = doc.getElementsByTagName("uses-sdk").item(0) as? Element
+                ?: throw PatchException("uses-sdk not found in the manifest")
+            val plain = usesSdk.getAttributeNode("android:minSdkVersion")
+            val namespaced = usesSdk.getAttributeNodeNS(ANDROID_NS, "minSdkVersion")
+            val current = (plain ?: namespaced)?.value?.toIntOrNull() ?: 0
+            if (current >= MIN_SDK) return@use
+            when {
+                plain != null -> plain.value = "$MIN_SDK"
+                namespaced != null -> namespaced.value = "$MIN_SDK"
+                else -> usesSdk.setAttributeNS(ANDROID_NS, "android:minSdkVersion", "$MIN_SDK")
+            }
+        }
+    }
+}
+
 /**
  * All runtime code (blocker, mod menu, voice, translate) lives in one extension. Every patch depends on
  * it, so it also carries what every build needs: the app icon walks through turning the keyboard on and
  * choosing it (KeyboardPicker).
  */
 internal val extensionPatch = bytecodePatch {
+    dependsOn(minimumAndroidPatch)
     extendWith("extensions/nogoogle.mpe")
 
     execute {
@@ -222,7 +260,9 @@ val offlineVoicePatch = bytecodePatch(
         "Whisper (whisper.cpp) in the keyboard's current language. Phrases are transcribed while " +
         "you talk and typed when you tap Done; ACFT models only encode the recorded audio, so they " +
         "are several times faster. Models are downloaded in No-Google settings (through the " +
-        "network helper app) or copied into the app's models folder.",
+        "network helper app) or copied into the app's models folder. No-Google settings can instead " +
+        "hand the mic to Google voice typing (Speech Services by Google, offline), as stock Gboard does " +
+        "when the phone is offline, or to the FUTO Voice Input app (installed separately).",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -414,7 +454,8 @@ val runtimeTogglesPatch = bytecodePatch(
         }
         // Gboard's clipboard (ClipboardDataHandler.onPrimaryClipChanged) drops copied text while the field is
         // incognito: its static incognito check, then return-void. Incognito.clipboardBlocked keeps the text
-        // for fields that are incognito only because of "Always use incognito mode".
+        // for fields that are incognito only because of "Always use incognito mode". Another bundle's patch
+        // (GboardWu's clipboard) may have taken that check out already; the text is kept then anyway.
         val clipChanged = single("clipboard listener") { cd, m ->
             "Landroid/content/ClipboardManager\$OnPrimaryClipChangedListener;" in cd.interfaces &&
                 m.name == "onPrimaryClipChanged" && m.params().isEmpty() && "clipboard_primary_uri" in m.strings()
@@ -425,12 +466,16 @@ val runtimeTogglesPatch = bytecodePatch(
                 it.returnType == "Z" && it.parameterTypes.isEmpty()
             } && clipIns.getOrNull(i + 1)?.opcode == Opcode.MOVE_RESULT && clipIns.getOrNull(i + 2)?.opcode == Opcode.IF_EQZ &&
                 clipIns.getOrNull(i + 3)?.opcode == Opcode.RETURN_VOID
-        } ?: throw PatchException("clipboard listener: incognito check not found")
-        val incognito = (clipIns[incognitoCheck + 1] as OneRegisterInstruction).registerA
-        clipChanged.addInstructions(incognitoCheck + 2, """
-            invoke-static/range {v$incognito .. v$incognito}, $INCOGNITO->clipboardBlocked(Z)Z
-            move-result v$incognito
-        """)
+        }
+        if (incognitoCheck == null) {
+            println("Runtime feature toggles: the clipboard has no incognito check left, nothing to keep")
+        } else {
+            val incognito = (clipIns[incognitoCheck + 1] as OneRegisterInstruction).registerA
+            clipChanged.addInstructions(incognitoCheck + 2, """
+                invoke-static/range {v$incognito .. v$incognito}, $INCOGNITO->clipboardBlocked(Z)Z
+                move-result v$incognito
+            """)
+        }
         // The flag hook is shared with the Gboard-patches features: the online rules come with this patch.
         mutableClassDefBy(FLAGS).methods.single { it.name == "<clinit>" }.addInstructions(0, """
             const/4 v0, 0x1
@@ -510,7 +555,7 @@ val keyboardLtrPatch = bytecodePatch(
                 ?.takeIf { it.returnType == "I" && it.parameterTypes.isEmpty() }
         }.singleOrNull() ?: throw PatchException("keyboard direction getter not found")
         // 2. The language's own direction (LanguageTag.a in 18.2.4, the getter its isRtl compares with
-        //    1), where LatinIMEBase lays out the keyboard's holder views (toolbar) and
+        //    1), where LatinIMEBase (the class LatinIME extends) lays out the keyboard's holder views (toolbar) and
         //    PopupViewContainer its popups.
         val languageTag = classWithString("LanguageTag.java")
         val languageDirection = languageTag.methods.mapNotNull { m ->
@@ -550,7 +595,9 @@ val keyboardLtrPatch = bytecodePatch(
             return wrapped
         }
         if (wrapCalls(viewDirection) { true } == 0) throw PatchException("keyboard direction: no readers")
-        val holders = classWithString("LatinIMEBase.java").type
+        // LatinIMEBase lost its source name in 18.5; LatinIME keeps its name (the manifest's service).
+        val holders = classDefBy("Lcom/android/inputmethod/latin/LatinIME;").superclass
+            ?: throw PatchException("LatinIME has no superclass")
         val popups = classWithString("PopupViewContainer.java").type
         if (wrapCalls(languageDirection) { it.type == holders || it.type == popups } != 2) {
             throw PatchException("language direction: expected the holder views and the popups")
@@ -967,6 +1014,190 @@ val dictionaryDownloadsPatch = bytecodePatch(
         }.singleOrNull() ?: throw PatchException("onStartInputView not found")
         mutable(startInputView).addInstructions(0,
             "invoke-static/range {p0 .. p0}, $DICTIONARIES->keyboardShown(Landroid/inputmethodservice/InputMethodService;)V")
+    }
+}
+
+@Suppress("unused")
+val clipboardHistoryPatch = bytecodePatch(
+    name = "Clipboard history",
+    description = "Lets the No-Google settings keep clipboard items longer than Gboard's 1 hour, up to " +
+        "forever, and show more than its 5 latest copies. Set in No-Google settings → Clipboard.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(extensionPatch)
+
+    execute {
+        val clipboard = mutableClassDefBy(CLIPBOARD)
+        clipboard.methods.single { it.name == "patched" }.replaceInstruction(0, "const/4 v0, 0x1")
+
+        // ClipboardContentProviderUtils' time limit for unpinned items (1 hour): the chosen one comes first.
+        val limit = single("clipboard time limit") { _, m ->
+            m.returnType == "J" && m.params() == listOf("Landroid/content/Context;") &&
+                "getUnpinnedItemTimeLimitInMilliSeconds" in m.strings()
+        }
+        if (limit.implementation!!.registerCount < 5) throw PatchException("clipboard time limit: no free registers")
+        limit.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static {}, $CLIPBOARD->keepMillis()J
+                move-result-wide v0
+                const-wide/16 v2, 0x0
+                cmp-long v2, v0, v2
+                if-lez v2, :stock
+                return-wide v0
+            """,
+            ExternalLabel("stock", limit.getInstruction(0)),
+        )
+
+        // The loader of the items shown reads the time Gboard saved, from which it hides older unpinned
+        // items: store(context).getLong(id, 0). ClipboardHistory.hiddenBefore gets the same read.
+        val loader = single("clipboard loader") { _, m -> "(%s & %d) = 0 AND (%s & %d) = 0 AND %s >= ?" in m.strings() }
+        val li = loader.implementation!!.instructions.toList()
+        val read = li.indexOfFirst { ins ->
+            ins.opcode == Opcode.INVOKE_VIRTUAL && ((ins as ReferenceInstruction).reference as MethodReference).let {
+                it.returnType == "J" && it.parameterTypes.map { t -> t.toString() } == listOf("I", "J")
+            }
+        }
+        val shape = listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.CONST, Opcode.CONST_WIDE_16)
+        if (read < 4 || shape.indices.any { li[read - 4 + it].opcode != shape[it] }) {
+            throw PatchException("clipboard loader: read of the saved time not found")
+        }
+        val call = li[read] as FiveRegisterInstruction
+        if (call.registerC != (li[read - 3] as OneRegisterInstruction).registerA ||
+            call.registerD != (li[read - 2] as OneRegisterInstruction).registerA
+        ) throw PatchException("clipboard loader: unexpected read of the saved time")
+        val store = (li[read - 4] as ReferenceInstruction).reference as MethodReference
+        if (store.parameterTypes.map { it.toString() } != listOf("Landroid/content/Context;")) {
+            throw PatchException("clipboard loader: unexpected preference store")
+        }
+        val id = (li[read - 2] as NarrowLiteralInstruction).narrowLiteral
+        val getLong = (li[read] as ReferenceInstruction).reference as MethodReference
+        val stub = clipboard.methods.single { it.name == "hiddenBefore" }
+        val hiddenBefore = ImmutableMethod(
+            CLIPBOARD, stub.name, listOf(ImmutableMethodParameter("Landroid/content/Context;", null, null)),
+            "J", stub.accessFlags, null, null, MutableMethodImplementation(5),
+        ).toMutable()
+        hiddenBefore.addInstructions(0, """
+            invoke-static {p0}, ${ReferenceUtil.getMethodDescriptor(store)}
+            move-result-object v0
+            const v1, $id
+            const-wide/16 v2, 0x0
+            invoke-virtual {v0, v1, v2, v3}, ${ReferenceUtil.getMethodDescriptor(getLong)}
+            move-result-wide v0
+            return-wide v0
+        """)
+        clipboard.methods.remove(stub)
+        clipboard.methods.add(hiddenBefore)
+
+        // It takes the recent copies (items copied together count once) until their number reaches 5:
+        // const/4 vN, 0x5, then if-ge copies, vN in its loop. Items of the same copy jump to that check.
+        val five = li.indexOfFirst { it.opcode == Opcode.CONST_4 && (it as NarrowLiteralInstruction).narrowLiteral == 5 }
+        if (five < 0) throw PatchException("clipboard loader: number of recent copies not found")
+        val copies = (li[five] as OneRegisterInstruction).registerA
+        val check = (five + 1 until li.size).singleOrNull { i ->
+            li[i].opcode == Opcode.IF_GE && (li[i] as TwoRegisterInstruction).registerB == copies
+        } ?: throw PatchException("clipboard loader: recent copies check not found")
+        loader.addInstructionsAtLabel(check, """
+            invoke-static/range {v$copies .. v$copies}, $CLIPBOARD->recentCopies(I)I
+            move-result v$copies
+        """)
+
+        // Two more loops stop when the number of copies goes over 5: const/4 vN, 0x5, then if-gt copies, vN.
+        fun overFive(m: Method) = m.implementation!!.instructions.toList().let { ins ->
+            (0 until ins.size - 1).singleOrNull { i ->
+                ins[i].opcode == Opcode.CONST_4 && (ins[i] as NarrowLiteralInstruction).narrowLiteral == 5 &&
+                    ins[i + 1].opcode == Opcode.IF_GT &&
+                    (ins[i + 1] as TwoRegisterInstruction).registerB == (ins[i] as OneRegisterInstruction).registerA
+            }
+        }
+        fun MutableMethod.useRecentCopies(five: Int) {
+            val n = (getInstruction(five) as OneRegisterInstruction).registerA
+            addInstructionsAtLabel(five + 1, """
+                invoke-static/range {v$n .. v$n}, $CLIPBOARD->recentCopies(I)I
+                move-result v$n
+            """)
+        }
+
+        // After a change (pinning an item, for one) Gboard reloads the items with its own copy of that loop.
+        val reloader = single("clipboard reloader") { _, m ->
+            m.strings().let { "((%s | ?) - (%s & ?)) & ? = 0" in it && "timestamp DESC limit %d" in it }
+        }
+        reloader.useRecentCopies(
+            overFive(reloader) ?: throw PatchException("clipboard reloader: number of recent copies not found"),
+        )
+
+        // The clipboard's list then cuts the recent items after the 5th copy, right before Gboard saves the
+        // time of the oldest one it shows: a method with no parameters that counts the copies in a HashSet,
+        // keeps at most 100 items in all (rsub-int/lit8 100) and removes the rest with List.remove(int).
+        val trim = single("clipboard list trim") { _, m ->
+            m.returnType == "V" && m.parameterTypes.isEmpty() && m.implementation != null &&
+                m.implementation!!.instructions.let { ins ->
+                    ins.any { it.opcode == Opcode.RSUB_INT_LIT8 && (it as NarrowLiteralInstruction).narrowLiteral == 100 } &&
+                        ins.any {
+                            it.opcode == Opcode.NEW_INSTANCE &&
+                                ((it as ReferenceInstruction).reference as TypeReference).type == "Ljava/util/HashSet;"
+                        } &&
+                        ins.any {
+                            it.opcode == Opcode.INVOKE_INTERFACE &&
+                                ((it as ReferenceInstruction).reference as MethodReference).let { r ->
+                                    r.definingClass == "Ljava/util/List;" && r.name == "remove" && r.parameterTypes.map { t -> t.toString() } == listOf("I")
+                                }
+                        }
+                } && overFive(m) != null
+        }
+        trim.useRecentCopies(overFive(trim)!!)
+
+        // The cleanup of expired items deletes the unpinned ones older than now minus the time limit
+        // (Instant.minusMillis, toEpochMilli). With a longer time it also deletes the ones Gboard hides.
+        val cleanup = single("clipboard cleanup") { _, m -> "deleteExpiredItemsInternal" in m.strings() }
+        val ci = cleanup.implementation!!.instructions.toList()
+        val limitCall = ci.indexOfFirst { ins ->
+            ins.opcode == Opcode.INVOKE_STATIC && ((ins as ReferenceInstruction).reference as MethodReference).let {
+                it.definingClass == limit.definingClass && it.name == limit.name && it.returnType == "J" &&
+                    it.parameterTypes.map { t -> t.toString() } == listOf("Landroid/content/Context;")
+            }
+        }
+        if (limitCall < 0) throw PatchException("clipboard cleanup: time limit not found")
+        val toMillis = (limitCall + 1 until ci.size - 1).firstOrNull { i ->
+            ci[i].opcode == Opcode.INVOKE_VIRTUAL && ci[i + 1].opcode == Opcode.MOVE_RESULT_WIDE &&
+                ((ci[i] as ReferenceInstruction).reference as MethodReference).name == "toEpochMilli"
+        } ?: throw PatchException("clipboard cleanup: cutoff not found")
+        val cutoff = (ci[toMillis + 1] as OneRegisterInstruction).registerA
+        cleanup.addInstructions(toMillis + 2, """
+            invoke-static/range {v$cutoff .. v${cutoff + 1}}, $CLIPBOARD->deleteBefore(J)J
+            move-result-wide v$cutoff
+        """)
+    }
+}
+
+@Suppress("unused")
+val spaceBarRowHeightPatch = bytecodePatch(
+    name = "Space bar row height",
+    description = "Lets the No-Google settings make the keyboard's bottom row, the one with the space bar, " +
+        "shorter, so the keyboard takes less of the screen. Set in No-Google settings → Keyboard.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(extensionPatch)
+
+    execute {
+        mutableClassDefBy(BOTTOM_ROW).methods.single { it.name == "patched" }.replaceInstruction(0, "const/4 v0, 0x1")
+
+        // SoftKeyboardView's height setter, the only place it sets its own height: BottomRow picks the height.
+        val keyboardView = mutableClassDefBy("Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;")
+        val setter = keyboardView.methods.filter { m ->
+            val ins = m.implementation?.instructions?.toList() ?: return@filter false
+            m.returnType == "V" && m.params() == listOf("I") && ins.any {
+                it.opcode == Opcode.IPUT && ((it as ReferenceInstruction).reference as FieldReference).let { f ->
+                    f.definingClass == "Landroid/view/ViewGroup\$LayoutParams;" && f.name == "height"
+                }
+            } && ins.any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "setLayoutParams" }
+        }.singleOrNull() ?: throw PatchException("keyboard height setter not found")
+        setter.addInstructions(0, """
+            invoke-static/range {p0 .. p1}, $BOTTOM_ROW->height(Landroid/view/View;I)I
+            move-result p1
+        """)
     }
 }
 

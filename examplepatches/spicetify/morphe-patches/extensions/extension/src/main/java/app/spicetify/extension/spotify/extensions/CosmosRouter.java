@@ -4,10 +4,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Spotify's cosmos router as {@link PlayerBridge} uses it: a request goes in, its answers come back
- * through a {@link Callback}, and a {@link Cancel} ends it. {@link #reflective} adapts the router
+ * through a {@link Callback}, and a {@link Cancel} ends it. {@link #reflective} adapts the native router
  * Spotify's own services use; tests use a fake.
  */
 interface CosmosRouter {
@@ -17,7 +21,7 @@ interface CosmosRouter {
      */
     Cancel resolve(String action, String uri, byte[] body, Callback callback);
 
-    /** True once Spotify has destroyed the router, as it does on logout. */
+    /** True once Spotify has begun to destroy the router, as it does on logout. */
     boolean destroyed();
 
     interface Callback {
@@ -31,40 +35,57 @@ interface CosmosRouter {
     }
 
     /**
-     * The router of a {@code SharedCosmosRouterService}: requests go to its
-     * {@code RemoteNativeRouter.performNativeResolve}, where Spotify's own transports end. Its
-     * classes keep their real names, but the extension doesn't compile against them. Each one is
-     * looked up here, through the service's class loader, so a renamed one fails now and only once.
+     * The router of a Spotify cosmos service, its {@code NativeRouter}: requests go to its {@code resolve},
+     * where Spotify's own transports end. Its classes keep their real names, but the extension doesn't
+     * compile against them. Each one is looked up here, through the router's class loader, so a renamed
+     * one fails now and only once.
      */
-    static CosmosRouter reflective(Object sharedCosmosRouterService) throws ReflectiveOperationException {
-        return new Reflective(sharedCosmosRouterService);
+    static CosmosRouter reflective(Object nativeRouter) throws ReflectiveOperationException {
+        return new Reflective(nativeRouter);
+    }
+
+    /**
+     * Spotify is about to shut {@code nativeRouter} down (H1's second hook): nothing is sent to it from now on, and
+     * this returns only once every send that got in has returned. Ignored for a router never wrapped.
+     */
+    static void shutdown(Object nativeRouter) {
+        Reflective gone = Reflective.LIVE.remove(nativeRouter);
+        if (gone != null) gone.destroy();
     }
 
     final class Reflective implements CosmosRouter {
+        /** The routers H1 wrapped that Spotify hasn't shut down. By identity: a router's equals is Spotify's. */
+        static final Map<Object, Reflective> LIVE = Collections.synchronizedMap(new IdentityHashMap<>());
+
         private final ClassLoader loader;
-        private final Object remoteNativeRouter;
+        private final Object nativeRouter;
         private final Class<?> callbackClass;
         private final Constructor<?> newRequest;
-        private final Method performNativeResolve;
-        private final Method getRouterDestroyed;
+        private final Method resolve;
         private final Method getStatus;
         private final Method getBody;
         private final Method release;
+        /**
+         * Spotify's own service guards its router the same way: a send holds the read side while it calls in,
+         * and shutdown takes the write side to set the flag before it destroys the router. So a send is
+         * either inside the router when shutdown starts, which then waits for it, or sees the flag.
+         */
+        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+        private volatile boolean destroyed;
 
-        Reflective(Object service) throws ReflectiveOperationException {
-            loader = service.getClass().getClassLoader();
-            remoteNativeRouter = service.getClass().getMethod("getRemoteNativeRouter").invoke(service);
+        Reflective(Object nativeRouter) throws ReflectiveOperationException {
+            this.nativeRouter = nativeRouter;
+            loader = nativeRouter.getClass().getClassLoader();
             Class<?> requestClass = type("com.spotify.cosmos.cosmos.Request");
             callbackClass = type("com.spotify.cosmos.cosmos.ResolveCallback");
             Class<?> responseClass = type("com.spotify.cosmos.cosmos.Response");
             newRequest = requestClass.getConstructor(String.class, String.class, byte[].class);
-            Class<?> routerClass = remoteNativeRouter.getClass();
-            performNativeResolve = routerClass.getMethod("performNativeResolve", requestClass, callbackClass);
-            getRouterDestroyed = routerClass.getMethod("getRouterDestroyed");
+            resolve = nativeRouter.getClass().getMethod("resolve", requestClass, callbackClass);
             getStatus = responseClass.getMethod("getStatus");
             getBody = responseClass.getMethod("getBody");
             // From the interface: the Lifetime Spotify returns may be a class the extension can't access.
             release = type("com.spotify.cosmos.cosmos.Lifetime").getMethod("release");
+            LIVE.put(nativeRouter, this);
         }
 
         private Class<?> type(String name) throws ClassNotFoundException {
@@ -77,11 +98,12 @@ interface CosmosRouter {
                     (self, method, args) -> answer(callback, self, method, args));
             try {
                 Object request = newRequest.newInstance(action, uri, body);
-                // Spotify's own resolve checks the flag and calls in while it holds this monitor,
-                // and destroy() takes it to set the flag, so nothing reaches a destroyed native router.
-                synchronized (remoteNativeRouter) {
-                    if (destroyed()) throw new IllegalStateException("Spotify's router is destroyed");
-                    return new Release(performNativeResolve.invoke(remoteNativeRouter, request, proxy), proxy);
+                lock.readLock().lock();
+                try {
+                    if (destroyed) throw new IllegalStateException("Spotify's router is destroyed");
+                    return new Release(resolve.invoke(nativeRouter, request, proxy), proxy);
+                } finally {
+                    lock.readLock().unlock();
                 }
             } catch (ReflectiveOperationException e) {
                 throw unchecked(e);
@@ -90,10 +112,16 @@ interface CosmosRouter {
 
         @Override
         public boolean destroyed() {
+            return destroyed;
+        }
+
+        /** Sets the flag once no send is inside the router, so after this returns none gets in. */
+        void destroy() {
+            lock.writeLock().lock();
             try {
-                return (Boolean) getRouterDestroyed.invoke(remoteNativeRouter);
-            } catch (ReflectiveOperationException e) {
-                throw unchecked(e);
+                destroyed = true;
+            } finally {
+                lock.writeLock().unlock();
             }
         }
 

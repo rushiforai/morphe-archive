@@ -37,7 +37,7 @@
       "@MorpheApp/changelog", {
         "releaseJson": {
           "path": "patches-bundle.json",
-          "downloadUrlTemplate": "https://github.com/${owner}/${repo}/releases/download/v${version}/patches-${version}.mpp",
+          "downloadUrlTemplate": "https://${host}/${owner}/${repo}/releases/download/v${version}/patches-${version}.mpp",
           "signatureUrlTemplate": "",
           "publicKeyPath": "morphe-signing.pub"
         }
@@ -58,9 +58,9 @@
         "assets": [
           "CHANGELOG.md",
           "gradle.properties",
-          "patches-bundle.json",
           "patches-list.json",
-          "README.md"
+          "README.md",
+          "PATCHES.md"
         ],
         "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
@@ -74,6 +74,15 @@
           }
         ],
         "successComment": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "successCmd": "git add patches-bundle.json \
+          && git commit -m \"chore: Publish v${nextRelease.version} in patches-bundle.json [skip ci]\" \
+          && git pull --rebase --autostash origin ${branch.name} \
+          && git push origin HEAD:${branch.name}"
       }
     ],
     [

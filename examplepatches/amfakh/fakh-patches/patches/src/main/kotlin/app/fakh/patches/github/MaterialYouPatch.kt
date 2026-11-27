@@ -5,6 +5,7 @@
 
 package app.fakh.patches.github
 
+import app.fakh.patches.shared.register
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.fakh.patches.github.shared.Constants.MATERIAL_YOU
 import app.fakh.patches.github.shared.Constants.PITCH_BLACK
@@ -353,7 +354,19 @@ val materialYouPatch = patch(
             """,
         )
 
-        addSwitch(MATERIAL_YOU)
-        addSwitch(PITCH_BLACK)
+        // Markdown: the page colors its links from a CSS variable, which can't name a system color, so it asks the app.
+        withMarkdownView("$EXTENSION->markdownView")
+        appendToMarkdownView(
+            resourceFile("assets/webview/markdown.js"),
+            afterLoad(
+                """
+                    const root = document.documentElement
+                    // An empty color, with the switch off, leaves GitHub's own.
+                    root.style.setProperty('--link', window.fakhColors.link(root.dataset.colorMode === 'dark'))
+                """,
+            ),
+        )
+
+        register(MATERIAL_YOU, PITCH_BLACK)
     }
 }

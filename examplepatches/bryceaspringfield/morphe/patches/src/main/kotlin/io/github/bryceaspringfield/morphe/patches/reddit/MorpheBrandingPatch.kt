@@ -20,16 +20,12 @@ import java.util.logging.Logger
 private const val BRANDING_CLASS = "Lio/github/bryceaspringfield/morphe/extension/reddit/Branding;"
 private val brandingLogger = Logger.getLogger("MorpheBrandingPatch")
 
-/** Names the bundle's class loader, which reads the branding files. */
 private object BrandingFiles
 
-/** Reddit's loading animations (Lottie files), each shown in place of a page, a list, or a community while it loads. */
 private val LOADERS = listOf("page_loader_animation", "inline_loader_animation", "community_loader")
 
-/** Reddit's Snoo logos: the search bar's, the app bar's, and the full-color brand mark. */
 private val LOGOS = listOf("icon_global_search_snoo", "icon_snoo_logo", "icon_brand_full_color")
 
-/** The files this patch adds, under resources/morphe-branding/ in the bundle and res/ in the app. */
 private val BRANDING_FILES = listOf(
     "raw/morphe_reddit_loader.json",
     "drawable/morphe_reddit_logo.xml",
@@ -39,10 +35,6 @@ private val BRANDING_FILES = listOf(
     "mipmap-anydpi/morphe_reddit_launcher.xml",
 )
 
-/**
- * Sends each load of a Reddit loader or logo resource ID through the extension, which returns Morphe's when the
- * switch in Settings > Morphe is on.
- */
 private val brandingHooksPatch = bytecodePatch {
     dependsOn(keywordFilterSettingsPatch)
 
@@ -106,7 +98,6 @@ val morpheBrandingPatch = resourcePatch(
                 get("res/$path", copy = false).apply { parentFile.mkdirs() }.outputStream().use { stream.copyTo(it) }
             }
         }
-        // A disabled copy of Reddit's default launcher entry with the Morphe icon; its switch enables it.
         document("AndroidManifest.xml").use { document ->
             val aliases = document.getElementsByTagName("activity-alias")
             val original = (0 until aliases.length).map { aliases.item(it) as Element }

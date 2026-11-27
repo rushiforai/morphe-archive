@@ -8,11 +8,12 @@ import zipfile
 from build import ROOT, tool_paths, BUILD, VERSION
 
 INPUTS = [
-    ("arm64", "jp.naver.line.android_26.16.0-261600106_1arch_2dpi_431a0327635030679c9237e883e37ffe_apkmirror.com.apkm",
-     "e059b2a35a0c5bcacb9fd0fe1512d099fbc18c2fcab16e0b47788455eff03338",
-     "26331d398d421c0bc61d439c6df5fd9492519dd8940f342b5784df4676b96c42"),
-    ("universal", "jp.naver.line.android_26.16.0-261600106_2arch_6dpi_27e24416bed2114af71681c9f1fc7b86_apkmirror.com.apkm",
-     "4a82c3173a935c52dbe96b8768b73a2dda7284b860f37e4982d72b5672dbf1af", "a2a39613d1899d967cd016725e12e14268b6fc6d79386eee8ff821d3a9a90d16"),
+    ("arm64", "jp.naver.line.android_26.19.0-261900178_1arch_2dpi_292f9559936301977ea38a3dfc409fe9_apkmirror.com.apkm",
+     "854c7c98b4880d30ff7a363210016f0d2fed70bccbe32d8a188a8df3d8fbd040",
+     "04c4e969baa75d4f72efdd953aea850c7d3ecb3527a2044aee3ac0aff4189d99"),
+    ("universal", "jp.naver.line.android_26.19.0-261900178_2arch_6dpi_3e9e3b0118e8a92f31c5e21c4bcff579_apkmirror.com.apkm",
+     "ce7be5ca770739731ec44665cdd94e4e0d601149144e416aef1c0b904a3701e2",
+     "5234750455cf0757edcc9de5c1d4e05ed7c5ee1a82405225fae99455e2adefe6"),
 ]
 
 

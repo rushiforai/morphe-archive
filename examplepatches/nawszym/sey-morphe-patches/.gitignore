@@ -30,6 +30,15 @@
 *.keystore
 *.jks
 
+# Local build logs (contain machine-specific absolute paths)
+/buildout.txt
+/twitchbuild.txt
+
+# Local agent docs and personal reference screenshots
+/SKILLS.md
+/compare.png
+/refference-tv-photo.png
+
 # IDE files
 .idea/
 *.iml

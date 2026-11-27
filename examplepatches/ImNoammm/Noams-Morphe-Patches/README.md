@@ -26,8 +26,8 @@ they show up in the same source.
 
 Right now it has patches for these apps:
 
-- Chess.com 4.10.18: arrows and marked squares in every game, like on the website. Your own board colours and
-  accent colour, pure black backgrounds and the website's Arcade animations. Pick what Home and the bottom bar
+- Chess.com 4.10.29: arrows and marked squares in every game, like on the website. Your own board colors and
+  accent color, pure black backgrounds and the website's Arcade animations. Pick what Home and the bottom bar
   show and play time controls under a minute. Game Review asks who reviews each game: chess.com, Lichess with your
   Lichess account, or Stockfish 19 right on your phone, offline and with no daily limit. The Stockfish and Lichess
   reviews are still in beta. Stockfish also shows its best moves on finished games and the analysis boards, and
@@ -35,18 +35,21 @@ Right now it has patches for these apps:
   Premium opens up. No ads, rating prompts or Premium upsells, and a clone option installs it next to the real
   app. You turn it all on and off under More, Noam's Patches.
 - Block Blast 10.8.1: Classic trays are dealt by the iOS version's own game code, which runs inside the app, and
-  you get the iOS version's colour, block, menu and animation themes and its extra effects. No ads, no revive
+  you get the iOS version's color, block, menu and animation themes and its extra effects. No ads, no revive
   offer, no impossible trays, a quicker game over and an optional fake best score that keeps your real one
   underneath. Most of it lives in the Mod settings row of the game's settings.
-- Gboard 18.2.4 (arm64): cut off from Google. It has no internet permission and never talks to Play services or
-  other Google apps. Voice typing runs on the phone with Whisper and the translate panel uses on-device models.
-  GIFs come back from sources you pick (GIPHY and KLIPY with your own free key, nekos.best, Wikimedia Commons and
-  Openverse) through a small helper app, the only part that goes online. Only English's dictionary comes with
-  Gboard: turn on Download dictionaries from Google and the helper fetches the other languages' dictionaries, for
-  word suggestions and autocorrect, from Google's dictionary folder and nowhere else on Google. A switch keeps
-  Gboard in incognito mode everywhere, with its clipboard still working. Right-to-left languages only change the
-  letters on the keys. It installs next to the normal Gboard and its switches are under No-Google in Gboard's
-  settings.
+- Gboard 18.5.4 (arm64, Android 12L and up): cut off from Google. It has no internet permission and never talks to
+  Play services or other Google apps. Voice typing runs on the phone with Whisper and the translate panel uses
+  on-device models. If you'd rather, the mic can switch you over to Google's offline voice typing (Speech Services
+  by Google) or the FUTO Voice Input app, once you turn on their keyboard in Android's settings. GIFs come back
+  from sources you pick (GIPHY and KLIPY with your own free key, nekos.best, Wikimedia Commons and Openverse)
+  through a small helper app, the only part that goes online. Only English's dictionary comes with Gboard: turn on
+  Download dictionaries from Google and the helper fetches the other languages' dictionaries, for word suggestions
+  and autocorrect, from Google's dictionary folder and nowhere else on Google. A switch keeps Gboard in incognito
+  mode everywhere, with its clipboard still working. The clipboard can also keep items longer than Gboard's 1
+  hour, up to forever, and show more than its 5 latest copies. Right-to-left languages only change the letters on
+  the keys. The space bar's row can be made shorter, so the keyboard takes less of the screen. It installs next to
+  the normal Gboard and its switches are under No-Google in Gboard's settings.
 - Geocaching 10.21.0: Premium-only features work on a Basic account, each as its own switch: map filters,
   statistics from your own finds, log templates, lists, experimental features and sorting your finds and hides,
   and the upgrade badges are gone. Caches the app locks behind Premium open too: they load from geocaching.com the
@@ -77,6 +80,12 @@ After you install Gboard, tap its app icon: it takes you to turn the keyboard on
 a time. Its voice and translation models download in No-Google settings, and so do other languages' dictionaries
 once you turn on Download dictionaries from Google. Downloads and GIFs go through the helper app, which the
 keyboard installs or updates for you when it needs it (Android asks you to confirm).
+
+To use Google voice typing (Speech Services by Google) or the [FUTO Voice Input](https://voiceinput.futo.tech/)
+app instead of Whisper, turn on its keyboard in Android's keyboard settings and pick it as the voice typing Engine
+in No-Google settings. The mic key then opens it where the keyboard was, and closing it brings Gboard back. Until
+its keyboard is on, the mic keeps using Whisper. Both are separate apps with their own internet access, and
+nothing of theirs comes with the patches.
 
 ## Building it
 

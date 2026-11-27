@@ -1,0 +1,242 @@
+{
+  "note": "Written by Jimaku's extension/scripts/export-shared-cases.ts. Change the cases there, not here.",
+  "about": "LineCursor cases shared with the Android port. Each case starts a new cursor over its lines and asks for the steps' times in order; text is the line it returns, or null for none.",
+  "cases": [
+    {
+      "name": "follows forward playback",
+      "lines": [
+        {
+          "start": 0,
+          "end": 2,
+          "text": "a"
+        },
+        {
+          "start": 2.5,
+          "end": 4,
+          "text": "b"
+        },
+        {
+          "start": 10,
+          "end": 12,
+          "text": "c"
+        }
+      ],
+      "steps": [
+        {
+          "t": 0.5,
+          "text": "a"
+        },
+        {
+          "t": 1.9,
+          "text": "a"
+        },
+        {
+          "t": 3,
+          "text": "b"
+        }
+      ]
+    },
+    {
+      "name": "shows nothing in a gap or after the last line",
+      "lines": [
+        {
+          "start": 0,
+          "end": 2,
+          "text": "a"
+        },
+        {
+          "start": 2.5,
+          "end": 4,
+          "text": "b"
+        },
+        {
+          "start": 10,
+          "end": 12,
+          "text": "c"
+        }
+      ],
+      "steps": [
+        {
+          "t": 2.2,
+          "text": null
+        },
+        {
+          "t": 5,
+          "text": null
+        },
+        {
+          "t": 20,
+          "text": null
+        }
+      ]
+    },
+    {
+      "name": "shows a line at its very start",
+      "lines": [
+        {
+          "start": 0,
+          "end": 2,
+          "text": "a"
+        },
+        {
+          "start": 2.5,
+          "end": 4,
+          "text": "b"
+        }
+      ],
+      "steps": [
+        {
+          "t": 0,
+          "text": "a"
+        },
+        {
+          "t": 2.5,
+          "text": "b"
+        }
+      ]
+    },
+    {
+      "name": "shows nothing before the first line",
+      "lines": [
+        {
+          "start": 1,
+          "end": 2,
+          "text": "a"
+        }
+      ],
+      "steps": [
+        {
+          "t": 0.5,
+          "text": null
+        },
+        {
+          "t": 1,
+          "text": "a"
+        }
+      ]
+    },
+    {
+      "name": "moves to the next line at a boundary where two lines touch",
+      "lines": [
+        {
+          "start": 0,
+          "end": 2,
+          "text": "a"
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "text": "b"
+        }
+      ],
+      "steps": [
+        {
+          "t": 1.999,
+          "text": "a"
+        },
+        {
+          "t": 2,
+          "text": "b"
+        },
+        {
+          "t": 3.999,
+          "text": "b"
+        },
+        {
+          "t": 4,
+          "text": null
+        }
+      ]
+    },
+    {
+      "name": "seeks forward and back",
+      "lines": [
+        {
+          "start": 0,
+          "end": 2,
+          "text": "a"
+        },
+        {
+          "start": 2.5,
+          "end": 4,
+          "text": "b"
+        },
+        {
+          "start": 10,
+          "end": 12,
+          "text": "c"
+        }
+      ],
+      "steps": [
+        {
+          "t": 0.5,
+          "text": "a"
+        },
+        {
+          "t": 11,
+          "text": "c"
+        },
+        {
+          "t": 3,
+          "text": "b"
+        },
+        {
+          "t": 0.1,
+          "text": "a"
+        }
+      ]
+    },
+    {
+      "name": "seeks back into a gap and forward out of it",
+      "lines": [
+        {
+          "start": 0,
+          "end": 2,
+          "text": "a"
+        },
+        {
+          "start": 2.5,
+          "end": 4,
+          "text": "b"
+        },
+        {
+          "start": 10,
+          "end": 12,
+          "text": "c"
+        }
+      ],
+      "steps": [
+        {
+          "t": 11,
+          "text": "c"
+        },
+        {
+          "t": 2.2,
+          "text": null
+        },
+        {
+          "t": 3,
+          "text": "b"
+        },
+        {
+          "t": 6,
+          "text": null
+        },
+        {
+          "t": 10.5,
+          "text": "c"
+        }
+      ]
+    },
+    {
+      "name": "shows nothing when there are no lines",
+      "lines": [],
+      "steps": [
+        {
+          "t": 1,
+          "text": null
+        }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ package app.fakh.patches.linkedin.navigation
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
 import app.fakh.patches.linkedin.shared.Constants.GAMES_SHORTCUT
+import app.fakh.patches.linkedin.shared.Constants.MORE_TAB_ITEMS
 import app.fakh.patches.linkedin.shared.Constants.MOVE_MORE_ITEMS
 import app.fakh.patches.linkedin.shared.sduiComponentFilterPatch
 import app.fakh.patches.shared.register
@@ -47,20 +48,44 @@ private object NavPanelSectionBindFingerprint : Fingerprint(
     parameters = listOf("Landroidx/databinding/ViewDataBinding;"),
 )
 
+// The More screen's items are read, and hidden, as they pass through the SDUI filter.
+
 @Suppress("unused")
 val moreMenuPatch = patch(
     name = "More tab",
-    description = "Lets you hide items of the More tab (Puzzle games, Groups, Events, Newsletters), or list them " +
-        "at the bottom of the profile menu.",
+    description = "Lets you hide items of the More tab (Puzzle games, Groups, Events, Newsletters).",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feature")
-    // The More screen's items are read and hidden as they pass through the SDUI filter.
+    category("Navigation bar")
+    dependsOn(sduiComponentFilterPatch)
+    execute { register(MORE_TAB_ITEMS) }
+}
+
+@Suppress("unused")
+val gamesShortcutPatch = patch(
+    name = "Puzzle games shortcut",
+    description = "Adds Puzzle games to the shortcuts of the LinkedIn app icon.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Navigation bar")
+    dependsOn(sduiComponentFilterPatch)
+    execute { register(GAMES_SHORTCUT) }
+}
+
+@Suppress("unused")
+val moveMoreItemsPatch = patch(
+    name = "Show More tab items in profile menu",
+    description = "Lists the items of the More tab at the bottom of the profile menu.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Navigation bar")
     dependsOn(sduiComponentFilterPatch)
 
     execute {
-        register(MOVE_MORE_ITEMS, GAMES_SHORTCUT)
+        register(MOVE_MORE_ITEMS)
 
         // Right after the divider goes into the footer list, so the items are added above it.
         NavPanelFooterFingerprint.let {

@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -42,35 +43,35 @@ public final class OnlineStatus {
     public static void traceOnlineResponse(org.json.JSONObject data) {
         try {
             org.json.JSONArray onlines = data.optJSONArray("onlines");
-            NezumiLog.i("NezumiOnline", "onlineResponse sharing=" + originalOnlineSharing()
+            NezumiLog.i(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "onlineResponse sharing=" + originalOnlineSharing()
                 + " hidden=" + isOnlineHidden() + " hasOnlines=" + data.has("onlines")
                 + " arrayPresent=" + (onlines != null)
                 + " count=" + (onlines == null ? -1 : onlines.length()));
         } catch (RuntimeException ignored) {
-            NezumiLog.w("NezumiOnline", "onlineResponse probe unavailable");
+            NezumiLog.w(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "onlineResponse probe unavailable");
         }
     }
 
     public static void traceLastSeenResponse(org.json.JSONObject data) {
         try {
-            NezumiLog.i("NezumiOnline", "lastSeenResponse sharing=" + originalOnlineSharing()
+            NezumiLog.i(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "lastSeenResponse sharing=" + originalOnlineSharing()
                 + " hidden=" + isOnlineHidden() + " hasTimestamp=" + data.has("timestamp")
                 + " timestampPositive=" + (data.optLong("timestamp") > 0)
                 + " hasVisibility=" + data.has("settingOnlineStatus")
                 + " visibility=" + data.optInt("settingOnlineStatus", -1));
         } catch (RuntimeException ignored) {
-            NezumiLog.w("NezumiOnline", "lastSeenResponse probe unavailable");
+            NezumiLog.w(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "lastSeenResponse probe unavailable");
         }
     }
 
     public static void traceFriendListResponse(org.json.JSONObject data) {
         try {
             org.json.JSONArray onlines = data.optJSONArray("onlines");
-            NezumiLog.i("NezumiOnline", "friendListResponse sharing=" + originalOnlineSharing()
+            NezumiLog.i(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "friendListResponse sharing=" + originalOnlineSharing()
                 + " hidden=" + isOnlineHidden() + " arrayPresent=" + (onlines != null)
                 + " count=" + (onlines == null ? -1 : onlines.length()));
         } catch (RuntimeException ignored) {
-            NezumiLog.w("NezumiOnline", "friendListResponse probe unavailable");
+            NezumiLog.w(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "friendListResponse probe unavailable");
         }
     }
 
@@ -90,7 +91,7 @@ public final class OnlineStatus {
             ONLINE_USERS.clear();
             ONLINE_USERS.addAll(onlineUsers);
             onlineObservedAt = android.os.SystemClock.elapsedRealtime();
-            onlineAccount = ZaloEnv.currentAccount();
+            onlineAccount = ZaloEnv.currentAccount(Patch.VIEW_ONLINE_STATUS_PRIVATELY);
             views = new ArrayList<>(CHAT_SUBTITLES.keySet());
         }
         for (TextView view : views) {
@@ -135,7 +136,7 @@ public final class OnlineStatus {
     public static void traceChatOnlineDispatch() {
         if (isChatOnlineRefresh()) {
             lastChatRefresh = android.os.SystemClock.elapsedRealtime();
-            NezumiLog.i("NezumiOnline", "chatRefresh dispatched");
+            NezumiLog.i(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "chatRefresh dispatched");
         }
     }
 
@@ -145,10 +146,10 @@ public final class OnlineStatus {
             boolean inFlight = repository.getClass().getField("n").getBoolean(repository);
             long requestedAt = repository.getClass().getField("l").getLong(repository);
             long remaining = Math.max(0, onlineRefreshInterval() - (System.currentTimeMillis() - requestedAt));
-            NezumiLog.i("NezumiOnline", "chatRefresh gate inFlight=" + inFlight
+            NezumiLog.i(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "chatRefresh gate inFlight=" + inFlight
                 + " throttleRemainingMs=" + remaining);
         } catch (ReflectiveOperationException | RuntimeException failure) {
-            NezumiLog.w("NezumiOnline", "Chat refresh gate unavailable", failure);
+            NezumiLog.w(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "Chat refresh gate unavailable", failure);
         }
     }
 
@@ -201,14 +202,14 @@ public final class OnlineStatus {
                 online = userId != null && ONLINE_USERS.contains(userId)
                     && onlineObservedAt > 0
                     && android.os.SystemClock.elapsedRealtime() - onlineObservedAt < 90000
-                    && onlineAccount != null && onlineAccount.equals(ZaloEnv.currentAccount());
+                    && onlineAccount != null && onlineAccount.equals(ZaloEnv.currentAccount(Patch.VIEW_ONLINE_STATUS_PRIVATELY));
             }
             CharSequence text = subtitle.getText();
             boolean managed = text instanceof android.text.Spanned
                 && ((android.text.Spanned) text).getSpanStart(marker) >= 0;
             if (isOnlineHidden() && online && (nativeClear || android.text.TextUtils.isEmpty(text) || managed)) {
                 android.text.SpannableString label = new android.text.SpannableString(
-                    ZaloEnv.isVietnamese(subtitle.getContext()) ? "Đang hoạt động" : "Online");
+                    ZaloEnv.isVietnamese(Patch.VIEW_ONLINE_STATUS_PRIVATELY, subtitle.getContext()) ? "Đang hoạt động" : "Online");
                 label.setSpan(marker, 0, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 if (!managed) subtitle.setText(label, TextView.BufferType.SPANNABLE);
                 subtitle.setVisibility(View.VISIBLE);
@@ -238,10 +239,10 @@ public final class OnlineStatus {
                     lastChatAttempt = now;
                     CHAT_REFRESH.set(true);
                     try {
-                        NezumiLog.i("NezumiOnline", "chatRefresh attempt");
+                        NezumiLog.i(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "chatRefresh attempt");
                         requestChatOnlineList();
                     } catch (LinkageError | RuntimeException failure) {
-                        NezumiLog.w("NezumiOnline", "Chat online refresh unavailable", failure);
+                        NezumiLog.w(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "Chat online refresh unavailable", failure);
                     } finally {
                         CHAT_REFRESH.remove();
                     }
@@ -253,10 +254,10 @@ public final class OnlineStatus {
     }
 
     public static int mapOnlineState(int state) {
-        Context context = ZaloEnv.appContext();
+        Context context = ZaloEnv.appContext(Patch.VIEW_ONLINE_STATUS_PRIVATELY);
         boolean hidden = isOnlineHidden();
         int mapped = state == 103 && hidden ? 102 : state;
-        NezumiLog.d("NezumiOnline", "socketState=" + state + " mapped=" + mapped
+        NezumiLog.d(Patch.VIEW_ONLINE_STATUS_PRIVATELY, "OnlineStatus", "socketState=" + state + " mapped=" + mapped
             + " hidden=" + hidden + " contextAvailable=" + (context != null));
         return mapped;
     }
@@ -269,7 +270,7 @@ public final class OnlineStatus {
     }
 
     static boolean isOnlineHidden() {
-        return NezumiPrefs.bool(ZaloEnv.appContext(), NezumiPrefs.HIDE_ONLINE_STATUS, false);
+        return NezumiPrefs.bool(ZaloEnv.appContext(Patch.VIEW_ONLINE_STATUS_PRIVATELY), NezumiPrefs.HIDE_ONLINE_STATUS, false);
     }
 
     public static void publishOnlineState(int state) {

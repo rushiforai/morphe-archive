@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
-    internal val CHZZK_TV_VERSIONS = setOf("1.4.0", "1.3.0")
+    internal val CHZZK_TV_VERSIONS = setOf("1.5.0", "1.4.0", "1.3.0")
 
     val COMPATIBILITY_CHZZK_MOBILE = Compatibility(
         name = "Chzzk",
@@ -14,6 +14,10 @@ object Constants {
         appIconColor = 0x00FFA3,
         signatures = setOf("0b8b8523bb4aeffa346e4bdd4fbf7d193450569aa14aaad4adfd94a3f7b227bb"),
         targets = listOf(
+            AppTarget(
+                version = "3.18.0",
+                minSdk = 26,
+            ),
             AppTarget(
                 version = "3.17.0",
                 minSdk = 26,

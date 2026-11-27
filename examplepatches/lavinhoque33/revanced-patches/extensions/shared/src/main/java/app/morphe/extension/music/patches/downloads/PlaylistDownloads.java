@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-19.
  * Modified by lavinhoque33, 2026-11-18.
@@ -286,10 +287,13 @@ public final class PlaylistDownloads {
     private static void downloadStream(String playlistId, SourceHeader header, List<String> tracks,
                                        List<String> available, int skipped, DownloadQuality quality, Run run)
             throws Exception {
+        OfflineSourceStore.Source source;
         synchronized (PlaylistSync.MUTATION) {
             if (run.removed) return;
             DownloadedMarkers.onPlaylistStarted(playlistId, tracks, header);
+            source = OfflineCopyStore.source(playlistId);
         }
+        if (source != null) PlaylistSync.captureDownload(source, run.automatic, run::cancelled);
 
         UnaryOperator<String> canonical = streamCopyIds();
         Predicate<String> ready = PlaylistDownloads::offlineReady;

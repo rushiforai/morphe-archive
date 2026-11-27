@@ -5,11 +5,6 @@ import static io.github.bryceaspringfield.morphe.extension.reddit.FilterSettings
 import android.content.SharedPreferences;
 import android.util.Log;
 
-/**
- * Morphe Patches' Hide Trending shelves switch split in two: the Trending unit in feeds, and the trending queries and
- * communities in search suggestions. Reddit's reads of Morphe's switch come here; each place starts from Morphe's
- * switch until its own switch is set.
- */
 @SuppressWarnings("unused")
 public final class TrendingPlaces {
 
@@ -20,12 +15,10 @@ public final class TrendingPlaces {
     private TrendingPlaces() {
     }
 
-    /** Injection point: whether to hide the Trending unit in a feed. */
     public static boolean feed() {
         return hidden(HIDE_IN_FEEDS);
     }
 
-    /** Injection point: whether to hide trending queries and communities in search suggestions. */
     public static boolean search() {
         return hidden(HIDE_IN_SEARCH);
     }
@@ -40,7 +33,6 @@ public final class TrendingPlaces {
         FilterSettings.putBoolean(key, hidden);
     }
 
-    /** Morphe Patches' own switch, the starting value of both places. */
     private static boolean morpheSwitch() {
         try {
             return (Boolean) Class.forName(MORPHE_TRENDING).getMethod("hideTrendingShelf").invoke(null);

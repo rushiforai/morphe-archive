@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-09.
  * Modified by lavinhoque33, 2026-11-09.
  */
@@ -107,6 +108,39 @@ final class VideoCopyFiles {
             if (pair.getValue().equals(songId)) return pair.getKey();
         }
         return null;
+    }
+
+    /**
+     * Resolves the pair for artwork only. Cold lookup reads at most this video's commit; reverse lookup is
+     * in-memory only and declines ambiguous matches. Never loads the whole video-copy store.
+     */
+    @Nullable
+    String artworkPartner(String id, @Nullable String aliasSong) {
+        if (!RawAudioFiles.validId(id)) return null;
+
+        boolean ready = loaded;
+        String song = songOf.get(id);
+        if (!ready && song == null) song = committedSong(id);
+        if (aliasSong != null) return song == null || aliasSong.equals(song) ? aliasSong : null;
+        if (song != null || !ready) return song;
+
+        String video = null;
+        for (Map.Entry<String, String> pair : songOf.entrySet()) {
+            if (!id.equals(pair.getValue())) continue;
+            if (video != null) return null;
+            video = pair.getKey();
+        }
+        return video;
+    }
+
+    @Nullable
+    private String committedSong(String videoId) {
+        try {
+            Entry entry = committed(videoId);
+            return entry == null ? null : entry.songId();
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     /**

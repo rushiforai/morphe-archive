@@ -244,9 +244,11 @@ public final class ChzzkSettings {
         return (value & 0xffffffff00000000L) | (Float.floatToRawIntBits(scaled) & 0xffffffffL);
     }
 
+    public static String headerKind(Object item) { return item.getClass().getSimpleName(); }
+
     public static boolean hideHeader(Object item) {
         if (item == null) return false;
-        switch (item.getClass().getSimpleName()) {
+        switch (headerKind(item)) {
             case "DonationRank": return enabled("hide_donation_rank");
             case "TongPowRank": return enabled("hide_tongpow_rank");
             case "TongPowPrediction": return enabled("hide_prediction_panel");
@@ -292,6 +294,17 @@ public final class ChzzkSettings {
             }
         }
         return false;
+    }
+
+    public static List<?> filterMessages(List<?> messages) {
+        ArrayList<Object> filtered = null;
+        for (int i = 0; i < messages.size(); i++) {
+            Object message = messages.get(i);
+            if (hideMessage(message)) {
+                if (filtered == null) filtered = new ArrayList<>(messages.subList(0, i));
+            } else if (filtered != null) filtered.add(message);
+        }
+        return filtered == null ? messages : filtered;
     }
 
     public static String decorateMessage(String original, Object message) {
@@ -713,6 +726,7 @@ public final class ChzzkSettings {
             case "hide_prediction_panel": case "hide_chat_promotions": case "hide_follow_prompt":
             case "auto_claim": case "keep_history": case "player_statistics":
             case "drag_chat_width": case "device_icons": case "hide_role_badge":
+            case "highlight_streamer": case "chat_jump_buttons":
             case "hide_subscription_badge": case "hide_donation_badge": case "hide_activity_badge":
             case "hide_verified_badge": case "hide_channel_badge": case "hide_clip_button":
             case "live_catch_up": case "live_rewind":
@@ -1213,6 +1227,10 @@ public final class ChzzkSettings {
         if (!TvSettings.active) {
             toggle(content, "드래그로 채팅 폭 조절", "drag_chat_width", true);
             label(content, "영상과 채팅 사이 손잡이를 좌우로 움직이세요. 가볍게 누르면 폭과 글자 크기를 바로 조절할 수 있습니다.");
+            toggle(content, "스트리머 채팅 강조", "highlight_streamer", false);
+            label(content, "현재 방송의 스트리머가 쓴 채팅에 배경색을 표시합니다.");
+            toggle(content, "채팅 맨 위·맨 아래 버튼", "chat_jump_buttons", false);
+            label(content, "맨 위는 현재 남아 있는 가장 오래된 채팅으로, 맨 아래는 최신 채팅으로 이동합니다.");
         }
         slider(content, "채팅 폭", "chat_width_scale", 50, 300, 100, "%");
         action(content, "채팅 폭을 기본값으로", () -> { setNumber("chat_width_scale", 100); chatPage(sheet); });

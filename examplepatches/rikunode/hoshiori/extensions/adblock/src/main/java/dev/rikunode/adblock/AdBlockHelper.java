@@ -102,6 +102,10 @@ public final class AdBlockHelper {
         }
     }
 
+    public static void injectXAppPromptCss(WebView view) {
+        XAppPromptCss.inject(view);
+    }
+
     public static void injectCss(WebView view, boolean update) {
         try {
             if (view == null) return;

@@ -21,22 +21,12 @@ import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.patches.VideoInformation.VideoQualityInterface;
 import app.morphe.extension.youtube.shared.VideoState;
 
-/**
- * Playback with the screen off.
- * <ul>
- *   <li>Keep playing when the screen turns off: a video playing when the screen turns off, which pauses within the next
- *       8 s with no tap of the user (the screen is off), is played again with the media Play key.</li>
- *   <li>Audio only while the screen is off: YouTube's own audio-only mode ({@link AudioOnly}) while the screen is
- *       off, and video again when it turns on; the lowest video quality where no player was found.</li>
- * </ul>
- */
 public final class PlaybackExtras {
 
     private static final long PAUSE_WINDOW_MS = 8000;
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static boolean registered;
     private static long screenOffAt;
-    /** Uptime at which the app left the screen (home, another app), or 0 while it shows. */
     private static long leftAt;
     private static boolean pipArmed;
     private static int pipTicks;
@@ -80,11 +70,6 @@ public final class PlaybackExtras {
         }
     }
 
-    /**
-     * The app's activity paused (the user went home or to another app, or the screen turned off). A video playing
-     * which then pauses within 8 s, or whose sound stops while its time moves (audio only), is started again, as at
-     * screen off; picture in picture and the screen turning off are left to their own paths.
-     */
     private static void onLeave(Activity a) {
         try {
             if (a.isFinishing() || a.isChangingConfigurations() || a.isInPictureInPictureMode()) return;
@@ -99,8 +84,6 @@ public final class PlaybackExtras {
                 if (leftAt == 0) return;
                 playingAtLeave = stated || VideoInformation.getVideoTime() != time;
                 if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: app left, playing " + playingAtLeave);
-                // YouTube's audio-only mode drops the sound in the background with the video still running (seen
-                // 2026-11-15): the mode is asked for again.
                 if (playingAtLeave && AudioOnly.isOn()) AudioOnly.set(true, "app left");
             }, 1000);
         } catch (Throwable t) {
@@ -110,13 +93,10 @@ public final class PlaybackExtras {
 
     private static boolean playingAtLeave;
 
-    /** Every 2 s: picture in picture opens by itself on leaving while a video plays in the watch player (Android 12+). */
     private static void pipTick() {
         try {
             Activity a = ResumedActivity.main();
             if (a != null && android.os.Build.VERSION.SDK_INT >= 31) {
-                // The state is null in Morphe Patches 2.3.0 until it changes (seen 2026-11-17, a live stream playing), so a
-                // video whose time moved since the last tick counts as playing too.
                 long time = VideoInformation.getVideoTime();
                 boolean moved = time != pipLastTime;
                 pipLastTime = time;
@@ -144,8 +124,6 @@ public final class PlaybackExtras {
     private static void onScreenOff() {
         screenOffAt = SystemClock.uptimeMillis();
         resumes = 0;
-        // The video state lags at times (tested on 2026-11-11: paused in the state while the media session played), so
-        // a video whose time moves in the next second counts as playing too.
         boolean stated = VideoState.getCurrent() == VideoState.PLAYING;
         long time = VideoInformation.getVideoTime();
         playingAtScreenOff = stated;
@@ -195,10 +173,6 @@ public final class PlaybackExtras {
         }, 300);
     }
 
-    /**
-     * Audio only on: the lowest video quality too, since the player may still fetch the video stream in audio-only mode
-     * (bytes read did not fall on 2026-11-12); off: the quality from before returns, unless the user picked one.
-     */
     static void audioOnlyQuality(boolean on, boolean keepPick) {
         if (on) {
             if (XSettings.AUDIO_ONLY_LOW_DATA.get() && qualityBefore == null) MAIN.post(PlaybackExtras::lowestQuality);
@@ -217,7 +191,6 @@ public final class PlaybackExtras {
         }
     }
 
-    /** Sends a media key (Play, Pause) to the app's media session, as a headset button does; false where it failed. */
     static boolean mediaKey(int keyCode) {
         try {
             AudioManager am = (AudioManager) Utils.getContext().getSystemService(Context.AUDIO_SERVICE);

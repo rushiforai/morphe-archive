@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-08.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 
 import app.morphe.extension.music.patches.downloads.OfflineLibraryLogic.SourceRow;
 
@@ -82,6 +84,11 @@ final class DownloadsPageLogic {
     private static final int ROW_TITLE = 3;
     private static final int ROW_SUBTITLE = 4;
     private static final int ROW_TAP = 5;
+    // Private unknown field of our Downloads playlist renderer, not part of its navigation command.
+    private static final int ROW_PLAYLIST_CARD = 500_000_001;
+    private static final int BROWSE_ENDPOINT = 48_687_626;
+    private static final int BROWSE_ID = 2;
+    private static final byte[] PLAYLIST_CARD_TAIL = new ProtoWriter().bool(ROW_PLAYLIST_CARD, false).toByteArray();
     private static final int THUMBNAIL_EXTENSION = 164_480_666;
     private static final int THUMBNAILS_FIELD = 1;
     private static final int THUMBNAIL_FIELD = 1;
@@ -156,19 +163,22 @@ final class DownloadsPageLogic {
      * downloaded list holds, or null when there are none; it ends the playlists.
      */
     static List<byte[]> sections(Layout layout, boolean online, List<SourceRow> sources,
-                                 @Nullable SourceRow noPlaylist, Labels labels, Taps taps, CoverOf covers) {
+                                 @Nullable SourceRow noPlaylist, Labels labels, Taps taps, CoverOf covers,
+                                 Predicate<String> ownsStreamSource) {
         List<byte[]> items = new ArrayList<>();
         boolean all = layout == Layout.ALL;
         List<byte[]> sourceRows = new ArrayList<>();
         for (SourceRow source : sources) {
             if (listsSource(layout, source.sourceId()) && (online || source.availableCount() > 0)) {
-                byte[] row = sourceRow(source, labels, taps, covers);
+                String id = source.sourceId();
+                boolean playlist = OfflineBrowsePagesLogic.isPlaylistId(id);
+                byte[] row = sourceRow(source, labels, taps, covers, playlist, playlist && ownsStreamSource.test(id));
                 if (row != null) sourceRows.add(row);
             }
         }
         boolean listsNoPlaylist = layout == Layout.ALL || layout == Layout.PLAYLISTS;
         if (noPlaylist != null && listsNoPlaylist) {
-            byte[] row = sourceRow(noPlaylist, labels, taps, covers);
+            byte[] row = sourceRow(noPlaylist, labels, taps, covers, true, false);
             if (row != null) sourceRows.add(row);
         }
         addShelf(items, all ? labels.sources() : null, sourceRows);
@@ -197,21 +207,87 @@ final class DownloadsPageLogic {
     }
 
     @Nullable
-    private static byte[] sourceRow(SourceRow source, Labels labels, Taps taps, CoverOf covers) {
+    private static byte[] sourceRow(SourceRow source, Labels labels, Taps taps, CoverOf covers,
+                                    boolean playlistCard, boolean ownedStream) {
         byte[] tap = taps.source(source);
         if (tap == null) return null;
 
         String title = source.title().isEmpty() ? labels.untitled() : source.title();
-        String cover = covers.of(source.coverVideoId(), source.thumbnailUrl());
-        return row(title, labels.songCount().apply(source.songCount()), cover, tap);
-    }
+        String subtitle = labels.songCount().apply(source.songCount());
+        String coverUrl = covers.of(source.coverVideoId(), source.thumbnailUrl());
 
-    private static byte[] row(String title, String subtitle, @Nullable String coverUrl, byte[] tap) {
         ProtoWriter row = new ProtoWriter();
         if (coverUrl != null && !coverUrl.isEmpty()) row.message(ROW_IMAGE, image(coverUrl));
         row.message(ROW_TITLE, text(title));
         if (!subtitle.isEmpty()) row.message(ROW_SUBTITLE, text(subtitle));
-        return row.message(ROW_TAP, tap).toByteArray();
+        row.message(ROW_TAP, tap);
+        if (playlistCard) row.bool(ROW_PLAYLIST_CARD, ownedStream);
+        return row.toByteArray();
+    }
+
+    /**
+     * A bound Downloads playlist card's exact source id, empty if ineligible, or null for an unrelated renderer.
+     * Lite writes our unknown field after the known fields. Check the tail before starting a protobuf scan so
+     * ordinary song binds do not allocate a reader or inspect title, artwork, or menu contents for playlist ids.
+     */
+    @Nullable
+    static String playlistCardSourceId(byte[] row) {
+        int markerStart = row.length - PLAYLIST_CARD_TAIL.length;
+        if (markerStart < 0) return null;
+        int valueIndex = row.length - 1;
+        byte markerValue = row[valueIndex];
+        if (markerValue != 0 && markerValue != 1) return null;
+        for (int index = 0; markerStart + index < valueIndex; index++) {
+            if (row[markerStart + index] != PLAYLIST_CARD_TAIL[index]) return null;
+        }
+
+        try {
+            CodedInputStream input = CodedInputStream.newInstance(row);
+            String sourceId = null;
+            while (!input.isAtEnd()) {
+                int fieldStart = input.getTotalBytesRead();
+                int tag = input.readTag();
+                if (fieldStart == markerStart) return markerValue == 1 && sourceId != null ? sourceId : "";
+
+                if (markerValue == 1 && tag == lengthDelimitedTag(ROW_TAP)) {
+                    int limit = input.pushLimit(input.readRawVarint32());
+                    sourceId = playlistTapSourceId(input);
+                    input.skipRawBytes(input.getBytesUntilLimit());
+                    input.popLimit(limit);
+                } else if (!input.skipField(tag)) {
+                    break;
+                }
+            }
+        } catch (IOException ignored) {
+            // Not a Downloads playlist renderer.
+        }
+        return null;
+    }
+
+    @Nullable
+    private static String playlistTapSourceId(CodedInputStream command) throws IOException {
+        if (!seek(command, lengthDelimitedTag(BROWSE_ENDPOINT))) return null;
+
+        int limit = command.pushLimit(command.readRawVarint32());
+        String browseId = seek(command, lengthDelimitedTag(BROWSE_ID)) ? command.readStringRequireUtf8() : "";
+        command.popLimit(limit);
+
+        if (!browseId.startsWith(BROWSE_PLAYLIST_PREFIX)) return null;
+        String sourceId = browseId.substring(BROWSE_PLAYLIST_PREFIX.length());
+        return OfflineBrowsePagesLogic.isPlaylistId(sourceId) ? sourceId : null;
+    }
+
+    private static boolean seek(CodedInputStream input, int wantedTag) throws IOException {
+        while (!input.isAtEnd()) {
+            int tag = input.readTag();
+            if (tag == wantedTag) return true;
+            if (!input.skipField(tag)) return false;
+        }
+        return false;
+    }
+
+    private static int lengthDelimitedTag(int field) {
+        return (field << 3) | WireFormat.WIRETYPE_LENGTH_DELIMITED;
     }
 
     private static byte[] text(String value) {

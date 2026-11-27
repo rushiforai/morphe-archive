@@ -51,6 +51,7 @@ body:
       options:
         - ReVanced
         - Morphe
+        - Reseam
     validations:
       required: true
   - type: textarea

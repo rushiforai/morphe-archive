@@ -1,0 +1,1 @@
+package local.privacy; public final class SettingsState { static boolean enabled; static int mask; public static boolean get(String key) { return enabled; } public static int homeMask() { return mask; } }

@@ -14,10 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/**
- * The Reddit accounts signed in on the device, read from Android's account list (the app sees its own accounts
- * without a permission), for telling one's own profile from another's.
- */
 final class Accounts {
 
     private static final long REFRESH_MS = 60_000;
@@ -48,9 +44,6 @@ final class Accounts {
         return names;
     }
 
-    /**
-     * Whether any of the authors given is an account signed in on the device.
-     */
     static boolean ownsAny(List<String> authors) {
         Set<String> own = names();
         if (own.isEmpty()) return false;

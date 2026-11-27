@@ -1,0 +1,1748 @@
+{
+ "_about": "Our pick rules on top of BitChord's matcher (protocol.md §3, §4, §7), as data: every port's tests read this file. Rows and answers are an addon's raw JSON. rowsToOpen: open is in order; refused is in the order the rules refuse.",
+ "rowsToOpen": [
+  {
+   "name": "a matching row opens",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "a"
+    ],
+    "refused": []
+   }
+  },
+  {
+   "name": "Atmos rows are skipped (flag)",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours",
+     "atmos": true
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [],
+    "refused": [
+     {
+      "id": "a",
+      "why": "atmos"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Atmos rows are skipped (NullBeat isAtmos / isAtmosOnly)",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours",
+     "isAtmos": true,
+     "isAtmosOnly": true
+    },
+    {
+     "id": "b",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours",
+     "isAtmos": false
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "b"
+    ],
+    "refused": [
+     {
+      "id": "a",
+      "why": "atmos"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Atmos rows are skipped (mode text)",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours",
+     "audioModes": [
+      "DOLBY_ATMOS"
+     ]
+    },
+    {
+     "id": "b",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "b"
+    ],
+    "refused": [
+     {
+      "id": "a",
+      "why": "atmos"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Atmos rows are skipped (E-AC-3 JOC format)",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours",
+     "format": "eac3-joc"
+    },
+    {
+     "id": "b",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "b"
+    ],
+    "refused": [
+     {
+      "id": "a",
+      "why": "atmos"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a preview clip of a long song is refused",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 30,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [],
+    "refused": [
+     {
+      "id": "a",
+      "why": "preview"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a 30 s song may be 30 s long",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 30,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 31,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "a"
+    ],
+    "refused": []
+   }
+  },
+  {
+   "name": "length outside the slack is refused",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 206,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [],
+    "refused": [
+     {
+      "id": "a",
+      "why": "length"
+     }
+    ]
+   }
+  },
+  {
+   "name": "length slack is the user's (8 s)",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 206,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {
+    "slackSec": 8
+   },
+   "expect": {
+    "open": [
+     "a"
+    ],
+    "refused": []
+   }
+  },
+  {
+   "name": "downloads: ±2 s",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 203,
+     "album": "After Hours"
+    },
+    {
+     "id": "b",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 201.5,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {
+    "forDownload": true
+   },
+   "expect": {
+    "open": [
+     "b"
+    ],
+    "refused": [
+     {
+      "id": "a",
+      "why": "length"
+     }
+    ]
+   }
+  },
+  {
+   "name": "rows within 3 s go first",
+   "rows": [
+    {
+     "id": "far",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 204.5,
+     "album": "After Hours"
+    },
+    {
+     "id": "near",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 201,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "near",
+     "far"
+    ],
+    "refused": []
+   }
+  },
+  {
+   "name": "at most 3 rows open",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "b",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "c",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "d",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "a",
+     "b",
+     "c"
+    ],
+    "refused": []
+   }
+  },
+  {
+   "name": "only the first 15 rows are read",
+   "rows": [
+    {
+     "id": "x0",
+     "title": "Other 0",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x1",
+     "title": "Other 1",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x2",
+     "title": "Other 2",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x3",
+     "title": "Other 3",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x4",
+     "title": "Other 4",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x5",
+     "title": "Other 5",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x6",
+     "title": "Other 6",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x7",
+     "title": "Other 7",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x8",
+     "title": "Other 8",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x9",
+     "title": "Other 9",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x10",
+     "title": "Other 10",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x11",
+     "title": "Other 11",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x12",
+     "title": "Other 12",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x13",
+     "title": "Other 13",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "x14",
+     "title": "Other 14",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "late",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [],
+    "refused": [
+     {
+      "id": "x0",
+      "why": "not this song"
+     },
+     {
+      "id": "x1",
+      "why": "not this song"
+     },
+     {
+      "id": "x2",
+      "why": "not this song"
+     },
+     {
+      "id": "x3",
+      "why": "not this song"
+     },
+     {
+      "id": "x4",
+      "why": "not this song"
+     },
+     {
+      "id": "x5",
+      "why": "not this song"
+     },
+     {
+      "id": "x6",
+      "why": "not this song"
+     },
+     {
+      "id": "x7",
+      "why": "not this song"
+     },
+     {
+      "id": "x8",
+      "why": "not this song"
+     },
+     {
+      "id": "x9",
+      "why": "not this song"
+     },
+     {
+      "id": "x10",
+      "why": "not this song"
+     },
+     {
+      "id": "x11",
+      "why": "not this song"
+     },
+     {
+      "id": "x12",
+      "why": "not this song"
+     },
+     {
+      "id": "x13",
+      "why": "not this song"
+     },
+     {
+      "id": "x14",
+      "why": "not this song"
+     }
+    ]
+   }
+  },
+  {
+   "name": "ISRC first, whatever the title says",
+   "rows": [
+    {
+     "id": "title",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "isrc",
+     "title": "Blinding Lights - 2020 Remaster",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours",
+     "isrc": "us-ug1-19-00001"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours",
+    "isrc": "USUG11900001"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "isrc",
+     "title"
+    ],
+    "refused": []
+   }
+  },
+  {
+   "name": "an ISRC row still needs the length",
+   "rows": [
+    {
+     "id": "isrc",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 260,
+     "album": "After Hours",
+     "isrc": "USUG11900001"
+    },
+    {
+     "id": "title",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours",
+    "isrc": "USUG11900001"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "title"
+    ],
+    "refused": [
+     {
+      "id": "isrc",
+      "why": "length"
+     }
+    ]
+   }
+  },
+  {
+   "name": "no ISRC on the song: the matcher decides",
+   "rows": [
+    {
+     "id": "other",
+     "title": "Save Your Tears",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours",
+     "isrc": "USUG11900001"
+    },
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "a"
+    ],
+    "refused": [
+     {
+      "id": "other",
+      "why": "not this song"
+     }
+    ]
+   }
+  },
+  {
+   "name": "no ISRC on the rows: the matcher decides",
+   "rows": [
+    {
+     "id": "other",
+     "title": "Save Your Tears",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours",
+    "isrc": "USUG11900001"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "a"
+    ],
+    "refused": [
+     {
+      "id": "other",
+      "why": "not this song"
+     }
+    ]
+   }
+  },
+  {
+   "name": "two ISRC rows open first, in the addon's order",
+   "rows": [
+    {
+     "id": "title",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    },
+    {
+     "id": "isrc1",
+     "title": "Blinding Lights (Remastered)",
+     "artist": "The Weeknd",
+     "duration": 201,
+     "album": "The Highlights",
+     "isrc": "USUG11900001"
+    },
+    {
+     "id": "isrc2",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours",
+     "isrc": "USUG1-19-00001"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours",
+    "isrc": "USUG11900001"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "isrc1",
+     "isrc2",
+     "title"
+    ],
+    "refused": []
+   }
+  },
+  {
+   "name": "a different song is refused as such",
+   "rows": [
+    {
+     "id": "x",
+     "title": "Save Your Tears",
+     "artist": "The Weeknd",
+     "duration": 200,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [],
+    "refused": [
+     {
+      "id": "x",
+      "why": "not this song"
+     }
+    ]
+   }
+  },
+  {
+   "name": "unknown row length: kept (the probe and the fit decide)",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": null,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 200,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "a"
+    ],
+    "refused": []
+   }
+  },
+  {
+   "name": "a song length of 0 is unknown, not 0 s",
+   "rows": [
+    {
+     "id": "a",
+     "title": "Blinding Lights",
+     "artist": "The Weeknd",
+     "duration": 176,
+     "album": "After Hours"
+    }
+   ],
+   "target": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "durationSec": 0,
+    "album": "After Hours"
+   },
+   "opt": {},
+   "expect": {
+    "open": [
+     "a"
+    ],
+    "refused": []
+   }
+  }
+ ],
+ "tierOf": [
+  [
+   "FLAC 24-bit/96kHz",
+   "LOSSLESS"
+  ],
+  [
+   "ALAC",
+   "LOSSLESS"
+  ],
+  [
+   "Hi-Res",
+   "LOSSLESS"
+  ],
+  [
+   "HI_RES_LOSSLESS",
+   "LOSSLESS"
+  ],
+  [
+   "Hi Res",
+   "LOSSLESS"
+  ],
+  [
+   "16bit",
+   "LOSSLESS"
+  ],
+  [
+   "MP3 320",
+   "HIGH"
+  ],
+  [
+   "AAC",
+   "HIGH"
+  ],
+  [
+   "Opus",
+   "HIGH"
+  ],
+  [
+   "AAC 128 kbps",
+   "LOW"
+  ],
+  [
+   "low",
+   "LOW"
+  ],
+  [
+   "96",
+   "LOW"
+  ],
+  [
+   "",
+   null
+  ]
+ ],
+ "kbps": [
+  [
+   {
+    "audioQuality": "MP3 256 kbps"
+   },
+   256
+  ],
+  [
+   {
+    "format": "AAC",
+    "audioQuality": "320kbps"
+   },
+   320
+  ],
+  [
+   {
+    "format": "FLAC"
+   },
+   null
+  ]
+ ],
+ "probeVerdict": [
+  {
+   "name": "a whole FLAC passes",
+   "head": {
+    "status": 206,
+    "contentRange": "bytes 0-0/30000000"
+   },
+   "row": {
+    "tier": "LOSSLESS"
+   },
+   "songSec": 200,
+   "slackSec": 5,
+   "expect": {
+    "ok": true
+   }
+  },
+  {
+   "name": "a 30 s FLAC cut is refused",
+   "head": {
+    "status": 206,
+    "contentRange": "bytes 0-0/700000"
+   },
+   "row": {
+    "tier": "LOSSLESS"
+   },
+   "songSec": 200,
+   "slackSec": 5,
+   "expect": {
+    "ok": false,
+    "why": "file holds at most 28 s"
+   }
+  },
+  {
+   "name": "MP3: the floor is 64 kbps (1.6 MB holds 200 s)",
+   "head": {
+    "status": 206,
+    "contentRange": "bytes 0-0/1600000"
+   },
+   "row": {
+    "tier": "HIGH",
+    "kbps": 320
+   },
+   "songSec": 200,
+   "slackSec": 5,
+   "expect": {
+    "ok": true
+   }
+  },
+  {
+   "name": "a 206 without Content-Range is unmeasurable, not 1 byte",
+   "head": {
+    "status": 206,
+    "contentLength": "1"
+   },
+   "row": {
+    "tier": "LOSSLESS"
+   },
+   "songSec": 200,
+   "slackSec": 5,
+   "expect": {
+    "ok": true
+   }
+  },
+  {
+   "name": "a 200 answer's Content-Length counts",
+   "head": {
+    "status": 200,
+    "contentLength": "500000"
+   },
+   "row": {
+    "tier": "LOSSLESS"
+   },
+   "songSec": 200,
+   "slackSec": 5,
+   "expect": {
+    "ok": false,
+    "why": "file holds at most 20 s"
+   }
+  },
+  {
+   "name": "unmeasurable is not refused",
+   "head": {},
+   "row": {
+    "tier": "LOSSLESS"
+   },
+   "songSec": 200,
+   "slackSec": 5,
+   "expect": {
+    "ok": true
+   }
+  }
+ ],
+ "paramsFor": [
+  {
+   "name": "settings in order, atmos=false, quality last: LOSSLESS takes the first option",
+   "manifest": {
+    "id": "case.1",
+    "settings": [
+     {
+      "key": "region",
+      "default": "eu",
+      "options": []
+     },
+     {
+      "key": "atmos",
+      "default": true,
+      "options": []
+     },
+     {
+      "key": "quality",
+      "default": "hires",
+      "options": [
+       {
+        "value": "max",
+        "label": "MAX"
+       },
+       {
+        "value": "hires",
+        "label": "HiRes"
+       },
+       {
+        "value": "high",
+        "label": "AAC (320kbps)"
+       }
+      ]
+     }
+    ]
+   },
+   "tier": "LOSSLESS",
+   "picked": null,
+   "expect": [
+    [
+     "region",
+     "eu"
+    ],
+    [
+     "atmos",
+     "false"
+    ],
+    [
+     "quality",
+     "max"
+    ]
+   ]
+  },
+  {
+   "name": "LOSSLESS: the user's pick when still listed",
+   "manifest": {
+    "id": "case.2",
+    "settings": [
+     {
+      "key": "region",
+      "default": "eu",
+      "options": []
+     },
+     {
+      "key": "atmos",
+      "default": true,
+      "options": []
+     },
+     {
+      "key": "quality",
+      "default": "hires",
+      "options": [
+       {
+        "value": "max",
+        "label": "MAX"
+       },
+       {
+        "value": "hires",
+        "label": "HiRes"
+       },
+       {
+        "value": "high",
+        "label": "AAC (320kbps)"
+       }
+      ]
+     }
+    ]
+   },
+   "tier": "LOSSLESS",
+   "picked": "hires",
+   "expect": [
+    [
+     "region",
+     "eu"
+    ],
+    [
+     "atmos",
+     "false"
+    ],
+    [
+     "quality",
+     "hires"
+    ]
+   ]
+  },
+  {
+   "name": "LOSSLESS: a pick no longer listed falls back to the first",
+   "manifest": {
+    "id": "case.3",
+    "settings": [
+     {
+      "key": "region",
+      "default": "eu",
+      "options": []
+     },
+     {
+      "key": "atmos",
+      "default": true,
+      "options": []
+     },
+     {
+      "key": "quality",
+      "default": "hires",
+      "options": [
+       {
+        "value": "max",
+        "label": "MAX"
+       },
+       {
+        "value": "hires",
+        "label": "HiRes"
+       },
+       {
+        "value": "high",
+        "label": "AAC (320kbps)"
+       }
+      ]
+     }
+    ]
+   },
+   "tier": "LOSSLESS",
+   "picked": "gone",
+   "expect": [
+    [
+     "region",
+     "eu"
+    ],
+    [
+     "atmos",
+     "false"
+    ],
+    [
+     "quality",
+     "max"
+    ]
+   ]
+  },
+  {
+   "name": "HIGH: by label (320)",
+   "manifest": {
+    "id": "case.4",
+    "settings": [
+     {
+      "key": "region",
+      "default": "eu",
+      "options": []
+     },
+     {
+      "key": "atmos",
+      "default": true,
+      "options": []
+     },
+     {
+      "key": "quality",
+      "default": "hires",
+      "options": [
+       {
+        "value": "max",
+        "label": "MAX"
+       },
+       {
+        "value": "hires",
+        "label": "HiRes"
+       },
+       {
+        "value": "high",
+        "label": "AAC (320kbps)"
+       }
+      ]
+     }
+    ]
+   },
+   "tier": "HIGH",
+   "picked": null,
+   "expect": [
+    [
+     "region",
+     "eu"
+    ],
+    [
+     "atmos",
+     "false"
+    ],
+    [
+     "quality",
+     "high"
+    ]
+   ]
+  },
+  {
+   "name": "LOW: no low option: the high one (ours; BitChord: the first)",
+   "manifest": {
+    "id": "case.5",
+    "settings": [
+     {
+      "key": "region",
+      "default": "eu",
+      "options": []
+     },
+     {
+      "key": "atmos",
+      "default": true,
+      "options": []
+     },
+     {
+      "key": "quality",
+      "default": "hires",
+      "options": [
+       {
+        "value": "max",
+        "label": "MAX"
+       },
+       {
+        "value": "hires",
+        "label": "HiRes"
+       },
+       {
+        "value": "high",
+        "label": "AAC (320kbps)"
+       }
+      ]
+     }
+    ]
+   },
+   "tier": "LOW",
+   "picked": null,
+   "expect": [
+    [
+     "region",
+     "eu"
+    ],
+    [
+     "atmos",
+     "false"
+    ],
+    [
+     "quality",
+     "high"
+    ]
+   ]
+  },
+  {
+   "name": "LOW: no low or high option: the last (ours)",
+   "manifest": {
+    "id": "case.5",
+    "settings": [
+     {
+      "key": "region",
+      "default": "eu",
+      "options": []
+     },
+     {
+      "key": "atmos",
+      "default": true,
+      "options": []
+     },
+     {
+      "key": "quality",
+      "default": "hires",
+      "options": [
+       {
+        "value": "max",
+        "label": "MAX"
+       },
+       {
+        "value": "hires",
+        "label": "HiRes"
+       },
+       {
+        "value": "cd",
+        "label": "CD"
+       }
+      ]
+     }
+    ]
+   },
+   "tier": "LOW",
+   "picked": null,
+   "expect": [
+    [
+     "region",
+     "eu"
+    ],
+    [
+     "atmos",
+     "false"
+    ],
+    [
+     "quality",
+     "cd"
+    ]
+   ]
+  },
+  {
+   "name": "no quality setting: the tier name",
+   "manifest": {
+    "id": "case.6",
+    "settings": []
+   },
+   "tier": "LOW",
+   "picked": null,
+   "expect": [
+    [
+     "quality",
+     "LOW"
+    ]
+   ]
+  }
+ ],
+ "readStream": [
+  {
+   "name": "FLAC; kHz read as Hz",
+   "answer": {
+    "url": "https://cdn/x.flac",
+    "format": "flac",
+    "quality": "Hi-Res",
+    "codec": "flac",
+    "container": "flac",
+    "sampleRate": 96,
+    "bitDepth": 24
+   },
+   "expect": {
+    "codec": "flac",
+    "transport": "file",
+    "tier": "LOSSLESS",
+    "sampleRate": 96000,
+    "bitDepth": 24,
+    "bitrate": null,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "an Atmos answer is refused",
+   "answer": {
+    "url": "https://cdn/x.m4a",
+    "codec": "eac3_joc",
+    "audioMode": "DOLBY_ATMOS"
+   },
+   "expect": {
+    "miss": "atmos"
+   }
+  },
+  {
+   "name": "encrypted is refused",
+   "answer": {
+    "url": "https://cdn/x",
+    "encrypted": "widevine"
+   },
+   "expect": {
+    "miss": "encrypted"
+   }
+  },
+  {
+   "name": "encrypted \"none\" is fine",
+   "answer": {
+    "url": "https://cdn/x.mp3",
+    "encrypted": "none",
+    "bitrate": 320000
+   },
+   "expect": {
+    "codec": "mp3",
+    "transport": "file",
+    "tier": null,
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": 320,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "HLS seen in the URL",
+   "answer": {
+    "url": "https://cdn/x.m3u8",
+    "format": "aac"
+   },
+   "expect": {
+    "codec": null,
+    "transport": "hls",
+    "tier": "HIGH",
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": 320,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "DASH from the manifest field",
+   "answer": {
+    "url": "https://cdn/x",
+    "manifest": "dash",
+    "format": "aac"
+   },
+   "expect": {
+    "codec": null,
+    "transport": "dash",
+    "tier": "HIGH",
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": 320,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "bitrate in bit/s",
+   "answer": {
+    "url": "https://cdn/x.mp3",
+    "bitrate": 320000
+   },
+   "expect": {
+    "codec": "mp3",
+    "transport": "file",
+    "tier": null,
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": 320,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "no bitrate: 320 for HIGH",
+   "answer": {
+    "url": "https://cdn/x.mp3",
+    "format": "MP3"
+   },
+   "expect": {
+    "codec": "mp3",
+    "transport": "file",
+    "tier": "HIGH",
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": 320,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "numbers from the quality text",
+   "answer": {
+    "url": "https://cdn/x",
+    "quality": "FLAC 24-bit 192 kHz"
+   },
+   "expect": {
+    "codec": "flac",
+    "transport": "file",
+    "tier": "LOSSLESS",
+    "sampleRate": 192000,
+    "bitDepth": 24,
+    "bitrate": null,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "headers: strings with valid names only; the cached flag",
+   "answer": {
+    "url": "https://cdn/x.flac",
+    "codec": "flac",
+    "headers": {
+     "X-Token": "abc",
+     "bad header": "x",
+     "n": 5,
+     "obj": {}
+    },
+    "cached": true
+   },
+   "expect": {
+    "codec": "flac",
+    "transport": "file",
+    "tier": "LOSSLESS",
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": null,
+    "headers": {
+     "X-Token": "abc",
+     "n": "5"
+    },
+    "cached": true
+   }
+  },
+  {
+   "name": "no url is a miss (its error)",
+   "answer": {
+    "error": "gone"
+   },
+   "expect": {
+    "miss": "gone"
+   }
+  },
+  {
+   "name": "an addon's User-Agent, Range and Accept-Encoding are dropped (one fixed UA; ours)",
+   "answer": {
+    "url": "https://cdn/x.flac",
+    "codec": "flac",
+    "headers": {
+     "User-Agent": "BitChord/v1.9.1",
+     "range": "bytes=5-",
+     "Accept-Encoding": "gzip",
+     "X-Key": "k"
+    }
+   },
+   "expect": {
+    "codec": "flac",
+    "transport": "file",
+    "tier": "LOSSLESS",
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": null,
+    "headers": {
+     "X-Key": "k"
+    },
+    "cached": false
+   }
+  },
+  {
+   "name": "a plain http stream link is refused, not probed",
+   "answer": {
+    "url": "http://cdn.example/x.flac",
+    "codec": "flac"
+   },
+   "expect": {
+    "miss": "not https"
+   }
+  },
+  {
+   "name": "a progressive file whose path has \"dash\" in a word",
+   "answer": {
+    "url": "https://cdn/Dashboard.flac"
+   },
+   "expect": {
+    "codec": "flac",
+    "transport": "file",
+    "tier": null,
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": null,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "a progressive file whose token has \"mpd\" in it",
+   "answer": {
+    "url": "https://cdn/x.flac?t=xxmpdxx"
+   },
+   "expect": {
+    "codec": "flac",
+    "transport": "file",
+    "tier": null,
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": null,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "a progressive file on a host named hls",
+   "answer": {
+    "url": "https://hls.cdn/x.mp3"
+   },
+   "expect": {
+    "codec": "mp3",
+    "transport": "file",
+    "tier": null,
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": null,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "HLS by the path extension",
+   "answer": {
+    "url": "https://cdn/a.m3u8"
+   },
+   "expect": {
+    "codec": null,
+    "transport": "hls",
+    "tier": null,
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": null,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "DASH by the path extension, a query after it",
+   "answer": {
+    "url": "https://cdn/a.mpd?t=1"
+   },
+   "expect": {
+    "codec": null,
+    "transport": "dash",
+    "tier": null,
+    "sampleRate": null,
+    "bitDepth": null,
+    "bitrate": null,
+    "headers": {},
+    "cached": false
+   }
+  },
+  {
+   "name": "HLS from the MIME type",
+   "answer": {
+    "url": "https://cdn/x",
+    "mimeType": "application/vnd.apple.mpegurl"
+   },
+   "expect": {
+    "transport": "hls"
+   }
+  }
+ ],
+ "baseOf": [
+  [
+   " https://h.example/TOKEN/manifest.json/ ",
+   "https://h.example/TOKEN"
+  ],
+  [
+   "https://h.example/TOKEN",
+   "https://h.example/TOKEN"
+  ],
+  [
+   "https://h.example/a/b/config.json",
+   "https://h.example/a/b"
+  ]
+ ],
+ "sameAddon": [
+  [
+   "https://H.example/a",
+   "https://h.example/a/manifest.json",
+   true
+  ],
+  [
+   "https://h.example/A",
+   "https://h.example/a",
+   false
+  ],
+  [
+   "http://h.example/a",
+   "https://h.example/a",
+   false
+  ]
+ ],
+ "loudnessGain": [
+  { "name": "a loud song: cut by loudnessDb", "audioConfig": { "loudnessDb": 6.3 }, "expectDb": -6.3 },
+  { "name": "a quiet song: no boost", "audioConfig": { "loudnessDb": -4.2 }, "expectDb": 0 },
+  { "name": "exactly at YouTube's reference: nothing", "audioConfig": { "loudnessDb": 0 }, "expectDb": 0 },
+  { "name": "no loudnessDb: nothing", "audioConfig": {}, "expectDb": 0 },
+  { "name": "only perceptualLoudnessDb: not used, nothing", "audioConfig": { "perceptualLoudnessDb": 3.1 }, "expectDb": 0 },
+  { "name": "both: loudnessDb, never perceptualLoudnessDb", "audioConfig": { "loudnessDb": 2, "perceptualLoudnessDb": -9.5 }, "expectDb": -2 }
+ ],
+ "windowLevel": [
+  {"_about": "offset-map.md, Level [phone only]. Envelopes are built, not stored: 40 s of 10 ms frames, frame i of YouTube's copy = 10^(ytDb/20)·(0.05 + 0.04·sin(i/37)); the file's frame i is YouTube's frame round(i − offsetSec/0.01) times 10^((fileDb − ytDb)/20), 0 where that frame is outside YouTube's envelope or i·0.01 < fileSilentSec. expectDb is the gain played: the measured gain, 0 under 2 s of sound, at most +6."},
+  {"name": "the same master: 0 dB", "input": {"ytDb": 0, "fileDb": 0, "offsetSec": 0, "fromSec": 0, "untilSec": 12}, "expectDb": 0},
+  {"name": "the file 7.5 dB under YouTube's copy: the boost is capped at +6 dB", "input": {"ytDb": 0, "fileDb": -7.5, "offsetSec": 0, "fromSec": 0, "untilSec": 12}, "expectDb": 6},
+  {"name": "the file 3 dB over YouTube's copy: cut by 3 dB", "input": {"ytDb": 0, "fileDb": 3, "offsetSec": 0, "fromSec": 0, "untilSec": 12}, "expectDb": -3},
+  {"name": "the file 12 dB over: cuts are unlimited", "input": {"ytDb": 0, "fileDb": 12, "offsetSec": 0, "fromSec": 0, "untilSec": 12}, "expectDb": -12},
+  {"name": "the same seconds through the offset: the file 1.5 s later and 2 dB quieter, window 5-17 s", "input": {"ytDb": 0, "fileDb": -2, "offsetSec": 1.5, "fromSec": 5, "untilSec": 17}, "expectDb": 2},
+  {"name": "silent frames are left out: the file's first 6 s silent, 4 dB quieter", "input": {"ytDb": 0, "fileDb": -4, "fileSilentSec": 6, "offsetSec": 0, "fromSec": 0, "untilSec": 12}, "expectDb": 4},
+  {"name": "too little sound: 1 s of it in a 0-7 s window gives 0 dB", "input": {"ytDb": 0, "fileDb": -4, "fileSilentSec": 6, "offsetSec": 0, "fromSec": 0, "untilSec": 7}, "expectDb": 0}
+ ],
+ "qualityRank": [
+  { "name": "FLAC 16/44.1: lossless", "stream": { "codec": "flac", "bitDepth": 16, "sampleRate": 44100}, "expect": 1},
+  { "name": "FLAC 24/96: Hi-Res", "stream": { "codec": "flac", "bitDepth": 24, "sampleRate": 96000}, "expect": 2},
+  { "name": "FLAC 16/96: Hi-Res (over 48 kHz)", "stream": { "codec": "flac", "bitDepth": 16, "sampleRate": 96000}, "expect": 2},
+  { "name": "ALAC 24/48: Hi-Res (over 16-bit)", "stream": { "codec": "alac", "bitDepth": 24, "sampleRate": 48000}, "expect": 2},
+  { "name": "lossless tier, no codec: lossless", "stream": { "tier": "LOSSLESS" }, "expect": 1},
+  { "name": "lossless tier with a lossy codec: lossy", "stream": { "tier": "LOSSLESS", "codec": "aac", "bitrate": 320}, "expect": 0},
+  { "name": "MP3 320: lossy", "stream": { "codec": "mp3", "bitrate": 320}, "expect": 0}
+ ],
+ "floorVerdict": [
+  { "name": "lossless: always", "stream": { "codec": "flac", "bitDepth": 16, "sampleRate": 44100}, "ytKbps": 160, "expect": true},
+  { "name": "320 kbps over YouTube's 160: 160 over, kept", "stream": { "codec": "mp3", "bitrate": 320}, "ytKbps": 160, "expect": true},
+  { "name": "256 kbps over YouTube's 160: exactly 96 over, kept", "stream": { "codec": "aac", "bitrate": 256}, "ytKbps": 160, "expect": true},
+  { "name": "255 kbps over YouTube's 160: refused", "stream": { "codec": "aac", "bitrate": 255}, "ytKbps": 160, "expect": "lossy 255 kbps, not 96 kbps over YouTube's 160" },
+  { "name": "320 kbps over Premium's 256: refused", "stream": { "codec": "mp3", "bitrate": 320}, "ytKbps": 256, "expect": "lossy 320 kbps, not 96 kbps over YouTube's 256" },
+  { "name": "YouTube's bitrate unknown: 160 assumed", "stream": { "codec": "mp3", "bitrate": 320}, "ytKbps": 0, "expect": true},
+  { "name": "lossy, no bitrate: refused", "stream": { "codec": "opus" }, "ytKbps": 160, "expect": "lossy, bitrate unknown" }
+ ],
+ "upgradeWanted": [
+  { "name": "a lossy copy, Best asked: the addons again, lossless or better", "stream": { "codec": "mp3", "bitrate": 320}, "tier": "LOSSLESS", "cached": false, "expect": { "aboveOnly": false, "minRank": 1}},
+  { "name": "a lossy copy, High asked: no pass", "stream": { "codec": "mp3", "bitrate": 320}, "tier": "HIGH", "cached": false, "expect": null},
+  { "name": "a fresh 16-bit copy, Best asked: no pass (only lossy is followed)", "stream": { "codec": "flac", "bitDepth": 16, "sampleRate": 44100}, "tier": "LOSSLESS", "cached": false, "expect": null},
+  { "name": "a cached 16-bit copy, Best asked: the addons above it, Hi-Res", "stream": { "codec": "flac", "bitDepth": 16, "sampleRate": 44100}, "tier": "LOSSLESS", "cached": true, "expect": { "aboveOnly": true, "minRank": 2}},
+  { "name": "a cached 16-bit copy, CD asked: no pass", "stream": { "codec": "flac", "bitDepth": 16, "sampleRate": 44100}, "tier": "CD", "cached": true, "expect": null},
+  { "name": "a cached lossy copy, CD asked: the addons above it, lossless", "stream": { "codec": "aac", "bitrate": 320}, "tier": "CD", "cached": true, "expect": { "aboveOnly": true, "minRank": 1}},
+  { "name": "a cached Hi-Res copy, Best asked: no pass", "stream": { "codec": "flac", "bitDepth": 24, "sampleRate": 96000}, "tier": "LOSSLESS", "cached": true, "expect": null}
+ ]
+}

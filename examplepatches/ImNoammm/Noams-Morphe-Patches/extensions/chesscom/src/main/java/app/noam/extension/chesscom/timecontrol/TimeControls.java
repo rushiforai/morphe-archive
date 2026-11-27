@@ -8,9 +8,10 @@ import app.noam.extension.chesscom.Features;
 import app.noam.extension.chesscom.Utils;
 
 /**
- * The app's minutes slider runs from 0 to 120 and clamps to one minute. The patch adds stops left
- * of it for the sub-minute times; GameTime keeps minutes as a float, so 30 seconds is 0.5 there.
- * The server accepts these times, the app only lacks the UI.
+ * The app's minutes slider runs from 0 to 120 and clamps to one minute. The patch puts stops for
+ * the sub-minute times at its start, shifting the minutes along (the slider always starts at 0);
+ * GameTime keeps minutes as a float, so 30 seconds is 0.5 there. The server accepts these times,
+ * the app only lacks the UI.
  */
 public final class TimeControls {
     /** Seconds offered below one minute, left to right on the slider. */
@@ -26,26 +27,32 @@ public final class TimeControls {
         return Features.isEnabled(Features.SHORT_TIME_CONTROLS);
     }
 
-    /** Leftmost slider stop: 0 in the app, lower when sub-minute stops are added. */
-    public static int sliderMin() {
-        return enabled() ? 1 - SUB_MINUTE_SECONDS.length : 0;
+    /** How far the minutes move right: one stop per sub-minute time below the app's one minute. */
+    private static int shift() {
+        return enabled() ? SUB_MINUTE_SECONDS.length - 1 : 0;
     }
 
-    /** Slider stop for a time: whole minutes as before, or the nearest sub-minute stop. */
+    /** The slider's last stop, moved right with the minutes. */
+    public static int sliderMax(int max) {
+        return max + shift();
+    }
+
+    /** Slider stop for a time: whole minutes as before (shifted), or the nearest sub-minute stop. */
     public static int sliderPosition(Object gameTime) {
         int seconds = seconds(gameTime);
-        if (!enabled() || seconds >= 60) return seconds / 60;
+        if (!enabled() || seconds >= 60) return seconds / 60 + shift();
         int nearest = 0;
         for (int i = 1; i < SUB_MINUTE_SECONDS.length; i++) {
             if (Math.abs(SUB_MINUTE_SECONDS[i] - seconds) < Math.abs(SUB_MINUTE_SECONDS[nearest] - seconds)) {
                 nearest = i;
             }
         }
-        return nearest - (SUB_MINUTE_SECONDS.length - 1);
+        return nearest;
     }
 
     /** Minutes (fractional below one) for a slider stop; the app's own clamp when disabled. */
-    public static float minutesForPosition(int position) {
+    public static float minutesForPosition(int stop) {
+        int position = stop - shift();
         if (position >= 1 || !enabled()) return Math.max(position, 1);
         int index = position + SUB_MINUTE_SECONDS.length - 1;
         index = Math.max(0, Math.min(SUB_MINUTE_SECONDS.length - 1, index));

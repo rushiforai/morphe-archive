@@ -40,8 +40,23 @@ public final class RestartBar {
      * @param dynamic  whether the user turned Material You on
      */
     public static void show(Activity activity, int bottom, boolean dynamic) {
+        View bar = keep(activity, bottom, dynamic);
+        if (bar == null) return;
         ViewGroup root = activity.findViewById(android.R.id.content);
-        if (root == null) return;
+        bar.postDelayed(() -> root.removeView(bar), 6000);
+    }
+
+    /**
+     * Like {@link #show(Activity, int, boolean)}, with a bar that stays on the screen.
+     *
+     * @param activity the activity to show it in
+     * @param bottom   extra space under the bar, in pixels
+     * @param dynamic  whether the user turned Material You on
+     * @return the bar, or null when the activity has no content view
+     */
+    public static View keep(Activity activity, int bottom, boolean dynamic) {
+        ViewGroup root = activity.findViewById(android.R.id.content);
+        if (root == null) return null;
         View old = root.findViewWithTag(TAG);
         if (old != null) root.removeView(old);
         boolean night = MaterialYou.night(activity);
@@ -83,6 +98,6 @@ public final class RestartBar {
         int margin = Math.round(16 * density);
         params.setMargins(margin, margin, margin, margin + bottom);
         root.addView(bar, params);
-        bar.postDelayed(() -> root.removeView(bar), 6000);
+        return bar;
     }
 }

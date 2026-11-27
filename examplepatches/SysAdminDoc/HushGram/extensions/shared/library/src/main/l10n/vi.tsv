@@ -288,6 +288,9 @@ Feed videos and stories wait for your tap. Reels and videos in Explore play as I
 Turn on Tap to play to use this choice.	Hãy bật Nhấn để phát để dùng lựa chọn này.
 Resume long videos	Tiếp tục xem video dài
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Video và reel dài hơn hai phút tiếp tục từ chỗ bạn dừng. Hãy tua để bắt đầu ở nơi khác. Video trực tiếp và quảng cáo bắt đầu như bình thường.
+# context: a switch under Resume long videos (#874). A feed video you scroll past and come back to keeps playing from where it was, only until Instagram closes. The Reels tab is Instagram's own tab.
+Keep your place in feed videos	Nhớ vị trí trong video bảng feed
+A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over as usual.	Video bảng feed bạn cuộn qua sẽ tiếp tục từ chỗ bạn dừng khi bạn cuộn lại, cho đến khi bạn đóng Instagram. Reel trong tab Reels vẫn bắt đầu lại như bình thường.
 Default playback quality	Chất lượng phát mặc định
 # context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
 Videos, reels and stories play at the quality below, starting with the next one you open.	Video, reel và tin phát ở chất lượng bên dưới, bắt đầu từ mục tiếp theo bạn mở.
@@ -768,6 +771,9 @@ The latitude and the longitude in degrees, with a comma between them, like 40.75
 Turn off HDR brightness boosts	Tắt tăng độ sáng HDR
 Keep HDR on photo uploads	Giữ HDR khi tải ảnh lên
 Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	Thử nghiệm. Ảnh Ultra HDR bạn đăng giữ lại gain map trên Android 14 trở lên, nên vẫn có thể hiển thị ở HDR. Hãy tắt nếu ảnh bạn đăng trông không đúng.
+# context: Keep HDR on video uploads, under Playback next to the photo switch. Instagram encodes a video again before it uploads it; HDR means HLG here.
+Keep HDR on video uploads	Giữ HDR khi tải video lên
+Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong or won't upload.	Thử nghiệm. Video HDR bạn đăng được mã hóa ở HDR trên Android 13 trở lên, trong khi Instagram sẽ chuyển nó thành SDR trên một số điện thoại. Hãy tắt nếu video bạn đăng trông không đúng hoặc không tải lên được.
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	Nội dung bạn mở từ tìm kiếm không vào mục Gần đây, cả trong ứng dụng và phía Instagram. Nội dung tìm đã có vẫn ở đó cho đến khi bạn xóa.
 Wi-Fi stays as it is. Turn this off to save data on every network.	Wi-Fi giữ nguyên. Hãy tắt mục này để tiết kiệm dữ liệu trên mọi mạng.
 Hide comments	Ẩn bình luận
@@ -1084,6 +1090,8 @@ Stop the analytics upload alarm	Ngừng báo thức tải phân tích
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram đặt báo thức để đánh thức điện thoại và gửi sự kiện sử dụng sau năm phút. Mục này ngăn báo thức đó. Các sự kiện sẽ gửi vào lần tới bạn dùng ứng dụng.
 Stop background feed refresh	Ngừng làm mới bảng tin trong nền
 About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Khoảng nửa giờ một lần, Instagram đánh thức điện thoại để tải trước bảng tin. Mục này ngăn điều đó. Bảng tin sẽ tải khi bạn mở ứng dụng, còn tin nhắn và thông báo vẫn đến.
+Let Instagram close after account checks	Cho Instagram đóng sau khi kiểm tra tài khoản
+When your phone checks its accounts, as it does at startup and when an account changes, Instagram never answers. Android then keeps it running for up to 15 minutes, even after you swipe it away. This answers right away so Instagram can close. Your login is unaffected.	Khi điện thoại kiểm tra các tài khoản, như lúc khởi động và khi một tài khoản thay đổi, Instagram không bao giờ trả lời. Android khi đó giữ nó chạy tới 15 phút, kể cả sau khi bạn vuốt để đóng. Mục này trả lời ngay để Instagram có thể đóng. Việc đăng nhập không bị ảnh hưởng.
 Haptic style	Kiểu rung
 Short tick	Rung ngắn
 System tick	Rung hệ thống
@@ -1837,6 +1845,21 @@ Seek bar button on feed videos	Nút thanh tua trên video bảng feed
 Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	Thêm nút nhỏ ở dưới bên trái video bảng feed để hiện hoặc ẩn thanh tua. Dùng được dù Thanh tua trên video bảng feed bật hay tắt.
 Seek bar	Thanh tua
 Tint intensity	Độ đậm màu
+# context: Tab bar: the Tint color list under Tint intensity that picks the glass tab bar's color, its choices' descriptions, the Custom tint color field under it with its dialog message and empty summary, and what both say while another switch is in the way (#875). Light, Dark and AMOLED black are choices in the list; Tint intensity, Custom tint color, Glass tab bar and Material look are rows' names
+Tint color	Màu kính
+Light	Sáng
+Dark	Tối
+AMOLED black	Đen AMOLED
+The glass takes Instagram's own colors, dark or light with its theme.	Kính lấy màu của chính Instagram, tối hoặc sáng theo Instagram.
+Frosted white glass whatever Instagram's theme, with the tab icons dark on it.	Kính trắng mờ dù Instagram tối hay sáng, với biểu tượng tab màu tối trên đó.
+Dark gray glass whatever Instagram's theme, with the tab icons white on it.	Kính xám đậm dù Instagram tối hay sáng, với biểu tượng tab màu trắng trên đó.
+A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.	Viên thanh màu đen không bóng, cho màn hình AMOLED. Độ đậm màu thấp hơn sẽ để lộ phía sau.
+The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones keep Instagram's colors.	Kính lấy màu nhấn mà Android chọn từ hình nền của bạn. Android 12 trở lên. Điện thoại cũ hơn giữ màu của Instagram.
+The glass takes the color you type under Custom tint color.	Kính lấy màu bạn nhập trong Màu kính tùy chỉnh.
+Custom tint color	Màu kính tùy chỉnh
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.	Một màu gồm sáu chữ số hex, như #4A6B82. Lưu lại sẽ chọn Tùy chỉnh trong Màu kính.
+Turn on Glass tab bar to use this choice.	Hãy bật Thanh tab kính để dùng lựa chọn này.
+Turn off Material look to use this choice.	Hãy tắt Kiểu Material để dùng lựa chọn này.
 Refraction intensity	Độ khúc xạ
 Preview of the tab bar	Xem trước thanh tab
 Keep stories playing while zooming	Giữ tin phát khi thu phóng
@@ -2249,6 +2272,9 @@ Instagram's small window for reels gets a button to pause the reel and play it a
 # context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
 Previous and next in the reels window	Trước và tiếp theo trong cửa sổ reel
 Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	Cửa sổ nhỏ của Instagram cho reel có thêm các nút riêng của Instagram để quay lại reel trước hoặc sang reel tiếp theo.
+# context: a switch on the Playback page under Previous and next in the reels window; photo and carousel reels go in Instagram's small picture in picture window for reels, a carousel shows a dot per page, and the window's Previous and Next buttons turn its pages before moving to another reel (#873)
+Photos and carousels in the reels window	Ảnh và băng chuyền trong cửa sổ reel
+Photo and carousel reels go in Instagram's small window for reels too. A carousel shows a dot for each page, and Previous and Next go through its pages first.	Reel ảnh và reel băng chuyền cũng vào cửa sổ nhỏ của Instagram cho reel. Băng chuyền hiện một chấm cho mỗi trang, và Trước và Tiếp theo đi qua các trang của nó trước.
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	Hình trong hình cho tin
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	Khi bạn rời Instagram lúc một tin đang phát, nó thu nhỏ thành một cửa sổ nhỏ nằm trên các ứng dụng khác và tiếp tục chuyển qua các tin.
@@ -2696,6 +2722,9 @@ HushGram's own files take up %1$s.	Tệp riêng của HushGram chiếm %1$s.
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	Thấu kính kính dưới ngón tay
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	Giữ ngón tay trên bong bóng của viên kính lỏng, hoặc trượt nó qua các tab, bong bóng sẽ phồng lên và bẻ cong mạnh hơn những gì phía sau, như kính dưới đầu ngón tay. Bong bóng trở lại như cũ khi bạn thả tay. Hiệu ứng bẻ cong cần Làm mờ phía sau thanh tab và Android 13 trở lên. Hãy khởi động lại Instagram sau khi thay đổi.
+# context: Tab bar: switch under Glass lens under your finger that keeps Instagram's Search tab inside the liquid pill with the other tabs instead of in a glass circle of its own, and its description (#875). Search is Instagram's tab, named as it is there; Liquid glass look is another switch's name
+Keep Search in the pill	Giữ Tìm kiếm trong viên thanh
+With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass circle of its own. Restart Instagram after changing it.	Khi Kiểu kính lỏng bật, Tìm kiếm nằm trong viên thanh cùng các tab khác thay vì trong một vòng kính riêng. Hãy khởi động lại Instagram sau khi thay đổi.
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	Giữ danh sách người xem tin
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	Mỗi lần bạn mở xem ai đã xem một tin của bạn, danh sách sẽ được giữ trên điện thoại này và đặt cạnh người theo dõi của bạn. Không yêu cầu thêm gì từ Instagram. Tắt đi là dừng ngay.
@@ -3002,3 +3031,11 @@ Settings page logo set.	Đã đặt logo trang cài đặt.
 HushGram shows at the top of this page.	HushGram hiện ở đầu trang này.
 # context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
 The top of this page says %1$s.	Đầu trang này ghi %1$s.
+# context: Settings > Downloads > switch title, under Name saves by account and post time (#792)
+Date saves by when they were posted	Ghi ngày bản lưu theo giờ đăng
+# context: Settings > Downloads > summary of Date saves by when they were posted (#792)
+Gives each saved photo and video the time its post went up, so your gallery sorts saves by the post instead of the day you saved them. A save that doesn't know when it was posted keeps the time it was saved.	Gán cho mỗi ảnh và video đã lưu thời điểm bài đăng được đăng, để thư viện sắp xếp bản lưu theo bài đăng thay vì ngày bạn lưu. Bản lưu không biết khi nào được đăng vẫn giữ thời điểm được lưu.
+# context: Profiles > title of the switch that adds a Select all button beside Instagram's own Select on the grids in Your activity (#762); Your activity is Instagram's own page in the profile menu, use the name Instagram shows for it in this language
+Select all in Your activity	Chọn tất cả trong Hoạt động của bạn
+# context: Profiles > summary of Select all in Your activity (#762). Select, Delete and Unlike are Instagram's own buttons on those grids; use the words Instagram shows there in this language
+Adds Select all beside Select on the photo and video grids in Your activity, like your posts, reels and likes. Tick one first and it shows. It only ticks them. Nothing goes until you press Delete or Unlike yourself.	Thêm Chọn tất cả cạnh nút Chọn trên lưới ảnh và video trong Hoạt động của bạn, như bài viết, Reels và lượt thích của bạn. Nút này hiện ra khi bạn đánh dấu một mục. Nó chỉ đánh dấu chúng. Không gì bị mất cho đến khi chính bạn nhấn Xóa hoặc Bỏ thích.

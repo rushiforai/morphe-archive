@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import app.morphe.extension.facebook.feed.SeenPosts;
+import app.morphe.extension.facebook.media.VideoStarts;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.notifications.PushDiagnostics;
 import app.morphe.extension.facebook.reels.BurnInGuard;
@@ -51,7 +52,8 @@ public enum PatchFamily {
             Settings.HIDE_STORIES_YOU_MIGHT_LIKE,
             Settings.HIDE_FEED_MEMORIES, Settings.HIDE_FEED_FRIEND_REQUESTS, Settings.HIDE_FRIENDS_LOCATIONS,
             Settings.HIDE_NOTIFICATION_POST_FOOTER, Settings.HIDE_FIND_FRIENDS_CARD, Settings.HIDE_SEARCH_FOR_YOU,
-            Settings.HIDE_SEARCH_PEOPLE_YOU_MAY_KNOW, Settings.HIDE_RELATED_POSTS),
+            Settings.HIDE_SEARCH_PEOPLE_YOU_MAY_KNOW, Settings.HIDE_FRIENDS_TAB_PEOPLE_YOU_MAY_KNOW,
+            Settings.HIDE_RELATED_POSTS),
     STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null,
             Settings.HIDE_TOP_STORIES_TRAY, Settings.HIDE_STORIES_BETWEEN_POSTS, Settings.HIDE_HOME_COMPOSER),
     FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null,
@@ -138,6 +140,8 @@ public enum PatchFamily {
             Settings.HIDE_PROFILE_NOTES, Settings.HIDE_PROFILE_GIFTS),
     LOCAL_PROFILE_COUNTS(FamilyNames.LOCAL_PROFILE_COUNTS, "localProfileCounts", null,
             Settings.LOCAL_PROFILE_COUNTS),
+    FRIEND_LIST(FamilyNames.FRIEND_LIST, "friendList", null,
+            Settings.FRIEND_LIST_WATCH),
     POST_ACTION_BUTTONS(FamilyNames.POST_ACTION_BUTTONS, "postActionButtons", null,
             Settings.POST_SAVE_BUTTON, Settings.POST_DOWNLOAD_BUTTON, Settings.HIDE_POST_LIKE_BUTTON,
             Settings.HIDE_POST_COMMENT_BUTTON, Settings.HIDE_POST_REPOST_BUTTON, Settings.HIDE_POST_SHARE_BUTTON,
@@ -168,7 +172,7 @@ public enum PatchFamily {
             Settings.FEED_VIDEOS_ALONE, Settings.SHARED_REELS_ALONE, Settings.HIDE_SHARED_REEL_FRIEND_SHEET,
             Settings.WATCH_AGAIN_IN_PLACE,
             Settings.SAVED_VIDEOS_IN_PLAYER, Settings.SAVED_VIDEOS_IN_ORDER, Settings.SAVED_VIDEOS_STAY_ON_END,
-            Settings.SAVED_POSTS_IN_ROW, Settings.SKIP_STILL_WATCHING,
+            Settings.SAVED_POSTS_IN_ROW, Settings.FEED_REELS_ROW_IN_ORDER, Settings.SKIP_STILL_WATCHING,
             Settings.FILL_REELS, Settings.FILL_EVERY_REEL, Settings.PLAY_FEED_REELS_WHOLE,
             Settings.UNCROPPED_FEED_REELS),
     REEL_PROMPTS(FamilyNames.REEL_PROMPTS, "reelPrompts", null,
@@ -209,7 +213,10 @@ public enum PatchFamily {
             Settings.HIDE_VIDEO_COMMENT_COMPOSER, Settings.HIDE_LIVE_COMMENT_BAR, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
             Settings.HIDE_POST_COMMENT_PREVIEWS, Settings.HIDE_COMMENT_DOWNVOTE_BUTTON,
             Settings.HIDE_COMMENT_LIKE_BUTTON, Settings.HIDE_COMMENT_REPLY_BUTTON, Settings.HIDE_COMMENTER_BADGES,
-            Settings.HIDE_COMMENT_EMOJI_ROW, Settings.KEEP_COMMENT_KEYBOARD_CLOSED, Settings.HIDE_COMMENT_BOX_LINE,
+            Settings.HIDE_COMMENT_EMOJI_ROW, Settings.HIDE_HELD_COMMENT_REACTIONS, Settings.HIDE_HELD_COMMENT_REPLY,
+            Settings.HIDE_HELD_COMMENT_COPY, Settings.HIDE_HELD_COMMENT_REPORT, Settings.HIDE_HELD_COMMENT_HIDE,
+            Settings.KEEP_COMMENT_KEYBOARD_CLOSED,
+            Settings.KEEP_COMMENTS_CLOSED_ON_TEXT_TAP, Settings.HIDE_COMMENT_BOX_LINE,
             Settings.HIDE_COMMENT_BOX,
             Settings.COMMENT_BLOCK_BUTTON, Settings.REACTOR_BLOCK_BUTTON, Settings.FILTER_COMMENT_SEARCH),
     // Open comments at is a list, Facebook's height, full or half (#179); the rest are switches.
@@ -236,7 +243,8 @@ public enum PatchFamily {
     PLAYBACK_QUALITY(FamilyNames.PLAYBACK_QUALITY, "defaultPlaybackQuality", null,
             Settings.DEFAULT_PLAYBACK_QUALITY),
     PICTURE_IN_PICTURE(FamilyNames.PICTURE_IN_PICTURE, "pictureInPicture", null,
-            Settings.PICTURE_IN_PICTURE, Settings.PICTURE_IN_PICTURE_FROM_MENU, Settings.PICTURE_IN_PICTURE_BUTTON),
+            Settings.PICTURE_IN_PICTURE, Settings.PICTURE_IN_PICTURE_FROM_MENU, Settings.PICTURE_IN_PICTURE_BUTTON,
+            Settings.NEXT_REEL_IN_WINDOW),
     BACKGROUND_PLAY(FamilyNames.BACKGROUND_PLAY, "backgroundPlay", null,
             Settings.KEEP_PLAYING_IN_BACKGROUND, Settings.NEXT_REEL_IN_BACKGROUND, Settings.BACKGROUND_PLAY_BUTTON),
     HDR_BRIGHTNESS(FamilyNames.HDR_BRIGHTNESS, "turnOffHdrBrightness", null,
@@ -309,9 +317,10 @@ public enum PatchFamily {
     BOTTOM_TAB_BAR(FamilyNames.BOTTOM_TAB_BAR, "bottomTabBar", null,
             Settings.BOTTOM_TAB_BAR, Settings.TOP_TAB_BAR, Settings.TAB_BAR_SCROLL_AWAY, Settings.KEEP_TAB_BAR,
             Settings.KEEP_TOP_BAR,
-            Settings.PHONE_LAYOUT_ON_BIG_SCREENS, Settings.TRANSLUCENT_BARS, Settings.ROUNDED_TAB_BAR, Settings.HIDE_STATUS_BAR,
+            Settings.PHONE_LAYOUT_ON_BIG_SCREENS, Settings.TRANSLUCENT_BARS, Settings.ROUNDED_TAB_BAR, Settings.GLASS_TAB_BAR,
+            Settings.HIDE_STATUS_BAR,
             Settings.CENTER_FEED_ON_BIG_SCREENS, Settings.LIGHT_REELS_TAB_BARS, Settings.HIDE_REELS_TAB_BAR, Settings.HIDE_TAB_BAR_LINE,
-            Settings.TAB_BAR_IN_GROUPS, Settings.HIDE_MESSENGER_BUTTON, Settings.HIDE_MESSENGER_COUNT, Settings.HIDE_FACEBOOK_LOGO,
+            Settings.TAB_BAR_IN_GROUPS, Settings.PROFILE_TAB_ACTIVITY_LOG, Settings.HIDE_MESSENGER_BUTTON, Settings.HIDE_MESSENGER_COUNT, Settings.HIDE_FACEBOOK_LOGO,
             Settings.HIDE_CREATE_BUTTON, Settings.HIDE_SEARCH_BUTTON, Settings.SEARCH_WITH_PICTURE),
     FORCE_DARK_MODE(FamilyNames.FORCE_DARK_MODE, "forceDarkMode", null,
             Settings.FORCE_DARK_MODE),
@@ -721,6 +730,7 @@ public enum PatchFamily {
         LogBufferManager.registerReportSection(AppLock.REPORT);
         LogBufferManager.registerReportSection(PushDiagnostics.REPORT);
         LogBufferManager.registerReportSection(NetworkUsage.REPORT);
+        LogBufferManager.registerReportSection(VideoStarts.REPORT);
         for (PatchFamily family : values()) {
             // The theme's hooks run paused too: only Black cards, its one switch, steps back.
             if ((family.switches.isEmpty() && family.choice == null) || family == AMOLED_THEME) {

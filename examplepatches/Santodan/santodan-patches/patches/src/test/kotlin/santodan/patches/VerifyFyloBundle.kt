@@ -18,7 +18,7 @@ fun main(args: Array<String>) = runBlocking {
         check(selected.size == 1)
         val compatibility = selected.single().compatibility!!.single()
         check(compatibility.packageName == "com.aeroloom.fylofilemanager")
-        if (index == 0) check(compatibility.targets.map { it.version }.toSet() == setOf("2.6"))
+        if (index == 0) check(compatibility.targets.map { it.version }.toSet() == setOf("2.9"))
         else check(compatibility.targets.single().version == null)
         check(compatibility.targets.all { it.isExperimental == (index == 1) })
         val output = File(args[2], "selection-$index").apply { mkdirs() }

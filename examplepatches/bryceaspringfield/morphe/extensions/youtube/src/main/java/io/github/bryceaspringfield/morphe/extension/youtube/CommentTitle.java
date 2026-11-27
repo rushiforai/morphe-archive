@@ -18,14 +18,6 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.LithoRelayoutPatch;
 
-/**
- * A video's title as its top comments correct it: when a video opens, its top comments are read (YouTube's own
- * "next" answers, sorted by Top), and a comment with at least {@link #MIN_LIKES} likes which states the correct title
- * (e.g., "Bandiicam - lights off (feat. SUICIDAL-IDOL) correct title", "The real title is ...", "Título correcto: ...")
- * gives the title shown for that video, wherever its own title appears; {@link DeArrowToggle} draws it with a quote
- * mark, a tap on which switches between the two titles, and prefills its DeArrow suggestion with it. DeArrow titles
- * come first: a video with one keeps it.
- */
 final class CommentTitle {
 
     static final int MIN_LIKES = 3;
@@ -34,10 +26,8 @@ final class CommentTitle {
     private static final String MARKER = "(?:(?:correct|real|actual|proper|right|true|original|full|official)\\s+(?:song\\s+|track\\s+|video\\s+)?(?:title|name)"
             + "|(?:t[ií]tulo|nombre)\\s+(?:correcto|real|verdadero|original)(?:\\s+de\\s+la\\s+canci[oó]n)?"
             + "|(?:t[ií]tulo|nombre)\\s+de\\s+la\\s+canci[oó]n)";
-    /** "correct title: X", "the real title is X", "título correcto - X". */
     private static final Pattern LEADING = Pattern.compile("^\\W*(?:the\\s+|el\\s+)?" + MARKER
             + "\\s*(?:is|would\\s+be|should\\s+be|es|ser[ií]a|:|-|–|=|>|→)+\\s*(.+)$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    /** "X correct title", "X (real name)", "X - título correcto". */
     private static final Pattern TRAILING = Pattern.compile("^(.+?)[\\s\\-–:(\\[|]*(?:is\\s+the\\s+|es\\s+el\\s+)?" + MARKER
             + "[\\s)\\].!]*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
@@ -55,7 +45,6 @@ final class CommentTitle {
         }
     }
 
-    /** The video's own title to the corrected one, the newest 500. */
     private static final Map<String, Found> BY_OWN = Collections.synchronizedMap(new LinkedHashMap<>() {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Found> e) {
@@ -63,18 +52,15 @@ final class CommentTitle {
         }
     });
     private static final Set<String> ASKED = Collections.synchronizedSet(new HashSet<>());
-    /** Own titles the user switched back to. */
     private static final Set<String> SHOW_OWN = Collections.synchronizedSet(new HashSet<>());
 
     private CommentTitle() {
     }
 
-    /** The corrected title known for a video's own title, or null. */
     static Found known(String own) {
         return own == null ? null : BY_OWN.get(own.trim());
     }
 
-    /** The title to show for a video's own title: the corrected one unless the user switched back; else null. */
     static String shown(String own) {
         if (!XSettings.COMMENT_TITLE.get()) return null;
         Found f = known(own);
@@ -86,7 +72,6 @@ final class CommentTitle {
         LithoRelayoutPatch.relayoutOutdatedTexts();
     }
 
-    /** Called when a video starts: reads its top comments once. */
     static void onVideo(String videoId) {
         if (!XSettings.COMMENT_TITLE.get() || videoId == null || videoId.length() != 11 || !ASKED.add(videoId)) return;
         Utils.runOnBackgroundThread(() -> {
@@ -131,10 +116,8 @@ final class CommentTitle {
         }
     }
 
-    /** The corrected title a comment states, or null. */
     static String extract(String comment) {
         if (comment == null) return null;
-        // The line naming the title; a question ("what's the real name?") states none.
         for (String line : comment.split("\n")) {
             line = line.trim();
             if (line.isEmpty() || line.contains("?") || line.contains("¿")) continue;
@@ -171,7 +154,6 @@ final class CommentTitle {
         return cmd == null ? null : cmd.optString("token", null);
     }
 
-    /** Each comment's text and like count (commentEntityPayload of the answer's entity updates). */
     private static void collectComments(Object o, List<String[]> out) {
         if (o instanceof JSONObject j) {
             JSONObject p = j.optJSONObject("commentEntityPayload");
@@ -190,7 +172,6 @@ final class CommentTitle {
         }
     }
 
-    /** "34", "1.2K", "3M" as a number; 0 for a blank. */
     static long likes(String s) {
         if (s == null) return 0;
         String t = s.trim().toUpperCase(Locale.ROOT).replace(",", "");

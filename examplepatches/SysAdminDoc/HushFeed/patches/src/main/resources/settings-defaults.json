@@ -66,6 +66,7 @@
       "publish_date_day_first",
       "publish_date_month_name",
       "publish_date_instead_of_age",
+      "publish_date_everywhere",
       "publish_date_on_grid",
       "video_length_on_grid",
       "hide_grid_view_count",
@@ -206,6 +207,9 @@
       "delete_watched_offline_videos",
       "keep_offline_videos"
     ],
+    "Dark mode": [
+      "lite_dark_mode"
+    ],
     "Device privacy guard": [
       "block_clipboard_reads",
       "hide_vpn",
@@ -216,6 +220,7 @@
       "morphe_debug",
       "morphe_debug_log_filters",
       "morphe_capture_java_crashes",
+      "free_memory_early",
       "morphe_debug_stacktrace",
       "morphe_debug_toast_on_error"
     ],
@@ -447,7 +452,6 @@
       "hide_inbox_group_chat_banner",
       "hide_chat_call_buttons",
       "hide_chat_sticker_banner",
-      "hide_chat_ai_replies",
       "turn_off_chat_double_tap",
       "turn_off_chat_swipe_reply",
       "hide_inbox_custom_titles",
@@ -516,6 +520,7 @@
       "invisible_controls_keep_caption",
       "see_through_bottom_bar",
       "see_through_video_in_window",
+      "pages_under_bottom_bar",
       "floating_bottom_bar",
       "liquid_glass_bottom_bar",
       "glass_tab_lens",
@@ -607,6 +612,10 @@
       "show_exact_live_viewers",
       "show_exact_battle_scores",
       "live_room_info",
+      "hide_live_room_id",
+      "hide_live_ping",
+      "hide_live_latency",
+      "hide_live_download_speed",
       "live_running_time",
       "live_following_row_order",
       "offer_live_quality",
@@ -745,6 +754,7 @@
       "simspoof_time_zone",
       "simspoof_mccmnc",
       "simspoof_op_name",
+      "simspoof_presets",
       "simspoof_feed_real",
       "live_feed_countries"
     ],
@@ -783,6 +793,7 @@
       "simspoof_iso",
       "simspoof_mccmnc",
       "simspoof_op_name",
+      "simspoof_presets",
       "simspoof_feed_real"
     ],
     "Sanitize sharing links": [
@@ -843,6 +854,7 @@
     "Show follow status": [
       "show_follow_status",
       "show_join_date",
+      "show_profile_video_count",
       "show_profile_changes",
       "local_profile_counts",
       "local_profile_verified_badge",
@@ -2193,6 +2205,12 @@
       "type": "boolean",
       "default": false
     },
+    "free_memory_early": {
+      "field": "FREE_MEMORY_EARLY",
+      "key": "free_memory_early",
+      "type": "boolean",
+      "default": true
+    },
     "freeze_remote_config": {
       "field": "FREEZE_REMOTE_CONFIG",
       "key": "freeze_remote_config",
@@ -2394,12 +2412,6 @@
     "hide_browsing_captcha_popups": {
       "field": "HIDE_CAPTCHA_POPUPS",
       "key": "hide_browsing_captcha_popups",
-      "type": "boolean",
-      "default": false
-    },
-    "hide_chat_ai_replies": {
-      "field": "HIDE_CHAT_AI_REPLIES",
-      "key": "hide_chat_ai_replies",
       "type": "boolean",
       "default": false
     },
@@ -2829,9 +2841,27 @@
       "type": "boolean",
       "default": false
     },
+    "hide_live_download_speed": {
+      "field": "HIDE_LIVE_DOWNLOAD_SPEED",
+      "key": "hide_live_download_speed",
+      "type": "boolean",
+      "default": false
+    },
     "hide_live_entrance": {
       "field": "HIDE_LIVE_ENTRANCE",
       "key": "hide_live_entrance",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_live_latency": {
+      "field": "HIDE_LIVE_LATENCY",
+      "key": "hide_live_latency",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_live_ping": {
+      "field": "HIDE_LIVE_PING",
+      "key": "hide_live_ping",
       "type": "boolean",
       "default": false
     },
@@ -2844,6 +2874,12 @@
     "hide_live_ring": {
       "field": "HIDE_LIVE_RING",
       "key": "hide_live_ring",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_live_room_id": {
+      "field": "HIDE_LIVE_ROOM_ID",
+      "key": "hide_live_room_id",
       "type": "boolean",
       "default": false
     },
@@ -3499,6 +3535,12 @@
       "type": "boolean",
       "default": false
     },
+    "lite_dark_mode": {
+      "field": "LITE_DARK_MODE",
+      "key": "lite_dark_mode",
+      "type": "boolean",
+      "default": false
+    },
     "live_audio_only": {
       "field": "LIVE_AUDIO_ONLY",
       "key": "live_audio_only",
@@ -4043,6 +4085,12 @@
       "type": "boolean",
       "default": false
     },
+    "pages_under_bottom_bar": {
+      "field": "PAGES_UNDER_BOTTOM_BAR",
+      "key": "pages_under_bottom_bar",
+      "type": "boolean",
+      "default": false
+    },
     "pause_before_feed_seconds": {
       "field": "PAUSE_BEFORE_FEED_SECONDS",
       "key": "pause_before_feed_seconds",
@@ -4188,6 +4236,12 @@
     "publish_date_day_first": {
       "field": "PUBLISH_DATE_DAY_FIRST",
       "key": "publish_date_day_first",
+      "type": "boolean",
+      "default": false
+    },
+    "publish_date_everywhere": {
+      "field": "PUBLISH_DATE_EVERYWHERE",
+      "key": "publish_date_everywhere",
       "type": "boolean",
       "default": false
     },
@@ -4711,6 +4765,12 @@
       "type": "boolean",
       "default": false
     },
+    "show_profile_video_count": {
+      "field": "SHOW_PROFILE_VIDEO_COUNT",
+      "key": "show_profile_video_count",
+      "type": "boolean",
+      "default": false
+    },
     "show_seekbar": {
       "field": "SHOW_SEEKBAR",
       "key": "show_seekbar",
@@ -4758,6 +4818,12 @@
       "key": "simspoof_op_name",
       "type": "string",
       "default": "T-Mobile"
+    },
+    "simspoof_presets": {
+      "field": "SIM_SPOOF_PRESETS",
+      "key": "simspoof_presets",
+      "type": "string",
+      "default": ""
     },
     "simspoof_time_zone": {
       "field": "SIM_SPOOF_TIME_ZONE",

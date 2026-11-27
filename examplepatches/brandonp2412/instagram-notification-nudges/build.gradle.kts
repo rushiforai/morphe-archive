@@ -1,1 +1,1 @@
-// Root build configuration for Instagram notification patches
+// Root build configuration for Instagram patches

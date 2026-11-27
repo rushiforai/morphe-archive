@@ -327,7 +327,8 @@ public final class MorpheSettingsActivity extends Activity {
                 index < order.size() - 1 ? () -> moveTab(order, index, 1) : null));
         }
         list.addView(caption("Up to " + HomeTabs.MAX_MIDDLE_TABS + " tabs. Bots and Train are tabs "
-            + "chess.com shows only in some experiments. The new bar shows after a restart."));
+            + "chess.com shows only in some experiments, and Openings appears only if chess.com offers it "
+            + "to your account. The new bar shows after a restart."));
     }
 
     private String tabTitle(String name) {
@@ -393,7 +394,7 @@ public final class MorpheSettingsActivity extends Activity {
         custom.addView(colorRow("Light squares", light, color -> BoardColors.set(BoardColors.dark(), color)));
         custom.addView(divider(56));
         custom.addView(colorRow("Dark squares", dark, color -> BoardColors.set(color, BoardColors.light())));
-        list.addView(caption("Every board uses these colours while Board colors is on. Boards already "
+        list.addView(caption("Every board uses these colors while Board colors is on. Boards already "
             + "open change when they next redraw."));
     }
 
@@ -431,7 +432,7 @@ public final class MorpheSettingsActivity extends Activity {
         list.addView(custom, cardParams());
         custom.addView(colorRow("Accent color", chosen, this::setAccent));
 
-        String note = "chess.com's green becomes this colour, with its lighter and darker shades: "
+        String note = "chess.com's green becomes this color, with its lighter and darker shades: "
             + "buttons, highlights, icons and text. It shows everywhere after a restart.";
         if (!Features.isEnabled(Features.ACCENT)) note = "Accent color is switched off on the main page. " + note;
         list.addView(caption(note));
@@ -495,7 +496,7 @@ public final class MorpheSettingsActivity extends Activity {
         }
         list.addView(caption(stockfish
             ? "A game you review with Local Stockfish or Lichess's servers is saved on this phone and opens "
-                + "straight away the next time. Choosing a deeper depth than it was saved with analyses it again."
+                + "straight away the next time. Choosing a deeper depth than it was saved with analyzes it again."
             : "A game you review with Lichess's servers is saved on this phone and opens straight away the next time."));
     }
 
@@ -508,7 +509,7 @@ public final class MorpheSettingsActivity extends Activity {
         list.addView(caption(board
             ? "Your game is imported to Lichess (no account needed) and opens on Lichess's own analysis "
                 + "board inside the app, where Lichess's engine looks at it in your phone's browser."
-            : "Lichess's servers analyse your game for your Lichess account and the review shows in "
+            : "Lichess's servers analyze your game for your Lichess account and the review shows in "
                 + "chess.com's own screen, with Lichess's marks. You log in to Lichess once. Lichess "
                 + "allows 40 analyses a day."));
     }
@@ -521,7 +522,7 @@ public final class MorpheSettingsActivity extends Activity {
         String[] meaning = {
             "The quickest: 100,000 positions a move.",
             "300,000 positions a move, as Lichess's own automatic analysis.",
-            "1,000,000 positions a move, what Lichess spends when you ask it to analyse, so the numbers "
+            "1,000,000 positions a move, what Lichess spends when you ask it to analyze, so the numbers "
                 + "match Analyze with Lichess. About three times as long as Standard.",
             "5,000,000 positions a move, the most. About five times as long as Deep.",
         };

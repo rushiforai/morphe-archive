@@ -202,14 +202,14 @@ private fun MutableMethod.requireExact1803PointerLifecycleShape(role: PointerLif
         PointerLifecycleRole.FINISH -> {
             val dispatches = instructions.mapNotNull { it.methodReference() }.count { reference ->
                 reference.definingClass == when (GboardVersionBindings.targetVersion) {
-                    "18.6.3" -> "Lagyx;"
+                    "18.6.3", "18.8.0-beta" -> "Lagyx;"
                     else -> "Lahov;"
                 } && reference.name == "f" &&
                     reference.parameterTypes == GboardVersionBindings.gestureDispatch.parameterTypes &&
                     reference.returnType == GboardVersionBindings.gestureDispatch.returnType
             }
             check(parameterTypes == listOf("J", "I") && dispatches == 1) {
-                "18.0.3 pointer finish dispatch shape drift in $definingClass->$name"
+                "${GboardVersionBindings.targetVersion} pointer finish dispatch shape drift in $definingClass->$name"
             }
         }
         PointerLifecycleRole.CANCEL -> {

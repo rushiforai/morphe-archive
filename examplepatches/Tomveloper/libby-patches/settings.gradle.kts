@@ -17,5 +17,11 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "2.1.0"
+    id("app.morphe.patches") version "2.1.2"
+}
+
+configure<app.morphe.patches.gradle.SettingsExtension> {
+    extensions {
+        proguardFiles(rootProject.projectDir.resolve("extensions/proguard-rules.pro").toString())
+    }
 }

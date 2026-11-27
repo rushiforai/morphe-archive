@@ -5,6 +5,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
+
 /**
  * Helpers for keeping Zalo quick messages entirely local. The patch intercepts the create / update / delete
  * requests and feeds the app's own server-push handlers (ufk.e / ufk.g / ufk.c) with locally built payloads,
@@ -61,7 +64,8 @@ public final class LocalQuickMessages {
         JSONObject message = new JSONObject();
         try {
             message.put("title", text == null ? "" : text);
-        } catch (JSONException ignored) {
+        } catch (JSONException failure) {
+            NezumiLog.e(Patch.UNLIMITED_QUICK_MESSAGES, "LocalQuickMessages", "quick message text not stored", failure);
         }
         return message;
     }
@@ -77,7 +81,8 @@ public final class LocalQuickMessages {
             if (media != null) item.put("media", media);
             item.put("createdTime", createdTime);
             item.put("lastModified", System.currentTimeMillis());
-        } catch (JSONException ignored) {
+        } catch (JSONException failure) {
+            NezumiLog.e(Patch.UNLIMITED_QUICK_MESSAGES, "LocalQuickMessages", "quick message item incomplete", failure);
         }
         return item;
     }

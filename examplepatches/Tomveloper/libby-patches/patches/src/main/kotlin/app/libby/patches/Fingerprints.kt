@@ -3,7 +3,9 @@ package app.libby.patches
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
-import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * Finds the WebViewClient subclass that Libby uses for its WebViews.
@@ -18,7 +20,7 @@ object WebViewClientOnPageFinishedFingerprint : Fingerprint(
     name = "onPageFinished",
     returnType = "V",
     parameters = listOf("Landroid/webkit/WebView;", "Ljava/lang/String;"),
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    isStatic = false,
     filters = listOf(string("onPageFinished - ")),
 )
 
@@ -34,7 +36,7 @@ object WebViewClientShouldInterceptRequestFingerprint : Fingerprint(
     name = "shouldInterceptRequest",
     returnType = "Landroid/webkit/WebResourceResponse;",
     parameters = listOf("Landroid/webkit/WebView;", "Landroid/webkit/WebResourceRequest;"),
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    isStatic = false,
 )
 
 /**
@@ -75,7 +77,7 @@ object AuthWebViewFragmentFingerprint : Fingerprint(
         "Landroid/view/ViewGroup;",
         "Landroid/os/Bundle;",
     ),
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    isStatic = false,
     filters = listOf(
         methodCall(
             definingClass = "Landroid/webkit/WebView;",
@@ -86,21 +88,29 @@ object AuthWebViewFragmentFingerprint : Fingerprint(
 )
 
 /**
- * The app's base activity result method (currently `zp0.onActivityResult`),
+ * The app's base activity result method (currently `aq0.onActivityResult`),
  * inherited by Activity_Main.
  *
- * It calls the app's activity-result dispatcher (`ob1.i()`), which makes it
- * unique among the four `onActivityResult` overrides in Libby.
+ * Matching does not depend on obfuscated names. Among the several
+ * `onActivityResult` overrides in Libby, only this one delegates to the app's
+ * own superclass implementation with `invoke-super` instead of calling
+ * `Activity.onActivityResult` directly. That structural trait survives R8
+ * renaming the classes involved on every release.
  */
 object ActivityResultFingerprint : Fingerprint(
     name = "onActivityResult",
     returnType = "V",
     parameters = listOf("I", "I", "Landroid/content/Intent;"),
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    filters = listOf(
-        methodCall(
-            definingClass = "Lob1;",
-            name = "i",
-        ),
-    ),
+    isStatic = false,
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            if (instruction.opcode != Opcode.INVOKE_SUPER) return@any false
+            if (instruction !is ReferenceInstruction) return@any false
+            val reference = instruction.reference as? MethodReference ?: return@any false
+            reference.name == "onActivityResult" &&
+                reference.definingClass != "Landroid/app/Activity;" &&
+                reference.parameterTypes == listOf("I", "I", "Landroid/content/Intent;") &&
+                reference.returnType == "V"
+        } == true
+    },
 )

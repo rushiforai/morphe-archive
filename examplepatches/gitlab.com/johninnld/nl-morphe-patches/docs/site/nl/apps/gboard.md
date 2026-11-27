@@ -8,13 +8,15 @@ Selecteer de armeabi-v7a-APK (build 176124765) of arm64-v8a-APK (build 176124766
 
 [Lees hoe je elke Gboard-patch gebruikt en test](../guides/gboard.md) · [Frosted Glass zichtbaar maken](../guides/gboard.md#frosted-glass)
 
+[Stel Local AI in voor schrijven, beelden en gedeelde spraak](../guides/local-ai.md). [Stel Gboard in voor private lokale AI](../guides/gboard-privacy.md). De companion vereist Android 11+ en arm64; de gewone Gboard-patchcompatibiliteit staat daar los van.
+
 ## Patches
 
 | Patch | Standaard | Wat verandert er? |
 | --- | --- | --- |
 | **Enable Inline Autofill Suggestions** | Aan | Schakelt Gboard's Android-ontvanger voor inline automatisch invullen in, zodat een wachtwoordmanager zoals Bitwarden aanmeldsuggesties in het toetsenbord kan tonen. Vereist Android 11+, een actieve provider voor automatisch invullen en diens inline-weergave. Werkt via de Bitwarden-client bij gebruik van Vaultwarden. |
 | **Smart Compose** | Aan | Toont **Tekstcorrectie → Smart Compose** en schakelt de client-side functie voor tekstaanvulling in. De taal-, model- en appvoorwaarden van Google blijven gelden. Staat los van wachtwoorden invullen. |
-| **Parakeet voice typing** | Aan | Voegt **Parakeet-spraakinvoer** toe aan Gboard-instellingen → Spraakinvoer. Zodra je daar een model downloadt en het aanzet, zet de microfoontoets spraak op de telefoon zelf om in tekst met NVIDIA Parakeet, in plaats van met de spraakherkenning van Google. Elke zin wordt herkend in de taal waarin je hem uitspreekt, dus Nederlands en Engels werken in hetzelfde dictaat zonder te wisselen. Zolang er geen model klaarstaat, gebruikt Gboard gewoon de spraakinvoer van Google. De gepatchte Gboard krijgt het Parakeet-app-icoon. |
+| **Parakeet voice typing** | Aan | Voegt lokaal dicteren via de gedeelde Local AI-companion toe. Kies en download Parakeet TDT v3/Ultra, Nemotron Streaming of Whisper Tiny in de host, wacht op speech Ready en schakel gedeelde spraak in Gboard in. Ieder profiel meldt eigen talen. De microfooninterface blijft Gboard; gekozen lokale spraak valt niet stilzwijgend terug op Google. |
 | **Rambler voice typing** | Aan | Voegt Rambler van Google toe aan Gboard-instellingen → Spraakinvoer, als keuze naast Parakeet (de standaard-spraakinvoer van Gboard). Kies je **Rambler**, dan stuurt de microfoontoets je spraak naar de servers van Google. Die maken er afgewerkte tekst van en voeren gesproken bewerkingen uit, zoals "verwijder de laatste zin". Parakeet blijft de standaardkeuze. |
 | **Rambler personal dictionary** | Aan | Voegt **Spraakwoordenboek** toe aan Gboard-instellingen → Spraakinvoer, met de eigen **lijst met spraakcorrecties** van Gboard: namen en woorden die je toevoegt, importeert of exporteert. Rambler krijgt ze bij elk dictaat mee en schrijft ze daardoor goed. Werkt alleen samen met Rambler voice typing. |
 | **Rambler contact names** | Aan | Vult de lijst met spraakcorrecties met de namen uit je contacten zodra je **Contactnamen** onder Spraakwoordenboek aanzet. Namen die je verwijdert, komen niet terug; nieuwe contacten komen erbij zodra Rambler weer start. Werkt alleen samen met Rambler personal dictionary en toegang tot je contacten. |
@@ -22,7 +24,7 @@ Selecteer de armeabi-v7a-APK (build 176124765) of arm64-v8a-APK (build 176124766
 | **Rambler cursor-aware editing** | Aan | Rambler ziet ook de tekst na de cursor, zodat gesproken bewerkingen de hele tekst bereiken en dicteren midden in een tekst aansluit. Met geselecteerde tekst gaat alleen de selectie mee, zodat een gesproken bewerking zoals "maak dit formeler" daarop werkt; het resultaat wordt daarna weer geselecteerd voor de volgende bewerking. Werkt alleen samen met Rambler voice typing. |
 | **Rambler app context** | Aan | Rambler krijgt ook de naam van de app waarin je dicteert en de hinttekst van het veld, zodat de toon past bij een chat, e-mail of zoekopdracht en eigen instructies van de app kunnen afhangen. Google weet dan in welke app je typt. Werkt alleen samen met Rambler voice typing. |
 | **Rambler stop after silence** | Aan | Rambler stopt vanzelf na 3 seconden zonder spraak en houdt de tekst, net als wanneer je op ✓ tikt. Pas de tijd aan (3, 5, 8 of 10 seconden) of zet het uit onder Gboard-instellingen → Spraakinvoer → Rambler → **Stoppen na stilte**. Werkt alleen samen met Rambler voice typing. |
-| **Parakeet personal dictionary** | Aan | Laat Parakeet de namen en woorden uit de lijst met spraakcorrecties van het **Spraakwoordenboek** goed schrijven, ook de contactnamen die daar staan. Parakeet geeft ze voorrang tijdens het luisteren en verbetert een woord dat erop lijkt alleen als een tweede keer luisteren dat bevestigt. Vraagt een download van 2 MB aan spellinggegevens onder Parakeet-spraakinvoer. Werkt alleen samen met Parakeet voice typing en Rambler personal dictionary. |
+| **Parakeet personal dictionary** | Aan | Biedt de akoestische woordenboekoptie voor de oude ingebouwde Parakeet-decoder. Gedeelde Parakeet Ultra ondersteunt contactnamen per dicteerbeurt via **Contactnamen gebruiken** met Local Model Host v0.1.145 of nieuwer. |
 | **Change package name** | Aan | Installeert de gepatchte Gboard onder een eigen pakketnaam (standaard app.morphe.android.inputmethod.latin), zodat hij naast de standaard-Gboard staat die op de meeste telefoons is ingebouwd. Je standaard-Gboard, de instellingen en het woordenboek blijven onaangeroerd; kies het gepatchte toetsenbord in de toetsenbordinstellingen van Android. |
 | **Custom branding** | Aan | Gebruikt standaard **Gboard Parakeet/Rambler** als naam en het Parakeet-pictogram. Pas beide desgewenst aan in de patchopties van Morphe. |
 | **Add Gboard Signature Bypass** | Aan | Laat de gepatchte, opnieuw ondertekende Gboard de onderdelen gebruiken die de handtekening van de app controleren, zoals Thema's; zonder deze patch stopt dat met een waarschuwing over een onbekend certificaat. |
@@ -32,11 +34,17 @@ Selecteer de armeabi-v7a-APK (build 176124765) of arm64-v8a-APK (build 176124766
 | **G Logo on Spacebar** | Aan | Toont een ingebouwd pictogram of je eigen PNG, WebP of JPEG op de spatiebalk, in eigen kleuren of één kleur, met instelbare grootte. |
 | **Key Shape Selection** | Aan | Zet de eigen optie Toetsvorm van Gboard aan in themadetails, zodat de toetsen van een thema hun vorm houden in plaats van vierkant te worden. |
 | **AMOLED dark keyboard** | Aan | Maakt de donkere toetsenbordachtergrond zuiver zwart in plaats van het grijs van Google, ook in het dynamische thema dat je achtergrond volgt; de lichte modus houdt het lichte toetsenbord. Er is geen aparte tegel: kies Dynamische kleur in het themascherm van Gboard — zie [AMOLED-donker toetsenbord](#amoled-donker-toetsenbord). |
-| **Enable OCR / Scan Text** | Aan | Voegt Gboard's Scan Text-camera toe: richt de camera op tekst en de tekst wordt herkend en op je cursor ingevoegd. De patch levert zijn eigen OCR-engine mee, omdat Play Services de download weigert aan een opnieuw ondertekende Gboard. Alleen Latijnse tekst. Je kunt in de Gboard-instellingen ook een bestaande schermafbeelding of foto kiezen en de tekst daarvan naar het klembord laten kopiëren. |
-| **AI Writing Tools** | Aan | Maakt de Google-functies voor herschrijven en toon beschikbaar bij geselecteerde tekst waar ondersteund. Proofread / Auto Fix valt buiten deze port. |
+| **Enable OCR / Scan Text** | Aan | Behoudt Scan Text en voegt een beeldkiezer-/cameraworkflow via Gemma toe wanneer Local AI en vision gereed zijn. Controleer herkende tekst vóór invoegen. De afzonderlijke gebundelde/Google-OCR-route houdt eigen instellingen wanneer Local AI uit staat. |
+| **AI Writing Tools** | Aan | Behoudt Google-backendkeuzes en voegt optionele gedeelde Gemma-functies voor schrijven, corrigeren, vertalen, antwoorden, stijl en beelden toe in het toetsenbordthema. Smart Compose en inline grammatica zijn afzonderlijk experimenteel. Stel de zelfstandige companion in onder Local AI. |
+| **Block Gboard telemetry** | Uit | Stopt de gevonden Clearcut-uploads, clienttelemetrie via Play-services en Tenor-deelrapporten op hun verzendpaden. Verbergt de standaardoptie Translate en blokkeert de cloudrequest ervan. GIF-zoeken, downloads en AI Translate blijven beschikbaar wanneer ingesteld. Zie [private installatie](../guides/gboard-privacy.md). |
 | **Clipboard Enhancements** | Aan | Bepaalt hoe lang gekopieerde fragmenten bewaard blijven, hoeveel er worden bewaard, hoeveel voorbeeldregels een kaart toont en of kaarten een aftelling, aanmaaktijd, volgnummer en kolomaantal tonen. |
 | **Web Clipboard** | Aan | Host een klein Web Clipboard-portaal op de telefoon, zodat een desktopbrowser op hetzelfde lokale netwerk clipboardtekst met Gboard kan uitwisselen. Het portaal is beveiligd met een koppelcode en is bereikbaar via een Quick Settings-tegel. |
 | **Toolbar Editing Buttons** | Aan | Voegt Alles selecteren, Kopiëren, Knippen en Plakken toe aan het Gboard-menu, zodat je ze naar de bovenste werkbalk kunt slepen en in ondersteunde toetsenbordtalen en editors kunt gebruiken. |
+| **Shift + Backspace Forward Delete** | Uit | Zet de functie aan bij **Toetsenbordhulpmiddelen** in Gboard. Houd Shift op het scherm ingedrukt en tik op Backspace om het teken na de cursor te wissen. |
+| **Long-Press Editing Shortcuts** | Uit | Voegt Alles selecteren, Ongedaan maken, Kopiëren, Knippen, Plakken en Opnieuw toe aan lettermenu’s. Stel de standaardpositie in en pas die per toets aan. |
+| **Custom Symbols** | Uit | Voegt bij Engelse indelingen een palet met 11 symboolcategorieën toe aan de werkbalk. Het palet volgt het toetsenbordthema. |
+| **Grammar Checker** | Uit | Schakelt Gboards grammaticacontrole in op Android 12 of nieuwer. Ondersteunde editors onderstrepen fouten en tonen suggesties bij aantikken. |
+| **Top Toolbar Item Count** | Uit | Kies drie tot acht items voor de bovenste werkbalk in Gboard. Herstart het toetsenbord na een wijziging. |
 | **Cursor trackpad mode** | Aan | Houd de spatiebalk lang ingedrukt om de cursor nauwkeuriger te verplaatsen met een trackpad en de vergrendelmodus te gebruiken. |
 | **Incognito Mode Toggle** | Aan | Voegt een incognito-schakelaar toe aan de Access Point-werkbalk en laat je kiezen of het clipboard en spraakinvoer beschikbaar blijven terwijl incognito actief is. Dit regelt de incognito-status van Gboard zelf; het is geen netwerkbrede anti-trackingfunctie. |
 | **Simple Calculator** | Aan | Typ een rekenkundige expressie in een tekstveld en zie een scrollbare vergelijking met het antwoord in de suggestieregel van Gboard, klaar om in te voegen. |
@@ -47,7 +55,7 @@ Selecteer de armeabi-v7a-APK (build 176124765) of arm64-v8a-APK (build 176124766
 | **Hidden flags (18.8)** | Aan | Drie interne 18.8-flags via Gboard's eigen override-opslag: app-specifieke woordweging, de app-specifieke suggestiebalk en de vierkante genormaliseerde zoekradius. Zie [Verborgen flags](#verborgen-flags-188). |
 | **Beta features (18.8)** | Aan | Schakelt vijf functies voor het klembord, het zwevende toetsenbord, Emoji2 en het verwijderen van suggesties in. Per functie instelbaar via **Patches → More settings → Beta features**. Zie [Beta-functies](#beta-functies-188). |
 
-Enable Inline Autofill Suggestions, Smart Compose, Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar en Key Shape Selection zijn overgenomen van het GPLv3-project [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) en bijgewerkt voor Gboard 18.8.0.
+Enable Inline Autofill Suggestions, Smart Compose, Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar, Key Shape Selection, Shift + Backspace Forward Delete, Long-Press Editing Shortcuts, Custom Symbols en Grammar Checker zijn overgenomen van het GPLv3-project [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) en bijgewerkt voor Gboard 18.8.0.
 
 
 ### Advanced voice typing (NGA)
@@ -145,12 +153,9 @@ Deze zit niet achter de bèta-schakelaar: met **Rambler voice typing** laat Ramb
 
 ## Een model kiezen
 
-| Model | Download | Het beste voor |
-| --- | --- | --- |
-| Parakeet Ultra (aanbevolen) | ongeveer 630 MB | Door Moondream verder getrainde Parakeet TDT v3. Nauwkeuriger, vooral bij achtergrondgeluid. |
-| Parakeet TDT 0.6B v3 | ongeveer 670 MB | Het oorspronkelijke model van NVIDIA, zoals het sherpa-onnx-project het publiceert. |
+Kies en download spraakmodellen onder **Local AI → Speech recognition**. Er zijn Parakeet TDT v3, Parakeet Ultra, Nemotron Streaming en Whisper Tiny. De host toont de exacte geselecteerde download en taaldekking. De meegeleverde Whisper Tiny-integratie gebruikt een Engelse prefix. Alleen geselecteerde beheerde modelbestanden blijven bewaard en integrerende apps delen de host in plaats van een tweede kopie te laden.
 
-Beide modellen verstaan 25 Europese talen, waaronder Nederlands, Engels, Duits, Frans en Spaans, en kiezen per zin zelf de taal. Leestekens en hoofdletters komen er automatisch bij. Bij de eerste download worden ook de spraakruntime en spraakdetectie opgehaald (ongeveer 40 MB). Elk bestand wordt met een vaste controlesom gecontroleerd voordat het wordt gebruikt. Daarna werkt spraakinvoer offline en verlaat je geluid de telefoon niet.
+Zet **Use shared local speech** in Gboard pas aan als het spraakmodel Ready meldt. Tekst- en beeldverwerking mag uit wanneer je alleen dicteren wilt. Zie [Local AI instellen](../guides/local-ai.md).
 
 ## Dicteren
 

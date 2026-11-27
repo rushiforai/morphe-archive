@@ -332,6 +332,7 @@ Caption text size,标题文字大小
 Captions,字幕
 "Captions, gestures and on-screen controls",字幕、手势和屏幕控制
 Capture crash reports locally,本地捕获崩溃报告
+Free memory early,提前释放内存
 Capture the feed,捕获信息流
 Changes in Hushfeed %1$s,Hushfeed %1$s 的变化
 Changes to %1$s at %2$s,更改为 %1$s（位于 %2$s）
@@ -339,7 +340,8 @@ Check for already-saved videos,检查已保存的视频
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.,选择 %1$d 到 %2$d 视频。超出此范围的值使用最接近的有效限值。重新启动 TikTok 以应用此操作.
 Choose a backup file. Your current settings are kept for Undo.,选择一个备份文件。你当前的设置将保留以供撤消.
 "Pick a folder on internal storage, not an SD card",请选择内部存储中的文件夹，不要选 SD 卡
-Choose a preset to fill the SIM details.,选择一个预设来填充 SIM 卡详细信息.
+"Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts.",勾选一个预设来填充 SIM 卡详细信息，或勾选多个，在每次 TikTok 启动时使用不同的预设.
+"A different preset each time TikTok starts, in this order: %1$s",每次 TikTok 启动时使用不同的预设，按此顺序：%1$s
 Choose a subfolder under %1$s.,选择 %1$s 下的子文件夹.
 Choose counts for this signed-in account. Leave a field empty to use TikTok's count. Zero shows zero. Choices stay on this phone.,选择此登录账号的计数。将字段留空以使用 TikTok 的计数。零表示零。选择保留在这款手机上.
 Choose what reaches your feed,选择哪些内容进入你的信息流
@@ -538,6 +540,7 @@ Bottom left double tap,左下角双击
 Bottom right double tap,右下角双击
 "Download lists the qualities this video comes in, with the size TikTok gives for each, and saves the one you pick. The quality above stays as it is for the next save.",下载列出了该视频的质量，以及每个视频的大小 TikTok 给出的大小，并保存你选择的一个。上述质量在下次保存时保持不变.
 Download original photos,下载原始照片
+Download speed,下载速度
 Downloads,下载
 "Drag to move, release to place",拖动即可移动，松开即可放置
 Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.,沿着视频的左边缘或右边缘向上或向下拖动以更改边缘条在下方的设置。默认情况下，左侧是屏幕亮度，右侧是音量。在其他地方滑动仍然会滚动信息流.
@@ -751,6 +754,7 @@ Hide new follower notifications,隐藏新关注者通知
 Hide new followers,隐藏新关注者
 Hide online status,隐藏在线状态
 Hide paid partnerships,隐藏付费合作伙伴关系
+Hide parts of the room line,隐藏直播间信息行的部分内容
 Hide people and options by name,按姓名隐藏人员和选项
 Hide photo posts,隐藏照片帖子
 Hide photo posts from the feed.,隐藏信息流中的照片帖子.
@@ -788,7 +792,6 @@ Hide stories,隐藏故事
 Hide stories from the feed.,隐藏信息流中的故事.
 Hide stories tray,隐藏故事托盘
 Hide suggested accounts,隐藏建议账号
-Hide suggested replies,隐藏建议的回复
 Hide suggestions on the search page,隐藏搜索页面上的建议
 Hide surveys,隐藏调查
 Hide tabs TikTok adds later unless you allow them.,隐藏选项卡 TikTok 稍后添加，除非你允许.
@@ -998,6 +1001,7 @@ Last change put back. The Feature Gate Lab rules were for another TikTok version
 Last original value,最后原始值
 Last recording: %1$d gates.,最后记录：%1$d 门.
 Last recording: 1 gate.,最后记录：1 个门.
+Latency,延迟
 Later,后来
 Layout,布局
 "Layout, search, profile and system",布局、搜索、配置文件和系统
@@ -1314,6 +1318,7 @@ Pick the buttons to take off the column. The rest stay where they are.,选择按
 "Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked.",选择弹出窗口以停止。该列表包含 TikTok 尝试在此手机上显示的内容，因此在首次显示后，此处会出现一个弹出窗口。验证码、验证、登录、年龄、禁令和法律同意屏幕永远不会列出或阻止.
 "Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.",选择要从个人资料简介下的行中删除的快捷方式，例如 TikTok Studio 或你的订单。重新启动 TikTok 以应用此操作.
 Pick videos to save from profile grids,从个人资料网格中选择要保存的视频
+Pick what to leave off the small line with the room ID and your connection. The rest stays on it.,选择要从显示直播间 ID 和你的连接的那行小字里去掉的内容。其余的保留.
 "Picked %1$s. Save, then tap Pick all for more.",已选 %1$s 个，请先保存，再点“选择全部”继续.
 Picked videos,精选视频
 Picks the older H.264 video format when TikTok also offers a newer one (HEVC or ByteVC2). It helps phones that stutter or run hot. Videos without an H.264 version still play.,当 TikTok 还提供较新的视频格式（HEVC 或 ByteVC2）时，选择较旧的 H.264 视频格式。它可以帮助那些卡顿或发热的手机。没有 H.264 版本的视频仍然可以播放.
@@ -1467,6 +1472,7 @@ Reviewed presets for TikTok %1$s,已审核 TikTok %1$s 的预设
 Right away,马上
 Right column,右栏
 Right edge strip,右边缘条
+Room ID,直播间 ID
 Rows,行数
 SIM country preset,SIM 卡国家/地区预设
 SOCKS5,袜子5
@@ -1535,6 +1541,7 @@ Saved videos put back,保存的视频放回
 "Saved, override off",已保存，覆盖关闭
 Saved. Restart TikTok to apply this.,已保存。重新启动 TikTok 以应用此操作.
 Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.,在此手机上保存 TikTok 的最新崩溃报告，以便将其纳入诊断报告中.
+Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.,当 TikTok 的内存接近 Android 关闭主屏幕、动态从头开始的界限时，请 TikTok 先清理缓存.
 "Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.",与视频一起保存字幕 (SRT) 文件。他们会在 Android 11 及更高版本上转到“电影”，在 Android 10 上转到“下载”，在旧版本上会转到你的视频文件夹。在 Android 11 及更高版本上，如果打开“保存详细信息”，视频将移至“下载”或“文档”，而字幕仍保留在“电影”中.
 "Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.",将标题、创建者、链接和发布日期保存在视频旁边的文本文件中，图片帖子的原图则共用一个文件。在 Android 10 及更高版本上，它们会进入同一文件夹名称下的“下载”或“文档”。适用于 Hushfeed 进行的保存.
 Couldn't write the details file. Save the post again.,详情文件未能写入，请重新保存该帖子.
@@ -2074,6 +2081,9 @@ This video is already saved,该视频已保存
 This sound is already saved,该声音已保存
 Already saved. Open TikTok to save another copy.,已保存。打开 TikTok 可再保存一份副本.
 No full file for this video. Try again later.,此视频没有完整文件，请稍后再试.
+Subscriber-only posts can't be saved,无法保存仅限订阅者的帖子
+Copy-protected videos can't be saved,无法保存受复制保护的视频
+Not saved. The file wasn't a playable video.,未保存。该文件不是可播放的视频.
 This video's sound has no title to look for,该视频的声音没有可查找的标题
 Can't retry those photos. Save the post again.,无法重试这些照片，请再次保存该帖子.
 Thumbs down blocks the commenter,大拇指朝下屏蔽评论者
@@ -2126,7 +2136,6 @@ TikTok's messages didn't start in time. It tries again at %1$s.,TikTok 的消息
 TikTok's own name,TikTok 自己的名字
 TikTok's own value,TikTok 自身的值
 TikTok's size,TikTok 的大小
-TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.,TikTok 的建议回复单元格及其介绍横幅停止在聊天中显示。你输入或接收的消息不会受到影响.
 TikTok's total: %1$s. Filtered accounts: %2$s.,TikTok 总计：%1$s。过滤的账号：%2$s.
 Timed logging stopped,定时记录已停止
 Times you can open the feed anyway,你无论如何都可以打开信息流的次数
@@ -2461,7 +2470,6 @@ autoplay auto play,自动播放
 picture in picture PiP,画中画 PiP
 search suggestions,搜索建议
 AI chat,AI 聊天
-AI Tako,AI Tako
 save photos,保存照片
 download button,下载按钮 下载
 "It's in %1$s, under %2$s. Tap to go there.",在%1$s的%2$s中。点击前往.
@@ -2484,6 +2492,8 @@ Leave after no touch,无触摸时离开
 "Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.",零将其关闭。屏幕在这么多分钟内没有被触摸时，视频会停止，TikTok 会转到后台，适合看着看着睡着的时候。任何触摸都会重新开始等待.
 Left TikTok after no touch,因无触摸已离开 TikTok
 Show when an account was made,显示账号的创建时间
+Show how many videos a profile has,显示个人资料的视频数量
+"Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them.",在个人资料的@用户名下，显示 TikTok 统计的视频数量，你自己的个人资料也会显示.
 Show what changed since your last visit,显示自上次访问以来的变化
 "Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.",在个人资料的 @用户名下方，显示其粉丝、关注、获赞和视频自你上次打开以来的变化。这些数字只保存在这台手机上.
 Since %1$s: %2$s,自 %1$s 以来：%2$s
@@ -2615,7 +2625,7 @@ Read receipts shown,已显示已读回执
 Compact long-press menu everywhere,处处使用紧凑的长按菜单
 "A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.",长按视频时，推荐页也会打开 TikTok 的小分享面板，与创作者主页的视频相同。它的优先级高于上面两个完整菜单开关。需要将“长按”设为 TikTok 默认.
 Hide streak pop-ups,隐藏连续互动弹窗
-Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,停止在 TikTok 上方滑入的连续互动提醒，以及它加入聊天的连续互动消息和提示.
+"Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats.",停止在 TikTok 上方滑入的连续互动提醒、收件箱里的 Streak Pet 邀请，以及它加入聊天的连续互动消息和提示.
 Long press on For You opens my watch history,长按“为你推荐”打开我的观看历史
 Instead of these settings. The list has a button that brings you back here.,代替这些设置。列表里有一个按钮可以带你回到这里.
 Long press on Profile opens my watch history,长按“个人主页”打开我的观看历史
@@ -2710,7 +2720,9 @@ Close with Back or a tap outside,按返回键或点按外部即可关闭
 dialog popup greeting,对话框 弹窗 问候
 Don't show again,不再显示
 Stop the blink under the bar,消除底栏下的闪烁
+Pages under the bar,页面延伸到底栏下
 "If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.",如果开启透明底栏后滑动时视频闪烁，此项会把视频直接绘制在 TikTok 内，而不是单独的图层上。可能会稍微多耗一点电。需要透明底栏.
+"Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.",让首页的社区网格和其他停在标签上方的页面延伸到透明底栏下面，透过底栏显示出来，而不是黑色或白色的色带。最后一行仍可滚动到标签上方。需要透明底栏.
 Bend the video at the edges,在边缘折射视频
 "The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.",玻璃条的边缘会像真玻璃的边沿一样折射后面模糊的视频，颜色也会更鲜艳一些。需要模糊栏后面的视频和 Android 13 及以上版本.
 Hide On this day,隐藏那年今日 (On this day)
@@ -2740,6 +2752,8 @@ Show the controls,显示控件
 Hide Send to new group,隐藏“发送到新群组”
 Hides the button that turns the people you picked into a new group chat. Send separately stays.,隐藏把你选中的人建成新群聊的按钮。“分别发送”会保留.
 AMOLED dark mode,AMOLED 深色模式
+Dark mode,深色模式
+Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.,开启 TikTok Lite 自带但从不让你选择的深色主题。重新启动 TikTok Lite 即可看到变化.
 "Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.",用打补丁时选择的颜色填充深色模式，除非选了别的颜色，否则为纯黑。关闭后使用 TikTok 自己的深灰色。浅色模式不变。重新启动 TikTok 以查看更改.
 Check for Hushfeed updates,检查 Hushfeed 更新
 "Once a day when TikTok opens, ask GitHub if a newer Hushfeed is out and show a card when it is. The request carries your Hushfeed version and nothing else.",每天打开 TikTok 时最多向 GitHub 询问一次是否有更新的 Hushfeed，有的话显示一张卡片。请求中只带有你的 Hushfeed 版本.
@@ -2768,6 +2782,7 @@ Taller,更高
 Friends in the top tabs,顶部标签显示“朋友”
 "Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.",“朋友”会移到信息流顶部的标签，位于“关注”旁边，“发现”则占据它在底部栏的位置，和 TikTok 在部分国家的布局一样。你的地区和信息流保持不变.
 Pin more chats,置顶更多聊天
+Ping,Ping 值
 "Lifts the app's limit on pinned chats in the Inbox, usually 5, so you can pin more.",取消应用对收件箱置顶聊天的数量限制，通常为 5 个，让你可以置顶更多.
 Hide voice comments,隐藏语音评论
 Hide comments made of a voice recording instead of words.,隐藏由语音录音而不是文字组成的评论.
@@ -2994,7 +3009,8 @@ SecUID,SecUID
 Unknown (TikTok didn't send it),未知 (TikTok 未发送)
 "A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.",个人资料的共享表有一个账号事实按钮。它显示 TikTok 已发送的有关该账号的内容：加入时间、地区和语言、送礼等级和 SecUID、帖子、喜欢的视频、收藏和转发的数量、用户名和显示名称上次更改时间、是否是私人的以及其喜欢的视频是否是公开的。没有获取任何额外的内容.
 Show the room ID and your connection,显示直播间 ID 和你的连接
-"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.",在直播间加一行小字，显示直播间 ID 以及你自己到直播流的连接状况，数据来自 TikTok 播放器自己的测量：Ping 值、延迟和下载速度。点按这一行可复制直播间 ID.
+Show the room line,显示直播间信息行
+"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.",在直播间加一行小字，显示直播间 ID 以及你自己到直播流的连接状况，数据来自 TikTok 播放器自己的测量：Ping 值、延迟和下载速度。点按这一行可把它缩成一个小点，点按小点可恢复。长按这一行可复制直播间 ID.
 Room ID %1$s,直播间 ID %1$s
 Ping %1$s ms,Ping %1$s 毫秒
 Latency %1$s s,延迟 %1$s 秒
@@ -3025,7 +3041,7 @@ Smaller text sizes,更小的文字大小
 UI size,界面大小
 "Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.",把 TikTok 的整个界面缩小，文字和按钮一起变小，屏幕上能放下更多内容。100 表示保持原样。重新启动 TikTok 以查看更改.
 Show how long a LIVE has been on,显示 LIVE 已开播多久
-"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.",在直播间加一行小字，显示主播已经直播了多久，从直播间开始时算起。如果也开着直播间 ID，这一行在它下面.
+"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot.",在直播间加一行小字，显示主播已经直播了多久，从直播间开始时算起。如果也开着直播间 ID，这一行在它下面。点按这一行可把它缩成一个小点.
 LIVE for %1$s,已直播 %1$s
 Show exact LIVE battle scores,显示准确的 LIVE PK 分数
 "In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.",在 LIVE PK 中，TikTok 会限制观众看到的高分，而主播能看到完整数字。开启后，PK 进度条和连麦窗口都会显示完整分数.
@@ -3053,6 +3069,8 @@ Fade the controls out,淡出控件
 "The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.",按钮、标题和选项卡会逐渐淡出，而不是一下子消失，淡出时触摸屏幕会让它们恢复。关闭 Android 动画时，它们仍会立即消失.
 Date instead of age,显示日期而非时长
 "Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.",新视频在创作者名字旁显示发布日期，如 10-12，而不是像 2天前 这样的时长。日在月前 和 用文字写月份 也会以同样方式改变它.
+Use this date format everywhere,在所有地方使用此日期格式
+"Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.",评论的日期、聊天中的日期标题和搜索结果中的日期，都按上面三行写创作者名字旁日期的方式来写.
 Keep your place in chats,保持聊天中的位置
 A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.,在聊天中向上滚动后，从视频返回或发送回复时会停留在原处。发送普通消息或点按向下箭头仍会跳到最新消息.
 Fill wide videos too,宽视频也铺满

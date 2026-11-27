@@ -6,15 +6,20 @@ import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The rows under Your own tab icons (#186): one line per tab in the bar at the bottom, with Choose and Remove for a
- * picture of your own. A tab without one draws the plain outlined icon. A copy outlives the page that started it, so
- * its state is process-wide and it comes back to whichever page shows the rows then. One per settings page.
+ * picture of your own, then the size they all draw at. A tab without one draws the plain outlined icon. A copy outlives
+ * the page that started it, so its state is process-wide and it comes back to whichever page shows the rows then. One
+ * per settings page.
  */
 final class TabIconsRow {
     /** A picker's provider can stall, so a copy that hasn't finished by then is given up and Choose works again. */
@@ -25,6 +30,7 @@ final class TabIconsRow {
     private static String picking;
     private static java.lang.ref.WeakReference<TabIconsRow> shown = new java.lang.ref.WeakReference<>(null);
     private final SettingsActivity page;
+    private final List<RadioButton> sizes = new ArrayList<>();
     private LinearLayout list;
 
     TabIconsRow(SettingsActivity page) {
@@ -37,7 +43,44 @@ final class TabIconsRow {
         list.setTag("tab_icons_list");
         page.ui.add(content, list, 0);
         page.ui.add(content, page.ui.text(page.text.get("tab_icons_help", HomeHeaderPicture.MAX_MEGABYTES), 13, page.ui.muted, false), 8);
+        addSizesTo(content);
         fill(null);
+    }
+
+    /** The sizes, the largest first, for the outlined icons and your pictures alike. A pick saves the moment it's tapped. */
+    private void addSizesTo(LinearLayout content) {
+        page.ui.add(content, page.ui.text(page.text.get(TabIcons.SIZE), 15, page.ui.text, true), 8);
+        RadioGroup group = new RadioGroup(page);
+        group.setTag("tab_icons_size_choices");
+        group.setOrientation(LinearLayout.VERTICAL);
+        for (String size : TabIcons.SIZES) {
+            RadioButton choice = page.radio(TabIcons.SIZE + "_" + size, sizeLabel(size));
+            choice.setOnClickListener(clicked -> pickSize(size));
+            group.addView(choice, new RadioGroup.LayoutParams(-1, -2));
+            sizes.add(choice);
+        }
+        page.ui.add(content, group, 4);
+        page.ui.add(content, page.ui.text(page.text.get("tab_icons_size_help", sizeLabel(TabIcons.SIZES[0]),
+            sizeLabel(TabIcons.STANDARD)), 13, page.ui.muted, false), 8);
+        fillSizes();
+    }
+
+    /** A size the way the settings language writes a percentage. */
+    private String sizeLabel(String size) {
+        return page.text.percent(Integer.parseInt(size));
+    }
+
+    private void fillSizes() {
+        String checked = TabIcons.SIZE + "_" + TabIcons.picked();
+        for (RadioButton choice : sizes) choice.setChecked(choice.getTag().equals(checked));
+    }
+
+    /** The bar is built as Messenger opens, so the toast and the restart row say a restart shows it. */
+    private void pickSize(String size) {
+        if (Settings.preferences != null) Settings.preferences.edit().putString(TabIcons.SIZE, size).apply();
+        fillSizes();
+        page.updateRestartRow();
+        page.feedback(page.text.get("tab_icons_size_picked", sizeLabel(size)), Toast.LENGTH_SHORT);
     }
 
     /** Filled again from the saved pictures. Focus goes back to the button that was used, if any, for TalkBack. */

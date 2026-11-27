@@ -66,7 +66,7 @@ Use the original API30 Google/API29 Gemini variants in [the Android12 report](is
 3. Sign in manually on the official Play Store AVD. Build the probe with scripts/emulator/build-contract-probe.sh.
 
 ```sh
-python3 scripts/emulator/test-issue8-playstore.py \
+node scripts/emulator/test-issue8-playstore.mjs \
   --adb "$ANDROID_HOME/platform-tools/adb" --serial emulator-5584 \
   --fixtures local/issue8/play-store \
   --fixed-gemini local/issue8/play-store/manager-gemini.apk \

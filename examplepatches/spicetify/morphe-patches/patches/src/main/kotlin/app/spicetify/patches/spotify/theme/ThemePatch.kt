@@ -37,7 +37,7 @@ val themePatch = bytecodePatch(
     name = "Theme colors",
     description = "Choose a theme, such as OLED, or your own colors in Spicetify settings. Requires Android 11 or later. " +
         "Some screens and hardcoded colors keep Spotify's colors.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(spotifyCompatibility)
     dependsOn(themeSettingsPatch, themeResourcesPatch, themeComposePatch)

@@ -236,7 +236,7 @@ class VerifySettingsDex {
                         startup++;
                         // Server files return early in their track process first; VerifyLibraryDex checks that gate.
                         require(
-                                c.getType().equals("Lcom/spotify/music/SpotifyApplication;")
+                                c.getType().equals("Lp/cve1;")
                                         && m.getName().equals("onCreate")
                                         && m.getParameterTypes().isEmpty()
                                         && m.getReturnType().equals("V")
@@ -260,34 +260,57 @@ class VerifySettingsDex {
                     }
                     if (call(i, BRIDGE + "SettingsBridge;", "append")) {
                         append++;
+                        // The settings root (v0 after its cast) is kept in v44 and the rows array (v0)
+                        // moved to v45, so the pair is a register range.
                         require(
-                                c.getType().equals("Lp/xlt;")
+                                c.getType().equals("Lp/ec2;")
                                         && m.getName().equals("create")
                                         && m.getParameterTypes().isEmpty()
-                                        && m.getReturnType().equals("Lp/biy0;")
-                                        && i.getOpcode() == Opcode.INVOKE_STATIC
-                                        && i instanceof FiveRegisterInstruction r
+                                        && m.getReturnType().equals("Lp/lba1;")
+                                        && i.getOpcode() == Opcode.INVOKE_STATIC_RANGE
+                                        && i instanceof RegisterRangeInstruction r
                                         && r.getRegisterCount() == 2
-                                        && r.getRegisterC() == 6
-                                        && r.getRegisterD() == 2,
-                                "Settings row hook must pass root list v6 and factory v2");
+                                        && r.getStartRegister() == 44,
+                                "Settings row hook must pass the settings root v44 and the rows array v45");
                         require(
                                 ref(i).equals(
                                                 BRIDGE
-                                                        + "SettingsBridge;->append(Ljava/util/List;Lp/ion;)V"),
+                                                        + "SettingsBridge;->append(Lp/xir;[Lp/eaa1;)[Lp/eaa1;"),
                                 "Append descriptor changed");
                         require(
+                                n >= 1
+                                        && code.get(n - 1).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                                        && code.get(n - 1) instanceof TwoRegisterInstruction copy
+                                        && copy.getRegisterA() == 45
+                                        && copy.getRegisterB() == 0,
+                                "Append must be given the rows array from v0");
+                        require(
                                 n + 2 < code.size()
-                                        && code.get(n + 1).getOpcode() == Opcode.IGET_OBJECT
-                                        && ref(code.get(n + 1))
-                                                .equals("Lp/ion;->c:Ljava/lang/Object;")
-                                        && code.get(n + 1) instanceof TwoRegisterInstruction read
-                                        && read.getRegisterB() == 2
-                                        && code.get(n + 2).getOpcode() == Opcode.CHECK_CAST
-                                        && ref(code.get(n + 2)).equals("Lp/dpb;")
-                                        && ((OneRegisterInstruction) code.get(n + 2)).getRegisterA()
-                                                == read.getRegisterA(),
-                                "Append must precede the original ion.c / dpb access");
+                                        && code.get(n + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                                        && ((OneRegisterInstruction) code.get(n + 1)).getRegisterA() == 0
+                                        && code.get(n + 2).getOpcode() == Opcode.INVOKE_STATIC
+                                        && ref(code.get(n + 2))
+                                                .equals("Lp/za6;->E0([Ljava/lang/Object;)Ljava/util/List;")
+                                        && code.get(n + 2) instanceof FiveRegisterInstruction rows
+                                        && rows.getRegisterCount() == 1
+                                        && rows.getRegisterC() == 0,
+                                "Append must return the rows array to the original za6.E0 call");
+                        int saved = -1;
+                        for (int k = 0; k < n; k++) {
+                            if (code.get(k).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                                    && code.get(k) instanceof TwoRegisterInstruction save
+                                    && save.getRegisterA() == 44) {
+                                require(saved < 0, "The settings root must be saved once");
+                                saved = k;
+                            }
+                        }
+                        require(
+                                saved >= 1
+                                        && ((TwoRegisterInstruction) code.get(saved)).getRegisterB() == 0
+                                        && code.get(saved - 1).getOpcode() == Opcode.CHECK_CAST
+                                        && ref(code.get(saved - 1)).equals("Lp/xir;")
+                                        && ((OneRegisterInstruction) code.get(saved - 1)).getRegisterA() == 0,
+                                "The settings root must be saved from v0 right after its cast");
                     }
                 }
             }
@@ -305,8 +328,8 @@ class VerifySettingsDex {
                         named(
                                 BRIDGE + "SettingsBridge;",
                                 "append",
-                                List.of("Ljava/util/List;", "Lp/ion;"),
-                                "V"))) {
+                                List.of("Lp/xir;", "[Lp/eaa1;"),
+                                "[Lp/eaa1;"))) {
             require(
                     AccessFlags.PUBLIC.isSet(required.getAccessFlags())
                             && AccessFlags.STATIC.isSet(required.getAccessFlags())
@@ -348,7 +371,7 @@ class VerifySettingsDex {
     }
 
     static void verifyAnalytics() {
-        var m = named("Lp/c3g0;", "<init>", List.of("I", "Lp/ct71;", "I"), "V");
+        var m = named("Lp/p6o0;", "<init>", List.of("I", "Lp/m0l1;", "B"), "V");
         var c = code(m);
         var matches = new ArrayList<Integer>();
         for (int n = 0; n < c.size(); n++) {
@@ -362,13 +385,13 @@ class VerifySettingsDex {
                 n >= 2
                         && n + 2 < c.size()
                         && c.get(n - 2).getOpcode() == Opcode.CONST_4
-                        && ((OneRegisterInstruction) c.get(n - 2)).getRegisterA() == 7
+                        && ((OneRegisterInstruction) c.get(n - 2)).getRegisterA() == 13
                         && ((NarrowLiteralInstruction) c.get(n - 2)).getNarrowLiteral() == -1,
-                "Analytics must compare reserved value -1 in v7");
+                "Analytics must compare reserved value -1 in v13");
         require(
                 c.get(n - 1).getOpcode() == Opcode.IF_NE
-                        && ((TwoRegisterInstruction) c.get(n - 1)).getRegisterA() == 5
-                        && ((TwoRegisterInstruction) c.get(n - 1)).getRegisterB() == 7
+                        && ((TwoRegisterInstruction) c.get(n - 1)).getRegisterA() == 11
+                        && ((TwoRegisterInstruction) c.get(n - 1)).getRegisterB() == 13
                         && targetIndex(c, n - 1) == n + 2,
                 "Native analytics values must branch to original switch");
         require(
@@ -376,7 +399,7 @@ class VerifySettingsDex {
                         && ((OneRegisterInstruction) c.get(n)).getRegisterA() == 0
                         && c.get(n + 1).getOpcode() == Opcode.GOTO_16
                         && c.get(n + 2).getOpcode() == Opcode.PACKED_SWITCH
-                        && ((OneRegisterInstruction) c.get(n + 2)).getRegisterA() == 5,
+                        && ((OneRegisterInstruction) c.get(n + 2)).getRegisterA() == 11,
                 "Settings analytics label flow changed");
         int payload = targetIndex(c, n + 2);
         require(
@@ -387,7 +410,7 @@ class VerifySettingsDex {
         int sink = targetIndex(c, n + 1);
         int firstSink = -1;
         for (int index = n + 3; index < c.size(); index++) {
-            if (ref(c.get(index)).equals("Lp/it71;->b:Ljava/lang/String;")) {
+            if (ref(c.get(index)).equals("Lp/s0l1;->b:Ljava/lang/String;")) {
                 firstSink = index;
                 break;
             }
@@ -396,9 +419,9 @@ class VerifySettingsDex {
         require(
                 sink > n + 2
                         && c.get(sink).getOpcode() == Opcode.IPUT_OBJECT
-                        && ref(c.get(sink)).equals("Lp/it71;->b:Ljava/lang/String;")
+                        && ref(c.get(sink)).equals("Lp/s0l1;->b:Ljava/lang/String;")
                         && ((TwoRegisterInstruction) c.get(sink)).getRegisterA() == 0
-                        && ((TwoRegisterInstruction) c.get(sink)).getRegisterB() == 6,
+                        && ((TwoRegisterInstruction) c.get(sink)).getRegisterB() == 12,
                 "Settings label must reach original analytics label store");
         require(
                 c.subList(0, n - 2).stream()
@@ -441,7 +464,7 @@ class VerifySettingsDex {
             actual.add(signature(m));
         }
         var expected = new TreeSet<String>();
-        for (var m : classes.get("Lp/tyh0;").getMethods()) {
+        for (var m : classes.get("Lp/zkq0;").getMethods()) {
             expected.add(signature(m));
         }
         require(actual.equals(expected), "Navigator methods differ from native interface");

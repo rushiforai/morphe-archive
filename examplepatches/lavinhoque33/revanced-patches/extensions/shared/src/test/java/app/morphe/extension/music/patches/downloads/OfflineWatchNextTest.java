@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-08.
  * Modified by lavinhoque33, 2026-11-14.
  */
@@ -77,6 +78,29 @@ public class OfflineWatchNextTest {
         assertArrayEquals(endpoint, ProtoFields.one(response, 9));
     }
 
+    @Test
+    public void capturedSavedContinuationSelectsTheLiveOccurrenceWithoutAddingShuffleMetadata() throws Exception {
+        String playlist = "PPSVrvx:PLsaved_header";
+        List<Item> saved = items();
+        byte[] original = panel(OfflineWatchNext.build(playlist,
+                List.of(saved.get(0), saved.get(1), saved.get(0), saved.get(2)), 0, true));
+        byte[] first = track(original, 0);
+        byte[] otherOccurrence = track(original, 2);
+        byte[] endpoint = ProtoFields.one(otherOccurrence, 7);
+        byte[] response = OfflineWatchNext.buildCaptured(playlist,
+                List.of(first, track(original, 3), track(original, 1), otherOccurrence), 3, endpoint);
+        byte[] captured = panel(response);
+
+        assertFalse(ProtoFields.has(captured, 34));
+        assertEquals(playlist, ProtoFields.string(captured, 5));
+        assertEquals(3, ProtoFields.varint(captured, 3));
+        assertEquals(0, ProtoFields.varint(track(captured, 0), 6));
+        assertEquals(1, ProtoFields.varint(track(captured, 3), 6));
+        assertArrayEquals(endpoint, ProtoFields.one(track(captured, 3), 7));
+        assertArrayEquals(endpoint, ProtoFields.one(response, 9));
+        assertEquals(2, OfflineReplayLogic.offlineWatchOf(endpoint).index());
+    }
+
     @Test public void theResponseHoldsTheQueueAndTheCurrentEndpointOnly() throws Exception {
         byte[] response = OfflineWatchNext.build(PLAYLIST, items(), 1);
 
@@ -90,6 +114,31 @@ public class OfflineWatchNextTest {
         assertEquals(1, ProtoFields.varint(panel, 3));
         assertEquals(PLAYLIST, ProtoFields.string(panel, 5));
         assertEquals(3, ProtoFields.varint(panel, 6));
+    }
+
+    @Test public void onlyTheFreshShuffleReplyPublishesNativeModeWithoutChangingOccurrences() throws Exception {
+        String playlist = "PPSVrvx:PLsaved_header";
+        List<Item> saved = itemsShowingTheVideoOfTheSecond();
+        List<Item> withDuplicate = List.of(saved.get(0), saved.get(1), saved.get(0), saved.get(2));
+        byte[] plain = OfflineWatchNext.build(playlist, withDuplicate, 0);
+        byte[] shuffled = OfflineWatchNext.build(playlist, withDuplicate, 0, true);
+        byte[] plainPanel = panel(plain);
+        byte[] shuffledPanel = panel(shuffled);
+
+        assertFalse(ProtoFields.has(plainPanel, 34));
+        byte[] state = ProtoFields.one(ProtoFields.one(shuffledPanel, 34), 79_971_800);
+        assertEquals(1, ProtoFields.varint(state, 3));
+        assertEquals(0, ProtoFields.varint(shuffledPanel, 3));
+        assertEquals(4, ProtoFields.varint(shuffledPanel, 6));
+        assertArrayEquals(ProtoFields.one(plain, 9), ProtoFields.one(shuffled, 9));
+        for (int index = 0; index < withDuplicate.size(); index++) {
+            byte[] row = track(shuffledPanel, index);
+            assertArrayEquals(track(plainPanel, index), row);
+            assertEquals(withDuplicate.get(index).videoId(), ProtoFields.string(row, 10));
+            byte[] endpoint = ProtoFields.one(ProtoFields.one(row, 7), 57_703_777);
+            assertEquals(index, ProtoFields.varint(endpoint, 3));
+            assertFalse(ProtoFields.has(ProtoFields.one(endpoint, 10), 3));
+        }
     }
 
     @Test public void everyItemWrapsItsTrackInTheTrackField() throws Exception {

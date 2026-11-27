@@ -85,17 +85,16 @@ https://github.com/6zev/morphe-patches
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.2](https://github.com/6zev/morphe-patches/releases/tag/v1.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.7.12](https://github.com/6zev/morphe-patches/releases/tag/v1.7.12)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
-<summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **Package name:** `dev.vodik7.tvquickactions`
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock premium](#unlock-premium) | Reports the app as licensed and stops the native engine from verifying the licence, which unlocks the premium features. |  |
-| [Unlock premium (native)](#unlock-premium-native) | Stops the native engine from verifying the licence, which is what the premium actions are gated on once the licence checks out in Java. |  |
+| [Unlock premium](#unlock-premium) | Reports the app as licensed, which unlocks the premium features. |  |
 
 </details>
 

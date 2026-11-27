@@ -1,3 +1,17 @@
+## [1.9.1](https://github.com/Nich87/nich87-patches/compare/v1.9.0...v1.9.1) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* Keep lyrics source indicator hidden when controls are hidden ([302eb47](https://github.com/Nich87/nich87-patches/commit/302eb4721d2491368425c60b9432fe0d5ad525a0))
+* Paginate Apple Music cloud DAAP items with mpag tokens ([4b447bd](https://github.com/Nich87/nich87-patches/commit/4b447bdff7bd5cc19a599e6c48c8b5d8fb028a9b))
+
+## [1.9.1-dev.1](https://github.com/Nich87/nich87-patches/compare/v1.9.0...v1.9.1-dev.1) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* Keep lyrics source indicator hidden when controls are hidden ([302eb47](https://github.com/Nich87/nich87-patches/commit/302eb4721d2491368425c60b9432fe0d5ad525a0))
+* Paginate Apple Music cloud DAAP items with mpag tokens ([4b447bd](https://github.com/Nich87/nich87-patches/commit/4b447bdff7bd5cc19a599e6c48c8b5d8fb028a9b))
+
 ## [1.9.0](https://github.com/Nich87/nich87-patches/compare/v1.8.0...v1.9.0) (2026-11-25)
 
 ### ✨ New Features

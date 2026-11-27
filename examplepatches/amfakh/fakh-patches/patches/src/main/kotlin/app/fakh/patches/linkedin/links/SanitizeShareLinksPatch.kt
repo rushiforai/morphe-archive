@@ -59,7 +59,7 @@ val sanitizeShareLinksPatch = patch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Privacy")
+    category("Chat & privacy")
     dependsOn(settingsPatch)
 
     execute {

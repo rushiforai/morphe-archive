@@ -80,6 +80,13 @@ jobs:
           # enter the sync branch - this also avoids needing the push token to hold
           # the 'workflows' permission required to write .github/workflows/*.
           git checkout origin/main -- .github/ 2>/dev/null || true
+          # `git checkout` above restores tracked files but does not remove upstream
+          # files that were newly added under .github/ (e.g. a new workflow yml).
+          # Reset the index and clean untracked files so .github/ always matches
+          # origin/main exactly - otherwise `git add -A` would stage those new
+          # workflow files and the push would be rejected for lacking `workflow` scope.
+          git reset -q origin/main -- .github/ 2>/dev/null || true
+          git clean -fd .github/ 2>/dev/null || true
 
           # settings.gradle.kts is fork-specific (our project name) but it also
           # carries the app.morphe.patches Gradle plugin version, which must track

@@ -48,6 +48,7 @@ public class ChatPreviewSizeTest {
         Settings.hookErrors.clear();
         CrashGuard.resetForTests();
         CrashGuard.onProcessStart(context);
+        PreviewTaps.resetForTests();
     }
 
     @After public void restore() {
@@ -184,6 +185,57 @@ public class ChatPreviewSizeTest {
         idle(500);
         assertEquals(List.of(), chat.got);
         assertEquals(0, list.getScrollY());
+    }
+
+    private static void keepTaps(boolean on) {
+        Settings.preferences.edit().putBoolean(PreviewTaps.KEY, on).commit();
+    }
+
+    private void tapAt(float x, float y) {
+        send(MotionEvent.ACTION_DOWN, x, y);
+        send(MotionEvent.ACTION_UP, x, y);
+        idle(500);
+    }
+
+    // #247: a tap on the preview opened the chat, its own arrow down to the newest message included.
+    @Test public void keptInThePreviewATapGoesToTheChatAndOpensNothing() {
+        keepTaps(true);
+        openPreview();
+        tapAt(50, 200);
+        assertEquals(0, clicks);
+        assertEquals(List.of("ACTION_DOWN@50," + (200 - CHAT_TOP), "ACTION_UP@50," + (200 - CHAT_TOP)), chat.got);
+        assertFalse(layer.isClickable());
+        assertFalse(layer.isLongClickable());
+        assertFalse("TalkBack goes to the chat and the Open chat row", layer.isFocusable());
+        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, layer.getImportantForAccessibility());
+        assertTrue(Settings.lastActive(PreviewTaps.KEY) > 0);
+
+        drag(50, 300, 60);
+        assertTrue("the chat scrolls by itself", list.getScrollY() > 0);
+        assertEquals(0, clicks);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    @Test public void keptInThePreviewWithTheBiggerPreviewTooTheLayerStillTakesNothing() {
+        on(true);
+        keepTaps(true);
+        openPreview();
+        tapAt(50, 200);
+        assertEquals(0, clicks);
+        assertEquals(2, chat.got.size());
+        assertEquals("the chat is still the bigger size", 650, ChatPreviewSize.height(374, 1000));
+        assertTrue(Settings.lastActive(ChatPreviewSize.KEY) > 0);
+    }
+
+    @Test public void pausedATapOnThePreviewOpensTheChatAsBefore() {
+        keepTaps(true);
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        openPreview();
+        tapAt(50, 200);
+        assertEquals(1, clicks);
+        assertEquals(List.of(), chat.got);
+        assertTrue(layer.isClickable());
+        assertEquals(0, Settings.lastActive(PreviewTaps.KEY));
     }
 
     @Test public void switchedOffTheLayerKeepsEveryTouch() {

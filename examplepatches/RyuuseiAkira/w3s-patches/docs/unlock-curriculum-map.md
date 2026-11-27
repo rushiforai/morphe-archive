@@ -7,38 +7,20 @@
 
 ## What It Does
 
-Unlocks sequential lessons, checkpoints, and milestones across the W3Schools curriculum map without requiring prior nodes to be completed first.
+Unlocks sequential lessons, checkpoints, and milestones across the W3Schools curriculum map and removes the `"UNLOCK ALL ACTIVITIES"` upsell button on `/course-overview`.
 
 ## How It Works
 
 1. Enumerates `.js` files under `assets/public/_next/static/chunks/` via `listApkEntries`.
-2. Selects chunks referencing `resolveCurriculumAvailability`.
-3. Matches the availability helper signature using `AVAILABILITY_REGEX`:
-
-```js
-function resolveCurriculumAvailability(items, boundary, enforceLock) {
-  let normalized = Math.max(0, Math.floor(boundary));
-  if (!enforceLock)
-    return {
-      sequentialBoundaryIndex: normalized,
-      bonusUnlockedIndex: null,
-      isLocked: () => false,
-      isAccessible: () => true,
-    };
-  ...
-}
-```
-
-4. Rewrites the guard condition `if(!<enforceLockParam>)` to `if(!0)` (i.e. `if (true)`), forcing `resolveCurriculumAvailability` to immediately take the unlocked return path on every call.
-
-Every node inspected through `resolveCurriculumAvailability` then receives `isLocked: () => false` and `isAccessible: () => true` while retaining a clamped numeric `sequentialBoundaryIndex` and `bonusUnlockedIndex: null`.
+2. Selects chunks referencing `resolveCurriculumAvailability` and matches `AVAILABILITY_REGEX`, rewriting `if(!<enforceLockParam>)` to `if(!0)` so every node resolves with `isLocked: () => false` and `isAccessible: () => true`.
+3. In the chunk containing `"UNLOCK ALL ACTIVITIES"` (`/course-overview`), matches `OVERVIEW_UPSELL_REGEX` and disables the free-user upsell button guard (`!1&&(0,t.jsx)(I,{})`) while leaving `/course-overview` progress intact.
 
 ## Error Handling & Version Resilience
 
-- Because `AVAILABILITY_REGEX` captures function and parameter identifiers dynamically (`[A-Za-z_$][\w$]*`), minified variable renames across releases continue to match as long as the early-return object structure stays intact.
+- Captures minified identifiers dynamically (`[A-Za-z_$][\w$]*`).
 - Throws `PatchException` if no chunk under `assets/public/_next/static/chunks/` matches `AVAILABILITY_REGEX`.
 
 ## Scope & Limitations
 
-- Unlocks client-side sequential map progression gating only.
+- Unlocks client-side sequential map progression gating and overview CTA clutter only.
 - Any content or certification exam locked behind server-side **Full Access** entitlement checks remains enforced by W3Schools' API.

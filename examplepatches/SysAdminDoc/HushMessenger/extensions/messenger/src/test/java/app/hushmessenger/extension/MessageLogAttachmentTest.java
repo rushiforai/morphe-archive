@@ -1,6 +1,12 @@
 package app.hushmessenger.extension;
 
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.content.res.AssetFileDescriptor;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import com.facebook.messaging.model.attachment.Attachment;
 import com.facebook.messaging.model.attachment.AttachmentImageMap;
 import com.facebook.messaging.model.attachment.AudioData;
@@ -8,13 +14,20 @@ import com.facebook.messaging.model.attachment.ImageData;
 import com.facebook.messaging.model.attachment.ImageUrl;
 import com.facebook.messaging.model.attachment.VideoData;
 import com.facebook.messaging.model.messages.Message;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -35,8 +48,17 @@ public class MessageLogAttachmentTest {
     /** Stands in for the fetch, so no test reaches a network. */
     private static final byte[] CLIP = "ftypM4A clip bytes".getBytes(StandardCharsets.UTF_8);
 
+    /** The message, preview and file tokens in an encrypted chat's in-app address, the order Messenger writes them in. */
+    private static final String PK = "4096";
+    private static final String PREVIEW_TOKEN = "preview-token";
+    private static final String FILE_TOKEN = "file-token";
+    private static final String QUERY = "content_type=1&is_decouple_tam=true";
+    private static final byte[] PREVIEW_JPEG = bytesOf(0xFF, 0xD8, 0xFF, 0xE0, 'p', 'r', 'e', 'v');
+    private static final byte[] FULL_JPEG = bytesOf(0xFF, 0xD8, 0xFF, 0xE1, 'f', 'u', 'l', 'l', 's', 'i', 'z', 'e');
+
     private java.util.function.Function<String, byte[]> download;
     private java.util.function.ToLongFunction<String> measure;
+    private java.util.function.Function<String, byte[]> openInApp;
     private java.util.function.LongConsumer retryLater;
     private final List<String> asked = new java.util.ArrayList<>();
     private final List<String> measured = new java.util.ArrayList<>();
@@ -57,6 +79,10 @@ public class MessageLogAttachmentTest {
         MessageLogMedia.deleteAll(Settings.appContext);
         download = MessageLogAttachment.download;
         measure = MessageLogAttachment.measure;
+        openInApp = MessageLogAttachment.openInApp;
+        TamServer.files.clear();
+        TamServer.opened.clear();
+        Robolectric.setupContentProvider(TamServer.class, Settings.appContext.getPackageName() + ".tam-attachment");
         asked.clear();
         measured.clear();
         MessageLogAttachment.download = address -> {
@@ -75,6 +101,9 @@ public class MessageLogAttachmentTest {
     @After public void tidy() {
         MessageLogAttachment.download = download;
         MessageLogAttachment.measure = measure;
+        MessageLogAttachment.openInApp = openInApp;
+        TamServer.files.clear();
+        TamServer.opened.clear();
         MessageLog.retryLater = retryLater;
         logFile().delete();
         MessageLogMedia.deleteAll(Settings.appContext);
@@ -159,7 +188,7 @@ public class MessageLogAttachmentTest {
     /** Only the signed address the message came with. A file already on the phone is Messenger's to hand out, not ours. */
     @Test public void anAddressThatIsntTheMessagesOwnIsLeftAlone() {
         for (String address : new String[] {"file:///data/data/com.facebook.orca/clip.mp4", "content://media/external/audio/1",
-            "http://cdn.example.com/audio.mp4"}) {
+            "http://cdn.example.com/audio.mp4", "content://com.example.other.tam-attachment/4096/a/b"}) {
             assertNull(address, MessageLogAttachment.found(Message.with(Attachment.audio(new AudioData(Uri.parse(address))))));
             assertNull(address, MessageLogAttachment.found(Message.with(Attachment.image(ImageData.of(null,
                 AttachmentImageMap.of(new ImageUrl(1440, 1920, address)))))));
@@ -365,5 +394,171 @@ public class MessageLogAttachmentTest {
         MessageLog.Entry back = MessageLog.entries().get(0);
         assertEquals(MessageLogAttachment.AUDIO, back.mediaType);
         assertArrayEquals(CLIP, MessageLogMedia.open(Settings.appContext, back.media));
+    }
+
+    private static byte[] bytesOf(int... values) {
+        byte[] bytes = new byte[values.length];
+        for (int i = 0; i < values.length; i++) bytes[i] = (byte) values[i];
+        return bytes;
+    }
+
+    /** An MP4's opening box, then one track handler of [handler]'s kind, with its tag eight bytes before the kind. */
+    private static byte[] mp4(String... handlers) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        appendTo(out, bytesOf(0, 0, 0, 16, 'f', 't', 'y', 'p', 'i', 's', 'o', 'm', 0, 0, 2, 0));
+        for (String handler : handlers) {
+            appendTo(out, bytesOf(0, 0, 0, 33, 'h', 'd', 'l', 'r', 0, 0, 0, 0, 0, 0, 0, 0));
+            appendTo(out, handler.getBytes(StandardCharsets.US_ASCII));
+            appendTo(out, new byte[13]);
+        }
+        return out.toByteArray();
+    }
+
+    private static void appendTo(ByteArrayOutputStream out, byte[] bytes) {
+        out.write(bytes, 0, bytes.length);
+    }
+
+    /** Where Messenger puts an encrypted chat's picture: inside the app, the message's token, the preview's, the file's. */
+    private static String inAppAddress() {
+        return "content://" + Settings.appContext.getPackageName() + ".tam-attachment/" + PK + "/" + PREVIEW_TOKEN + "/"
+            + FILE_TOKEN + "?" + QUERY;
+    }
+
+    /** The same address with the file's own token alone, which is the one asked first. */
+    private static String fileItselfAddress() {
+        return "content://" + Settings.appContext.getPackageName() + ".tam-attachment/" + PK + "/" + FILE_TOKEN + "?" + QUERY;
+    }
+
+    /** An encrypted chat's photo or video as its notification has it: the in-app address at every size, with no sizes. */
+    private static Message encryptedMessage() {
+        String address = inAppAddress();
+        return Message.with(Attachment.image(ImageData.of(AttachmentImageMap.of(new ImageUrl(0, 0, address)),
+            AttachmentImageMap.of(new ImageUrl(0, 0, address), new ImageUrl(0, 0, address)))));
+    }
+
+    /**
+     * An encrypted chat's picture has no server address, only one inside the app, and it's carried with no kind, since
+     * only the file says whether it's the photo or a video behind its preview. Nothing is read on Messenger's thread.
+     */
+    @Test public void anEncryptedChatsPictureIsFoundAtItsInAppAddress() {
+        MessageLogAttachment.Found found = MessageLogAttachment.found(encryptedMessage());
+        assertNotNull(found);
+        assertNull(found.kind);
+        assertArrayEquals(new String[] {fileItselfAddress(), inAppAddress()}, found.addresses);
+        assertEquals(List.of(), TamServer.opened);
+    }
+
+    /** The file itself, not the preview Messenger's address names first, read through Messenger's own server. */
+    @Test public void anEncryptedChatsPhotoIsKeptAtFullSize() throws Exception {
+        TamServer.files.put(PREVIEW_TOKEN, PREVIEW_JPEG);
+        TamServer.files.put(FILE_TOKEN, FULL_JPEG);
+        MessageLog.storeNow(null, THREAD, ID);
+        assertEquals(nameOf(MessageLogAttachment.PHOTO),
+            MessageLogAttachment.keepNow(THREAD, ID, MessageLogAttachment.found(encryptedMessage())));
+        assertEquals(List.of(fileItselfAddress()), TamServer.opened);
+        MessageLog.Entry kept = MessageLog.entries().get(0);
+        assertEquals("", kept.mediaType);
+        assertArrayEquals(FULL_JPEG, MessageLogMedia.open(Settings.appContext, kept.media));
+        assertEquals(List.of(), asked);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /** A video arrives behind its preview picture's address, and the file read says it's a video, so it plays as one. */
+    @Test public void anEncryptedChatsVideoIsKeptAsAVideo() throws Exception {
+        byte[] movie = mp4("soun", "vide");
+        TamServer.files.put(PREVIEW_TOKEN, PREVIEW_JPEG);
+        TamServer.files.put(FILE_TOKEN, movie);
+        MessageLog.storeNow(null, THREAD, ID);
+        assertEquals(nameOf(MessageLogAttachment.VIDEO),
+            MessageLogAttachment.keepNow(THREAD, ID, MessageLogAttachment.found(encryptedMessage())));
+        MessageLog.Entry kept = MessageLog.entries().get(0);
+        assertEquals(MessageLogAttachment.VIDEO, kept.mediaType);
+        assertArrayEquals(movie, MessageLogMedia.open(Settings.appContext, kept.media));
+    }
+
+    /** When the file itself can't be had, the address as it came still answers with the preview, and that's kept. */
+    @Test public void thePreviewIsKeptWhenTheFileItselfCantBeHad() throws Exception {
+        TamServer.files.put(PREVIEW_TOKEN, PREVIEW_JPEG);
+        MessageLog.storeNow(null, THREAD, ID);
+        assertEquals(nameOf(MessageLogAttachment.PHOTO),
+            MessageLogAttachment.keepNow(THREAD, ID, MessageLogAttachment.found(encryptedMessage())));
+        assertEquals(List.of(fileItselfAddress(), inAppAddress()), TamServer.opened);
+        assertArrayEquals(PREVIEW_JPEG, MessageLogMedia.open(Settings.appContext, MessageLog.entries().get(0).media));
+    }
+
+    /** A video in an encrypted chat is kept on the video switch alone, and a photo there waits on the photo switch. */
+    @Test public void anEncryptedChatsMediaWaitsOnItsOwnSwitch() throws Exception {
+        Settings.preferences.edit().putBoolean(MessageLog.KEEP_PHOTOS, false).commit();
+        TamServer.files.put(FILE_TOKEN, FULL_JPEG);
+        MessageLog.storeNow(null, THREAD, ID);
+        MessageLogAttachment.Found found = MessageLogAttachment.found(encryptedMessage());
+        assertNotNull(found);
+        assertEquals("", MessageLogAttachment.keepNow(THREAD, ID, found));
+        TamServer.files.put(FILE_TOKEN, mp4("vide"));
+        assertEquals(nameOf(MessageLogAttachment.VIDEO), MessageLogAttachment.keepNow(THREAD, ID, found));
+        Settings.preferences.edit().putBoolean(MessageLog.KEEP_VIDEOS, false).commit();
+        assertNull(MessageLogAttachment.found(encryptedMessage()));
+    }
+
+    /** Pictures, videos and voice by their opening bytes, and anything else not kept at all. */
+    @Test public void theFileSaysWhatItIs() {
+        assertEquals(MessageLogAttachment.PHOTO, MessageLogAttachment.kindOf(FULL_JPEG));
+        assertEquals(MessageLogAttachment.PHOTO, MessageLogAttachment.kindOf(bytesOf(0x89, 'P', 'N', 'G', 0x0D, 0x0A)));
+        assertEquals(MessageLogAttachment.PHOTO, MessageLogAttachment.kindOf(bytesOf('G', 'I', 'F', '8', '9', 'a')));
+        assertEquals(MessageLogAttachment.PHOTO,
+            MessageLogAttachment.kindOf(bytesOf('R', 'I', 'F', 'F', 0, 0, 0, 0, 'W', 'E', 'B', 'P')));
+        assertEquals(MessageLogAttachment.PHOTO,
+            MessageLogAttachment.kindOf(bytesOf(0, 0, 0, 24, 'f', 't', 'y', 'p', 'h', 'e', 'i', 'c')));
+        assertEquals(MessageLogAttachment.VIDEO, MessageLogAttachment.kindOf(mp4("vide", "soun")));
+        assertEquals(MessageLogAttachment.VIDEO, MessageLogAttachment.kindOf(mp4()));
+        assertEquals(MessageLogAttachment.AUDIO, MessageLogAttachment.kindOf(mp4("soun")));
+        assertEquals(MessageLogAttachment.VIDEO, MessageLogAttachment.kindOf(bytesOf(0x1A, 0x45, 0xDF, 0xA3, 0x9F)));
+        assertEquals(MessageLogAttachment.AUDIO, MessageLogAttachment.kindOf(bytesOf('O', 'g', 'g', 'S', 0)));
+        assertNull(MessageLogAttachment.kindOf("just some text".getBytes(StandardCharsets.UTF_8)));
+        assertNull(MessageLogAttachment.kindOf(new byte[0]));
+    }
+
+    /**
+     * Messenger's own server for an encrypted chat's media: it answers a typed open with the first of the address's
+     * tokens it holds a file for, and refuses a plain open, the way Messenger's does.
+     */
+    public static class TamServer extends ContentProvider {
+        static final Map<String, byte[]> files = new HashMap<>();
+        static final List<String> opened = new java.util.ArrayList<>();
+
+        @Override public boolean onCreate() { return true; }
+
+        @Override public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts)
+                throws FileNotFoundException {
+            opened.add(uri.toString());
+            List<String> path = uri.getPathSegments();
+            for (int i = 1; i < path.size(); i++) {
+                byte[] bytes = files.get(path.get(i));
+                if (bytes == null) continue;
+                File file = new File(getContext().getCacheDir(), "tam-" + path.get(i));
+                try {
+                    Files.write(file.toPath(), bytes);
+                } catch (IOException unwritable) {
+                    throw new FileNotFoundException(unwritable.toString());
+                }
+                return new AssetFileDescriptor(ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY), 0,
+                    AssetFileDescriptor.UNKNOWN_LENGTH);
+            }
+            throw new FileNotFoundException("Can't locate file when resolving content token");
+        }
+
+        @Override public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
+            throw new FileNotFoundException("No files supported by provider");
+        }
+
+        @Override public AssetFileDescriptor openAssetFile(Uri uri, String mode) throws FileNotFoundException {
+            throw new FileNotFoundException("No files supported by provider");
+        }
+
+        @Override public String getType(Uri uri) { return null; }
+        @Override public Cursor query(Uri uri, String[] columns, String selection, String[] arguments, String order) { return null; }
+        @Override public Uri insert(Uri uri, ContentValues values) { return null; }
+        @Override public int delete(Uri uri, String selection, String[] arguments) { return 0; }
+        @Override public int update(Uri uri, ContentValues values, String selection, String[] arguments) { return 0; }
     }
 }

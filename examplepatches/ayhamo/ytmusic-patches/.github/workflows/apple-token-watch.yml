@@ -1,0 +1,39 @@
+name: Apple token watch
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # daily, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check the Apple scrape and upstream scrape code
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # the upstream commit lookups, past the anonymous rate limit
+        run: |
+          set -o pipefail
+          python watcher/apple_token_watch.py 2>&1 | tee report.txt
+      - name: Open an issue (once; later failures comment on it)
+        if: failure() && steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          body="$(printf 'The daily Apple token watch failed (%s).\n\n```\n%s\n```\n\nRun: %s/%s/actions/runs/%s' \
+            "$(date -u +%F)" "$(cat report.txt)" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")"
+          open="$(gh issue list --state open --search 'in:title "Apple token watch failed"' --json number --jq '.[0].number // empty')"
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "$body"
+          else
+            gh issue create --title "Apple token watch failed" --body "$body"
+          fi

@@ -1,0 +1,47 @@
+﻿# Gradle & Build outputs
+.gradle/
+.kotlin/
+build/
+**/build/
+
+# IDE & OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Android SDK
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Root-level decompile work directories & target outputs
+/target/
+/work/
+/recon_raw/
+/test_splits/
+/Brave/
+
+# Binary artifacts
+*.apk
+*.apkm
+*.idsig
+*.dex
+
+# Root developer tools, CLI binaries, test servers & temporary cache
+/tools/
+*.log
+*.txt
+__pycache__/
+*.pyc
+
+# Root directory test dumps, captures, scripts, and media
+/*.jpg
+/*.jpeg
+/*.png
+/*.xml
+/*.html
+/*.py
+/api_body.json

@@ -6,11 +6,13 @@ import android.view.Choreographer;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AnimationUtils;
-import android.view.animation.Interpolator;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +44,11 @@ public final class Arcade {
     /** Marks configurations built here, so they are not wrapped twice. */
     private static final String MARKER = "MorpheArcade";
 
-    /** Position moves linearly and arrives at 60 % of the move, as on the website. */
-    private static final Interpolator MOVE_INTERPOLATOR = new Interpolator() {
+    /**
+     * Position moves linearly and arrives at 60 % of the move, as on the website. The app's eased
+     * animation only takes an AccelerateDecelerateInterpolator.
+     */
+    private static final AccelerateDecelerateInterpolator MOVE_INTERPOLATOR = new AccelerateDecelerateInterpolator() {
         @Override
         public float getInterpolation(float t) {
             return t >= MOVE_LANDS ? 1f : t / MOVE_LANDS;
@@ -59,6 +64,11 @@ public final class Arcade {
     private static final List<WeakReference<View>> HOSTS = new ArrayList<>();
     private static Object castlingRook;
     private static int hoverSquare = Board.NONE;
+    /** The legal-move painter's draw in progress. */
+    private static Object hintsPainter;
+    private static android.graphics.Canvas hintsCanvas;
+    private static boolean hintsFlip;
+    private static float hintsSize;
 
     private Arcade() {}
 
@@ -76,7 +86,11 @@ public final class Arcade {
         return "";
     }
 
-    private static String dragCancelGetter() {
+    private static String fixedDurationField() {
+        return "";
+    }
+
+    private static String dragCancelField() {
         return "";
     }
 
@@ -87,10 +101,14 @@ public final class Arcade {
         try {
             Class<?> easingCurve = Class.forName(easingCurveClass());
             Class<?> fixedDuration = Class.forName(fixedDurationClass());
-            Object duration = fixedDuration.getConstructor(long.class).newInstance(MOVE_MS);
-            Object move = easingCurve.getConstructor(Interpolator.class, fixedDuration.getSuperclass())
+            // FixedDuration's one constructor sets the app's own length.
+            Object duration = fixedDuration.getConstructor().newInstance();
+            Field milliseconds = fixedDuration.getField(fixedDurationField());
+            milliseconds.setAccessible(true);
+            milliseconds.setLong(duration, MOVE_MS);
+            Object move = easingCurve.getConstructor(AccelerateDecelerateInterpolator.class, fixedDuration.getSuperclass())
                 .newInstance(MOVE_INTERPOLATOR, duration);
-            Object dragCancel = standardAnimations.getClass().getMethod(dragCancelGetter()).invoke(standardAnimations);
+            Object dragCancel = standardAnimations.getClass().getField(dragCancelField()).get(standardAnimations);
             Class<?> animationType = easingCurve.getSuperclass();
             return standardAnimations.getClass().getConstructor(animationType, animationType).newInstance(move, dragCancel);
         } catch (Throwable throwable) {
@@ -99,9 +117,9 @@ public final class Arcade {
         }
     }
 
-    /** The app's "Dynamic" style check: off while Arcade draws the effects. */
-    public static boolean dynamicAllowed() {
-        return !enabled();
+    /** The app's "Dynamic" style checks compare with this: nothing matches while Arcade draws the effects. */
+    public static Object dynamicType(Object dynamic) {
+        return enabled() ? null : dynamic;
     }
 
     /** Called once a board's piece view has its layers: adds the Arcade layers. */
@@ -235,15 +253,28 @@ public final class Arcade {
         }
     }
 
-    /** True when Arcade drew the move hints; otherwise the app draws its own. */
-    public static boolean drawHints(Object show, Object hints, android.graphics.Canvas canvas, boolean flip,
-                                    float size, Object painter) {
+    /** The legal-move painter starts a draw: its canvas, orientation and square size. */
+    public static void hintsFrame(Object painter, android.graphics.Canvas canvas, boolean flip, float unused, float size) {
+        if (!enabled()) return;
+        hintsPainter = painter;
+        hintsCanvas = canvas;
+        hintsFlip = flip;
+        hintsSize = size;
+    }
+
+    /** The hints the painter is about to draw: when Arcade draws them, the painter gets none. */
+    public static Object hints(Object hints) {
+        android.graphics.Canvas canvas = hintsCanvas;
+        Object painter = hintsPainter;
+        hintsCanvas = null;
+        hintsPainter = null;
+        if (canvas == null || !enabled()) return hints;
         try {
-            return Decor.drawHints(show, hints, canvas, flip, size, painter);
+            if (Decor.drawHints(Boolean.TRUE, hints, canvas, hintsFlip, hintsSize, painter)) return Collections.emptyList();
         } catch (Throwable throwable) {
             Utils.logError("Arcade hints failed", throwable);
-            return false;
         }
+        return hints;
     }
 
     private static long framesUntil;

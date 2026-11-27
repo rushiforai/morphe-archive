@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- BirdyTV mark: A dynamic red bird in flight with embedded Play button. GPLv3, part of Birdy Patches. -->
+  <defs>
+    <clipPath id="round"><rect width="512" height="512" rx="116"/></clipPath>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12070A"/>
+      <stop offset="1" stop-color="#24080E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FF1A35" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#FF1A35" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tail" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#8C0014"/>
+      <stop offset="1" stop-color="#C62328"/>
+    </linearGradient>
+    <linearGradient id="backWing" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#A50A19"/>
+      <stop offset="1" stop-color="#D7232D"/>
+    </linearGradient>
+    <linearGradient id="mainWing" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#E10F23"/>
+      <stop offset="1" stop-color="#FF3741"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#D70F1E"/>
+      <stop offset="1" stop-color="#FF1E2D"/>
+    </linearGradient>
+    <linearGradient id="beak" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC107"/>
+      <stop offset="1" stop-color="#FF9800"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <circle cx="256" cy="256" r="190" fill="url(#glow)"/>
+    <!-- tail feathers -->
+    <polygon points="120,310 65,385 125,360 95,425 175,350 150,310" fill="url(#tail)"/>
+    <!-- back wing -->
+    <polygon points="150,310 220,120 310,180 240,280" fill="url(#backWing)"/>
+    <!-- main sweeping wing -->
+    <polygon points="200,280 315,95 375,160 280,270" fill="url(#mainWing)"/>
+    <!-- bird head and body -->
+    <polygon points="180,345 230,355 335,285 370,195 375,140 325,155 270,230 180,345" fill="url(#body)"/>
+    <!-- golden beak -->
+    <polygon points="365,145 435,170 360,190" fill="url(#beak)"/>
+    <!-- eye -->
+    <circle cx="335" cy="160" r="5" fill="#FFFFFF"/>
+    <!-- Play button triangle (▶) in crisp white -->
+    <polygon points="248,198 338,259 248,320" fill="rgba(80,0,10,0.4)"/>
+    <polygon points="245,195 335,256 245,317" fill="#FFFFFF"/>
+  </g>
+</svg>

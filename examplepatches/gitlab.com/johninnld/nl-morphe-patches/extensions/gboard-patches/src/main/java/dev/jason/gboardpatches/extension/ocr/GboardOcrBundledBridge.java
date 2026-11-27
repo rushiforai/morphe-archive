@@ -200,27 +200,8 @@ public final class GboardOcrBundledBridge {
             }
             Object text = readObject(payload, "zba");
             Object blocks = readObject(payload, "zbb");
-            Log.i(TAG, "OCR payload text=" + text);
             if (blocks instanceof java.util.List) {
                 java.util.List<?> list = (java.util.List<?>) blocks;
-                Log.i(TAG, "OCR payload blocks=" + list.size());
-                if (!list.isEmpty() && list.get(0) != null) {
-                    Object first = list.get(0);
-                    StringBuilder shape = new StringBuilder(first.getClass().getName()).append(" {");
-                    for (java.lang.reflect.Field field : first.getClass().getDeclaredFields()) {
-                        field.setAccessible(true);
-                        try {
-                            Object value = field.get(first);
-                            if (value instanceof Object[]) {
-                                value = "array[" + ((Object[]) value).length + "]";
-                            }
-                            shape.append(field.getName()).append('=').append(value).append(' ');
-                        } catch (Throwable ignored) {
-                            // Skip inaccessible fields.
-                        }
-                    }
-                    Log.i(TAG, "OCR element shape: " + shape.append('}'));
-                }
                 return list.toArray();
             }
             return new Object[0];

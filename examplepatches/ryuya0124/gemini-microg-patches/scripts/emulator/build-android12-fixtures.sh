@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/../lib/common.sh"
+source "$ROOT/scripts/lib/files.sh"
 [[ $# -eq 2 ]] || fail 'Usage: build-android12-fixtures.sh GOOGLE_API30_APK GEMINI_API29_APK'
 google="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 gemini="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
-python3 - "$google" "$gemini" <<'PY'
-import hashlib, pathlib, sys
-expected = ['a269697a169ce4420b3873d89c9bd0f6c400d793b5cb9c2e2603a476a6a316ac',
-            '793fdf8cdaf56729b9f63b1a3895b4a2c0284c38adbb2f638bf727ef491ff9be']
-for filename, digest in zip(sys.argv[1:], expected):
-    assert hashlib.file_digest(open(filename, 'rb'), 'sha256').hexdigest() == digest, filename
-print('Original Android 12-compatible variant hashes verified')
-PY
+[[ "$(sha256_file "$google")" == a269697a169ce4420b3873d89c9bd0f6c400d793b5cb9c2e2603a476a6a316ac ]] || fail "Unexpected Google APK: $google"
+[[ "$(sha256_file "$gemini")" == 793fdf8cdaf56729b9f63b1a3895b4a2c0284c38adbb2f638bf727ef491ff9be ]] || fail "Unexpected Gemini APK: $gemini"
+printf '%s\n' 'Original Android 12-compatible variant hashes verified'
 fixture="$ROOT/local/issue8/api31/build"
 mkdir -p "$fixture/baseline-src" "$fixture/dist"
 "$ROOT/scripts/compile-patches.sh"

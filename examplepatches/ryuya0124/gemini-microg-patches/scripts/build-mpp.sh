@@ -10,8 +10,8 @@ trap 'rm -rf "$dex_dir"' EXIT
 "$JAVA" -cp "$ROOT/tools/r8.jar" com.android.tools.r8.D8 \
   --release --min-api 26 --lib "$ANDROID_JAR" --classpath "$MORPHE" \
   --output "$dex_dir" "$BUILD_DIR/gemini-patches.jar"
-python3 "$ROOT/scripts/package-mpp.py" "$dex_dir"
-version="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/patches-bundle.json")"
+bash "$ROOT/scripts/package-mpp.sh" "$dex_dir"
+version="$(jq -er '.version' "$ROOT/patches-bundle.json")"
 bundle="$BUILD_DIR/release/gemini-microg-patches-$version.mpp"
 "$KOTLINC" "$ROOT/scripts/kotlin/VerifyMpp.kt" -cp "$MORPHE" -d "$BUILD_DIR/verify-mpp.jar"
 "$JAVA" -cp "$BUILD_DIR/verify-mpp.jar:$MORPHE" VerifyMppKt "$bundle" "$version"

@@ -1,6 +1,5 @@
 package io.github.bryceaspringfield.morphe.extension.youtube;
 
-
 import java.util.List;
 
 import app.morphe.extension.shared.Logger;
@@ -12,21 +11,15 @@ import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.shared.NavigationBar;
 import app.morphe.extension.youtube.shared.PlayerType;
 
-/**
- * The bundle's Litho filter for feed items and comments: channel filters, length bounds, playlists on Home, topics,
- * hidden channels, and categories. Added to Morphe's filter list by the patch.
- */
 @SuppressWarnings("unused")
 public final class XFilter extends Filter {
 
-    /** The feed's video items, as Morphe's keyword filter reads them (paths starting with these). */
     private final StringFilterGroup feedItems = new StringFilterGroup(null,
             "home_video_with_context.e",
             "search_video_with_context.e",
             "video_with_context.e",
             "related_video_with_context.e",
             "video_lockup_with_attachment.e",
-            // The card layout (Morphe's feed card layout, or YouTube's own A/B test): lockup.eml-fe|hash.
             "lockup.e",
             "compact_video.e",
             "compact_playlist.e",
@@ -37,13 +30,10 @@ public final class XFilter extends Filter {
 
     private final StringFilterGroup comments = new StringFilterGroup(null, "comment_thread.e");
 
-    /** The video quality sheet's content: the extension adds its Audio only row to the sheet's window. */
     private final StringFilterGroup qualitySheet = new StringFilterGroup(null, "quick_quality_sheet_content.e");
 
-    /** The red progress bar of a watched video's thumbnail (a brand gradient under the lockup's thumbnail). */
     private final StringFilterGroup progressBar = new StringFilterGroup(null, "brand_linear_gradient_container.e");
 
-    /** The last top-level item laid out on this thread; Litho lays out an item's children after it, on its thread. */
     private static final ThreadLocal<VideoItem> LAST_ITEM = new ThreadLocal<>();
 
     private enum Place {HOME, SUBSCRIPTIONS, CHANNEL, SEARCH, RELATED, OTHER}
@@ -67,15 +57,12 @@ public final class XFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface, String identifier, String accessibility,
                               CharSequence path, byte[] buffer, BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
-        // Only the item's own top-level component, whose buffer holds the whole item.
         if (matchedGroup == qualitySheet) {
             QualityAudioRow.sheetOpened();
             return false;
         }
         if (matchedGroup == progressBar) {
             String p = path.toString();
-            // Home and the videos under the player only: History's first menu token removes the video from the
-            // watch history, and search results offer no Not interested.
             if (watchedPlace(contextInterface)
                     && p.contains("thumbnail") && !p.contains("live_ring") && !p.contains("avatar")) {
                 VideoItem parent = LAST_ITEM.get();
@@ -90,8 +77,6 @@ public final class XFilter extends Filter {
             return isTopLevel(path.subSequence(contentIndex, path.length())) && filterComment(buffer, path);
         }
         if (contentIndex != 0 || !(isTopLevel(path) || isAttachmentLockup(path))) {
-            // 2026-11-17: Home cards of the signed-in feed's templates (video_lockup_with_attachment.eml) read as empty items
-            // (video=null, no title), so no keyword, playlist, or watched rule reached them; the title sits in a child component.
             if (XSettings.DEBUG.get() && matchedGroup == feedItems) {
                 Logger.printDebug(() -> "YouTube Extras: child " + path + " idx " + contentIndex + " :: " + VideoItem.runs(buffer, 400));
             }
@@ -101,23 +86,17 @@ public final class XFilter extends Filter {
         Place place = place(contextInterface);
         homeSelected = NavigationBar.NavigationButton.getSelectedNavigationButton(contextInterface)
                 == NavigationBar.NavigationButton.HOME;
-        // Morphe's own keyword filter misses cards of the card layout (lockup.eml) and of the signed-in feed's
-        // templates (video_lockup_with_attachment.eml): its keywords are applied here to every video item, with
-        // Morphe's own list and its Home, Subscriptions, and Search switches.
         if (isVideoCard(path)) MorpheKeywords.usedSignature = MorpheKeywords.signature();
         if (isVideoCard(path) && MorpheKeywords.applies(place == Place.SEARCH, place == Place.SUBSCRIPTIONS)) {
             VideoItem card = VideoItem.parse(buffer, path);
             String kw = MorpheKeywords.match(card);
             if (kw != null) {
                 if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: " + place + " " + card + " HIDDEN by Morphe keyword " + kw);
-                // Hidden by keyword: the same automatic Not interested > I don't like the video as every other filter.
-                // Home and the videos under the player only: a subscribed channel's videos need no Not interested.
                 if (homeOrRelated(contextInterface)) Feedback.onHidden(card, "Morphe keyword " + kw);
                 return true;
             }
             if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card " + path + " " + card.videoId + " [" + card.text.replace('\n', '|') + "]");
         }
-        // Mark watched videos is its own option: it applies on Home and under the player whatever the filters' places.
         boolean filters = applies(place);
         if (!filters && ("off".equals(XSettings.AUTO_WATCHED.get()) || !watchedPlace(contextInterface))) return false;
         VideoItem item = VideoItem.parse(buffer, path);
@@ -137,12 +116,9 @@ public final class XFilter extends Filter {
                 Logger.printDebug(() -> "YouTube Extras: raw " + path + " :: " + VideoItem.runs(buffer, 3000));
             }
         }
-        // Home and the videos under the player only (Bryce, 2026-11-16): the Subscriptions page lists channels the user chose.
         boolean feedbackPlace = homeOrRelated(contextInterface);
         if (reason == null) {
             if (watchedPlace(contextInterface)) Feedback.onFeedItem(item);
-            // A category lookup slower than its wait shows the item; when the answer names a hidden category, the
-            // item still gets Not interested, as the other filters' hidden items do (it hides at its next layout).
             if (filters && feedbackPlace && XSettings.AUTO_DISLIKE_FILTERED.get() && item.videoId != null
                     && !item.playlist && !item.mix && !Categories.hidden().isEmpty() && Categories.pending(item.videoId)) {
                 Categories.onLate(item.videoId, cat -> {
@@ -157,11 +133,8 @@ public final class XFilter extends Filter {
         return true;
     }
 
-    
-    /** An item whose own buffer states a red progress bar (any, or 90% with Fully), or one seen with one before. */
     private static boolean watchedItem(VideoItem item, byte[] buffer) {
         String mode = XSettings.AUTO_WATCHED.get();
-        // A playlist or mix names its first video, whose watch says nothing of the list.
         if ("off".equals(mode) || item.videoId == null || item.playlist || item.mix) return false;
         boolean fully = "fully".equals(mode);
         float p = VideoItem.progress(buffer);
@@ -170,7 +143,6 @@ public final class XFilter extends Filter {
         boolean playing = item.videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getStartingOrPlayingVideoId());
         boolean marked = Feedback.isWatched(item.videoId);
         boolean watched = p >= (fully ? 0.9f : 0.005f)
-                // A feed item's data has no progress on most layouts: YouTube draws the red bar from the account's history.
                 || account >= (fully ? 90 : 1)
                 || (!playing && local >= (fully ? 0.9f : 0.02f))
                 || marked;
@@ -181,7 +153,6 @@ public final class XFilter extends Filter {
         return watched;
     }
 
-    /** True when Home's own button is the selected one (not merely unknown); only then Home-only rules may hide an item. */
     private static boolean homeSelected;
 
     private static String reason(VideoItem item, Place place) {
@@ -205,7 +176,6 @@ public final class XFilter extends Filter {
             if ((maxAge > 0 || minViews > 0) && !item.live && !item.shorts) {
                 double age = Metadata.ageDays(item.text);
                 if (maxAge > 0 && age > maxAge) return "older than " + XSettings.MAX_AGE.get();
-                // By default every video counts; "Keep new videos" leaves a video under a day old (or with no age) alone.
                 if (minViews > 0 && (!XSettings.VIEWS_KEEP_NEW.get() || age >= 1)) {
                     long views = Metadata.views(item.text);
                     if (views >= 0 && views < minViews) return "under " + XSettings.MIN_VIEWS.get() + " views";
@@ -226,8 +196,6 @@ public final class XFilter extends Filter {
                 VideoInformation.getChannelName());
         if (rules.isEmpty()) return false;
         VideoItem comment = VideoItem.parse(buffer, path);
-        // Handles are dropped (a comment's buffer names the channel, e.g., "by @RickAstleyYT" under a creator heart),
-        // and so are the buffer's own labels after the comment text.
         String text = comment.text.replaceAll("@[\\w.\\-]+", " ");
         for (ChannelRules.Rule r : rules) {
             if (r.keyword != null && ChannelRules.containsKeyword(text, r.keyword, r.wholeWord)) {
@@ -238,10 +206,6 @@ public final class XFilter extends Filter {
         return false;
     }
 
-    /**
-     * The "video_lockup.eml" child of a "video_lockup_with_attachment.eml" Home card (2026-11-17): the card's own buffer
-     * holds no title or ID, and this child's holds the title, the video ID, and the playlist ID, so it is judged as the item.
-     */
     private static boolean isAttachmentLockup(CharSequence path) {
         String p = path.toString();
         if (!p.startsWith("video_lockup_with_attachment.e")) return false;
@@ -252,17 +216,12 @@ public final class XFilter extends Filter {
         return components == 2 && last.startsWith("video_lockup.e");
     }
 
-    /** A video card of any feed template: not a Shorts shelf cell, a playlist, or a radio. */
     private static boolean isVideoCard(CharSequence path) {
         String p = path.toString();
         return !p.startsWith("inline_shorts") && !p.startsWith("shorts_") && !p.startsWith("compact_playlist")
                 && !p.startsWith("compact_radio");
     }
 
-    /**
-     * Whether the path is an item's top-level component ("video_lockup_with_attachment.eml-fe|HASH|CellType|"), whose
-     * buffer holds the whole item; its child components start with the same path and hold parts of the buffer.
-     */
     private static boolean isTopLevel(CharSequence path) {
         int components = 0;
         String p = path.toString();
@@ -270,7 +229,6 @@ public final class XFilter extends Filter {
         return components <= 1;
     }
 
-    /** The player's related videos, or Home with its button selected (a page with none, such as History, is excluded). */
     private static boolean homeOrRelated(ContextInterface contextInterface) {
         if (PlayerType.getCurrent().isMaximizedOrFullscreen()) return true;
         if (NavigationBar.isSearchBarActive()) return false;
@@ -278,7 +236,6 @@ public final class XFilter extends Filter {
                 == NavigationBar.NavigationButton.HOME;
     }
 
-    /** Where Mark watched videos applies: the places switched on in Settings > Feed. */
     private static boolean watchedPlace(ContextInterface contextInterface) {
         return switch (place(contextInterface)) {
             case HOME -> XSettings.WATCHED_HOME.get();

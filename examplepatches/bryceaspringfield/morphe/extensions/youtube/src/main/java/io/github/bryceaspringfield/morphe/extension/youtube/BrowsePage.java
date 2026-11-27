@@ -2,11 +2,6 @@ package io.github.bryceaspringfield.morphe.extension.youtube;
 
 import java.lang.reflect.Field;
 
-/**
- * The browse ID of the page shown ("FEwhat_to_watch" Home, "FEsubscriptions", "UC..." a channel's page), which Morphe's
- * layout filter records and keeps private; read here by reflection, since the bottom bar names Home or Subscriptions
- * on a channel page opened from either.
- */
 final class BrowsePage {
 
     private static Field field;
@@ -15,7 +10,6 @@ final class BrowsePage {
     private BrowsePage() {
     }
 
-    /** The page's browse ID, or empty when unknown (a search feed, or Morphe's field moved). */
     static synchronized String id() {
         if (!tried) {
             tried = true;

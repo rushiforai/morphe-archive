@@ -295,6 +295,9 @@ Feed videos and stories wait for your tap. Reels and videos in Explore play as I
 Turn on Tap to play to use this choice.	請啟用「點擊播放」以使用此選項。
 Resume long videos	繼續播放長影片
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	超過兩分鐘的影片與 Reels 會從上次離開的位置繼續播放。可拖曳進度列改從其他位置開始。直播與廣告仍會照常播放。
+# context: a switch under Resume long videos (#874). A feed video you scroll past and come back to keeps playing from where it was, only until Instagram closes. The Reels tab is Instagram's own tab.
+Keep your place in feed videos	記住動態影片的播放位置
+A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over as usual.	你捲離的動態影片，捲回來時會從離開的位置繼續播放，直到你關閉 Instagram。Reels 分頁中的 Reels 仍會照常從頭播放。
 Default playback quality	預設播放畫質
 # context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
 Videos, reels and stories play at the quality below, starting with the next one you open.	從下一部開啟的影片開始，影片、Reels 和限時動態會以下方畫質播放。
@@ -774,6 +777,9 @@ The latitude and the longitude in degrees, with a comma between them, like 40.75
 Turn off HDR brightness boosts	停用 HDR 亮度提升
 Keep HDR on photo uploads	上傳相片時保留 HDR
 Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	實驗性功能。在 Android 14 以上版本，你發布的 Ultra HDR 相片會保留增益圖，因此仍可以 HDR 顯示。如果發布的相片看起來不對，請關閉此項。
+# context: Keep HDR on video uploads, under Playback next to the photo switch. Instagram encodes a video again before it uploads it; HDR means HLG here.
+Keep HDR on video uploads	上傳影片時保留 HDR
+Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong or won't upload.	實驗性功能。在 Android 13 以上版本，你發布的 HDR 影片會以 HDR 編碼，而在部分手機上 Instagram 原本會把它轉成 SDR。如果發布的影片看起來不對或無法上傳，請關閉此項。
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	從搜尋開啟的內容不會加入最近搜尋，應用程式與 Instagram 端皆適用。既有搜尋記錄會保留，直到你清除。
 Wi-Fi stays as it is. Turn this off to save data on every network.	Wi-Fi 不受影響。關閉此選項可在所有網路節省數據。
 Hide comments	隱藏留言
@@ -1081,6 +1087,8 @@ Stop the analytics upload alarm	停用分析資料上傳鬧鐘
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram 會設定鬧鐘，在五分鐘後喚醒手機並傳送使用事件。此選項會停用該鬧鐘，事件改在下次使用應用程式時傳送。
 Stop background feed refresh	停止背景動態更新
 About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Instagram 大約每半小時會喚醒手機，提前下載你的動態。此選項會停止該行為。動態改在開啟應用程式時載入，訊息與通知仍會照常送達。
+Let Instagram close after account checks	帳號檢查後讓 Instagram 關閉
+When your phone checks its accounts, as it does at startup and when an account changes, Instagram never answers. Android then keeps it running for up to 15 minutes, even after you swipe it away. This answers right away so Instagram can close. Your login is unaffected.	手機檢查帳號時（例如開機時和帳號變更時），Instagram 從不回應。Android 因此會讓它持續執行最多 15 分鐘，即使你已將它滑掉關閉。此選項會立即回應，讓 Instagram 可以關閉。不影響你的登入。
 Haptic style	觸覺回饋樣式
 Short tick	短震
 System tick	系統震動
@@ -1925,6 +1933,21 @@ Seek bar button on feed videos	動態影片拖曳列按鈕
 Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	在動態影片左下角加入小按鈕，可顯示或隱藏拖曳列。無論動態影片拖曳列開或關都能使用。
 Seek bar	拖曳列
 Tint intensity	染色強度
+# context: Tab bar: the Tint color list under Tint intensity that picks the glass tab bar's color, its choices' descriptions, the Custom tint color field under it with its dialog message and empty summary, and what both say while another switch is in the way (#875). Light, Dark and AMOLED black are choices in the list; Tint intensity, Custom tint color, Glass tab bar and Material look are rows' names
+Tint color	染色顏色
+Light	淺色
+Dark	深色
+AMOLED black	AMOLED 純黑
+The glass takes Instagram's own colors, dark or light with its theme.	玻璃沿用 Instagram 自己的顏色，隨 Instagram 顯示深色或淺色。
+Frosted white glass whatever Instagram's theme, with the tab icons dark on it.	無論 Instagram 是深色還是淺色，都顯示磨砂白玻璃，上面的分頁圖示為深色。
+Dark gray glass whatever Instagram's theme, with the tab icons white on it.	無論 Instagram 是深色還是淺色，都顯示深灰色玻璃，上面的分頁圖示為白色。
+A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.	無光澤的黑色膠囊，適合 AMOLED 螢幕。調低「染色強度」可透出後方的內容。
+The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones keep Instagram's colors.	玻璃採用 Android 從你的桌布選取的強調色。需要 Android 12 或更新版本。較舊的手機保留 Instagram 預設顏色。
+The glass takes the color you type under Custom tint color.	玻璃採用你在「自訂染色顏色」輸入的顏色。
+Custom tint color	自訂染色顏色
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.	用六位十六進位數字表示的顏色，例如 #4A6B82。儲存後「染色顏色」會改為自訂。
+Turn on Glass tab bar to use this choice.	請啟用「玻璃分頁列」以使用此選項。
+Turn off Material look to use this choice.	請關閉「Material 外觀」以使用此選項。
 Refraction intensity	折射強度
 Preview of the tab bar	分頁列預覽
 Keep stories playing while zooming	縮放時繼續播放限時動態
@@ -2337,6 +2360,9 @@ Instagram's small window for reels gets a button to pause the reel and play it a
 # context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
 Previous and next in the reels window	Reel 小視窗中的上一個和下一個
 Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	Instagram 的 Reel 小視窗會多出 Instagram 自己的按鈕，可回到上一個 Reel 或前往下一個。
+# context: a switch on the Playback page under Previous and next in the reels window; photo and carousel reels go in Instagram's small picture in picture window for reels, a carousel shows a dot per page, and the window's Previous and Next buttons turn its pages before moving to another reel (#873)
+Photos and carousels in the reels window	Reel 小視窗中的相片和輪播
+Photo and carousel reels go in Instagram's small window for reels too. A carousel shows a dot for each page, and Previous and Next go through its pages first.	相片和輪播 Reel 也會進入 Instagram 的 Reel 小視窗。輪播會為每一頁顯示一個圓點，上一個和下一個會先翻過它的各頁。
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	限時動態子母畫面
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	在限時動態播放時離開 Instagram，它會縮成浮在其他應用程式上方的小視窗，並在其中繼續播放限時動態.
@@ -2784,6 +2810,9 @@ HushGram's own files take up %1$s.	HushGram 自己的檔案佔用 %1$s。
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	手指下的玻璃透鏡
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	用手指按住液態膠囊的泡泡，或在分頁間滑動它，泡泡會變大，並更強烈地折射後方的內容，就像指尖下的玻璃。放開後會恢復原狀。折射需要開啟「模糊分頁列後方內容」及 Android 13 或以上版本。變更後請重新啟動 Instagram。
+# context: Tab bar: switch under Glass lens under your finger that keeps Instagram's Search tab inside the liquid pill with the other tabs instead of in a glass circle of its own, and its description (#875). Search is Instagram's tab, named as it is there; Liquid glass look is another switch's name
+Keep Search in the pill	將搜尋保留在膠囊內
+With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass circle of its own. Restart Instagram after changing it.	開啟液態玻璃外觀時，搜尋會和其他分頁一起留在膠囊內，而不是放入獨立的玻璃圓圈。變更後請重新啟動 Instagram。
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	保留限時動態觀看者
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	每次你打開誰看過你的某則限時動態，名單就會保留在這支手機上，並和你的粉絲放在一起對照。不會向 Instagram 多要任何東西。關閉後會立刻停止。
@@ -3090,3 +3119,11 @@ Settings page logo set.	已設定設定頁面標誌。
 HushGram shows at the top of this page.	此頁頂端顯示 HushGram。
 # context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
 The top of this page says %1$s.	此頁頂端顯示「%1$s」。
+# context: Settings > Downloads > switch title, under Name saves by account and post time (#792)
+Date saves by when they were posted	按發佈時間標示儲存日期
+# context: Settings > Downloads > summary of Date saves by when they were posted (#792)
+Gives each saved photo and video the time its post went up, so your gallery sorts saves by the post instead of the day you saved them. A save that doesn't know when it was posted keeps the time it was saved.	為每張儲存的照片及影片標上貼文發佈的時間，讓圖庫依貼文而非儲存當天排序。若無法取得發佈時間，則保留儲存時的時間。
+# context: Profiles > title of the switch that adds a Select all button beside Instagram's own Select on the grids in Your activity (#762); Your activity is Instagram's own page in the profile menu, use the name Instagram shows for it in this language
+Select all in Your activity	在「你的動態」中全選
+# context: Profiles > summary of Select all in Your activity (#762). Select, Delete and Unlike are Instagram's own buttons on those grids; use the words Instagram shows there in this language
+Adds Select all beside Select on the photo and video grids in Your activity, like your posts, reels and likes. Tick one first and it shows. It only ticks them. Nothing goes until you press Delete or Unlike yourself.	在「你的動態」的相片和影片格狀檢視中，於「選取」旁加入「全選」，例如你的貼文、Reels 和按讚內容。勾選一項後就會出現。它只會勾選項目。在你自己按下「刪除」或「收回讚」之前，什麼都不會消失。

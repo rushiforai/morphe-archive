@@ -13,15 +13,22 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
-import app.noam.patches.chesscom.shared.getterForLabel
+import app.noam.patches.chesscom.shared.fieldForLabel
+import app.noam.patches.chesscom.shared.filterStores
 import app.noam.patches.chesscom.shared.markFeaturePatched
+import app.noam.patches.chesscom.shared.returnString
+import app.noam.patches.chesscom.shared.toBinaryName
 import app.noam.patches.chesscom.upsell.NavigateFingerprint
 import app.noam.patches.chesscom.upsell.ShowDialogDirectionFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import org.w3c.dom.Element
 
@@ -30,6 +37,7 @@ private const val GAME_REVIEW = "${Constants.EXTENSION_PACKAGE}/gamereview/GameR
 private const val CHOOSER = "${Constants.EXTENSION_PACKAGE}/gamereview/ReviewChooser;"
 
 private const val LICHESS_MARKS = "chesscom/lichessreview"
+private const val STANDARD_POSITION = "Lcom/chess/chessboard/variants/standard/StandardPosition;"
 
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private val LICHESS_SCREENS = listOf(
@@ -101,7 +109,7 @@ val gameReviewPatch = bytecodePatch(
         "limit). The phone and Lichess " +
         "judge moves the Lichess way (?! inaccuracies, ? mistakes, ?? blunders, accuracy and centipawn " +
         "loss) in chess.com's own review screen, and the phone marks the moves Lichess leaves unmarked " +
-        "Best, Excellent or Good, as chess.com does. Finished games only; a live game on screen is never analysed.",
+        "Best, Excellent or Good, as chess.com does. Finished games only; a live game on screen is never analyzed.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -131,62 +139,62 @@ val gameReviewPatch = bytecodePatch(
         // board's other badges are not drawn. The rows stay in the data, as the overview looks
         // each one up and fails on a missing one.
         val classification = "Lcom/chess/compengine/AnalysisMoveClassification;"
-        val overview = mutableClassDefBy("Lcom/chess/gamereview/ui/GameReviewOverviewScreenKt;")
-        val overviewModel = "Lcom/chess/gamereview/ui/u1;"
-        val tallyRow = overview.methods.singleOrNull { method ->
-            AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
-                method.parameterTypes.map { it.toString() }.let {
-                    it.size == 5 && it[0] == overviewModel && it[2] == classification
-                }
-        } ?: throw PatchException("The review's summary rows were not found")
-        val badges = mutableClassDefBy("Lcom/chess/gamereview/ui/chessboard/d;").methods.filter { method ->
-            method.returnType == "V" && method.parameterTypes.map { it.toString() }.let {
-                it.size >= 3 && it[0] == "Landroid/graphics/Canvas;" && it[2] == classification
-            }
+        fun MutableMethod.skipUnless(loadMoveType: String) = addInstructionsWithLabels(
+            0,
+            """
+                $loadMoveType
+                invoke-static { v0 }, $GAME_REVIEW->shows(Ljava/lang/Object;)Z
+                move-result v0
+                if-nez v0, :morphe_shown
+                return-void
+            """,
+            ExternalLabel("morphe_shown", getInstruction(0)),
+        )
+        // A summary row: its tally carries the move type.
+        TallyRowFingerprint.method.apply {
+            val tally = parameterTypes.first().toString()
+            val moveType = classDefBy(tally).fields.singleOrNull { it.type == classification }
+                ?: throw PatchException("The review's summary row has no move type")
+            skipUnless("move-object/from16 v0, p0\niget-object v0, v0, $tally->${moveType.name}:$classification")
         }
-        if (badges.size != 2) throw PatchException("Expected two badge painters, found ${badges.size}")
-        (badges.map { it to "p3" } + (tallyRow to "p2")).forEach { (method, register) ->
-            method.addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static/range { $register .. $register }, $GAME_REVIEW->shows(Ljava/lang/Object;)Z
-                    move-result v0
-                    if-nez v0, :morphe_shown
-                    return-void
-                """,
-                ExternalLabel("morphe_shown", method.getInstruction(0)),
-            )
-        }
+        // The board's badge: a view that draws only the badge its getter gives, at a square.
+        val badgeView = "Lcom/chess/gamereview/ui/chessboard/c;"
+        val badgeGetter = mutableClassDefBy(badgeView).methods.singleOrNull { method ->
+            method.parameterTypes.isEmpty() && classDefByOrNull(method.returnType)?.fields?.any { it.type == classification } == true
+        } ?: throw PatchException("The review's board badge was not found")
+        val badgeMoveType = classDefBy(badgeGetter.returnType).fields.single { it.type == classification }
+        mutableClassDefBy(badgeView).methods.single { it.name == "onDraw" && it.parameterTypes.size == 1 }.skipUnless(
+            """
+                invoke-virtual { p0 }, $badgeView->${badgeGetter.name}()${badgeGetter.returnType}
+                move-result-object v0
+                if-eqz v0, :morphe_shown
+                iget-object v0, v0, ${badgeGetter.returnType}->${badgeMoveType.name}:$classification
+            """,
+        )
 
-        // Lichess shows all of its marks at once: the summary's rows are always unfolded.
-        mutableClassDefBy(overviewModel).getterForLabel(", isMoveTallyExpanded=").apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { }, $GAME_REVIEW->lichessStyle()Z
-                    move-result v0
-                    if-eqz v0, :morphe_folded
-                    return v0
-                """,
-                ExternalLabel("morphe_folded", getInstruction(0)),
-            )
+        // Lichess shows all of its marks at once: the summary's rows are always unfolded. The
+        // overview's state keeps that flag without a getter, so it changes where it is stored.
+        mutableClassDefBy(ReviewOverviewStateToStringFingerprint.originalClassDef).apply {
+            filterStores(fieldForLabel(", isMoveTallyExpanded=", "Z"), "$GAME_REVIEW->tallyExpanded(Z)Z")
         }
 
         // In a Lichess-style review chess.com's mark lookups (color, phrase, icon per move type) answer
-        // with Lichess's own; everywhere else they answer as before.
+        // with Lichess's own; everywhere else they answer as before. R8 inlined the resource ids
+        // they return, so they are told apart by the ids' resource types (this APK's: color 06,
+        // drawable 08, string 13), and the phrase from the word lookups by its name.
         val marks = mutableClassDefBy("Lcom/chess/features/analysis/d;").methods.filter { method ->
             AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "I" &&
                 method.parameterTypes.map { it.toString() } == listOf(classification)
         }
-        fun mark(reads: String, name: String? = null) = marks.singleOrNull { method ->
+        fun mark(resourceType: Int, name: String? = null) = marks.singleOrNull { method ->
             (name == null || method.name == name) && method.implementation?.instructions?.any {
-                ((it as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass == reads
+                (it as? NarrowLiteralInstruction)?.narrowLiteral?.ushr(16) == (0x7f00 or resourceType)
             } == true
-        } ?: throw PatchException("The review's $reads mark lookup was not found")
+        } ?: throw PatchException("The review's mark lookup for resource type $resourceType was not found")
         mapOf(
-            mark("Lcom/chess/colors/a;") to "lichessColor",
-            mark("Lcom/chess/palette/drawables/a;") to "lichessIcon",
-            mark("Lcom/chess/appstrings/c;", "b") to "lichessPhrase",
+            mark(0x06) to "lichessColor",
+            mark(0x08) to "lichessIcon",
+            mark(0x13, "b") to "lichessPhrase",
         ).forEach { (method, lookup) ->
             method.addInstructionsWithLabels(
                 0,
@@ -304,5 +312,46 @@ val gameReviewPatch = bytecodePatch(
             """,
             ExternalLabel("original", GameAnalysisServiceImplGetPermissionsFingerprint.method.getInstruction(0)),
         )
+
+        // The local review replays games with chess.com's chess classes, whose names change between
+        // releases: the position type and a history entry as the review itself takes them, the
+        // move converters, and the PGN parser with its game's starting position.
+        val position = GameReviewV2V0DFingerprint.method.parameterTypes[0].toString()
+        val history = GameReviewV2V0JFingerprint.method.parameterTypes[1].toString()
+        val converter = classDefBy("Lcom/chess/chessboard/compengine/MoveConverterKt;")
+        fun converted(parameters: List<String>, returnType: String) = converter.methods.singleOrNull { method ->
+            AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.map { it.toString() } == parameters &&
+                method.returnType == returnType
+        }?.name ?: throw PatchException("MoveConverterKt has no $parameters -> $returnType")
+        val pgnParsers = mutableListOf<Pair<String, String>>()
+        classDefForEach { classDef ->
+            if (!classDef.type.startsWith("Lcom/chess/chessboard/pgn/")) return@classDefForEach
+            classDef.methods.filter { method ->
+                AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;", "Z", "Z", "Lcom/chess/chessboard/fen/FenParser\$FenType;")
+            }.forEach { pgnParsers += classDef.type to it.name }
+        }
+        val (pgnParser, parse) = pgnParsers.singleOrNull() ?: throw PatchException("PGN parsers: ${pgnParsers.size}")
+        val game = classDefBy(pgnParser).methods.first { it.name == parse }.returnType
+        // A game is made from its moves, its starting position, then its final one.
+        val start = classDefBy(game).methods.filter { it.name == "<init>" }.maxBy { it.parameterTypes.size }.let { constructor ->
+            val parameter = constructor.parameterTypes.indexOfFirst { it.toString() == STANDARD_POSITION }
+            val register = constructor.implementation!!.registerCount - constructor.parameterTypes.size + parameter
+            constructor.implementation!!.instructions.firstNotNullOfOrNull { instruction ->
+                ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf {
+                    instruction.opcode == Opcode.IPUT_OBJECT && (instruction as TwoRegisterInstruction).registerA == register
+                }?.name
+            }.takeIf { parameter >= 0 && constructor.parameterTypes.none { it == "J" || it == "D" } }
+        } ?: throw PatchException("The parsed game's starting position was not found")
+        mutableClassDefBy(EXTENSION_CLASS).methods.apply {
+            first { it.name == "positionClass" }.returnString(position.toBinaryName())
+            first { it.name == "historyClass" }.returnString(history.toBinaryName())
+            first { it.name == "moveFromTextMethod" }
+                .returnString(converted(listOf(position, "Ljava/lang/String;", "Z"), "Lcom/chess/chessboard/l;"))
+            first { it.name == "moveTextMethod" }.returnString(converted(listOf(history), "Ljava/lang/String;"))
+            first { it.name == "pgnParserClass" }.returnString(pgnParser.toBinaryName())
+            first { it.name == "pgnParserMethod" }.returnString(parse)
+            first { it.name == "pgnStartField" }.returnString(start)
+        }
     }
 }

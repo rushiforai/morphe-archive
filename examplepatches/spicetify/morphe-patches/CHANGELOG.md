@@ -1,3 +1,14 @@
+## [1.3.0](https://github.com/spicetify/morphe-patches/compare/v1.2.0...v1.3.0) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* check Spotify classes by what they do, not by their dex bytes ([6741682](https://github.com/spicetify/morphe-patches/commit/6741682b28f5c120e7e995537b49705a5d8789ec))
+
+### ✨ New Features
+
+* recommend the Spotify customization patches ([#35](https://github.com/spicetify/morphe-patches/issues/35)) ([bd7bca4](https://github.com/spicetify/morphe-patches/commit/bd7bca4992b4ae08db78e2494cff0a1b516f84b5))
+* target Spotify 9.2.4.2644 ([f8a0016](https://github.com/spicetify/morphe-patches/commit/f8a00168e1304218c00a8ec6cd5f74fb925a8ae3))
+
 ## [1.2.0](https://github.com/spicetify/morphe-patches/compare/v1.1.0...v1.2.0) (2026-10-08)
 
 ### ✨ New Features

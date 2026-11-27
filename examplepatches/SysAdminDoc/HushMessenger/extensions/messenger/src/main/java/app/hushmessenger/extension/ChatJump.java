@@ -985,6 +985,7 @@ public final class ChatJump {
             button.setBackground(ui.interactive(ui.surface, ui.line, size / 2));
             button.setElevation(ui.dp(3));
             button.setContentDescription(new SettingsText(context).get("chat_jump_first"));
+            InvisibleButtons.ownView(button);
             button.setOnClickListener(tapped -> {
                 try {
                     start(chat, 0);
@@ -1027,6 +1028,7 @@ public final class ChatJump {
             view.setBackground(ui.interactive(ui.surface, ui.line, size / 2));
             view.setElevation(ui.dp(3));
             view.setContentDescription(new SettingsText(context).get(name));
+            InvisibleButtons.ownView(view);
             view.setOnClickListener(tapped -> {
                 try {
                     page(chat, direction);

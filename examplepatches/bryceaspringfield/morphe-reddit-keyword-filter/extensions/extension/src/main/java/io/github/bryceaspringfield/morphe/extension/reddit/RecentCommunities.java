@@ -8,10 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * The communities whose feeds the user opened, newest first, offered as suggestions in the list of communities to
- * hide. Every profile shares the list.
- */
 final class RecentCommunities {
 
     private static final int MAX_KEPT = 30;
@@ -20,7 +16,6 @@ final class RecentCommunities {
     private RecentCommunities() {
     }
 
-    /** Records a community feed opened, as its name without r/. */
     static void visited(String community) {
         if (community == null) return;
         String trimmed = community.trim();
@@ -34,7 +29,6 @@ final class RecentCommunities {
         putString(RECENT_COMMUNITIES, String.join("\n", names));
     }
 
-    /** The communities opened, newest first. */
     static List<String> list() {
         List<String> names = new ArrayList<>();
         for (String line : getString(RECENT_COMMUNITIES, "").split("\n")) {

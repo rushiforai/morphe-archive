@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
@@ -159,6 +160,35 @@ public class OfflineSourceStoreTest {
         store.remember("one", null, List.of("a"), 1);
         assertEquals(1, new JSONObject(new String(Files.readAllBytes(
                 new File(temporary.getRoot(), "sources.json").toPath()), StandardCharsets.UTF_8)).length());
+    }
+
+    @Test public void aMalformedSourceDoesNotHideOtherSavedPlaylists() throws Exception {
+        File manifest = new File(temporary.getRoot(), "sources.json");
+        String sources = "{\"PLbad\":{\"videoIds\":\"broken\"},"
+                + "\"PLgood\":{\"videoIds\":[\"firstSongId\"]}}";
+        Files.write(manifest.toPath(), sources.getBytes(StandardCharsets.UTF_8));
+        OfflineSourceStore store = store();
+        store.ensureLoaded();
+
+        assertNull(store.get("PLbad"));
+        assertEquals(List.of("firstSongId"), store.get("PLgood").videoIds());
+    }
+
+    @Test public void rememberingSameMembershipKeepsItsRendererButDifferentOrderDropsIt() throws Exception {
+        OfflineSourceStore store = store();
+        List<String> tracks = List.of("firstSongId", "secondTrack", "firstSongId");
+        store.remember("PLsaved", SourceHeader.EMPTY, tracks, 1, true);
+        byte[] renderer = new byte[]{74, 0};
+        File staged = store.stageBrowsePage(renderer);
+        assertTrue(store.replacePlaylist(store.get("PLsaved"), tracks, staged, 1, () -> true));
+
+        store.remember("PLsaved", new SourceHeader("Title", "", ""), tracks, 2, true);
+        assertArrayEquals(renderer, store.readBrowsePage("PLsaved"));
+        assertTrue(staged.exists());
+
+        store.remember("PLsaved", SourceHeader.EMPTY, List.of("secondTrack", "firstSongId", "firstSongId"), 3, true);
+        assertNull(store.readBrowsePage("PLsaved"));
+        assertFalse(staged.exists());
     }
 
     @Test public void earlierSavedListsAreAdoptedInIdOrderWithTheirTrackOrder() {

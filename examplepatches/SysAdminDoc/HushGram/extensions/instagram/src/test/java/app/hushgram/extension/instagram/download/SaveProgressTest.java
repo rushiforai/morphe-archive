@@ -265,6 +265,37 @@ public class SaveProgressTest {
         assertEquals(0, MediaSave.savesInFlight());
     }
 
+    /**
+     * A save waiting its turn is listed like a running one, so the next start says it stopped if
+     * Android ends Instagram first, and it's crossed off once it starts or is cancelled (#792).
+     */
+    @Test
+    public void aWaitingSaveIsListedUntilItsTurnComes() throws Exception {
+        int total = MediaSave.MAX_IN_FLIGHT + 2;
+        List<Integer> began = java.util.Collections.synchronizedList(new ArrayList<>());
+        CountDownLatch gate = new CountDownLatch(1);
+        List<Thread> workers = new ArrayList<>();
+        try {
+            for (int number = 0; number < total; number++) {
+                workers.add(MediaSave.start(context, true, held(number, began, gate)));
+            }
+            waitFor(() -> began.size() == MediaSave.MAX_IN_FLIGHT, () -> "the first three never started: " + began);
+            app.hushgram.extension.shared.Utils.awaitBackgroundTasksForTests();
+            assertEquals("the waiting saves aren't listed", total, activeJobs().size());
+            assertTrue(SaveControl.cancel(SaveControl.running().get(total - 1).id));
+        } finally {
+            gate.countDown();
+        }
+        for (Thread worker : workers) finish(worker);
+        assertEquals(total - 1, began.size());
+        assertTrue("a save's place on the list outlived it", activeJobs().isEmpty());
+    }
+
+    private java.util.Set<String> activeJobs() {
+        return context.getSharedPreferences("hushgram_saves", Context.MODE_PRIVATE)
+                .getStringSet("active_jobs", new java.util.HashSet<>());
+    }
+
     /** Past the running saves and a full line, a tap says the line is full instead of saving (#792). */
     @Test
     public void aSavePastAFullLineSaysSo() throws Exception {
@@ -880,6 +911,51 @@ public class SaveProgressTest {
             save.end();
         }
         assertNull(saveNotification());
+    }
+
+    /**
+     * Three saves moving at once updated their notifications six times a second between them, past
+     * the five Android takes from one app before it sheds updates (#792). They share two a second.
+     */
+    @Test
+    public void savesMovingAtOnceShareTwoUpdatesASecond() throws Exception {
+        assertEquals(500_000_000L, SaveControl.progressGapNanos(0));
+        assertEquals(500_000_000L, SaveControl.progressGapNanos(1));
+        assertEquals(1_500_000_000L, SaveControl.progressGapNanos(3));
+        SaveControl.Save one = SaveControl.begin(context, true);
+        SaveControl.Save two = SaveControl.begin(context, true);
+        SaveControl.Save three = SaveControl.begin(context, true);
+        SaveControl.Save queued = SaveControl.begin(context, true);
+        try {
+            queued.waiting();
+            assertEquals("a save waiting its turn shows no progress", 3, SaveControl.savesMoving());
+            Thread.sleep(1_600);
+            one.transferred(10, 100);
+            assertEquals(10, progressOf(one));
+            Thread.sleep(700);
+            one.transferred(50, 100);
+            assertEquals("updated again inside its share of the rate", 10, progressOf(one));
+            Thread.sleep(900);
+            one.transferred(70, 100);
+            assertEquals(70, progressOf(one));
+
+            two.end();
+            three.end();
+            Thread.sleep(600);
+            one.transferred(90, 100);
+            assertEquals("alone, it goes back to two updates a second", 90, progressOf(one));
+        } finally {
+            one.end();
+            two.end();
+            three.end();
+            queued.end();
+        }
+    }
+
+    private static int progressOf(SaveControl.Save save) {
+        Notification shown = Shadows.shadowOf(notifications()).getNotification(SaveControl.TAG, save.id);
+        assertNotNull("no notification for save " + save.id, shown);
+        return shown.extras.getInt(Notification.EXTRA_PROGRESS);
     }
 
     /** Cancel closes the connection being read, and one opened after the cancel as soon as it's handed over. */

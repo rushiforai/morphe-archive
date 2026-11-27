@@ -31,7 +31,7 @@ TESTS_DIR = "patches/src/test/kotlin/app/hushmessenger/patches/controls"
 EXTENSION_DIR = "extensions/messenger/src/main/java/app/hushmessenger/extension"
 EXTENSION_TESTS = "extensions/messenger/src/test/java/app/hushmessenger/extension"
 L10N_DIR = "extensions/messenger/src/main/l10n"
-LOCALES = ("bg", "es", "it", "th", "tr", "vi", "zh-TW")
+LOCALES = ("bg", "es", "it", "ru", "th", "tr", "vi", "zh-TW")
 STRING = r'"((?:[^"\\]|\\.)*)"'
 
 

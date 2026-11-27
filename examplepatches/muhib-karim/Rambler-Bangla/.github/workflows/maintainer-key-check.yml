@@ -1,0 +1,117 @@
+# Manual check that the maintainer signing key held in Actions secrets is the
+# key recorded in ledger/v29.4-provenance.md. It builds the synthetic fixture
+# (no Google content), signs it with the maintainer key and verifies the signer.
+# No APK or key leaves the runner: nothing is uploaded, and only digest and
+# scheme lines are written to the job summary.
+name: Maintainer key check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  key-check:
+    name: Maintainer key matches the recorded certificate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_CERT_SHA256: 679cfdec6cef6ab17a9778cde4d3bbf3b8ccfe6ae2380d3da11679aae01e2e78
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use preinstalled Temurin 21
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_21_X64/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch pinned toolchain
+        run: bash scripts/bootstrap_tools.sh
+
+      - name: Decode maintainer keystore
+        env:
+          RAMBLER_KEYSTORE_BASE64: ${{ secrets.RAMBLER_KEYSTORE_BASE64 }}
+          RAMBLER_KEYSTORE_PASSWORD: ${{ secrets.RAMBLER_KEYSTORE_PASSWORD }}
+          RAMBLER_KEY_ALIAS: ${{ secrets.RAMBLER_KEY_ALIAS }}
+          RAMBLER_KEY_PASSWORD: ${{ secrets.RAMBLER_KEY_PASSWORD }}
+        run: |
+          for v in RAMBLER_KEYSTORE_BASE64 RAMBLER_KEYSTORE_PASSWORD RAMBLER_KEY_ALIAS RAMBLER_KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then echo "::error::secret $v is not set"; exit 1; fi
+          done
+          umask 077
+          printf '%s' "$RAMBLER_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/rambler-maintainer.keystore"
+
+      - name: Check keystore certificate
+        env:
+          RAMBLER_KEYSTORE_PASSWORD: ${{ secrets.RAMBLER_KEYSTORE_PASSWORD }}
+          RAMBLER_KEY_ALIAS: ${{ secrets.RAMBLER_KEY_ALIAS }}
+        run: |
+          actual="$(keytool -exportcert -keystore "$RUNNER_TEMP/rambler-maintainer.keystore" \
+            -storepass:env RAMBLER_KEYSTORE_PASSWORD -alias "$RAMBLER_KEY_ALIAS" \
+            | sha256sum | cut -d' ' -f1)"
+          {
+            echo "## Maintainer key check"
+            echo
+            echo '```'
+            echo "expected certificate SHA-256: $EXPECTED_CERT_SHA256"
+            echo "keystore certificate SHA-256: $actual"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$actual" != "$EXPECTED_CERT_SHA256" ]; then
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::keystore certificate does not match EXPECTED_CERT_SHA256"
+            exit 1
+          fi
+
+      - name: Build fixture APK
+        run: |
+          source tools/tool-env.sh
+          bash fixtures/build_fixture.sh
+
+      - name: Sign fixture with the maintainer key
+        env:
+          RAMBLER_KEYSTORE_PASSWORD: ${{ secrets.RAMBLER_KEYSTORE_PASSWORD }}
+          RAMBLER_KEY_ALIAS: ${{ secrets.RAMBLER_KEY_ALIAS }}
+          RAMBLER_KEY_PASSWORD: ${{ secrets.RAMBLER_KEY_PASSWORD }}
+        run: |
+          sdk="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          bt="$sdk/build-tools/$(ls "$sdk/build-tools" | sort -V | tail -1)"
+          echo "BUILD_TOOLS=$bt" >> "$GITHUB_ENV"
+          "$bt/zipalign" -f -p 4 fixtures/out/fixture-unsigned.apk "$RUNNER_TEMP/fixture-aligned.apk"
+          "$bt/apksigner" sign \
+            --ks "$RUNNER_TEMP/rambler-maintainer.keystore" \
+            --ks-key-alias "$RAMBLER_KEY_ALIAS" \
+            --ks-pass env:RAMBLER_KEYSTORE_PASSWORD \
+            --key-pass env:RAMBLER_KEY_PASSWORD \
+            --out "$RUNNER_TEMP/fixture-maintainer.apk" \
+            "$RUNNER_TEMP/fixture-aligned.apk"
+
+      - name: Verify signer
+        run: |
+          "$BUILD_TOOLS/apksigner" verify -v --print-certs "$RUNNER_TEMP/fixture-maintainer.apk" \
+            > "$RUNNER_TEMP/verify.txt"
+          digests="$(grep -E 'certificate SHA-256 digest:' "$RUNNER_TEMP/verify.txt" | awk '{print $NF}' | sort -u || true)"
+          {
+            echo "apksigner: $(basename "$BUILD_TOOLS")"
+            grep -E '^Verified using|^Number of signers|certificate SHA-256 digest' "$RUNNER_TEMP/verify.txt" || true
+            echo "$digests"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$(printf '%s\n' "$digests" | grep -c .)" -ne 1 ] \
+            || [ "$digests" != "$EXPECTED_CERT_SHA256" ]; then
+            echo "::error::fixture signer does not match EXPECTED_CERT_SHA256"
+            exit 1
+          fi
+          echo "Signer matches the recorded maintainer certificate." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Delete decoded keystore and signed fixture
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/rambler-maintainer.keystore" \
+            "$RUNNER_TEMP/fixture-aligned.apk" "$RUNNER_TEMP/fixture-maintainer.apk" \
+            "$RUNNER_TEMP/verify.txt"
+          rm -rf fixtures/out

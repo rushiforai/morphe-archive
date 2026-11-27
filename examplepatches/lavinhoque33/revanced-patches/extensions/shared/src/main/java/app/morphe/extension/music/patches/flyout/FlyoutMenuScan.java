@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-11.
  * Written by lavinhoque33, 2026-11-10.
  */
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.music.patches.downloads.DownloadMethod;
+import app.morphe.extension.music.patches.downloads.OfflinePlayerActions;
 
 /**
  * What a song or playlist menu names, and which item offers Download. Reads only the serialized items, with no
@@ -39,7 +41,7 @@ public final class FlyoutMenuScan {
     private static final Pattern VIDEO_ID = Pattern.compile("[A-Za-z0-9_-]{11}");
 
     /** @param songId null when the menu is not the menu of one song; the index is of the item to add after. */
-    record Result(@Nullable String songId, List<Integer> downloadItems, int insertAfter) {
+    record Result(@Nullable String songId, List<Integer> downloadItems, int insertAfter, boolean playerRemoval) {
         boolean hasDownload() {
             return !downloadItems.isEmpty();
         }
@@ -120,6 +122,12 @@ public final class FlyoutMenuScan {
             if (item == null) continue;
 
             if (isDownloadItem(item)) {
+                ProtoMessage service = commandOf(item, SERVICE_ITEMS[0]);
+                if (service != null && OfflinePlayerActions.removalTarget(
+                        service.messageField(OFFLINE_UPSELL_ENDPOINT).stringField(1)) != null) {
+                    return new Result(null, List.of(), -1, true);
+                }
+
                 if (downloads.isEmpty()) downloads = new ArrayList<>(1);
                 downloads.add(index);
             }
@@ -155,10 +163,10 @@ public final class FlyoutMenuScan {
             }
         }
 
-        if (conflictingQueue) return new Result(null, downloads, -1);
-        if (queued != null) return new Result(queued, downloads, queuedIndex);
-        if (mix != null) return new Result(mix, downloads, mixIndex);
-        return new Result(credits, downloads, creditsIndex);
+        if (conflictingQueue) return new Result(null, downloads, -1, false);
+        if (queued != null) return new Result(queued, downloads, queuedIndex, false);
+        if (mix != null) return new Result(mix, downloads, mixIndex, false);
+        return new Result(credits, downloads, creditsIndex, false);
     }
 
     /** The command (field 3) of the item when it is the given renderer, else null. */

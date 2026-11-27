@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-13
@@ -96,6 +97,33 @@ final class OfflineCopyStore {
         return Storage.sources.get(sourceId);
     }
 
+    private static void loadSources() {
+        if (!Storage.sources.loaded()) Storage.sources.ensureLoaded();
+    }
+
+    /** Main-safe positive-or-unknown for the native request gate; the worker verifies stream ownership. */
+    static boolean mayHaveSource(String pageId) {
+        DownloadedRegistry markers = DownloadedMarkers.loadedRegistry();
+        return !Storage.sources.loaded() || Storage.sources.get(pageId) != null
+                || markers == null || markers.hasSource(pageId);
+    }
+
+    @Nullable
+    static OfflineSourceStore.Source sourceForOpening(String pageId) {
+        loadSources();
+        OfflineSourceStore.Source source = Storage.sources.get(pageId);
+        if (source != null) return source;
+
+        // Before the source index existed, stream downloads recorded their ordered membership in the markers.
+        // Read it directly if necessary rather than making a detail tap depend on adoption/persistence.
+        List<String> tracks = DownloadedMarkers.savedTrackLists().get(pageId);
+        return tracks == null || tracks.isEmpty() ? null : new OfflineSourceStore.Source(pageId, "", "", "", tracks, 0);
+    }
+
+    static boolean ownsStreamSource(OfflineSourceStore.Source source) {
+        return source.explicitStream() || !NativePlaylistStore.savedPlaylists().containsKey(source.id());
+    }
+
     static File stagePlaylistPage(byte[] response) throws IOException {
         return Storage.sources.stageBrowsePage(response);
     }
@@ -108,6 +136,11 @@ final class OfflineCopyStore {
     @Nullable
     static byte[] readPlaylistPage(String sourceId) throws IOException {
         return Storage.sources.readBrowsePage(sourceId);
+    }
+
+    @Nullable
+    static byte[] readPlaylistPage(OfflineSourceStore.Source source) throws IOException {
+        return Storage.sources.readBrowsePage(source);
     }
 
     static void overlaySourceTrackLists(Map<String, List<String>> tracks, Set<String> pending) {
@@ -155,6 +188,15 @@ final class OfflineCopyStore {
     static String coverUrl(@Nullable String videoId, @Nullable String recordedUrl) {
         File file = videoId == null ? null : Storage.copies.thumbnailFile(videoId);
         return file == null ? recordedUrl : Uri.fromFile(file).toString();
+    }
+
+    @Nullable
+    static OfflineBrowsePagesLogic.TrackMetadata openingMetadata(String copyId) {
+        OfflineCopyMetadata metadata = metadataOf(copyId);
+        if (metadata == null || !copyId.equals(metadata.videoId())) return null;
+
+        return new OfflineBrowsePagesLogic.TrackMetadata(metadata.title(), metadata.artist(), metadata.durationMs(),
+                coverUrl(copyId, metadata.thumbnailUrl()));
     }
 
     /** The metadata of every copy that has stored data. */

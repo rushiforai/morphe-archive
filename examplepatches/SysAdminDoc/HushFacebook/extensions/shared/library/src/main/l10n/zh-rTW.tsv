@@ -880,7 +880,7 @@ A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	�
 # context: switch title under Comments and writing; on, a tap on Like under a comment asks first
 Ask before liking a comment	對留言按讚前先詢問
 # context: summary of that switch
-A tap on Like under a comment asks first, and only Continue likes or unlikes it.	點按留言下方的「讚」會先詢問，只有點「繼續」才會按讚或收回讚。
+A tap on Like under a comment, or a reaction picked on a held comment, asks first, and only Continue goes ahead.	點按留言下方的「讚」，或長按留言後選擇心情，都會先詢問，只有點「繼續」才會執行。
 # context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
 Like or unlike this post?	要對這則貼文按讚還是收回讚？
 # context: the same question for a reel
@@ -1860,6 +1860,10 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	子母畫面按鈕
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	在已準備好小視窗的 Reels 或影片左側邊緣顯示小按鈕，點按即可立即開啟視窗。需啟用「子母畫面」。
+# context: switch title under Picture-in-picture on the Playback page; on, when a reel ends in the small picture-in-picture window, the next reel plays there
+Next reel in the window	在小視窗播放下一個 Reels
+# context: summary of that switch; "the window" is the small picture-in-picture window
+When a reel in the picture-in-picture window ends, the next reel from Reels plays in the window instead of the same one again. Works with Picture-in-picture on.	子母畫面小視窗裡的 Reels 結束後，會在小視窗播放 Reels 的下一個，而不是重複播放同一個。需啟用「子母畫面」。
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	在背景繼續播放
 Next reel in the background	在背景播放下一個 Reels
@@ -1987,8 +1991,8 @@ Hides the stacked reaction icons in the corner of a comment. The space stays, so
 Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	隱藏留言心情圖示旁的數字。圖示仍會保留，點按它們仍可開啟心情清單。
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	在貼文選單優先顯示下載
-# context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
-Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of its options list. Facebook's own top rows stay above them (on photo posts the list is the More options page). A post with nothing to save gets neither.	將「下載到手機」與「儲存相片」從貼文三點選單的選項清單結尾移至開頭。Facebook 原有的頂端項目仍位於其上方（相片貼文的清單位於「更多選項」頁面）。沒有可儲存內容的貼文不會顯示這兩項。
+# context: summary of that switch; "Download to phone", "Save photo" and "Playback speed" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
+Moves Download to phone and Save photo out of More options onto the first page of a post's three-dot menu, above Playback speed. A post with nothing to save gets neither.	將「下載到手機」與「儲存相片」從「更多選項」移至貼文三點選單的第一頁，放在「播放速度」上方。沒有可儲存內容的貼文不會顯示這兩項。
 # context: row title under Menu; opens a list of the Menu's tiles to hide, such as Marketplace and Gaming
 Menu tiles to hide	要隱藏的選單方塊
 # context: title of the list of Menu tiles to hide
@@ -2107,6 +2111,10 @@ A saved video that ends stays on screen instead of opening the next one. Swipe u
 Show saved posts in the row	在連播中顯示已儲存的貼文
 # context: summary of that switch
 A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	連播中的已儲存貼文會留在畫面上，而不會被略過。到貼文結尾時往上滑可播放下一部已儲存影片，在頂端時往下滑可回到上一個。
+# context: switch title under Reels and Watch; on, a reel opened from a Reels row in the news feed (the strip of reels you scroll sideways) goes on to the next reel in that row instead of a suggested reel
+Play the feed's Reels row in order	依序播放動態消息中的 Reels 列
+# context: summary of that switch; the feed is Facebook's News Feed, so use Facebook's name for it in your language if you know it
+A reel you open from a Reels row in your feed goes on to the next one in that row when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	從動態消息中的 Reels 列開啟的影片播完或向上滑動時，會接著播放這一列中的下一部，而不是推薦的影片。向下滑動可回到上一部。
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	略過「你還在看嗎？」
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2148,6 +2156,9 @@ Hides the For you searches Facebook suggests when you open search. Your recent s
 Hide "People you may know" in search	隱藏搜尋中的「你可能認識的朋友」
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
 Hides the People you may know row Facebook shows when you open search. Your recent searches and the suggestions as you type stay.	隱藏開啟搜尋時 Facebook 顯示的「你可能認識的朋友」橫列。最近的搜尋與輸入時的建議仍會保留。
+# context: switch title under News feed; People you may know is the list of friend suggestions Facebook shows in its Friends tab below your friend requests, as in Hide "People you may know"
+Hide "People you may know" in the Friends tab	隱藏朋友分頁中的「你可能認識的朋友」
+Hides the People you may know list in the Friends tab. Your friend requests stay.	隱藏朋友分頁中的「你可能認識的朋友」清單。你的交友邀請仍會保留。
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	不儲存搜尋紀錄
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
@@ -2693,6 +2704,34 @@ Digits only, up to 10. Your own profile shows this number on this phone. Leave i
 Facebook's real number shows. Type digits to show your own.	顯示 Facebook 的真實數字。輸入數字即可顯示你自己的數字。
 # context: summary of that row; %1$s is the number typed, already grouped for the language
 Your profile shows %1$s on this phone.	你的檔案在這支手機上顯示 %1$s。
+# context: switch title under News feed; on, your own Facebook friends list is kept on this phone each time you scroll it to the end, so you can see who is no longer on it
+Keep track of your friends list	追蹤你的朋友名單
+# context: summary of that switch; Profile > Friends > All friends is the path to the list in Facebook, so use Facebook's own names for those screens in your language
+Each time you scroll your own Profile > Friends > All friends list to its end, keeps a copy on this phone and tells you who's no longer on it since the time before. Someone who unfriended you, someone you unfriended and a closed account all show the same way. Nothing leaves your phone.	每次你把自己的「個人檔案 > 朋友 > 所有朋友」名單滑到底，都會在這支手機上保存一份副本，並告訴你從上次以來誰不在名單上了。解除與你朋友關係的人、你解除朋友關係的人和已關閉的帳號都會以同樣的方式顯示。任何內容都不會離開你的手機。
+# context: row title and list title; the people who were on your Facebook friends list and aren't any more
+Friends no longer on your list	已不在你名單上的朋友
+# context: summary of that row
+People who were on your friends list one time you scrolled it to the end and weren't the next. Tap one to open their profile.	你某次把朋友名單滑到底時還在、下一次卻不在的人。點一下某人即可開啟其個人檔案。
+# context: toast the first time your friends list is kept; %1$d is how many friends are on it
+Hushfacebook kept a copy of your %1$d friends. Next time you scroll the list to its end, it tells you who's no longer on it.	Hushfacebook 已保存你 %1$d 位朋友的副本。下次你把名單滑到底時，它會告訴你誰已不在名單上。
+# context: toast; %1$s is one person's name
+%1$s is no longer on your friends list.	%1$s 已不在你的朋友名單上。
+# context: toast; %1$s is two or three people's names separated by commas
+No longer on your friends list: %1$s.	已不在你的朋友名單上：%1$s。
+# context: toast; %1$s is three people's names separated by commas, %2$d how many other people
+No longer on your friends list: %1$s and %2$d more.	已不在你的朋友名單上：%1$s，以及另外 %2$d 人。
+# context: toast when tapping a person in that list doesn't open their profile
+Their profile can't open here.	無法在這裡開啟其個人檔案。
+# context: shown in place of a person's name when Facebook gave none
+Someone without a name	沒有名字的人
+# context: second line of a person in that list; %1$s is the date they were last seen on your list, %2$s the date they were first missing
+Gone between %1$s and %2$s	在 %1$s 至 %2$s 之間離開
+# context: line above that list before your friends list was ever kept
+No copy of your friends list yet.	還沒有你的朋友名單副本。
+# context: line above that list; %1$s is a date, %2$d how many friends were on the list then
+Your list was last read to its end on %1$s, with %2$d friends.	你的名單上次在 %1$s 被讀到底，共 %2$d 位朋友。
+# context: shown while that list is empty; Keep track of your friends list is the switch's title
+Nobody yet. With Keep track of your friends list on, scroll Profile > Friends > All friends to its end now and then. Anyone who drops off between two of those reads shows up here.	還沒有人。開啟「追蹤你的朋友名單」後，不時把「個人檔案 > 朋友 > 所有朋友」滑到底。在兩次讀取之間消失的人會顯示在這裡。
 # context: switch title under Stories; the stories row at the top of Home shown as round pictures
 Round stories tray	圓形限時動態列
 # context: summary of that switch
@@ -2763,6 +2802,10 @@ Switches that are on	已開啟的開關
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	你開啟的所有開關，集中在同一個清單。在這裡關掉一個，它在所有地方都會關閉。
 No switches are on yet.	還沒有開啟任何開關。
 Turned off lately	最近關閉
+# context: one of three order choices above the Switches that are on list; lists the switches in the order the settings page has them (the other two are A to Z and Newest)
+Page order	頁面順序
+# context: the second order choice there; lists the switches alphabetically by their titles
+A to Z	依名稱
 Emoji after the logo	標誌後的表情符號
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	在首頁頂端的 Facebook 標誌後面緊接著顯示一個表情符號，保留它自己的顏色。留空則不顯示。
 No emoji after the logo. Type one to show it there.	標誌後沒有表情符號。輸入一個就會顯示在那裡。
@@ -2874,12 +2917,26 @@ Bar opacity	列的不透明度
 How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	透明列保留自身顏色的百分比，範圍 %1$s 到 %2$s。數值越低，越能透出動態消息及其模糊效果。留空則使用 %3$s，模糊時使用 %4$s.
 The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	這些列保留百分之 %1$s 的顏色，模糊時保留百分之 %2$s。輸入數字即可變更.
 The see-through bars keep %1$s percent of their color.	透明列保留百分之 %1$s 的顏色.
+# context: row title under Appearance, right under Bar opacity; picks how strongly the see-through top bar and tab bar blur the feed behind them
+Blur strength	模糊強度
+# context: message of that row's number box; %1$s is 0 (no blur), %2$s the most, %3$s the usual amount
+How much the see-through bars blur the feed behind them, in percent of the usual blur, from %1$s, no blur, to %2$s. Leave it blank for %3$s. The blur needs Android 12 or newer.	透明列對其後方動態消息的模糊程度，以一般模糊的百分比計，範圍 %1$s（不模糊）到 %2$s。留空則使用 %3$s。模糊效果需要 Android 12 或更新版本.
+# context: summary of that row while it's blank
+The see-through bars blur the feed behind them the usual amount. Type a number to change it.	透明列以一般程度模糊其後方的動態消息。輸入數字即可變更.
+# context: summary of that row when it's 0
+The see-through bars show the feed behind them sharp, with no blur.	透明列清楚顯示其後方的動態消息，不做模糊.
+# context: summary of that row; %1$s is the number typed
+The see-through bars blur the feed behind them %1$s percent of the usual amount.	透明列以一般程度的百分之 %1$s 模糊其後方的動態消息.
 Tab bar width	分頁列寬度
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	佔螢幕寬度的百分比，範圍 %1$s 到 %2$s。圖示會隨之放大或縮小。留空則使用 %3$s.
 The rounded tab bar is %1$s percent of the screen wide.	圓角分頁列的寬度為螢幕的百分之 %1$s.
 Tab bar height	分頁列高度
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	圓角分頁列保留其完整高度的百分比，範圍 %1$s 到 %2$s，在圖示上方和下方裁切。超過 100 會讓它變高，主要向螢幕底部延伸。留空則使用 %3$s.
 The rounded tab bar keeps %1$s percent of its height.	圓角分頁列保留其高度的百分之 %1$s.
+# context: switch title under Appearance, right under Tab bar height; gives the rounded tab bar a glass look
+Glass tab bar	玻璃分頁列
+# context: description of that switch; Rounded tab bar is the switch a few rows above it, the pill is that rounded tab bar, and the highlight is the faint pill behind the selected tab's icon
+With Rounded tab bar on, the pill gets a light glass edge and a soft shadow, and the highlight behind the tab you're on slides over when you pick another tab.	開啟圓角分頁列後，分頁列會有明亮的玻璃邊緣和柔和的陰影，目前分頁後面的醒目標示會滑到你選的分頁上.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	標記新設定
 # context: choice in that row; the dot goes once the page holding the setting is left
@@ -3201,7 +3258,23 @@ Hide hashtags in reel captions	隱藏 Reels 說明中的主題標籤
 Takes the hashtags off reel captions, like the block of tags at the end. A hashtag that's part of a sentence stays. A change shows from the next reel.	移除 Reels 說明中的主題標籤，例如結尾的一串標籤。句子中的主題標籤會保留。從下一則 Reels 起生效。
 Keep the keyboard closed when comments open	開啟留言時不彈出鍵盤
 Comments open without the keyboard popping up, even on a post with no comments yet. Tap the comment box when you want to write.	開啟留言時不會彈出鍵盤，即使貼文還沒有留言也一樣。想留言時點一下留言框。
+Post text doesn't open comments	點貼文文字不開啟留言
+A tap on a post's text no longer opens its comments. The Comment button still does.	點貼文的文字不再開啟留言。留言按鈕照常開啟。
 Settings language	設定語言
 Same as Facebook	與 Facebook 相同
 Show feed reels uncropped	動態消息中的 Reels 不裁切
 Reels in your feed show the whole picture at their own shape, instead of cut down to Facebook's frame. Reels drawn after a change pick it up.	動態消息中的 Reels 會以原本比例顯示完整畫面，不再被裁成 Facebook 的框。變更後繪製的 Reels 才會生效。
+Remix this reel	混剪這則 Reel
+Hold the profile tab for Activity log	長按個人檔案分頁開啟動態紀錄
+Press and hold the profile tab to open your Activity log instead of switching accounts. On accounts with a Menu tab in its place, that tab does it. You can still switch accounts from the Menu.	長按個人檔案分頁會開啟你的動態紀錄，而不是切換帳號。在該位置顯示選單分頁的帳號上，由選單分頁來做。你仍可以在選單中切換帳號.
+React to this comment?	要對這則留言留下心情嗎？
+Hide reactions on a held comment	長按留言時隱藏心情
+Hide Reply on a held comment	長按留言時隱藏回覆
+Hide Copy on a held comment	長按留言時隱藏複製
+Hide Report on a held comment	長按留言時隱藏檢舉
+Hide the Hide comment option	隱藏「隱藏留言」選項
+Holding a comment no longer shows the row of reactions above it. Like under the comment still works.	長按留言時，上方不再顯示心情列。留言下方的讚照常可用。
+Holding a comment no longer offers Reply. The Reply under the comment stays.	長按留言時不再提供回覆。留言下方的回覆按鈕保留。
+Holding a comment no longer offers Copy.	長按留言時不再提供複製。
+Holding a comment no longer offers Report comment or Report to group admins.	長按留言時不再提供檢舉留言或向社團管理員檢舉。
+Holding a comment no longer offers Hide comment. A held comment left with nothing to offer does nothing at all.	長按留言時不再提供隱藏留言。沒有任何選項可提供的留言，長按後什麼也不會發生。

@@ -6,10 +6,6 @@ import android.content.SharedPreferences;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.youtube.patches.VideoInformation;
 
-/**
- * The share of each video the user played in this app (its furthest position over its length), saved when the next
- * video opens, so "fully watched" can be told from a partial watch: a feed's red progress bar states no share.
- */
 final class WatchHistory {
 
     private static final String FILE = "youtube_extras_watch_history";
@@ -27,7 +23,6 @@ final class WatchHistory {
         return Utils.getContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
 
-    /** Called with each new video ID; saves the previous video's share. */
     static synchronized void onVideo(String videoId) {
         saveCurrent();
         current = videoId;
@@ -35,7 +30,6 @@ final class WatchHistory {
         title = null;
     }
 
-    /** Called often enough while playing (each feed or video event) to follow the position. */
     static synchronized void sample() {
         try {
             long len = VideoInformation.getVideoLength(), t = VideoInformation.getVideoTime();
@@ -61,7 +55,6 @@ final class WatchHistory {
         }
     }
 
-    /** Percent of the video with this title played in this app, or -1. */
     static int percentByTitle(String name) {
         try {
             float f = Utils.getContext().getSharedPreferences(TITLES, Context.MODE_PRIVATE)

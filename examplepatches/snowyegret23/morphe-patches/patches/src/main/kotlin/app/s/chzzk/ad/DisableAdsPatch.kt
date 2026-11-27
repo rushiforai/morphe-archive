@@ -21,16 +21,24 @@ val disableAdsPatch = bytecodePatch(
 
     execute {
         val playerModels = "Lcom/navercorp/game/android/community/data/core/entity/player/"
-        mutableClassDefBy("${playerModels}extension/SourceExtensionsKt;").methods.single {
+        val (sourceOwner, adParams) = when (packageMetadata.versionName) {
+            "3.18.0" -> "Ln78;" to "Lpc6;"
+            "1.5.0" -> "Lzf2;" to "Ler1;"
+            else -> "${playerModels}extension/SourceExtensionsKt;" to "${playerModels}PlayableAdParams;"
+        }
+        mutableClassDefBy(sourceOwner).methods.single {
             it.returnType == "Lcom/naver/prismplayer/Source;" && it.parameterTypeNames ==
-                listOf("Lcom/naver/prismplayer/Source;", "${playerModels}PlayableAdParams;")
+                listOf("Lcom/naver/prismplayer/Source;", adParams)
         }.rewrite("return-object p0")
-        mutableClassDefBy("Lcom/navercorp/game/android/community/core/feature/feature/player/ad/AdEnterPlayer;")
-            .methods.single {
-                it.returnType == "V" && it.parameterTypeNames == listOf(
-                    "Lcom/navercorp/game/android/community/core/feature/feature/player/data/LivePlayerData\$Event\$AD;"
-                )
-            }.rewrite("return-void")
+        val player = "Lcom/navercorp/game/android/community/core/feature/feature/player/"
+        val (eventOwner, adEvent) = when (packageMetadata.versionName) {
+            "3.18.0" -> "Lh1;" to "Lzz3;"
+            "1.5.0" -> "Ld1;" to "Laq0;"
+            else -> "${player}ad/AdEnterPlayer;" to "${player}data/LivePlayerData\$Event\$AD;"
+        }
+        mutableClassDefBy(eventOwner).methods.single {
+            it.returnType == "V" && it.parameterTypeNames == listOf(adEvent)
+        }.addInstructions(0, "return-void")
         val cardType = classDefBy("Lcom/navercorp/shortform/sdk/data/dto/CreatorHubCard;").methods.single {
             it.name == "getCardType" && it.returnType == "Ljava/lang/String;" && it.parameterTypes.isEmpty()
         }

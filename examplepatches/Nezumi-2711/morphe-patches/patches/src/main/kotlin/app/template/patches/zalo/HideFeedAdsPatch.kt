@@ -41,6 +41,7 @@ val hideFeedAdsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_FEED_ADS)
         val matches = mutableListOf<FeedListMatch>()
         classDefForEach { classDef ->
             classDef.methods
@@ -93,6 +94,7 @@ val hideFeedAdsPatch = bytecodePatch(
             "invoke-static {v${match.listRegister}}, $FEED_ADS->filterFeedAds(Ljava/util/List;)Ljava/util/List;\n" +
                 "move-result-object v${match.listRegister}")
 
+        registerHooks(PatchId.HIDE_FEED_ADS, match.method)
         attachNezumiSettings("attachFeedAds")
     }
 }

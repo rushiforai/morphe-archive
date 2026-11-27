@@ -29,11 +29,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.function.IntConsumer;
 
-/**
- * The dialogs of this bundle's settings, drawn by Morphe Patches' own dialog classes (read by reflection, since this
- * bundle has no compile-time dependency on Morphe Patches) so they look like Morphe's; plain Android dialogs only
- * when those classes are missing.
- */
 @SuppressWarnings("deprecation")
 final class Dialogs {
 
@@ -48,9 +43,6 @@ final class Dialogs {
         android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show();
     }
 
-    /**
-     * A text box styled like the one in Morphe's dialogs.
-     */
     static EditText editText(Context context) {
         try {
             return (EditText) Class.forName(CUSTOM_DIALOG).getMethod("createEditText", Context.class)
@@ -60,10 +52,6 @@ final class Dialogs {
         }
     }
 
-    /**
-     * Shows a dialog with a message, {@code views} under it, an OK button running {@code onOk}, a Cancel button,
-     * and a neutral button when {@code neutral} is set.
-     */
     static void show(Context context, String title, CharSequence message, List<View> views, Runnable onOk,
                      String neutral, Runnable onNeutral) {
         title = t(title);
@@ -104,15 +92,11 @@ final class Dialogs {
         resizeForKeyboard(builder.show());
     }
 
-    /** Fits the dialog above the keyboard, with its buttons, in place of letting the keyboard cover its bottom. */
     private static void resizeForKeyboard(Dialog dialog) {
         Window window = dialog.getWindow();
         if (window != null) window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
-    /**
-     * Shows Morphe's single-choice list: tapping an entry passes its index to {@code onPick} and closes the list.
-     */
     static void choose(Context context, String title, String[] labels, int selected, IntConsumer onPick) {
         String[] values = new String[labels.length];
         for (int i = 0; i < labels.length; i++) values[i] = Integer.toString(i);
@@ -143,10 +127,6 @@ final class Dialogs {
         }
     }
 
-    /**
-     * Gives a nested screen what Morphe's own settings page has: room for the status bar, and a toolbar with its
-     * title and a back arrow.
-     */
     static void screen(PreferenceScreen screen) {
         screen.setOnPreferenceClickListener(p -> {
             try {
@@ -170,7 +150,6 @@ final class Dialogs {
         if (window != null) {
             window.setStatusBarColor(background);
             window.setNavigationBarColor(background);
-            // Dark status and navigation bar icons on a light background, as on Morphe's own page.
             boolean light = Color.luminance(background) > 0.5f;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && window.getInsetsController() != null) {
                 int bars = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS

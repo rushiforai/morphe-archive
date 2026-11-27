@@ -22,9 +22,9 @@ import static org.junit.Assert.*;
 @Config(sdk = {28, 36})
 public class SearchSectionsTest {
     /** Messenger's section types, by the names its enum gives them. */
-    enum Type { NULL_STATE_SUGGESTIONS, NULL_STATE_RECENTLY_VIEWED_REELS, NULL_STATE_AI_BOTS, NULL_STATE_SEE_ALL_AI_BOTS, NULL_STATE_CONTACTS, SERVER_BLENDED }
+    enum Type { NULL_STATE_SUGGESTIONS, NULL_STATE_RECENTLY_VIEWED_REELS, NULL_STATE_AI_BOTS, NULL_STATE_SEE_ALL_AI_BOTS, NULL_STATE_CONTACTS, SERVER_BLENDED, SERVER_MORE_PEOPLE }
 
-    enum Item { CONTACT, PAGE, CONNECTED_AI_BOT, USER_GENERATED_CHARACTER_BOT, META_AI_VOICE }
+    enum Item { CONTACT, PAGE, CONNECTED_AI_BOT, USER_GENERATED_CHARACTER_BOT, META_AI_VOICE, NON_CONTACT, DISCOVER_PEOPLE }
 
     enum ThreadType { ONE_TO_ONE, GROUP, AI_BOT, BIZ_AI_AGENT, META_AI_VOICE_THREAD, OPTIMISTIC_META_AI_THREAD }
 
@@ -54,7 +54,7 @@ public class SearchSectionsTest {
     /** Where a typed search files an entry. Messenger declares the field as an interface its enums implement. */
     interface Group { }
 
-    enum Heading implements Group { NONCONTACTS, PAGES, AI_BOTS, META_AI_TYPEAHEAD }
+    enum Heading implements Group { NONCONTACTS, PAGES, AI_BOTS, META_AI_TYPEAHEAD, CONTACTS, CONTACTS_GROUPS, IG_NONCONTACT_FOLLOWINGS }
 
     /** A typed search's entry as Messenger builds it: one row or one heading, next to the group it sits in. */
     static final class Entry {
@@ -218,6 +218,69 @@ public class SearchSectionsTest {
         }
     }
 
+    // #207: a typed search listed people the reporter isn't friends with right among their friends, and they kept
+    // messaging strangers by mistake.
+    @Test public void hidePeopleYouDontKnowDropsTheirSections() {
+        List<Section> sections = Arrays.asList(CONTACTS, new Section(Type.SERVER_MORE_PEOPLE), SUGGESTED);
+        assertSame("Off, the sections are Messenger's own", sections, SearchSections.sections(sections));
+        assertTrue(Settings.activeAt.isEmpty());
+
+        turnOn(SearchSections.STRANGERS);
+        assertEquals("Suggested stays, it has its own switch", Arrays.asList(CONTACTS, SUGGESTED), SearchSections.sections(sections));
+        assertTrue(Settings.lastActive(SearchSections.STRANGERS) > 0);
+        assertEquals(0, Settings.lastActive(SearchSections.SUGGESTED));
+        List<Section> plain = Arrays.asList(CONTACTS, AI);
+        assertSame(plain, SearchSections.sections(plain));
+    }
+
+    @Test public void hidePeopleYouDontKnowDropsTheirRowsFromEverySection() {
+        Row friend = new Row(Item.CONTACT, key(ThreadType.ONE_TO_ONE));
+        Row page = new Row(Item.PAGE, null);
+        Row group = new Row(Item.CONTACT, key(ThreadType.GROUP));
+        List<Row> rows = Arrays.asList(friend, new Row(Item.NON_CONTACT, null), page, new Row(Item.DISCOVER_PEOPLE, null), group);
+        assertSame("Off, the rows are Messenger's own", rows, SearchSections.items(Type.SERVER_BLENDED, rows));
+        assertTrue(Settings.activeAt.isEmpty());
+
+        turnOn(SearchSections.STRANGERS);
+        assertEquals("Friends, pages and groups stay", Arrays.asList(friend, page, group), SearchSections.items(Type.SERVER_BLENDED, rows));
+        assertTrue(Settings.lastActive(SearchSections.STRANGERS) > 0);
+        List<Row> bots = Collections.singletonList(new Row(Item.CONNECTED_AI_BOT, null));
+        assertSame("Meta AI's rows aren't this switch's", bots, SearchSections.items(Type.NULL_STATE_AI_BOTS, bots));
+        assertEquals(0, Settings.lastActive("meta_ai"));
+    }
+
+    @Test public void hidePeopleYouDontKnowEmptiesTheirWholeSection() {
+        List<Row> rows = Collections.singletonList(new Row(Item.CONTACT, key(ThreadType.ONE_TO_ONE)));
+        assertSame(rows, SearchSections.items(Type.SERVER_MORE_PEOPLE, rows));
+        turnOn(SearchSections.STRANGERS);
+        assertEquals(Collections.emptyList(), SearchSections.items(Type.SERVER_MORE_PEOPLE, rows));
+        assertTrue(Settings.lastActive(SearchSections.STRANGERS) > 0);
+    }
+
+    @Test public void hidePeopleYouDontKnowDropsThemFromATypedSearch() {
+        Entry friends = new Entry(Heading.CONTACTS, Heading.CONTACTS, null);
+        Entry friend = new Entry(Heading.CONTACTS, null, new Found(Item.CONTACT, new User("Mom", "User", false), null));
+        Entry strangers = new Entry(Heading.NONCONTACTS, Heading.NONCONTACTS, null);
+        Entry stranger = new Entry(Heading.NONCONTACTS, null, new Found(Item.CONTACT, new User("Mo", "User", false), null));
+        Entry following = new Entry(Heading.IG_NONCONTACT_FOLLOWINGS, null, new Found(Item.CONTACT, new User("Moe", "User", false), null));
+        Entry filedElsewhere = new Entry(Heading.CONTACTS, null, new Found(Item.NON_CONTACT, new User("Moira", "User", false), null));
+        Entry groups = new Entry(Heading.CONTACTS_GROUPS, Heading.CONTACTS_GROUPS, null);
+        Entry trip = new Entry(Heading.CONTACTS_GROUPS, null, new Found(Item.CONTACT, null, new ThreadSummary("Trip", key(ThreadType.GROUP))));
+        Entry pages = new Entry(Heading.PAGES, Heading.PAGES, null);
+        Entry page = new Entry(Heading.PAGES, null, new Found(Item.PAGE, new User("Mochi", "Page", false), null));
+        List<Entry> typed = Arrays.asList(friends, friend, strangers, stranger, following, filedElsewhere, groups, trip, pages, page);
+        turnOn(SearchSections.SUGGESTED, SearchSections.REELS, "meta_ai");
+        assertSame("The other search switches leave these people alone", typed, SearchSections.sections(typed));
+        assertEquals(0, Settings.lastActive(SearchSections.STRANGERS));
+
+        turnOn(SearchSections.STRANGERS);
+        assertEquals("Friends, groups and pages stay, under their headings", Arrays.asList(friends, friend, groups, trip, pages, page),
+            SearchSections.sections(typed));
+        assertTrue(Settings.lastActive(SearchSections.STRANGERS) > 0);
+        List<Entry> plain = Arrays.asList(friends, friend, groups, trip);
+        assertSame(plain, SearchSections.sections(plain));
+    }
+
     @Test public void searchSwitchesAloneLeaveTheRowsAlone() {
         turnOn(SearchSections.SUGGESTED, SearchSections.REELS);
         List<Row> rows = Collections.singletonList(new Row(Item.CONNECTED_AI_BOT, null));
@@ -249,12 +312,17 @@ public class SearchSectionsTest {
         for (String state : new String[] {"paused", "safe"}) {
             Settings.initialize(RuntimeEnvironment.getApplication());
             Settings.preferences.edit().clear().putBoolean(SearchSections.AI_CHATS, true).putBoolean(SearchSections.SUGGESTED, true)
-                .putBoolean("meta_ai", true).putBoolean("paused", state.equals("paused")).putBoolean("safe_mode", state.equals("safe")).commit();
+                .putBoolean("meta_ai", true).putBoolean(SearchSections.STRANGERS, true)
+                .putBoolean("paused", state.equals("paused")).putBoolean("safe_mode", state.equals("safe")).commit();
             CrashGuard.resetForTests();
             CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
             Settings.activeAt.clear();
             assertFalse(state, SearchSections.blocksChat(new Params(key(ThreadType.AI_BOT))));
             assertSame(state, ALL, SearchSections.sections(ALL));
+            List<Section> morePeople = Arrays.asList(CONTACTS, new Section(Type.SERVER_MORE_PEOPLE));
+            assertSame(state, morePeople, SearchSections.sections(morePeople));
+            List<Row> rows = Arrays.asList(new Row(Item.CONTACT, null), new Row(Item.NON_CONTACT, null));
+            assertSame(state, rows, SearchSections.items(Type.SERVER_BLENDED, rows));
             assertTrue(state, Settings.activeAt.isEmpty());
         }
     }
@@ -267,12 +335,18 @@ public class SearchSectionsTest {
         };
         assertSame(broken, SearchSections.sections(broken));
         assertSame(broken, SearchSections.items(Type.NULL_STATE_CONTACTS, broken));
+
+        reset();
+        turnOn(SearchSections.STRANGERS);
+        assertSame(broken, SearchSections.sections(broken));
+        assertSame(broken, SearchSections.items(Type.SERVER_BLENDED, broken));
     }
 
     @Test public void theSwitchesSitWithSearchAndMetaAiAndStartOff() {
         String[][] expected = {
             {SearchSections.SUGGESTED, "Hide Suggested in search", "inbox"},
             {SearchSections.REELS, "Hide recent reels in search", "inbox"},
+            {SearchSections.STRANGERS, "Hide people you don't know in search", "inbox"},
             {SearchSections.AI_CHATS, "Block Meta AI chats", "navigation"},
         };
         for (String[] want : expected) {

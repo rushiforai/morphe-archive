@@ -65,6 +65,11 @@ public final class GboardEditingAccessPointsContribution {
         }
     }
 
+    public static void registerExtra(Object controller, Context context, String token, int icon, String label, Runnable action) throws ReflectiveOperationException {
+        prepare(controller.getClass().getClassLoader());
+        handles.register(controller, token, icon, label, action);
+    }
+
     // Gboard 18.8.0.1022711984-beta drawables, all theme-tinted like stock Access Point icons.
     // Copy/Cut/Paste are the stock editing-panel icons (layouts 0x7f0e0147/0x7f0e0148/0x7f0e014c,
     // labels "Copy"/"Cut"/"Paste"); Select All uses the panel's "Select" icon (layout 0x7f0e014f),
@@ -116,8 +121,12 @@ public final class GboardEditingAccessPointsContribution {
 
         void register(Object controller, EditorAction action, int iconId,
                 String text, Runnable callback) throws ReflectiveOperationException {
+            register(controller, action.token, iconId, text, callback);
+        }
+
+        void register(Object controller, String actionToken, int iconId, String text, Runnable callback) throws ReflectiveOperationException {
             Object builder = factory.invoke(null);
-            token.invoke(builder, action.token);
+            token.invoke(builder, actionToken);
             icon.invoke(builder, iconId);
             title.set(builder, text);
             runnable.invoke(builder, callback);

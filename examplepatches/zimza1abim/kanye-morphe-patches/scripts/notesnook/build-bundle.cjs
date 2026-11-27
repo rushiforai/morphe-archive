@@ -8,6 +8,7 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
+const adapter = require('../delta/adapter.cjs');
 
 const [version, sourceArg, apkArg] = process.argv.slice(2);
 if (!/^\d+\.\d+\.\d+$/.test(version || '') || !sourceArg || !apkArg) throw Error('Supply version, source checkout and original APK');
@@ -37,20 +38,17 @@ execFileSync('npx', ['react-native', 'webpack-bundle', '--platform', 'android', 
   { cwd: mobile, stdio: 'inherit', env: { ...process.env, NODE_ENV: 'production' } });
 if (!fs.existsSync(js)) throw Error('Bundler produced no output (check bootstrapped packages)');
 
-const host = process.platform === 'darwin' ? 'osx-bin' : 'linux64-bin';
-const hermesc = path.join(mobile, 'node_modules/react-native/sdks/hermesc', host, 'hermesc');
-const hbc = path.join(temp, 'index.android.hbc');
-// Same flags as the React Native Gradle plugin uses for release builds.
-execFileSync(hermesc, ['-w', '-emit-binary', '-max-diagnostic-width=80', '-out', hbc, js, '-O', '-output-source-map'], { stdio: 'inherit' });
-const patched = fs.readFileSync(hbc);
+const patched = adapter.compile(path.join(mobile, 'node_modules/react-native'), js, path.join(temp, 'index.android.hbc'));
+adapter.assertStripped(patched, 'Notesnook ' + version);
 if (patched.readUInt32LE(8) !== original.readUInt32LE(8)) throw Error('Hermes bytecode version differs from the APK');
 if (!patched.includes(Buffer.from('notesnook-font://settings'))) throw Error('Font menu missing from built bundle');
 
 const adapters = path.join(repo, 'patches/src/main/resources/notesnook/adapters');
 fs.mkdirSync(adapters, { recursive: true });
-fs.writeFileSync(path.join(adapters, version + '.bundle'), patched);
+const deltaSha256 = adapter.writeDelta(original, patched, path.join(adapters, version));
 fs.writeFileSync(path.join(adapters, version + '.properties'), [
-  'version=' + version, 'commit=' + commit, 'originalSha256=' + originalSha256, 'patchedSha256=' + sha256(patched), '',
+  'version=' + version, 'commit=' + commit, 'originalSha256=' + originalSha256, 'patchedSha256=' + sha256(patched),
+  'deltaSha256=' + deltaSha256, '',
 ].join('\n'));
 const versions = fs.readdirSync(adapters).filter(n => /^\d+\.\d+\.\d+\.properties$/.test(n)).map(n => n.slice(0, -11))
   .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));

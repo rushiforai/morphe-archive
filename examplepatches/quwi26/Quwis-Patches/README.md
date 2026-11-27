@@ -28,8 +28,10 @@
    https://raw.githubusercontent.com/quwi26/Quwis-Patches/main/patches-bundle.json
    ```
 
-2. Patch chess.com **4.10.29**, **4.10.28** or **4.10.27**. **Unlimited Game Review** and its two add-ons are
-   selected by default; uncheck the add-ons for a plain Unlimited Game Review.
+2. Patch chess.com **4.10.29**, **4.10.28** or **4.10.27**. **4.10.31** is supported as an
+   experimental version: turn on **Experimental app versions** for the source in Morphe to pick
+   it. **Unlimited Game Review** and its two add-ons are selected by default; uncheck the add-ons
+   for a plain Unlimited Game Review.
 
 3. Sign in with an email and a password, not with Google - see
    [Signing in after patching](#signing-in-after-patching).
@@ -82,8 +84,8 @@ Six patches, all for chess.com:
 
 The patches for other apps (Block Blast, Gboard, Geocaching) are **not** in this bundle.
 
-The rest of the patches are Noam's work, kept here and brought up to chess.com 4.10.29, 4.10.28 and
-4.10.27 by this fork:
+The rest of the patches are Noam's work, kept here and brought up to chess.com 4.10.31, 4.10.29, 4.10.28
+and 4.10.27 by this fork:
 
 - arrows in games
 - board and accent colours, AMOLED black
@@ -195,7 +197,7 @@ phone talks to your computer on that network only.
 Most patches are [Noam's](https://github.com/ImNoammm/Noams-Morphe-Patches) (GPL-3.0), which itself builds on
 PrathxmOp's work. Without Noam's Morphe Patches this project would not exist: the patch tree and extension
 started as his work, and this fork adds the features listed above, including the computer reviewer, Arrows
-in reviews, Discord Rich Presence and the chess.com 4.10.29, 4.10.28 and 4.10.27 updates. The chess.com 4.10.27
+in reviews, Discord Rich Presence and the chess.com 4.10.31, 4.10.29, 4.10.28 and 4.10.27 updates. The chess.com 4.10.27
 support follows [hyzor's port](https://github.com/hyzor/hyzor-morphe-patches) (GPL-3.0) of the same patches.
 The crash screen
 is [PrathxmOp's crash handler](https://github.com/PrathxmOp/Prathxm-Patches) (GPL-3.0), renamed so Morphe sees

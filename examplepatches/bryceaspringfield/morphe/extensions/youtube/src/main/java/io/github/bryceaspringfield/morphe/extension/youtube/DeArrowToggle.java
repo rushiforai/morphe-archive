@@ -40,33 +40,20 @@ import app.morphe.extension.shared.patches.components.ContextInterface;
 import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.shared.PlayerType;
 
-/**
- * Taps on Morphe's DeArrow icon, and title suggestions. Morphe shows a bullseye icon before each title it took from
- * DeArrow; a tap on the icon switches that title between DeArrow's and the video's own, and a second tap switches it
- * back. On the page of the open video a pencil follows the icon (or stands alone when the video has no DeArrow title),
- * and a tap on it opens a dialog which sends a title to DeArrow under the SponsorBlock user ID of Morphe's settings.
- * <p>
- * The patch calls {@link #in} at the start of Morphe's Litho text hook and passes each text the hook returns through
- * {@link #out}.
- */
 @SuppressWarnings("unused")
 public final class DeArrowToggle {
 
     private static final String API = "https://sponsor.ajay.app";
     private static final char ICON = '\u25CE';
     private static final char PENCIL = '\u270E';
-    /** Marks a title taken from the video's top comments ({@link CommentTitle}); a tap switches it. */
     private static final char QUOTE = '\u275D';
-    /** An en space: wider than a space, so the icon and the pencil are separate tap targets. */
     private static final char GAP = '\u2002';
 
-    /** What is known of a video whose title DeArrow replaced. */
     private static final class Info {
         volatile String videoId;
         volatile String original;
     }
 
-    /** DeArrow title to its video, the newest 2,000. */
     private static final Map<String, Info> BY_TITLE = Collections.synchronizedMap(new LinkedHashMap<>() {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Info> eldest) {
@@ -74,23 +61,19 @@ public final class DeArrowToggle {
         }
     });
 
-    /** The DeArrow titles the user switched to the video's own title. */
     private static final Set<String> SHOW_ORIGINAL = Collections.synchronizedSet(new HashSet<>());
 
     private static final ThreadLocal<CharSequence> INPUT = new ThreadLocal<>();
     private static final ThreadLocal<String> IDENTIFIER = new ThreadLocal<>();
-    /** Whether the text is the open video's title under the player (video_metadata, outside its subtitle). */
     private static final ThreadLocal<Boolean> WATCH_TITLE = new ThreadLocal<>();
 
     private DeArrowToggle() {
     }
 
-    /** Marks a text this class built: the DeArrow title it stands for, and which of the two titles it shows. */
     private static final class State implements LithoRelayoutPatch.RelayoutSpan {
         final String key;
         final boolean original;
         final boolean pencil;
-        /** For a video without a DeArrow title: its own title, and whether the comments' title is shown. */
         final String plain;
         final boolean commentShown;
 
@@ -113,7 +96,6 @@ public final class DeArrowToggle {
             return key != null && showsOriginal(key) != original;
         }
 
-        /** Whether the text drawn has the comments' quote mark. */
         boolean hasQuote;
 
         @Override
@@ -136,14 +118,12 @@ public final class DeArrowToggle {
 
         @Override
         public void updateDrawState(TextPaint paint) {
-            // The icon keeps the title's color, with no underline.
         }
     }
 
     private static final class PencilClick extends ClickableSpan {
         final String videoId;
         final String shown;
-        /** Whether the shown title is DeArrow's own, which a vote counts for. */
         final boolean deArrow;
 
         PencilClick(String videoId, String shown, boolean deArrow) {
@@ -163,7 +143,6 @@ public final class DeArrowToggle {
         }
     }
 
-    /** Injection point, at the start of Morphe's Litho text hook: the text as YouTube built it. */
     public static void in(Object context, CharSequence text) {
         INPUT.set(text);
         String id = null;
@@ -171,7 +150,6 @@ public final class DeArrowToggle {
         try {
             if (context instanceof ContextInterface c) {
                 id = c.patch_getIdentifier();
-                // As Morphe's Copy video title finds the title: the metadata element, its inner text, not the subtitle.
                 if (id != null && id.startsWith("video_metadata.e")) {
                     StringBuilder path = c.patch_getPathBuilder();
                     String p = path == null ? "" : path.toString();
@@ -184,7 +162,6 @@ public final class DeArrowToggle {
         WATCH_TITLE.set(watchTitle);
     }
 
-    /** Injection point, on each text Morphe's Litho text hook returns. */
     public static CharSequence out(CharSequence text) {
         try {
             boolean taps = XSettings.DEARROW_TAP.get();
@@ -197,8 +174,6 @@ public final class DeArrowToggle {
             }
             String key = state != null ? state.key : hasIcon(text) ? text.toString().substring(1).trim() : null;
             if (key == null) {
-                // No DeArrow title: a title the video's top comments correct shows the corrected one, with a quote
-                // mark; only the open video's own title gets the pencil.
                 String own = state != null && state.plain != null ? state.plain : stripped(text);
                 String comment = CommentTitle.shown(own);
                 boolean quote = XSettings.COMMENT_TITLE.get() && CommentTitle.known(own) != null;
@@ -206,7 +181,6 @@ public final class DeArrowToggle {
                 if (state != null && (state.plain == null || (state.commentShown == (comment != null)
                         && state.hasQuote == quote && state.pencil == (videoId != null)))) return text;
                 if (!quote && videoId == null) {
-                    // A plain title gets a span only on the open video's page, where a comments' title may arrive.
                     return text;
                 }
                 if (XSettings.DEBUG.get() && quote) {
@@ -251,7 +225,6 @@ public final class DeArrowToggle {
         return info != null && info.original != null;
     }
 
-    /** Whether the text starts with Morphe's DeArrow icon (an icon span over the bullseye placeholder). */
     private static boolean hasIcon(CharSequence text) {
         if (!(text instanceof Spanned s) || s.length() < 3 || s.charAt(0) != ICON) return false;
         for (ReplacementSpan span : s.getSpans(0, 1, ReplacementSpan.class)) {
@@ -260,7 +233,6 @@ public final class DeArrowToggle {
         return false;
     }
 
-    /** A text without the invisible characters Morphe appends to mark a title, trimmed. */
     private static String stripped(CharSequence text) {
         if (text == null) return null;
         int end = text.length();
@@ -274,15 +246,9 @@ public final class DeArrowToggle {
         return text.subSequence(0, end).toString().trim();
     }
 
-    /**
-     * The ID of the open video when one of the titles is that video's title on its own page (the maximized player,
-     * outside the lists of other videos and the player's overlay); null otherwise.
-     */
     private static String openVideo(String a, String b) {
         try {
             String videoId0 = VideoInformation.getVideoId();
-            // The title element under the player is the open video's, whether or not its title is known yet (a title
-            // laid out before the player knew it got no pencil and was never laid out again).
             if (Boolean.TRUE.equals(WATCH_TITLE.get()) && videoId0 != null && videoId0.length() == 11) {
                 if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: open video title by its element: " + videoId0);
                 return videoId0;
@@ -303,10 +269,6 @@ public final class DeArrowToggle {
         }
     }
 
-    /**
-     * The text to show: the icon when the video has a DeArrow title (a tap target when key is given), the pencil when
-     * the video is the open one, then the title, with the spans the source set over its whole length.
-     */
     private static CharSequence build(CharSequence source, String key, String title, boolean original, String pencilVideoId) {
         boolean icon = hasIcon(source) || firstState(source) != null && firstState(source).key != null;
         SpannableStringBuilder b = new SpannableStringBuilder();
@@ -334,7 +296,6 @@ public final class DeArrowToggle {
         return b;
     }
 
-    /** A title without a DeArrow title: the quote mark when the comments correct it, the pencil, then the title. */
     private static CharSequence buildPlain(CharSequence source, String own, String comment, boolean quote, String pencilVideoId) {
         SpannableStringBuilder b = new SpannableStringBuilder();
         if (quote) b.append(QUOTE).append(GAP);
@@ -354,7 +315,6 @@ public final class DeArrowToggle {
         b.setSpan(state, 0, b.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         if (quote) b.setSpan(new QuoteClick(own), 0, 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         if (pencilVideoId != null) {
-            // The suggestion starts from the comments' title when they give one.
             CommentTitle.Found f = CommentTitle.known(own);
             b.setSpan(new PencilClick(pencilVideoId, f != null ? f.title : title, false), pencilStart, titleStart, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
@@ -390,7 +350,6 @@ public final class DeArrowToggle {
         return state != null ? state.key : source.toString().substring(1).trim();
     }
 
-    /** A tap on the icon: switches the title, after fetching the video's own title when it is not known yet. */
     private static void toggle(String key) {
         if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: DeArrow icon tapped: " + key);
         if (SHOW_ORIGINAL.remove(key)) {
@@ -416,7 +375,6 @@ public final class DeArrowToggle {
         }, "yx-dearrow-title").start();
     }
 
-    /** Reads Morphe's cache of fetched titles for the video which has this DeArrow title. */
     private static void lookUp(String key, Info info) {
         try {
             Class<?> request = Class.forName("app.morphe.extension.youtube.patches.originaltitles.OriginalTitleRequest");
@@ -451,7 +409,6 @@ public final class DeArrowToggle {
         return m.invoke(owner);
     }
 
-    /** The video's own title from YouTube's oEmbed answer; null on any failure. */
     private static String oEmbedTitle(String videoId) {
         try {
             String url = "https://www.youtube.com/oembed?format=json&url="
@@ -486,7 +443,6 @@ public final class DeArrowToggle {
         return null;
     }
 
-    /** A tap on the pencil: a dialog with the title to send to DeArrow for the open video. */
     private static void suggest(View widget, String videoId, String shown, boolean deArrow) {
         try {
             Activity activity = activity(widget);
@@ -510,7 +466,6 @@ public final class DeArrowToggle {
                         if (title.isEmpty()) return;
                         new Thread(() -> toast(submit(videoId, title, false)), "yx-dearrow-submit").start();
                     });
-            // A vote on DeArrow's title (the server counts a title sent again as an upvote, and downvote=true as a downvote).
             if (deArrow) {
                 dialog.setNeutralButton(Strings.get("dearrow_downvote"), (d, which) ->
                         new Thread(() -> toast(submit(videoId, shown, true)), "yx-dearrow-vote").start());
@@ -521,7 +476,6 @@ public final class DeArrowToggle {
         }
     }
 
-    /** The private user ID DeArrow counts submissions under: SponsorBlock's in Morphe's settings, else this bundle's own. */
     private static String userId() {
         try {
             String id = app.morphe.extension.youtube.settings.Settings.SB_PRIVATE_USER_ID.get();
@@ -536,7 +490,6 @@ public final class DeArrowToggle {
         return own;
     }
 
-    /** Sends the title to DeArrow; returns the line to show the user. */
     private static String submit(String videoId, String title, boolean downvote) {
         try {
             JSONObject body = new JSONObject()

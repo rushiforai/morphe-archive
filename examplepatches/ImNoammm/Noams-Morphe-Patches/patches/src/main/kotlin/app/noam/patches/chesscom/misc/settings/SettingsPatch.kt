@@ -18,7 +18,6 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 
 private const val MORE_KEY = "Lcom/chess/home/more/MoreMenuItemKey;"
-private const val MORE_VIEW_MODEL = "Lcom/chess/home/more/MoreViewModel;"
 private const val MORE_ENTRY = "${Constants.EXTENSION_PACKAGE}/settings/MoreEntry;"
 
 @Suppress("unused")
@@ -91,9 +90,7 @@ val settingsPatch = bytecodePatch(
         )
 
         // Its tap opens Noam's Patches; the app handles every other row.
-        mutableClassDefBy(MORE_VIEW_MODEL).methods.single {
-            it.returnType == "V" && it.parameterTypes.map { type -> type.toString() } == listOf(MORE_KEY)
-        }.apply {
+        MoreRowClickFingerprint.method.apply {
             addInstructionsWithLabels(
                 0,
                 """

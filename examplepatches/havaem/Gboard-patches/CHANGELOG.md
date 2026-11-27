@@ -1,0 +1,1689 @@
+## [4.6.0-dev.3](https://github.com/havaem/Gboard-patches/compare/v4.6.0-dev.2...v4.6.0-dev.3) (2026-11-27)
+
+### 💄 Improvements
+
+* **Gboard / Clipboard Enhancements:** the **Search** button now sits at the far right of the clipboard header. It opens a real search form, titled **Search clipboard**, with a hint and a **Search** button instead of Gboard's **Add item** form and **Save** button. Searching can no longer save the query as a new clip.
+
+### 💄 Cải tiến
+
+* **Gboard / Clipboard Enhancements:** nút **Tìm kiếm** giờ nằm sát bên phải đầu bảng nhớ tạm, mở form tìm kiếm riêng có tiêu đề **Tìm trong bảng nhớ tạm**, gợi ý nhập và nút **Tìm** thay cho form **Thêm mục** và nút **Lưu** của Gboard. Tìm kiếm không còn có thể lưu từ khóa thành clip mới.
+
+## [4.6.0-dev.2](https://github.com/havaem/Gboard-patches/compare/v4.6.0-dev.1...v4.6.0-dev.2) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **Gboard / Text Expander:** shortcuts never expanded, because Gboard's Space key carries a space as its data and every Space press was skipped.
+* **Gboard / Clipboard Enhancements:** the **Search** button now shows outside edit mode, and works with the popup add-clip field that most keyboard layouts use.
+
+### 🐛 Sửa lỗi
+
+* **Gboard / Text Expander:** từ tắt không bao giờ được thay, vì phím Cách của Gboard mang theo dấu cách làm dữ liệu nên mọi lần nhấn Cách đều bị bỏ qua.
+* **Gboard / Clipboard Enhancements:** nút **Tìm kiếm** giờ hiện cả khi không ở chế độ chỉnh sửa, và hoạt động với ô thêm clip dạng popup mà hầu hết bố cục bàn phím dùng.
+
+## [4.6.0-dev.1](https://github.com/havaem/Gboard-patches/compare/v4.5.0...v4.6.0-dev.1) (2026-11-27)
+
+### ✨ New Features
+
+* **Gboard / Text Expander:** new patch. Type a shortcut such as `;addr` and press Space to replace it with longer text. Expansions can use `{date}`, `{time}`, `{clipboard}` and `{cursor}`. Password fields are skipped. Manage shortcuts under **Patches → Keyboard tools → Text Expander**.
+* **Gboard / Clipboard Enhancements:** a **Search** button in the clipboard header. Type a word and tap Done to show only matching clips; letter case and accents are ignored. Tap the button again, or close the clipboard, to clear the search.
+* **Gboard / Clipboard Enhancements:** in edit mode, select image clips and tap the image button to save them to a **Custom Stickers** pack or a new pack. Requires the Custom Stickers patch.
+
+### ✨ Tính năng mới
+
+* **Gboard / Text Expander:** patch mới. Gõ từ tắt như `;dc` rồi nhấn Cách để thay bằng đoạn văn dài. Nội dung có thể dùng `{date}`, `{time}`, `{clipboard}` và `{cursor}`. Bỏ qua ô mật khẩu. Quản lý từ tắt trong **Patches → Keyboard tools → Text Expander**.
+* **Gboard / Clipboard Enhancements:** nút **Tìm kiếm** trên đầu bảng nhớ tạm. Gõ từ khóa rồi nhấn Xong để chỉ hiện các đoạn khớp, không phân biệt hoa thường và dấu. Nhấn lại nút hoặc đóng bảng nhớ tạm để xóa tìm kiếm.
+* **Gboard / Clipboard Enhancements:** trong chế độ chỉnh sửa, chọn các đoạn là ảnh rồi nhấn nút ảnh để lưu vào một gói **Custom Stickers** hoặc gói mới. Cần patch Custom Stickers.
+
+## [4.5.0](https://github.com/jasonwu1994/Gboard-patches/compare/v4.4.0...v4.5.0) (2026-11-27)
+
+### ✨ New Features
+
+* **Gboard / Custom Stickers:** new patch. Create your own sticker packs that appear first in Gboard's Stickers tab, with a pack cover, a sticker preview grid, multi-select import (including from other apps such as Google Photos), drag-and-drop reordering, batch edits and zip export/import.
+* **Gboard / Custom Stickers:** a sticker editor with plain-background removal, round corners and an outline with adjustable width and color. Edits are kept non-destructively, so you can always re-edit from the original, and each pack can apply default edits to newly added stickers.
+* **Gboard / Custom Stickers:** the default app name is now GboardHavaem.
+* **Gboard:** **Backup & Restore** can now export Gboard's own personal data to a ZIP file. You choose what to include: learned words, personal dictionary, blocked suggestions, emoji and GIF history, custom themes, pinned clipboard items, and Gboard settings.
+* **Gboard:** **Import Gboard data** restores the items you choose. Before importing, it lists everything that will be replaced. Afterwards, it shows the result for each item and offers **Restart Gboard**. Backups from a newer Gboard are rejected. Only pinned clipboard items are included, and Gboard may ask for contacts access after you restore settings.
+
+### ⚡ Performance
+
+* **Gboard / Custom Stickers:** thumbnails, the pack index and editor render stages are cached, and pack export streams images instead of holding the whole pack in memory.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** **Frosted Glass**: fix an issue where invoking the keyboard could leave the background transparent without blur until you tap a key, by scheduling a single next-frame redraw after a new blur surface is created.
+
+### ✨ Tính năng mới
+
+* **Gboard / Custom Stickers:** patch mới. Tạo gói sticker riêng, hiện đầu tiên trong tab Sticker của Gboard, có ảnh bìa, lưới xem trước, nhập nhiều ảnh cùng lúc (kể cả từ app khác như Google Photos), kéo thả sắp xếp, chỉnh sửa hàng loạt và xuất/nhập zip.
+* **Gboard / Custom Stickers:** trình chỉnh sửa sticker với xóa nền đơn sắc, bo góc và viền có thanh kéo độ dày, đổi màu. Chỉnh sửa không phá hủy ảnh gốc nên luôn sửa lại được, và mỗi gói có thể tự áp dụng chỉnh sửa mặc định cho sticker mới.
+* **Gboard / Custom Stickers:** tên app mặc định đổi thành GboardHavaem.
+* **Gboard:** **Sao lưu & Khôi phục** giờ có thể xuất dữ liệu cá nhân của Gboard ra file ZIP, tùy chọn các mục: từ đã học, từ điển cá nhân, gợi ý bị chặn, lịch sử emoji và GIF, giao diện tùy chỉnh, mục clipboard đã ghim và cài đặt Gboard.
+* **Gboard:** **Nhập dữ liệu Gboard** khôi phục các mục bạn chọn, liệt kê những gì sẽ bị thay thế trước khi nhập, hiển thị kết quả từng mục và cho phép **Khởi động lại Gboard**. Bản sao lưu từ Gboard mới hơn sẽ bị từ chối.
+
+### ⚡ Hiệu năng
+
+* **Gboard / Custom Stickers:** ảnh thu nhỏ, danh sách gói và các bước dựng ảnh của editor được lưu đệm; xuất gói xử lý từng ảnh thay vì giữ cả gói trong bộ nhớ.
+
+### 🐛 Sửa lỗi
+
+* **Gboard:** **Frosted Glass**: sửa lỗi khi mở bàn phím nền có thể trong suốt và không có hiệu ứng mờ cho đến khi chạm một phím.
+
+## [4.5.0-dev.7](https://github.com/jasonwu1994/Gboard-patches/compare/v4.5.0-dev.4...v4.5.0-dev.7) (2026-11-25)
+
+### ✨ New Features
+
+* **Gboard:** **Backup & Restore** can now export Gboard's own personal data to a ZIP file. You choose what to include: learned words, personal dictionary, blocked suggestions, emoji and GIF history, custom themes, pinned clipboard items, and Gboard settings.
+* **Gboard:** **Import Gboard data** restores the items you choose. Before importing, it lists everything that will be replaced. Afterwards, it shows the result for each item and offers **Restart Gboard**. Backups from a newer Gboard are rejected. Only pinned clipboard items are included, and Gboard may ask for contacts access after you restore settings.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** **Frosted Glass**: fix an issue where invoking the keyboard could leave the background transparent without blur until you tap a key, by scheduling a single next-frame redraw after a new blur surface is created.
+
+### ✨ 新功能
+
+* **Gboard:** **備份與還原**新增 Gboard 個人化資料匯出，可以自選要存進 ZIP 檔的項目：記憶字詞、個人字典、封鎖的建議字詞、表情符號與 GIF 紀錄、自訂主題、已固定的剪貼簿項目和 Gboard 設定。
+* **Gboard:** 「匯入 Gboard 資料」可以自選要還原的項目。匯入前會列出所有會被覆蓋的內容，完成後逐項顯示結果，並提供「重新啟動 Gboard」。較新版本 Gboard 的備份無法匯入。剪貼簿只包含已固定的項目；還原 Gboard 設定後，Gboard 可能會要求聯絡人權限。
+
+### 🐛 修復
+
+* **Gboard:** **磨砂玻璃**：修復開啟鍵盤時背景可能只剩透明、沒有顯示模糊效果，必須按下任意按鍵後才恢復的問題；現在建立新的模糊表面後會自動補排一次下一幀重繪。
+
+## [4.5.0-dev.4](https://github.com/jasonwu1994/Gboard-patches/compare/v4.5.0-dev.3...v4.5.0-dev.4) (2026-11-24)
+
+### ✨ New Features
+
+* **Gboard:** **Clipboard Enhancements** adds an optional **Select All** button at the far left of the clipboard edit toolbar. Enable it under **Patches → Clipboard → General**, where the setting includes a description and preview. **Select All** includes pinned clips by default. Turn on **Exclude pinned clips** to select only unpinned clips, then use Gboard’s built-in **Delete** button to remove the selection.
+
+### ✨ 新功能
+
+* **Gboard:** **剪貼簿增強**新增「編輯時新增全選按鈕」，預設關閉。可在 **Patches → 剪貼簿 → 一般**查看說明、預覽並開啟。啟用後，「全選」會出現在編輯工具列最左側，預設包含釘選項目。開啟「排除釘選」後，全選只勾選未釘選項目，再按 Gboard 原生刪除鍵即可批次刪除。
+
+## [4.5.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v4.5.0-dev.2...v4.5.0-dev.3) (2026-11-23)
+
+### ✨ New Features
+
+* **Gboard:** add 9 more buttons to the `Toolbar Editing Buttons` patch: Forward Delete, Paste as plain text, Home, End, Tab, and the Left, Right, Up, and Down arrow keys.
+* **Gboard:** toolbar button labels for `Toolbar Editing Buttons`, `Floating Web Search`, and `Incognito Mode Toggle` now follow the **Language** setting on the `Patches` settings page instead of always showing English.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** **Toolbar Editing Buttons**: redraw the Select All icon so it no longer looks identical to Gboard's built-in Resize button.
+
+### ✨ 新功能
+
+* **Gboard:** `Toolbar Editing Buttons` Patch 新增 9 個按鈕：向前刪除、純文字貼上、行首、行尾、Tab，以及上、下、左、右方向鍵。
+* **Gboard:** `Toolbar Editing Buttons`、`Floating Web Search` 與 `Incognito Mode Toggle` 的工具列按鈕文字改為跟隨 `Patches` 設定頁的「語言」設定，不再固定顯示英文。
+
+### 🐛 修復
+
+* **Gboard:** **Toolbar Editing Buttons**：重新繪製「全選」圖示，不再與 Gboard 內建的「調整大小」按鈕完全相同。
+
+## [4.5.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v4.5.0-dev.1...v4.5.0-dev.2) (2026-11-23)
+
+### ✨ New Features
+
+* **Gboard:** add 11 more languages to the `Patches` settings page: Simplified Chinese, Japanese, Korean, Spanish, Brazilian Portuguese, Russian, German, French, Vietnamese, Indonesian, and Turkish. When **Language** is set to **System default**, the settings page follows your system language if it is supported; you can also pick any of the 13 bundled languages manually. Any text that is not translated yet is shown in English.
+
+### ✨ 新功能
+
+* **Gboard:** `Patches` 設定頁新增 11 種語言：簡體中文、日文、韓文、西班牙文、巴西葡萄牙文、俄文、德文、法文、越南文、印尼文與土耳其文。「語言」設為「跟隨系統」時，若系統語言在支援範圍內，設定頁會自動切換；也可以手動選擇任一種內建語言（共 13 種）。尚未翻譯的文字會以英文顯示。
+
+## [4.5.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v4.4.0...v4.5.0-dev.1) (2026-11-22)
+
+### ✨ New Features
+
+* **Gboard:** **Web Clipboard**: add bidirectional image and screenshot sync. Copy an image or take a screenshot on your phone to see it in the web portal right away, or upload, paste, or drag-and-drop one or multiple images from your browser directly into your phone's clipboard and Gboard clipboard history.
+* **Gboard:** **Web Clipboard**: upgrade the image viewer and workspace UI with a fullscreen lightbox featuring fixed full-height left/right navigation edges, a bottom thumbnail filmstrip for quick switching, top-right copy/download/close actions, compact upload previews, a checkerboard backdrop for transparent images, and refined empty states and same-day timestamps.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** **Web Clipboard**: fix cleared messages reappearing after reloading the page by clearing the phone-hosted latest clipboard snapshot along with the browser thread.
+* **Gboard:** **Web Clipboard**: fix message ordering when phone and computer clocks differ by ordering thread items using the browser's local receive time.
+* **Gboard:** **Web Clipboard**: fix top action button clipping in the image lightbox, corner border clipping on the drag-and-drop overlay, and potential history entry collisions when uploading multiple images at once.
+
+### ✨ 新功能
+
+* **Gboard:** **Web Clipboard**：新增雙向圖片與截圖同步。在手機複製圖片或截圖後會即時顯示在網頁端；在電腦網頁點選、貼上或拖曳單張／多張圖片，也會直接同步到手機系統剪貼簿與 Gboard 剪貼簿歷史中。
+* **Gboard:** **Web Clipboard**：優化圖片檢視與介面體驗，包含全新全螢幕圖片預覽燈箱（固定左右全高切換區域、底部所有圖片縮圖預覽列、右上角複製／下載／關閉按鈕）、精簡的待傳圖片列、透明圖片棋盤格底紋，以及更俐落的空狀態與同日時間戳顯示。
+
+### 🐛 修復
+
+* **Gboard:** **Web Clipboard**：修復清空對話後重新整理網頁時舊訊息會再次出現的問題，現在清空時會一併重置手機端快取的最新剪貼簿狀態。
+* **Gboard:** **Web Clipboard**：修復手機與電腦系統時間存在誤差時訊息排序錯亂的問題，改以電腦端實際收到訊息的時間排序。
+* **Gboard:** **Web Clipboard**：修復圖片預覽燈箱頂部按鈕裁切、拖曳上傳外框四角邊線被遮擋，以及連續上傳多張圖片時 Gboard 剪貼簿歷史項目可能互相覆蓋的問題。
+
+## [4.4.0](https://github.com/jasonwu1994/Gboard-patches/compare/v4.3.0...v4.4.0) (2026-11-21)
+
+### ✨ New Features
+
+* **Gboard:** switch icon sizing in the G logo patch from dp to percentages. Your icons can now get biiiiiig!
+* **Gboard:** add support for custom package names in Package Rename.
+* **Gboard:** add the Shift + Backspace Forward Delete patch. Hold Shift and press Backspace to delete the character after the cursor, like the Delete key on a computer keyboard.
+* **Gboard:** add a **Rambler Auto Stop** option (Off, 3 seconds, 5 seconds, or custom 1–59 seconds) to **Advanced Voice Typing** to automatically stop Rambler voice typing and keep the text after the chosen period of silence.
+* **Gboard:** add a **Shortcut position** option (**First** or **Last**) to **Long-Press Editing Shortcuts** to choose where the editing shortcut appears in a key's long-press popup.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix **Key transparency** in **Frosted Glass** not applying to the circular background behind the microphone or other shortcut in the top-right toolbar slot, while keeping the icon clear and preserving transparent idle states.
+* **Gboard:** keep standard voice typing in Traditional Chinese (zh-TW) on Gboard's built-in S3 recognizer with **Advanced Voice Typing**, and allow S3 voice typing in airplane mode when a usable network (such as Wi-Fi) is connected.
+
+### ✨ 新功能
+
+* **Gboard:** G logo patch：圖示大小從 dp 改為百分比調整，現在你的圖示可以變得超級大！
+* **Gboard:** Package Rename 新增自訂套件名稱功能。
+* **Gboard:** 新增「Shift + Backspace Forward Delete」Patch。按住 Shift 再按退格鍵，就能刪除游標右邊的字，就像電腦鍵盤上的 Delete 鍵。
+* **Gboard:** 在「進階語音輸入」新增「Rambler 自動停止」選項（關閉、3 秒、5 秒或自訂 1–59 秒），停止說話達設定時間後自動結束 Rambler 語音輸入並保留文字。
+* **Gboard:** 在「長按編輯快捷鍵」新增「快捷鍵位置」選項（第一個／最後一個），可自訂快捷鍵在長按選單中的位置。
+
+### 🐛 修復
+
+* **Gboard:** 修復「磨砂玻璃」的「按鍵透明度」未套用到工具列最右側麥克風或其他快捷按鈕圓底的問題，同時保持前景圖示清晰並保留自訂主題的待機透明狀態。
+* **Gboard:** 搭配「進階語音輸入」時，讓繁體中文（zh-TW）標準語音輸入維持使用 Gboard 內建 S3 辨識器，並修復飛航模式下已連上可用網路（如 Wi-Fi）時 S3 語音輸入被拒絕的問題。
+
+## [4.4.0-dev.5](https://github.com/jasonwu1994/Gboard-patches/compare/v4.4.0-dev.3...v4.4.0-dev.5) (2026-11-21)
+
+### ✨ New Features
+
+* **Gboard:** add a **Rambler Auto Stop** option (Off, 3 seconds, 5 seconds, or custom 1–59 seconds) to **Advanced Voice Typing** to automatically stop Rambler voice typing and keep the text after the chosen period of silence.
+* **Gboard:** add a **Shortcut position** option (**First** or **Last**) to **Long-Press Editing Shortcuts** to choose where the editing shortcut appears in a key's long-press popup.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix **Key transparency** in **Frosted Glass** not applying to the circular background behind the microphone or other shortcut in the top-right toolbar slot, while keeping the icon clear and preserving transparent idle states.
+* **Gboard:** keep standard voice typing in Traditional Chinese (zh-TW) on Gboard's built-in S3 recognizer with **Advanced Voice Typing**, and allow S3 voice typing in airplane mode when a usable network (such as Wi-Fi) is connected.
+
+### ✨ 新功能
+
+* **Gboard:** 在「進階語音輸入」新增「Rambler 自動停止」選項（關閉、3 秒、5 秒或自訂 1–59 秒），停止說話達設定時間後自動結束 Rambler 語音輸入並保留文字。
+* **Gboard:** 在「長按編輯快捷鍵」新增「快捷鍵位置」選項（第一個／最後一個），可自訂快捷鍵在長按選單中的位置。
+
+### 🐛 修復
+
+* **Gboard:** 修復「磨砂玻璃」的「按鍵透明度」未套用到工具列最右側麥克風或其他快捷按鈕圓底的問題，同時保持前景圖示清晰並保留自訂主題的待機透明狀態。
+* **Gboard:** 搭配「進階語音輸入」時，讓繁體中文（zh-TW）標準語音輸入維持使用 Gboard 內建 S3 辨識器，並修復飛航模式下已連上可用網路（如 Wi-Fi）時 S3 語音輸入被拒絕的問題。
+
+## [4.4.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v4.4.0-dev.2...v4.4.0-dev.3) (2026-11-18)
+
+### ✨ New Features
+
+* **Gboard:** add the Shift + Backspace Forward Delete patch. Hold Shift and press Backspace to delete the character after the cursor, like the Delete key on a computer keyboard.
+
+### ✨ 新功能
+
+* **Gboard:** 新增「Shift + Backspace Forward Delete」Patch。按住 Shift 再按退格鍵，就能刪除游標右邊的字，就像電腦鍵盤上的 Delete 鍵。
+
+## [4.4.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v4.4.0-dev.1...v4.4.0-dev.2) (2026-11-14)
+
+### ✨ New Features
+
+* **Gboard:** add support for custom package names in Package Rename.
+
+### ✨ 新功能
+
+* **Gboard:** Package Rename 新增自訂套件名稱功能。
+
+## [4.4.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v4.3.0...v4.4.0-dev.1) (2026-11-12)
+
+### ✨ New Features
+
+* **Gboard:** switch icon sizing in the G logo patch from dp to percentages. Your icons can now get biiiiiig!
+
+### ✨ 新功能
+
+* **Gboard:** G logo patch：圖示大小從 dp 改為百分比調整，現在你的圖示可以變得超級大！
+
+## [4.3.0](https://github.com/jasonwu1994/Gboard-patches/compare/v4.2.0...v4.3.0) (2026-11-12)
+
+### ✨ New Features
+
+* **Gboard:** add an FAQ section to the Frosted Glass page, with links for when the effect isn't working and for flickering on Pixel phones.
+* **Gboard:** change the defaults of two settings: English Up-Flick Uppercase is now off and the Access Points menu style is now on. Settings you have already saved are kept.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the keyboard closing by itself with Frosted Glass enabled ("Software rendering doesn't support drawRenderNode"). If blur fails to draw, the keyboard now falls back to its theme.
+* **Gboard:** make "Extend to navigation bar" work on Android 15 and below. The navigation bar follows the keyboard's transparency, without blur.
+* **Gboard:** make "Extend to navigation bar" work with narrower docked keyboards, such as one-handed mode.
+
+### ✨ 新功能
+
+* **Gboard:** 在「磨砂玻璃」頁面新增 FAQ 區塊，提供「為什麼磨砂玻璃沒有效果？」和「為什麼 Pixel 手機輸入文字時會閃爍？」的說明連結。
+* **Gboard:** 調整兩項設定的預設值：「英文鍵盤上滑大小寫」改為關閉，「Access Points 選單樣式」改為開啟。已儲存的設定不受影響。
+
+### 🐛 修復
+
+* **Gboard:** 修復啟用磨砂玻璃後鍵盤自行關閉的問題（`Software rendering doesn't support drawRenderNode`）。模糊效果繪製失敗時，鍵盤會改回使用主題背景。
+* **Gboard:** 修復「延伸到導覽列」在 Android 15 以下沒有效果的問題。導覽列會跟隨鍵盤的透明度，但沒有模糊效果。
+* **Gboard:** 修復「延伸到導覽列」在單手模式等較窄的固定式鍵盤上沒有效果的問題。
+
+## [4.3.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v4.2.0...v4.3.0-dev.1) (2026-11-06)
+
+### ✨ New Features
+
+* **Gboard:** add an FAQ section to the Frosted Glass page, with links for when the effect isn't working and for flickering on Pixel phones.
+* **Gboard:** change the defaults of two settings: English Up-Flick Uppercase is now off and the Access Points menu style is now on. Settings you have already saved are kept.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the keyboard closing by itself with Frosted Glass enabled ("Software rendering doesn't support drawRenderNode"). If blur fails to draw, the keyboard now falls back to its theme.
+* **Gboard:** make "Extend to navigation bar" work on Android 15 and below. The navigation bar follows the keyboard's transparency, without blur.
+* **Gboard:** make "Extend to navigation bar" work with narrower docked keyboards, such as one-handed mode.
+
+### ✨ 新功能
+
+* **Gboard:** 在「磨砂玻璃」頁面新增 FAQ 區塊，提供「為什麼磨砂玻璃沒有效果？」和「為什麼 Pixel 手機輸入文字時會閃爍？」的說明連結。
+* **Gboard:** 調整兩項設定的預設值：「英文鍵盤上滑大小寫」改為關閉，「Access Points 選單樣式」改為開啟。已儲存的設定不受影響。
+
+### 🐛 修復
+
+* **Gboard:** 修復啟用磨砂玻璃後鍵盤自行關閉的問題（`Software rendering doesn't support drawRenderNode`）。模糊效果繪製失敗時，鍵盤會改回使用主題背景。
+* **Gboard:** 修復「延伸到導覽列」在 Android 15 以下沒有效果的問題。導覽列會跟隨鍵盤的透明度，但沒有模糊效果。
+* **Gboard:** 修復「延伸到導覽列」在單手模式等較窄的固定式鍵盤上沒有效果的問題。
+
+## [4.2.0](https://github.com/jasonwu1994/Gboard-patches/compare/v4.1.1...v4.2.0) (2026-11-03)
+
+### ✨ New Features
+
+* **Gboard:** add an option to automatically select all text before copying or cutting when nothing is selected, available through the toolbar, long-press shortcuts, and globe-key drag gestures.
+* **Gboard:** update morphe-patcher to **v2.1.0**.
+* **Gboard:** add a search button to the Patches settings page to quickly find settings.
+* **Gboard:** extend the G Logo on Spacebar patch with custom image support, a full-color Google G icon, and adjustable icon sizes.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix paste shortcuts from the toolbar, long-press actions, and globe-key drag gestures in terminal input fields such as Termux.
+
+### ✨ 新功能
+
+* **Gboard:** 新增「未選取文字時自動全選」選項，支援透過工具列、長按及地球鍵拖曳快捷操作，全選並複製或剪下文字。
+* **Gboard:** 將 morphe-patcher 更新至 **v2.1.0**。
+* **Gboard:** 在 Patches 設定頁面新增搜尋按鈕，方便快速尋找設定項目。
+* **Gboard:** 「G Logo on Spacebar」Patch 新增自訂圖片與「Google G（全彩）」圖示，並支援自訂圖示大小。
+
+### 🐛 修復
+
+* **Gboard:** 修復工具列、長按及地球鍵拖曳快捷貼上在 Termux 等終端機輸入介面中無法正常運作的問題。
+
+## [4.2.0-dev.5](https://github.com/jasonwu1994/Gboard-patches/compare/v4.2.0-dev.4...v4.2.0-dev.5) (2026-11-03)
+
+### ✨ New Features
+
+* **Gboard:** extend the G Logo on Spacebar patch with custom image support, a full-color Google G icon, and adjustable icon sizes.
+
+### ✨ 新功能
+
+* **Gboard:** 「G Logo on Spacebar」Patch 新增自訂圖片與「Google G（全彩）」圖示，並支援自訂圖示大小。
+
+## [4.2.0-dev.4](https://github.com/jasonwu1994/Gboard-patches/compare/v4.2.0-dev.2...v4.2.0-dev.4) (2026-11-02)
+
+### ✨ New Features
+
+* **Gboard:** update morphe-patcher to **v2.1.0**.
+* **Gboard:** add a search button to the Patches settings page to quickly find settings.
+
+### ✨ 新功能
+
+* **Gboard:** 將 morphe-patcher 更新至 **v2.1.0**。
+* **Gboard:** 在 Patches 設定頁面新增搜尋按鈕，方便快速尋找設定項目。
+
+## [4.2.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v4.1.1...v4.2.0-dev.2) (2026-10-31)
+
+### ✨ New Features
+
+* **Gboard:** add an option to automatically select all text before copying or cutting when nothing is selected, available through the toolbar, long-press shortcuts, and globe-key drag gestures.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix paste shortcuts from the toolbar, long-press actions, and globe-key drag gestures in terminal input fields such as Termux.
+
+### ✨ 新功能
+
+* **Gboard:** 新增「未選取文字時自動全選」選項，支援透過工具列、長按及地球鍵拖曳快捷操作，全選並複製或剪下文字。
+
+### 🐛 修復
+
+* **Gboard:** 修復工具列、長按及地球鍵拖曳快捷貼上在 Termux 等終端機輸入介面中無法正常運作的問題。
+
+## [4.1.1](https://github.com/jasonwu1994/Gboard-patches/compare/v4.1.0...v4.1.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix a crash when opening the keyboard on Android 13 and earlier.
+* **Gboard:** fix Android stopping Web Clipboard after 6 hours and a crash when restarting the service.
+
+### 🐛 修復
+
+* **Gboard:** 修復在 Android 13 及更早版本上開啟鍵盤時閃退的問題。
+* **Gboard:** 修復 Web Clipboard 執行 6 小時後被 Android 停止，以及重新啟動服務時閃退的問題。
+
+## [4.1.1-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v4.1.0...v4.1.1-dev.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix a crash when opening the keyboard on Android 13 and earlier.
+* **Gboard:** fix Android stopping Web Clipboard after 6 hours and a crash when restarting the service.
+
+### 🐛 修復
+
+* **Gboard:** 修復在 Android 13 及更早版本上開啟鍵盤時閃退的問題。
+* **Gboard:** 修復 Web Clipboard 執行 6 小時後被 Android 停止，以及重新啟動服務時閃退的問題。
+
+## [4.1.0](https://github.com/jasonwu1994/Gboard-patches/compare/v4.0.0...v4.1.0) (2026-10-30)
+
+### ✨ New Features
+
+* **Gboard:** add the Dictionaries & Predictions patch to customize resource versions for dictionaries, text predictions, and input correction models, greatly improving the typing experience.
+* **Gboard:** add Key Opacity to Frosted Glass, allowing keys to follow the theme or use a custom percentage independently of background opacity.
+* **Gboard:** add Extend to Navigation Bar to Frosted Glass, extending the blur effect into the bottom navigation area for a seamless appearance and automatically adjusting navigation button colors.
+* **Gboard:** add the Keypress Vibration Intensity Control patch to control keypress vibration strength instead of duration.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the lingering colored light bar and missing word suggestions after official Rambler voice input ends.
+* **Gboard:** fix duplicate countdown updates and card recycling issues when clipboard items are hidden or kept permanently, and reduce unnecessary settings reads to lower resource usage.
+* **Gboard:** fix the Split Keyboard patch so the split state is preserved after closing and reopening the keyboard.
+* **Gboard:** fix an issue that prevented the Developer options page from opening.
+* **Gboard:** reduce excessive power consumption in Frosted Glass by eliminating redundant calculations during drawing and layout updates.
+* **Gboard:** fix background color blocks remaining after tapping suggestions when custom key opacity is enabled.
+
+### ✨ 新功能
+
+* **Gboard:** 新增Dictionaries & Predictions Patch，可自訂字典、文字預測與輸入修正的模型資源版本，將大幅提升輸入體驗。
+* **Gboard:** 磨砂玻璃新增「按鍵透明度」設定，可跟隨主題或自訂百分比，並與背景透明度分開調整。
+* **Gboard:** 磨砂玻璃新增「延伸到導覽列」設定，將模糊效果延伸至底部導覽區，讓鍵盤與導覽列融為一體，並自動調整導覽按鈕的顏色。
+* **Gboard:** 新增 Keypress Vibration Intensity Control Patch，將按鍵震動從持續時間控制改為力度控制。
+
+### 🐛 修復
+
+* **Gboard:** 修復官方 Rambler 語音輸入結束後，彩色光帶殘留及候選字詞消失的問題。
+* **Gboard:** 修復剪貼簿隱藏與永久保留時的重複倒數更新及卡片回收問題，並減少不必要的設定讀取，降低額外資源消耗。
+* **Gboard:** 修復「分離式鍵盤」(split keyboard) Patch 在關閉並重新開啟鍵盤後，無法保留分離狀態的問題。
+* **Gboard:** 修復無法開啟「開發人員選項」（Developer options）頁面的問題。
+* **Gboard:** 修復磨砂玻璃耗電偏高的問題，移除繪製與重新排版時的重複運算，降低資源消耗。
+* **Gboard:** 修復啟用自訂按鍵透明度時，點選候選詞後背景色塊仍然殘留的問題。
+
+## [4.1.0-dev.4](https://github.com/jasonwu1994/Gboard-patches/compare/v4.1.0-dev.3...v4.1.0-dev.4) (2026-10-30)
+
+### ✨ New Features
+
+* **Gboard:** add the Keypress Vibration Intensity Control patch to control keypress vibration strength instead of duration.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix background color blocks remaining after tapping suggestions when custom key opacity is enabled.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 Keypress Vibration Intensity Control Patch，將按鍵震動從持續時間控制改為力度控制。
+
+### 🐛 修復
+
+* **Gboard:** 修復啟用自訂按鍵透明度時，點選候選詞後背景色塊仍然殘留的問題。
+
+## [4.1.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v4.1.0-dev.2...v4.1.0-dev.3) (2026-10-30)
+
+### ✨ New Features
+
+* **Gboard:** add Key Opacity to Frosted Glass, allowing keys to follow the theme or use a custom percentage independently of background opacity.
+* **Gboard:** add Extend to Navigation Bar to Frosted Glass, extending the blur effect into the bottom navigation area for a seamless appearance and automatically adjusting navigation button colors.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** reduce excessive power consumption in Frosted Glass by eliminating redundant calculations during drawing and layout updates.
+
+### ✨ 新功能
+
+* **Gboard:** 磨砂玻璃新增「按鍵透明度」設定，可跟隨主題或自訂百分比，並與背景透明度分開調整。
+* **Gboard:** 磨砂玻璃新增「延伸到導覽列」設定，將模糊效果延伸至底部導覽區，讓鍵盤與導覽列融為一體，並自動調整導覽按鈕的顏色。
+
+### 🐛 修復
+
+* **Gboard:** 修復磨砂玻璃耗電偏高的問題，移除繪製與重新排版時的重複運算，降低資源消耗。
+
+## [4.1.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v4.1.0-dev.1...v4.1.0-dev.2) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix an issue that prevented the Developer options page from opening.
+
+### 🐛 修復
+
+* **Gboard:** 修復無法開啟「開發人員選項」（Developer options）頁面的問題。
+
+## [4.1.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v4.0.0...v4.1.0-dev.1) (2026-10-28)
+
+### ✨ New Features
+
+* **Gboard:** add the Dictionaries & Predictions patch to customize resource versions for dictionaries, text predictions, and input correction models, greatly improving the typing experience.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the lingering colored light bar and missing word suggestions after official Rambler voice input ends.
+* **Gboard:** fix duplicate countdown updates and card recycling issues when clipboard items are hidden or kept permanently, and reduce unnecessary settings reads to lower resource usage.
+* **Gboard:** fix the Split Keyboard patch so the split state is preserved after closing and reopening the keyboard.
+
+### ✨ 新功能
+
+* **Gboard:** 新增Dictionaries & Predictions Patch，可自訂字典、文字預測與輸入修正的模型資源版本，將大幅提升輸入體驗。
+
+### 🐛 修復
+
+* **Gboard:** 修復官方 Rambler 語音輸入結束後，彩色光帶殘留及候選字詞消失的問題。
+* **Gboard:** 修復剪貼簿隱藏與永久保留時的重複倒數更新及卡片回收問題，並減少不必要的設定讀取，降低額外資源消耗。
+* **Gboard:** 修復「分離式鍵盤」(split keyboard) Patch 在關閉並重新開啟鍵盤後，無法保留分離狀態的問題。
+
+## [4.0.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.13.0...v4.0.0) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the occasionally blank shortcut toolbar when opening the keyboard with Rambler enabled.
+* **Gboard:** remove the `Hyperspeed Typing Animation` patch because Gboard 18.5.3 no longer includes its core implementation.
+* **Gboard:** fix runtime settings access before the first unlock after boot to prevent errors when swiping down to dismiss the keyboard.
+* **Gboard:** fix the `Zhuyin Bottom Row Key Sizes` patch so bottom-row keys retain their configured sizes while typing on the Zhuyin keyboard.
+* **Gboard:** eliminate brief white or dark background flashes when opening or switching keyboards with custom opacity enabled.
+* **Gboard:** fix black borders around keyboard corners when adjusting custom opacity.
+
+### 🚀 Updated App Support
+
+* **Gboard:** update the supported Gboard version to `18.5.4.993608717-release-arm64-v8a`.
+
+### 🐛 修復
+
+* **Gboard:** 修復啟用 Rambler 時，開啟鍵盤後快捷工具列偶爾空白的問題。
+* **Gboard:** 移除 `Hyperspeed Typing Animation` Patch，因 Gboard 18.5.3 已移除所需的核心實作。
+* **Gboard:** 修復開機後首次解鎖前，向下滑動關閉鍵盤功能存取設定時可能發生的錯誤。
+* **Gboard:** 修復「注音底排按鍵大小」Patch 在注音輸入時無法維持自訂按鍵大小的問題。
+* **Gboard:** 修復啟用自訂透明度後，開啟或切換鍵盤時背景短暫閃白或閃黑的問題。
+* **Gboard:** 修復調整自訂透明度時，鍵盤邊角出現黑邊的問題。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 更新支援的 Gboard 版本至 `18.5.4.993608717-release-arm64-v8a`。
+
+## [4.0.0-dev.5](https://github.com/jasonwu1994/Gboard-patches/compare/v4.0.0-dev.4...v4.0.0-dev.5) (2026-10-25)
+
+### 🚀 Updated App Support
+
+* **Gboard:** update the supported Gboard version to `18.5.4.993608717-release-arm64-v8a`.
+
+### 🚀 支援版本更新
+
+* **Gboard:** 更新支援的 Gboard 版本至 `18.5.4.993608717-release-arm64-v8a`。
+
+## [4.0.0-dev.4](https://github.com/jasonwu1994/Gboard-patches/compare/v4.0.0-dev.3...v4.0.0-dev.4) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the occasionally blank shortcut toolbar when opening the keyboard with Rambler enabled.
+* **Gboard:** remove the `Hyperspeed Typing Animation` patch because Gboard 18.5.3 no longer includes its core implementation.
+
+### 🐛 修復
+
+* **Gboard:** 修復啟用 Rambler 時，開啟鍵盤後快捷工具列偶爾空白的問題。
+* **Gboard:** 移除 `Hyperspeed Typing Animation` Patch，因 Gboard 18.5.3 已移除所需的核心實作。
+
+## [4.0.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v4.0.0-dev.2...v4.0.0-dev.3) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix runtime settings access before the first unlock after boot to prevent errors when swiping down to dismiss the keyboard.
+
+### 🐛 修復
+
+* **Gboard:** 修復開機後首次解鎖前，向下滑動關閉鍵盤功能存取設定時可能發生的錯誤。
+
+## [4.0.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v4.0.0-dev.1...v4.0.0-dev.2) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the `Zhuyin Bottom Row Key Sizes` patch so bottom-row keys retain their configured sizes while typing on the Zhuyin keyboard.
+
+### 🐛 修復
+
+* **Gboard:** 修復「注音底排按鍵大小」Patch 在注音輸入時無法維持自訂按鍵大小的問題。
+
+## [4.0.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.13.0...v4.0.0-dev.1) (2026-10-22)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** eliminate brief white or dark background flashes when opening or switching keyboards with custom opacity enabled.
+* **Gboard:** fix black borders around keyboard corners when adjusting custom opacity.
+
+### 🚀 Updated App Support
+
+* **Gboard:** update the supported Gboard version to `18.5.3.993608717-release-arm64-v8a`.
+
+### 🐛 修復
+
+* **Gboard:** 修復啟用自訂透明度後，開啟或切換鍵盤時背景短暫閃白或閃黑的問題。
+* **Gboard:** 修復調整自訂透明度時，鍵盤邊角出現黑邊的問題。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 更新支援的 Gboard 版本至 `18.5.3.993608717-release-arm64-v8a`。
+
+## [3.13.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.12.0...v3.13.0) (2026-10-15)
+
+### ✨ New Features
+
+* **Gboard:** add the `Swipe Down to Dismiss Keyboard` patch, allowing you to dismiss the keyboard by swiping down from the suggestion strip or toolbar.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix an issue where the `Frosted Glass` patch could cause the keyboard to crash when entering the password upon device startup (Direct Boot).
+* **Gboard:** fix the `Swipe Down to Dismiss Keyboard` patch to prevent accidental dismissal during toolbar icon sorting and candidate drag-to-delete.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Swipe Down to Dismiss Keyboard` Patch，支援從建議列或工具列向下滑動以關閉鍵盤。
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Frosted Glass` Patch 在裝置開機輸入密碼時（Direct Boot）可能導致鍵盤崩潰的問題。
+* **Gboard:** 修復 `Swipe Down to Dismiss Keyboard` Patch，避免在排序工具列圖示及拖曳候選字刪除時誤觸關閉鍵盤。
+
+## [3.13.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v3.13.0-dev.1...v3.13.0-dev.2) (2026-10-14)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the `Swipe Down to Dismiss Keyboard` patch to prevent accidental dismissal during toolbar icon sorting and candidate drag-to-delete.
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Swipe Down to Dismiss Keyboard` Patch，避免在排序工具列圖示及拖曳候選字刪除時誤觸關閉鍵盤。
+
+## [3.13.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.12.1-dev.1...v3.13.0-dev.1) (2026-10-14)
+
+### ✨ New Features
+
+* **Gboard:** add the `Swipe Down to Dismiss Keyboard` patch, allowing you to dismiss the keyboard by swiping down from the suggestion strip or toolbar.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Swipe Down to Dismiss Keyboard` Patch，支援從建議列或工具列向下滑動以關閉鍵盤。
+
+## [3.12.1-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.12.0...v3.12.1-dev.1) (2026-10-13)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix an issue where the `Frosted Glass` patch could cause the keyboard to crash when entering the password upon device startup (Direct Boot).
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Frosted Glass` Patch 在裝置開機輸入密碼時（Direct Boot）可能導致鍵盤崩潰的問題。
+
+## [3.12.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.11.0...v3.12.0) (2026-10-04)
+
+### ✨ New Features
+
+* **Gboard:** add the `Frosted Glass` patch, bringing real-time background blur and customizable theme transparency to the keyboard. 👀
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Frosted Glass` Patch，為鍵盤加入即時背景模糊效果，並支援自訂主題透明度。👀
+
+## [3.12.0-dev.5](https://github.com/jasonwu1994/Gboard-patches/compare/v3.11.0...v3.12.0-dev.5) (2026-09-26)
+
+### ✨ New Features
+
+* **Gboard:** add the `Frosted Glass` patch, bringing real-time background blur and customizable theme transparency to the keyboard. 👀
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Frosted Glass` Patch，為鍵盤加入即時背景模糊效果，並支援自訂主題透明度。👀
+
+## [3.11.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.10.0...v3.11.0) (2026-09-22)
+
+### ✨ New Features
+
+* **Gboard:** add the `Toolbar Editing Buttons` patch, which adds Select all, Copy, Cut, and Paste actions to the toolbar menu.
+* **Gboard:** add the `Custom Theme` patch, supporting custom ZIP theme imports and a selection of beautiful themes from Rboard's official repository.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix an issue where `Custom Symbols` history entries were incorrectly saved to `Emoticon` history.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Toolbar Editing Buttons` Patch，將「全選」、「複製」、「剪下」與「貼上」操作加入工具列選單。
+* **Gboard:** 新增 `Custom Theme` Patch，支援匯入自訂 ZIP 主題，也能從 Rboard 官方儲存庫匯入精美主題。
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Custom Symbols` 歷史記錄誤寫入 `Emoticon` 歷史記錄的問題。
+
+## [3.11.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v3.11.0-dev.2...v3.11.0-dev.3) (2026-09-20)
+
+### ✨ New Features
+
+* **Gboard:** add the `Toolbar Editing Buttons` patch, which adds Select all, Copy, Cut, and Paste actions to the toolbar menu.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Toolbar Editing Buttons` Patch，將「全選」、「複製」、「剪下」與「貼上」操作加入工具列選單。
+
+## [3.11.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v3.10.0...v3.11.0-dev.2) (2026-09-18)
+
+### ✨ New Features
+
+* **Gboard:** add the `Custom Theme` patch, supporting custom ZIP theme imports and a selection of beautiful themes from Rboard's official repository.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix an issue where `Custom Symbols` history entries were incorrectly saved to `Emoticon` history.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Custom Theme` Patch，支援匯入自訂 ZIP 主題，也能從 Rboard 官方儲存庫匯入精美主題。
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Custom Symbols` 歷史記錄誤寫入 `Emoticon` 歷史記錄的問題。
+
+## [3.10.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.9.0...v3.10.0) (2026-09-02)
+
+### ✨ New Features
+
+* **Gboard:** add the `Backup & Restore` patch for exporting and restoring all patch settings, and for backing up, comparing, and restoring Gboard's PB/XML flag stores.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Backup & Restore` Patch，可匯出與還原所有 Patch 設定，並支援備份、比較及還原 Gboard 的 PB/XML flag store。
+
+## [3.10.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v3.9.0...v3.10.0-dev.3) (2026-09-01)
+
+### ✨ New Features
+
+* **Gboard:** add the `Backup & Restore` patch for exporting and restoring all patch settings, and for backing up, comparing, and restoring Gboard's PB/XML flag stores.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Backup & Restore` Patch，可匯出與還原所有 Patch 設定，並支援備份、比較及還原 Gboard 的 PB/XML flag store。
+
+## [3.9.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.8.0...v3.9.0) (2026-09-01)
+
+### ✨ New Features
+
+* **Gboard:** add the `Simple Calculator` patch. Enter an expression directly to display both the expression and its result in Gboard's suggestion strip.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Simple Calculator` Patch；直接輸入算式，即可在 Gboard 推薦列顯示算式與計算結果。
+
+## [3.9.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.8.0...v3.9.0-dev.1) (2026-09-01)
+
+### ✨ New Features
+
+* **Gboard:** add the `Simple Calculator` patch. Enter an expression directly to display both the expression and its result in Gboard's suggestion strip.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Simple Calculator` Patch；直接輸入算式，即可在 Gboard 推薦列顯示算式與計算結果。
+
+## [3.8.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.7.0...v3.8.0) (2026-08-31)
+
+### ✨ New Features
+
+* **Gboard:** add the `FTP Server` patch, providing a LAN FTP server for browsing and transferring files with resume support. Why would a keyboard app need an FTP server? You're right—it doesn't, but I do 😂
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix an issue in the `Long-Press Editing Shortcuts` patch that could occasionally enter unintended text when switching languages.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `FTP Server` Patch，提供區域網路 FTP 伺服器，支援檔案瀏覽、傳輸與續傳。為什麼鍵盤 App 會需要 FTP 伺服器？沒錯，鍵盤不需要，但我需要 😂
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Long-Press Editing Shortcuts` Patch 在某些情況下切換語言時會意外輸入文字的問題。
+
+## [3.8.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v3.7.0...v3.8.0-dev.3) (2026-08-31)
+
+### ✨ New Features
+
+* **Gboard:** add the `FTP Server` patch, providing a LAN FTP server for browsing and transferring files with resume support. Why would a keyboard app need an FTP server? You're right—it doesn't, but I do 😂
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix an issue in the `Long-Press Editing Shortcuts` patch that could occasionally enter unintended text when switching languages.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `FTP Server` Patch，提供區域網路 FTP 伺服器，支援檔案瀏覽、傳輸與續傳。為什麼鍵盤 App 會需要 FTP 伺服器？沒錯，鍵盤不需要，但我需要 😂
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Long-Press Editing Shortcuts` Patch 在某些情況下切換語言時會意外輸入文字的問題。
+
+## [3.7.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.6.0...v3.7.0) (2026-08-30)
+
+### ✨ New Features
+
+* **Gboard:** expand the `Long-Press Editing Shortcuts` patch to support additional keyboard layouts.
+
+* **Gboard:** expand the `Long-Press Editing Shortcuts` patch with globe-key drag shortcuts. Press and hold the globe key, then drag to the corresponding letter to trigger an editing action—for example, drag to `C` to copy.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the `Long-Press Editing Shortcuts` patch so `Copy` and `Cut` do nothing when the target text is empty, preventing empty copy or cut operations.
+
+### ✨ 新功能
+
+* **Gboard:** 擴充 `Long-Press Editing Shortcuts` Patch，現在支援更多鍵盤配置。
+
+* **Gboard:** 擴充 `Long-Press Editing Shortcuts` Patch，新增地球鍵拖曳快捷操作；按住地球鍵後拖曳至對應字母，即可執行編輯操作，例如拖曳至 `C` 即可複製。
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Long-Press Editing Shortcuts` Patch：當要複製或剪下的文字為空字串時，不再執行 `Copy` 或 `Cut`，避免空內容的複製／剪下操作。
+
+## [3.7.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v3.7.0-dev.1...v3.7.0-dev.2) (2026-08-30)
+
+### ✨ New Features
+
+* **Gboard:** expand the `Long-Press Editing Shortcuts` patch to support additional keyboard layouts.
+
+### ✨ 新功能
+
+* **Gboard:** 擴充 `Long-Press Editing Shortcuts` Patch，現在支援更多鍵盤配置。
+
+## [3.7.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.6.0...v3.7.0-dev.1) (2026-08-28)
+
+### ✨ New Features
+
+* **Gboard:** expand the `Long-Press Editing Shortcuts` patch with globe-key drag shortcuts. Press and hold the globe key, then drag to the corresponding letter to trigger an editing action—for example, drag to `C` to copy.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the `Long-Press Editing Shortcuts` patch so `Copy` and `Cut` do nothing when the target text is empty, preventing empty copy or cut operations.
+
+### ✨ 新功能
+
+* **Gboard:** 擴充 `Long-Press Editing Shortcuts` Patch，新增地球鍵拖曳快捷操作；按住地球鍵後拖曳至對應字母，即可執行編輯操作，例如拖曳至 `C` 即可複製。
+
+### 🐛 修復
+
+* **Gboard:** 修復 `Long-Press Editing Shortcuts` Patch：當要複製或剪下的文字為空字串時，不再執行 `Copy` 或 `Cut`，避免空內容的複製／剪下操作。
+
+## [3.6.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.5.0...v3.6.0) (2026-08-27)
+
+### ✨ New Features
+
+* **Gboard:** add the `Floating Web Search` patch, which opens a floating web page directly from Gboard so you can quickly search for the information you need.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Floating Web Search` Patch，可直接從 Gboard 開啟懸浮網頁，快速搜尋需要的資訊。
+
+## [3.6.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.5.0...v3.6.0-dev.1) (2026-08-26)
+
+### ✨ New Features
+
+* **Gboard:** add the `Floating Web Search` patch, which opens a floating web page directly from Gboard so you can quickly search for the information you need.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Floating Web Search` Patch，可直接從 Gboard 開啟懸浮網頁，快速搜尋需要的資訊。
+
+## [3.5.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.4.0...v3.5.0) (2026-08-26)
+
+### ✨ New Features
+
+* **Gboard:** add the `Top Toolbar Item Count` patch, which lets you customize how many items appear in the Gboard top toolbar.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Top Toolbar Item Count` Patch，可自訂 Gboard 頂端工具列項目數量。
+
+## [3.5.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.4.0...v3.5.0-dev.1) (2026-08-25)
+
+### ✨ New Features
+
+* **Gboard:** add the `Top Toolbar Item Count` patch, which lets you customize how many items appear in the Gboard top toolbar.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Top Toolbar Item Count` Patch，可自訂 Gboard 頂端工具列項目數量。
+
+## [3.4.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.3.0...v3.4.0) (2026-08-25)
+
+### ✨ New Features
+
+* **Gboard:** add the `Rounded Keyboard Panel` patch, which lets you choose which corners of the keyboard panel are rounded and configure the top and bottom corner radii independently.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Rounded Keyboard Panel` Patch，可自訂鍵盤面板哪些角落呈現圓角，並可分別設定上方與下方半徑。
+
+## [3.4.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.3.0...v3.4.0-dev.1) (2026-08-25)
+
+### ✨ New Features
+
+* **Gboard:** add the `Rounded Keyboard Panel` patch, which lets you choose which corners of the keyboard panel are rounded and configure the top and bottom corner radii independently.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Rounded Keyboard Panel` Patch，可自訂鍵盤面板哪些角落呈現圓角，並可分別設定上方與下方半徑。
+
+## [3.3.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.2.0...v3.3.0) (2026-08-25)
+
+### ✨ New Features
+
+* **Gboard:** add a restart button to the top-right corner of the `Patches` page.<br>
+  🤡 Previously, applying changes required long-pressing the app icon → opening App info → tapping Force stop → returning to the Home screen → opening Gboard → selecting Gboard as the keyboard.<br>
+  😎 Now, one tap quickly restarts Gboard, applies your changes, and automatically returns you to the `Patches` page—greatly improving the experience.
+
+### ✨ 新功能
+
+* **Gboard:** 在 `Patches` 頁面右上角新增重新啟動按鈕。<br>
+  🤡 過去要讓修改生效，必須長按 App 圖示 → 進入系統 App 資訊 → 點選強制停止 → 回到桌面開啟 Gboard → 選擇 Gboard 為鍵盤，才能看到修改效果。<br>
+  😎 現在只需點一下，就能快速重新啟動 Gboard、讓修改生效，並在重啟後自動回到 `Patches` 頁面，大幅提升使用體驗。
+
+## [3.3.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.2.0...v3.3.0-dev.1) (2026-08-24)
+
+### ✨ New Features
+
+* **Gboard:** add a restart button to the top-right corner of the `Patches` page.<br>
+  🤡 Previously, applying changes required long-pressing the app icon → opening App info → tapping Force stop → returning to the Home screen → opening Gboard → selecting Gboard as the keyboard.<br>
+  😎 Now, one tap quickly restarts Gboard, applies your changes, and automatically returns you to the `Patches` page—greatly improving the experience.
+
+### ✨ 新功能
+
+* **Gboard:** 在 `Patches` 頁面右上角新增重新啟動按鈕。<br>
+  🤡 過去要讓修改生效，必須長按 App 圖示 → 進入系統 App 資訊 → 點選強制停止 → 回到桌面開啟 Gboard → 選擇 Gboard 為鍵盤，才能看到修改效果。<br>
+  😎 現在只需點一下，就能快速重新啟動 Gboard、讓修改生效，並在重啟後自動回到 `Patches` 頁面，大幅提升使用體驗。
+
+## [3.2.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.1.0...v3.2.0) (2026-08-24)
+
+### ✨ New Features
+
+* **Gboard:** add the `Package Rename` patch, which lets you customize the app name. It defaults to `GboardWu` 😂 so you can distinguish it from the official `Gboard` when switching keyboards, and you can change it to any name you prefer.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Package Rename` Patch，可自訂 App 名稱；預設為 `GboardWu` 😂，方便在切換鍵盤時與官方 `Gboard` 名稱區分，也可自行改成任何想要的名稱。
+
+## [3.2.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.1.0...v3.2.0-dev.1) (2026-08-23)
+
+### ✨ New Features
+
+* **Gboard:** add the `Package Rename` patch, which lets you customize the app name. It defaults to `GboardWu` 😂 so you can distinguish it from the official `Gboard` when switching keyboards, and you can change it to any name you prefer.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Package Rename` Patch，可自訂 App 名稱；預設為 `GboardWu` 😂，方便在切換鍵盤時與官方 `Gboard` 名稱區分，也可自行改成任何想要的名稱。
+
+## [3.1.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.0.0...v3.1.0) (2026-08-23)
+
+### ✨ New Features
+
+* **Gboard:** add the `Quick Insert` patch, which enables the Quick Insert panel and toolbar access point.
+* **Gboard:** add the `Hyperspeed Typing Animation` patch, which shows an animation during sustained fast typing on all keyboards.
+* **Gboard:** add the `Close Proactive Suggestions` patch, which adds a dismiss button to the proactive suggestions bar.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden QuickJS native library loading for Android 17.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Quick Insert` Patch，啟用 Quick Insert 面板與工具列入口。
+* **Gboard:** 新增 `Hyperspeed Typing Animation` Patch，在所有鍵盤持續快速輸入時顯示動畫。
+* **Gboard:** 新增 `Close Proactive Suggestions` Patch，在主動建議列顯示關閉按鈕。
+
+### 🐛 修復
+
+* **Gboard:** 強化 Android 17 的 QuickJS 原生程式庫載入相容性。
+
+## [3.1.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.0.0...v3.1.0-dev.1) (2026-08-23)
+
+### ✨ New Features
+
+* **Gboard:** add the `Quick Insert` patch, which enables the Quick Insert panel and toolbar access point.
+* **Gboard:** add the `Hyperspeed Typing Animation` patch, which shows an animation during sustained fast typing on all keyboards.
+* **Gboard:** add the `Close Proactive Suggestions` patch, which adds a dismiss button to the proactive suggestions bar.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden QuickJS native library loading for Android 17.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Quick Insert` Patch，啟用 Quick Insert 面板與工具列入口。
+* **Gboard:** 新增 `Hyperspeed Typing Animation` Patch，在所有鍵盤持續快速輸入時顯示動畫。
+* **Gboard:** 新增 `Close Proactive Suggestions` Patch，在主動建議列顯示關閉按鈕。
+
+### 🐛 修復
+
+* **Gboard:** 強化 Android 17 的 QuickJS 原生程式庫載入相容性。
+
+## [3.0.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.11.0...v3.0.0) (2026-08-22)
+
+### ✨ New Features
+
+* **Gboard:** update the supported Gboard version to `18.0.3.954559732-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 更新支援的 Gboard 版本至 `18.0.3.954559732-release-arm64-v8a`。
+
+## [3.0.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.11.0...v3.0.0-dev.1) (2026-08-22)
+
+### ✨ New Features
+
+* **Gboard:** update the supported Gboard version to `18.0.3.954559732-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 更新支援的 Gboard 版本至 `18.0.3.954559732-release-arm64-v8a`。
+
+## [2.11.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.10.0...v2.11.0) (2026-08-15)
+
+### ✨ New Features
+
+* **Gboard:** nothing was added.
+
+### ✨ 新功能
+
+* **Gboard:** 什麼都沒有添加。
+
+## [2.11.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.10.0...v2.11.0-dev.1) (2026-08-14)
+
+### ✨ New Features
+
+* **Gboard:** nothing was added.
+
+### ✨ 新功能
+
+* **Gboard:** 什麼都沒有添加。
+
+## [2.10.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.9.0...v2.10.0) (2026-08-14)
+
+### ✨ New Features
+
+* **Gboard:** add the `G Logo on Spacebar` patch.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `G Logo on Spacebar` Patch。
+
+## [2.10.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.9.0...v2.10.0-dev.1) (2026-08-14)
+
+### ✨ New Features
+
+* **Gboard:** add the `G Logo on Spacebar` patch.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `G Logo on Spacebar` Patch。
+
+## [2.9.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.8.0...v2.9.0) (2026-08-13)
+
+### ✨ New Features
+
+* **Gboard:** add the `Change emoji size` patch, which enables Gboard's emoji size setting.
+* **Gboard:** add the `Enable cursor trackpad mode` patch, which enables long-press-spacebar trackpad and cursor lock modes.
+* **Gboard:** add the `Access Points menu style` patch, which lets you switch between the new and legacy Access Points menu styles.
+* **Gboard:** add the `Enable split keyboard` patch, with Access Point controls and an optional Auto split setting.
+* **Gboard:** add the `Enable accessibility layout` patch, which exposes Gboard's accessibility layout setting.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Change emoji size` Patch，啟用 Gboard 的表情符號大小設定。
+* **Gboard:** 新增 `Enable cursor trackpad mode` Patch，啟用長按空白鍵觸控板與游標鎖定模式。
+* **Gboard:** 新增 `Access Points menu style` Patch，可切換新版與舊版 Access Points 選單樣式。
+* **Gboard:** 新增 `Enable split keyboard` Patch，提供 Access Point 控制與可選的自動分離設定。
+* **Gboard:** 新增 `Enable accessibility layout` Patch，顯示 Gboard 的無障礙鍵盤配置設定。
+
+## [2.9.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v2.8.0...v2.9.0-dev.2) (2026-08-13)
+
+### ✨ New Features
+
+* **Gboard:** add the `Change emoji size` patch, which enables Gboard's emoji size setting.
+* **Gboard:** add the `Enable cursor trackpad mode` patch, which enables long-press-spacebar trackpad and cursor lock modes.
+* **Gboard:** add the `Access Points menu style` patch, which lets you switch between the new and legacy Access Points menu styles.
+* **Gboard:** add the `Enable split keyboard` patch, with Access Point controls and an optional Auto split setting.
+* **Gboard:** add the `Enable accessibility layout` patch, which exposes Gboard's accessibility layout setting.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Change emoji size` Patch，啟用 Gboard 的表情符號大小設定。
+* **Gboard:** 新增 `Enable cursor trackpad mode` Patch，啟用長按空白鍵觸控板與游標鎖定模式。
+* **Gboard:** 新增 `Access Points menu style` Patch，可切換新版與舊版 Access Points 選單樣式。
+* **Gboard:** 新增 `Enable split keyboard` Patch，提供 Access Point 控制與可選的自動分離設定。
+* **Gboard:** 新增 `Enable accessibility layout` Patch，顯示 Gboard 的無障礙鍵盤配置設定。
+
+## [2.8.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.7.0...v2.8.0) (2026-08-12)
+
+### ✨ New Features
+
+* **Gboard:** add the `Incognito Mode Toggle` patch, which adds an Incognito toggle to the Access Point toolbar and lets you configure clipboard and voice typing availability while Incognito mode is active.
+* **Gboard:** refactor the `Patches` settings page with clearer feature categories and improved navigation and scroll-position handling.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** disable the custom top row by default to reduce confusion after users repeatedly mistook the feature for a bug and reported it on Reddit.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Incognito Mode Toggle` Patch，在 Access Point 工具列加入無痕模式切換按鈕，並可設定無痕模式啟用時是否允許使用剪貼簿與語音輸入。
+* **Gboard:** 重構 `Patches` 設定頁，重新整理功能分類，並改善頁面導覽與捲動位置保留體驗。
+
+### 🐛 修復
+
+* **Gboard:** 因多位使用者誤將自訂頂部列視為 Bug 並在 Reddit 回報，現將此功能改為預設停用，以減少使用上的困惑。
+
+## [2.8.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v2.7.0...v2.8.0-dev.2) (2026-08-11)
+
+### ✨ New Features
+
+* **Gboard:** add the `Incognito Mode Toggle` patch, which adds an Incognito toggle to the Access Point toolbar and lets you configure clipboard and voice typing availability while Incognito mode is active.
+* **Gboard:** refactor the `Patches` settings page with clearer feature categories and improved navigation and scroll-position handling.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** disable the custom top row by default to reduce confusion after users repeatedly mistook the feature for a bug and reported it on Reddit.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Incognito Mode Toggle` Patch，在 Access Point 工具列加入無痕模式切換按鈕，並可設定無痕模式啟用時是否允許使用剪貼簿與語音輸入。
+* **Gboard:** 重構 `Patches` 設定頁，重新整理功能分類，並改善頁面導覽與捲動位置保留體驗。
+
+### 🐛 修復
+
+* **Gboard:** 因多位使用者誤將自訂頂部列視為 Bug 並在 Reddit 回報，現將此功能改為預設停用，以減少使用上的困惑。
+
+## [2.7.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.6.0...v2.7.0) (2026-08-08)
+
+### ✨ New Features
+
+* **Gboard:** add the `OCR / Scan Text` patch with support for Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.
+* **Gboard:** add OCR model downloads through Google Play services for the official recognition models.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden Web Clipboard loopback authentication.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `OCR / Scan Text` Patch，支援拉丁文、中文、日文、韓文與天城文辨識後端。
+* **Gboard:** OCR 功能新增模型下載，透過 Google Play services 下載官方辨識模型。
+
+### 🐛 修復
+
+* **Gboard:** 強化 Web Clipboard 的 loopback 驗證機制。
+
+## [2.7.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v2.7.0-dev.2...v2.7.0-dev.3) (2026-08-08)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden Web Clipboard loopback authentication.
+
+### 🐛 修復
+
+* **Gboard:** 強化 Web Clipboard 的 loopback 驗證機制。
+
+## [2.7.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v2.7.0-dev.1...v2.7.0-dev.2) (2026-08-08)
+
+### ✨ New Features
+
+* **Gboard:** add OCR model downloads through Google Play services for the official recognition models.
+
+### ✨ 新功能
+
+* **Gboard:** OCR 功能新增模型下載，透過 Google Play services 下載官方辨識模型。
+
+## [2.7.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.6.0...v2.7.0-dev.1) (2026-08-07)
+
+### ✨ New Features
+
+* **Gboard:** add the `OCR / Scan Text` patch with support for Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `OCR / Scan Text` Patch，支援拉丁文、中文、日文、韓文與天城文辨識後端。
+
+## [2.6.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.5.0...v2.6.0) (2026-08-06)
+
+### ✨ New Features
+
+* **Gboard:** add a `Show sensitive clipboard contents` option to reveal the original text of clipboard items marked as sensitive.
+
+### ✨ 新功能
+
+* **Gboard:** 新增「顯示敏感剪貼簿內容」選項，可顯示被標記為敏感的剪貼簿項目原文。
+
+## [2.6.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.5.0...v2.6.0-dev.1) (2026-08-06)
+
+### ✨ New Features
+
+* **Gboard:** add a `Show sensitive clipboard contents` option to reveal the original text of clipboard items marked as sensitive.
+
+### ✨ 新功能
+
+* **Gboard:** 新增「顯示敏感剪貼簿內容」選項，可顯示被標記為敏感的剪貼簿項目原文。
+
+## [2.5.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.4.0...v2.5.0) (2026-08-03)
+
+### ✨ New Features
+
+* **Gboard:** add the `Clipboard Custom Character Limit` patch, allowing you to customize the maximum character count for each text clipboard item.
+* **Gboard:** add an option to render only the first `1,000` characters on each clipboard card.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Clipboard Custom Character Limit` Patch，可自訂每個文字剪貼簿項目的最大字元數。
+* **Gboard:** 新增選項，可讓每張剪貼簿卡片僅渲染前 `1,000` 個字元。
+
+## [2.5.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.4.0...v2.5.0-dev.1) (2026-08-02)
+
+### ✨ New Features
+
+* **Gboard:** add the `Clipboard Custom Character Limit` patch, allowing you to customize the maximum character count for each text clipboard item.
+* **Gboard:** add an option to render only the first `1,000` characters on each clipboard card.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Clipboard Custom Character Limit` Patch，可自訂每個文字剪貼簿項目的最大字元數。
+* **Gboard:** 新增選項，可讓每張剪貼簿卡片僅渲染前 `1,000` 個字元。
+
+## [2.4.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.3.0...v2.4.0) (2026-07-31)
+
+### ✨ New Features
+
+* **Gboard:** add the `Advanced Voice Typing` patch. See `Patches > Keyboard > Advanced Voice Typing` for the requirements to enable it.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Advanced Voice Typing` Patch；請前往 `Patches > Keyboard > Advanced Voice Typing` 查看啟用所需條件。
+
+## [2.4.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v2.3.0...v2.4.0-dev.2) (2026-07-31)
+
+### ✨ New Features
+
+* **Gboard:** add the `Advanced Voice Typing` patch. See `Patches > Keyboard > Advanced Voice Typing` for the requirements to enable it.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Advanced Voice Typing` Patch；請前往 `Patches > Keyboard > Advanced Voice Typing` 查看啟用所需條件。
+
+## [2.3.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.2.0...v2.3.0) (2026-07-30)
+
+### ✨ New Features
+
+* **Gboard:** add the `Long-Press Editing Shortcuts` patch.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Long-Press Editing Shortcuts` Patch。
+
+## [2.3.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.2.0...v2.3.0-dev.1) (2026-07-30)
+
+### ✨ New Features
+
+* **Gboard:** add the `Long-Press Editing Shortcuts` patch.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Long-Press Editing Shortcuts` Patch。
+
+## [2.2.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.1.0...v2.2.0) (2026-07-29)
+
+### ✨ New Features
+
+* **Gboard:** add the `Use Bluetooth Microphone` patch.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Use Bluetooth Microphone` Patch。
+
+## [2.2.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.1.0...v2.2.0-dev.1) (2026-07-28)
+
+### ✨ New Features
+
+* **Gboard:** add the `Use Bluetooth Microphone` patch.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Use Bluetooth Microphone` Patch。
+
+## [2.1.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.0.0...v2.1.0) (2026-07-26)
+
+### ✨ New Features
+
+* **Gboard:** add `Developer options`, allowing you to modify flag values at any time.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Developer options`，可隨時修改 Flag 值。
+
+## [2.1.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.0.0...v2.1.0-dev.1) (2026-07-25)
+
+### ✨ New Features
+
+* **Gboard:** add `Developer options`, allowing you to modify flag values at any time.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Developer options`，可隨時修改 Flag 值。
+
+## [2.0.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.14.0...v2.0.0) (2026-07-24)
+
+### ✨ New Features
+
+* **Gboard:** update the supported Gboard version to `17.7.7.932364120-release-arm64-v8a`.
+* **Gboard:** remove the `Chinese Online Voice Input`, `Clipboard Entity Extraction`, `Clipboard Item Edit`, and `Enable Undo/Redo` feature patches because these features are built into the new Gboard version.
+
+### ✨ 新功能
+
+* **Gboard:** 更新支援的 Gboard 版本至 `17.7.7.932364120-release-arm64-v8a`。
+* **Gboard:** 移除 `Chinese Online Voice Input`、`Clipboard Entity Extraction`、`Clipboard Item Edit` 與 `Enable Undo/Redo` 功能 Patch，因為新版 Gboard 已內建這些功能。
+
+## [2.0.0-dev.4](https://github.com/jasonwu1994/Gboard-patches/compare/v2.0.0-dev.3...v2.0.0-dev.4) (2026-07-24)
+
+### ✨ New Features
+
+* **Gboard:** update the supported Gboard version to `17.7.7.932364120-release-arm64-v8a`.
+* **Gboard:** remove the `Chinese Online Voice Input`, `Clipboard Entity Extraction`, `Clipboard Item Edit`, and `Enable Undo/Redo` feature patches because these features are built into the new Gboard version.
+
+### ✨ 新功能
+
+* **Gboard:** 更新支援的 Gboard 版本至 `17.7.7.932364120-release-arm64-v8a`。
+* **Gboard:** 移除 `Chinese Online Voice Input`、`Clipboard Entity Extraction`、`Clipboard Item Edit` 與 `Enable Undo/Redo` 功能 Patch，因為新版 Gboard 已內建這些功能。
+
+## [1.14.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.13.0...v1.14.0) (2026-06-30)
+
+### ✨ New Features
+
+* **Gboard:** add `Zhuyin Bottom Row Key Sizes` so you can adjust the seven bottom-row slot sizes on the Zhuyin keyboard, including `?123`, `，`, the globe key, space, `ㄦ`, backspace, and the IME action key.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Zhuyin Bottom Row Key Sizes`，可調整注音鍵盤底排 7 個欄位的按鍵大小，包含 `?123`、`，`、地球鍵、空白鍵、`ㄦ`、刪除鍵，以及搜尋 / 送出 / Enter 鍵。
+
+## [1.14.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.13.0...v1.14.0-dev.1) (2026-06-30)
+
+### ✨ New Features
+
+* **Gboard:** add `Zhuyin Bottom Row Key Sizes` so you can adjust the seven bottom-row slot sizes on the Zhuyin keyboard, including `?123`, `，`, the globe key, space, `ㄦ`, backspace, and the IME action key.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Zhuyin Bottom Row Key Sizes`，可調整注音鍵盤底排 7 個欄位的按鍵大小，包含 `?123`、`，`、地球鍵、空白鍵、`ㄦ`、刪除鍵，以及搜尋 / 送出 / Enter 鍵。
+
+## [1.13.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.12.0...v1.13.0) (2026-06-26)
+
+### ✨ New Features
+
+* **Gboard:** add `Swipeable Custom Top Row` so you can swipe left or right to switch between the stock top row and custom input keys, and run JavaScript scripts.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Swipeable Custom Top Row`，可透過左右滑動在原生頂排與自訂輸入按鍵之間切換，並執行 JavaScript 腳本。
+
+## [1.13.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v1.12.0-dev.1...v1.13.0-dev.3) (2026-06-22)
+
+### ✨ New Features
+
+* **Gboard:** add `Swipeable Custom Top Row` so you can swipe left or right to switch between the stock top row and custom input keys, and run JavaScript scripts.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Swipeable Custom Top Row`，可透過左右滑動在原生頂排與自訂輸入按鍵之間切換，並執行 JavaScript 腳本。
+
+## [1.12.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.11.0...v1.12.0) (2026-06-22)
+
+### ✨ New Features
+
+* **Gboard:** add `Enable Inline Autofill Suggestions` to restore inline autofill suggestions from password managers and other supported autofill providers.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Enable Inline Autofill Suggestions`，恢復密碼管理員與其他支援的自動填入提供者所提供的內嵌自動填入建議。
+
+## [1.12.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.11.0...v1.12.0-dev.1) (2026-06-22)
+
+### ✨ New Features
+
+* **Gboard:** add `Enable Inline Autofill Suggestions` to restore inline autofill suggestions from password managers and other supported autofill providers.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Enable Inline Autofill Suggestions`，恢復密碼管理員與其他支援的自動填入提供者所提供的內嵌自動填入建議。
+
+## [1.11.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.10.0...v1.11.0) (2026-06-19)
+
+### ✨ New Features
+
+* **Gboard:** replace `English QWERTY Slide Symbols` with `English QWERTY Up-Flick Uppercase`, remove the patch's down-flick symbol input on the English keyboard, keep the up-flick uppercase/lowercase toggle, and add a matching settings entry under `Patches > Keyboard`.
+
+### ✨ 新功能
+
+* **Gboard:** 將原本的 `English QWERTY Slide Symbols` 調整為 `English QWERTY Up-Flick Uppercase`，取消英文鍵盤的下滑符號輸入，保留上滑切換大小寫，並在 `Patches > Keyboard` 新增對應設定入口。
+
+## [1.11.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.10.0...v1.11.0-dev.1) (2026-06-19)
+
+### ✨ New Features
+
+* **Gboard:** replace `English QWERTY Slide Symbols` with `English QWERTY Up-Flick Uppercase`, remove the patch's down-flick symbol input on the English keyboard, keep the up-flick uppercase/lowercase toggle, and add a matching settings entry under `Patches > Keyboard`.
+
+### ✨ 新功能
+
+* **Gboard:** 將原本的 `English QWERTY Slide Symbols` 調整為 `English QWERTY Up-Flick Uppercase`，取消英文鍵盤的下滑符號輸入，保留上滑切換大小寫，並在 `Patches > Keyboard` 新增對應設定入口。
+
+## [1.10.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.9.1...v1.10.0) (2026-06-19)
+
+### ✨ New Features
+
+* **Gboard:** add AI Writing Tools
+
+### ✨ 新功能
+
+* **Gboard:** 新增 AI 撰寫工具
+
+## [1.10.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v1.9.1-dev.1...v1.10.0-dev.2) (2026-06-18)
+
+### ✨ New Features
+
+* **Gboard:** add AI Writing Tools
+
+### ✨ 新功能
+
+* **Gboard:** 新增 AI 撰寫工具
+
+## [1.9.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.9.0...v1.9.1) (2026-06-16)
+
+### ✨ New Features
+
+* **Gboard:** add English category labels to `Custom Symbols`, so category headers now show Chinese for Chinese locales and English everywhere else.
+
+### ✨ 新功能
+
+* **Gboard:** 為 `Custom Symbols` 新增英文分類標籤，讓分類 header 現在在中文語系顯示中文，其餘語系顯示英文。
+
+## [1.9.1-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.9.0...v1.9.1-dev.1) (2026-06-16)
+
+### ✨ New Features
+
+* **Gboard:** add English category labels to `Custom Symbols`, so category headers now show Chinese for Chinese locales and English everywhere else.
+
+### ✨ 新功能
+
+* **Gboard:** 為 `Custom Symbols` 新增英文分類標籤，讓分類 header 現在在中文語系顯示中文，其餘語系顯示英文。
+
+## [1.9.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.8.0...v1.9.0) (2026-06-13)
+
+### ✨ New Features
+
+* **Gboard:** add the `English Globe Key Ignore Delay` setting so you can override the post-typing language-switch delay on the English keyboard, keep the stock default at `500ms`, and adjust it anywhere between `0-1000ms`, including `0ms` to remove the wait entirely.
+* **Gboard:** refactor the `Patches` settings page to make feature grouping clearer and improve multilingual copy and page details for a more complete settings experience.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `English Globe Key Ignore Delay` 設定，讓你可以覆寫英文鍵盤在輸入字母後切換語言前的等待時間；保留 stock 預設值 `500ms`，並可在 `0-1000ms` 間調整，包含設成 `0ms` 來完全取消等待。
+* **Gboard:** 重構 `Patches` 設定頁，讓功能分組更清楚，並改善多語系文案與頁面細節，提供更完整的設定體驗。
+
+## [1.9.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.8.0...v1.9.0-dev.1) (2026-06-13)
+
+### ✨ New Features
+
+* **Gboard:** add the `English Globe Key Ignore Delay` setting so you can override the post-typing language-switch delay on the English keyboard, keep the stock default at `500ms`, and adjust it anywhere between `0-1000ms`, including `0ms` to remove the wait entirely.
+* **Gboard:** refactor the `Patches` settings page to make feature grouping clearer and improve multilingual copy and page details for a more complete settings experience.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `English Globe Key Ignore Delay` 設定，讓你可以覆寫英文鍵盤在輸入字母後切換語言前的等待時間；保留 stock 預設值 `500ms`，並可在 `0-1000ms` 間調整，包含設成 `0ms` 來完全取消等待。
+* **Gboard:** 重構 `Patches` 設定頁，讓功能分組更清楚，並改善多語系文案與頁面細節，提供更完整的設定體驗。
+
+## [1.8.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.7.0...v1.8.0) (2026-06-09)
+
+### ✨ New Features
+
+* **Gboard:** add `Web Clipboard` to sync clipboard content between desktop browsers on the same local network and a patched Gboard instance, with support for browser-to-phone text sending, phone-to-browser clipboard sync, 4-digit pairing-code verification, a Quick Settings toggle, and a bundled Web UI.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Web Clipboard` 功能，讓同一個區域網路中的桌面瀏覽器與已套用 patch 的 Gboard 之間同步剪貼簿內容，支援瀏覽器傳送文字到手機、手機剪貼簿同步到瀏覽器、4 碼配對碼驗證、快速設定開關，以及隨 patch 提供的內建 Web UI。
+
+## [1.8.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.7.0...v1.8.0-dev.1) (2026-06-09)
+
+### ✨ New Features
+
+* **Gboard:** add `Web Clipboard` to sync clipboard content between desktop browsers on the same local network and a patched Gboard instance, with support for browser-to-phone text sending, phone-to-browser clipboard sync, 4-digit pairing-code verification, a Quick Settings toggle, and a bundled Web UI.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Web Clipboard` 功能，讓同一個區域網路中的桌面瀏覽器與已套用 patch 的 Gboard 之間同步剪貼簿內容，支援瀏覽器傳送文字到手機、手機剪貼簿同步到瀏覽器、4 碼配對碼驗證、快速設定開關，以及隨 patch 提供的內建 Web UI。
+
+## [1.7.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.6.2...v1.7.0) (2026-05-21)
+
+### ✨ New Features
+
+* **Gboard:** add the `Emojis, Stickers & GIFs Tab Order` patch to reorder the emoji, sticker, and GIF tabs.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Emojis, Stickers & GIFs Tab Order` patch，可調整 emoji、sticker 與 GIF 分頁的排序。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.6.2](https://github.com/jasonwu1994/Gboard-patches/compare/v1.6.1...v1.6.2) (2026-05-20)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden the `Settings Homepage Override` flow with retry, timeout, recovery, and UI fail-safe protections so crashes do not lock you out of settings.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### 🐛 修復
+
+* **Gboard:** 強化 `Settings Homepage Override` 流程，加入重試、timeout、復原與 UI 保底保護，避免異常閃退導致你無法再進入設定頁。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.6.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.6.0...v1.6.1) (2026-05-20)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** improve clipboard live refresh by restoring items that were temporarily hidden when the stock live-update path kept only the latest `5` timestamp groups, and reapply the full overridden list after stock live trim runs.
+* **Gboard:** fix `Show order index` causing clipboard item content to mismatch or appear to reorder while scrolling because `RecyclerView` view holders were being reused during live updates.
+* **Gboard:** fix `Show order index` labels not refreshing consistently for already visible clipboard items after new clipboard entries were added.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### 🐛 修復
+
+* **Gboard:** 改善剪貼簿即時刷新，在官方 live update 只保留最近 `5` 個 timestamp group 時補回暫時被隱藏的項目，並在官方 live trim 執行後重新套回完整覆寫清單。
+* **Gboard:** 修正 `Show order index` 在即時更新期間因 `RecyclerView` 的 `ViewHolder` 重用，導致剪貼簿內容錯位、看起來像重新排序，或滑動時顯示異常的問題。
+* **Gboard:** 修正 `Show order index` 在新增剪貼內容後，已顯示中的剪貼簿項目編號不會穩定同步更新的問題。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.6.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.5.0...v1.6.0) (2026-05-20)
+
+### ✨ New Features
+
+* **Gboard:** add a `Clipboard columns` setting so the clipboard grid can switch between `1 / 2 (default) / 3` columns.
+* **Gboard:** add `Show order index` to display labels such as `[1]`, `[2]`, and more above each clipboard item.
+* **Gboard:** add `Order index direction` so the clipboard numbering can switch between ascending and descending order.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Clipboard columns` 設定，讓剪貼簿格線可在 `1 / 2（預設）/ 3` 欄之間切換。
+* **Gboard:** 新增 `Show order index`，可在每個剪貼簿項目上方顯示 `[1]`、`[2]` 等順序編號。
+* **Gboard:** 新增 `Order index direction`，可切換剪貼簿編號要使用正序還是倒序。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.5.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.4.0...v1.5.0) (2026-05-19)
+
+### ✨ New Features
+
+* **Gboard:** add a `Patches` settings entry at the bottom of the Gboard settings page, and add preview images that can be opened by long-pressing supported settings items.
+* **Gboard:** add the `Clipboard Retention` patch so you can adjust clipboard retention time, item-count limits, and preview-line counts, with support for showing creation time and expiry countdowns.
+* **Gboard:** add the `Settings Homepage Override` patch so you can switch between the new and legacy Gboard settings styles.
+* **Gboard:** add `Clipboard Entity Extraction` to enable `Clipboard > Show information extracted from recently copied text, such as addresses, phone numbers, and other items`.
+* **Gboard:** add `Clipboard Item Edit` so long-pressing a clipboard item shows the `Edit` action.
+* **Gboard:** add `Grammar Checker` and `Inline Suggestions` to enable `Text correction > Grammar check` and `Text correction > Smart Compose`.
+* **Gboard:** add `Key Shape Selection` to enable rounded keys in `Theme details > Key shape`.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 新增位於 Gboard 設定頁底部的 `Patches` 設定入口，並加入設定預覽圖機制，支援長按特定設定項目直接查看實際預覽畫面。
+* **Gboard:** 新增 `Clipboard Retention` patch，可調整剪貼簿保留時間、項目數量上限與預覽行數，並支援顯示建立時間與到期倒數。
+* **Gboard:** 新增 `Settings Homepage Override` patch，可在新版與舊版 Gboard 設定頁樣式之間切換。
+* **Gboard:** 新增 `Clipboard Entity Extraction`，可啟用 `剪貼簿 > 顯示從最近複製文字中攝取的資訊，例如地址、電話號碼和其他項目`。
+* **Gboard:** 新增 `Clipboard Item Edit`，讓長按剪貼簿項目時會顯示 `Edit` 功能。
+* **Gboard:** 新增 `Grammar Checker` 與 `Inline Suggestions`，可啟用 `修正和建議 > 文法檢查` 與 `修正和建議 > 智慧撰寫`。
+* **Gboard:** 新增 `Key Shape Selection`，可在 `主題詳情 > 按鍵形狀` 啟用圓角按鍵。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.5.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v1.4.0...v1.5.0-dev.3) (2026-05-19)
+
+### ✨ New Features
+
+* **Gboard:** add a `Patches` settings entry at the bottom of the Gboard settings page, and add preview images that can be opened by long-pressing supported settings items.
+* **Gboard:** add the `Clipboard Retention` patch so you can adjust clipboard retention time, item-count limits, and preview-line counts, with support for showing creation time and expiry countdowns.
+* **Gboard:** add the `Settings Homepage Override` patch so you can switch between the new and legacy Gboard settings styles.
+* **Gboard:** add `Clipboard Entity Extraction` to enable `Clipboard > Show information extracted from recently copied text, such as addresses, phone numbers, and other items`.
+* **Gboard:** add `Clipboard Item Edit` so long-pressing a clipboard item shows the `Edit` action.
+* **Gboard:** add `Grammar Checker` and `Inline Suggestions` to enable `Text correction > Grammar check` and `Text correction > Smart Compose`.
+* **Gboard:** add `Key Shape Selection` to enable rounded keys in `Theme details > Key shape`.
+
+### ✨ 新功能
+
+* **Gboard:** 新增位於 Gboard 設定頁底部的 `Patches` 設定入口，並加入設定預覽圖機制，支援長按特定設定項目直接查看實際預覽畫面。
+* **Gboard:** 新增 `Clipboard Retention` patch，可調整剪貼簿保留時間、項目數量上限與預覽行數，並支援顯示建立時間與到期倒數。
+* **Gboard:** 新增 `Settings Homepage Override` patch，可在新版與舊版 Gboard 設定頁樣式之間切換。
+* **Gboard:** 新增 `Clipboard Entity Extraction`，可啟用 `剪貼簿 > 顯示從最近複製文字中攝取的資訊，例如地址、電話號碼和其他項目`。
+* **Gboard:** 新增 `Clipboard Item Edit`，讓長按剪貼簿項目時會顯示 `Edit` 功能。
+* **Gboard:** 新增 `Grammar Checker` 與 `Inline Suggestions`，可啟用 `修正和建議 > 文法檢查` 與 `修正和建議 > 智慧撰寫`。
+* **Gboard:** 新增 `Key Shape Selection`，可在 `主題詳情 > 按鍵形狀` 啟用圓角按鍵。
+
+## [1.4.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.3.1...v1.4.0) (2026-04-13)
+
+### ✨ New Features
+
+* **Gboard:** add `Signature Bypass`.
+* **Gboard:** add `Enable Undo/Redo`.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Signature Bypass`。
+* **Gboard:** 新增 `Enable Undo/Redo` 功能。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.3.1](https://github.com/jasonwu1994/Gboard-patches/compare/v1.3.0...v1.3.1) (2026-04-10)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** fix the `Custom Symbols` tab font colors so they now follow the Gboard theme's black-and-white styling.
+* **Gboard:** fix inconsistent previews for some special symbols and keep the original symbol content consistently.
+* **Gboard:** improve the internal vertical scrolling experience inside `Custom Symbols` for smoother navigation.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### 🐛 修復
+
+* **Gboard:** 修正 `Custom Symbols` 特殊符號分頁的字體顏色，現在會同步 Gboard 主題的黑白顯示。
+* **Gboard:** 修正部分特殊符號預覽顯示不一致的問題，並統一保留原始符號內容。
+* **Gboard:** 改善 `Custom Symbols` 內部上下滑動體驗，讓捲動更順暢。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.3.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.2.0...v1.3.0) (2026-04-10)
+
+### ✨ New Features
+
+* **Gboard:** add `Custom Symbols` with a dedicated special-symbol tab that contains `4000` symbols.
+* **Gboard:** let you open the special-symbol tab quickly by long-pressing the comma key.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Custom Symbols`，提供獨立的特殊符號分頁，內含 `4000` 個特殊符號。
+* **Gboard:** 支援長按逗號鍵，快速進入特殊符號分頁。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.2.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.1.0...v1.2.0) (2026-04-08)
+
+### ✨ New Features
+
+* **Gboard:** add `Chinese Online Voice Input` to force-enable Chinese voice input.
+* **Gboard:** update `Package Rename` to use the new coexistence package name `dev.jason.com.google.android.inputmethod.latin`; if you were using the old `com.google.android.inputmethod.latin.jason.dev` package, this release installs under the new package name instead of overwriting the old install.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Chinese Online Voice Input`，可強制啟用中文語音輸入。
+* **Gboard:** 更新 `Package Rename`，改用新的共存套件名稱 `dev.jason.com.google.android.inputmethod.latin`；若你先前使用的是舊套件名稱 `com.google.android.inputmethod.latin.jason.dev`，這次會以新套件名稱安裝，不會直接覆蓋舊安裝。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。
+
+## [1.1.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.0.0...v1.1.0) (2026-04-07)
+
+### ✨ New Features
+
+* **Gboard:** let the `Author` and `Patch Version` items on the About page open their linked destinations directly.
+
+### 🚀 Updated App Support
+
+* **Gboard:** support the official Gboard `17.0.10.880768217-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 讓 About 頁的 `Author` 與 `Patch Version` 項目可以直接點擊並開啟對應連結。
+
+### 🚀 支援版本更新
+
+* **Gboard:** 支援官方 Gboard `17.0.10.880768217-release-arm64-v8a`。

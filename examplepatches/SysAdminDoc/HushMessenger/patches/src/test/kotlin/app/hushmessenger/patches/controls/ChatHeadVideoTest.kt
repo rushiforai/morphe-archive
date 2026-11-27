@@ -7,11 +7,14 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import java.nio.file.Files
@@ -67,6 +70,35 @@ private fun classes(
 
 /** The player and its config, for the complete discovery fixture. */
 internal fun chatHeadVideoFixture(): List<MutableClass> = classes()
+
+/** The newer player, the interface its surface controllers share, the TextureView one and the player's config. */
+private const val GROOT_PLAYER = "LX/0Gt;"
+private const val GROOT_FACE = "LX/0Gu;"
+private const val GROOT_TEXTURE_CONTROLLER = "LX/0Gv;"
+private const val GROOT_CONFIG = "LX/0Gw;"
+private const val GROOT_ARGS = "($VIDEO_PLAYER_PARAMS$GROOT_PLAYER$GROOT_CONFIG)"
+internal const val SYNTHETIC_GROOT_SURFACE = "$GROOT_PLAYER->A04$GROOT_ARGS$GROOT_FACE"
+private const val GROOT_TEXTURE_MAKER = "$GROOT_PLAYER->A05$GROOT_ARGS$GROOT_TEXTURE_CONTROLLER"
+
+/** A maker cut down to making nothing: four registers, so p0 to p2 are v1 to v3 and v0 is its own. */
+private fun grootMaker(id: String, registers: Int = 4) = fixtureMethod(id, "const/4 v0, 0x0\nreturn-object v0",
+    registers = registers, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
+
+private fun grootClasses(
+    makers: List<MutableMethod> = listOf(grootMaker(SYNTHETIC_GROOT_SURFACE), grootMaker(GROOT_TEXTURE_MAKER)),
+    faceFlags: Int = AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value,
+    implements: List<String> = listOf(GROOT_FACE),
+    textureField: String = "Landroid/view/TextureView;",
+    player: String = GROOT_PLAYER,
+): List<MutableClass> = listOf(
+    fixtureClass(player, makers),
+    fixtureClass(GROOT_FACE, flags = faceFlags),
+    fixtureClass(GROOT_TEXTURE_CONTROLLER, interfaces = implements,
+        extraFields = listOf(ImmutableField(GROOT_TEXTURE_CONTROLLER, "A00", textureField, AccessFlags.PUBLIC.value, null, null, null))),
+)
+
+/** The newer player's pair, for the complete discovery fixture. */
+internal fun grootTextureFixture(): List<MutableClass> = grootClasses()
 
 private fun Method.code() = implementation!!.instructions.toList()
 private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
@@ -155,6 +187,95 @@ class ChatHeadVideoTest {
             method.injectChatHeadVideo()
             assertHook(before, method.code(), context = registers - 3, config = registers - 1, label = code)
         }
+    }
+
+    @Test fun findsTheNewerPlayersSurfaceMaker() {
+        assertEquals(listOf(SYNTHETIC_GROOT_SURFACE), findGrootTexture(grootTextureFixture()).map { it.hookId() })
+        assertEquals(listOf(SYNTHETIC_GROOT_SURFACE), mirroredControls(grootTextureFixture()).getValue(GROOT_TEXTURE).map { it.hookId() })
+        val owner = grootTextureFixture().first { it.type == GROOT_PLAYER }
+        assertEquals(GROOT_TEXTURE_MAKER, findGrootTexture(grootTextureFixture()).single().validateGrootTexture(owner).hookId())
+    }
+
+    @Test fun newerPlayerLookalikesAreNotFound() {
+        val otherPlayer = "LX/0Gx;"
+        val cases = mapOf(
+            "no TextureView in the sibling's class" to grootClasses(textureField = "Landroid/view/SurfaceView;"),
+            "the shared type isn't an interface" to grootClasses(faceFlags = AccessFlags.PUBLIC.value),
+            "the sibling's class doesn't implement it" to grootClasses(implements = emptyList()),
+            "no register of its own" to grootClasses(listOf(grootMaker(SYNTHETIC_GROOT_SURFACE, registers = 3), grootMaker(GROOT_TEXTURE_MAKER))),
+            "no sibling" to grootClasses(listOf(grootMaker(SYNTHETIC_GROOT_SURFACE))),
+            "two makers of the interface" to grootClasses(listOf(grootMaker(SYNTHETIC_GROOT_SURFACE), grootMaker(GROOT_TEXTURE_MAKER),
+                grootMaker("$GROOT_PLAYER->A06$GROOT_ARGS$GROOT_FACE"))),
+            "not static" to grootClasses(listOf(fixtureMethod(SYNTHETIC_GROOT_SURFACE, "const/4 v0, 0x0\nreturn-object v0", registers = 5),
+                grootMaker(GROOT_TEXTURE_MAKER))),
+            "two players with the pair" to grootClasses() + fixtureClass(otherPlayer, listOf(
+                grootMaker(SYNTHETIC_GROOT_SURFACE.replace(GROOT_PLAYER, otherPlayer)),
+                grootMaker(GROOT_TEXTURE_MAKER.replace(GROOT_PLAYER, otherPlayer)))),
+        )
+        for ((label, classes) in cases) {
+            assertEquals(emptyList(), findGrootTexture(classes).map { it.hookId() }, label)
+            assertEquals(emptyList(), mirroredControls(classes).getValue(GROOT_TEXTURE).map { it.hookId() }, label)
+        }
+    }
+
+    @Test fun aPlayerThatLostItsSiblingIsRefused() {
+        val surface = grootMaker(SYNTHETIC_GROOT_SURFACE)
+        val owner = grootClasses(listOf(surface)).first { it.type == GROOT_PLAYER }
+        assertFailsWith<PatchException> { surface.validateGrootTexture(owner) }
+        val cramped = grootMaker(SYNTHETIC_GROOT_SURFACE, registers = 3)
+        assertFailsWith<PatchException> { cramped.validateGrootTexture(grootClasses(listOf(cramped, grootMaker(GROOT_TEXTURE_MAKER))).first()) }
+    }
+
+    @Test fun theSurfaceMakerAsksTheExtensionAndHandsItsArgumentsToTheSibling() {
+        val classes = grootTextureFixture()
+        val owner = classes.first { it.type == GROOT_PLAYER }
+        val method = owner.methods.single { it.hookId() == SYNTHETIC_GROOT_SURFACE } as MutableMethod
+        val before = method.code()
+        method.injectGrootTexture(method.validateGrootTexture(owner))
+        assertGrootHook(method, before, firstParam = 1, texture = GROOT_TEXTURE_MAKER, label = "synthetic")
+    }
+
+    @Test fun everySupportedBuildHooksTheNewerPlayersSurfaceMaker() {
+        val root = System.getenv("HUSH_NATIVE_FIXTURES")
+        assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
+        val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
+        assertEquals(controlProfiles.size, apks.size)
+        for (apk in apks) {
+            val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
+            val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
+            val classes: List<ClassDef> = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
+            val hooks = findGrootTexture(classes)
+            activeProfile = controlProfileFor(code)
+            assertEquals(activeProfile.hooks.getValue(GROOT_TEXTURE), hooks.map { it.hookId() }.toSet(), code)
+            validateControls(mapOf(GROOT_TEXTURE to hooks), setOf(GROOT_TEXTURE))
+            val owner = classes.first { it.type == hooks.single().definingClass }
+            val texture = hooks.single().validateGrootTexture(owner)
+            assertTrue(texture.returnType != hooks.single().returnType, code)
+            val method = MutableMethod(hooks.single())
+            val before = method.code()
+            assertTrue(before.none { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH || it.opcode == Opcode.INSTANCE_OF },
+                "$code: the maker dispatches on something, so an early return could skip another caller's code")
+            method.injectGrootTexture(texture)
+            assertGrootHook(method, before, firstParam = method.implementation!!.registerCount - 3, texture = texture.hookId(), label = code)
+        }
+    }
+
+    /** Six instructions at the entry: ask, and on yes return what the sibling makes from p0 to p2, else the stock body. */
+    private fun assertGrootHook(method: MutableMethod, before: List<Instruction>, firstParam: Int, texture: String, label: String) {
+        val after = method.code()
+        assertEquals(
+            listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
+            after.take(6).map { it.opcode }, label)
+        assertEquals(GROOT_TEXTURE_CALL, after[0].reference(), label)
+        assertEquals(0, (after[1] as OneRegisterInstruction).registerA, label)
+        assertEquals(0, (after[2] as OneRegisterInstruction).registerA, label)
+        assertEquals(6, (method.implementation!!.instructions.toList()[2] as BuilderOffsetInstruction).target.location.index, label)
+        assertEquals(texture, after[3].reference(), label)
+        val call = after[3] as RegisterRangeInstruction
+        assertEquals(listOf(firstParam, 3), listOf(call.startRegister, call.registerCount), label)
+        assertEquals(0, (after[4] as OneRegisterInstruction).registerA, label)
+        assertEquals(0, (after[5] as OneRegisterInstruction).registerA, label)
+        assertStockKept(before, after.drop(6), label)
     }
 
     /** Six instructions at the entry hand p1 and the config's flag to the extension and store its answer, then stock code. */

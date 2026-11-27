@@ -40,11 +40,15 @@ public final class RamblerEnhancementsTest {
         RamblerCustomInstructionRules.clearForTesting();
         RamblerTextPipeline.clearForTesting();
         RamblerDictationStats.clearForTesting();
+        RamblerLearnedFixesTracker.clearForTesting();
         RamblerMuseStatsBridge.setBackendForTesting(null);
         RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD = "b";
         RamblerDynamicConfig.AGENTIC_EDITOR_INFO_FIELD = "h";
         RamblerDynamicConfig.PCN_GET_EDITOR_INFO_METHOD = "k";
         RamblerDynamicConfig.PCN_PERFORM_ACTION_METHOD = "y";
+        RamblerDynamicConfig.PCN_SURROUNDING_TEXT_METHOD = "l";
+        RamblerDynamicConfig.PDX_BEFORE_CURSOR_METHOD = "n";
+        RamblerDynamicConfig.PDX_AFTER_CURSOR_METHOD = "m";
         RamblerDynamicConfig.FEATURE_WAVEFORM = false;
         RamblerDynamicConfig.FEATURE_CUSTOM_INSTRUCTIONS = false;
         RamblerDynamicConfig.FEATURE_PERSONAL_DICTIONARY = false;
@@ -778,6 +782,12 @@ public final class RamblerEnhancementsTest {
         assertEquals("Dictation stats & history",
                 RamblerEnhancementsActivity.titleForSection(
                         RamblerEnhancementsActivity.SECTION_HISTORY));
+        assertEquals(RamblerEnhancementsActivity.SECTION_HISTORY_LIST,
+                RamblerEnhancementsActivity.normalizeSection(
+                        RamblerEnhancementsActivity.SECTION_HISTORY_LIST));
+        assertEquals("Dictation history",
+                RamblerEnhancementsActivity.titleForSection(
+                        RamblerEnhancementsActivity.SECTION_HISTORY_LIST));
     }
 
     @Test
@@ -889,6 +899,1028 @@ public final class RamblerEnhancementsTest {
         assertEquals(0L, cleared.totalWords);
         assertEquals(0, cleared.averageWpm());
         assertEquals("—", RamblerDictationStats.formatTimeSaved(0L, false));
+    }
+
+    @Test
+    public void fixAndLearnAndToolbarAccessPointWorkCleanly() {
+        Context context = RuntimeEnvironment.getApplication();
+        RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+
+        // Tokenization strips outer punctuation while preserving identifiers and contractions.
+        List<String> tokens = RamblerFixAndLearnDialog.tokenizeForChips(
+                "Check \"std_allocations\", don't forget morphy!");
+        assertEquals(Arrays.asList("Check", "std_allocations", "don't", "forget", "morphy"), tokens);
+
+        // Learned replace rules deduplicate in-place for matching find + scope, while keeping
+        // app-scoped rules distinct from global rules.
+        RamblerFixAndLearnDialog.upsertLearnedReplaceRule(context, "morphy", "Morphe", "");
+        RamblerFixAndLearnDialog.upsertLearnedReplaceRule(context, "MORPHY", "MorpheApp", "");
+        RamblerFixAndLearnDialog.upsertLearnedReplaceRule(
+                context, "morphy", "MorpheX", "com.twitter.android");
+        List<RamblerTextPipeline.ReplaceRule> rules = RamblerTextPipeline.readReplaceRules(context);
+        assertEquals(2, rules.size());
+        assertEquals("MorpheApp", rules.get(0).replace);
+        assertTrue(rules.get(0).packages.isEmpty());
+        assertEquals("MorpheX", rules.get(1).replace);
+        assertEquals(Collections.singletonList("com.twitter.android"), rules.get(1).packages);
+
+        // Toolbar Access Point token list, icon drawing, launch intent, and setting persistence.
+        assertTrue(RamblerEnhancementsSettings.readToolbarButtonEnabled(context));
+        List<String> expanded = RamblerToolbarAccessPoint.appendToken(
+                Arrays.asList("clipboard", "translate"));
+        assertEquals(Arrays.asList("clipboard", "translate", RamblerToolbarAccessPoint.TOKEN),
+                expanded);
+        assertEquals(expanded, RamblerToolbarAccessPoint.appendToken(expanded));
+        assertEquals(Arrays.asList("clipboard", "translate"),
+                RamblerToolbarAccessPoint.removeToken(expanded));
+        org.junit.Assert.assertNotNull(RamblerToolbarAccessPoint.createRamblerToolbarIcon(context));
+        android.content.Intent launch = RamblerToolbarAccessPoint.buildLaunchIntent(context);
+        assertEquals(RamblerEnhancementsActivity.class.getName(),
+                launch.getComponent().getClassName());
+        assertTrue((launch.getFlags() & android.content.Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
+
+        RamblerEnhancementsSettings.writeToolbarButtonEnabled(context, false);
+        assertFalse(RamblerEnhancementsSettings.readToolbarButtonEnabled(context));
+        String backup = RamblerBackupManager.exportJson(context);
+        assertTrue(backup.contains("\"toolbarButtonEnabled\": false"));
+        RamblerEnhancementsSettings.writeToolbarButtonEnabled(context, true);
+        assertTrue(RamblerBackupManager.importJson(context, backup).success);
+        assertFalse(RamblerEnhancementsSettings.readToolbarButtonEnabled(context));
+    }
+
+    @Test
+    public void spacebarLongPressTriggerHandlesSpaceAndFallsBackCleanly() {
+        Context context = RuntimeEnvironment.getApplication();
+        RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+        RamblerSpacebarTrigger.resetForTesting();
+
+        // Save and restore dynamic config fields used by RamblerSpacebarTrigger.
+        String prevCtxField = RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD;
+        String prevGetKeyData = RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD;
+        String prevCodeField = RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD;
+        String prevDataField = RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD;
+        String prevExtCtx = RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD;
+        String prevIsActive = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD;
+        String prevTrigger = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD;
+        String prevAgenticClass = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS;
+        try {
+            RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD = "b";
+            RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD = "g";
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD = "c";
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD = "e";
+            RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD = "ac";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD = "ag";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD = "C";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS = FakeSpacebarAgentic.class.getName();
+
+            FakeSpacebarLangPicker langPicker = new FakeSpacebarLangPicker(context);
+            FakeSpacebarAgentic agentic = new FakeSpacebarAgentic(context);
+            RamblerSpacebarTrigger.onAgenticExtensionCreated(agentic);
+
+            // Enabled by default and clears NO_IME_PICKER so single-language users get spacebar long-press.
+            assertTrue(RamblerEnhancementsSettings.readSpacebarLongPressRamblerEnabled(context));
+            assertTrue(RamblerSpacebarTrigger.shouldClearNoImePickerState(langPicker));
+
+            // Spacebar long-press (-10022, "space") invokes AgenticDictationExtension.C() and consumes event.
+            assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(
+                    langPicker, new FakeSpacebarEvent(new FakeSpacebarKeyData(-10022, "space"))));
+            assertEquals(1, agentic.triggerCount);
+
+            // Floating globe long-press (-10022, "floating_globe") and Globe tap (-10011) pass through untouched.
+            assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(
+                    langPicker, new FakeSpacebarEvent(new FakeSpacebarKeyData(-10022, "floating_globe"))));
+            assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(
+                    langPicker, new FakeSpacebarEvent(new FakeSpacebarKeyData(-10011, "space"))));
+            assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(
+                    langPicker, new FakeSpacebarEvent(new FakeSpacebarKeyData(62, " "))));
+            assertEquals(1, agentic.triggerCount);
+
+            // Inactive Rambler (e.g. password field) or rejected trigger falls back cleanly to stock picker.
+            agentic.active = false;
+            assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(
+                    langPicker, new FakeSpacebarEvent(new FakeSpacebarKeyData(-10022, "space"))));
+            assertEquals(1, agentic.triggerCount);
+            agentic.active = true;
+            agentic.triggerResult = false;
+            assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(
+                    langPicker, new FakeSpacebarEvent(new FakeSpacebarKeyData(-10022, "space"))));
+            assertEquals(2, agentic.triggerCount);
+            agentic.triggerResult = true;
+
+            // Turning the toggle OFF disables both the event hook and the NO_IME_PICKER override,
+            // and survives JSON backup export/import round-trip.
+            RamblerEnhancementsSettings.writeSpacebarLongPressRamblerEnabled(context, false);
+            assertFalse(RamblerSpacebarTrigger.shouldClearNoImePickerState(langPicker));
+            assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(
+                    langPicker, new FakeSpacebarEvent(new FakeSpacebarKeyData(-10022, "space"))));
+            assertEquals(2, agentic.triggerCount);
+
+            RamblerEnhancementsSettings.writeSpacebarLongPressMode(
+                    context, RamblerEnhancementsSettings.SPACEBAR_MODE_HOLD);
+            String backup = RamblerBackupManager.exportJson(context);
+            assertTrue(backup.contains("\"spacebarLongPressRamblerEnabled\": false"));
+            assertTrue(backup.contains("\"spacebarLongPressMode\": \"hold\""));
+            RamblerEnhancementsSettings.writeSpacebarLongPressRamblerEnabled(context, true);
+            RamblerEnhancementsSettings.writeSpacebarLongPressMode(
+                    context, RamblerEnhancementsSettings.SPACEBAR_MODE_TOGGLE);
+            assertTrue(RamblerEnhancementsSettings.readSpacebarLongPressRamblerEnabled(context));
+            assertEquals(RamblerEnhancementsSettings.SPACEBAR_MODE_TOGGLE,
+                    RamblerEnhancementsSettings.readSpacebarLongPressMode(context));
+            assertTrue(RamblerBackupManager.importJson(context, backup).success);
+            assertFalse(RamblerEnhancementsSettings.readSpacebarLongPressRamblerEnabled(context));
+            assertEquals(RamblerEnhancementsSettings.SPACEBAR_MODE_HOLD,
+                    RamblerEnhancementsSettings.readSpacebarLongPressMode(context));
+        } finally {
+            RamblerSpacebarTrigger.resetForTesting();
+            RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD = prevCtxField;
+            RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD = prevGetKeyData;
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD = prevCodeField;
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD = prevDataField;
+            RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD = prevExtCtx;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD = prevIsActive;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD = prevTrigger;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS = prevAgenticClass;
+        }
+    }
+
+    @Test
+    public void spacebarLongPressModesHybridHoldAndToggleBehaveCorrectly() {
+        Context context = RuntimeEnvironment.getApplication();
+        RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+        RamblerSpacebarTrigger.resetForTesting();
+
+        String prevCtxField = RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD;
+        String prevGetKeyData = RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD;
+        String prevCodeField = RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD;
+        String prevDataField = RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD;
+        String prevExtCtx = RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD;
+        String prevIsActive = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD;
+        String prevTrigger = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD;
+        String prevAgenticClass = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS;
+        String prevUiMgrField = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_UI_MANAGER_FIELD;
+        String prevUiGetState = RamblerDynamicConfig.SPACEBAR_LP_UI_MANAGER_GET_STATE_METHOD;
+        try {
+            RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD = "b";
+            RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD = "g";
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD = "c";
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD = "e";
+            RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD = "ac";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD = "ag";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD = "C";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS = FakeSpacebarAgentic.class.getName();
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_UI_MANAGER_FIELD = "c";
+            RamblerDynamicConfig.SPACEBAR_LP_UI_MANAGER_GET_STATE_METHOD = "h";
+
+            final long[] now = {10_000L};
+            RamblerSpacebarTrigger.setClockForTesting(() -> now[0]);
+
+            FakeSpacebarLangPicker langPicker = new FakeSpacebarLangPicker(context);
+            FakeSpacebarAgentic agentic = new FakeSpacebarAgentic(context);
+            RamblerSpacebarTrigger.onAgenticExtensionCreated(agentic);
+            FakeSpacebarEvent spaceEvent =
+                    new FakeSpacebarEvent(new FakeSpacebarKeyData(-10022, "space"));
+
+            android.view.MotionEvent upEvent = android.view.MotionEvent.obtain(
+                    0L, 100L, android.view.MotionEvent.ACTION_UP, 10f, 10f, 0);
+            try {
+                // Default mode is Smart Hybrid.
+                assertEquals(RamblerEnhancementsSettings.SPACEBAR_MODE_HYBRID,
+                        RamblerEnhancementsSettings.readSpacebarLongPressMode(context));
+
+                // 1. Smart Hybrid + quick release (<600ms) -> stays hands-free (does NOT stop).
+                agentic.c.state = FakeRamblerUiState.IDLING;
+                assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, spaceEvent));
+                assertEquals(1, agentic.triggerCount);
+                agentic.c.state = FakeRamblerUiState.LISTENING;
+                now[0] += 250L;
+                RamblerSpacebarTrigger.onKeyboardTouchEvent(upEvent);
+                assertEquals(1, agentic.triggerCount);
+
+                // Second long-press while LISTENING stops hands-free session and does NOT arm release.
+                assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, spaceEvent));
+                assertEquals(2, agentic.triggerCount);
+                agentic.c.state = FakeRamblerUiState.IDLING;
+                now[0] += 1000L;
+                RamblerSpacebarTrigger.onKeyboardTouchEvent(upEvent);
+                assertEquals(2, agentic.triggerCount);
+
+                // 2. Smart Hybrid + sustained hold (>=600ms) -> release stops & transcribes!
+                agentic.c.state = FakeRamblerUiState.IDLING;
+                assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, spaceEvent));
+                assertEquals(3, agentic.triggerCount);
+                agentic.c.state = FakeRamblerUiState.LISTENING;
+                now[0] += 1500L;
+                RamblerSpacebarTrigger.onKeyboardTouchEvent(upEvent);
+                assertEquals(4, agentic.triggerCount);
+
+                // 3. Guard: if Rambler already transitioned to PROCESSING or IDLING before release,
+                //    releasing does NOT re-trigger C()!
+                agentic.c.state = FakeRamblerUiState.IDLING;
+                assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, spaceEvent));
+                assertEquals(5, agentic.triggerCount);
+                agentic.c.state = FakeRamblerUiState.PROCESSING;
+                now[0] += 1500L;
+                RamblerSpacebarTrigger.onKeyboardTouchEvent(upEvent);
+                assertEquals(5, agentic.triggerCount);
+
+                // 4. Hold to talk (Push-to-Talk): even a short 100ms hold stops on release!
+                RamblerEnhancementsSettings.writeSpacebarLongPressMode(
+                        context, RamblerEnhancementsSettings.SPACEBAR_MODE_HOLD);
+                agentic.c.state = FakeRamblerUiState.IDLING;
+                assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, spaceEvent));
+                assertEquals(6, agentic.triggerCount);
+                agentic.c.state = FakeRamblerUiState.LISTENING;
+                now[0] += 100L;
+                RamblerSpacebarTrigger.onKeyboardTouchEvent(upEvent);
+                assertEquals(7, agentic.triggerCount);
+
+                // 5. Toggle (Hands-free): long hold + release NEVER stops automatically.
+                RamblerEnhancementsSettings.writeSpacebarLongPressMode(
+                        context, RamblerEnhancementsSettings.SPACEBAR_MODE_TOGGLE);
+                agentic.c.state = FakeRamblerUiState.IDLING;
+                assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, spaceEvent));
+                assertEquals(8, agentic.triggerCount);
+                agentic.c.state = FakeRamblerUiState.LISTENING;
+                now[0] += 3000L;
+                RamblerSpacebarTrigger.onKeyboardTouchEvent(upEvent);
+                assertEquals(8, agentic.triggerCount);
+            } finally {
+                upEvent.recycle();
+            }
+        } finally {
+            RamblerSpacebarTrigger.resetForTesting();
+            RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD = prevCtxField;
+            RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD = prevGetKeyData;
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD = prevCodeField;
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD = prevDataField;
+            RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD = prevExtCtx;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD = prevIsActive;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD = prevTrigger;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS = prevAgenticClass;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_UI_MANAGER_FIELD = prevUiMgrField;
+            RamblerDynamicConfig.SPACEBAR_LP_UI_MANAGER_GET_STATE_METHOD = prevUiGetState;
+        }
+    }
+
+    @Test
+    public void spacebarLongPressWorksWithCursorTrackpadEnabledAndPreservesSwipeTrackpad() {
+        Context context = RuntimeEnvironment.getApplication();
+        RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+        RamblerSpacebarTrigger.resetForTesting();
+
+        String prevCtxField = RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD;
+        String prevGetKeyData = RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD;
+        String prevActionField = RamblerDynamicConfig.SPACEBAR_LP_EVENT_ACTION_FIELD;
+        String prevCodeField = RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD;
+        String prevDataField = RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD;
+        String prevExtCtx = RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD;
+        String prevIsActive = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD;
+        String prevTrigger = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD;
+        String prevAgenticClass = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS;
+        String prevUiMgrField = RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_UI_MANAGER_FIELD;
+        String prevUiGetState = RamblerDynamicConfig.SPACEBAR_LP_UI_MANAGER_GET_STATE_METHOD;
+        try {
+            RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD = "b";
+            RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD = "g";
+            RamblerDynamicConfig.SPACEBAR_LP_EVENT_ACTION_FIELD = "a";
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD = "c";
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD = "e";
+            RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD = "ac";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD = "ag";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD = "C";
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS = FakeSpacebarAgentic.class.getName();
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_UI_MANAGER_FIELD = "c";
+            RamblerDynamicConfig.SPACEBAR_LP_UI_MANAGER_GET_STATE_METHOD = "h";
+
+            final long[] now = {20_000L};
+            RamblerSpacebarTrigger.setClockForTesting(() -> now[0]);
+
+            FakeSpacebarLangPicker langPicker = new FakeSpacebarLangPicker(context);
+            FakeSpacebarAgentic agentic = new FakeSpacebarAgentic(context);
+            RamblerSpacebarTrigger.onAgenticExtensionCreated(agentic);
+
+            FakeSpacebarEvent trackpadSpaceLongPress = new FakeSpacebarEvent(
+                    new FakeSpacebarKeyData(-10004, "free_cursor"), FakeSpacebarAction.LONG_PRESS);
+            FakeSpacebarEvent trackpadButtonTap = new FakeSpacebarEvent(
+                    new FakeSpacebarKeyData(-10004, "free_cursor"), FakeSpacebarAction.PRESS);
+            FakeSpacebarEvent otherSwitchKeyboard = new FakeSpacebarEvent(
+                    new FakeSpacebarKeyData(-10004, "symbol"), FakeSpacebarAction.LONG_PRESS);
+            FakeSpacebarEvent swipeTrackpadEvent = new FakeSpacebarEvent(
+                    new FakeSpacebarKeyData(-10104, new FakeFreeCursorPayload()),
+                    FakeSpacebarAction.PRESS);
+
+            android.view.MotionEvent upEvent = android.view.MotionEvent.obtain(
+                    0L, 100L, android.view.MotionEvent.ACTION_UP, 10f, 10f, 0);
+            try {
+                // Dedicated Trackpad button tap (PRESS) and non-free_cursor keyboard switches pass through.
+                assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, trackpadButtonTap));
+                assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, otherSwitchKeyboard));
+                // Swiping Spacebar for 2D Cursor Trackpad (-10104) passes through when idle.
+                assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, swipeTrackpadEvent));
+                assertEquals(0, agentic.triggerCount);
+
+                // Stationary Spacebar long-press when Cursor Trackpad is enabled dispatches
+                // (-10004, "free_cursor", LONG_PRESS) -> starts Rambler and arms hold-release!
+                agentic.c.state = FakeRamblerUiState.IDLING;
+                assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, trackpadSpaceLongPress));
+                assertEquals(1, agentic.triggerCount);
+
+                // While still holding Spacebar in Smart Hybrid / Hold-to-Talk mode, slight thumb drift
+                // emitting (-10104, free_cursor payload) is suppressed so Trackpad doesn't hijack dictation.
+                agentic.c.state = FakeRamblerUiState.LISTENING;
+                assertTrue(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, swipeTrackpadEvent));
+                assertEquals(1, agentic.triggerCount);
+
+                // Releasing after >= 600ms stops listening & transcribes, and disarms the mid-hold guard.
+                now[0] += 1200L;
+                RamblerSpacebarTrigger.onKeyboardTouchEvent(upEvent);
+                assertEquals(2, agentic.triggerCount);
+
+                // After release, swiping Spacebar for 2D Cursor Trackpad works again!
+                assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, swipeTrackpadEvent));
+                assertEquals(2, agentic.triggerCount);
+
+                // Turning the Spacebar toggle OFF restores stock long-press Trackpad behavior.
+                RamblerEnhancementsSettings.writeSpacebarLongPressRamblerEnabled(context, false);
+                assertFalse(RamblerSpacebarTrigger.maybeHandleSpaceLongPress(langPicker, trackpadSpaceLongPress));
+                assertEquals(2, agentic.triggerCount);
+            } finally {
+                upEvent.recycle();
+            }
+        } finally {
+            RamblerSpacebarTrigger.resetForTesting();
+            RamblerDynamicConfig.AGENTIC_CONTEXT_FIELD = prevCtxField;
+            RamblerDynamicConfig.SPACEBAR_LP_EVENT_GET_KEYDATA_METHOD = prevGetKeyData;
+            RamblerDynamicConfig.SPACEBAR_LP_EVENT_ACTION_FIELD = prevActionField;
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_CODE_FIELD = prevCodeField;
+            RamblerDynamicConfig.SPACEBAR_LP_KEYDATA_DATA_FIELD = prevDataField;
+            RamblerDynamicConfig.SPACEBAR_LP_EXT_GET_CONTEXT_METHOD = prevExtCtx;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_IS_ACTIVE_METHOD = prevIsActive;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_TRIGGER_METHOD = prevTrigger;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_CLASS = prevAgenticClass;
+            RamblerDynamicConfig.SPACEBAR_LP_AGENTIC_UI_MANAGER_FIELD = prevUiMgrField;
+            RamblerDynamicConfig.SPACEBAR_LP_UI_MANAGER_GET_STATE_METHOD = prevUiGetState;
+        }
+    }
+
+    @Test
+    public void searchBarStripPeriodAndAppScopedAutoSearchWorkSafely() {
+        Context context = RuntimeEnvironment.getApplication();
+        RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+        RamblerEnhancementsSettings.defaultPreferencesOrNull(context).edit().clear().commit();
+        RamblerTextPipeline.clearForTesting();
+        RamblerDynamicConfig.FEATURE_PRODUCTIVITY_TOOLS = true;
+        RamblerDynamicConfig.PCN_GET_EDITOR_INFO_METHOD = "k";
+        RamblerDynamicConfig.PCN_PERFORM_ACTION_METHOD = "y";
+        RamblerFlagRuntime.seedApplicationContext(context);
+
+        final int[] dispatchCount = {0};
+        final int[] lastDispatched = {0};
+        RamblerTextPipeline.setActionDispatcherForTesting((p, action) -> {
+            dispatchCount[0]++;
+            lastDispatched[0] = action;
+            RamblerTextPipeline.invokePerformEditorAction(p, action);
+        });
+
+        try {
+            // Defaults: search-bar period strip ON, global period strip OFF, Auto-Search OFF, apps empty.
+            assertTrue(RamblerEnhancementsSettings.readSearchStripTrailingPeriod(context));
+            assertFalse(RamblerEnhancementsSettings.readStripTrailingPeriod(context));
+            assertFalse(RamblerEnhancementsSettings.readAutoSearchOnCommitEnabled(context));
+            assertTrue(RamblerEnhancementsSettings.readAutoSearchApps(context).isEmpty());
+
+            // 1. Auto-strip period in IME_ACTION_SEARCH fields while preserving abbreviations & normal fields.
+            android.view.inputmethod.EditorInfo ytSearch = new android.view.inputmethod.EditorInfo();
+            ytSearch.packageName = "com.google.android.youtube";
+            ytSearch.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
+            ytSearch.inputType = android.text.InputType.TYPE_CLASS_TEXT;
+            FakePcn ytPcn = new FakePcn(ytSearch);
+            assertEquals("lofi hip hop", RamblerTextPipeline.processCommitText(ytPcn, "lofi hip hop."));
+            assertEquals("Dr.", RamblerTextPipeline.processCommitText(ytPcn, "Dr."));
+            assertEquals("wait...", RamblerTextPipeline.processCommitText(ytPcn, "wait..."));
+            assertEquals(0, dispatchCount[0]); // Auto-search still OFF
+
+            // Browser Omnibox (IME_ACTION_GO + TYPE_TEXT_VARIATION_URI) strips trailing period too.
+            android.view.inputmethod.EditorInfo chromeOmnibox = new android.view.inputmethod.EditorInfo();
+            chromeOmnibox.packageName = "com.android.chrome";
+            chromeOmnibox.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_GO;
+            chromeOmnibox.inputType = android.text.InputType.TYPE_CLASS_TEXT
+                    | android.text.InputType.TYPE_TEXT_VARIATION_URI;
+            FakePcn chromeOmniPcn = new FakePcn(chromeOmnibox);
+            assertEquals("best ramen near me",
+                    RamblerTextPipeline.processCommitText(chromeOmniPcn, "best ramen near me."));
+            assertEquals(0, dispatchCount[0]);
+
+            // Ordinary chat/note/web-form fields keep their trailing period when global strip is OFF.
+            android.view.inputmethod.EditorInfo noteField = new android.view.inputmethod.EditorInfo();
+            noteField.packageName = "com.oneplus.note";
+            noteField.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_NONE;
+            noteField.inputType = android.text.InputType.TYPE_CLASS_TEXT;
+            assertEquals("Hello world.",
+                    RamblerTextPipeline.processCommitText(new FakePcn(noteField), "Hello world."));
+
+            android.view.inputmethod.EditorInfo chromeWebInput = new android.view.inputmethod.EditorInfo();
+            chromeWebInput.packageName = "com.android.chrome";
+            chromeWebInput.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_GO;
+            chromeWebInput.inputType = android.text.InputType.TYPE_CLASS_TEXT
+                    | android.text.InputType.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT;
+            assertEquals("Hello form.",
+                    RamblerTextPipeline.processCommitText(new FakePcn(chromeWebInput), "Hello form."));
+
+            // 2. Turn Auto-Search ON with NO selected apps -> MUST NOT fire anywhere!
+            RamblerEnhancementsSettings.writeAutoSearchOnCommitEnabled(context, true);
+            assertEquals("cats", RamblerTextPipeline.processCommitText(ytPcn, "cats."));
+            assertEquals(0, dispatchCount[0]);
+
+            // 3. User selects Chrome, YouTube, Play Store, and Settings.
+            RamblerEnhancementsSettings.writeAutoSearchApps(
+                    context,
+                    Arrays.asList(
+                            "com.android.chrome",
+                            "com.google.android.youtube",
+                            "com.android.vending",
+                            "com.android.settings"));
+
+            // YouTube search bar -> strips period & fires IME_ACTION_SEARCH!
+            assertEquals("android 16 tips",
+                    RamblerTextPipeline.processCommitText(ytPcn, "android 16 tips."));
+            assertEquals(1, dispatchCount[0]);
+            assertEquals(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH, lastDispatched[0]);
+            assertEquals(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH, ytPcn.lastPerformedAction);
+
+            // Play Store & Settings search bars -> fire IME_ACTION_SEARCH!
+            android.view.inputmethod.EditorInfo playSearch = new android.view.inputmethod.EditorInfo();
+            playSearch.packageName = "com.android.vending";
+            playSearch.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
+            FakePcn playPcn = new FakePcn(playSearch);
+            assertEquals("firefox", RamblerTextPipeline.processCommitText(playPcn, "firefox."));
+            assertEquals(2, dispatchCount[0]);
+            assertEquals(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH, playPcn.lastPerformedAction);
+
+            android.view.inputmethod.EditorInfo settingsSearch = new android.view.inputmethod.EditorInfo();
+            settingsSearch.packageName = "com.android.settings";
+            settingsSearch.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
+            FakePcn settingsPcn = new FakePcn(settingsSearch);
+            assertEquals("bluetooth", RamblerTextPipeline.processCommitText(settingsPcn, "bluetooth."));
+            assertEquals(3, dispatchCount[0]);
+            assertEquals(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH, settingsPcn.lastPerformedAction);
+
+            // Chrome Omnibox (IME_ACTION_GO + URI) -> strips period & fires IME_ACTION_GO!
+            assertEquals("weather tokyo",
+                    RamblerTextPipeline.processCommitText(chromeOmniPcn, "weather tokyo."));
+            assertEquals(4, dispatchCount[0]);
+            assertEquals(android.view.inputmethod.EditorInfo.IME_ACTION_GO, chromeOmniPcn.lastPerformedAction);
+
+            // Chrome ordinary web form <input type="text"> (IME_ACTION_GO + WEB_EDIT_TEXT) -> MUST NOT fire!
+            FakePcn webFormPcn = new FakePcn(chromeWebInput);
+            assertEquals("John Doe.", RamblerTextPipeline.processCommitText(webFormPcn, "John Doe."));
+            assertEquals(4, dispatchCount[0]);
+            assertEquals(0, webFormPcn.lastPerformedAction);
+
+            // Chrome password / multi-line / numeric IME_ACTION_GO -> MUST NOT fire!
+            android.view.inputmethod.EditorInfo multiLineUri = new android.view.inputmethod.EditorInfo();
+            multiLineUri.packageName = "com.android.chrome";
+            multiLineUri.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_GO;
+            multiLineUri.inputType = android.text.InputType.TYPE_CLASS_TEXT
+                    | android.text.InputType.TYPE_TEXT_VARIATION_URI
+                    | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+            assertEquals("multiline.", RamblerTextPipeline.processCommitText(new FakePcn(multiLineUri), "multiline."));
+            assertEquals(4, dispatchCount[0]);
+
+            // Selected app (YouTube) non-search comment box (IME_ACTION_SEND) -> MUST NOT fire!
+            android.view.inputmethod.EditorInfo ytComment = new android.view.inputmethod.EditorInfo();
+            ytComment.packageName = "com.google.android.youtube";
+            ytComment.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEND;
+            ytComment.inputType = android.text.InputType.TYPE_CLASS_TEXT;
+            assertEquals("Great video.", RamblerTextPipeline.processCommitText(new FakePcn(ytComment), "Great video."));
+            assertEquals(4, dispatchCount[0]);
+
+            // Unselected app (WhatsApp) even with IME_ACTION_SEARCH -> strips period but MUST NOT auto-search!
+            android.view.inputmethod.EditorInfo waSearch = new android.view.inputmethod.EditorInfo();
+            waSearch.packageName = "com.whatsapp";
+            waSearch.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
+            FakePcn waSearchPcn = new FakePcn(waSearch);
+            assertEquals("dinner receipt",
+                    RamblerTextPipeline.processCommitText(waSearchPcn, "dinner receipt."));
+            assertEquals(4, dispatchCount[0]);
+            assertEquals(0, waSearchPcn.lastPerformedAction);
+
+            // IME_FLAG_NO_ENTER_ACTION -> MUST NOT auto-search even in selected app!
+            android.view.inputmethod.EditorInfo noEnterSearch = new android.view.inputmethod.EditorInfo();
+            noEnterSearch.packageName = "com.google.android.youtube";
+            noEnterSearch.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
+                    | android.view.inputmethod.EditorInfo.IME_FLAG_NO_ENTER_ACTION;
+            assertEquals("no enter",
+                    RamblerTextPipeline.processCommitText(new FakePcn(noEnterSearch), "no enter."));
+            assertEquals(4, dispatchCount[0]);
+
+            // Empty / whitespace commit -> MUST NOT auto-search!
+            assertEquals("   ", RamblerTextPipeline.processCommitText(ytPcn, "   "));
+            assertEquals(4, dispatchCount[0]);
+
+            // Voice Search suffix + Auto-Search together -> fires ONCE (no double submit)!
+            RamblerEnhancementsSettings.writeVoiceSearchEnabled(context, true);
+            assertEquals("pizza nearby",
+                    RamblerTextPipeline.processCommitText(ytPcn, "pizza nearby, hit search."));
+            assertEquals(5, dispatchCount[0]);
+
+            // Per-app stripTrailingPeriod OVERRIDE_OFF overrides search-bar period strip.
+            RamblerCustomInstructionRules.upsertRule(
+                    context,
+                    new RamblerCustomInstructionRules.Rule(
+                            "keep_dot",
+                            "Keep period",
+                            "",
+                            Collections.singletonList("com.google.android.youtube"),
+                            false,
+                            RamblerCustomInstructionRules.OVERRIDE_INHERIT,
+                            RamblerCustomInstructionRules.OVERRIDE_INHERIT,
+                            RamblerCustomInstructionRules.OVERRIDE_OFF));
+            assertEquals("keep my dot.",
+                    RamblerTextPipeline.processCommitText(ytPcn, "keep my dot."));
+            assertEquals(6, dispatchCount[0]); // Auto-search still works
+
+            // Turning searchStripTrailingPeriod OFF keeps trailing periods in unselected/non-overridden search bars.
+            RamblerEnhancementsSettings.writeSearchStripTrailingPeriod(context, false);
+            assertEquals("keep period.",
+                    RamblerTextPipeline.processCommitText(playPcn, "keep period."));
+            assertEquals(7, dispatchCount[0]);
+
+            // 4. JSON Backup & Restore round-trip preserves all 3 search-bar settings.
+            String backup = RamblerBackupManager.exportJson(context);
+            assertTrue(backup.contains("\"searchStripTrailingPeriod\": false"));
+            assertTrue(backup.contains("\"autoSearchOnCommitEnabled\": true"));
+            assertTrue(backup.contains("com.android.chrome"));
+            assertTrue(backup.contains("com.google.android.youtube"));
+
+            RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+            assertTrue(RamblerEnhancementsSettings.readSearchStripTrailingPeriod(context));
+            assertFalse(RamblerEnhancementsSettings.readAutoSearchOnCommitEnabled(context));
+            assertTrue(RamblerEnhancementsSettings.readAutoSearchApps(context).isEmpty());
+
+            assertTrue(RamblerBackupManager.importJson(context, backup).success);
+            assertFalse(RamblerEnhancementsSettings.readSearchStripTrailingPeriod(context));
+            assertTrue(RamblerEnhancementsSettings.readAutoSearchOnCommitEnabled(context));
+            assertEquals(
+                    new java.util.LinkedHashSet<String>(Arrays.asList(
+                            "com.android.chrome",
+                            "com.google.android.youtube",
+                            "com.android.vending",
+                            "com.android.settings")),
+                    RamblerEnhancementsSettings.readAutoSearchApps(context));
+        } finally {
+            RamblerTextPipeline.clearForTesting();
+        }
+    }
+
+    @Test
+    public void learnedFixesClassifiesPromotesRetiresAndAppliesWithManualPrecedence() {
+        // 1. Single-word manual fix is extracted; leading/trailing additions are ignored as new writing.
+        RamblerLearnedFixes.DictationEdit edit1 = RamblerLearnedFixes.classifyEdit(
+                "open clod today",
+                "open clod today",
+                "open Claude today",
+                false);
+        assertEquals(RamblerLearnedFixes.Outcome.EDITED, edit1.outcome);
+        assertEquals(1, edit1.pairs.size());
+        assertEquals("clod", edit1.pairs.get(0).heard);
+        assertEquals("Claude", edit1.pairs.get(0).meant);
+
+        RamblerLearnedFixes.DictationEdit edgeWrite = RamblerLearnedFixes.classifyEdit(
+                "open clod today",
+                "open clod today",
+                "Hey open clod today please",
+                false);
+        assertEquals(RamblerLearnedFixes.Outcome.KEPT, edgeWrite.outcome);
+        assertTrue(edgeWrite.pairs.isEmpty());
+
+        // Sentence-start single capital is normalized away, while internal capitals (OpenAI) stay.
+        RamblerLearnedFixes.DictationEdit sentenceCap = RamblerLearnedFixes.classifyEdit(
+                "Clod works well",
+                "Clod works well",
+                "Cloud works well",
+                false);
+        assertEquals(1, sentenceCap.pairs.size());
+        assertEquals("cloud", sentenceCap.pairs.get(0).meant);
+
+        RamblerLearnedFixes.DictationEdit multiCap = RamblerLearnedFixes.classifyEdit(
+                "Open eye is fast",
+                "Open eye is fast",
+                "OpenAI is fast",
+                false);
+        assertEquals(1, multiCap.pairs.size());
+        assertEquals("OpenAI", multiCap.pairs.get(0).meant);
+
+        // Rewriting > 50% of words is treated as REWRITTEN, not a fix.
+        RamblerLearnedFixes.DictationEdit rewritten = RamblerLearnedFixes.classifyEdit(
+                "one two three four",
+                "one two three four",
+                "alpha beta gamma delta",
+                false);
+        assertEquals(RamblerLearnedFixes.Outcome.REWRITTEN, rewritten.outcome);
+        assertTrue(rewritten.pairs.isEmpty());
+
+        // Implausible unrelated replacement is filtered out.
+        RamblerLearnedFixes.DictationEdit implausible = RamblerLearnedFixes.classifyEdit(
+                "buy apple pie now",
+                "buy apple pie now",
+                "buy quantum pie now",
+                false);
+        assertEquals(RamblerLearnedFixes.Outcome.EDITED, implausible.outcome);
+        assertTrue(implausible.pairs.isEmpty());
+
+        // 2. Promotion threshold (2 consistent fixes) + contradiction auto-retirement.
+        List<RamblerLearnedFixes.FixRecord> records = Collections.emptyList();
+        records = RamblerLearnedFixes.merge(records, edit1, 1000L, Collections.<String>emptySet());
+        assertTrue(RamblerLearnedFixes.learned(records).isEmpty());
+        assertEquals(1, RamblerLearnedFixes.tracking(records).size());
+
+        RamblerLearnedFixes.DictationEdit edit2 = RamblerLearnedFixes.classifyEdit(
+                "ask clod about it",
+                "ask clod about it",
+                "ask Claude about it",
+                false);
+        records = RamblerLearnedFixes.merge(records, edit2, 2000L, Collections.<String>emptySet());
+        List<RamblerLearnedFixes.FixRecord> learned = RamblerLearnedFixes.learned(records);
+        assertEquals(1, learned.size());
+        assertEquals("clod", learned.get(0).heard);
+        assertEquals("Claude", learned.get(0).meant);
+        assertEquals(2, learned.get(0).count);
+        assertTrue(RamblerLearnedFixes.tracking(records).isEmpty());
+
+        // 3. Apply respects whole-word boundaries, case preservation, and manual Find & Replace precedence.
+        assertEquals("Ask Claude now.", RamblerLearnedFixes.apply(learned, "Ask clod now."));
+        assertEquals("ASK CLAUDE NOW", RamblerLearnedFixes.apply(learned, "ASK CLOD NOW"));
+        assertEquals("https://clod.dev clod_var @clod my-clod",
+                RamblerLearnedFixes.apply(learned, "https://clod.dev clod_var @clod my-clod"));
+        assertEquals("Ask clod now.",
+                RamblerLearnedFixes.apply(learned, "Ask clod now.", Collections.singleton("clod")));
+
+        // Disabled fix is protected from contradictions while paused.
+        String fixId = learned.get(0).id();
+        RamblerLearnedFixes.DictationEdit keptHeard = RamblerLearnedFixes.classifyEdit(
+                "a clod of dirt",
+                "a clod of dirt",
+                "a clod of dirt",
+                false);
+        List<RamblerLearnedFixes.FixRecord> whilePaused =
+                RamblerLearnedFixes.merge(records, keptHeard, 3000L, Collections.singleton(fixId));
+        assertEquals(1, RamblerLearnedFixes.learned(whilePaused).size());
+        assertTrue(RamblerLearnedFixes.active(
+                RamblerLearnedFixes.learned(whilePaused), Collections.singleton(fixId)).isEmpty());
+
+        // Unpaused contradiction auto-retires the fix.
+        List<RamblerLearnedFixes.FixRecord> retired =
+                RamblerLearnedFixes.merge(records, keptHeard, 4000L, Collections.<String>emptySet());
+        assertTrue(RamblerLearnedFixes.learned(retired).isEmpty());
+    }
+
+    @Test
+    public void learnedFixesTrackerEndToEndLearnsRedictatesSkipsPasswordsAndShowsToast() {
+        Context context = RuntimeEnvironment.getApplication();
+        RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+        RamblerDynamicConfig.FEATURE_PRODUCTIVITY_TOOLS = true;
+        RamblerFlagRuntime.seedAndRefreshIfNeeded(context);
+
+        final long[] elapsed = {10_000L};
+        final long[] wall = {1_700_000_000_000L};
+        RamblerLearnedFixesTracker.setClockForTesting(new RamblerLearnedFixesTracker.Clock() {
+            @Override
+            public long elapsedRealtime() {
+                return elapsed[0];
+            }
+
+            @Override
+            public long currentTimeMillis() {
+                return wall[0];
+            }
+        });
+        List<String> toasts = new java.util.ArrayList<String>();
+        RamblerLearnedFixesTracker.setToastNotifierForTesting(
+                (ctx, msg) -> toasts.add(msg));
+
+        android.view.inputmethod.EditorInfo chatEditor = new android.view.inputmethod.EditorInfo();
+        chatEditor.packageName = "com.whatsapp";
+        chatEditor.fieldId = 101;
+        chatEditor.inputType = android.text.InputType.TYPE_CLASS_TEXT;
+
+        FakeSurroundingPcn pcn = new FakeSurroundingPcn(chatEditor);
+        pcn.before = "Hey ";
+        pcn.after = "";
+
+        // Opt-in Beta: OFF by default so edits are not tracked until explicitly enabled.
+        assertFalse(RamblerEnhancementsSettings.readAutoLearnFixesEnabled(context));
+        RamblerTextPipeline.processCommitText(pcn, "use clod daily");
+        pcn.before = "Hey use Claude daily";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg(pcn.before, pcn.after, FakePdgReason.IME));
+        RamblerLearnedFixesTracker.onExtensionDeactivate();
+        assertTrue(RamblerLearnedFixes.readRecords(context).isEmpty());
+
+        // Enable Auto-learn from my fixes (Beta) in settings.
+        RamblerEnhancementsSettings.writeAutoLearnFixesEnabled(context, true);
+        pcn.before = "Hey ";
+        pcn.after = "";
+
+        // Dictation 1: "use clod daily" -> user corrects to "use Claude daily" -> settled by voice start.
+        assertEquals("use clod daily", RamblerTextPipeline.processCommitText(pcn, "use clod daily"));
+        pcn.before = "Hey use clod daily";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg(pcn.before, pcn.after, FakePdgReason.IME));
+        elapsed[0] += 3000L;
+        pcn.before = "Hey use Claude daily";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg(pcn.before, pcn.after, FakePdgReason.IME));
+        elapsed[0] += 1000L;
+        RamblerDictationStats.onVoiceStart();
+
+        assertEquals(0, RamblerLearnedFixes.readActiveFixes(context).size());
+        assertEquals(1, RamblerLearnedFixes.tracking(RamblerLearnedFixes.readRecords(context)).size());
+        assertTrue(toasts.isEmpty());
+
+        // Dictation 2: "ask clod now" -> user corrects to "ask Claude now" -> settled by deactivate -> LEARNED + TOAST!
+        pcn.before = "Next: ";
+        pcn.after = "";
+        assertEquals("ask clod now", RamblerTextPipeline.processCommitText(pcn, "ask clod now"));
+        pcn.before = "Next: ask clod now";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg(pcn.before, pcn.after, FakePdgReason.IME));
+        elapsed[0] += 2000L;
+        pcn.before = "Next: ask Claude now";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg(pcn.before, pcn.after, FakePdgReason.IME));
+        elapsed[0] += 500L;
+        RamblerLearnedFixesTracker.onExtensionDeactivate();
+
+        List<RamblerLearnedFixes.FixRecord> active = RamblerLearnedFixes.readActiveFixes(context);
+        assertEquals(1, active.size());
+        assertEquals("clod", active.get(0).heard);
+        assertEquals("Claude", active.get(0).meant);
+        assertEquals(
+                Collections.singletonList("Rambler learned: \"clod\" \u2192 \"Claude\""),
+                toasts);
+
+        // Dictation 3: "try clod again" is now automatically fixed to "try Claude again"!
+        pcn.before = "";
+        pcn.after = "";
+        assertEquals("try Claude again", RamblerTextPipeline.processCommitText(pcn, "try clod again"));
+        RamblerLearnedFixesTracker.finishTracking();
+
+        // Toast mute toggle: turning off autoLearnToastEnabled still learns, with no new toast.
+        RamblerEnhancementsSettings.writeAutoLearnToastEnabled(context, false);
+        for (int round = 0; round < 2; round++) {
+            pcn.before = "Msg " + round + ": ";
+            pcn.after = "";
+            RamblerTextPipeline.processCommitText(pcn, "open g board now");
+            pcn.before = "Msg " + round + ": open g board now";
+            RamblerLearnedFixesTracker.onAppInputContextChanged(
+                    new FakePdg(pcn.before, pcn.after, FakePdgReason.IME));
+            elapsed[0] += 1500L;
+            pcn.before = "Msg " + round + ": open Gboard now";
+            RamblerLearnedFixesTracker.onAppInputContextChanged(
+                    new FakePdg(pcn.before, pcn.after, FakePdgReason.IME));
+            RamblerLearnedFixesTracker.onExtensionDeactivate();
+        }
+        assertEquals(2, RamblerLearnedFixes.readActiveFixes(context).size());
+        assertEquals(1, toasts.size()); // Still only the original toast!
+
+        // Delete-and-redictate within 20s vs app clearing field on Send.
+        pcn.before = "";
+        pcn.after = "";
+        RamblerTextPipeline.processCommitText(pcn, "try ramble now");
+        pcn.before = "try ramble now";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg(pcn.before, pcn.after, FakePdgReason.IME));
+        elapsed[0] += 2000L;
+        pcn.before = "";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg("", "", FakePdgReason.DELETE));
+        elapsed[0] += 3000L;
+        RamblerTextPipeline.processCommitText(pcn, "try Rambler now");
+        RamblerLearnedFixesTracker.finishTracking();
+
+        List<RamblerLearnedFixes.FixRecord> trackingAfterRedict =
+                RamblerLearnedFixes.tracking(RamblerLearnedFixes.readRecords(context));
+        assertTrue(trackingAfterRedict.stream().anyMatch(
+                r -> "ramble".equals(r.heard) && "Rambler".equals(r.meant)));
+
+        // App clears field on Send (OTHER_TEXT_CHANGE, NOT DELETE) -> must NOT pair with next dictation!
+        pcn.before = "";
+        RamblerTextPipeline.processCommitText(pcn, "see you soon");
+        pcn.before = "see you soon";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg(pcn.before, "", FakePdgReason.IME));
+        elapsed[0] += 1000L;
+        pcn.before = "";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg("", "", FakePdgReason.OTHER_TEXT_CHANGE));
+        elapsed[0] += 2000L;
+        RamblerTextPipeline.processCommitText(pcn, "see you noon");
+        RamblerLearnedFixesTracker.finishTracking();
+        assertFalse(RamblerLearnedFixes.readRecords(context).stream().anyMatch(
+                r -> "soon".equals(r.heard) && "noon".equals(r.meant)));
+
+        // Password and incognito fields are strictly skipped.
+        android.view.inputmethod.EditorInfo pwEditor = new android.view.inputmethod.EditorInfo();
+        pwEditor.inputType = android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD;
+        assertTrue(RamblerLearnedFixesTracker.isSensitiveOrPasswordField(pwEditor));
+        android.view.inputmethod.EditorInfo incognitoEditor = new android.view.inputmethod.EditorInfo();
+        incognitoEditor.inputType = android.text.InputType.TYPE_CLASS_TEXT;
+        incognitoEditor.imeOptions = android.view.inputmethod.EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
+        assertTrue(RamblerLearnedFixesTracker.isSensitiveOrPasswordField(incognitoEditor));
+
+        FakeSurroundingPcn pwPcn = new FakeSurroundingPcn(pwEditor);
+        RamblerTextPipeline.processCommitText(pwPcn, "secret wrd");
+        pwPcn.before = "secret word";
+        RamblerLearnedFixesTracker.onAppInputContextChanged(
+                new FakePdg(pwPcn.before, "", FakePdgReason.IME));
+        RamblerLearnedFixesTracker.finishTracking();
+        assertFalse(RamblerLearnedFixes.readRecords(context).stream().anyMatch(
+                r -> "wrd".equals(r.heard)));
+
+        // Backup & restore round-trip preserves toggles, records, and paused IDs.
+        String clodId = RamblerLearnedFixes.fixId("clod", "Claude");
+        RamblerLearnedFixes.setFixDisabled(context, clodId, true);
+        String backup = RamblerBackupManager.exportJson(context);
+        assertTrue(backup.contains("\"autoLearnFixesEnabled\": true"));
+        assertTrue(backup.contains("\"autoLearnToastEnabled\": false"));
+        assertTrue(backup.contains("\"learnedFixes\""));
+        assertTrue(backup.contains("Claude"));
+
+        RamblerEnhancementsSettings.preferencesOrNull(context).edit().clear().commit();
+        assertTrue(RamblerLearnedFixes.readRecords(context).isEmpty());
+        assertTrue(RamblerEnhancementsSettings.readAutoLearnToastEnabled(context));
+
+        assertTrue(RamblerBackupManager.importJson(context, backup).success);
+        assertTrue(RamblerEnhancementsSettings.readAutoLearnFixesEnabled(context));
+        assertFalse(RamblerEnhancementsSettings.readAutoLearnToastEnabled(context));
+        assertTrue(RamblerLearnedFixes.readDisabledIds(context).contains(clodId));
+        assertEquals(1, RamblerLearnedFixes.readActiveFixes(context).size());
+        assertEquals("Gboard", RamblerLearnedFixes.readActiveFixes(context).get(0).meant);
+    }
+
+    private enum FakePdgReason {
+        UNKNOWN, IME, DELETE, OTHER_TEXT_CHANGE
+    }
+
+    @SuppressWarnings("unused")
+    private static final class FakePdx {
+        private final String before;
+        private final String after;
+
+        FakePdx(String before, String after) {
+            this.before = before;
+            this.after = after;
+        }
+
+        public CharSequence n() {
+            return before;
+        }
+
+        public CharSequence m() {
+            return after;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static final class FakePdl {
+        final FakePdgReason i;
+
+        FakePdl(FakePdgReason reason) {
+            this.i = reason;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static final class FakePdg {
+        final FakePdl b;
+        final FakePdx c;
+
+        FakePdg(String before, String after, FakePdgReason reason) {
+            this.b = new FakePdl(reason);
+            this.c = new FakePdx(before, after);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static final class FakeSurroundingPcn {
+        final android.view.inputmethod.EditorInfo editorInfo;
+        String before = "";
+        String after = "";
+
+        FakeSurroundingPcn(android.view.inputmethod.EditorInfo editorInfo) {
+            this.editorInfo = editorInfo;
+        }
+
+        public android.view.inputmethod.EditorInfo k() {
+            return editorInfo;
+        }
+
+        public FakePdx l(int beforeLen, int afterLen, int flags) {
+            String b = before.length() > beforeLen
+                    ? before.substring(before.length() - beforeLen)
+                    : before;
+            String a = after.length() > afterLen ? after.substring(0, afterLen) : after;
+            return new FakePdx(b, a);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static class FakeAbstractExtension {
+        private final Context ctx;
+        boolean active = true;
+
+        FakeAbstractExtension(Context ctx) {
+            this.ctx = ctx;
+        }
+
+        public Context ac() {
+            return ctx;
+        }
+
+        public boolean ag() {
+            return active;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static final class FakeSpacebarLangPicker extends FakeAbstractExtension {
+        FakeSpacebarLangPicker(Context ctx) {
+            super(ctx);
+        }
+    }
+
+    private enum FakeRamblerUiState {
+        IDLING, WAITING, LISTENING, PROCESSING, ERROR
+    }
+
+    @SuppressWarnings("unused")
+    private static final class FakeRamblerUiManager {
+        FakeRamblerUiState state = FakeRamblerUiState.IDLING;
+
+        public FakeRamblerUiState h() {
+            return state;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static final class FakeSpacebarAgentic extends FakeAbstractExtension {
+        final Context b;
+        final FakeRamblerUiManager c = new FakeRamblerUiManager();
+        int triggerCount;
+        boolean triggerResult = true;
+
+        FakeSpacebarAgentic(Context ctx) {
+            super(ctx);
+            this.b = ctx;
+        }
+
+        public boolean C() {
+            triggerCount++;
+            return triggerResult;
+        }
+    }
+
+    private enum FakeSpacebarAction {
+        PRESS, LONG_PRESS
+    }
+
+    private static final class FakeFreeCursorPayload {
+        @Override
+        public String toString() {
+            return "KeyboardTypeAndPayload(keyboardType=free_cursor, payload=MotionEvent)";
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static final class FakeSpacebarEvent {
+        final FakeSpacebarAction a;
+        final FakeSpacebarKeyData kd;
+
+        FakeSpacebarEvent(FakeSpacebarKeyData kd) {
+            this(kd, FakeSpacebarAction.LONG_PRESS);
+        }
+
+        FakeSpacebarEvent(FakeSpacebarKeyData kd, FakeSpacebarAction action) {
+            this.kd = kd;
+            this.a = action;
+        }
+
+        public FakeSpacebarKeyData g() {
+            return kd;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static final class FakeSpacebarKeyData {
+        final int c;
+        final Object e;
+
+        FakeSpacebarKeyData(int c, Object e) {
+            this.c = c;
+            this.e = e;
+        }
     }
 
     @SuppressWarnings("unused")

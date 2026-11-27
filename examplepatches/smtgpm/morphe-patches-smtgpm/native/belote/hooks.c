@@ -19,6 +19,7 @@ void orig_wheel_free_spin_completed(u8 *self, void *a, void *b, void *mi);
 void orig_wheel_collect_done(u8 *self, void *mi);
 void orig_menu_show(u8 *self, u8 instant, void *mi);
 void orig_menu_refresh_daily_bonus(u8 *self, void *mi);
+void orig_menu_refresh_shop(u8 *self, void *mi);
 
 /* Game functions */
 u8   ActivityBonusManager_IsAvailable(void *mgr, int type, void *mi);
@@ -30,6 +31,8 @@ void ActivityBonusManager_Claim(void *mgr, int type, int slot, void *source,
                                 void *on_done, void *on_error, void *mi);
 void System_Action_ctor(void *self, void *target, void *method, void *mi);
 void InventoryManager_FetchServerData(void *inventory, void *mi);
+void VirtualCurrency_set_Amount(void *element, long long amount, void *mi);
+void VirtualCurrency_AnimateAmount(void *element, long long amount, float delay, void *on_done, void *mi);
 
 /* Public IL2CPP API (exported by libil2cpp.so) */
 void *il2cpp_get_corlib(void);
@@ -43,7 +46,8 @@ void *il2cpp_string_new(const char *str);
 extern volatile u8 claim_state;
 #define CLAIM_NONE      0
 #define CLAIM_SENT      1
-#define CLAIM_DONE      2
+#define CLAIM_DONE      2 /* inventory reload requested */
+#define CLAIM_SHOWN     3 /* chip counter animated */
 
 
 /* ActivityBonus type 4 is the free daily wheel spin. */
@@ -57,6 +61,12 @@ extern volatile u8 claim_state;
 /* MenuUIViewController fields */
 #define MENU_BONUS_MGR    0x30
 #define MENU_INVENTORY_MGR 0xc8
+#define MENU_VIEW         0x20
+/* MenuUIView +0x168 -> holder +0x40 -> VirtualCurrencyUIElement (chip counter, top right) */
+#define VIEW_CHIPS_HOLDER 0x168
+#define HOLDER_CHIPS      0x40
+#define CHIPS_AMOUNT      0x60   /* long */
+#define CHIPS_COUNT_DELAY 0.5f
 #define MENU_IS_DISPOSED  0x163
 
 #define TEXT_STR __attribute__((section(".text.str")))
@@ -139,6 +149,29 @@ static void refresh_after_claim(u8 *menu) {
     if (!inventory) return;
     claim_state = CLAIM_DONE;
     InventoryManager_FetchServerData(inventory, 0);
+}
+
+static void *menu_chip_counter(u8 *menu) {
+    u8 *view = *(u8 **)(menu + MENU_VIEW);
+    u8 *holder = view ? *(u8 **)(view + VIEW_CHIPS_HOLDER) : 0;
+    return holder ? *(void **)(holder + HOLDER_CHIPS) : 0;
+}
+
+/*
+ * The menu sets the chip counter in RefreshShop. On the refresh that brings in the claimed
+ * bonus, put the previous value back and let the game count up to the new balance with its
+ * own income animation (the one used after a game), so the claim is visible.
+ */
+void hook_menu_refresh_shop(u8 *self, void *mi) {
+    u8 *chips = (self && claim_state == CLAIM_DONE && !self[MENU_IS_DISPOSED]) ? menu_chip_counter(self) : 0;
+    long long before = chips ? *(long long *)(chips + CHIPS_AMOUNT) : 0;
+    orig_menu_refresh_shop(self, mi);
+    if (!chips) return;
+    long long after = *(long long *)(chips + CHIPS_AMOUNT);
+    if (after <= before) return;
+    claim_state = CLAIM_SHOWN;
+    VirtualCurrency_set_Amount(chips, before, 0);
+    VirtualCurrency_AnimateAmount(chips, after, CHIPS_COUNT_DELAY, 0, 0);
 }
 
 /* Bonus availability or inventory changed (also runs from Menu.Apply). */

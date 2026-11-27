@@ -86,11 +86,14 @@ val settingsPatch = patch(
                 text = "SEYTTINGS",
             )
 
+            // p2 is the row's click callback (passed to nh7.b -> clickable),
+            // p3 is the focus callback. Replace p2 so the dialog opens on OK/click,
+            // not merely on hover/focus.
             method.addInstructions(
                 0,
                 """
-                    new-instance p3, ${EXTENSION_CLASS}OpenSettings;
-                    invoke-direct {p3}, ${EXTENSION_CLASS}OpenSettings;-><init>()V
+                    new-instance p2, ${EXTENSION_CLASS}OpenSettings;
+                    invoke-direct {p2}, ${EXTENSION_CLASS}OpenSettings;-><init>()V
                 """,
             )
         }

@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Release automation, after game-mods' release.yml. Publish a GitHub release from main tagged
-# vX.Y.Z. One release carries both bundles. Then:
+# vX.Y.Z. One release carries all three bundles. Then:
 #   verify          (unprivileged) the tag is vX.Y.Z, points at the released commit, and that is on main;
-#   ci              (unprivileged) waits until CI has passed on that commit;
+#   ci              (unprivileged) waits until the existing-edition checks pass on main;
 #   revanced-build  (unprivileged) builds patches-X.Y.Z.rvp from the commit, without the Gradle cache;
 #   morphe-build    (unprivileged) builds patches-X.Y.Z.mpp, unsigned, the same way;
 #   morphe-sign     (privileged: MORPHE_SIGNING_KEY; shell only) signs the unsigned .mpp's SHA-256, never
@@ -17,6 +17,8 @@
 #                   releases/latest/download/patches-bundle.json;
 #   morphe-feed     (privileged: MORPHE_FEED_DEPLOY_KEY; shell only) then pushes Morphe's feed,
 #                   patches-bundle.json at the root of main, which Morphe Manager and the Morphe CLI read.
+#   reseam-build and reseam-release independently build, sign, verify and attach
+#                   the .reseam bundle and its patches.json for Reseam Manager.
 # A failed job is retried with "Re-run failed jobs": later jobs reuse the earlier jobs' artifacts,
 # publish replaces the assets and the report block, and morphe-feed pushes only a change.
 name: Release
@@ -521,3 +523,104 @@ jobs:
           done
           echo "::error::main kept moving"
           exit 1
+
+  # Reseam publishes its own assets without becoming a dependency of either existing feed.
+  reseam-build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: { contents: read }
+    outputs:
+      artifact: ${{ steps.bundle.outputs.artifact }}
+      sha256: ${{ steps.bundle.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with: { distribution: temurin, java-version: "17" }
+      - name: Download the pinned Reseam CLI
+        run: bash scripts/reseam-release.sh download "$RUNNER_TEMP/reseam"
+      - name: Build the unsigned bundle
+        working-directory: reseam
+        env:
+          RESEAM_RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          RESEAM_BIN: ${{ runner.temp }}/reseam
+        run: ./gradlew --no-build-cache unsignedBundle
+      - id: bundle
+        name: Verify catalog and record release artifact
+        run: |
+          set -euo pipefail
+          bundle=reseam/build/reseam/unsigned/edbfi-patches.reseam
+          python3 scripts/reseam-check-docs.py "$bundle"
+          sha256="$(sha256sum "$bundle" | cut -d' ' -f1)"
+          printf 'artifact=reseam-unsigned-%s\nsha256=%s\n' "$GITHUB_RUN_ATTEMPT" "$sha256" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.bundle.outputs.artifact }}
+          path: reseam/build/reseam/unsigned/edbfi-patches.reseam
+          retention-days: 7
+          if-no-files-found: error
+
+  # The tag contains the reviewed Reseam publisher public key.
+  reseam-release:
+    needs: [verify, ci, reseam-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: { contents: write, actions: read }
+    env:
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Fetch the release script, reviewed public key, CLI and unsigned bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT: ${{ needs.reseam-build.outputs.artifact }}
+          SHA256: ${{ needs.reseam-build.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$ARTIFACT" =~ ^reseam-unsigned-[0-9]+$ && "$SHA256" =~ ^[0-9a-f]{64}$ ]]
+          gh api -H 'Accept: application/vnd.github.raw' \
+            "repos/$GH_REPO/contents/scripts/reseam-release.sh?ref=$GITHUB_SHA" > "$RUNNER_TEMP/reseam-release.sh"
+          gh api -H 'Accept: application/vnd.github.raw' \
+            "repos/$GH_REPO/contents/keys/reseam-signing.pub?ref=$GITHUB_SHA" > "$RUNNER_TEMP/reseam-signing.pub" || {
+              echo '::error::Add the authorized Reseam publisher public key at keys/reseam-signing.pub before a Reseam release.'
+              exit 1
+            }
+          bash "$RUNNER_TEMP/reseam-release.sh" download "$RUNNER_TEMP/reseam"
+          dir="$RUNNER_TEMP/unsigned"
+          mkdir "$dir"
+          gh run download "$GITHUB_RUN_ID" -n "$ARTIFACT" -D "$dir"
+          bundle="$dir/edbfi-patches.reseam"
+          mapfile -d '' entries < <(find "$dir" -mindepth 1 -print0)
+          [[ ${#entries[@]} -eq 1 && -f "$bundle" && ! -L "$bundle" ]]
+          printf '%s  %s\n' "$SHA256" "$bundle" | sha256sum -c --quiet -
+          jq -r '.release.body // ""' "$GITHUB_EVENT_PATH" > "$RUNNER_TEMP/notes.md"
+      - name: Sign with the Reseam key
+        env:
+          RESEAM_SIGNING_KEY_B64: ${{ secrets.RESEAM_SIGNING_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/signed"
+          bash "$RUNNER_TEMP/reseam-release.sh" sign "$RUNNER_TEMP/reseam" \
+            "$RUNNER_TEMP/unsigned/edbfi-patches.reseam" "$RUNNER_TEMP/signed/edbfi-patches.reseam" \
+            "$RUNNER_TEMP/reseam-signing.pub"
+      - name: Verify the signature and generate patches.json
+        run: |
+          set -euo pipefail
+          bash "$RUNNER_TEMP/reseam-release.sh" index "$RUNNER_TEMP/reseam" \
+            "$RUNNER_TEMP/signed/edbfi-patches.reseam" "$TAG" "https://github.com/$GH_REPO" \
+            "$RUNNER_TEMP/notes.md" "$RUNNER_TEMP/site" "$RUNNER_TEMP/reseam-signing.pub"
+      - name: Attach the Reseam bundle and Manager index
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tagged="$(gh api "repos/$GH_REPO/commits/refs/tags/$TAG" --jq .sha)"
+          [[ "$tagged" == "$GITHUB_SHA" ]]
+          gh release upload "$TAG" "$RUNNER_TEMP/site/$TAG/edbfi-patches.reseam" --clobber
+          gh release upload "$TAG" "$RUNNER_TEMP/site/patches.json" --clobber
+          url="https://github.com/$GH_REPO/releases/latest/download/patches.json"
+          share="$(jq -rn --arg url "$url" '$url | @uri')"
+          printf '[Add edbfi patches to Reseam Manager](https://reseam.app/add/?url=%s)\n' "$share" >> "$GITHUB_STEP_SUMMARY"

@@ -140,7 +140,7 @@ final class StockReplyRequest {
             if("age".equalsIgnoreCase(email))p.put("age",true);
         }else p.put("name",get("name"));
         if(image!=null){
-            if("animanch".equals(board)&&image.length>8_000_000)throw new IllegalArgumentException("\u753b\u50cf\u304c8MB\u3092\u8d85\u3048\u3066\u3044\u307e\u3059");
+            if("animanch".equals(board)&&image.length>AnimanchAdapter.MAX_IMAGE_BYTES)throw new IllegalArgumentException("あにまんの画像は5 MiBまでです。投稿は送信していません。");
             String ext="image/jpeg".equals(mime)?"jpg":mime.substring(6);
             p.put("attachments",new JSONArray().put(new JSONObject().put("mime",mime)
                     .put("name","attachment."+ext).put("base64",android.util.Base64.encodeToString(image,android.util.Base64.NO_WRAP))));

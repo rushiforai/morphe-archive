@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,6 +81,10 @@ public class PhoneCaptionsTest {
 
         @Override public void download(Context context, String language) {
             real.download(context, language);
+        }
+
+        @Override public void tryHearing(Context context, String language, IntConsumer answer) {
+            real.tryHearing(context, language, answer);
         }
     }
 
@@ -270,6 +275,59 @@ public class PhoneCaptionsTest {
         callStarts("en-US");
         assertNull(ShadowSpeechRecognizer.getLatestSpeechRecognizer());
         assertEquals(text.get("call_captions_no_recognizer"), shown());
+    }
+
+    /** What settings hears back when it asks about [language], with [then] done to the recognizer it made. */
+    private List<Integer> tried(String language, Consumer<ShadowSpeechRecognizer> then) {
+        List<Integer> answers = new ArrayList<>();
+        new PhoneCaptions().tryHearing(context, language, answers::add);
+        idle();
+        ShadowSpeechRecognizer recognizer = recognizer();
+        Intent asked = recognizer.getLastRecognizerIntent();
+        assertEquals("Asked about the language itself", language, asked.getStringExtra(RecognizerIntent.EXTRA_LANGUAGE));
+        assertNotNull("the way a call asks, on a pipe and never the microphone",
+            asked.getParcelableExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE, ParcelFileDescriptor.class));
+        assertEquals(RecognizerIntent.EXTRA_AUDIO_SOURCE, asked.getStringExtra(RecognizerIntent.EXTRA_SEGMENTED_SESSION));
+        assertTrue(asked.getBooleanExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, false));
+        then.accept(recognizer);
+        idle();
+        if (!answers.isEmpty()) assertTrue("The recognizer is let go once it has answered", recognizer.isDestroyed());
+        idleFor(PhoneCaptions.TRY_MILLIS * 2);
+        return answers;
+    }
+
+    /** #244: the S26 Ultra's recognizer turned Filipino down, but only once a call had started. */
+    @Test public void aLanguageTheRecognizerTurnsDownIsCaughtBeforeAnyCall() {
+        List<Integer> answers = tried("fil-PH", recognizer -> recognizer.triggerOnError(SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED));
+        assertEquals("One answer, and the wait running out later adds none", Arrays.asList(CallCaptions.HEARS_NEVER), answers);
+    }
+
+    @Test public void aLanguageWhoseModelIsMissingSaysItNeedsOne() {
+        List<Integer> answers = tried("fr-FR", recognizer -> recognizer.triggerOnError(SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE));
+        assertEquals(Arrays.asList(CallCaptions.HEARS_AFTER_DOWNLOAD), answers);
+    }
+
+    @Test public void aRecognizerThatTakesTheLanguageOrSaysNothingHearsIt() {
+        assertEquals("Waiting for someone to talk", Arrays.asList(CallCaptions.HEARS),
+            tried("en-US", recognizer -> recognizer.triggerOnError(SpeechRecognizer.ERROR_SPEECH_TIMEOUT)));
+
+        ShadowSpeechRecognizer.reset();
+        ShadowSpeechRecognizer.setIsOnDeviceRecognitionAvailable(true);
+        List<Integer> answers = new ArrayList<>();
+        new PhoneCaptions().tryHearing(context, "es-ES", answers::add);
+        idleFor(PhoneCaptions.TRY_MILLIS - 1);
+        assertTrue("Still waiting", answers.isEmpty());
+        idleFor(1);
+        assertEquals("Nothing turned down in time", Arrays.asList(CallCaptions.HEARS), answers);
+        assertTrue(recognizer().isDestroyed());
+    }
+
+    @Test public void withoutOnDeviceRecognitionNoLanguageIsHeard() {
+        ShadowSpeechRecognizer.setIsOnDeviceRecognitionAvailable(false);
+        List<Integer> answers = new ArrayList<>();
+        new PhoneCaptions().tryHearing(context, "en-US", answers::add);
+        assertEquals(Arrays.asList(CallCaptions.HEARS_NEVER), answers);
+        assertNull(ShadowSpeechRecognizer.getLatestSpeechRecognizer());
     }
 
     @Test public void theLanguagesOnThePhoneComeFirstAndTheRestAreTheOnesItCanFetch() {

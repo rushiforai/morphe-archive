@@ -121,8 +121,9 @@ internal val settingsExtension = patch(description = "Load HushMessenger runtime
         readReceiptThreadFields = emptyMap()
         markReadRecipe = null
         messageLogButtonRecipe = null
-        pinnedBarLoader = null
+        pinnedBarRecipe = null
         saveVoiceMenuRecipe = null
+        removeContactRecipe = null
         autoReplyPictureRecipe = null
         galleryRoute = null
         galleryChatRoute = null
@@ -231,15 +232,23 @@ internal fun MutableMethod.validateHook(hook: String) {
         SEARCH_ITEMS -> validateSearchItems()
         AI_CHAT_OPEN -> validateAiChatOpen()
         STORY_CREATE_TILE -> validateStoryCreateTile()
-        PINNED_BAR -> validatePinnedBar()
         OPEN_CHAT_SOUND -> validateOpenChatSound()
+        OWN_CHAT_SOUNDS -> validateOwnChatSounds()
         STORY_HOLD -> validateStoryHold()
         CHAT_PREVIEW -> validateChatPreview()
         CHAT_PREVIEW_SIZE -> validateChatPreviewSize()
+        CHAT_BAR_PLUS_MENU -> validateChatBarPlusMenu()
         INBOX_TYPING -> validateInboxTyping()
         MEDIA_CAPTION -> validateMediaCaption()
+        MEDIA_CAPTION_EDITOR -> validateMediaCaptionEditor()
+        MEDIA_CAPTION_CHAT -> validateMediaCaptionChat()
+        MEDIA_CAPTION_DIRECT -> validateMediaCaptionDirect()
+        MEDIA_CAPTION_RESULT -> validateMediaCaptionResult()
+        MEDIA_CAPTION_CHIP -> validateMediaCaptionChip()
+        MEDIA_CAPTION_CHIP_SEND -> validateMediaCaptionChipSend()
         CHAT_MENU_ITEMS -> validateChatMenuItems()
         PROFILE_MENU_ITEMS -> validateProfileMenuItems()
+        REMOVE_CONTACT -> validateRemoveContact()
         PROFILE_MENU_CALL -> validateProfileMenuCall()
         LANDSCAPE_LOCK -> validatePortraitLock()
         LANDSCAPE_MEDIA -> validateMediaOrientation()
@@ -260,7 +269,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         CAR_MESSAGES -> validateCarMessages()
         CAR_EXTENSION_GATE -> validateCarExtensionGate()
         LOCAL_CHAT_SEARCH -> validateLocalChatSearch()
-        CHAT_JUMP, SECURE_CHAT, INVISIBLE_BUTTONS, IOS_BARS, CHAT_BAR_PLUS -> validateChatJump()
+        CHAT_JUMP, SECURE_CHAT, INVISIBLE_BUTTONS, IOS_BARS, CHAT_BAR_PLUS, PINNED_BAR -> validateChatJump()
         CALL_RECORDING -> validateCallRecording()
         HOME_HEADER -> validateHomeHeader()
         TEXT_STYLE -> validateTextStyleField()
@@ -293,6 +302,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         REFRESH_RATE -> validateRefreshRate()
         STORY_ROW_SIZE -> validateStoryRowSize()
         MARK_READ_LOCALLY -> validateMarkReadLocally()
+        CONFIRM_STRANGERS -> validateConfirmStrangers()
         else -> validateSwitch()
     }
 }
@@ -377,6 +387,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             HIDDEN_CHAT_TAP -> method.injectHiddenChatTap()
             CHAT_MENU_ITEMS -> method.injectChatMenuItems()
             PROFILE_MENU_ITEMS -> method.injectProfileMenuItems()
+            REMOVE_CONTACT -> method.injectRemoveContact()
             PROFILE_MENU_CALL -> method.injectProfileMenuCall()
             NEARBY_SCANS -> method.injectNearbyScans()
             WIFI_IDENTITY -> method.injectWifiIdentity()
@@ -389,11 +400,19 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             STORY_CREATE_TILE -> method.injectStoryCreateTile()
             PINNED_BAR -> method.injectPinnedBar()
             OPEN_CHAT_SOUND -> method.injectOpenChatSound()
+            OWN_CHAT_SOUNDS -> method.injectOwnChatSounds()
             STORY_HOLD -> method.injectStoryHold()
             CHAT_PREVIEW -> method.injectChatPreview()
             CHAT_PREVIEW_SIZE -> method.injectChatPreviewSize()
+            CHAT_BAR_PLUS_MENU -> method.injectChatBarPlusMenu()
             INBOX_TYPING -> method.injectInboxTyping()
             MEDIA_CAPTION -> method.injectMediaCaption()
+            MEDIA_CAPTION_EDITOR -> method.injectMediaCaptionEditor()
+            MEDIA_CAPTION_CHAT -> method.injectMediaCaptionChat()
+            MEDIA_CAPTION_DIRECT -> method.injectMediaCaptionDirect()
+            MEDIA_CAPTION_RESULT -> method.injectMediaCaptionResult()
+            MEDIA_CAPTION_CHIP -> method.injectMediaCaptionChip()
+            MEDIA_CAPTION_CHIP_SEND -> method.injectMediaCaptionChipSend()
             LANDSCAPE_LOCK -> method.injectPortraitLock()
             LANDSCAPE_MEDIA -> method.injectMediaOrientation()
             BLOCKED_LIST_PICTURES -> method.injectBlockedListPictures()
@@ -450,6 +469,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "growth_notes" -> method.injectNotesTips()
             MARK_READ_LOCALLY -> method.injectMarkReadLocally()
             UNREAD_BADGE -> method.injectUnreadBadge()
+            CONFIRM_STRANGERS -> method.injectConfirmStrangers()
             else -> if (hook in pluginGates) method.injectPluginGate(key) else method.injectFeatureSwitch(key)
         }
     }
@@ -578,6 +598,22 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                 }
                 injectControl(key, methods)
                 for ((old, new) in built) { host.methods.remove(old); host.directMethods.remove(old); host.methods.add(new); host.directMethods.add(new) }
+            } else if (key == PINNED_BAR) {
+                val recipe = pinnedBarRecipe ?: throw PatchException("Messenger controls: the pinned messages list's recipe is missing")
+                val host = mutableClassDefBy(PINNED_BAR_HOST)
+                // Built before the first edit, so a changed stub stops the patch with Messenger untouched.
+                val built = pinnedBarBuilders(recipe) { id -> host.methods.singleOrNull { it.hookId() == id } }
+                injectControl(key, methods)
+                for ((old, new) in built) { host.methods.remove(old); host.directMethods.remove(old); host.methods.add(new); host.directMethods.add(new) }
+            } else if (key == REMOVE_CONTACT) {
+                val recipe = removeContactRecipe ?: throw PatchException("Messenger controls: the Remove contact row's recipe is missing")
+                val host = mutableClassDefBy(REMOVE_CONTACT_HOST)
+                val stub = host.methods.singleOrNull { it.hookId() == REMOVE_CONTACT_START }
+                    ?: throw PatchException("Messenger controls: the Remove contact row's extension stub is missing")
+                // Built before the first edit, so a changed stub stops the patch with Messenger untouched.
+                val built = removeContactBuilder(stub, recipe)
+                injectControl(key, methods)
+                host.methods.remove(stub); host.directMethods.remove(stub); host.methods.add(built); host.directMethods.add(built)
             } else if (key == "keep_unsent" || key == HIDDEN_WORDS) {
                 // Built before the first edit, so a row class without the helper's getters stops the patch with Messenger
                 // untouched. Only encrypted chats' CQL rows take the helper, and both controls that read a row's text
@@ -596,9 +632,41 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                 if (calls.map { it.first }.distinct().size != calls.size)
                     throw PatchException("Messenger controls: two different composer sends in one compose fragment")
                 val helpers = calls.map { (host, send) -> mutableClassDefBy(host) to mediaCaptionHelper(host, send) }
-                for ((host, _) in helpers) host.checkMediaCaptionHelper()
+                // #236: the editor's send, and the send of the editor's result, hand their fragment to a second helper,
+                // which checks the composer view the first one's reader of the typed text needs.
+                val helperHosts = (methods[MEDIA_CAPTION_EDITOR].orEmpty() + methods[MEDIA_CAPTION_RESULT].orEmpty()).map { it.definingClass }
+                val editorHelpers = helperHosts.distinct().map { host ->
+                    val send = calls.singleOrNull { it.first == host }?.second
+                        ?: throw PatchException("Messenger controls: the editor's send or result in $host has no composer send beside it")
+                    val view = mutableClassDefBy(host).methods.singleOrNull { it.hookId() == send.typedText }?.composerViewField()
+                        ?: throw PatchException("Messenger controls: the composer's reader of the typed text changed in $host")
+                    mutableClassDefBy(host) to mediaCaptionEditorHelper(host, view)
+                }
+                // A chat in a bubble gets the editor's own send instead, and the extension reaches the chat's compose
+                // fragment through the field that holds it, by the editor helper above, so each chat has to hold one.
+                val editorHosts = editorHelpers.map { it.first.type }.toSet()
+                for (chat in methods[MEDIA_CAPTION_CHAT].orEmpty().map { it.definingClass }.distinct())
+                    if (mutableClassDefBy(chat).instanceFields.none { it.type in editorHosts })
+                        throw PatchException("Messenger controls: the chat in $chat holds no compose fragment the editor's send was found in")
+                // The msys composer's attachment chip opens the editor from its preview plugin, and the editor's result
+                // goes out through the camera plugin's batch send. Each plugin class gets the helper that hands the
+                // extension the composer's bus and typed text, and each batch send's class the one that sends the words.
+                val chipHelpers = methods[MEDIA_CAPTION_CHIP].orEmpty().groupBy { it.definingClass }.map { (host, handlers) ->
+                    val handler = handlers.singleOrNull()
+                        ?: throw PatchException("Messenger controls: two openings of the editor from the attachment chip in $host")
+                    val text = mutableClassDefBy(host).chipTextField { classDefByOrNull(it) }
+                        ?: throw PatchException("Messenger controls: the attachment chip's plugin in $host holds no composer text")
+                    mutableClassDefBy(host) to mediaCaptionChipHelper(host, handler.parameterTypes.map { it.toString() }, text)
+                }
+                val chipSendHelpers = methods[MEDIA_CAPTION_CHIP_SEND].orEmpty().groupBy { it.definingClass }.map { (host, sends) ->
+                    val site = sends.singleOrNull()?.mediaCaptionChipSendSite()
+                        ?: throw PatchException("Messenger controls: the batch send of the editor's result changed in $host")
+                    mutableClassDefBy(host) to mediaCaptionChipSendHelper(host, site)
+                }
+                val added = helpers + editorHelpers + chipHelpers + chipSendHelpers
+                for ((host, helper) in added) host.checkMediaCaptionHelper(helper.name)
                 injectControl(key, methods)
-                for ((host, helper) in helpers) host.addMediaCaptionHelper(helper)
+                for ((host, helper) in added) host.addMediaCaptionHelper(helper)
             } else if (key == INBOX_SEARCH_BAR) {
                 val host = mutableClassDefBy(SETTINGS)
                 val stub = host.methods.singleOrNull { it.hookId() == SEARCH_ICON_STUB }
@@ -672,7 +740,7 @@ val hideStoriesPatch = controlPatch("stories", "Hide stories and notes", "Hides 
     "stories", STORY_RING)
 @Suppress("unused")
 val hideInstantsButtonPatch = controlPatch("instants_button", "Hide the Instants button",
-    "Hides the + button that slides in at the right edge of your chat list and the one under your chat heads. Both open Instants.", "Inbox")
+    "Hides the + button that slides in at the right edge of your chat list and the one under your chat heads. Both open Instants.", "Tab bar")
 @Suppress("unused")
 val hideSubtabsPatch = controlPatch("subtabs", "Hide inbox tabs", "Hides the All, Unread and Groups tabs above your chats.", "Inbox")
 @Suppress("unused")
@@ -694,6 +762,10 @@ val previewChatsPatch = controlPatch("chat_preview", "Preview chats on long pres
 val biggerChatPreviewPatch = controlPatch("chat_preview_size", "Bigger chat preview",
     "Gives the chat more room in the preview you get when you press and hold a chat, and lets you scroll back through it there. The menu under it keeps a set height and scrolls when it has more items.", "Chat menu")
 @Suppress("unused")
+val previewTapsPatch = controlPatch("chat_preview_taps", "Keep taps in the chat preview",
+    "A tap on the chat in the preview you get when you press and hold a chat no longer opens it. Your taps go to the chat itself, so its arrow down to the newest message works, and Open chat at the top of the menu under it opens the chat.",
+    "Chat menu", CHAT_PREVIEW_SIZE, HIDDEN_CHAT_LIST, HIDDEN_CHAT_ROW, HIDDEN_CHAT_TAP)
+@Suppress("unused")
 val pinMoreChatsPatch = controlPatch("pinned_chats", "Pin more chats", "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices.", "Chat menu", PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST)
 @Suppress("unused")
 val hideChosenChatsPatch = controlPatch("hidden_chats", "Hide chosen chats", "Adds Hide from chat list to the menu you get when you press and hold a chat. A hidden chat stays off your chat list when new messages come in, and search still finds it. Hiding stays on this phone, and you can unhide chats in HushMessenger settings. It doesn't stop notifications, so mute the chat in Messenger for that.", "Chat menu", HIDDEN_CHAT_LIST, HIDDEN_CHAT_ROW, HIDDEN_CHAT_TAP)
@@ -705,6 +777,9 @@ val hideChatMenuItemsPatch = controlPatch("chat_menu_items", "Hide chat menu ite
 @Suppress("unused")
 val profileMenuItemsPatch = controlPatch("profile_menu_items", "Hide profile menu items",
     "Hides the items you pick from the menu you get when you tap someone's picture beside their message in a chat. Tap one picture once, and that menu's items show up under this switch for you to pick.", "Chat menu", PROFILE_MENU_ITEMS)
+@Suppress("unused")
+val removeContactPatch = controlPatch("remove_contact", "Show Remove contact",
+    "Adds Remove contact back to the menu for people you aren't friends with. It takes them out of your Messenger contacts without blocking them.", "Chat menu", REMOVE_CONTACT)
 @Suppress("unused")
 val hideFacebookPatch = controlPatch("facebook", "Hide Facebook shortcuts", "Hides Facebook buttons, profile and sharing shortcuts, and the Also from Meta and Subscriptions sections in the Menu tab. Handy if you only use Messenger.", "Navigation", "facebook", FACEBOOK_PROFILE, FACEBOOK_PROFILE_HEADER)
 @Suppress("unused")
@@ -800,7 +875,8 @@ val messageActionsPatch = controlPatch("message_actions", "Customize message act
     MESSAGE_ACTIONS, MESSAGE_ACTIONS_MORE)
 @Suppress("unused")
 val mediaCaptionPatch = controlPatch("media_caption", "Put your words above the photo",
-    "Type something, attach a photo or video, and your words go out first, as their own message above it, instead of underneath. Mentions still work. With nothing typed, nothing changes.", "Photos and videos", MEDIA_CAPTION)
+    "Type something, attach a photo or video, and your words go out first, as their own message above it, instead of underneath. Mentions still work. With nothing typed, nothing changes.", "Photos and videos", MEDIA_CAPTION, MEDIA_CAPTION_EDITOR, MEDIA_CAPTION_CHAT, MEDIA_CAPTION_DIRECT, MEDIA_CAPTION_RESULT,
+    MEDIA_CAPTION_CHIP, MEDIA_CAPTION_CHIP_SEND)
 @Suppress("unused")
 val hideRecentMediaPatch = controlPatch("recent_media", "Hide the recent photo card",
     "Stops the card above the message box that offers to send the screenshot, photo or video you just took. You can still send it from the gallery.", "Photos and videos")
@@ -848,7 +924,7 @@ val allowLandscapePatch = controlPatch("landscape", "Allow landscape",
     LANDSCAPE_LOCK, LANDSCAPE_MEDIA)
 @Suppress("unused")
 val chatBarPlusPatch = controlPatch("chat_bar_plus", "Chat bar buttons in the + menu",
-    "Move the camera, gallery and mic buttons into the + menu.", "Conversations", CHAT_BAR_PLUS)
+    "Move the camera, gallery and mic buttons into the + menu.", "Conversations", CHAT_BAR_PLUS, CHAT_BAR_PLUS_MENU)
 @Suppress("unused")
 val callRecordingPatch = controlPatch("call_recording", "Record calls",
     "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first.", "Calls")
@@ -950,6 +1026,9 @@ val restrictedNotifyPatch = controlPatch("restricted_notify", "Notify for restri
 val openChatSoundPatch = controlPatch("open_chat_sound", "Sound in the open chat",
     "Plays Messenger's in-app message sound when a message comes into the chat you have open. Messenger already does that for likes and stickers. A silent phone or Messenger's own In-app sounds switch still keeps it quiet.", "Notifications", OPEN_CHAT_SOUND)
 @Suppress("unused")
+val ownChatSoundsPatch = controlPatch("own_chat_sounds", "Your own chat sounds",
+    "Plays sound files you pick instead of Messenger's send, sent and in-app message sounds, and you can change them any time without patching again. Messenger still decides when each one plays.", "Notifications", OWN_CHAT_SOUNDS)
+@Suppress("unused")
 val avatarShapePatch = controlPatch("avatar_shape", "Square profile pictures",
     "Shows profile pictures as squares instead of circles, or as rounded squares with Round the corners on. Restart Messenger after changing it.", "Theme",
     AVATAR_SHAPE, STORY_RING)
@@ -963,6 +1042,12 @@ val hideSearchSuggestedPatch = controlPatch("search_suggested", "Hide Suggested 
 val hideSearchReelsPatch = controlPatch("search_reels", "Hide recent reels in search",
     "Hides the reels you watched lately from search before you type anything.", "Inbox", SEARCH_SECTIONS)
 @Suppress("unused")
+val hideSearchStrangersPatch = controlPatch("search_strangers", "Hide people you don't know in search",
+    "Hides the people you aren't friends with when you type in search, so you don't message a stranger by mistake. Your friends and groups still come up.", "Inbox", SEARCH_SECTIONS, SEARCH_ITEMS)
+@Suppress("unused")
+val confirmStrangersPatch = controlPatch("confirm_strangers", "Ask before messaging people you don't know",
+    "Holds the first Send in a chat with someone you aren't friends with and asks you to tap Send again. A second tap within 5 seconds sends it as a message request. Groups, pages and chats where they've written to you send right away.", "Inbox", CONFIRM_STRANGERS)
+@Suppress("unused")
 val blockAiChatsPatch = controlPatch("ai_chat_block", "Block Meta AI chats",
     "Stops chats with Meta AI and other AI bots from opening, from search, a link or your chat list. A group with an AI in it still opens.", "Navigation", AI_CHAT_OPEN)
 @Suppress("unused")
@@ -970,7 +1055,7 @@ val hideStoryCreateTilePatch = controlPatch("story_create_tile", "Hide Create st
     "Takes the Create story tile off the start of the row of stories and notes above your chats. Your own story and note sit on that tile, so they go with it.", "Inbox", STORY_CREATE_TILE)
 @Suppress("unused")
 val showPinnedBarPatch = controlPatch("pinned_bar", "Show pinned messages",
-    "Shows a chat's pinned messages in a bar under its name. Messenger has that bar already, but only turns it on in some chats.", "Conversations", PINNED_BAR)
+    "Shows a bar under the chat's name with its newest pinned message, in end-to-end encrypted chats. Tap it to jump to the message.", "Conversations", PINNED_BAR)
 @Suppress("unused")
 val homeHeaderPatch = controlPatch("home_header", "Your own home header",
     "Puts words or a picture of your own at the top of the chat list in place of Messenger's wordmark. Type the words or pick the picture in HushMessenger settings. With neither, the wordmark stays.",

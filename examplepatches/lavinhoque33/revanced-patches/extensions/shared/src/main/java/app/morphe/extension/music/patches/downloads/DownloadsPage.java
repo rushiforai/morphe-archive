@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-08.
  * Modified by lavinhoque33, 2026-11-10.
  */
@@ -63,6 +64,11 @@ public final class DownloadsPage {
     private static final PageHosts hosts = new PageHosts();
 
     private DownloadsPage() {}
+
+    /** Whether the binder can encounter a generated Downloads row before the marker registry finishes loading. */
+    static boolean hasBuilt() {
+        return generation.hasBuilt();
+    }
 
     /**
      * Wraps the callback of a page request. Hook entry, on the thread that asks for the page.
@@ -223,8 +229,8 @@ public final class DownloadsPage {
         /** The sections of the stream copies for the layout, by the network state when the page is built. */
         private List<byte[]> copySections() {
             boolean online = Utils.isInternetReachable();
-            List<byte[]> items = DownloadsPageLogic.sections(layout, online, sourceRows(), noPlaylistRow(), labels(),
-                    TAPS, OfflineCopyStore::coverUrl);
+            List<byte[]> items = DownloadsPageLogic.sections(layout, online, sourceRows(), noPlaylistRow(),
+                    labels(), TAPS, OfflineCopyStore::coverUrl, DownloadsPage::ownsStreamSource);
             Logger.printDebug(() -> "DownloadsPage: online=" + online + " sections=" + items.size());
             return items;
         }
@@ -232,6 +238,11 @@ public final class DownloadsPage {
 
     private static List<SourceRow> sourceRows() {
         return OfflineLibraryLogic.sourceRows(OfflineCopyStore.sources(), OfflineCopyStore::tracksOf);
+    }
+
+    private static boolean ownsStreamSource(String sourceId) {
+        OfflineSourceStore.Source source = OfflineCopyStore.source(sourceId);
+        return source != null && OfflineCopyStore.ownsStreamSource(source);
     }
 
     /** The row of the songs no downloaded list holds, or null when there are none. */

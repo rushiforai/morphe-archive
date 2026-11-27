@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Looper;
 import android.content.SharedPreferences;
 import java.lang.ref.WeakReference;
+import dev.jason.gboardpatches.extension.addsymbols.GboardNativeSymbols;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettings;
 
 public final class GboardEditingAccessPointsRuntime {
@@ -47,7 +48,12 @@ public final class GboardEditingAccessPointsRuntime {
         }
     }
 
+    public static InputMethodService currentService() {
+        return service.get();
+    }
+
     public static void end() {
+        GboardNativeSymbols.clear();
         SESSION.end();
         service.clear();
         editor = null;

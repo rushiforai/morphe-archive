@@ -57,6 +57,7 @@ val hideReadReceiptsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_READ_RECEIPTS)
         check(SeenAckFingerprint.matchAll(1..1).size == 1)
 
         val seenAck = SeenAckFingerprint.method
@@ -105,5 +106,6 @@ val hideReadReceiptsPatch = bytecodePatch(
         returns.asReversed().forEach { index ->
             drawerRefresh.addInstructions(index, "invoke-static {p0}, $MARK_AS_READ->attach(Ljava/lang/Object;)V")
         }
+        registerHooks(PatchId.HIDE_READ_RECEIPTS, seenAck, drawerRefresh)
     }
 }

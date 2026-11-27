@@ -44,16 +44,16 @@ import java.util.WeakHashMap;
  * {@link View#isShown} does not check: it reads visibility flags up the tree and nothing else.
  */
 public final class FeedVisibility {
-    private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.9.3:oxj"};
-    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.9.3:oxk"};
-    private static final String[] PROFILE_TAB_RESOURCE_NAMES = {"47.9.3:oxl"};
+    private static final String[] HOME_TAB_RESOURCE_NAMES = {"48.0.2:ose"};
+    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"48.0.2:osf"};
+    private static final String[] PROFILE_TAB_RESOURCE_NAMES = {"48.0.2:osg"};
     /**
      * The bottom Friends tab, the id FriendsTabProtocol loads on every declared build (one before
      * Home's). A build with no such view answers null and the tab is simply not covered.
      */
-    private static final String[] FRIENDS_TAB_RESOURCE_NAMES = {"47.9.3:oxi"};
-    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"47.9.3:q6y"};
-    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"47.9.3:wz_"};
+    private static final String[] FRIENDS_TAB_RESOURCE_NAMES = {"48.0.2:osd"};
+    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"48.0.2:q16"};
+    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"48.0.2:wv_"};
     // Built once: the sheet check runs on every layout pass of the feed's window.
     private static final String COMMENT_SHEET_DIAGNOSTIC_NAME =
             "sheet (" + joinResourceNames(COMMENT_SHEET_RESOURCE_NAMES) + ")";
@@ -407,7 +407,32 @@ public final class FeedVisibility {
      * #FEED_PAGER}, and the filtered count sat over Shop's search box (S22, 2026-10-23).
      */
     public static boolean onRecommendationFeed(Activity activity) {
-        return homeTabUncovered(activity) && feedPagerOnScreen(activity);
+        return homeTabUncovered(activity) && feedPagerOnScreen(activity, false);
+    }
+
+    /**
+     * @return true while Home shows a top tab that plays no videos (Community's grid, Shop,
+     *         Nearby): the Home tab shown, in place and selected, a feed pager of this activity
+     *         known, and none of them on screen.
+     *
+     * <p>{@link #isOnFeed} answers yes there, since the Home tab stays selected on every top tab,
+     * and the block button floated over Community's grid for the last video watched (48.0.2,
+     * Login2, 2026-11-26). A button the reader has to press keeps the "assume the feed" bargain
+     * everywhere else: until a feed pager has been seen in this activity, a build that renamed it
+     * answers no here. The window is searched on every call with none of the known pagers on
+     * screen, so a Following feed built after For You's can't lose its buttons to the search gap.
+     */
+    public static boolean onTopTabWithoutVideos(Activity activity) {
+        View homeTab = homeTab(activity);
+        if (homeTab == null || !homeTab.isShown() || isScrolledAway(homeTab) || !homeTab.isSelected()) {
+            return false;
+        }
+        if (feedPagerOnScreen(activity, true)) return false;
+        for (WeakReference<View> reference : FEED_PAGERS) {
+            View pager = reference.get();
+            if (pager != null && belongsTo(pager, activity)) return true;
+        }
+        return false;
     }
 
     /** The Home tab exists, has pixels on screen, is selected, and no comment sheet covers it. */
@@ -441,9 +466,10 @@ public final class FeedVisibility {
      * which is the whole cost on a feed. With none of them on screen the window is searched
      * again, since a top tab's feed page can be built after the first one was found: every time
      * until this activity has one, so a label waiting on a feed that's still being built can't
-     * miss the pass that brings it, then at most once per {@link #FEED_PAGER_SEARCH_GAP_MS}.
+     * miss the pass that brings it, then at most once per {@link #FEED_PAGER_SEARCH_GAP_MS}
+     * unless {@code searchNow}.
      */
-    private static boolean feedPagerOnScreen(Activity activity) {
+    private static boolean feedPagerOnScreen(Activity activity, boolean searchNow) {
         boolean known = false;
         for (int i = FEED_PAGERS.size() - 1; i >= 0; i--) {
             View pager = FEED_PAGERS.get(i).get();
@@ -455,7 +481,7 @@ public final class FeedVisibility {
             known = true;
         }
         long now = SystemClock.uptimeMillis();
-        if (known && feedPagerSearchedIn.get() == activity && now >= feedPagerSearchedAt
+        if (known && !searchNow && feedPagerSearchedIn.get() == activity && now >= feedPagerSearchedAt
                 && now - feedPagerSearchedAt < FEED_PAGER_SEARCH_GAP_MS) {
             return false;
         }

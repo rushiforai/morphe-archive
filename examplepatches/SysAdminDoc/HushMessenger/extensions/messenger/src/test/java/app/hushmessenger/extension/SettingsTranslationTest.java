@@ -275,6 +275,12 @@ public class SettingsTranslationTest {
         assertEquals("Controls", new SettingsText(Locale.forLanguageTag("en-IT")).get("controls"));
     }
 
+    @Test public void russianReachesEveryRussianTag() {
+        for (String tag : new String[] {"ru", "ru-RU", "ru-UA", "ru-Cyrl-RU", "ru-US"})
+            assertEquals(tag, "Звонки", new SettingsText(Locale.forLanguageTag(tag)).get("calls"));
+        assertEquals("Calls", new SettingsText(Locale.forLanguageTag("en-RU")).get("calls"));
+    }
+
     @Test public void traditionalChineseSearchFindsChineseLabelsAndEnglishAndKeepsPreferenceKeys() {
         RuntimeEnvironment.setQualifiers("zh-rTW-w400dp-h800dp-mdpi");
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {

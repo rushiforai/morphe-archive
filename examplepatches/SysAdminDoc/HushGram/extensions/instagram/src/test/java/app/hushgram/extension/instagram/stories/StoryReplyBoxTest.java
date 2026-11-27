@@ -6,11 +6,17 @@ package app.hushgram.extension.instagram.stories;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.content.res.ColorStateList;
+import android.graphics.ColorFilter;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
@@ -19,6 +25,7 @@ import android.view.ViewStub;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import org.junit.After;
@@ -32,6 +39,8 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 
+import app.hushgram.extension.instagram.misc.AccentHue;
+import app.hushgram.extension.instagram.misc.AccentTheme;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
@@ -139,6 +148,9 @@ public class StoryReplyBoxTest {
     }
 
     private static void resetButtonSwitches() {
+        Settings.ACCENT_COLOR.resetToDefault();
+        Settings.ACCENT_HUE.resetToDefault();
+        Settings.ACCENT_ICONS.resetToDefault();
         Settings.HIDE_STORY_LIKE_BUTTON.resetToDefault();
         Settings.HIDE_STORY_COMMENT_BUTTON.resetToDefault();
         Settings.HIDE_STORY_SHARE_BUTTON.resetToDefault();
@@ -408,6 +420,129 @@ public class StoryReplyBoxTest {
         frame();
         assertEquals(View.VISIBLE, comment.getVisibility());
         assertEquals("share stays gone", View.GONE, share.getVisibility());
+    }
+
+    /**
+     * Icons in the accent color (#187): with no hiding switch on, the keeper still gives the heart (an
+     * icon inside its container) and the share icon the picked shade for each frame, a liked heart with
+     * no tint keeps its own, an icon Instagram tints white again takes the shade again, a hidden button
+     * is left alone, and the switch off or a pause puts Instagram's tint back.
+     */
+    @Test
+    public void theIconsTakeThePickedColorWithIconsInTheAccentColor() {
+        ColorStateList white = new ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}}, new int[] {0x4dffffff, 0xffffffff});
+        ImageView heart = new ImageView(activity);
+        heart.setImageTintList(white);
+        ((ViewGroup) like).addView(heart);
+        ImageView plane = new ImageView(activity);
+        plane.setId(shareId);
+        plane.setImageTintList(white);
+        footer.removeView(share);
+        footer.addView(plane, new LinearLayout.LayoutParams(120, 120));
+        ColorStateList commentTint = ColorStateList.valueOf(0xffff3040);
+        ImageView bubble = new ImageView(activity);
+        bubble.setId(commentId);
+        bubble.setImageTintList(commentTint);
+        footer.removeView(comment);
+        footer.addView(bubble, 2, new LinearLayout.LayoutParams(120, 120));
+        layOut();
+
+        StoryReplyBox.resumed(viewer);
+        frame();
+        assertFalse("nothing to do with the accent off", StoryReplyBox.keptForTests());
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        Settings.ACCENT_ICONS.save(true);
+        int shade = AccentTheme.storyButton(white).getDefaultColor();
+        assertTrue("a shade of its own", shade != 0xffffffff);
+        StoryReplyBox.resumed(viewer);
+        assertFalse("tinting moves nothing, so the frame draws", frame());
+        assertEquals("the heart", shade, heart.getImageTintList().getDefaultColor());
+        assertEquals("its disabled look keeps its alpha", 0x4d000000 | (shade & 0xffffff), heart.getImageTintList().getColorForState(new int[0], 0));
+        assertEquals("share", shade, plane.getImageTintList().getDefaultColor());
+        assertSame("a color of its own stays", commentTint, bubble.getImageTintList());
+        ColorStateList ours = heart.getImageTintList();
+        frame();
+        assertSame("tinted once", ours, heart.getImageTintList());
+
+        heart.setImageTintList(null);
+        frame();
+        assertEquals("a liked heart keeps Instagram's red", null, heart.getImageTintList());
+        heart.setImageTintList(white);
+        frame();
+        assertEquals("unliked, it takes the shade again", shade, heart.getImageTintList().getDefaultColor());
+
+        Settings.HIDE_STORY_SHARE_BUTTON.save(true);
+        plane.setImageTintList(white);
+        frame();
+        assertSame("a hidden button is left alone", white, plane.getImageTintList());
+        Settings.HIDE_STORY_SHARE_BUTTON.save(false);
+        frame();
+        frame();
+        assertEquals("shown again, tinted again", shade, plane.getImageTintList().getDefaultColor());
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        frame();
+        assertSame("paused, Instagram's tint is back", white, heart.getImageTintList());
+        assertSame(white, plane.getImageTintList());
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        frame();
+        assertEquals("resumed", shade, heart.getImageTintList().getDefaultColor());
+        Settings.ACCENT_ICONS.save(false);
+        frame();
+        assertSame("the switch off puts it back", white, heart.getImageTintList());
+        assertSame(white, plane.getImageTintList());
+        assertSame(commentTint, bubble.getImageTintList());
+    }
+
+    /**
+     * A story's More actions dots take the picked color with Icons in the accent color on (#187): as a
+     * filter while Instagram draws them with no tint or filter, through their tint when they have one,
+     * and the switch off puts Instagram's look back. A filter of Instagram's own is left alone.
+     */
+    @Test
+    public void theMoreActionsDotsTakeThePickedColor() {
+        int moreId = View.generateViewId();
+        StoryReplyBox.putIdForTests(activity, "mimicry_top_right_hamburger", moreId);
+        FrameLayout header = new FrameLayout(activity);
+        ImageView dots = new ImageView(activity);
+        dots.setId(moreId);
+        header.addView(dots, new FrameLayout.LayoutParams(96, 96));
+        viewerView.addView(header, new FrameLayout.LayoutParams(720, 140, Gravity.TOP));
+        layOut();
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        Settings.ACCENT_ICONS.save(true);
+        int shade = AccentTheme.storyButton(ColorStateList.valueOf(0xffffffff)).getDefaultColor();
+        assertTrue("a shade of its own", shade != 0xffffffff);
+
+        StoryReplyBox.resumed(viewer);
+        frame();
+        assertEquals("drawn with no tint, a filter of the shade", new PorterDuffColorFilter(shade, PorterDuff.Mode.SRC_IN), dots.getColorFilter());
+        ColorFilter ours = dots.getColorFilter();
+        frame();
+        assertSame("filtered once", ours, dots.getColorFilter());
+        Settings.ACCENT_ICONS.save(false);
+        frame();
+        assertNull("the switch off takes the filter away", dots.getColorFilter());
+
+        ColorFilter instagrams = new PorterDuffColorFilter(0xff000000, PorterDuff.Mode.SRC_IN);
+        dots.setColorFilter(instagrams);
+        Settings.ACCENT_ICONS.save(true);
+        frame();
+        assertSame("a filter of Instagram's own stays", instagrams, dots.getColorFilter());
+
+        dots.clearColorFilter();
+        ColorStateList white = ColorStateList.valueOf(0xffffffff);
+        dots.setImageTintList(white);
+        frame();
+        assertEquals("tinted, the tint takes the shade", shade, dots.getImageTintList().getDefaultColor());
+        assertNull(dots.getColorFilter());
+        Settings.ACCENT_ICONS.save(false);
+        frame();
+        assertSame("the switch off puts the tint back", white, dots.getImageTintList());
     }
 
     @Test

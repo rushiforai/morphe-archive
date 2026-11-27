@@ -122,6 +122,9 @@ final class UpdateHistory {
         BoardUrlPicker.addSettings(body,activity);
         StorageUsage.addButton(body,activity);
         AppTrafficUsage.addSettings(body,activity);
+        toggle(body,activity,SettingsProfiles.prefs(activity),"リンクカードの長押しで操作メニューを表示",SiteCards.LONG_PRESS,true,SiteCards::changed);
+        toggle(body,activity,SettingsProfiles.prefs(activity),"ドメインのみの文章からリンクカードを作らない",SiteCards.EXPLICIT_ONLY,true,SiteCards::changed);
+        toggle(body,activity,SettingsProfiles.prefs(activity),"リンクカードをタイトルだけのコンパクト表示にする",SiteCards.COMPACT,false,SiteCards::changed);
         toggle(body,activity,SettingsProfiles.prefs(activity),"テキスト選択メニューを優先する",SelectionMenuPriority.KEY,false,null);
         for(String category:new String[]{"アプリ・通信","表示・検索","画像・動画","NG・文字列置換","履歴・投稿","スレ更新","通知","エキスパート設定"}) {
             section(body,activity,category);
@@ -393,6 +396,9 @@ final class UpdateHistory {
                 toggle(content,activity,FeatureSwitches.prefs(activity),"投稿欄に板ごとの上限・残量・超過位置を表示", "postEditorLimitDisplay",true,null); break;
             case FILTER_OPTIMIZATION:
                 toggle(content,activity,FeatureSwitches.prefs(activity),"フィルターの抽出・位置保持・件数集計を最適化",ExtraQuickFilters.OPTIMIZATION,false,null); break;
+            case POSTER_ID_CHAIN_OPTIMIZATION:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"NGワードの投稿者ID連鎖判定を高速化",
+                        PosterIdChainNg.PERFORMANCE_KEY,true,null); break;
             case BACKGROUND_POSTING_OPT_IN:
                 ExpertSettings.addBackgroundPosting(content,activity,SettingsProfiles.prefs(activity)); break;
             case EXPERT_PERFORMANCE:

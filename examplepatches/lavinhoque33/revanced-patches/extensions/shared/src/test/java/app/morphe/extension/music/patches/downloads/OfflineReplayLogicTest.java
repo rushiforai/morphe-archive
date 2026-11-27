@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-12
  * Written by lavinhoque33, 2026-11-08.
  */
@@ -267,7 +268,7 @@ public class OfflineReplayLogicTest {
                                                      boolean page) {
         OfflineReplayLogic.WatchTarget watch = watchCommand == null ? null
                 : OfflineReplayLogic.onlineWatchOf(watchCommand);
-        return OfflineReplayLogic.routeOf(online, browseId, watch, "songs", TRACKS::containsKey, id -> page,
+        return OfflineReplayLogic.routeOf(online, browseId, watch, "songs", false, TRACKS::containsKey, id -> page,
                 id -> id.equals("x") || id.equals("z") || id.equals("loose"),
                 target -> OfflineReplayLogic.sourceOfPlaylist(target.playlistId(), target.videoId(), TRACKS),
                 id -> OfflineReplayLogic.sourceHolding(id, TRACKS));
@@ -283,10 +284,129 @@ public class OfflineReplayLogicTest {
         assertNull(OfflineReplayLogic.onlineWatchOf(new byte[]{(byte) 0xff}));
     }
 
+    private static final int WATCH_PLAYLIST = 52_666_186;
+    private static final String SAVED_PLAYLIST = "PLsaved_header";
+    private static final String SHUFFLE_PARAMS = "wAEB8gECKAE%3D";
+
+    private static ProtoWriter shufflePayload(String sourceId) {
+        return new ProtoWriter().string(1, sourceId).string(4, SHUFFLE_PARAMS);
+    }
+
+    private static byte[] playlistRoot(ProtoWriter payload) {
+        return new ProtoWriter().message(WATCH_PLAYLIST, payload.toByteArray()).toByteArray();
+    }
+
+    @Test public void aDirectShufflePlayAcceptsBothObservedTrackingShapes() {
+        byte[] config = new ProtoWriter().int32(2, 2).toByteArray();
+        byte[] metadata = new ProtoWriter().message(96_593_634,
+                new ProtoWriter().message(2, config).toByteArray()).toByteArray();
+        byte[] endpoint = new ProtoWriter().message(96_593_618, metadata).string(4, SHUFFLE_PARAMS)
+                .message(7, config).string(1, SAVED_PLAYLIST).toByteArray();
+        byte[] tracking = new ProtoWriter().int32(5, 3).string(1, "trace").int32(4, 2).toByteArray();
+        byte[] root = new ProtoWriter().message(94_476_261, tracking).message(WATCH_PLAYLIST, endpoint)
+                .string(2, "click tracking").toByteArray();
+        byte[] tokenOnlyRoot = new ProtoWriter().string(2, "click tracking").message(WATCH_PLAYLIST, endpoint)
+                .message(94_476_261, new ProtoWriter().string(1, "trace").toByteArray()).toByteArray();
+
+        assertEquals(SAVED_PLAYLIST, OfflineReplayLogic.shufflePlaylistOf(root));
+        assertEquals(SAVED_PLAYLIST, OfflineReplayLogic.savedShufflePlaylistOf(tokenOnlyRoot, SAVED_PLAYLIST::equals));
+        assertEquals(SAVED_PLAYLIST, OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(SAVED_PLAYLIST))));
+        assertNull(OfflineReplayLogic.onlineWatchOf(root));
+    }
+
+    @Test public void onlyTheCapturedNativeShuffleParamsDistinguishPlay() {
+        byte[] config = new ProtoWriter().int32(2, 2).toByteArray();
+        for (String params : List.of("", "wAEB", "wAEB8gECKAE=", "wAEB8gECKAE%3d", "wAEB8gECKAE%3Dmore")) {
+            assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(new ProtoWriter()
+                    .string(1, SAVED_PLAYLIST).string(4, params).message(7, config))));
+        }
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(new ProtoWriter().string(1, SAVED_PLAYLIST))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(new ProtoWriter().string(4, SHUFFLE_PARAMS))));
+    }
+
+    @Test public void shufflePlayDoesNotNormalizeOrBorrowAnotherSource() {
+        for (String id : List.of("", " " + SAVED_PLAYLIST, "VL" + SAVED_PLAYLIST, "RDAMPLsaved_header",
+                "MPREb_album", "OLAK5uy_album", "songs", "PPSVother", "PPSVrvx:" + SAVED_PLAYLIST)) {
+            assertNull(id, OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(id))));
+        }
+    }
+
+    @Test public void shufflePlayRequiresTheExactSavedSourceBeforeLookingUpItsQueue() {
+        byte[] play = playlistRoot(shufflePayload(SAVED_PLAYLIST));
+        Set<String> otherSources = Set.of("PLdifferent", "VL" + SAVED_PLAYLIST);
+        assertEquals(SAVED_PLAYLIST, OfflineReplayLogic.savedShufflePlaylistOf(play, SAVED_PLAYLIST::equals));
+        assertNull(OfflineReplayLogic.savedShufflePlaylistOf(play, otherSources::contains));
+        assertNull(OfflineReplayLogic.savedShufflePlaylistOf(play, id -> false));
+    }
+
+    @Test public void noExplicitIndexDelegateOrDuplicatePayloadFieldIsShufflePlay() {
+        byte[] watch = OnlineWatchCommand.build("abcdefghijk", SAVED_PLAYLIST, 0);
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(SAVED_PLAYLIST).int32(2, 0))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(SAVED_PLAYLIST).message(6, watch))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(SAVED_PLAYLIST).string(6, ""))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(SAVED_PLAYLIST)
+                .string(1, SAVED_PLAYLIST))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(SAVED_PLAYLIST)
+                .string(4, SHUFFLE_PARAMS))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(SAVED_PLAYLIST)
+                .message(7, new ProtoWriter().message(6, watch).toByteArray()))));
+    }
+
+    @Test public void shufflePlayRejectsRecursiveMixedAndDuplicateRoots() {
+        byte[] play = playlistRoot(shufflePayload(SAVED_PLAYLIST));
+        for (int envelope : List.of(300_347_778, 445_684_868, 361_956_631, 98_150_882)) {
+            byte[] nested = new ProtoWriter().message(envelope, play).toByteArray();
+            assertNull(OfflineReplayLogic.shufflePlaylistOf(nested));
+            assertFalse(OfflineReplayLogic.startsPlaylist(nested));
+            assertNull(OfflineReplayLogic.shufflePlaylistOf(new ProtoWriter().raw(play, 0, play.length)
+                    .message(envelope, play).toByteArray()));
+        }
+
+        byte[] watch = OnlineWatchCommand.build("abcdefghijk", SAVED_PLAYLIST, 0);
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(new ProtoWriter().raw(watch, 0, watch.length)
+                .raw(play, 0, play.length).toByteArray()));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(new ProtoWriter().raw(play, 0, play.length)
+                .raw(play, 0, play.length).toByteArray()));
+    }
+
+    @Test public void shufflePlayValidatesTheEntireRootAndPayload() {
+        byte[] play = playlistRoot(shufflePayload(SAVED_PLAYLIST));
+        byte[] bad = {(byte) 0xff};
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(new ProtoWriter().int32(WATCH_PLAYLIST, 1).toByteArray()));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(java.util.Arrays.copyOf(play, play.length - 1)));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(new ProtoWriter().raw(play, 0, play.length)
+                .raw(bad, 0, bad.length).toByteArray()));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(shufflePayload(SAVED_PLAYLIST)
+                .raw(bad, 0, bad.length))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(new ProtoWriter().message(1, bad)
+                .string(4, SHUFFLE_PARAMS))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(playlistRoot(new ProtoWriter().string(1, SAVED_PLAYLIST)
+                .int32(4, 1))));
+        assertNull(OfflineReplayLogic.shufflePlaylistOf(new ProtoWriter().raw(play, 0, play.length)
+                .message(94_476_261, bad).toByteArray()));
+    }
+
     @Test public void aSourceIsNamedWithOrWithoutThePlaylistPrefix() {
         assertEquals("PLa", OfflineReplayLogic.sourceOfBrowseId("VLPLa"));
         assertEquals("OLAK5uy_b", OfflineReplayLogic.sourceOfBrowseId("VLOLAK5uy_b"));
         assertEquals("MPREb_c", OfflineReplayLogic.sourceOfBrowseId("MPREb_c"));
+    }
+
+    @Test public void onlyPlaylistIdsAreEligibleForAnInitialLocalDetail() {
+        assertEquals("PLa", OfflineReplayLogic.initialDetailId("VLPLa", Map.of()));
+        assertNull(OfflineReplayLogic.initialDetailId("MPREb_c", null));
+        assertNull(OfflineReplayLogic.initialDetailId("VLOLAK5uy_a", null));
+        assertNull(OfflineReplayLogic.initialDetailId(null, null));
+        assertNull(OfflineReplayLogic.initialDetailId("FEmusic_library", null));
+        assertNull(OfflineReplayLogic.initialDetailId("VL", null));
+        assertNull(OfflineReplayLogic.initialDetailId("VLsongs", null));
+        assertNull(OfflineReplayLogic.initialDetailId("MPREb_", null));
+    }
+
+    @Test public void editAndRefreshRequestsDoNotOpenAStaleSavedModel() {
+        assertNull(OfflineReplayLogic.initialDetailId("VLPLa", Map.of("playlist_edit_mode", true)));
+        assertNull(OfflineReplayLogic.initialDetailId("VLPLa", Map.of("force_refresh", true)));
+        assertEquals("PLa", OfflineReplayLogic.initialDetailId("VLPLa", Map.of("force_refresh", false)));
     }
 
     @Test public void aPlaylistWatchBelongsToTheListWithThatIdOrTheAlbumHoldingTheSong() {
@@ -302,10 +422,29 @@ public class OfflineReplayLogicTest {
                 route(true, null, OnlineWatchCommand.build("x", "PLa", 0), false));
     }
 
-    @Test public void offlineTheBrowseOfADownloadedListPlaysItUnlessAPageWasRecorded() {
+    @Test public void onlyLegacyBrowseOfADownloadedListPlaysWithoutARecordedPage() {
         assertEquals(new OfflineReplayLogic.Decision(OfflineReplayLogic.Route.PLAY_SOURCE, "PLa", null),
                 route(false, "VLPLa", null, false));
         assertEquals(OfflineReplayLogic.Decision.STOCK, route(false, "VLPLa", null, true));
+    }
+
+    @Test public void anInitialDetailBrowseNeverAutoplaysEvenBeforeTheSnapshotIndexWarmsUp() {
+        for (boolean online : new boolean[]{false, true}) {
+            assertEquals(OfflineReplayLogic.Decision.STOCK,
+                    OfflineReplayLogic.routeOf(online, "VLPLa", null, "songs", true,
+                            id -> { throw new AssertionError("browse must not check playback availability"); },
+                            id -> { throw new AssertionError("browse must not check the page index here"); },
+                            id -> false, watch -> null, id -> null));
+        }
+    }
+
+    @Test public void enablingLocalPlaylistOpeningLeavesExistingAlbumRoutingAlone() {
+        assertEquals(route(false, "MPREb_c", null, false),
+                OfflineReplayLogic.routeOf(false, "MPREb_c", null, "songs", true,
+                        TRACKS::containsKey, id -> false, id -> true, watch -> null, id -> null));
+        assertEquals(route(true, "MPREb_c", null, true),
+                OfflineReplayLogic.routeOf(true, "MPREb_c", null, "songs", true,
+                        TRACKS::containsKey, id -> true, id -> true, watch -> null, id -> null));
     }
 
     @Test public void offlineOtherPagesAndUnknownListsStayTheApps() {
@@ -370,12 +509,12 @@ public class OfflineReplayLogicTest {
 
         assertEquals(new OfflineReplayLogic.WatchTarget("y", "PLa", 1), target);
         assertEquals(new OfflineReplayLogic.Decision(OfflineReplayLogic.Route.PLAY_TRACK, "PLa", "y"),
-                OfflineReplayLogic.routeOf(false, null, target, "songs", TRACKS::containsKey, id -> false, hasCopy,
-                        source, id -> null));
+                OfflineReplayLogic.routeOf(false, null, target, "songs", true, TRACKS::containsKey, id -> false,
+                        hasCopy, source, id -> null));
         // Without the mapping the tapped video is no track of the list: the whole list starts at its first track.
         assertEquals(new OfflineReplayLogic.Decision(OfflineReplayLogic.Route.PLAY_SOURCE, "PLa", null),
                 OfflineReplayLogic.routeOf(false, null, OfflineReplayLogic.onlineWatchOf(command), "songs",
-                        TRACKS::containsKey, id -> false, hasCopy, source, id -> null));
+                        false, TRACKS::containsKey, id -> false, hasCopy, source, id -> null));
     }
 
     @Test public void aWatchOfASongOrNoWatchIsLeftAsItIs() {

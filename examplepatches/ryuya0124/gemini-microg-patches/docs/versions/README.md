@@ -5,7 +5,13 @@
 | アプリ | 実行用定義 | 閲覧用記録 |
 | --- | --- | --- |
 | Google 17.54.18.ve.arm64 / 301800642 | [Google_17_54_18.kt](../../src/main/kotlin/app/morphe/patches/google/common/versions/Google_17_54_18.kt) | [JSON](com.google.android.googlequicksearchbox/17.54.18.ve.arm64.json) |
+| Google 17.70.11.ve.arm64 / 301827586 | [Google_17_70_11.kt](../../src/main/kotlin/app/morphe/patches/google/common/versions/Google_17_70_11.kt) | [JSON](com.google.android.googlequicksearchbox/17.70.11.ve.arm64.json) |
+| Google 17.72.17.ve.arm64 / 301831138 | [Google_17_72_17.kt](../../src/main/kotlin/app/morphe/patches/google/common/versions/Google_17_72_17.kt) | [JSON](com.google.android.googlequicksearchbox/17.72.17.ve.arm64.json) |
+| Google 17.76.20.ve.arm64 / 301838242 | [Google_17_76_20.kt](../../src/main/kotlin/app/morphe/patches/google/common/versions/Google_17_76_20.kt) | [JSON](com.google.android.googlequicksearchbox/17.76.20.ve.arm64.json) |
+| Google 17.78.14.ve.arm64 / 301841514 | [Google_17_78_14.kt](../../src/main/kotlin/app/morphe/patches/google/common/versions/Google_17_78_14.kt) | [JSON](com.google.android.googlequicksearchbox/17.78.14.ve.arm64.json) |
 | Gemini 1.0.958859967 / 332 | [Gemini_1_0_958859967.kt](../../src/main/kotlin/app/morphe/patches/google/common/versions/Gemini_1_0_958859967.kt) | [JSON](com.google.android.apps.bard/1.0.958859967.json) |
+| Gemini 1.0.995038376 / 345 | [Gemini_1_0_995038376.kt](../../src/main/kotlin/app/morphe/patches/google/common/versions/Gemini_1_0_995038376.kt) | [JSON](com.google.android.apps.bard/1.0.995038376.json) |
+| Gemini 1.0.1009090390 / 353 | [Gemini_1_0_1009090390.kt](../../src/main/kotlin/app/morphe/patches/google/common/versions/Gemini_1_0_1009090390.kt) | [JSON](com.google.android.apps.bard/1.0.1009090390.json) |
 
 ## 記録する内容
 

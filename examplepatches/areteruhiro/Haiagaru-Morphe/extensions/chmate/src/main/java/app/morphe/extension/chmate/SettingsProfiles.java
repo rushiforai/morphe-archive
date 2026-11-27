@@ -182,6 +182,11 @@ public final class SettingsProfiles {
         numberKey("hissiViewerTextZoom",100,130);
         booleanKey(PopularReplies.CUSTOM_THRESHOLD);defaultValue(PopularReplies.CUSTOM_THRESHOLD,false);
         booleanKey(PostEditorLimits.KEY);defaultValue(PostEditorLimits.KEY,true);
+        booleanKey("chtoio");defaultValue("chtoio",true);
+        booleanKey(SiteCards.LONG_PRESS);defaultValue(SiteCards.LONG_PRESS,true);
+        booleanKey(SiteCards.EXPLICIT_ONLY);defaultValue(SiteCards.EXPLICIT_ONLY,true);
+        booleanKey(SiteCards.COMPACT);defaultValue(SiteCards.COMPACT,false);
+        booleanKey(PosterIdChainNg.PERFORMANCE_KEY);defaultValue(PosterIdChainNg.PERFORMANCE_KEY,true);
         numberKey("popularReplyThreshold",1,9999);
         numberKey("popularReplyStandardThreshold",1,9999);
         for(String key:new String[]{"quickFilterAA","quickFilterMine","quickFilterReplies",HiddenNgUnread.KEY,HiddenNgUnread.NEW_ARRIVAL_KEY})booleanKey(key);
@@ -199,7 +204,7 @@ public final class SettingsProfiles {
         defaultValue("imageVpnDomains",ImageVpnRequestPolicy.DEFAULT_DOMAINS);
     }
     private static final String[] EXTRA_BOOLEAN={
-        "hideNgWordIdReplies",ChainAboneVisibility.KEY,EdgeLevelNg.OBSERVED,
+        "hideNgWordIdReplies",PosterIdChainNg.PERFORMANCE_KEY,ChainAboneVisibility.KEY,EdgeLevelNg.OBSERVED,
         "urlImageFetchEnabled","videoFrameThumbnailsEnabled","videoSwipeBrightness","videoSwipeVolume","videoDoubleTapSeek","videoYoutubeEnabled","videoAutoplay",
         "siteCardsEnabled","siteCardImages",XPostPreviewPosition.ENABLED,"patrolImagesEnabled","patrolImageFilterEnabled","responseArchiveEnabled","directBodySelection",
         "popularReplyPopup","popularReplyDirect","quickFilterCounts","quickFilterExtras","bottomQuickFilterPanel","persistentBottomQuickFilters",QuickFilterOptions.TRANSPARENT,"compactQuickFilters","wacchoiSearchEnabled","wacchoiBackgroundSearch",
@@ -321,6 +326,7 @@ public final class SettingsProfiles {
         out.put("chtoio",true);
         out.put("urlVideoFetchMode",3);
         out.put(GifAutoFetchPolicy.KEY,3);
+        out.put(PosterIdChainNg.PERFORMANCE_KEY,true);
         return out;
     }
     static Map<String,Object> minimalValues(){return minimalValues(false);}
@@ -330,6 +336,7 @@ public final class SettingsProfiles {
         for(String key:new String[]{"edgeReporterId","edgeReporterBoardList","dedicatedViewerEnabled","kyodemoEnhancedViewer","automaticDat",
                 "hideAd","chtoio","videoViewerEnabled","videoYoutubeEnabled","urlImageFetchEnabled","videoFrameThumbnailsEnabled","wacchoiSearchEnabled","showEdgeSearch",
                 UpdateConnectionHeaders.KEY,"fast191UpdateConnect","optimize191UpdateProgress"})out.put(key,true);
+        out.put(PosterIdChainNg.PERFORMANCE_KEY,true);
         out.put("urlVideoFetchMode",0);return out;
     }
 }

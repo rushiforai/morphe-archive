@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
 
 // Features ported from jasonwu1994's Gboard-patches (https://github.com/jasonwu1994/Gboard-patches,
-// GPLv3): the ones that only override feature flags, by name, so they work on 18.2.4 too. Each patch
+// GPLv3): the ones that only override feature flags, by name, so they work on 18.2.4 and 18.5.4 too. Each patch
 // only marks its feature as included; PortedFeatures applies it through the shared flag hook.
 
 private const val CREDIT = " Ported from jasonwu1994/Gboard-patches (GPLv3)."

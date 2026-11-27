@@ -8,6 +8,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -38,6 +39,8 @@ import static org.robolectric.Shadows.shadowOf;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {28, 36})
 public class InvisibleButtonsTest {
+    /** The day the tests run on, as [InvisibleButtons.today] counts. */
+    private static final long TODAY = 20_000L;
     private long clock = 1_000L;
 
     /** A page of HushMessenger's own, by its package. */
@@ -51,6 +54,7 @@ public class InvisibleButtonsTest {
         CrashGuard.resetForTests();
         InvisibleButtons.resetForTests();
         InvisibleButtons.clock = () -> clock;
+        InvisibleButtons.today = () -> TODAY;
     }
 
     @After public void putTheClockBack() {
@@ -303,13 +307,20 @@ public class InvisibleButtonsTest {
     }
 
     @Test public void aPickedButtonNeverFallsOffTheListSettingsShows() {
-        StringBuilder older = new StringBuilder("Call");
-        for (int i = 1; i < InvisibleButtons.REMEMBERED; i++) older.append("\nButton ").append(i);
-        Settings.preferences.edit().putString("invisible_buttons_seen", older.toString()).commit();
-        InvisibleButtons.setLevel("Call", 0);
         try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = screen.get();
-            InvisibleButtons.chatShown(new Object(), chat(activity, button(activity, "Brand new", 48)));
+            ViewGroup root = chat(activity, button(activity, "Brand new", 48));
+            String language = InvisibleButtons.languageOf(root);
+            StringBuilder older = new StringBuilder("Call");
+            StringBuilder when = new StringBuilder(TODAY + "\t" + language + "\tCall");
+            for (int i = 1; i < InvisibleButtons.REMEMBERED; i++) {
+                older.append("\nButton ").append(i);
+                when.append('\n').append(TODAY).append('\t').append(language).append("\tButton ").append(i);
+            }
+            Settings.preferences.edit().putString("invisible_buttons_seen", older.toString())
+                .putString(InvisibleButtons.SEEN_ON, when.toString()).commit();
+            InvisibleButtons.setLevel("Call", 0);
+            InvisibleButtons.chatShown(new Object(), root);
         }
         List<String> seen = InvisibleButtons.seen();
         assertEquals(InvisibleButtons.REMEMBERED, seen.size());
@@ -503,7 +514,9 @@ public class InvisibleButtonsTest {
     }
 
     @Test public void aButtonFirstSeenOnTheChatListStaysTheScreensAndOlderNamesHaveNoPlace() {
-        Settings.preferences.edit().putString("invisible_buttons_seen", "Old one").commit();
+        // Picked before places were kept, so it stays listed with no place.
+        Settings.preferences.edit().putString("invisible_buttons_seen", "Old one")
+            .putString(InvisibleButtons.LEVELS, "0\tOld one").commit();
         try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = screen.get();
             chat(activity, button(activity, "New message", 48));
@@ -542,6 +555,259 @@ public class InvisibleButtonsTest {
             assertNotNull(list.findViewWithTag("invisible_buttons_row_Old one"));
             assertNull("only older names: one plain list, as before", list.findViewWithTag("invisible_buttons_group_other"));
         }
+    }
+
+    /** #191: HushMessenger's own buttons are listed as its own wherever they sit, and so are ones an older build filed. */
+    @Test public void hushMessengersOwnButtonsGoInTheirGroupWhereverTheySit() {
+        Settings.preferences.edit()
+            .putString("invisible_buttons_seen", "Page up\nOur arrow")
+            .putString(InvisibleButtons.PLACES, "screen\tPage up\nscreen\tOur arrow")
+            .putString(InvisibleButtons.LEVELS, "0\tPage up\n50\tOur arrow").commit();
+        assertEquals("a name only HushMessenger's buttons use, filed by an older build", InvisibleButtons.PLACE_OURS,
+            InvisibleButtons.places().get("Page up"));
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            View call = at(button(activity, "Call", 48), 300, 0, 48, 40);
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 40, 400, 120);
+            View arrow = at(button(activity, "Our arrow", 40), 12, 100, 40, 40);
+            InvisibleButtons.ownView(arrow);
+            LinearLayout sheet = new LinearLayout(activity);
+            at(sheet, 100, 60, 200, 40);
+            InvisibleButtons.ownView(sheet);
+            sheet.addView(button(activity, "Play again", 40));
+            ViewGroup root = chat(activity, call, messages, arrow, sheet);
+
+            InvisibleButtons.chatShown(new Object(), root);
+
+            Map<String, String> places = InvisibleButtons.places();
+            assertEquals("Messenger's", InvisibleButtons.PLACE_HEADER, places.get("Call"));
+            assertEquals("over the messages, and ours", InvisibleButtons.PLACE_OURS, places.get("Our arrow"));
+            assertEquals("a button inside one of ours", InvisibleButtons.PLACE_OURS, places.get("Play again"));
+            String stored = Settings.preferences.getString(InvisibleButtons.PLACES, "");
+            assertTrue("the older entry is put right", stored.contains("ours\tOur arrow"));
+            assertTrue(stored.contains("ours\tPage up"));
+            assertEquals(0.5f, arrow.getAlpha(), 0.001f);
+        }
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            ViewGroup list = page.get().getWindow().getDecorView().findViewWithTag("invisible_buttons_list");
+            List<Object> order = new ArrayList<>();
+            for (int i = 0; i < list.getChildCount(); i++) order.add(list.getChildAt(i).getTag());
+            int ours = order.indexOf("invisible_buttons_group_ours");
+            assertTrue(String.valueOf(order), ours >= 0);
+            assertEquals(List.of("invisible_buttons_group_ours", "invisible_buttons_row_Page up",
+                "invisible_buttons_row_Our arrow", "invisible_buttons_row_Play again"), order.subList(ours, order.size()));
+        }
+    }
+
+    /** #191: what Messenger draws from a message is never listed, and what an older build kept of it goes. */
+    @Test public void textFromAMessageIsNeverListedAndWhatWasKeptOfItGoes() {
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            View call = at(button(activity, "Call", 48), 300, 0, 48, 40);
+            View address = at(button(activity, "https://example.com/a", 48), 240, 0, 48, 40);
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 40, 400, 100);
+            // A pinned message across the top of the chat.
+            View pinned = at(button(activity, "See you at six", 400), 0, 40, 400, 30);
+            // A link's preview card over the message box, with a button of its own.
+            LinearLayout card = new LinearLayout(activity);
+            card.setClickable(true);
+            card.setContentDescription("TikTok, a video someone shared");
+            at(card, 0, 140, 400, 30);
+            card.addView(button(activity, "Open the video", 40));
+            EditText field = new EditText(activity);
+            at(field, 60, 170, 280, 30);
+            View camera = at(button(activity, "Camera", 48), 0, 170, 48, 30);
+            ViewGroup root = chat(activity, call, address, messages, pinned, card, field, camera);
+            String language = InvisibleButtons.languageOf(root);
+            // What an older build kept: a link's title with no record, a web address, and a button of the message box.
+            Settings.preferences.edit()
+                .putString("invisible_buttons_seen", "Me at the zoo\nhttps://youtu.be/abc\nSend")
+                .putString(InvisibleButtons.PLACES, "composer\tMe at the zoo\ncomposer\thttps://youtu.be/abc\ncomposer\tSend")
+                .putString(InvisibleButtons.SEEN_ON, TODAY + "\t" + language + "\thttps://youtu.be/abc\n"
+                    + TODAY + "\t" + language + "\tSend").commit();
+
+            InvisibleButtons.chatShown(new Object(), root);
+
+            assertEquals(List.of("Send", "Call", "Camera"), InvisibleButtons.seen());
+            assertEquals(Map.of("Send", InvisibleButtons.PLACE_COMPOSER, "Call", InvisibleButtons.PLACE_HEADER,
+                "Camera", InvisibleButtons.PLACE_COMPOSER), InvisibleButtons.places());
+            assertFalse(Settings.preferences.getString(InvisibleButtons.SEEN_ON, "").contains("youtu"));
+            assertTrue(InvisibleButtons.looksLikeLink("Watch at WWW.example.com"));
+            assertFalse(InvisibleButtons.looksLikeLink("Call"));
+        }
+    }
+
+    /** #191: a name last seen in another language or long ago leaves the list, unless it's picked. */
+    @Test public void namesSeenInAnotherLanguageOrLongAgoLeaveTheListButPickedOnesStay() {
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            ViewGroup root = chat(activity, button(activity, "Call", 48));
+            String language = InvisibleButtons.languageOf(root);
+            assertFalse(language.isEmpty());
+            long old = TODAY - InvisibleButtons.STALE_DAYS;
+            Settings.preferences.edit()
+                .putString("invisible_buttons_seen", "Novoe soobshchenie\nChats, Tab 1 of 5\nRecent one\nCall\n"
+                    + "Kept a while\nPicked long ago\nPicked in Russian")
+                .putString(InvisibleButtons.PLACES, "screen\tNovoe soobshchenie\nscreen\tChats, Tab 1 of 5\n"
+                    + "screen\tRecent one\nheader\tCall\nscreen\tKept a while\nscreen\tPicked long ago\nscreen\tPicked in Russian")
+                .putString(InvisibleButtons.SEEN_ON, String.join("\n",
+                    TODAY + "\tru\tNovoe soobshchenie",
+                    (old - 1) + "\t" + language + "\tChats, Tab 1 of 5",
+                    (TODAY - 3) + "\t" + language + "\tRecent one",
+                    (TODAY - 3) + "\t" + language + "\tCall",
+                    old + "\t" + language + "\tKept a while",
+                    (old - 30) + "\t" + language + "\tPicked long ago",
+                    TODAY + "\tru\tPicked in Russian"))
+                .putString(InvisibleButtons.LEVELS, "0\tPicked long ago\n25\tPicked in Russian").commit();
+
+            InvisibleButtons.chatShown(new Object(), root);
+
+            assertEquals(List.of("Recent one", "Call", "Kept a while", "Picked long ago", "Picked in Russian"),
+                InvisibleButtons.seen());
+            assertEquals(InvisibleButtons.seen(), InvisibleButtons.listed());
+            assertEquals("never a picked one, or its button would come back",
+                Map.of("Picked long ago", 0, "Picked in Russian", 25), InvisibleButtons.levels());
+            List<String> when = List.of(Settings.preferences.getString(InvisibleButtons.SEEN_ON, "").split("\n"));
+            assertTrue("seen again today", when.contains(TODAY + "\t" + language + "\tCall"));
+            assertTrue(when.contains((TODAY - 3) + "\t" + language + "\tRecent one"));
+            assertFalse("what left the list leaves its record too", String.join("\n", when).contains("Novoe"));
+            String stored = Settings.preferences.getString(InvisibleButtons.PLACES, "");
+            assertFalse(stored.contains("Novoe"));
+            assertFalse(stored.contains("Tab 1 of 5"));
+        }
+    }
+
+    /**
+     * #191: the chat's name in its top bar is a button named for the chat, a comma and Messenger's "Thread details", the
+     * details button's whole name. It's kept as one row with nobody's name in it, apart from the details button, and a
+     * level picked for it holds in every chat. A comma with no button's name after it is left as it is.
+     */
+    @Test public void aChatsNameInFrontOfMessengersLabelIsLeftOutSoOneRowCoversEveryChat() {
+        String title = InvisibleButtons.SOMEONE + "Thread details";
+        String keyboard = "Open sticker, emoji and GIF keyboard.";
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            View pat = at(button(activity, "Pat, Thread details", 150), 50, 0, 150, 40);
+            View details = at(button(activity, "Thread details", 48), 340, 0, 48, 40);
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 40, 400, 120);
+            ViewGroup root = chat(activity, at(button(activity, "Back", 48), 0, 0, 48, 40), pat, details, messages,
+                at(button(activity, keyboard, 48), 0, 160, 48, 40));
+
+            InvisibleButtons.chatShown(new Object(), root);
+
+            assertEquals(List.of("Back", title, "Thread details", keyboard), InvisibleButtons.seen());
+            Map<String, String> places = InvisibleButtons.places();
+            assertEquals(InvisibleButtons.PLACE_HEADER, places.get(title));
+            assertEquals(InvisibleButtons.PLACE_HEADER, places.get("Thread details"));
+            assertEquals(InvisibleButtons.PLACE_COMPOSER, places.get(keyboard));
+            assertEquals("a tap in pick mode finds the one row too", title, InvisibleButtons.buttonAt(root, middleOf(pat)[0], middleOf(pat)[1]).getValue());
+
+            InvisibleButtons.setLevel(title, 0);
+            clock += 1;
+            InvisibleButtons.look(root, false);
+            assertEquals("the chat's name goes", 0f, pat.getAlpha(), 0f);
+            assertEquals("and the details button stays, a button of its own", 1f, details.getAlpha(), 0f);
+        }
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            View sam = at(button(activity, "Sam Lee, Jr., Thread details", 150), 50, 0, 150, 40);
+            View details = at(button(activity, "Thread details", 48), 340, 0, 48, 40);
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 40, 400, 160);
+            ViewGroup root = chat(activity, sam, details, messages);
+
+            InvisibleButtons.chatShown(new Object(), root);
+
+            assertEquals("the level picked in one chat holds in the next", 0f, sam.getAlpha(), 0f);
+            assertEquals(1f, details.getAlpha(), 0f);
+        }
+        assertEquals(Map.of(title, 0), InvisibleButtons.levels());
+        assertEquals(List.of("Back", title, "Thread details", keyboard), InvisibleButtons.seen());
+        for (String key : List.of("invisible_buttons_seen", InvisibleButtons.PLACES, InvisibleButtons.SEEN_ON, InvisibleButtons.LEVELS)) {
+            String stored = Settings.preferences.getString(key, "");
+            assertFalse("nobody's name is kept: " + stored, stored.contains("Pat") || stored.contains("Sam"));
+        }
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /**
+     * #191: rows an earlier build kept for the chat's name in each chat fold into the one row, at the lowest of their
+     * levels, and the names leave what's saved at the next walk. A choice file saved back then reads the same way.
+     */
+    @Test public void rowsSavedUnderAChatsNameFoldIntoOneRowAtTheLowestLevel() {
+        String title = InvisibleButtons.SOMEONE + "Thread details";
+        String language;
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            language = InvisibleButtons.languageOf(screen.get().getWindow().getDecorView());
+        }
+        Settings.preferences.edit()
+            .putString("invisible_buttons_seen", "Matt, Thread details\nThread details\nMatt Parker, Thread details")
+            .putString(InvisibleButtons.PLACES, "header\tMatt, Thread details\nheader\tThread details\nheader\tMatt Parker, Thread details")
+            .putString(InvisibleButtons.SEEN_ON, String.join("\n",
+                (TODAY - 2) + "\t" + language + "\tMatt, Thread details",
+                TODAY + "\t" + language + "\tThread details",
+                (TODAY - 1) + "\t" + language + "\tMatt Parker, Thread details"))
+            .putString(InvisibleButtons.LEVELS, "50\tMatt, Thread details\n25\tMatt Parker, Thread details\n75\tThread details")
+            .commit();
+        String choiceFile = ChoiceCodec.encode(Settings.preferences, Collections.singleton(InvisibleButtons.KEY));
+
+        assertEquals(List.of(title, "Thread details"), InvisibleButtons.seen());
+        assertEquals(InvisibleButtons.seen(), InvisibleButtons.listed());
+        assertEquals("the lowest level wins", Map.of(title, 25, "Thread details", 75), InvisibleButtons.levels());
+        assertEquals("an old name asks for the one row", 25, InvisibleButtons.level("Matt, Thread details"));
+        assertEquals(Map.of(title, InvisibleButtons.PLACE_HEADER, "Thread details", InvisibleButtons.PLACE_HEADER),
+            InvisibleButtons.places());
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            ViewGroup list = page.get().getWindow().getDecorView().findViewWithTag("invisible_buttons_list");
+            List<Object> order = new ArrayList<>();
+            for (int i = 0; i < list.getChildCount(); i++) order.add(list.getChildAt(i).getTag());
+            assertEquals(List.of("invisible_buttons_group_header", "invisible_buttons_row_" + title,
+                "invisible_buttons_row_Thread details"), order);
+            assertTrue(((RadioButton) list.findViewWithTag("invisible_buttons_level_25_" + title)).isChecked());
+        }
+
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            View pat = at(button(activity, "Pat, Thread details", 150), 50, 0, 150, 40);
+            View details = at(button(activity, "Thread details", 48), 340, 0, 48, 40);
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 40, 400, 160);
+            InvisibleButtons.chatShown(new Object(), chat(activity, pat, details, messages));
+
+            assertEquals("a chat nobody picked anything in before", 0.25f, pat.getAlpha(), 0.001f);
+            assertEquals(0.75f, details.getAlpha(), 0.001f);
+        }
+        assertEquals("25\t" + title + "\n75\tThread details", Settings.preferences.getString(InvisibleButtons.LEVELS, ""));
+        assertEquals(title + "\nThread details", Settings.preferences.getString("invisible_buttons_seen", ""));
+        assertEquals("seen today, as the one row", TODAY + "\t" + language + "\t" + title,
+            Settings.preferences.getString(InvisibleButtons.SEEN_ON, "").split("\n")[0]);
+        for (String key : List.of(InvisibleButtons.PLACES, InvisibleButtons.SEEN_ON)) {
+            assertFalse(Settings.preferences.getString(key, "").contains("Matt"));
+        }
+
+        // A choice file saved with the old names, restored where no chat has been opened yet, then a chat.
+        Settings.preferences.edit().clear().putBoolean(InvisibleButtons.KEY, true).commit();
+        Object saved = ChoiceCodec.parse(choiceFile).get(InvisibleButtons.LEVELS);
+        assertEquals("50\tMatt, Thread details\n25\tMatt Parker, Thread details\n75\tThread details", saved);
+        Settings.preferences.edit().putString(InvisibleButtons.LEVELS, (String) saved).commit();
+        assertEquals(Map.of(title, 25, "Thread details", 75), InvisibleButtons.levels());
+        Settings.preferences.edit().putString(InvisibleButtons.LEVELS, "50\tMatt, Thread details").commit();
+        assertEquals("with no details button seen yet the old name stays as it was",
+            Map.of("Matt, Thread details", 50), InvisibleButtons.levels());
+        try (var screen = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = screen.get();
+            View sam = at(button(activity, "Sam, Thread details", 150), 50, 0, 150, 40);
+            RecyclerView messages = new RecyclerView(activity);
+            at(messages, 0, 40, 400, 160);
+            InvisibleButtons.chatShown(new Object(), chat(activity, sam, at(button(activity, "Thread details", 48), 340, 0, 48, 40), messages));
+
+            assertEquals("then the first chat opened carries it", 0.5f, sam.getAlpha(), 0.001f);
+        }
+        assertEquals("50\t" + title, Settings.preferences.getString(InvisibleButtons.LEVELS, ""));
+        assertTrue(Settings.hookErrors.isEmpty());
     }
 
     @Test public void theRoundButtonPicksTheButtonTappedAndOpensItsLevelsRightThere() {

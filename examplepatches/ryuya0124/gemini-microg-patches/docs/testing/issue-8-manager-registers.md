@@ -41,7 +41,7 @@ Use the original API30 Google input and hashes in [the Android12 report](issue-8
 5. Build `scripts/emulator/build-contract-probe.sh`, then run:
 
 ```sh
-python3 scripts/emulator/test-issue8-manager.py \
+node scripts/emulator/test-issue8-manager.mjs \
   --adb "$ANDROID_HOME/platform-tools/adb" --serial emulator-5582 \
   --baseline-apk local/issue8/register-fix/manager-v0.3.2-google.apk \
   --fixed-apk local/issue8/register-fix/manager-v0.3.3-google.apk \

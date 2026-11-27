@@ -7,11 +7,14 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
+import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import org.w3c.dom.Element
@@ -67,9 +70,9 @@ internal fun BytecodePatchContext.addLocalFeaturesHooks() {
         }
     }
 
-    val itemType = "${COMMUNITY}data/core/entity/serviceplayable/StreamingLiveItem;"
-    val microType = "${COMMUNITY}data/core/entity/channel/StreamingMicroChannelIF;"
-    val microClass = "${COMMUNITY}data/core/entity/channel/StreamingMicroChannel;"
+    val itemType = chzzkType("${COMMUNITY}data/core/entity/serviceplayable/StreamingLiveItem;")
+    val microType = chzzkType("${COMMUNITY}data/core/entity/channel/StreamingMicroChannelIF;")
+    val microClass = chzzkType("${COMMUNITY}data/core/entity/channel/StreamingMicroChannel;")
     val name = getter(microClass, "channelName")
     val image = getter(microClass, "channelImageUrl")
     val nameReference = "$microType->${name.name}()Ljava/lang/String;"
@@ -79,14 +82,14 @@ internal fun BytecodePatchContext.addLocalFeaturesHooks() {
     val channel = getter(itemType, "channel")
     val title = getter(itemType, "liveTitle")
     val category = getter(itemType, "liveCategoryValue")
-    val livePlayable = "${COMMUNITY}data/core/entity/player/StreamingLivePlayableData;"
-    val followingRow = "${COMMUNITY}data/core/entity/channel/StreamingFollowingChannel;"
+    val livePlayable = chzzkType("${COMMUNITY}data/core/entity/player/StreamingLivePlayableData;")
+    val followingRow = chzzkType("${COMMUNITY}data/core/entity/channel/StreamingFollowingChannel;")
     val followingChannel = getter(followingRow, "channel")
     val followingLive = getter(followingRow, "liveInfo")
     val channelIds = listOf("StreamingMicroChannel", "StreamingMicroChannelPersonal",
         "StreamingChannelPersonal", "StreamingChannelDetail").map { channelType ->
-        val type = "${COMMUNITY}data/core/entity/channel/$channelType;"
-        if (packageMetadata.versionName !in setOf("1.3.0", "1.4.0") || channelType != "StreamingMicroChannel") {
+        val type = chzzkType("${COMMUNITY}data/core/entity/channel/$channelType;")
+        if (packageMetadata.versionName !in setOf("1.3.0", "1.4.0", "1.5.0") || channelType != "StreamingMicroChannel") {
             getter(type, "channelId")
         } else {
             val owner = mutableClassDefBy(type)
@@ -178,13 +181,32 @@ internal fun BytecodePatchContext.addLocalFeaturesHooks() {
     """)
 
     val listMethods = mutableListOf<Pair<String, String>>()
+    val filterTypes = (channelIds.map { it.definingClass } + listOf(itemType, followingRow, microType, livePlayable)).toMutableSet()
+    if (packageMetadata.versionName == "3.18.0") {
+        do {
+            val before = filterTypes.size
+            classDefForEach { type ->
+                if (type.superclass in filterTypes || type.interfaces.any { it in filterTypes }) filterTypes.add(type.type)
+            }
+        } while (filterTypes.size != before)
+    }
     classDefForEach { definition ->
-        if (definition.type.startsWith("${COMMUNITY}data/") && !definition.type.contains("serializer")) {
+        val minifiedListFields = if (packageMetadata.versionName == "3.18.0") definition.fields.filter { field ->
+            field.type == "Ljava/util/List;" && field.annotations.any { annotation ->
+                annotation.type == "Ldalvik/annotation/Signature;" && annotation.elements.any { element ->
+                    (element.value as? ArrayEncodedValue)?.value?.any {
+                        (it as? StringEncodedValue)?.value in filterTypes
+                    } == true
+                }
+            }
+        }.map { it.name }.toSet() else emptySet()
+        if (minifiedListFields.isNotEmpty() || (definition.type.startsWith("${COMMUNITY}data/") && !definition.type.contains("serializer"))) {
             definition.methods.filter { method ->
                 method.parameterTypes.isEmpty() && method.returnType == "Ljava/util/List;" &&
                     method.implementation?.instructions?.any {
                         it.getReference<FieldReference>()?.let { field ->
-                            field.definingClass == definition.type && field.type == "Ljava/util/List;"
+                            field.definingClass == definition.type && field.type == "Ljava/util/List;" &&
+                                (packageMetadata.versionName != "3.18.0" || field.name in minifiedListFields)
                         } == true
                     } == true
             }.forEach { listMethods.add(definition.type to it.name) }
@@ -205,11 +227,11 @@ internal fun BytecodePatchContext.addLocalFeaturesHooks() {
             }
     }
 
-    val detailType = "${COMMUNITY}ui/common/ui/overlayplayerend/live/streaming/StreamingLiveDetail;"
+    val detailType = chzzkType("${COMMUNITY}ui/common/ui/overlayplayerend/live/streaming/StreamingLiveDetail;")
     val detail = classDefBy(detailType)
     val detailChannel = detail.fields.single { it.name == "c" && it.type == "Ljava/lang/String;" }
-    val detailInfo = detail.fields.single { it.type == "${COMMUNITY}data/core/entity/channel/StreamingChannelDetail;" }
-    val statusType = "${COMMUNITY}data/core/entity/serviceplayable/StreamingLiveStatus;"
+    val detailInfo = detail.fields.single { it.type == chzzkType("${COMMUNITY}data/core/entity/channel/StreamingChannelDetail;") }
+    val statusType = chzzkType("${COMMUNITY}data/core/entity/serviceplayable/StreamingLiveStatus;")
     val status = getter(statusType, "status")
     val statusTitle = getter(statusType, "liveTitle")
     val statusCategory = getter(statusType, "liveCategoryValue")
@@ -261,7 +283,7 @@ internal fun BytecodePatchContext.addLocalFeaturesHooks() {
                 (instruction.opcode.setsWideRegister() && destination?.plus(1) == receiver))
         }) { "CHZZK detail constructor receiver was overwritten before capture" }
         val exit = instructions.withIndex().single { it.value.opcode == Opcode.RETURN_VOID }.index
-        check(if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) lastWrite.index + 1 < exit else lastWrite.index + 1 == exit)
+        check(if (packageMetadata.versionName in setOf("1.3.0", "1.4.0", "1.5.0")) lastWrite.index + 1 < exit else lastWrite.index + 1 == exit)
         constructor.addInstructions(lastWrite.index + 1,
             "invoke-static/range {v$receiver .. v$receiver}, $FOLLOWING->captureDetail(Ljava/lang/Object;)V")
     }

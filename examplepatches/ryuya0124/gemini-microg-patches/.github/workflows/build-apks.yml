@@ -18,7 +18,7 @@ jobs:
           GOOGLE_BASE_APK_URL: ${{ secrets.GOOGLE_BASE_APK_URL }}
           GOOGLE_SPLIT_APK_URL: ${{ secrets.GOOGLE_SPLIT_APK_URL }}
           GEMINI_BASE_APK_URL: ${{ secrets.GEMINI_BASE_APK_URL }}
-        run: python3 scripts/download-ci-inputs.py
+        run: bash scripts/download-ci-inputs.sh
       - run: scripts/check-inputs.sh
       - run: scripts/setup-tools.sh
       - name: Ensure Android API library

@@ -43,6 +43,7 @@ val hideOfficialAccountsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.HIDE_OA_ACCOUNTS_IN_MESSAGES)
         check(MessagesListFingerprint.matchAll(1..1).size == 1)
         val method = MessagesListFingerprint.method
         val instructions = method.implementation!!.instructions.toList()
@@ -55,6 +56,7 @@ val hideOfficialAccountsPatch = bytecodePatch(
                 "invoke-static {v$register}, $OFFICIAL_ACCOUNTS->filterOfficialAccounts(Ljava/util/List;)Ljava/util/List;")
             method.addInstructions(index + 1, "move-result-object v$register\nreturn-object v$register")
         }
+        registerHooks(PatchId.HIDE_OA_ACCOUNTS_IN_MESSAGES, method)
         attachNezumiSettings("attachOAMessages")
     }
 }

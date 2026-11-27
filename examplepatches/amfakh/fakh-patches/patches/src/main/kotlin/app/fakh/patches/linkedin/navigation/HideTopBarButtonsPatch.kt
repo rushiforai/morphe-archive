@@ -40,11 +40,11 @@ private object FeedSortButtonFingerprint : Fingerprint(
 val hideTopBarButtonsPatch = patch(
     name = "Hide top bar buttons",
     description = "Lets you hide the Post and Messaging buttons of the top bar, and show or hide the EU-only feed sort " +
-        "button. In Fakh Patches.",
+        "button.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Feature")
+    category("Navigation bar")
     dependsOn(settingsPatch)
 
     execute {

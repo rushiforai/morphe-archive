@@ -5,6 +5,9 @@
 
 package app.fakh.patches.github
 
+import app.fakh.patches.shared.register
+import app.fakh.patches.github.shared.Constants.DOWNLOAD_ASSETS
+import app.fakh.patches.github.shared.Constants.DOWNLOAD_FOLDER
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -48,7 +51,7 @@ val assetsDownloadPatch = patch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        addRow("fakh_download_folder", "Download location")
+        register(DOWNLOAD_ASSETS, DOWNLOAD_FOLDER)
         val method = AssetsDownloadFingerprint.method
         val instructions = method.implementation!!.instructions
 

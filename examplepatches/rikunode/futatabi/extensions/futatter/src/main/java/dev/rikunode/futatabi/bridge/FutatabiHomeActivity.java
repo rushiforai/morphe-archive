@@ -197,6 +197,21 @@ public class FutatabiHomeActivity extends Activity {
                 updateNotice("あいもげ：" + (loggedIn ? "ログイン中" : "未ログイン") + "\nめぶきちゃんねる：" + state.optString("mebukiSessionState", "UNVERIFIED"));
             } catch (Exception ex) { updateNotice("状態を確認できませんでした"); }
         });
+        action("追加板の配色："+(BridgePalette.LIGHT.equals(BridgePalette.get(this))?"ライト":"ダーク"),()->{
+            new android.app.AlertDialog.Builder(this).setTitle("追加板の配色")
+                    .setSingleChoiceItems(new String[]{"ダーク（既定）","ライト"},
+                            BridgePalette.LIGHT.equals(BridgePalette.get(this))?1:0,(dialog,which)->{
+                        if(BridgePalette.save(this,which==0?BridgePalette.DARK:BridgePalette.LIGHT)){
+                            dialog.dismiss();home();
+                        }else updateNotice("配色を保存できませんでした");
+                    }).setNegativeButton("キャンセル",null).show();
+        });
+        if (CacheMaintenanceProvider.lastReport() != null) {
+            action("キャッシュ診断（起動時）", () -> new android.app.AlertDialog.Builder(this)
+                    .setTitle("キャッシュ診断（起動時）")
+                    .setMessage(CacheMaintenanceProvider.lastReport())
+                    .setPositiveButton("閉じる", null).show());
+        }
         addText("あいもげ");
         action("新しいスレを立てる", () -> compose(""));
         action("スレ一覧から返信", () -> threadPicker("aimoge"));
@@ -264,7 +279,7 @@ public class FutatabiHomeActivity extends Activity {
 
     private void threadPicker(String board) {
         startPage(("animanch".equals(board) ? "あにまん" :
-                "mebuki".equals(board) ? "めぶきちゃんねる（おためし／遅延）" : "あいもげ") + " • 返信するスレを選ぶ");
+                "mebuki".equals(board) ? "めぶきちゃんねる" : "あいもげ") + " • 返信するスレを選ぶ");
         action("戻る", this::home);
         remote("スレ一覧を取得", "GET", "/ext/threads?board=" + board, null, result -> {
             if (result.status != 200) { updateNotice("取得失敗 HTTP " + result.status); return; }

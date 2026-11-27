@@ -23,14 +23,21 @@ public final class AnimanchNewThreadActivity extends Activity {
     private static final class Pending {
         final String id=UUID.randomUUID().toString();
         final AnimanchNewThreadDraft draft;
+        final java.util.concurrent.CompletableFuture<BridgeServer.BridgeResponse> result=new java.util.concurrent.CompletableFuture<>();
         Pending(AnimanchNewThreadDraft draft){this.draft=draft;}
+        void cancelUnsent(){
+            draft.cancel();
+            if(!draft.inFlight())result.complete(StockReply.error("カテゴリ選択を終了しました。未送信です。"));
+        }
     }
-    static String open(Context context,AnimanchNewThreadDraft draft){
+    // Called on the bridge worker, not the Android UI thread. Keep the original
+    // Flutter HTTP request alive until the user-selected draft has a real result.
+    static BridgeServer.BridgeResponse open(Context context,AnimanchNewThreadDraft draft){
         final Pending p;
         synchronized(AnimanchNewThreadActivity.class){
             if(pending!=null || active!=null){
                 draft.cancel();
-                return "カテゴリ選択・投稿画面が開いています。そちらを確認してください。";
+                return StockReply.error("カテゴリ選択・投稿画面が開いています。そちらを確認してください。");
             }
             pending=p=new Pending(draft);
         }
@@ -39,16 +46,25 @@ public final class AnimanchNewThreadActivity extends Activity {
                     .putExtra(EXTRA,p.id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             new Handler(Looper.getMainLooper()).postDelayed(()->{
                 synchronized(AnimanchNewThreadActivity.class){
-                    if(pending==p){p.draft.cancel();pending=null;}
+                    if(pending==p){p.cancelUnsent();pending=null;}
                 }
             },30_000);
         } catch(RuntimeException ex){
             synchronized(AnimanchNewThreadActivity.class){
                 if(pending==p){p.draft.cancel();pending=null;}
             }
-            return "カテゴリ選択画面を開けませんでした。未送信です。";
+            return StockReply.error("カテゴリ選択画面を開けませんでした。未送信です。");
         }
-        return "カテゴリを選択してください。まだ送信していません。";
+        try {
+            return p.result.get(120,java.util.concurrent.TimeUnit.SECONDS);
+        } catch(Exception ex) {
+            if(ex instanceof InterruptedException)Thread.currentThread().interrupt();
+            synchronized(AnimanchNewThreadActivity.class){
+                p.draft.cancel();
+                if(pending==p)pending=null;
+            }
+            return StockReply.error("投稿結果の待機を終了しました。再投稿せずカテゴリ画面とスレを確認してください。");
+        }
     }
     private Pending claimed;
     private ListView list;
@@ -106,6 +122,7 @@ public final class AnimanchNewThreadActivity extends Activity {
         final Pending p=claimed;
         new Thread(()->{
             BridgeServer.BridgeResponse response=p.draft.choose(id);
+            p.result.complete(response);
             String message=new String(response.bytes,Charset.forName("Shift_JIS"));
             boolean success=false;
             try{
@@ -120,9 +137,13 @@ public final class AnimanchNewThreadActivity extends Activity {
                     return;
                 }
                 submitting=false;
-                status.setText(confirmed?"スレ立て完了\n"+StockReplyRequest.animanchCategoryName(id)
-                        +"\nカタログを更新してください。元の画面から再送しないでください。":
-                        detail+"\n元の画面からむやみに再送しないでください。");
+                if(confirmed){
+                    // The same confirmed thisno is returned on the pending stock request.
+                    android.widget.Toast.makeText(this,"スレ立てを公開確認しました",android.widget.Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+                status.setText(detail+"\n元の画面からむやみに再送しないでください。");
                 close.setText("戻る");
                 close.setEnabled(true);
             });
@@ -133,8 +154,10 @@ public final class AnimanchNewThreadActivity extends Activity {
     @Override protected void onDestroy(){
         Pending p=claimed;
         if(p!=null){
-            p.draft.cancel();
-            if(!submitting)release(p);
+            if(!submitting){
+                p.cancelUnsent();
+                release(p);
+            }
         }
         claimed=null;
         super.onDestroy();

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-12
  * Written by lavinhoque33, 2026-11-08.
  */
@@ -36,6 +37,13 @@ final class OfflineReplayLogic {
 
     private static final int OFFLINE_WATCH_ENDPOINT = OfflineWatchCommand.ENDPOINT_FIELD;
     private static final int BROWSE_ENDPOINT = 48687626;
+    private static final int WATCH_PLAYLIST_ENDPOINT = 52_666_186;
+    private static final int CLICK_TRACKING = 2;
+    private static final int COMMAND_TRACKING = 94_476_261;
+    private static final int PLAYLIST_START_CONFIG = 7;
+    private static final int PLAYLIST_START_METADATA = 96_593_618;
+    private static final int PLAYLIST_START_METADATA_EXTENSION = 96_593_634;
+    private static final String SHUFFLE_PLAY_PARAMS = "wAEB8gECKAE%3D";
     /** The extension of the command that asks the app to remember a page as the Library tab's launch page. */
     private static final int VIDEO_ID_FIELD = OfflineWatchCommand.VIDEO_ID_FIELD;
     private static final int PLAYLIST_ID_FIELD = OfflineWatchCommand.PLAYLIST_ID_FIELD;
@@ -212,6 +220,166 @@ final class OfflineReplayLogic {
         }
     }
 
+    /** A direct playlist start can supersede an earlier selection even when it is not ours to replay. */
+    static boolean startsPlaylist(byte[] command) {
+        return hasField(command, WATCH_PLAYLIST_ENDPOINT);
+    }
+
+    static boolean isShufflePlaylistId(String id) {
+        return OfflineBrowsePagesLogic.isPlaylistId(id) && !id.startsWith("RD") && !id.startsWith("VL")
+                && !id.startsWith("PPSV");
+    }
+
+    /** Match the literal owner; no route through a different playlist that happens to hold the same songs. */
+    @Nullable
+    static String savedShufflePlaylistOf(byte[] command, Predicate<String> mayHaveSource) {
+        String sourceId = shufflePlaylistOf(command);
+        return sourceId != null && mayHaveSource.test(sourceId) ? sourceId : null;
+    }
+
+    /** The exact playlist-only Shuffle Play endpoint emitted by the native detail header, not a recursive search. */
+    @Nullable
+    static String shufflePlaylistOf(byte[] command) {
+        try {
+            CodedInputStream input = CodedInputStream.newInstance(command);
+            String sourceId = null;
+            boolean clickTracking = false;
+            boolean commandTracking = false;
+            while (!input.isAtEnd()) {
+                int tag = input.readTag();
+                if (WireFormat.getTagWireType(tag) != WireFormat.WIRETYPE_LENGTH_DELIMITED) return null;
+
+                switch (WireFormat.getTagFieldNumber(tag)) {
+                    case WATCH_PLAYLIST_ENDPOINT -> {
+                        if (sourceId != null) return null;
+                        sourceId = shufflePlaylistPayload(input);
+                        if (sourceId == null) return null;
+                    }
+                    case CLICK_TRACKING -> {
+                        // This Root field is the opaque click-tracking token, not another command.
+                        if (clickTracking || !input.skipField(tag)) return null;
+                        clickTracking = true;
+                    }
+                    case COMMAND_TRACKING -> {
+                        if (commandTracking || !readShuffleTracking(input)) return null;
+                        commandTracking = true;
+                    }
+                    default -> {
+                        return null;
+                    }
+                }
+            }
+            return sourceId;
+        } catch (IOException ignored) {
+            return null;
+        }
+    }
+
+    @Nullable
+    private static String shufflePlaylistPayload(CodedInputStream input) throws IOException {
+        int limit = input.pushLimit(input.readRawVarint32());
+        String sourceId = null;
+        boolean shuffled = false;
+        boolean config = false;
+        boolean metadata = false;
+        while (input.getBytesUntilLimit() > 0) {
+            int tag = input.readTag();
+            if (WireFormat.getTagWireType(tag) != WireFormat.WIRETYPE_LENGTH_DELIMITED) return null;
+
+            switch (WireFormat.getTagFieldNumber(tag)) {
+                case 1 -> {
+                    if (sourceId != null) return null;
+                    sourceId = input.readStringRequireUtf8();
+                    if (!isShufflePlaylistId(sourceId)) return null;
+                }
+                case 4 -> {
+                    if (shuffled || !SHUFFLE_PLAY_PARAMS.equals(input.readStringRequireUtf8())) return null;
+                    shuffled = true;
+                }
+                case PLAYLIST_START_CONFIG -> {
+                    if (config || !readShuffleConfig(input)) return null;
+                    config = true;
+                }
+                case PLAYLIST_START_METADATA -> {
+                    if (metadata || !readShuffleMetadata(input)) return null;
+                    metadata = true;
+                }
+                // An explicit index (even zero), delegate, or unobserved payload field is not this Play action.
+                default -> {
+                    return null;
+                }
+            }
+        }
+        input.popLimit(limit);
+        return shuffled ? sourceId : null;
+    }
+
+    /** The observed non-action config (field 2 = 2), also used by ordinary non-shuffled Play. */
+    private static boolean readShuffleConfig(CodedInputStream input) throws IOException {
+        int limit = input.pushLimit(input.readRawVarint32());
+        boolean matches = input.readTag() == (2 << 3) && input.readInt32() == 2 && input.getBytesUntilLimit() == 0;
+        input.popLimit(limit);
+        return matches;
+    }
+
+    private static boolean readShuffleMetadata(CodedInputStream input) throws IOException {
+        int limit = input.pushLimit(input.readRawVarint32());
+        boolean matches = input.readTag() == ((PLAYLIST_START_METADATA_EXTENSION << 3) | 2)
+                && readShuffleMetadataConfig(input) && input.getBytesUntilLimit() == 0;
+        input.popLimit(limit);
+        return matches;
+    }
+
+    private static boolean readShuffleMetadataConfig(CodedInputStream input) throws IOException {
+        int limit = input.pushLimit(input.readRawVarint32());
+        boolean matches = input.readTag() == ((2 << 3) | 2) && readShuffleConfig(input)
+                && input.getBytesUntilLimit() == 0;
+        input.popLimit(limit);
+        return matches;
+    }
+
+    /** Stock dispatch attaches a tracking token alone or with both numeric fields; neither is an action. */
+    private static boolean readShuffleTracking(CodedInputStream input) throws IOException {
+        int limit = input.pushLimit(input.readRawVarint32());
+        int seen = 0;
+        while (input.getBytesUntilLimit() > 0) {
+            int tag = input.readTag();
+            int bit = switch (tag) {
+                case (1 << 3) | 2 -> 1;
+                case 4 << 3 -> 2;
+                case 5 << 3 -> 4;
+                default -> 0;
+            };
+            if (bit == 0 || (seen & bit) != 0 || !input.skipField(tag)) return false;
+            seen |= bit;
+        }
+        input.popLimit(limit);
+        return seen == 1 || seen == 7;
+    }
+
+    /** Only accepted synthetic starts call this; a row endpoint or native offline request is not a shuffle start. */
+    static boolean isShuffleStart(byte[] command, WatchTarget target) {
+        String sourceId = sourceOf(target.playlistId());
+        if (sourceId == null || !isShufflePlaylistId(sourceId) || target.index() != 0) return false;
+
+        try {
+            byte[] endpoint = lengthDelimitedField(command, OFFLINE_WATCH_ENDPOINT);
+            if (endpoint == null) return false;
+            byte[] config = lengthDelimitedField(endpoint, OfflineWatchCommand.CONFIG_FIELD);
+            if (config == null) return false;
+
+            CodedInputStream input = CodedInputStream.newInstance(config);
+            while (!input.isAtEnd()) {
+                int tag = input.readTag();
+                if (tag == (OfflineWatchCommand.SHUFFLE_START_FIELD << 3)) return input.readBool();
+                if (!input.skipField(tag)) return false;
+            }
+        } catch (IOException ignored) {
+            // A malformed endpoint cannot request shuffle.
+        }
+        return false;
+    }
+
     /**
      * The watch target with the id of the song instead of the id of its music video. A song that has a video copy
      * starts as its music video (the app's tap is retargeted before it is dispatched), which is not an id of the
@@ -258,15 +426,15 @@ final class OfflineReplayLogic {
      * Decides a command when it is dispatched, never before: a row of the page carries the app's own command, and
      * only the network of this moment says whether the app can run it. The browse of the songs list (No Playlist)
      * opens that list on any network: it has no online page. Otherwise online every command stays the app's.
-     * Offline, the browse of a downloaded list plays its songs unless a page was recorded for it (then the app opens
-     * that page); the watch of a song of a downloaded list, from the recorded page or a row, plays that song as a
-     * track of the list; the watch of any other downloaded song plays its copy as a track of the first downloaded
-     * list that holds it, or of the songs list when none does.
+     * On versions that can answer an initial playlist detail request, a playlist browse always navigates, never
+     * plays. Other details retain their existing routing. Watches select a track of its downloaded list, or of
+     * the first list that holds it; songs with no list use No Playlist.
      *
      * @param online         The device reaches the internet now.
      * @param browseId       The page a browse command opens, or null for any other command.
      * @param watch          What a watch command names, or null for any other command.
      * @param songsId        The id of the list of the songs no downloaded list holds.
+     * @param localDetail    Whether initial detail requests can load their native local page before stock dispatch.
      * @param isSource       Whether a page id names a downloaded list, the {@code VL} prefix of a playlist included.
      * @param hasPage        Whether a page was recorded for the downloaded list.
      * @param hasCopy        Whether the song has a copy with stored data.
@@ -274,20 +442,19 @@ final class OfflineReplayLogic {
      * @param holdingList    The first downloaded list that holds the song, or null when none does.
      */
     static Decision routeOf(boolean online, @Nullable String browseId, @Nullable WatchTarget watch, String songsId,
-                            Predicate<String> isSource, Predicate<String> hasPage, Predicate<String> hasCopy,
-                            Function<WatchTarget, String> sourceOfWatch, Function<String, String> holdingList) {
-        if (browseId != null && songsId.equals(sourceOfBrowseId(browseId))) {
-            return new Decision(Route.OPEN_SONGS, songsId, null);
-        }
-        if (online) return Decision.STOCK;
-
+                            boolean localDetail, Predicate<String> isSource, Predicate<String> hasPage,
+                            Predicate<String> hasCopy, Function<WatchTarget, String> sourceOfWatch,
+                            Function<String, String> holdingList) {
         if (browseId != null) {
             String sourceId = sourceOfBrowseId(browseId);
+            if (songsId.equals(sourceId)) return new Decision(Route.OPEN_SONGS, songsId, null);
+            if (online || (localDetail && isPlaylistDetailBrowse(browseId))) return Decision.STOCK;
+
             boolean plays = isSource.test(sourceId) && !hasPage.test(sourceId);
             return plays ? new Decision(Route.PLAY_SOURCE, sourceId, null) : Decision.STOCK;
         }
 
-        if (watch == null) return Decision.STOCK;
+        if (online || watch == null) return Decision.STOCK;
 
         String listOfWatch = sourceOfWatch.apply(watch);
         if (!hasCopy.test(watch.videoId())) {
@@ -338,6 +505,22 @@ final class OfflineReplayLogic {
     /** The id of the downloaded list a browse id opens: a playlist page is {@code VL} and the playlist id. */
     static String sourceOfBrowseId(String browseId) {
         return browseId.startsWith("VL") ? browseId.substring(2) : browseId;
+    }
+
+    /** The canonical source for an initial playlist load, excluding edit and forced refresh commands. */
+    @Nullable
+    static String initialDetailId(@Nullable String browseId, @Nullable Map<?, ?> context) {
+        if (context != null && (Boolean.TRUE.equals(context.get("playlist_edit_mode"))
+                || Boolean.TRUE.equals(context.get("force_refresh")))) return null;
+
+        return isPlaylistDetailBrowse(browseId) ? sourceOfBrowseId(browseId) : null;
+    }
+
+    /** Native playlist detail uses VL; album browse IDs and album audio playlists retain their existing routing. */
+    static boolean isPlaylistDetailBrowse(@Nullable String browseId) {
+        return browseId != null && browseId.length() > 2 && browseId.startsWith("VL")
+                && !browseId.startsWith(AUDIO_PLAYLIST_PREFIX, 2) && !browseId.startsWith(ALBUM_BROWSE_PREFIX, 2)
+                && !("VL" + OfflineReplay.SONGS).equals(browseId);
     }
 
     /** Whether the message has the field, of any wire type. */

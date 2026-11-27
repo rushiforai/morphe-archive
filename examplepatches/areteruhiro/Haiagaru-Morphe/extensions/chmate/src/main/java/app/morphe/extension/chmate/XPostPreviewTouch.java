@@ -99,6 +99,7 @@ public final class XPostPreviewTouch {
         final PostLink link;
         final float x, y;
         boolean moved;
+        Runnable longPress;
         Press(PostLink link, MotionEvent event) { this.link=link; x=event.getX(); y=event.getY(); }
     }
     public static boolean onTouch(Object object, MotionEvent event) {
@@ -112,7 +113,11 @@ public final class XPostPreviewTouch {
             PRESSES.remove(view);
             PostLink link=hit(view,event);
             if(link==null)return false;
-            PRESSES.put(view,new Press(link,event));
+            Press next=new Press(link,event);PRESSES.put(view,next);
+            if(link instanceof SiteCards.SiteLink&&SiteCards.option(SiteCards.LONG_PRESS,true)){
+                next.longPress=()->{if(PRESSES.get(view)==next&&!next.moved){next.moved=true;((SiteCards.SiteLink)link).showMenu(view);}};
+                view.postDelayed(next.longPress,ViewConfiguration.getLongPressTimeout());
+            }
             return true;
         }
         Press press=PRESSES.get(view);
@@ -121,6 +126,7 @@ public final class XPostPreviewTouch {
         if(Math.abs(event.getX()-press.x)>slop || Math.abs(event.getY()-press.y)>slop
                 || event.getPointerCount()!=1)press.moved=true;
         if(action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) {
+            if(press.longPress!=null)view.removeCallbacks(press.longPress);
             PRESSES.remove(view);
             if(action==MotionEvent.ACTION_UP && !press.moved
                     && (press.link instanceof GigaLink || press.link instanceof SettingsOptionLinks.OptionLink || (press.link instanceof SiteCards.SiteLink ? Haiagaru.siteCardsEnabled() : Haiagaru.xPostPreviewEnabled()))

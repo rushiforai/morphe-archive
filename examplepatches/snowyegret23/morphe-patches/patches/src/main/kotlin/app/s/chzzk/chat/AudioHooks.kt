@@ -3,8 +3,8 @@ package app.s.chzzk.chat
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.getReference
+import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.rewrite
 import app.s.chzzk.common.utils.smaliReference
@@ -16,7 +16,7 @@ private const val FORMAT = "Lcom/naver/prismplayer/media3/common/audio/AudioProc
 private const val SINK = "Lcom/naver/prismplayer/media3/exoplayer/audio/DefaultAudioSink;"
 
 internal fun BytecodePatchContext.addAudioHooks() {
-    val renamed = packageMetadata.versionName in setOf("3.16.0", "3.17.0", "1.3.0", "1.4.0")
+    val renamed = packageMetadata.versionName in setOf("3.16.0", "3.17.0", "3.18.0", "1.3.0", "1.4.0", "1.5.0")
     val expected = if (renamed) setOf(
         "a()Z", "b()Z", "c()Ljava/nio/ByteBuffer;", "e($FORMAT)$FORMAT", "f(Ljava/nio/ByteBuffer;)V",
         "flush()V", "g(Lcom/naver/prismplayer/media3/common/audio/AudioProcessor${'$'}StreamMetadata;)V",

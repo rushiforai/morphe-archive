@@ -2,6 +2,9 @@ package app.noam.patches.chesscom.arcade
 
 import app.morphe.patcher.Fingerprint
 
+/** A lambda of the moving piece's view: R8 renamed AnimatedPiece but kept this name. */
+internal const val ANIMATED_PIECE_LAMBDA = "Lcom/chess/chessboard/view/viewlayers/AnimatedPiece\$animateDragCancel\$1;"
+
 /** toString() of the board's animation settings (move and drag-cancel animations). */
 internal object StandardAnimationsToStringFingerprint : Fingerprint(
     name = "toString",

@@ -53,12 +53,11 @@ val blockAdsInAppBrowserPatch = bytecodePatch(
     extendWith("extensions/adblock.mpe")
 
     execute {
-        if (blockInAppBrowserAds == false) return@execute
         val cls = classDefBy(WEBVIEW_CLIENT)
         if (cls.type != WEBVIEW_CLIENT || cls.superclass != SUPER_CLIENT) {
             throw PatchException("Hatena 5.80 article WebView class/superclass guard failed")
         }
-        if (cls.methods.any { it.name == "shouldInterceptRequest" }) {
+        if (blockInAppBrowserAds != false && cls.methods.any { it.name == "shouldInterceptRequest" }) {
             throw PatchException("Hatena article WebView already overrides shouldInterceptRequest")
         }
 
@@ -100,10 +99,15 @@ val blockAdsInAppBrowserPatch = bytecodePatch(
         existing.addInstructions(
             5,
             """
-                const/4 v0, ${if (updateAdBlockLists == false) "0x0" else "0x1"}
-                invoke-static { p1, v0 }, ${HELPER}->injectCss(Landroid/webkit/WebView;Z)V
+                invoke-static { p1 }, ${HELPER}->injectXAppPromptCss(Landroid/webkit/WebView;)V
+                ${if (blockInAppBrowserAds == false) "" else """
+                    const/4 v0, ${if (updateAdBlockLists == false) "0x0" else "0x1"}
+                    invoke-static { p1, v0 }, ${HELPER}->injectCss(Landroid/webkit/WebView;Z)V
+                """.trimIndent()}
             """.trimIndent(),
         )
+
+        if (blockInAppBrowserAds == false) return@execute
 
         // New virtual method: null from the helper means allow via the superclass.
         // The helper internally catches Throwable and returns null on all failures.

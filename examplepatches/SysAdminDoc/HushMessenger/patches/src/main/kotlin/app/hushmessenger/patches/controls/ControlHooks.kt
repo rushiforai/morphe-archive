@@ -128,7 +128,7 @@ internal fun Method.hookId() = "$definingClass->$name(${parameterTypes.joinToStr
  * instead of once per finder. A finder called outside [findControls] walks on its own and finds the same methods.
  */
 private fun sharedChecks(): List<WalkCheck> = listOf(
-    chatPreviewBuilders, chatPreviewReaders, storyFinishedLoggers, blockedListBuilders, phoneIdRequesters, phoneIdSenders,
+    chatPreviewBuilders, chatPreviewReaders, chatBarMenuReaders, storyFinishedLoggers, blockedListBuilders, phoneIdRequesters, phoneIdSenders,
     nearbyScanSites, wifiIdentitySites, markReadBars, markIconSetters, voiceDownloads, menuTaps, saveVideoRows, moreSheets,
     audioCasters, trayInsertBuilders, trayPluginClasses, landscapeFlagReaders, mediaOrientationClasses, fontSites,
     searchBarBuilders, searchScreenHintShapes, carBundleWriters, carExtensionSteps, ringDeciders, menuItemsBuilders,
@@ -137,11 +137,11 @@ private fun sharedChecks(): List<WalkCheck> = listOf(
     inboundCopies, tempFolderChecks, configHolders, playoutSwitches, playoutWriters, recordHandovers, recentMediaDetectors,
     attributionUploads, instantCaptures, pinLimitLoaders, sharedFlagReaders, aiMentionShapes, imagineYourselfReaders, headerRenders, logBars,
     ringMountClasses, roundingPrinterClasses, legacyRoundings, tileShapeFlags, messageDebugStrings,
-    profileMenuBuilders, profileCallRows, recoveryCodeRows, noteLimitMethods,
+    profileMenuBuilders, profileCallRows, recoveryCodeRows, noteLimitMethods, contactMenuRows, contactDeleteCallbacks,
     searchResultSources, searchSectionTypes, aiChatLaunchers,
     storyTrayBuilders,
-    pinnedBarLoaders,
     messageSoundPickers,
+    rawSoundPlayers,
 )
 
 /** Match semantics first, then require the exact set the build's profile records. */
@@ -247,15 +247,16 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(CHAT_MENU_ITEMS).addAll(chatMenuRows(hiddenChats))
     val profileMenus = findProfileMenuItems(classes)
     found.getValue(PROFILE_MENU_ITEMS).addAll(profileMenus)
+    found.getValue(REMOVE_CONTACT).addAll(findRemoveContact(classes))
     found.getValue(PROFILE_MENU_CALL).addAll(findProfileMenuCalls(classes, profileMenus, stringTables))
     found.getValue(REACTION_READ).addAll(findReactionRead(classes, stringTables))
     found.getValue(SEARCH_SECTIONS).addAll(findSearchSections(classes))
     found.getValue(SEARCH_ITEMS).addAll(findSearchItems(classes))
     found.getValue(AI_CHAT_OPEN).addAll(findAiChatOpen(classes))
     found.getValue(STORY_CREATE_TILE).addAll(findStoryCreateTile(classes))
-    pinnedBarLoader = resolvePinnedBarLoader(classes)
-    found.getValue(PINNED_BAR).addAll(findPinnedBar(classes, pinnedBarLoader))
+    pinnedBarRecipe = resolvePinnedBar(classes, found.getValue(PINNED_BAR).singleOrNull())
     found.getValue(OPEN_CHAT_SOUND).addAll(findOpenChatSound(classes))
+    found.getValue(OWN_CHAT_SOUNDS).addAll(findOwnChatSounds(classes))
     found.getValue(NEARBY_SCANS).addAll(patchStage("Find nearby scans") { findNearbyScans(classes) })
     found.getValue(WIFI_IDENTITY).addAll(patchStage("Find Wi-Fi identity reads") { findWifiIdentityReads(classes) })
     found.getValue(PHONE_ID_SYNC).addAll(findPhoneIdSync(classes))
@@ -264,8 +265,15 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(STORY_HOLD).addAll(findStoryHold(classes))
     found.getValue(CHAT_PREVIEW).addAll(findChatPreview(classes))
     found.getValue(CHAT_PREVIEW_SIZE).addAll(findChatPreviewSize(classes))
+    found.getValue(CHAT_BAR_PLUS_MENU).addAll(findChatBarPlusMenu(classes))
     found.getValue(INBOX_TYPING).addAll(findInboxTyping(classes))
     found.getValue(MEDIA_CAPTION).addAll(findMediaCaption(classes))
+    found.getValue(MEDIA_CAPTION_EDITOR).addAll(findMediaCaptionEditor(classes, found.getValue(MEDIA_CAPTION)))
+    found.getValue(MEDIA_CAPTION_CHAT).addAll(findMediaCaptionChat(classes, found.getValue(MEDIA_CAPTION_EDITOR)))
+    found.getValue(MEDIA_CAPTION_DIRECT).addAll(findMediaCaptionDirect(classes))
+    found.getValue(MEDIA_CAPTION_RESULT).addAll(findMediaCaptionResult(classes, found.getValue(MEDIA_CAPTION_EDITOR)))
+    found.getValue(MEDIA_CAPTION_CHIP).addAll(findMediaCaptionChip(classes))
+    found.getValue(MEDIA_CAPTION_CHIP_SEND).addAll(findMediaCaptionChipSend(classes, found.getValue(MEDIA_CAPTION_CHIP)))
     found.getValue(LANDSCAPE_LOCK).addAll(findPortraitLock(classes))
     found.getValue(LANDSCAPE_MEDIA).addAll(findMediaOrientation(classes))
     found.getValue(BLOCKED_LIST_PICTURES).addAll(findBlockedListPictures(classes))
@@ -297,6 +305,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(CHAT_CHANNEL_KEEP).addAll(findChatChannelKeep(classes))
     found.getValue(CHAT_CHANNEL_RAISE).addAll(findChatChannelRaise(classes))
     found.getValue(CHAT_HEAD_VIDEO).addAll(findChatHeadVideo(classes))
+    found.getValue(GROOT_TEXTURE).addAll(findGrootTexture(classes))
     val callButtonBuilders = findCallButtonBuilt(classes, stringTables)
     found.getValue(CALL_BUTTON_BUILT).addAll(callButtonBuilders)
     found.getValue(HIDE_CALL_LISTS).addAll(findCallButtonLists(classes, callButtonBuilders))
@@ -326,6 +335,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(STORY_ROW_SIZE).addAll(findStoryRowSize(classes))
     found.getValue(MARK_READ_LOCALLY).addAll(findMarkReadLocally(classes))
     found.getValue(UNREAD_BADGE).addAll(findUnreadBadge(classes))
+    found.getValue(CONFIRM_STRANGERS).addAll(findConfirmStrangers(classes))
     return found
 }
 
@@ -477,6 +487,7 @@ private class ControlScan(
     val drawerRefresh = StringMatch(DRAWER_REFRESH)
     val notesTip = StringMatch(NOTES_TIP_SHEET)
     val reportUserStatus = StringMatch(REPORT_USER_STATUS)
+    val updateAppState = StringMatch(UPDATE_APP_STATE)
     val foregroundAvailability = StringMatch(FOREGROUND_AVAILABILITY)
 
     fun visit(cls: ClassDef, original: String?, method: Method) {
@@ -571,9 +582,13 @@ private class ControlScan(
             !AccessFlags.STATIC.isSet(method.accessFlags) &&
             instructions.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == FLAG_SECURE } &&
             refs.any { it.toString() == "Landroid/view/Window;->addFlags(I)V" }) add("allow_screenshot")
-        // Our own active status, reported in two places: the msys self-report and each MQTT client-settings publisher.
+        // Our own active status: the msys self-report, the msys app-state report, the gateway stream's write request
+        // (#243) and each MQTT client-settings publisher.
         if (cls.type == PRESENCE_MANAGER && ret == "V" && params == listOf("Z") &&
             !AccessFlags.STATIC.isSet(method.accessFlags) && refs.any { reportUserStatus.matches(it) }) add(APPEAR_OFFLINE)
+        if (ret == "V" && params == listOf("Z") && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            refs.any { updateAppState.matches(it) } && MSYS_PRESENCE_UPDATE in strings) add(APPEAR_OFFLINE)
+        if (cls.type == PRESENCE_WRITE_REQUEST && method.name == "<init>" && params == PRESENCE_WRITE_PARAMETERS) add(APPEAR_OFFLINE)
         if (ret == "V" && params.size == 2 && params[0] == FB_SHARED_PREFERENCES &&
             !AccessFlags.STATIC.isSet(method.accessFlags) && refs.any { foregroundAvailability.matches(it) } &&
             CLIENT_SETTINGS_TOPIC in strings) add(AVAILABILITY_SETTING)
@@ -649,14 +664,15 @@ private class ControlScan(
             if (original == CHAT_FRAGMENT_NAME) add("chat_fragment")
             if (original == "M4TabNavigationFragment") add("chat_inbox")
         }
-        // Five controls open at the chat's own view handover: the jump menu, the screenshot block, the dimmer, the
-        // translucent bars and the chat bar's + menu.
+        // Six controls open at the chat's own view handover: the jump menu, the screenshot block, the dimmer, the
+        // translucent bars, the chat bar's + menu and the pinned message bar.
         if (original == CHAT_FRAGMENT_NAME && method.isChatJumpView()) {
             add(CHAT_JUMP)
             add(SECURE_CHAT)
             add(INVISIBLE_BUTTONS)
             add(IOS_BARS)
             add(CHAT_BAR_PLUS)
+            add(PINNED_BAR)
         }
         // Chats on Messenger's older route open in this fragment, which loads its own animation.
         if (original == "ThreadViewFragment" && method.name == "onCreateAnimation" &&

@@ -1,6 +1,5 @@
 package io.github.bryceaspringfield.morphe.extension.youtube;
 
-
 import org.json.JSONObject;
 
 import java.util.Collections;
@@ -15,15 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Each video's YouTube category (e.g., "Music", "News &amp; Politics", "Gaming"), read from the player API's
- * microformat, since feed buffers state none. A lookup runs once a video; a feed item waits for its answer for at
- * most {@link #WAIT_MS} the first time, and is shown when the answer comes later; a caller can then ask to hear the
- * late answer ({@link #onLate}), e.g., to send Not interested for a video of a hidden category shown in the meantime.
- */
 final class Categories {
 
-    /** YouTube's categories, in English as the API states them (hl=en). */
     static final String[] ALL = {"Film & Animation", "Autos & Vehicles", "Music", "Pets & Animals", "Sports",
             "Travel & Events", "Gaming", "People & Blogs", "Comedy", "Entertainment", "News & Politics",
             "Howto & Style", "Education", "Science & Technology", "Nonprofits & Activism"};
@@ -41,7 +33,6 @@ final class Categories {
                 }
             });
 
-    /** Callbacks waiting for a lookup still running, by video ID. */
     private static final Map<String, java.util.function.Consumer<String>> LATE = new ConcurrentHashMap<>();
 
     private static volatile String parsedSetting;
@@ -62,8 +53,6 @@ final class Categories {
         return hidden;
     }
 
-    /** The video's category, waiting briefly for a first lookup; null while unknown. */
-    
     static String get(String videoId) {
         String c = CACHE.get(videoId);
         if (c != null) return c;
@@ -75,15 +64,12 @@ final class Categories {
         }
     }
 
-    /** Whether a lookup for the video is still running. */
     static boolean pending(String videoId) {
         return PENDING.containsKey(videoId) && !CACHE.containsKey(videoId);
     }
 
-    /** Runs the callback with the video's category once its running lookup answers (one callback a video). */
     static void onLate(String videoId, java.util.function.Consumer<String> callback) {
         LATE.put(videoId, callback);
-        // The lookup may have ended between pending() and put().
         String c = CACHE.get(videoId);
         if (c != null) {
             java.util.function.Consumer<String> cb = LATE.remove(videoId);

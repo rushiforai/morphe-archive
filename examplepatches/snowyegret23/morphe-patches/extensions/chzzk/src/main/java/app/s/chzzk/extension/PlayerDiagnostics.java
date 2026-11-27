@@ -60,10 +60,14 @@ public final class PlayerDiagnostics extends View implements Runnable, View.OnLa
 
     public static int profileMode() { return profile; }
 
-    public static void attach(ViewGroup player) {
+    public static boolean isOverlayPlayer(Object player) {
         String name = player.getClass().getName();
-        if (!name.equals("com.navercorp.game.android.community.app.feature.overlayplayer.OverlayPlayerView")
-            && !name.equals("com.navercorp.game.android.community.tv.feature.overlayplayer.OverlayPlayerView")) return;
+        return name.equals("com.navercorp.game.android.community.app.feature.overlayplayer.OverlayPlayerView")
+            || name.equals("com.navercorp.game.android.community.tv.feature.overlayplayer.OverlayPlayerView");
+    }
+
+    public static void attach(ViewGroup player) {
+        if (!isOverlayPlayer(player)) return;
         if (Looper.myLooper() != Looper.getMainLooper()) {
             MAIN.post(() -> attach(player));
             return;

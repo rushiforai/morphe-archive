@@ -1,0 +1,2180 @@
+{
+  "note": "Written by Jimaku's extension/scripts/export-shared-cases.ts. Change the cases there, not here.",
+  "about": "lib/menu-model.ts cases shared with the Android port: what Jimaku's subtitle menu lists for a video, and what its rows read and do. Each case changes the base input and checks what is given under expect; tests/menu-model.test.ts and the bundle's MenuModelTest run every case.",
+  "format": {
+    "input": "Changes to base, as MenuInput has them. me is the account's balance in seconds and whether it is signed in; trackUnknown: true stands for a track the player hasn't said yet (undefined).",
+    "read": "A row as a viewer reads it: the name, ' ✦' on a Premium row, ': ' and the value where there is one, ' ✓' when checked. The main panel reads 'Premium on|off|signed out' and its value first, then the note in brackets or each row, then 'Other languages ›' where Other languages has anything.",
+    "rows": "The main panel read whole.",
+    "rowsAt": "The main panel read from index from: its next rows.length entries.",
+    "mainRows": "The main panel's language rows read, without the switch or Other languages.",
+    "main": "Fields of the main panel: signedIn, premium, value, note, other, original.",
+    "row": "The first main row with that name has at least the fields under is; null means null, an object is matched the same way.",
+    "other": "Other languages read, with no search: rows whole, start its first entries, has and lacks entries, lacksStarting no entry starting so.",
+    "otherAll": "Every Other languages row has at least these fields.",
+    "otherRow": "The first Other languages row in that language has at least the fields under is.",
+    "otherCaption": "Other languages' caption.",
+    "search": "Other languages read for what was typed.",
+    "pick": "The version shown without being asked for, or null; exactly.",
+    "plan": "How the subtitle would be made; exactly.",
+    "mode": "The mode the Premium switch reads.",
+    "questions": "Every question the menu could ask while open.",
+    "minutesOwed": "The minutes a purchase must cover for the input's balance.",
+    "percent": "Settings' sizes: value, then what it reads.",
+    "seconds": "Settings' timing in seconds: value, then what it reads."
+  },
+  "base": {
+    "lookup": null,
+    "kept": [],
+    "preferred": "en",
+    "showing": null,
+    "me": {
+      "balance": 2760,
+      "signedIn": true
+    },
+    "minutesKnown": true,
+    "duration": 840,
+    "track": "ja",
+    "mode": null,
+    "working": null
+  },
+  "cases": [
+    {
+      "name": "the Premium switch is on with the minutes left",
+      "input": {},
+      "expect": {
+        "rowsAt": {
+          "from": 0,
+          "rows": [
+            "Premium on: 46 min left"
+          ]
+        }
+      }
+    },
+    {
+      "name": "the Premium switch is off as Standard, free",
+      "input": {
+        "mode": "standard"
+      },
+      "expect": {
+        "rowsAt": {
+          "from": 0,
+          "rows": [
+            "Premium off: Standard, free"
+          ]
+        }
+      }
+    },
+    {
+      "name": "the Premium switch waits for sign-in without a value",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        }
+      },
+      "expect": {
+        "rowsAt": {
+          "from": 0,
+          "rows": [
+            "Premium signed out"
+          ]
+        }
+      }
+    },
+    {
+      "name": "the Premium switch is off signed out, whatever mode was chosen before",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "main": {
+          "premium": false
+        }
+      }
+    },
+    {
+      "name": "the Premium switch reads whole minutes rounded down: 0 seconds",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "main": {
+          "value": "0 min left"
+        },
+        "minutesOwed": 0
+      }
+    },
+    {
+      "name": "the Premium switch reads below zero when overspent: -1 second",
+      "input": {
+        "me": {
+          "balance": -1,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "main": {
+          "value": "−1 min left"
+        },
+        "minutesOwed": 1
+      }
+    },
+    {
+      "name": "the Premium switch reads below zero when overspent: -60 seconds",
+      "input": {
+        "me": {
+          "balance": -60,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "main": {
+          "value": "−1 min left"
+        },
+        "minutesOwed": 1
+      }
+    },
+    {
+      "name": "the Premium switch reads below zero when overspent: -61 seconds",
+      "input": {
+        "me": {
+          "balance": -61,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "main": {
+          "value": "−2 min left"
+        },
+        "minutesOwed": 2
+      }
+    },
+    {
+      "name": "the Premium switch reads whole minutes rounded down: 59 seconds",
+      "input": {
+        "me": {
+          "balance": 59,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "main": {
+          "value": "0 min left"
+        },
+        "minutesOwed": 0
+      }
+    },
+    {
+      "name": "the Premium switch reads whole minutes rounded down: 60 seconds",
+      "input": {
+        "me": {
+          "balance": 60,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "main": {
+          "value": "1 min left"
+        },
+        "minutesOwed": 0
+      }
+    },
+    {
+      "name": "the Premium switch stays selectable at no minutes, where the language says what is missing",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 0 min left",
+          "English ✦: No minutes left",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "the list lists what Premium has, the preferred language first and the rest by name, each with the spark",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "pt",
+            "en",
+            "de"
+          ]
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦",
+          "Deutsch ✦",
+          "Português ✦",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "the list checks the language on screen, and never reorders for it",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "pt",
+            "en",
+            "de"
+          ]
+        },
+        "showing": {
+          "lang": "pt",
+          "version": "premium"
+        }
+      },
+      "expect": {
+        "rowsAt": {
+          "from": 1,
+          "rows": [
+            "English ✦",
+            "Deutsch ✦",
+            "Português ✦ ✓"
+          ]
+        },
+        "row": [
+          {
+            "name": "Português",
+            "is": {
+              "press": "hide"
+            }
+          },
+          {
+            "name": "Deutsch",
+            "is": {
+              "press": "show",
+              "ask": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "the list switched off lists what Standard has, without a spark",
+      "input": {
+        "mode": "standard",
+        "kept": [
+          "de"
+        ],
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en",
+            "fr"
+          ]
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium off: Standard, free",
+          "English: Free",
+          "Deutsch",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "the list says what a language not made yet costs with Premium: the video's minutes",
+      "input": {},
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦: 14 min",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "the list says a second over the minute costs the next one",
+      "input": {
+        "duration": 845
+      },
+      "expect": {
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "value": "15 min"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "the list says what a language not made yet costs with Standard: nothing",
+      "input": {
+        "mode": "standard"
+      },
+      "expect": {
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "value": "Free"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "the list leaves the video's own language to Original caption",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦",
+          "Other languages ›"
+        ],
+        "other": {
+          "lacks": [
+            "日本語 ✦"
+          ]
+        }
+      }
+    },
+    {
+      "name": "the list has the video's own language for a viewer who prefers it, made already",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        },
+        "preferred": "ja"
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "日本語 ✦",
+          "English ✦",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "the list leaves the video's own language out before anything is made, by the caption track: Premium",
+      "input": {},
+      "expect": {
+        "other": {
+          "lacks": [
+            "日本語 ✦"
+          ]
+        }
+      }
+    },
+    {
+      "name": "the list leaves the video's own language out before anything is made, by the caption track: Standard",
+      "input": {
+        "mode": "standard"
+      },
+      "expect": {
+        "other": {
+          "lacks": [
+            "日本語"
+          ]
+        }
+      }
+    },
+    {
+      "name": "the list has no original caption with nothing made",
+      "input": {},
+      "expect": {
+        "main": {
+          "original": false
+        }
+      }
+    },
+    {
+      "name": "the list has no original caption for Standard subtitles kept without their captions",
+      "input": {
+        "kept": [
+          "en"
+        ]
+      },
+      "expect": {
+        "main": {
+          "original": false
+        }
+      }
+    },
+    {
+      "name": "the list has an original caption in a cached transcript",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": []
+        }
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "the list has an original caption in the captions kept with a Standard result",
+      "input": {
+        "kept": [
+          "en",
+          "ja"
+        ],
+        "standardOriginal": "ja"
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "the list has a cached transcript's original caption with the switch off",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": []
+        },
+        "mode": "standard"
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "the list has kept captions' original caption with the switch on",
+      "input": {
+        "kept": [
+          "en",
+          "ja"
+        ],
+        "standardOriginal": "ja",
+        "mode": "premium"
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "the list has a cached transcript's original caption signed out",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "lookup": {
+          "original": "ja",
+          "translations": []
+        }
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "the list keeps a row for what is on screen in the other mode, in its own version",
+      "input": {
+        "mode": "premium",
+        "kept": [
+          "en"
+        ],
+        "showing": {
+          "lang": "en",
+          "version": "standard"
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦: 14 min",
+          "English ✓",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "pressing a language starts Standard at once",
+      "input": {
+        "mode": "standard"
+      },
+      "expect": {
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": null,
+              "press": "start"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language asks first for Premium",
+      "input": {},
+      "expect": {
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": {
+                "question": "Use 14 min?",
+                "yes": "Generate"
+              },
+              "press": "start"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language asks Generate? where the transcript is cached and the translation is free",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "de"
+          ]
+        },
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 0 min left",
+          "English ✦: Free",
+          "Deutsch ✦",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": {
+                "question": "Generate?",
+                "yes": "Generate"
+              },
+              "press": "start"
+            }
+          }
+        ],
+        "plan": [
+          {
+            "subtitle": {
+              "lang": "en",
+              "version": "premium"
+            },
+            "is": {
+              "method": "translate"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language treats a transcript in two languages as missing its own until that is translated, for free",
+      "input": {
+        "lookup": {
+          "original": "en",
+          "translations": [],
+          "mixed": true
+        },
+        "track": "en",
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 0 min left",
+          "English ✦: Free",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": {
+                "question": "Generate?",
+                "yes": "Generate"
+              },
+              "press": "start"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language shows a transcript in two languages once its own is translated",
+      "input": {
+        "lookup": {
+          "original": "en",
+          "translations": [
+            "en"
+          ],
+          "mixed": true
+        },
+        "track": "en",
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "value": "",
+              "press": "show"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language shows a transcript in one language, which is its own language's subtitles",
+      "input": {
+        "lookup": {
+          "original": "en",
+          "translations": []
+        },
+        "track": "en",
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "press": "show"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language asks Buy minutes? at no minutes",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "value": "No minutes left",
+              "ask": {
+                "question": "Buy minutes?",
+                "yes": "Buy minutes"
+              },
+              "press": "buy"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language asks Buy minutes? where the video is longer than the minutes left",
+      "input": {
+        "me": {
+          "balance": 180,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "value": "Longer than your 3 min",
+              "ask": {
+                "question": "Buy minutes?"
+              },
+              "press": "buy"
+            }
+          }
+        ],
+        "plan": [
+          {
+            "subtitle": {
+              "lang": "en",
+              "version": "premium"
+            },
+            "is": {
+              "method": "none",
+              "why": "too_long"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language reads the language being made as its step, checked, and asks before it stops",
+      "input": {
+        "working": {
+          "subtitle": {
+            "lang": "en",
+            "version": "premium"
+          },
+          "step": "translating 40%"
+        }
+      },
+      "expect": {
+        "rowsAt": {
+          "from": 1,
+          "rows": [
+            "English ✦: translating 40% ✓"
+          ]
+        },
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": {
+                "question": "Stop?",
+                "yes": "Stop"
+              },
+              "press": "stop"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pressing a language only says so while another language is being made, and still shows one that is made",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "de"
+          ]
+        },
+        "working": {
+          "subtitle": {
+            "lang": "fr",
+            "version": "premium"
+          },
+          "step": "waiting…"
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦: Free",
+          "Deutsch ✦",
+          "Français ✦: waiting… ✓",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": null,
+              "press": "busy"
+            }
+          },
+          {
+            "name": "Deutsch",
+            "is": {
+              "ask": null,
+              "press": "show"
+            }
+          }
+        ],
+        "otherAll": {
+          "press": "busy",
+          "ask": null
+        }
+      }
+    },
+    {
+      "name": "pressing a language lists every question this opening could ask, so the menu opens wide enough for the longest",
+      "input": {},
+      "expect": {
+        "questions": [
+          "Use 14 min?",
+          "Generate?",
+          "Buy minutes?",
+          "Stop?"
+        ]
+      }
+    },
+    {
+      "name": "pressing a language lists every question this opening could ask, without a length",
+      "input": {
+        "duration": null
+      },
+      "expect": {
+        "questions": [
+          "Use minutes?",
+          "Generate?",
+          "Buy minutes?",
+          "Stop?"
+        ]
+      }
+    },
+    {
+      "name": "what isn't known yet: the cost stays blank until the player says how long the video is, and asks without a number",
+      "input": {
+        "duration": null
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": {
+                "question": "Use minutes?"
+              },
+              "press": "start"
+            }
+          }
+        ],
+        "otherCaption": "Premium",
+        "plan": [
+          {
+            "subtitle": {
+              "lang": "en",
+              "version": "premium"
+            },
+            "is": {
+              "method": "premium",
+              "minutes": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "what isn't known yet: the switch keeps the minutes last seen when they can't be read, and says Uses minutes",
+      "input": {
+        "minutesKnown": false,
+        "mode": "premium"
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦: Uses minutes",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": {
+                "question": "Use minutes?"
+              },
+              "press": "start"
+            }
+          }
+        ],
+        "otherCaption": "Premium · Uses minutes"
+      }
+    },
+    {
+      "name": "what isn't known yet: a video is taken to have captions until the player has said",
+      "input": {
+        "trackUnknown": true,
+        "mode": "standard"
+      },
+      "expect": {
+        "rows": [
+          "Premium off: Standard, free",
+          "English: Free",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "what isn't known yet: a video without a track yet opens in Standard at no minutes",
+      "input": {
+        "trackUnknown": true,
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "mode": "standard"
+      }
+    },
+    {
+      "name": "uploaded captions take the preferred language's row, free and with no question",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ]
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English: By the creator",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "version": "uploaded",
+              "ask": null,
+              "press": "show",
+              "checked": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "uploaded captions take the preferred language's row with the switch off",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ],
+        "mode": "standard"
+      },
+      "expect": {
+        "rows": [
+          "Premium off: Standard, free",
+          "English: By the creator",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "uploaded captions take the preferred language's row signed out",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ],
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "English: By the creator",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "uploaded captions stand in for Jimaku's versions of the preferred language, made or not",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ],
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en",
+            "de"
+          ]
+        },
+        "kept": [
+          "en"
+        ]
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English: By the creator",
+          "Deutsch ✦",
+          "Other languages ›"
+        ],
+        "other": {
+          "lacks": [
+            "English ✦"
+          ]
+        }
+      }
+    },
+    {
+      "name": "uploaded captions show and hide from their row, checked while on screen",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ],
+        "showing": {
+          "lang": "en",
+          "version": "uploaded"
+        }
+      },
+      "expect": {
+        "rowsAt": {
+          "from": 1,
+          "rows": [
+            "English: By the creator ✓"
+          ]
+        },
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "press": "hide"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "uploaded captions in another language wait in Other languages as By the creator, in place of a version to make",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ]
+      },
+      "expect": {
+        "other": {
+          "has": [
+            "한국어: By the creator"
+          ],
+          "lacks": [
+            "한국어 ✦"
+          ]
+        }
+      }
+    },
+    {
+      "name": "uploaded captions in another language wait in Other languages with the switch off",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ],
+        "mode": "standard"
+      },
+      "expect": {
+        "other": {
+          "has": [
+            "한국어: By the creator"
+          ]
+        }
+      }
+    },
+    {
+      "name": "uploaded captions are what shows without asking",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ]
+      },
+      "expect": {
+        "pick": [
+          {
+            "lang": "en",
+            "is": {
+              "lang": "en",
+              "version": "uploaded"
+            }
+          },
+          {
+            "lang": "de",
+            "is": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "uploaded captions are what shows without asking with the switch off",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ],
+        "mode": "standard",
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        }
+      },
+      "expect": {
+        "pick": [
+          {
+            "lang": "en",
+            "is": {
+              "lang": "en",
+              "version": "uploaded"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "uploaded captions in the video's own language are its original caption, and no row",
+      "input": {
+        "uploaded": [
+          "ja",
+          "en"
+        ]
+      },
+      "expect": {
+        "main": {
+          "original": true
+        },
+        "other": {
+          "lacksStarting": [
+            "日本語"
+          ]
+        }
+      }
+    },
+    {
+      "name": "uploaded captions in the video's own language have its row where it is preferred",
+      "input": {
+        "uploaded": [
+          "ja"
+        ],
+        "preferred": "ja"
+      },
+      "expect": {
+        "mainRows": [
+          "日本語: By the creator"
+        ]
+      }
+    },
+    {
+      "name": "uploaded captions in other languages only leave nothing of the video's own to show above",
+      "input": {
+        "uploaded": [
+          "en",
+          "ko"
+        ]
+      },
+      "expect": {
+        "main": {
+          "original": false
+        }
+      }
+    },
+    {
+      "name": "uploaded captions in the preferred language, when that is the video's own, leave Original caption nothing to add",
+      "input": {
+        "track": "en",
+        "uploaded": [
+          "en"
+        ]
+      },
+      "expect": {
+        "rowsAt": {
+          "from": 1,
+          "rows": [
+            "English: By the creator"
+          ]
+        },
+        "main": {
+          "original": false
+        }
+      }
+    },
+    {
+      "name": "uploaded captions in the video's own preferred language leave Original caption nothing to add while on screen",
+      "input": {
+        "track": "en",
+        "uploaded": [
+          "en"
+        ],
+        "showing": {
+          "lang": "en",
+          "version": "uploaded"
+        }
+      },
+      "expect": {
+        "main": {
+          "original": false
+        }
+      }
+    },
+    {
+      "name": "uploaded captions in the video's own preferred language: another language on screen has the original to add",
+      "input": {
+        "track": "en",
+        "uploaded": [
+          "en"
+        ],
+        "showing": {
+          "lang": "de",
+          "version": "premium"
+        }
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "uploaded captions in the video's own preferred language: another language being made has the original to add",
+      "input": {
+        "track": "en",
+        "uploaded": [
+          "en"
+        ],
+        "working": {
+          "subtitle": {
+            "lang": "de",
+            "version": "standard"
+          },
+          "step": ""
+        }
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "Jimaku's own transcript of a video in the preferred language leaves Original caption nothing to add",
+      "input": {
+        "lookup": {
+          "original": "en",
+          "translations": []
+        }
+      },
+      "expect": {
+        "main": {
+          "original": false
+        }
+      }
+    },
+    {
+      "name": "a transcript in two languages, in the preferred one, has the other one's lines to add",
+      "input": {
+        "track": "en",
+        "lookup": {
+          "original": "en",
+          "translations": [
+            "en"
+          ],
+          "mixed": true
+        }
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "a transcript in two languages, in the preferred one, has the other one's lines to add while on screen",
+      "input": {
+        "track": "en",
+        "lookup": {
+          "original": "en",
+          "translations": [
+            "en"
+          ],
+          "mixed": true
+        },
+        "showing": {
+          "lang": "en",
+          "version": "premium"
+        }
+      },
+      "expect": {
+        "main": {
+          "original": true
+        }
+      }
+    },
+    {
+      "name": "a live stream offers nothing to make, and says when it can be made, in place of the languages",
+      "input": {
+        "live": true,
+        "track": null,
+        "duration": 14400
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "(Subtitles can be made once the live stream has ended.)"
+        ],
+        "other": {
+          "rows": []
+        },
+        "plan": [
+          {
+            "subtitle": {
+              "lang": "en",
+              "version": "premium"
+            },
+            "is": {
+              "method": "none",
+              "why": "live"
+            }
+          },
+          {
+            "subtitle": {
+              "lang": "en",
+              "version": "standard"
+            },
+            "is": {
+              "method": "none",
+              "why": "live"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "a live stream offers nothing to make with the switch off",
+      "input": {
+        "live": true,
+        "track": null,
+        "duration": 14400,
+        "mode": "standard"
+      },
+      "expect": {
+        "rows": [
+          "Premium off: Standard, free",
+          "(Subtitles can be made once the live stream has ended.)"
+        ]
+      }
+    },
+    {
+      "name": "a live stream offers nothing to make signed out",
+      "input": {
+        "live": true,
+        "track": null,
+        "duration": 14400,
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "(Subtitles can be made once the live stream has ended.)"
+        ]
+      }
+    },
+    {
+      "name": "a live stream still lists what was made for the video",
+      "input": {
+        "live": true,
+        "track": null,
+        "duration": 14400,
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦"
+        ]
+      }
+    },
+    {
+      "name": "a video without YouTube captions has one line in place of Standard's languages and Other languages",
+      "input": {
+        "track": null,
+        "mode": "standard"
+      },
+      "expect": {
+        "rows": [
+          "Premium off: Standard, free",
+          "(This video has no YouTube captions to translate.)"
+        ],
+        "plan": [
+          {
+            "subtitle": {
+              "lang": "en",
+              "version": "standard"
+            },
+            "is": {
+              "method": "none",
+              "why": "no_captions"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "a video without YouTube captions lists as usual with Premium on",
+      "input": {
+        "track": null
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 46 min left",
+          "English ✦: 14 min",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "a video without YouTube captions opens with Premium on before the viewer chooses",
+      "input": {
+        "track": null,
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "mode": "premium"
+      }
+    },
+    {
+      "name": "a video without YouTube captions still lists Standard subtitles this browser kept",
+      "input": {
+        "track": null,
+        "mode": "standard",
+        "kept": [
+          "de"
+        ]
+      },
+      "expect": {
+        "rows": [
+          "Premium off: Standard, free",
+          "Deutsch"
+        ]
+      }
+    },
+    {
+      "name": "the first mode is Standard where Premium would need minutes the viewer doesn't have",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "mode": "standard",
+        "rows": [
+          "Premium off: Standard, free",
+          "English: Free",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "the first mode is Standard for a 14-minute video with 3 minutes left",
+      "input": {
+        "me": {
+          "balance": 180,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "mode": "standard"
+      }
+    },
+    {
+      "name": "the first mode is Premium where the minutes cover the video",
+      "input": {},
+      "expect": {
+        "mode": "premium"
+      }
+    },
+    {
+      "name": "the first mode is Premium where the minutes just cover the video",
+      "input": {
+        "me": {
+          "balance": 840,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "mode": "premium"
+      }
+    },
+    {
+      "name": "the first mode is Premium where the transcript is cached, even at no minutes",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        },
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium on: 0 min left",
+          "English ✦",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "the mode is the viewer's once they flipped it: Standard",
+      "input": {
+        "mode": "standard",
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        }
+      },
+      "expect": {
+        "mode": "standard"
+      }
+    },
+    {
+      "name": "the mode is the viewer's once they flipped it: Premium",
+      "input": {
+        "mode": "premium",
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        }
+      },
+      "expect": {
+        "mode": "premium"
+      }
+    },
+    {
+      "name": "the first mode follows the minutes alone where there is no video to ask about: some minutes",
+      "input": {
+        "me": {
+          "balance": 300,
+          "signedIn": true
+        },
+        "duration": null,
+        "trackUnknown": true
+      },
+      "expect": {
+        "mode": "premium"
+      }
+    },
+    {
+      "name": "the first mode follows the minutes alone where there is no video to ask about: none",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        },
+        "duration": null,
+        "trackUnknown": true
+      },
+      "expect": {
+        "mode": "standard"
+      }
+    },
+    {
+      "name": "Other languages names the mode and says the cost once, with a spark on each row under Premium",
+      "input": {},
+      "expect": {
+        "otherCaption": "Premium · 14 min each",
+        "other": {
+          "start": [
+            "Afrikaans ✦",
+            "Azərbaycan ✦",
+            "Bahasa Indonesia ✦"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Other languages names Standard and its cost once, with no value on its rows",
+      "input": {
+        "mode": "standard"
+      },
+      "expect": {
+        "otherCaption": "Standard · Free",
+        "other": {
+          "start": [
+            "Afrikaans"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Other languages says Premium is free for a cached transcript",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        }
+      },
+      "expect": {
+        "otherCaption": "Premium · Free"
+      }
+    },
+    {
+      "name": "Other languages says Premium lacks minutes",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "otherCaption": "Premium · No minutes left"
+      }
+    },
+    {
+      "name": "Other languages says the video is longer than the minutes left",
+      "input": {
+        "me": {
+          "balance": 180,
+          "signedIn": true
+        },
+        "mode": "premium"
+      },
+      "expect": {
+        "otherCaption": "Premium · Longer than your 3 min"
+      }
+    },
+    {
+      "name": "Other languages doesn't repeat a language the main list has, and asks as the main list does",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en",
+            "de"
+          ]
+        }
+      },
+      "expect": {
+        "other": {
+          "lacks": [
+            "English ✦",
+            "Deutsch ✦"
+          ]
+        },
+        "otherRow": [
+          {
+            "lang": "fr",
+            "is": {
+              "ask": {
+                "question": "Generate?"
+              },
+              "press": "start"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Other languages starts Standard at once, as the main list does",
+      "input": {
+        "mode": "standard"
+      },
+      "expect": {
+        "otherRow": [
+          {
+            "lang": "fr",
+            "is": {
+              "ask": null,
+              "press": "start"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Other languages finds a language by its own name or its English one, and by neither when nothing matches",
+      "input": {},
+      "expect": {
+        "search": [
+          {
+            "query": "ger",
+            "rows": [
+              "Deutsch ✦"
+            ]
+          },
+          {
+            "query": "deu",
+            "rows": [
+              "Deutsch ✦"
+            ]
+          },
+          {
+            "query": "  한국 ",
+            "rows": [
+              "한국어 ✦"
+            ]
+          },
+          {
+            "query": "zzz",
+            "rows": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "signed out lists the preferred language as Standard, free, and every other language the same way",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "English: Free",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": null,
+              "press": "start"
+            }
+          }
+        ],
+        "otherCaption": "Standard · Free",
+        "other": {
+          "start": [
+            "Afrikaans",
+            "Azərbaycan"
+          ]
+        },
+        "plan": [
+          {
+            "subtitle": {
+              "lang": "en",
+              "version": "premium"
+            },
+            "is": {
+              "method": "none",
+              "why": "sign_in"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "signed out lists Premium subtitles that exist, with the spark, and Standard's version of the language in Other languages",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "English ✦",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": null,
+              "press": "show"
+            }
+          }
+        ],
+        "otherCaption": "Free",
+        "other": {
+          "has": [
+            "English: Free",
+            "Deutsch ✦: Free"
+          ],
+          "lacks": [
+            "Deutsch: Free"
+          ]
+        }
+      }
+    },
+    {
+      "name": "signed out offers a free Premium translation of a cached transcript, which asks first",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "de"
+          ]
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "English ✦: Free",
+          "Deutsch ✦",
+          "Other languages ›"
+        ],
+        "row": [
+          {
+            "name": "English",
+            "is": {
+              "ask": {
+                "question": "Generate?"
+              },
+              "press": "start"
+            }
+          }
+        ],
+        "otherRow": [
+          {
+            "lang": "fr",
+            "is": {
+              "version": "premium",
+              "ask": {
+                "question": "Generate?"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "signed out lists both versions of a language once both are made, Premium first, the check on the one playing",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        },
+        "kept": [
+          "en"
+        ],
+        "showing": {
+          "lang": "en",
+          "version": "standard"
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "English ✦",
+          "English ✓",
+          "Other languages ›"
+        ],
+        "other": {
+          "lacks": [
+            "English: Free"
+          ]
+        }
+      }
+    },
+    {
+      "name": "signed out lists Standard subtitles this browser kept beside Premium ones, the other version in Other languages",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        },
+        "kept": [
+          "de"
+        ]
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "English ✦",
+          "Deutsch",
+          "Other languages ›"
+        ],
+        "other": {
+          "has": [
+            "Deutsch ✦: Free"
+          ]
+        }
+      }
+    },
+    {
+      "name": "signed out has only the line where the video has no captions and no cached transcript",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "track": null
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "(This video has no YouTube captions to translate.)"
+        ]
+      }
+    },
+    {
+      "name": "signed out a cached transcript still translates for nothing on a video without captions",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "track": null,
+        "lookup": {
+          "original": "ja",
+          "translations": []
+        }
+      },
+      "expect": {
+        "rows": [
+          "Premium signed out",
+          "English ✦: Free",
+          "Other languages ›"
+        ]
+      }
+    },
+    {
+      "name": "subtitles shown without being asked for are the version in the switch's mode, signed in: Premium",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        },
+        "kept": [
+          "en"
+        ]
+      },
+      "expect": {
+        "pick": [
+          {
+            "lang": "en",
+            "is": {
+              "lang": "en",
+              "version": "premium"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "subtitles shown without being asked for are the version in the switch's mode, signed in: Standard",
+      "input": {
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        },
+        "kept": [
+          "en"
+        ],
+        "mode": "standard"
+      },
+      "expect": {
+        "pick": [
+          {
+            "lang": "en",
+            "is": {
+              "lang": "en",
+              "version": "standard"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "subtitles shown without being asked for are none where the switch's mode has none",
+      "input": {
+        "kept": [
+          "en"
+        ],
+        "mode": "premium"
+      },
+      "expect": {
+        "pick": [
+          {
+            "lang": "en",
+            "is": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "subtitles shown without being asked for are Premium first, signed out",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "lookup": {
+          "original": "ja",
+          "translations": [
+            "en"
+          ]
+        },
+        "kept": [
+          "en"
+        ]
+      },
+      "expect": {
+        "pick": [
+          {
+            "lang": "en",
+            "is": {
+              "lang": "en",
+              "version": "premium"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "subtitles shown without being asked for are whichever exists, signed out",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        },
+        "kept": [
+          "en"
+        ]
+      },
+      "expect": {
+        "pick": [
+          {
+            "lang": "en",
+            "is": {
+              "lang": "en",
+              "version": "standard"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "subtitles shown without being asked for are none where nothing exists, signed out",
+      "input": {
+        "me": {
+          "balance": 0,
+          "signedIn": false
+        }
+      },
+      "expect": {
+        "pick": [
+          {
+            "lang": "en",
+            "is": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "Settings reads sizes and the background in percent, and the timing in signed seconds",
+      "input": {},
+      "expect": {
+        "percent": [
+          [
+            110,
+            "110%"
+          ]
+        ],
+        "seconds": [
+          [
+            0.3,
+            "+0.3 s"
+          ],
+          [
+            0,
+            "0.0 s"
+          ],
+          [
+            -0.3,
+            "−0.3 s"
+          ],
+          [
+            5,
+            "+5.0 s"
+          ],
+          [
+            -5,
+            "−5.0 s"
+          ]
+        ]
+      }
+    }
+  ]
+}

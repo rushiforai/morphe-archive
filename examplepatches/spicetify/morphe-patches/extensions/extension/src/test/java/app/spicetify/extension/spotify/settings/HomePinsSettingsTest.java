@@ -140,9 +140,9 @@ public class HomePinsSettingsTest {
         button(picker, "Save").performClick();
         assertEquals(Arrays.asList(C, A, B), pinned());
         ArrayList<Object> home = new ArrayList<>();
-        for (String uri : new String[]{A, B, C}) home.add(new p.goz0(new p.nnz0(uri, 2, uri, "", false, uri)));
+        for (String uri : new String[]{A, B, C}) home.add(new p.vpb1(new p.fpb1(uri, 2, uri, "", false, uri)));
         List<String> shown = new ArrayList<>();
-        for (Object row : HomePins.plan("home-shortcuts", home)) shown.add(((p.goz0) row).a.d);
+        for (Object row : HomePins.plan("home-shortcuts", home)) shown.add(((p.vpb1) row).a.d);
         assertEquals("Home shows pin 1 first", Arrays.asList(C, A, B), shown);
     }
 

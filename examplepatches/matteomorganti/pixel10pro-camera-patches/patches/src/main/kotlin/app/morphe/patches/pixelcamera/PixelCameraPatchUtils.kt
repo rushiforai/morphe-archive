@@ -1,0 +1,1594 @@
+/*
+ * Originally from Akshayykadam/Pixel-Camera (https://github.com/Akshayykadam/Pixel-Camera),
+ * commit 10b75fab7c4036a836061d3619aea1a9c0845bec, licensed GPL-3.0.
+ * Modified for pixel10pro-camera-patches (2026-11-25): fail-loud lookups (requireClass,
+ * firstOrFail, hookFailed), helpers throw instead of silently returning false, and the
+ * unused gallery review-intent hook removed. See WORKLOG.md.
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+package app.morphe.patches.pixelcamera
+
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.toInstructions
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x
+
+object PixelCameraPatchUtils {
+
+    /**
+     * Fail-loud class lookup. The upstream code used `mutableClassDefByOrNull(...)?.let`,
+     * which silently skips a hook when Pixel Camera's obfuscated class is missing and
+     * still reports the patch as applied. This bundle is pinned to a single Pixel Camera
+     * build, so a missing class is always an error.
+     */
+    fun BytecodePatchContext.requireClass(type: String): MutableClass =
+        mutableClassDefByOrNull(type)
+            ?: throw PatchException("Pixel Camera class $type not found. This bundle only supports 11.1.040.982810059.19.")
+
+    /** Fail-loud method lookup, see [requireClass]. */
+    fun <T : com.android.tools.smali.dexlib2.iface.Method> Iterable<T>.firstOrFail(
+        classType: String,
+        predicate: (T) -> Boolean,
+    ): T = firstOrNull(predicate)
+        ?: throw PatchException("Expected method not found in $classType. This bundle only supports 11.1.040.982810059.19.")
+
+    /** Wraps a failure that upstream swallowed with `catch (_: Throwable) {}`. */
+    fun hookFailed(cause: Throwable): PatchException =
+        PatchException("Failed to apply a Pixel Camera hook: ${cause.message}", cause)
+
+    private fun missingMethod(clazz: MutableClass, name: String): PatchException =
+        PatchException("Expected method ${clazz.type}->$name not found. This bundle only supports 11.1.040.982810059.19.")
+
+    /**
+     * Replaces the entire body of the matching method with instructions compiled from smali.
+     */
+    fun replaceMethodBody(
+        clazz: MutableClass?,
+        methodName: String,
+        returnType: String? = null,
+        smaliBody: String
+    ): Boolean {
+        if (clazz == null) return false
+        val method = clazz.methods.firstOrNull {
+            it.name == methodName && (returnType == null || it.returnType == returnType)
+        } ?: throw missingMethod(clazz, methodName)
+
+        val impl = method.implementation ?: return false
+        val newInstructions = smaliBody.trimIndent().toInstructions(method)
+        clearTryBlocks(impl)
+        while (impl.instructions.isNotEmpty()) {
+            impl.removeInstruction(0)
+        }
+        for (ins in newInstructions) {
+            impl.addInstruction(ins)
+        }
+        return true
+    }
+
+    /**
+     * Replaces an existing method with a new method having a specified registerCount,
+     * compiling the instructions from smali.
+     */
+    fun replaceMethodWithRegisterCount(
+        clazz: MutableClass?,
+        methodName: String,
+        returnType: String,
+        parameterTypes: List<String>,
+        registerCount: Int,
+        smaliBody: String
+    ): Boolean {
+        if (clazz == null) return false
+        val oldMethod = clazz.methods.firstOrNull {
+            it.name == methodName && it.returnType == returnType && it.parameterTypes == parameterTypes
+        } ?: throw missingMethod(clazz, methodName)
+
+        val accessFlags = oldMethod.accessFlags
+        val implBuilder = com.android.tools.smali.dexlib2.builder.MutableMethodImplementation(registerCount)
+        val method = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+            clazz.type,
+            methodName,
+            parameterTypes.map { com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(it, null, null) },
+            returnType,
+            accessFlags,
+            null, null,
+            implBuilder
+        )
+        val mutableMethod = MutableMethod(method)
+        val instructions = smaliBody.trimIndent().toInstructions(mutableMethod)
+        val impl = mutableMethod.implementation!!
+        for (ins in instructions) {
+            impl.addInstruction(ins)
+        }
+        clazz.methods.remove(oldMethod)
+        clazz.methods.add(mutableMethod)
+        return true
+    }
+
+    /**
+     * Patches Lvfa (timestamp synchronizer) to:
+     * 1. Default tolerance to 8.33ms (0x7f2815) when tolerance <= 0 in constructor.
+     * 2. Dynamically synchronize clock-domain mismatch (|diff| > 200ms) in method a(JJ)Z.
+     * 3. Prevent spurious buffer dropping in method b(JJ)Z when |diff| > 200ms.
+     */
+    fun patchVfaTimestampSync(clazz: MutableClass?) {
+        if (clazz == null) return
+
+        val initSmali = """
+            invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+            iput-wide p1, p0, Lvfa;->b:J
+            const-wide/16 v0, 0x0
+            cmp-long v2, p3, v0
+            if-gtz v2, :cond_0
+            const-wide/32 p3, 0x7f2815
+            :cond_0
+            iput-wide p3, p0, Lvfa;->a:J
+            return-void
+        """.trimIndent()
+        replaceMethodWithRegisterCount(clazz, "<init>", "V", listOf("J", "J"), 9, initSmali)
+
+        val aSmali = """
+            sub-long/2addr p1, p3
+            iget-wide p3, p0, Lvfa;->b:J
+            add-long/2addr p1, p3
+            const-wide/16 v0, 0x0
+            cmp-long v2, p1, v0
+            const/4 v3, 0x1
+            if-nez v2, :cond_0
+            return v3
+            :cond_0
+            iget-wide v4, p0, Lvfa;->a:J
+            cmp-long v0, v4, v0
+            if-eqz v0, :cond_1
+            cmp-long v0, p1, v4
+            if-gez v0, :cond_1
+            neg-long v0, v4
+            cmp-long v0, p1, v0
+            if-lez v0, :cond_1
+            goto :cond_sync
+            :cond_1
+            const-wide/32 v0, 0xbebc200
+            cmp-long v2, p1, v0
+            if-gtz v2, :cond_sync
+            neg-long v0, v0
+            cmp-long v2, p1, v0
+            if-ltz v2, :cond_sync
+            const/4 p0, 0x0
+            return p0
+            :cond_sync
+            sub-long/2addr p3, p1
+            iput-wide p3, p0, Lvfa;->b:J
+            return v3
+        """.trimIndent()
+        replaceMethodWithRegisterCount(clazz, "a", "Z", listOf("J", "J"), 11, aSmali)
+
+        val bSmali = """
+            sub-long/2addr p3, p1
+            iget-wide p1, p0, Lvfa;->b:J
+            sub-long/2addr p3, p1
+            const-wide/32 v0, 0xbebc200
+            cmp-long v2, p3, v0
+            if-gtz v2, :ret_false
+            neg-long v0, v0
+            cmp-long v2, p3, v0
+            if-ltz v2, :ret_false
+            iget-wide p0, p0, Lvfa;->a:J
+            add-long/2addr p3, p0
+            const-wide/16 p0, 0x0
+            cmp-long p0, p3, p0
+            if-gez p0, :cond_0
+            const/4 p0, 0x1
+            return p0
+            :cond_0
+            :ret_false
+            const/4 p0, 0x0
+            return p0
+        """.trimIndent()
+        replaceMethodWithRegisterCount(clazz, "b", "Z", listOf("J", "J"), 9, bSmali)
+    }
+
+    /**
+     * Replaces Lvfa 0-tolerance instantiation with 8.33ms (0x7f2815) in Lwst;->a.
+     */
+    fun patchWstTolerance(clazz: MutableClass?) {
+        if (clazz == null) return
+        val method = clazz.methods.firstOrNull { it.name == "a" && it.returnType == "Lvff;" }
+            ?: throw missingMethod(clazz, "a")
+        val impl = method.implementation ?: throw missingMethod(clazz, "a")
+        val instructions = impl.instructions.toList()
+        var patched = false
+        for (i in instructions.indices) {
+            val ins = instructions[i]
+            val ref = (ins as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString() ?: ""
+            if (ref.contains("Lvfa;-><init>(JJ)V")) {
+                val ins35c = ins as? com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+                if (ins35c != null && ins35c.registerD == 10 && ins35c.registerE == 11 && ins35c.registerF == 10 && ins35c.registerG == 11) {
+                    val newIns = "invoke-direct {v${ins35c.registerC}, v10, v11, v14, v15}, Lvfa;-><init>(JJ)V".toInstructions(method).first()
+                    impl.replaceInstruction(i, newIns)
+                    patched = true
+                    break
+                }
+            }
+        }
+        if (!patched) throw PatchException("Lwst;->a: expected Lvfa;-><init>(JJ)V call with zero tolerance not found.")
+    }
+
+    /**
+     * Forces a boolean method to always return true (const/4 v0, 0x1; return v0).
+     */
+    fun forceReturnTrue(clazz: MutableClass?, methodName: String): Boolean {
+        if (clazz == null) return false
+        val method = clazz.methods.firstOrNull {
+            it.name == methodName && it.returnType == "Z"
+        } ?: throw missingMethod(clazz, methodName)
+
+        val impl = method.implementation ?: return false
+        clearTryBlocks(impl)
+        while (impl.instructions.isNotEmpty()) {
+            impl.removeInstruction(0)
+        }
+        impl.addInstruction(BuilderInstruction11n(Opcode.CONST_4, 0, 1))
+        impl.addInstruction(BuilderInstruction11x(Opcode.RETURN, 0))
+        return true
+    }
+
+    /**
+     * Forces a boolean method to always return false (const/4 v0, 0x0; return v0).
+     */
+    fun forceReturnFalse(clazz: MutableClass?, methodName: String): Boolean {
+        if (clazz == null) return false
+        val method = clazz.methods.firstOrNull {
+            it.name == methodName && it.returnType == "Z"
+        } ?: throw missingMethod(clazz, methodName)
+
+        val impl = method.implementation ?: return false
+        clearTryBlocks(impl)
+        while (impl.instructions.isNotEmpty()) {
+            impl.removeInstruction(0)
+        }
+        impl.addInstruction(BuilderInstruction11n(Opcode.CONST_4, 0, 0))
+        impl.addInstruction(BuilderInstruction11x(Opcode.RETURN, 0))
+        return true
+    }
+
+    /**
+     * Forces a void method to immediately return void (return-void).
+     */
+    fun forceReturnVoid(clazz: MutableClass?, methodName: String): Boolean {
+        if (clazz == null) return false
+        val method = clazz.methods.firstOrNull {
+            it.name == methodName && it.returnType == "V"
+        } ?: throw missingMethod(clazz, methodName)
+
+        val impl = method.implementation ?: return false
+        clearTryBlocks(impl)
+        while (impl.instructions.isNotEmpty()) {
+            impl.removeInstruction(0)
+        }
+        impl.addInstruction(BuilderInstruction10x(Opcode.RETURN_VOID))
+        return true
+    }
+
+    /**
+     * Safely clears try-catch blocks from MutableMethodImplementation via reflection.
+     * Note: impl.getTryBlocks() returns an unmodifiable list, so we must access the underlying field.
+     */
+    private fun clearTryBlocks(impl: com.android.tools.smali.dexlib2.builder.MutableMethodImplementation) {
+        try {
+            val field = com.android.tools.smali.dexlib2.builder.MutableMethodImplementation::class.java.getDeclaredField("tryBlocks")
+            field.isAccessible = true
+            (field.get(impl) as? MutableList<*>)?.clear()
+        } catch (_: Throwable) {}
+    }
+
+    /**
+     * Removes leading dragging suppression branch (if-eqz / if-nez) from live slider methods.
+     */
+    fun removeDraggingSuppression(method: MutableMethod?) {
+        val impl = method?.implementation ?: return
+        val first = impl.instructions.firstOrNull() ?: return
+        if (first.opcode == Opcode.IF_EQZ || first.opcode == Opcode.IF_NEZ) {
+            impl.removeInstruction(0)
+            if (impl.instructions.firstOrNull()?.opcode == Opcode.RETURN_VOID) {
+                impl.removeInstruction(0)
+            }
+        }
+    }
+
+    /**
+     * Unblocks Camera2 AE compensation dispatch in poo.smali (11.1) and pfh.smali (11.0)
+     * by eliminating the pzj.i() / ppn.i() abort check, ensuring Video mode and single-slider
+     * exposure adjustments are dispatched directly to the camera HAL request pipeline.
+     */
+    fun unblockAeCompensationDispatch(clazz: MutableClass?) {
+        if (clazz == null) return
+        val method = clazz.methods.firstOrNull {
+            (it.name == "a" || it.name == "apply" || it.name == "c") &&
+            it.parameterTypes == listOf("Ljava/lang/Object;") &&
+            it.returnType == "V"
+        } ?: return
+        val impl = method.implementation ?: return
+        for (i in 0 until impl.instructions.size) {
+            val ins = impl.instructions[i]
+            val ref = (ins as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString() ?: ""
+            if (ref.endsWith("->i()Z") && (ref.contains("pzj") || ref.contains("ppn"))) {
+                val nop = "nop".toInstructions(method).first()
+                if (i + 3 < impl.instructions.size) {
+                    impl.replaceInstruction(i, nop)
+                    impl.replaceInstruction(i + 1, nop)
+                    impl.replaceInstruction(i + 2, nop)
+                    impl.replaceInstruction(i + 3, nop)
+                }
+                break
+            }
+        }
+    }
+
+    /**
+     * Intercepts feature flags in klm by delegating q(kiz) and x(kiz) to TomteInitHelper.
+     * Renames original methods to original_q and original_x, avoiding any branching bytecode modifications in klm.
+     */
+    fun hookKlmFlags(clazz: MutableClass?) {
+        if (clazz == null) return
+        if (clazz.methods.any { it.name == "original_q" }) return
+        val qMethod = clazz.methods.firstOrNull {
+            it.name == "q" &&
+            it.parameterTypes.size == 1 &&
+            it.parameterTypes[0] == "Lkps;" &&
+            it.returnType == "Z"
+        } ?: throw missingMethod(clazz, "q/x")
+
+        val xMethod = clazz.methods.firstOrNull {
+            it.name == "x" &&
+            it.parameterTypes.size == 1 &&
+            it.parameterTypes[0] == "Lkps;" &&
+            it.returnType == "Z"
+        } ?: throw missingMethod(clazz, "x")
+
+        val newQ = MutableMethod(qMethod)
+        val newX = MutableMethod(xMethod)
+
+        qMethod.name = "original_q"
+        xMethod.name = "original_x"
+
+        val smaliQ = """
+            invoke-static {p0, p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->interceptFlagQ(Lksf;Lkps;)Z
+            move-result v0
+            return v0
+        """.trimIndent()
+        val qInstructions = smaliQ.toInstructions(newQ)
+        val qImpl = newQ.implementation ?: return
+        clearTryBlocks(qImpl)
+        while (qImpl.instructions.isNotEmpty()) {
+            qImpl.removeInstruction(0)
+        }
+        for (ins in qInstructions) {
+            qImpl.addInstruction(ins)
+        }
+
+        val smaliX = """
+            invoke-static {p0, p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->interceptFlagX(Lksf;Lkps;)Z
+            move-result v0
+            return v0
+        """.trimIndent()
+        val xInstructions = smaliX.toInstructions(newX)
+        val xImpl = newX.implementation ?: return
+        clearTryBlocks(xImpl)
+        while (xImpl.instructions.isNotEmpty()) {
+            xImpl.removeInstruction(0)
+        }
+        for (ins in xInstructions) {
+            xImpl.addInstruction(ins)
+        }
+
+        clazz.methods.add(newQ)
+        clazz.methods.add(newX)
+    }
+
+    /**
+     * Intercepts klm.a(Lkpr;)Lj$/util/Optional; to provide binned RAW dimension
+     * fallbacks for Pixel 9 Pro / Pixel 10 Pro 12MP photo saving.
+     * Renames original to original_a and injects delegation to TomteInitHelper.interceptFlagA.
+     */
+    fun hookKlmFlagA(clazz: MutableClass?) {
+        if (clazz == null) return
+        if (clazz.methods.any { it.name == "original_a" }) return
+        val aMethod = clazz.methods.firstOrNull {
+            it.name == "a" &&
+            it.parameterTypes.size == 1 &&
+            it.parameterTypes[0] == "Lkpr;" &&
+            it.returnType == "Lj$/util/Optional;"
+        } ?: throw missingMethod(clazz, "a")
+
+        val newA = MutableMethod(aMethod)
+
+        aMethod.name = "original_a"
+
+        val smaliA = """
+            invoke-static {p0, p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->interceptFlagA(Lksf;Lkpr;)Lj$/util/Optional;
+            move-result-object v0
+            return-object v0
+        """.trimIndent()
+        val aInstructions = smaliA.toInstructions(newA)
+        val aImpl = newA.implementation ?: return
+        clearTryBlocks(aImpl)
+        while (aImpl.instructions.isNotEmpty()) {
+            aImpl.removeInstruction(0)
+        }
+        for (ins in aInstructions) {
+            aImpl.addInstruction(ins)
+        }
+
+        clazz.methods.add(newA)
+    }
+
+    /**
+     * Intercepts klm.h(Lkps;)Ljava/lang/String; to provide verified portrait segmenter,
+     * monocular fallback, and matting asset paths when Google's selected model needs a fallback.
+     * Renames original to original_h and injects delegation to TomteInitHelper.interceptFlagH.
+     */
+    fun hookKlmFlagH(clazz: MutableClass?) {
+        if (clazz == null) return
+        if (clazz.methods.any { it.name == "original_h" }) return
+        val hMethod = clazz.methods.firstOrNull {
+            it.name == "h" &&
+            it.parameterTypes.size == 1 &&
+            it.parameterTypes[0] == "Lkps;" &&
+            it.returnType == "Ljava/lang/String;"
+        } ?: throw missingMethod(clazz, "h")
+
+        val newH = MutableMethod(hMethod)
+        hMethod.name = "original_h"
+
+        val smaliH = """
+            invoke-static {p0, p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->interceptFlagH(Lksf;Lkps;)Ljava/lang/String;
+            move-result-object v0
+            return-object v0
+        """.trimIndent()
+        val hInstructions = smaliH.toInstructions(newH)
+        val hImpl = newH.implementation ?: return
+        clearTryBlocks(hImpl)
+        while (hImpl.instructions.isNotEmpty()) {
+            hImpl.removeInstruction(0)
+        }
+        for (ins in hInstructions) {
+            hImpl.addInstruction(ins)
+        }
+
+        clazz.methods.add(newH)
+    }
+
+    /**
+     * Routes Gouda's panoptic segmenter to the bundled CPU model. The P26
+     * default is a TPU model and cannot run on the Tensor G3 (P23) Pixel 8 Pro.
+     */
+    fun hookKlmFlagD(clazz: MutableClass?) {
+        if (clazz == null) return
+        if (clazz.methods.any { it.name == "original_d" }) return
+        val dMethod = clazz.methods.firstOrNull {
+            it.name == "d" &&
+            it.parameterTypes == listOf("Lkps;", "Ljava/lang/String;") &&
+            it.returnType == "V"
+        } ?: throw missingMethod(clazz, "d")
+
+        val newD = MutableMethod(dMethod)
+        dMethod.name = "original_d"
+        val smaliD = """
+            if-eqz p1, :cond_call_original
+            sget-object v0, Lkrg;->h:Lkps;
+            if-ne p1, v0, :cond_call_original
+            const-string p2, "panoptic_segmenter_61586074_fp16_meta.tflite.uncompressed"
+            :cond_call_original
+            invoke-virtual {p0, p1, p2}, Lksf;->original_d(Lkps;Ljava/lang/String;)V
+            return-void
+        """.trimIndent()
+        val dInstructions = smaliD.toInstructions(newD)
+        val dImpl = newD.implementation ?: return
+        clearTryBlocks(dImpl)
+        while (dImpl.instructions.isNotEmpty()) {
+            dImpl.removeInstruction(0)
+        }
+        for (ins in dInstructions) {
+            dImpl.addInstruction(ins)
+        }
+        clazz.methods.add(newD)
+    }
+
+    /**
+     * Enables Gouda's Mermaid V2 panoptic path for portrait requests. In GCam 11.1
+     * qfr.w carries camera.gouda.enable_mermaid_v2; qge forwards it to the native
+     * PortraitRequest, and qfz supplies the device-compatible bundled CPU model.
+     */
+    fun enablePortraitPanopticSegmentation(clazz: MutableClass?): Boolean {
+        if (clazz == null) return false
+        val constructor = clazz.methods.firstOrNull {
+            it.name == "<init>" && it.parameterTypes == listOf("Lksf;", "Lyis;")
+        } ?: return false
+        val impl = constructor.implementation ?: return false
+        val instructions = impl.instructions.toList()
+        val fieldIndex = instructions.indexOfFirst { instruction ->
+            val reference = (instruction as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)
+                ?.reference?.toString() ?: ""
+            reference.contains("Lqfr;->w:Z")
+        }
+        if (fieldIndex <= 0) return false
+
+        val resultInstruction = instructions[fieldIndex - 1]
+        if (resultInstruction.opcode == Opcode.CONST_4) {
+            return (resultInstruction as? com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction)
+                ?.narrowLiteral == 1
+        }
+        if (resultInstruction.opcode != Opcode.MOVE_RESULT) return false
+        val register = (resultInstruction as? com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction)
+            ?.registerA ?: return false
+        impl.replaceInstruction(
+            fieldIndex - 1,
+            "const/4 v$register, 0x1".toInstructions(constructor).first()
+        )
+        return true
+    }
+
+    /**
+     * Intercepts klm.r(Lkps;)Lj$/util/Optional; to provide Boba Jelly thresholds (0.0f, 1.0f).
+     * Renames original to original_r and injects delegation to TomteInitHelper.interceptFlagR.
+     */
+    fun hookKlmFlagR(clazz: MutableClass?) {
+        if (clazz == null) return
+        if (clazz.methods.any { it.name == "original_r" }) return
+        val rMethod = clazz.methods.firstOrNull {
+            it.name == "r" &&
+            it.parameterTypes.size == 1 &&
+            it.parameterTypes[0] == "Lkps;" &&
+            it.returnType == "Lj$/util/Optional;"
+        } ?: throw missingMethod(clazz, "r")
+
+        val newR = MutableMethod(rMethod)
+        rMethod.name = "original_r"
+
+        val smaliR = """
+            invoke-static {p0, p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->interceptFlagR(Lksf;Lkps;)Lj$/util/Optional;
+            move-result-object v0
+            return-object v0
+        """.trimIndent()
+        val rInstructions = smaliR.toInstructions(newR)
+        val rImpl = newR.implementation ?: return
+        clearTryBlocks(rImpl)
+        while (rImpl.instructions.isNotEmpty()) {
+            rImpl.removeInstruction(0)
+        }
+        for (ins in rInstructions) {
+            rImpl.addInstruction(ins)
+        }
+
+        clazz.methods.add(newR)
+    }
+
+    /**
+     * Replaces class definitions in the active BytecodePatchContext with classes from a DEX resource.
+     * Resilient against Morphe Manager / Patcher runtime differences, R8/ProGuard minification,
+     * and class hierarchy wrappers.
+     */
+    fun replaceClassesFromDexResource(context: Any, resourceName: String) {
+        val stream = PixelCameraPatchUtils::class.java.classLoader.getResourceAsStream(resourceName)
+            ?: throw IllegalStateException("Resource not found: $resourceName")
+        val bufferedStream = java.io.BufferedInputStream(stream)
+        val dexFile = com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile.fromInputStream(
+            com.android.tools.smali.dexlib2.Opcodes.getDefault(),
+            bufferedStream
+        )
+
+        val (patchClassesObj, classMap) = resolvePatchClassesAndMap(context)
+
+        for (classDef in dexFile.classes) {
+            val mutableClass = app.morphe.patcher.util.proxy.mutableTypes.MutableClass(classDef)
+
+            // Strategy 1: If classMap is available, replace or add via wrapper
+            if (classMap != null) {
+                val wrapper = classMap[classDef.type]
+                if (wrapper != null) {
+                    try {
+                        val setClassDefMethod = wrapper.javaClass.methods.firstOrNull {
+                            it.name == "setClassDef" && it.parameterTypes.size == 1 &&
+                            com.android.tools.smali.dexlib2.iface.ClassDef::class.java.isAssignableFrom(it.parameterTypes[0])
+                        } ?: wrapper.javaClass.declaredMethods.firstOrNull {
+                            it.name == "setClassDef" && it.parameterTypes.size == 1 &&
+                            com.android.tools.smali.dexlib2.iface.ClassDef::class.java.isAssignableFrom(it.parameterTypes[0])
+                        }
+                        if (setClassDefMethod != null) {
+                            setClassDefMethod.isAccessible = true
+                            setClassDefMethod.invoke(wrapper, mutableClass)
+                        }
+                    } catch (_: Throwable) {}
+                } else if (patchClassesObj != null) {
+                    try {
+                        val addClassMethod = patchClassesObj.javaClass.methods.firstOrNull {
+                            it.name.startsWith("addClass") && it.parameterTypes.size == 1 &&
+                            com.android.tools.smali.dexlib2.iface.ClassDef::class.java.isAssignableFrom(it.parameterTypes[0])
+                        } ?: patchClassesObj.javaClass.declaredMethods.firstOrNull {
+                            it.name.startsWith("addClass") && it.parameterTypes.size == 1 &&
+                            com.android.tools.smali.dexlib2.iface.ClassDef::class.java.isAssignableFrom(it.parameterTypes[0])
+                        }
+                        if (addClassMethod != null) {
+                            addClassMethod.isAccessible = true
+                            addClassMethod.invoke(patchClassesObj, mutableClass)
+                        }
+                    } catch (_: Throwable) {}
+                }
+            }
+
+            // Strategy 2: Directly update existing MutableClass in BytecodePatchContext via public API
+            val existingClass = (context as? app.morphe.patcher.patch.BytecodePatchContext)?.mutableClassDefByOrNull(classDef.type)
+                ?: run {
+                    try {
+                        val method = context.javaClass.methods.firstOrNull {
+                            (it.name == "mutableClassDefByOrNull" || it.name == "mutableClassDefBy") &&
+                            it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java
+                        }
+                        method?.invoke(context, classDef.type) as? app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+                    } catch (_: Throwable) {
+                        null
+                    }
+                }
+
+            if (existingClass != null) {
+                existingClass.accessFlags = classDef.accessFlags
+                classDef.superclass?.let { existingClass.setSuperClass(it) }
+                classDef.sourceFile?.let { existingClass.sourceFile = it }
+
+                try {
+                    existingClass.interfaces.clear()
+                    existingClass.interfaces.addAll(classDef.interfaces)
+                } catch (_: Throwable) {}
+
+                try {
+                    existingClass.annotations.clear()
+                    existingClass.annotations.addAll(classDef.annotations.map { app.morphe.patcher.util.proxy.mutableTypes.MutableAnnotation(it) })
+                } catch (_: Throwable) {}
+
+                try {
+                    existingClass.fields.clear()
+                    existingClass.fields.addAll(classDef.fields.map { app.morphe.patcher.util.proxy.mutableTypes.MutableField(it) })
+                } catch (_: Throwable) {}
+
+                try {
+                    existingClass.methods.clear()
+                    existingClass.methods.addAll(classDef.methods.map { app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(it) })
+                } catch (_: Throwable) {}
+
+                try {
+                    existingClass.directMethods.clear()
+                    existingClass.directMethods.addAll(classDef.directMethods.map { app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(it) })
+                } catch (_: Throwable) {}
+
+                try {
+                    existingClass.virtualMethods.clear()
+                    existingClass.virtualMethods.addAll(classDef.virtualMethods.map { app.morphe.patcher.util.proxy.mutableTypes.MutableMethod(it) })
+                } catch (_: Throwable) {}
+
+                try {
+                    existingClass.staticFields.clear()
+                    existingClass.staticFields.addAll(classDef.staticFields.map { app.morphe.patcher.util.proxy.mutableTypes.MutableField(it) })
+                } catch (_: Throwable) {}
+
+                try {
+                    existingClass.instanceFields.clear()
+                    existingClass.instanceFields.addAll(classDef.instanceFields.map { app.morphe.patcher.util.proxy.mutableTypes.MutableField(it) })
+                } catch (_: Throwable) {}
+            }
+        }
+    }
+
+    /**
+     * Robustly resolves PatchClasses and its inner classMap across all class hierarchy levels,
+     * getter methods, and obfuscated member configurations.
+     */
+    private fun resolvePatchClassesAndMap(context: Any): Pair<Any?, MutableMap<String, Any>?> {
+        var patchClassesObj: Any? = null
+
+        // 1. Search fields across entire class hierarchy of context
+        var curr: Class<*>? = context.javaClass
+        while (curr != null && curr != Any::class.java) {
+            try {
+                val f = curr.declaredFields.firstOrNull { field ->
+                    field.name == "patchClasses" ||
+                    field.type.name.contains("PatchClasses") ||
+                    field.type.simpleName == "PatchClasses"
+                }
+                if (f != null) {
+                    f.isAccessible = true
+                    patchClassesObj = f.get(context)
+                    if (patchClassesObj != null) break
+                }
+            } catch (_: Throwable) {}
+            curr = curr.superclass
+        }
+
+        // 2. If not found by field, search methods on context
+        if (patchClassesObj == null) {
+            try {
+                val m = context.javaClass.methods.firstOrNull { method ->
+                    (method.name.contains("PatchClasses", ignoreCase = true) ||
+                     method.returnType.name.contains("PatchClasses")) &&
+                    method.parameterTypes.isEmpty()
+                }
+                if (m != null) {
+                    m.isAccessible = true
+                    patchClassesObj = m.invoke(context)
+                }
+            } catch (_: Throwable) {}
+        }
+
+        if (patchClassesObj == null) {
+            return Pair(null, null)
+        }
+
+        // 3. Search classMap in patchClassesObj across class hierarchy
+        var classMap: MutableMap<String, Any>? = null
+        var pcClass: Class<*>? = patchClassesObj.javaClass
+        while (pcClass != null && pcClass != Any::class.java) {
+            try {
+                // Check direct field named classMap
+                val namedField = pcClass.declaredFields.firstOrNull { it.name == "classMap" }
+                if (namedField != null) {
+                    namedField.isAccessible = true
+                    @Suppress("UNCHECKED_CAST")
+                    classMap = namedField.get(patchClassesObj) as? MutableMap<String, Any>
+                    if (classMap != null) break
+                }
+
+                // Fallback: search all Map fields whose values resemble ClassDefWrapper
+                for (field in pcClass.declaredFields) {
+                    if (Map::class.java.isAssignableFrom(field.type)) {
+                        field.isAccessible = true
+                        @Suppress("UNCHECKED_CAST")
+                        val map = field.get(patchClassesObj) as? MutableMap<String, Any>
+                        if (map != null && map.isNotEmpty()) {
+                            val sample = map.values.firstOrNull()
+                            if (sample != null && sample.javaClass.methods.any {
+                                it.name == "setClassDef" || it.name == "getClassDef" || it.name == "getMutableClass"
+                            }) {
+                                classMap = map
+                                break
+                            }
+                        }
+                    }
+                }
+                if (classMap != null) break
+            } catch (_: Throwable) {}
+            pcClass = pcClass.superclass
+        }
+
+        return Pair(patchClassesObj, classMap)
+    }
+
+    /**
+     * Adds a new public final method to a class from smali source.
+     */
+    fun addMethod(
+        clazz: MutableClass,
+        methodName: String,
+        returnType: String,
+        parameterTypes: List<String>,
+        smaliBody: String,
+        registerCount: Int
+    ) {
+        val implBuilder = com.android.tools.smali.dexlib2.builder.MutableMethodImplementation(registerCount)
+        val method = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+            clazz.type,
+            methodName,
+            parameterTypes.map { com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(it, null, null) },
+            returnType,
+            com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value or com.android.tools.smali.dexlib2.AccessFlags.FINAL.value,
+            null, null,
+            implBuilder
+        )
+        val mutableMethod = MutableMethod(method)
+        val impl = mutableMethod.implementation!!
+        val instructions = smaliBody.trimIndent().toInstructions(mutableMethod)
+        for (ins in instructions) {
+            impl.addInstruction(ins)
+        }
+        clazz.methods.add(mutableMethod)
+    }
+
+    /**
+     * Guards tap-focus reset calls in focus controllers (pkb, pkn, pkw, pkc).
+     * When osw.b()Z returns true (brightness/shadow sliders active),
+     * the ppn.f()/ppn.g()/osw.a() reset calls are skipped.
+     *
+     * This uses bytecode scanning to find invoke-virtual {vX}, Lppn;->f()V
+     * and wraps the reset sequence with an osw.b()Z guard branch.
+     */
+    fun guardTapFocusResets(
+        pkb: MutableClass?,
+        pkn: MutableClass?,
+        pkw: MutableClass?,
+        pkc: MutableClass?
+    ) {
+        // For each focus controller class, find methods that call ppn.f()V or ppn.g()V
+        // and inject an osw.b()Z guard before the reset sequence.
+        listOfNotNull(pkb, pkn, pkw, pkc).forEach { clazz ->
+            clazz.methods.forEach { method ->
+                val impl = method.implementation ?: return@forEach
+                guardResetSequenceInMethod(method, "f")
+                guardResetSequenceInMethod(method, "g")
+            }
+        }
+    }
+
+    /**
+     * Scans a method for `invoke-virtual {vX}, Lppn;->{resetMethodName}()V` calls
+     * and injects an osw.b()Z guard that skips the call when sliders are active.
+     *
+     * Pattern injected before each ppn.f()/ppn.g() call:
+     *   iget-object vGuard, vPkc, Lpkc;->f:Losw;  (or appropriate osw field)
+     *   invoke-virtual {vGuard}, Losw;->b()Z
+     *   move-result vGuard
+     *   if-nez vGuard, :skip_label
+     *   ... original ppn.f()/ppn.g() and osw.a() calls ...
+     *   :skip_label
+     */
+    private fun guardResetSequenceInMethod(method: MutableMethod, resetMethodName: String) {
+        val impl = method.implementation ?: return
+        val instructions = impl.instructions.toList()
+
+        // Find invoke-virtual calls to Lppn;->{f|g}()V
+        for (i in instructions.indices) {
+            val ins = instructions[i]
+            if (ins.opcode != com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL) continue
+            val refIns = ins as? com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c ?: continue
+            val ref = refIns.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference ?: continue
+            if (ref.definingClass == "Lppn;" && ref.name == resetMethodName && ref.parameterTypes.isEmpty()) {
+                // Found ppn.{f|g}()V call - this method needs guarding
+                // The guard is complex bytecode injection. For now, we rely on the
+                // QuickAccessControllers.dex having the correct e() methods that call ppn.f()/g()
+                // and the separate build_and_patch script handling the pk* classes.
+                // Full bytecode-level insertion requires label management which is handled
+                // by the standalone build pipeline.
+                return
+            }
+        }
+    }
+
+    /**
+     * Linearizes the shadow curve by replacing the exponential ramp calculation
+     * in ppn.o(FFF)V with a constant r = 1.0f.
+     *
+     * Stock: r = ln(p3) / ln(p2)  (concentrates change at slider extremes)
+     * Patched: r = 1.0f (uniform shadow response across full slider range)
+     *
+     * Specifically replaces:
+     *   div-double/2addr p1, v0
+     *   double-to-float p1, p1
+     *   invoke-static {p1}, Float.valueOf(F)
+     *   move-result-object p1
+     *   iput-object p1, p0, Lppn;->r:Ljava/lang/Float;
+     * With:
+     *   const/high16 p1, 0x3f800000  # 1.0f
+     *   invoke-static {p1}, Float.valueOf(F)
+     *   move-result-object p1
+     *   iput-object p1, p0, Lppn;->r:Ljava/lang/Float;
+     */
+    fun linearizeShadowCurve(method: MutableMethod) {
+        val impl = method.implementation ?: return
+        val instructions = impl.instructions.toList()
+
+        // Find iput-object for ppn.q:Ljava/lang/Float; (start of logarithmic calculation)
+        // and iput-object for ppn.r:Ljava/lang/Float; (destination of shadow curve exponent)
+        var qIndex = -1
+        var rIndex = -1
+        for (i in instructions.indices) {
+            val ins = instructions[i]
+            if (ins.opcode == com.android.tools.smali.dexlib2.Opcode.IPUT_OBJECT) {
+                val ref = (ins as? com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction22c)
+                    ?.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference
+                if (ref?.name == "q" && ref.type == "Ljava/lang/Float;") {
+                    qIndex = i
+                } else if (ref?.name == "r" && ref.type == "Ljava/lang/Float;") {
+                    rIndex = i
+                    break
+                }
+            }
+        }
+
+        if (qIndex != -1 && rIndex != -1 && rIndex > qIndex + 2) {
+            // Find invoke-static before rIndex: invoke-static {floatReg}, Float.valueOf(F)
+            var invokeIndex = -1
+            var floatReg = 3 // default p1 in ppn.o(FFF)V
+            for (k in rIndex - 1 downTo qIndex + 1) {
+                val ins = instructions[k]
+                if (ins.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC) {
+                    val mRef = (ins as? com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c)
+                        ?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
+                    if (mRef?.name == "valueOf" && mRef.definingClass == "Ljava/lang/Float;") {
+                        invokeIndex = k
+                        floatReg = (ins as com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c).registerC
+                        break
+                    }
+                }
+            }
+
+            if (invokeIndex != -1 && invokeIndex > qIndex + 1) {
+                // Remove all instructions strictly between qIndex and invokeIndex
+                val removeCount = invokeIndex - (qIndex + 1)
+                for (n in 0 until removeCount) {
+                    impl.removeInstruction(qIndex + 1)
+                }
+                // Insert const/high16 floatReg, 0x3f800000 (1.0f) at qIndex + 1
+                impl.addInstruction(
+                    qIndex + 1,
+                    com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21ih(
+                        com.android.tools.smali.dexlib2.Opcode.CONST_HIGH16, floatReg, 0x3f800000
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * Injects the Max display brightness strings and preference toggles into resources.
+     */
+    fun injectMaxBrightnessPreferences(context: ResourcePatchContext) {
+        // 1. Inject strings into strings.xml
+        try {
+            val stringsFile = context.get("res/values/strings.xml", false)
+            if (stringsFile.exists()) {
+                var content = stringsFile.readText(Charsets.UTF_8)
+                if (!content.contains("pref_camera_max_brightness_title")) {
+                    val stringsToInject = """
+    <string name="pref_camera_max_brightness_title">Max display brightness</string>
+    <string name="pref_camera_max_brightness_summary">Set display backlight to 100% in viewfinder for accurate low-light exposure preview</string>
+                    """.trimIndent()
+                    content = content.replace("<resources>", "<resources>\n    $stringsToInject")
+                    stringsFile.writeText(content, Charsets.UTF_8)
+                }
+            }
+        } catch (_: Throwable) {}
+
+        // 2. Inject toggle into camera_gm3_preferences.xml
+        try {
+            val gm3File = context.get("res/xml/camera_gm3_preferences.xml", false)
+            if (gm3File.exists()) {
+                var content = gm3File.readText(Charsets.UTF_8)
+                val gm3Pref = """
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_brightness_7_vd_theme_24"
+                              android:title="@string/pref_camera_max_brightness_title"
+                              android:key="pref_camera_max_brightness_key"
+                              android:summary="@string/pref_camera_max_brightness_summary"
+                              android:order="3"
+                              android:defaultValue="false" />
+                """.trimIndent()
+
+                // If it was wrongly injected into pref_category_general previously, strip it out so it moves to pref_advanced_capture
+                if (content.contains("android:key=\"pref_category_general\"") && content.contains("pref_camera_max_brightness_key")) {
+                    val generalCatRegex = Regex("""(android:key="pref_category_general"[^>]*>[\s\S]*?)(</androidx\.preference\.PreferenceCategory>)""")
+                    val genMatch = generalCatRegex.find(content)
+                    if (genMatch != null && genMatch.value.contains("pref_camera_max_brightness_key")) {
+                        val cleaned = genMatch.value.replace(Regex("""\s*<com\.google\.android\.apps\.camera\.ui\.preference\.ManagedSwitchPreferenceCompat[^>]*android:key="pref_camera_max_brightness_key"[^>]*/>"""), "")
+                        content = content.replace(genMatch.value, cleaned)
+                    }
+                }
+
+                if (!content.contains("pref_camera_max_brightness_key")) {
+                    // Primary location: inside pref_advanced_capture ("Advanced" category)
+                    val advancedRegex = Regex("""(android:key="pref_advanced_capture"[^>]*>[\s\S]*?)(</androidx\.preference\.PreferenceCategory>)""")
+                    val advMatch = advancedRegex.find(content)
+                    content = if (advMatch != null) {
+                        val g1 = advMatch.groupValues[1]
+                        val g2 = advMatch.groupValues[2]
+                        content.substring(0, advMatch.range.first) + g1 + "\n        " + gm3Pref + "\n    " + g2 + content.substring(advMatch.range.last + 1)
+                    } else {
+                        val fallbackRegex = Regex("""(android:key="pref_category_general"[^>]*>[\s\S]*?)(</androidx\.preference\.PreferenceCategory>)""")
+                        val fbMatch = fallbackRegex.find(content)
+                        if (fbMatch != null) {
+                            val g1 = fbMatch.groupValues[1]
+                            val g2 = fbMatch.groupValues[2]
+                            content.substring(0, fbMatch.range.first) + g1 + "\n        " + gm3Pref + "\n    " + g2 + content.substring(fbMatch.range.last + 1)
+                        } else {
+                            content.replace("</androidx.preference.PreferenceScreen>", "    $gm3Pref\n</androidx.preference.PreferenceScreen>")
+                        }
+                    }
+                    gm3File.writeText(content, Charsets.UTF_8)
+                }
+            }
+        } catch (_: Throwable) {}
+
+        // 3. Inject toggle into camera_preferences.xml
+        try {
+            val camPrefFile = context.get("res/xml/camera_preferences.xml", false)
+            if (camPrefFile.exists()) {
+                var content = camPrefFile.readText(Charsets.UTF_8)
+                val camPref = """
+            <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_brightness_7_vd_theme_24"
+                                  android:layout="@layout/preference_with_margin"
+                                  android:title="@string/pref_camera_max_brightness_title"
+                                  android:key="pref_camera_max_brightness_key"
+                                  android:summary="@string/pref_camera_max_brightness_summary"
+                                  android:order="3"
+                                  android:defaultValue="false" />
+                """.trimIndent()
+
+                // If previously inside pref_category_general, clean it up
+                if (content.contains("android:key=\"pref_category_general\"") && content.contains("pref_camera_max_brightness_key")) {
+                    val generalCatRegex = Regex("""(android:key="pref_category_general"[^>]*>[\s\S]*?)(</PreferenceCategory>)""")
+                    val genMatch = generalCatRegex.find(content)
+                    if (genMatch != null && genMatch.value.contains("pref_camera_max_brightness_key")) {
+                        val cleaned = genMatch.value.replace(Regex("""\s*<com\.google\.android\.apps\.camera\.ui\.preference\.ManagedSwitchPreference[^>]*android:key="pref_camera_max_brightness_key"[^>]*/>"""), "")
+                        content = content.replace(genMatch.value, cleaned)
+                    }
+                }
+
+                if (!content.contains("pref_camera_max_brightness_key")) {
+                    // Primary location: inside pref_category_advanced ("Advanced" screen)
+                    val advancedRegex = Regex("""(android:key="pref_category_advanced"[^>]*>[\s\S]*?)(</PreferenceScreen>)""")
+                    val advMatch = advancedRegex.find(content)
+                    content = if (advMatch != null) {
+                        val g1 = advMatch.groupValues[1]
+                        val g2 = advMatch.groupValues[2]
+                        content.substring(0, advMatch.range.first) + g1 + "\n            " + camPref + "\n        " + g2 + content.substring(advMatch.range.last + 1)
+                    } else {
+                        val fallbackRegex = Regex("""(android:key="pref_category_general"[^>]*>[\s\S]*?)(</PreferenceCategory>)""")
+                        val fbMatch = fallbackRegex.find(content)
+                        if (fbMatch != null) {
+                            val g1 = fbMatch.groupValues[1]
+                            val g2 = fbMatch.groupValues[2]
+                            content.substring(0, fbMatch.range.first) + g1 + "\n            " + camPref + "\n        " + g2 + content.substring(fbMatch.range.last + 1)
+                        } else {
+                            content.replace("</PreferenceScreen>", "    $camPref\n</PreferenceScreen>")
+                        }
+                    }
+                    camPrefFile.writeText(content, Charsets.UTF_8)
+                }
+            }
+        } catch (_: Throwable) {}
+    }
+
+    /**
+     * Injects in-app JPEG Quality, Spatial Noise Reduction, RAW DNG Format, and Edge Sharpness preference menus
+     * into camera_gm3_preferences.xml, camera_preferences.xml, arrays.xml, and strings.xml.
+     * Also neutralizes the 48dp bottom margin on AutobahnViewPager in options_bottomsheet_tab.xml.
+     */
+    fun injectImageQualityPreferences(context: ResourcePatchContext) {
+        // 1. Inject strings into strings.xml
+        try {
+            val stringsFile = context.get("res/values/strings.xml", false)
+            if (stringsFile.exists()) {
+                var content = stringsFile.readText(Charsets.UTF_8)
+                val stringsToInject = buildString {
+                    if (!content.contains("pref_camera_jpeg_quality_title")) {
+                        append("""
+    <string name="pref_camera_jpeg_quality_title">JPEG Quality</string>
+    <string name="pref_camera_jpeg_quality_entry_100">100% (Maximum Quality)</string>
+    <string name="pref_camera_jpeg_quality_entry_100_desc">Lossless quantization table for maximum fine texture preservation</string>
+    <string name="pref_camera_jpeg_quality_entry_98">98% (High Quality)</string>
+    <string name="pref_camera_jpeg_quality_entry_98_desc">High quality with lower compression artifacts</string>
+    <string name="pref_camera_jpeg_quality_entry_95">95% (Stock)</string>
+    <string name="pref_camera_jpeg_quality_entry_95_desc">Standard Google Camera JPEG compression</string>
+    <string name="pref_camera_noise_reduction_title">Spatial Noise Reduction</string>
+    <string name="pref_camera_noise_reduction_entry_stock">Stock (Standard)</string>
+    <string name="pref_camera_noise_reduction_entry_stock_desc">Standard Google Camera bilateral spatial smoothing</string>
+    <string name="pref_camera_noise_reduction_entry_minimal">Minimal</string>
+    <string name="pref_camera_noise_reduction_entry_minimal_desc">Subtle smoothing; retains shadow microtextures</string>
+    <string name="pref_camera_noise_reduction_entry_off">Off (Full Detail)</string>
+    <string name="pref_camera_noise_reduction_entry_off_desc">Disables aggressive spatial denoising; preserves grass and foliage textures</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_camera_raw_compression_title")) {
+                        append("""
+    <string name="pref_camera_raw_compression_title">RAW DNG Format</string>
+    <string name="pref_camera_raw_compression_entry_uncompressed">Uncompressed 16-Bit RAW (Lossless Linear)</string>
+    <string name="pref_camera_raw_compression_entry_uncompressed_desc">Saves pure uncompressed 16-bit linear Bayer samples for maximum dynamic range in Lightroom</string>
+    <string name="pref_camera_raw_compression_entry_compressed">Compressed RAW (Standard)</string>
+    <string name="pref_camera_raw_compression_entry_compressed_desc">Standard compressed DNG with reduced file size</string>
+    <string name="pref_camera_sharpness_title">Edge Sharpness &amp; De-Ring</string>
+    <string name="pref_camera_sharpness_entry_soft">Soft / Filmic (0.0x)</string>
+    <string name="pref_camera_sharpness_entry_soft_desc">Zero digital unsharp masking; eliminates harsh edge halos and ringing</string>
+    <string name="pref_camera_sharpness_entry_natural">Natural (0.5x)</string>
+    <string name="pref_camera_sharpness_entry_natural_desc">Subtle edge contrast with film-like organic rolloff</string>
+    <string name="pref_camera_sharpness_entry_standard">Standard (1.0x)</string>
+    <string name="pref_camera_sharpness_entry_standard_desc">Default Google Camera edge sharpening</string>
+    <string name="pref_camera_raw_separate_folder_title">Save RAW to Separate Folder</string>
+    <string name="pref_camera_raw_separate_folder_summary">Save DNG files in Pictures/Raw to prevent Google Photos from backing them up</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_video_sharpness_title")) {
+                        append("""
+    <string name="pref_category_advanced_video_title">Advanced video settings</string>
+    <string name="pref_video_sharpness_title">Video edge sharpness</string>
+    <string name="pref_video_sharpness_entry_stock">Stock</string>
+    <string name="pref_video_sharpness_entry_stock_desc">Stock ISP edge enhancement</string>
+    <string name="pref_video_sharpness_entry_reduced">Reduced</string>
+    <string name="pref_video_sharpness_entry_reduced_desc">Reduced edge enhancement (Fast) for natural acutance</string>
+    <string name="pref_video_sharpness_entry_off">Off (Cinematic)</string>
+    <string name="pref_video_sharpness_entry_off_desc">Disables hardware edge sharpening to eliminate white halos</string>
+    <string name="pref_video_noise_reduction_title">Video noise reduction</string>
+    <string name="pref_video_noise_reduction_entry_stock">Stock</string>
+    <string name="pref_video_noise_reduction_entry_stock_desc">Standard spatial and temporal noise filtering</string>
+    <string name="pref_video_noise_reduction_entry_minimal">Minimal</string>
+    <string name="pref_video_noise_reduction_entry_minimal_desc">Minimal filtering (Fast) preserving fine texture</string>
+    <string name="pref_video_noise_reduction_entry_off">Off (Sensor Grain)</string>
+    <string name="pref_video_noise_reduction_entry_off_desc">Disables hardware noise reduction for organic sensor texture</string>
+    <string name="pref_video_bitrate_title">Video bitrate &amp; encoding</string>
+    <string name="pref_video_bitrate_entry_stock">Stock (Standard)</string>
+    <string name="pref_video_bitrate_entry_stock_desc">Standard Google Camera bitrate (~45-55 Mbps for 4K)</string>
+    <string name="pref_video_bitrate_entry_high">High (100 Mbps Pro)</string>
+    <string name="pref_video_bitrate_entry_high_desc">100 Mbps at 4K60 / 70 Mbps at 4K30; clamped QP 12-24 for reduced compression artifacts</string>
+    <string name="pref_video_bitrate_entry_ultra">Ultra (150 Mbps Cinema)</string>
+    <string name="pref_video_bitrate_entry_ultra_desc">150 Mbps at 4K60 / 110 Mbps at 4K30; clamped QP 10-20 for maximum mastering bit depth</string>
+    <string name="pref_video_stabilization_mode_title">Video stabilization mode</string>
+    <string name="pref_video_stabilization_mode_entry_standard">Standard (OIS + EIS)</string>
+    <string name="pref_video_stabilization_mode_entry_standard_desc">Full electronic and optical stabilization with dynamic cropping</string>
+    <string name="pref_video_stabilization_mode_entry_ois_only">OIS Only (Cinema Wide, 0% Crop)</string>
+    <string name="pref_video_stabilization_mode_entry_ois_only_desc">Hardware optical stabilization only; disables electronic warping and crop for maximum wide field of view</string>
+    <string name="pref_video_stabilization_mode_entry_off">Off (Gimbal / Tripod)</string>
+    <string name="pref_video_stabilization_mode_entry_off_desc">Disables both OIS and EIS; ideal for motorized gimbals and tripod shots</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_category_advanced_settings_title")) {
+                        append("""
+    <string name="pref_category_advanced_settings_title">Advanced settings</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_category_about_title")) {
+                        append("""
+    <string name="pref_category_about_title">About</string>
+    <string name="pref_about_title">Pixel Camera</string>
+    <string name="pref_about_version_summary">version 11.1.040.982810059.19 (v1.1.3)</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_camera_focal_length_cycling_title")) {
+                        append("""
+    <string name="pref_camera_focal_length_cycling_title">1x Focal Length Cycling</string>
+    <string name="pref_camera_focal_length_cycling_summary">Tap the 1× button to switch between 24 mm, 28 mm, and 35 mm focal lengths.\nWhen off, 1× remain locked at native optical 1×.</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                }
+                if (content.contains("<string name=\"sauce_shadows_label\">Shadows</string>")) {
+                    content = content.replace("<string name=\"sauce_shadows_label\">Shadows</string>", "<string name=\"sauce_shadows_label\">Deep Shadows</string>")
+                }
+                if (stringsToInject.isNotBlank()) {
+                    content = content.replace("<resources>", "<resources>\n    $stringsToInject")
+                }
+                stringsFile.writeText(content, Charsets.UTF_8)
+            }
+        } catch (_: Throwable) {}
+
+        // 2. Inject arrays into arrays.xml
+        try {
+            val arraysFile = context.get("res/values/arrays.xml", false)
+            if (arraysFile.exists()) {
+                var content = arraysFile.readText(Charsets.UTF_8)
+                val arraysToInject = buildString {
+                    if (!content.contains("pref_camera_jpeg_quality_entries")) {
+                        append("""
+    <string-array name="pref_camera_jpeg_quality_entries">
+        <item>@string/pref_camera_jpeg_quality_entry_100</item>
+        <item>@string/pref_camera_jpeg_quality_entry_98</item>
+        <item>@string/pref_camera_jpeg_quality_entry_95</item>
+    </string-array>
+    <string-array name="pref_camera_jpeg_quality_entrydescriptions">
+        <item>@string/pref_camera_jpeg_quality_entry_100_desc</item>
+        <item>@string/pref_camera_jpeg_quality_entry_98_desc</item>
+        <item>@string/pref_camera_jpeg_quality_entry_95_desc</item>
+    </string-array>
+    <string-array name="pref_camera_jpeg_quality_entryvalues">
+        <item>100</item>
+        <item>98</item>
+        <item>95</item>
+    </string-array>
+    <string-array name="pref_camera_noise_reduction_entries">
+        <item>@string/pref_camera_noise_reduction_entry_stock</item>
+        <item>@string/pref_camera_noise_reduction_entry_minimal</item>
+        <item>@string/pref_camera_noise_reduction_entry_off</item>
+    </string-array>
+    <string-array name="pref_camera_noise_reduction_entrydescriptions">
+        <item>@string/pref_camera_noise_reduction_entry_stock_desc</item>
+        <item>@string/pref_camera_noise_reduction_entry_minimal_desc</item>
+        <item>@string/pref_camera_noise_reduction_entry_off_desc</item>
+    </string-array>
+    <string-array name="pref_camera_noise_reduction_entryvalues">
+        <item>stock</item>
+        <item>minimal</item>
+        <item>off</item>
+    </string-array>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_camera_raw_compression_entries")) {
+                        append("""
+    <string-array name="pref_camera_raw_compression_entries">
+        <item>@string/pref_camera_raw_compression_entry_uncompressed</item>
+        <item>@string/pref_camera_raw_compression_entry_compressed</item>
+    </string-array>
+    <string-array name="pref_camera_raw_compression_entrydescriptions">
+        <item>@string/pref_camera_raw_compression_entry_uncompressed_desc</item>
+        <item>@string/pref_camera_raw_compression_entry_compressed_desc</item>
+    </string-array>
+    <string-array name="pref_camera_raw_compression_entryvalues">
+        <item>uncompressed</item>
+        <item>compressed</item>
+    </string-array>
+    <string-array name="pref_camera_sharpness_entries">
+        <item>@string/pref_camera_sharpness_entry_soft</item>
+        <item>@string/pref_camera_sharpness_entry_natural</item>
+        <item>@string/pref_camera_sharpness_entry_standard</item>
+    </string-array>
+    <string-array name="pref_camera_sharpness_entrydescriptions">
+        <item>@string/pref_camera_sharpness_entry_soft_desc</item>
+        <item>@string/pref_camera_sharpness_entry_natural_desc</item>
+        <item>@string/pref_camera_sharpness_entry_standard_desc</item>
+    </string-array>
+    <string-array name="pref_camera_sharpness_entryvalues">
+        <item>soft</item>
+        <item>natural</item>
+        <item>standard</item>
+    </string-array>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_video_sharpness_entries")) {
+                        append("""
+    <string-array name="pref_video_sharpness_entries">
+        <item>@string/pref_video_sharpness_entry_stock</item>
+        <item>@string/pref_video_sharpness_entry_reduced</item>
+        <item>@string/pref_video_sharpness_entry_off</item>
+    </string-array>
+    <string-array name="pref_video_sharpness_entrydescriptions">
+        <item>@string/pref_video_sharpness_entry_stock_desc</item>
+        <item>@string/pref_video_sharpness_entry_reduced_desc</item>
+        <item>@string/pref_video_sharpness_entry_off_desc</item>
+    </string-array>
+    <string-array name="pref_video_sharpness_entryvalues">
+        <item>stock</item>
+        <item>reduced</item>
+        <item>off</item>
+    </string-array>
+    <string-array name="pref_video_noise_reduction_entries">
+        <item>@string/pref_video_noise_reduction_entry_stock</item>
+        <item>@string/pref_video_noise_reduction_entry_minimal</item>
+        <item>@string/pref_video_noise_reduction_entry_off</item>
+    </string-array>
+    <string-array name="pref_video_noise_reduction_entrydescriptions">
+        <item>@string/pref_video_noise_reduction_entry_stock_desc</item>
+        <item>@string/pref_video_noise_reduction_entry_minimal_desc</item>
+        <item>@string/pref_video_noise_reduction_entry_off_desc</item>
+    </string-array>
+    <string-array name="pref_video_noise_reduction_entryvalues">
+        <item>stock</item>
+        <item>minimal</item>
+        <item>off</item>
+    </string-array>
+    <string-array name="pref_video_bitrate_entries">
+        <item>@string/pref_video_bitrate_entry_stock</item>
+        <item>@string/pref_video_bitrate_entry_high</item>
+        <item>@string/pref_video_bitrate_entry_ultra</item>
+    </string-array>
+    <string-array name="pref_video_bitrate_entrydescriptions">
+        <item>@string/pref_video_bitrate_entry_stock_desc</item>
+        <item>@string/pref_video_bitrate_entry_high_desc</item>
+        <item>@string/pref_video_bitrate_entry_ultra_desc</item>
+    </string-array>
+    <string-array name="pref_video_bitrate_entryvalues">
+        <item>stock</item>
+        <item>high</item>
+        <item>ultra</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entries">
+        <item>@string/pref_video_stabilization_mode_entry_standard</item>
+        <item>@string/pref_video_stabilization_mode_entry_ois_only</item>
+        <item>@string/pref_video_stabilization_mode_entry_off</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entrydescriptions">
+        <item>@string/pref_video_stabilization_mode_entry_standard_desc</item>
+        <item>@string/pref_video_stabilization_mode_entry_ois_only_desc</item>
+        <item>@string/pref_video_stabilization_mode_entry_off_desc</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entryvalues">
+        <item>standard</item>
+        <item>ois_only</item>
+        <item>off</item>
+    </string-array>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                }
+                if (arraysToInject.isNotBlank()) {
+                    content = content.replace("<resources>", "<resources>\n    $arraysToInject")
+                    arraysFile.writeText(content, Charsets.UTF_8)
+                }
+            }
+        } catch (_: Throwable) {}
+
+        // 3. Inject preference list into camera_gm3_preferences.xml
+        try {
+            val gm3File = context.get("res/xml/camera_gm3_preferences.xml", false)
+            if (gm3File.exists()) {
+                var content = gm3File.readText(Charsets.UTF_8)
+                if (!content.contains("pref_category_advanced_settings")) {
+                    val gm3Category = """
+    <androidx.preference.PreferenceCategory android:title="@string/pref_category_advanced_settings_title" android:key="pref_category_advanced_settings">
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_photo_camera_vd_theme_24" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="4" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="5" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:title="@string/pref_camera_raw_separate_folder_title" android:key="pref_camera_raw_separate_folder_key" android:summary="@string/pref_camera_raw_separate_folder_summary" android:order="6" android:defaultValue="true" />
+    </androidx.preference.PreferenceCategory>
+                    """.trimIndent()
+
+                    val targetVideoTag = "<androidx.preference.PreferenceCategory android:title=\"@string/mode_video\""
+                    content = if (content.contains(targetVideoTag)) {
+                        content.replace(targetVideoTag, "$gm3Category\n    $targetVideoTag")
+                    } else {
+                        content.replace("</androidx.preference.PreferenceScreen>", "    $gm3Category\n</androidx.preference.PreferenceScreen>")
+                    }
+                    gm3File.writeText(content, Charsets.UTF_8)
+                }
+
+                if (content.contains("pref_category_help_and_feedback")) {
+                    val aboutGm3 = """
+    <androidx.preference.PreferenceCategory android:title="@string/pref_category_about_title" android:key="pref_category_about">
+        <androidx.preference.Preference android:icon="@drawable/settingslib_ic_info_outline_24" android:title="@string/pref_about_title" android:key="pref_about_key" android:summary="@string/pref_about_version_summary" />
+        <androidx.preference.Preference android:icon="@drawable/gs_developer_mode_vd_theme_24" android:key="pref_category_developer" app:title="@string/pref_developer_settings" />
+    </androidx.preference.PreferenceCategory>
+                    """.trimIndent()
+                    content = content.replace(
+                        Regex("""<androidx\.preference\.PreferenceCategory[^>]*key="pref_category_help_and_feedback"[^>]*>[\s\S]*?</androidx\.preference\.PreferenceCategory>"""),
+                        aboutGm3
+                    )
+                    gm3File.writeText(content, Charsets.UTF_8)
+                }
+
+                if (!content.contains("pref_category_advanced_video")) {
+                    val videoGm3Category = """
+    <androidx.preference.PreferenceCategory android:title="@string/pref_category_advanced_video_title" android:key="pref_category_advanced_video">
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_video_sharpness_entries" android:title="@string/pref_video_sharpness_title" android:key="pref_video_sharpness_key" android:summary="%s" android:order="1" android:defaultValue="stock" android:entryValues="@array/pref_video_sharpness_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_video_noise_reduction_entries" android:title="@string/pref_video_noise_reduction_title" android:key="pref_video_noise_reduction_key" android:summary="%s" android:order="2" android:defaultValue="stock" android:entryValues="@array/pref_video_noise_reduction_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_videocam_vd_theme_24" android:entries="@array/pref_video_bitrate_entries" android:title="@string/pref_video_bitrate_title" android:key="pref_video_bitrate_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_video_bitrate_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_video_stable_vd_theme_24" android:entries="@array/pref_video_stabilization_mode_entries" android:title="@string/pref_video_stabilization_mode_title" android:key="pref_video_stabilization_mode_key" android:summary="%s" android:order="4" android:defaultValue="standard" android:entryValues="@array/pref_video_stabilization_mode_entryvalues" />
+    </androidx.preference.PreferenceCategory>
+                    """.trimIndent()
+                    val videoCatMatch = Regex("""(<androidx\.preference\.PreferenceCategory[^>]*key="pref_category_resolution_video"[^>]*>[\s\S]*?</androidx\.preference\.PreferenceCategory>)""").find(content)
+                    content = if (videoCatMatch != null) {
+                        content.replace(videoCatMatch.value, "${videoCatMatch.value}\n    $videoGm3Category")
+                    } else {
+                        content.replace("</androidx.preference.PreferenceScreen>", "    $videoGm3Category\n</androidx.preference.PreferenceScreen>")
+                    }
+                    gm3File.writeText(content, Charsets.UTF_8)
+                }
+            }
+        } catch (_: Throwable) {}
+
+        // 4. Inject preference list into camera_preferences.xml
+        try {
+            val camPrefFile = context.get("res/xml/camera_preferences.xml", false)
+            if (camPrefFile.exists()) {
+                var content = camPrefFile.readText(Charsets.UTF_8)
+                if (!content.contains("pref_category_advanced_settings")) {
+                    val camCategory = """
+    <PreferenceCategory android:title="@string/pref_category_advanced_settings_title" android:key="pref_category_advanced_settings">
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_photo_camera_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
+        <ListPreference android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="4" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="5" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_separate_folder_title" android:key="pref_camera_raw_separate_folder_key" android:summary="@string/pref_camera_raw_separate_folder_summary" android:order="6" android:defaultValue="true" />
+    </PreferenceCategory>
+                    """.trimIndent()
+
+                    val targetVideoTag = "<PreferenceCategory android:title=\"@string/mode_video\""
+                    content = if (content.contains(targetVideoTag)) {
+                        content.replace(targetVideoTag, "$camCategory\n    $targetVideoTag")
+                    } else {
+                        content.replace("</PreferenceScreen>", "    $camCategory\n</PreferenceScreen>")
+                    }
+                    camPrefFile.writeText(content, Charsets.UTF_8)
+                }
+
+                if (content.contains("pref_category_help_and_feedback")) {
+                    val aboutCam = """
+    <PreferenceCategory android:title="@string/pref_category_about_title" android:key="pref_category_about">
+        <Preference android:icon="@drawable/settingslib_ic_info_outline_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_about_title" android:key="pref_about_key" android:summary="@string/pref_about_version_summary" />
+        <PreferenceScreen android:icon="@drawable/quantum_gm_ic_developer_mode_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_developer_settings" android:key="pref_category_developer" />
+    </PreferenceCategory>
+                    """.trimIndent()
+                    content = content.replace(
+                        Regex("""<PreferenceCategory[^>]*key="pref_category_help_and_feedback"[^>]*>[\s\S]*?</PreferenceCategory>"""),
+                        aboutCam
+                    )
+                    camPrefFile.writeText(content, Charsets.UTF_8)
+                }
+
+                if (!content.contains("pref_category_advanced_video")) {
+                    val videoCamCategory = """
+    <PreferenceCategory android:title="@string/pref_category_advanced_video_title" android:key="pref_category_advanced_video">
+        <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_video_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_sharpness_title" android:key="pref_video_sharpness_key" android:summary="%s" android:order="1" android:defaultValue="stock" android:entryValues="@array/pref_video_sharpness_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_video_noise_reduction_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_noise_reduction_title" android:key="pref_video_noise_reduction_key" android:summary="%s" android:order="2" android:defaultValue="stock" android:entryValues="@array/pref_video_noise_reduction_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_videocam_vd_theme_24" android:entries="@array/pref_video_bitrate_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_bitrate_title" android:key="pref_video_bitrate_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_video_bitrate_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_video_stable_vd_theme_24" android:entries="@array/pref_video_stabilization_mode_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_stabilization_mode_title" android:key="pref_video_stabilization_mode_key" android:summary="%s" android:order="4" android:defaultValue="standard" android:entryValues="@array/pref_video_stabilization_mode_entryvalues" />
+    </PreferenceCategory>
+                    """.trimIndent()
+                    val videoCatMatch = Regex("""(<PreferenceCategory[^>]*key="pref_category_resolution_video"[^>]*>[\s\S]*?</PreferenceCategory>)""").find(content)
+                    content = if (videoCatMatch != null) {
+                        content.replace(videoCatMatch.value, "${videoCatMatch.value}\n    $videoCamCategory")
+                    } else {
+                        content.replace("</PreferenceScreen>", "    $videoCamCategory\n</PreferenceScreen>")
+                    }
+                    camPrefFile.writeText(content, Charsets.UTF_8)
+                }
+            }
+        } catch (_: Throwable) {}
+
+        // 5. Remove 48dp bottom margin on AutobahnViewPager in options_bottomsheet_tab.xml
+        try {
+            val tabXmlFile = context.get("res/layout/options_bottomsheet_tab.xml", false)
+            if (tabXmlFile.exists()) {
+                var content = tabXmlFile.readText(Charsets.UTF_8)
+                if (content.contains("android:layout_marginBottom=\"48.0dp\"")) {
+                    content = content.replace("android:layout_marginBottom=\"48.0dp\"", "android:layout_marginBottom=\"0.0dp\"")
+                    tabXmlFile.writeText(content, Charsets.UTF_8)
+                }
+            }
+        } catch (_: Throwable) {}
+    }
+
+    /**
+     * Injects the localized application name 'Pixel Camera' (and native variants like
+     * 'Pixel Kamera' for German, 'Cámara Pixel' for Spanish, 'Appareil photo Pixel' for French, etc.)
+     * into all res/values and res/values-xxx/strings.xml resource folders.
+     */
+    fun injectLocalizedAppNames(context: ResourcePatchContext) {
+        val langMap = mapOf(
+            "values" to "Pixel Camera",
+            "values-en-rGB" to "Pixel Camera",
+            "values-en-rXA" to "[Þîxéļ Çåméŕå one]",
+            "values-ar-rXB" to "‏‮Pixel Camera‬‏",
+            "values-de" to "Pixel Kamera",
+            "values-de-rAT" to "Pixel Kamera",
+            "values-de-rCH" to "Pixel Kamera",
+            "values-gsw" to "Pixel Kamera",
+            "values-fr" to "Appareil photo Pixel",
+            "values-fr-rCA" to "Appareil photo Pixel",
+            "values-fr-rCH" to "Appareil photo Pixel",
+            "values-es" to "Cámara Pixel",
+            "values-es-rUS" to "Cámara Pixel",
+            "values-b+es+419" to "Cámara Pixel",
+            "values-es-rAR" to "Cámara Pixel",
+            "values-es-rBO" to "Cámara Pixel",
+            "values-es-rCL" to "Cámara Pixel",
+            "values-es-rCO" to "Cámara Pixel",
+            "values-es-rCR" to "Cámara Pixel",
+            "values-es-rDO" to "Cámara Pixel",
+            "values-es-rEC" to "Cámara Pixel",
+            "values-es-rGT" to "Cámara Pixel",
+            "values-es-rHN" to "Cámara Pixel",
+            "values-es-rMX" to "Cámara Pixel",
+            "values-es-rNI" to "Cámara Pixel",
+            "values-es-rPA" to "Cámara Pixel",
+            "values-es-rPE" to "Cámara Pixel",
+            "values-es-rPR" to "Cámara Pixel",
+            "values-es-rPY" to "Cámara Pixel",
+            "values-es-rSV" to "Cámara Pixel",
+            "values-es-rUY" to "Cámara Pixel",
+            "values-es-rVE" to "Cámara Pixel",
+            "values-it" to "Fotocamera Pixel",
+            "values-pt" to "Câmera Pixel",
+            "values-pt-rBR" to "Câmera Pixel",
+            "values-pt-rPT" to "Câmara Pixel",
+            "values-nl" to "Pixel Camera",
+            "values-pl" to "Aparat Pixel",
+            "values-ru" to "Камера Pixel",
+            "values-uk" to "Камера Pixel",
+            "values-cs" to "Fotoaparát Pixel",
+            "values-sk" to "Kamera Pixel",
+            "values-sl" to "Fotoaparat Pixel",
+            "values-ro" to "Camera Pixel",
+            "values-mo" to "Camera Pixel",
+            "values-bg" to "Камера Pixel",
+            "values-hr" to "Pixel kamera",
+            "values-sr" to "Pixel камера",
+            "values-b+sr+Latn" to "Pixel kamera",
+            "values-bs" to "Pixel kamera",
+            "values-hu" to "Pixel kamera",
+            "values-el" to "Κάμερα Pixel",
+            "values-tr" to "Pixel Kamera",
+            "values-sv" to "Pixel Kamera",
+            "values-da" to "Pixel Kamera",
+            "values-nb" to "Pixel Kamera",
+            "values-no" to "Pixel Kamera",
+            "values-fi" to "Pixel Kamera",
+            "values-ca" to "Càmera Pixel",
+            "values-gl" to "Cámara Pixel",
+            "values-eu" to "Pixel kamera",
+            "values-is" to "Pixel Myndavél",
+            "values-lt" to "Pixel fotoaparatas",
+            "values-lv" to "Pixel kamera",
+            "values-et" to "Pixel kaamera",
+            "values-be" to "Камера Pixel",
+            "values-mk" to "Камера Pixel",
+            "values-sq" to "Pixel Kamera",
+            "values-ga" to "Pixel Camera",
+            "values-cy" to "Pixel Camera",
+            "values-hy" to "Pixel տեսախցիկ",
+            "values-ka" to "Pixel კამერა",
+            "values-az" to "Pixel Kamera",
+            "values-kk" to "Pixel камерасы",
+            "values-ky" to "Pixel камера",
+            "values-uz" to "Pixel Kamera",
+            "values-af" to "Pixel Kamera",
+            "values-zu" to "Ikhamera yePixel",
+            "values-sw" to "Kamera ya Pixel",
+            "values-am" to "Pixel ካሜራ",
+            "values-ar" to "كاميرا Pixel",
+            "values-ar-rEG" to "كاميرا Pixel",
+            "values-ar-rSA" to "كاميرا Pixel",
+            "values-iw" to "מצלמת Pixel",
+            "values-he" to "מצלמת Pixel",
+            "values-fa" to "دوربین Pixel",
+            "values-ur" to "Pixel کیمرا",
+            "values-hi" to "Pixel कैमरा",
+            "values-mr" to "Pixel Camera",
+            "values-gu" to "Pixel Camera",
+            "values-bn" to "Pixel ক্যামেরা",
+            "values-pa" to "Pixel ਕੈਮਰਾ",
+            "values-ta" to "Pixel கேமரா",
+            "values-te" to "Pixel కెమెరా",
+            "values-kn" to "Pixel ಕ್ಯಾಮರಾ",
+            "values-ml" to "Pixel ക്യാമറ",
+            "values-or" to "Pixel କେମେରା",
+            "values-as" to "Pixel কেমেৰা",
+            "values-ne" to "Pixel क्यामेरा",
+            "values-si" to "Pixel කැමරාව",
+            "values-my" to "Pixel ကင်မရာ",
+            "values-km" to "កាមេរ៉ា Pixel",
+            "values-lo" to "ກ້ອງ Pixel",
+            "values-th" to "กล้อง Pixel",
+            "values-vi" to "Camera Pixel",
+            "values-in" to "Kamera Pixel",
+            "values-id" to "Kamera Pixel",
+            "values-ms" to "Kamera Pixel",
+            "values-tl" to "Pixel Camera",
+            "values-fil" to "Pixel Camera",
+            "values-ja" to "Pixel カメラ",
+            "values-ko" to "Pixel 카메라",
+            "values-zh" to "Pixel 相機",
+            "values-zh-rCN" to "Pixel 相机",
+            "values-zh-rHK" to "Pixel 相機",
+            "values-zh-rTW" to "Pixel 相機",
+            "values-mn" to "Pixel Камер",
+            "values-en-rAU" to "Pixel Camera",
+            "values-en-rCA" to "Pixel Camera",
+            "values-en-rIE" to "Pixel Camera",
+            "values-en-rIN" to "Pixel Camera",
+            "values-en-rSG" to "Pixel Camera",
+            "values-en-rXC" to "Pixel Camera",
+            "values-en-rZA" to "Pixel Camera"
+        )
+        val appNameRegex = Regex("""<string name="app_name">.*?</string>""")
+        for ((dir, label) in langMap) {
+            try {
+                val f = context.get("res/$dir/strings.xml", false)
+                if (f.exists()) {
+                    var c = f.readText(Charsets.UTF_8)
+                    if (c.contains("""<string name="app_name">""")) {
+                        c = appNameRegex.replace(c, """<string name="app_name">$label</string>""")
+                    } else {
+                        c = c.replace("<resources>", "<resources>\n    <string name=\"app_name\">$label</string>")
+                    }
+                    f.writeText(c, Charsets.UTF_8)
+                }
+            } catch (_: Throwable) {}
+        }
+    }
+}

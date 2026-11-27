@@ -12,18 +12,18 @@ class VerifyThemeDex {
     static final String SURFACE = THEME + "ComposeTheme;->surface(J)J";
     static final String SCRIM = THEME + "ComposeTheme;->scrimAlpha(F)F";
     static final String ICON = THEME + "ComposeTheme;->iconTint(J)J";
-    static final String COLOR = "Lp/iae1;->g(J)J";
-    static final String DARK_PALETTE = "Lp/iwt;->a:Lp/avt;";
-    static final String RAW_COLORS = "Lp/rut;->a:Lp/jua;";
+    static final String COLOR = "Lp/ddp;->h(J)J";
+    static final String DARK_PALETTE = "Lp/c0z;->a:Lp/pyy;";
+    static final String RAW_COLORS = "Lp/hyy;->a:Lp/ebd;";
     /** Each hook's method, as owner->name, and the field its value comes from or goes to. */
-    static final Map<String, String> PALETTE_SITES = Map.of("Lp/vcu;->a", DARK_PALETTE, "Lp/p6s;->invoke", DARK_PALETTE);
-    static final Map<String, String> PRIMITIVE_SITES = Map.of("Lp/rut;-><clinit>", RAW_COLORS);
-    static final Map<String, String> SURFACE_SITES = Map.of("Lp/pz01;-><clinit>", "Lp/pz01;->a:J", "Lp/t5s0;-><clinit>", "Lp/t5s0;->b:J");
+    static final Map<String, String> PALETTE_SITES = Map.of("Lp/mhz;->a", DARK_PALETTE, "Lp/ccy;->invoke", DARK_PALETTE);
+    static final Map<String, String> PRIMITIVE_SITES = Map.of("Lp/hyy;-><clinit>", RAW_COLORS);
+    static final Map<String, String> SURFACE_SITES = Map.of("Lp/q5d1;-><clinit>", "Lp/q5d1;->a:J", "Lp/ro21;-><clinit>", "Lp/ro21;->b:J");
     static final long STOCK_SURFACE = 0xFF282828L;
     /** The header scrim, whose top and bottom alphas, parameters 1 and 2, pass through scrimAlpha first. */
-    static final String SCRIM_SITE = "Lp/kse1;->j";
+    static final String SCRIM_SITE = "Lp/gls1;->d";
     /** Encore's icon draw, whose tint, parameter 3, passes through iconTint first. */
-    static final String ICON_SITE = "Lp/c9e1;->b";
+    static final String ICON_SITE = "Lp/ns5;->d";
 
     static void require(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
@@ -106,7 +106,7 @@ class VerifyThemeDex {
                     int value = register(code.get(Math.max(i - 1, 0)));
                     require(i >= 1 && i + 2 < code.size() && is(code.get(i - 1), Opcode.SGET_OBJECT, value, PALETTE_SITES.get(site))
                             && range(code.get(i), value, 1) && is(code.get(i + 1), Opcode.MOVE_RESULT_OBJECT, value, null)
-                            && is(code.get(i + 2), Opcode.CHECK_CAST, value, "Lp/avt;"), "Malformed palette hook in " + site);
+                            && is(code.get(i + 2), Opcode.CHECK_CAST, value, "Lp/pyy;"), "Malformed palette hook in " + site);
                 } else if (called.equals(PRIMITIVES)) {
                     require(PRIMITIVE_SITES.containsKey(site) && primitives.merge(site, 1, Integer::sum) == 1, "Unexpected raw color hook in " + site);
                     int value = register(code.get(Math.max(i - 1, 0)));

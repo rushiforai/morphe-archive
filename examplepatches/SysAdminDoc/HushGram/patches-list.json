@@ -1805,7 +1805,7 @@
     },
     {
       "name": "Glass tab bar",
-      "description": "Draws the tab bar as a floating, rounded pill of frosted glass that blurs what's behind it (Android 12 and newer), with a highlight on the tab you're on. Content can optionally run down behind it. With the liquid look off, `Shrink the pill as you scroll` makes the pill smaller while you scroll down, and `Material look` makes it a solid pill in your phone's colors. Starts off. Turn it on in HushGram settings > Tab bar, then restart Instagram.",
+      "description": "Draws the tab bar as a floating, rounded pill of frosted glass that blurs what's behind it (Android 12 and newer), with a highlight on the tab you're on. Content can optionally run down behind it. `Tint color` makes the glass light, dark, AMOLED black, your wallpaper's accent or a color you type. With the liquid look on, `Keep Search in the pill` keeps Search with the other tabs. With it off, `Shrink the pill as you scroll` makes the pill smaller while you scroll down, and `Material look` makes it a solid pill in your phone's colors. Starts off. Turn it on in HushGram settings > Tab bar, then restart Instagram.",
       "category": "Interface",
       "use": true,
       "dependencies": [
@@ -4055,6 +4055,45 @@
       "options": []
     },
     {
+      "name": "Keep HDR on video uploads",
+      "description": "Encodes an HDR video you post in HDR on Android 13 and newer, on phones where Instagram would make it SDR. Experimental. Starts off. Turn it on in HushGram settings > Playback.",
+      "category": "Downloads",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "457.0.0.55.73"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "457.0.0.55.73",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Keep Home's top bar",
       "description": "Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll. A second switch shows your feed blurred under them. Both start off. Turn them on in HushGram settings > Feed.",
       "category": "Feed",
@@ -5503,7 +5542,7 @@
     },
     {
       "name": "Resume long videos",
-      "description": "A video or reel longer than two minutes picks up where you left off the next time you play it on the same account. Live videos and ads start as usual. Starts off. Turn it on in HushGram settings > Playback.",
+      "description": "A video or reel longer than two minutes picks up where you left off the next time you play it on the same account. Live videos and ads start as usual. A second switch, Keep your place in feed videos, picks up any feed video you scroll back to until you close Instagram. Starts off. Turn them on in HushGram settings > Playback.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -5974,6 +6013,45 @@
       "name": "Seek bar on stories",
       "description": "Shows a bar near the bottom of a video story that you can drag to jump to any point in the video. Photos don't get one. A choice under it makes the bar see-through or puts it on frosted glass, and another moves it into the space under the Send message box. Starts off. Turn it on in HushGram settings > Stories.",
       "category": "Stories",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "457.0.0.55.73"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "457.0.0.55.73",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Select all in Your activity",
+      "description": "Adds Select all beside Select on the photo and video grids in Your activity, so you can tick every post, reel or like at once. Starts off. Turn it on in HushGram settings > Profiles.",
+      "category": "Settings",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -6947,7 +7025,7 @@
     },
     {
       "name": "Stop background wake-ups",
-      "description": "Stops three things that wake your phone while Instagram is in the background. One alarm goes off every minute or two only to note that Instagram is still running, another wakes it five minutes later to upload usage events, and a job about every half hour downloads your feed ahead of time. Messages and notifications still arrive. Starts off. Turn it on in HushGram settings > Battery.",
+      "description": "Stops four things that keep Instagram busy while it's in the background. One alarm goes off every minute or two only to note that Instagram is still running, another wakes it five minutes later to upload usage events, and a job about every half hour downloads your feed ahead of time. And when your phone checks its accounts, Instagram never answers, which keeps it running for up to 15 minutes. Messages and notifications still arrive. Starts off. Turn it on in HushGram settings > Battery.",
       "category": "Fixes",
       "use": true,
       "dependencies": [

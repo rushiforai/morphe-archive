@@ -290,6 +290,9 @@ Feed videos and stories wait for your tap. Reels and videos in Explore play as I
 Turn on Tap to play to use this choice.	Bu seçimi kullanmak için Oynatmak için dokun seçeneğini açın.
 Resume long videos	Uzun videolara kaldığın yerden devam et
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	İki dakikadan uzun videolar ve reels kaldığın yerden devam eder. Başka bir yerden başlatmak için çubuğu kaydır. Canlı videolar ve reklamlar normal başlar.
+# context: a switch under Resume long videos (#874). A feed video you scroll past and come back to keeps playing from where it was, only until Instagram closes. The Reels tab is Instagram's own tab.
+Keep your place in feed videos	Akış videolarında kaldığın yeri hatırla
+A feed video you scroll away from picks up where you left it when you scroll back, until you close Instagram. Reels in the Reels tab start over as usual.	Kaydırıp geçtiğin bir akış videosu, geri döndüğünde kaldığın yerden devam eder. Bu, Instagram'ı kapatana kadar sürer. Reels sekmesindeki reels videoları her zamanki gibi baştan başlar.
 Default playback quality	Varsayılan oynatma kalitesi
 # context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
 Videos, reels and stories play at the quality below, starting with the next one you open.	Videolar, reels ve hikayeler, açacağın bir sonrakinden itibaren aşağıdaki kalitede oynatılır.
@@ -771,6 +774,9 @@ The latitude and the longitude in degrees, with a comma between them, like 40.75
 Turn off HDR brightness boosts	HDR parlaklık artışını kapat
 Keep HDR on photo uploads	Fotoğraf yüklerken HDR'yi koru
 Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, so it can still show in HDR. Turn it off if a photo you post looks wrong.	Deneysel. Paylaştığın bir Ultra HDR fotoğraf Android 14 ve üzerinde kazanç haritasını korur, böylece HDR olarak görünmeye devam edebilir. Paylaştığın bir fotoğraf yanlış görünürse kapat.
+# context: Keep HDR on video uploads, under Playback next to the photo switch. Instagram encodes a video again before it uploads it; HDR means HLG here.
+Keep HDR on video uploads	Video yüklerken HDR'yi koru
+Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong or won't upload.	Deneysel. Paylaştığın bir HDR video Android 13 ve üzerinde HDR olarak kodlanır, oysa Instagram bazı telefonlarda onu SDR yapar. Paylaştığın bir video yanlış görünürse veya yüklenmezse kapat.
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	Aramadan açtıkların ne uygulamada ne de Instagram tarafında Son aramalar'a girer. Orada zaten olan aramalar sen temizleyene kadar kalır.
 Wi-Fi stays as it is. Turn this off to save data on every network.	Wi-Fi olduğu gibi kalır. Her ağda veri tasarrufu için bu anahtarı kapat.
 Hide comments	Yorumları gizle
@@ -1099,6 +1105,8 @@ Stop the analytics upload alarm	Analiz yükleme alarmını durdur
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram, kullanım verilerini beş dakika sonra göndermek için telefonunu uyandıran bir alarm kurar. Bu, o alarmı durdurur. Veriler uygulamayı bir sonraki kullanışında gider.
 Stop background feed refresh	Arka planda akış yenilemeyi durdur
 About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Instagram yaklaşık yarım saatte bir, akışını önceden indirmek için telefonunu uyandırır. Bu, bunu durdurur. Akış bunun yerine uygulamayı açtığında yüklenir, mesajlar ve bildirimler gelmeye devam eder.
+Let Instagram close after account checks	Hesap denetimlerinden sonra Instagram kapanabilsin
+When your phone checks its accounts, as it does at startup and when an account changes, Instagram never answers. Android then keeps it running for up to 15 minutes, even after you swipe it away. This answers right away so Instagram can close. Your login is unaffected.	Telefonun hesaplarını denetlediğinde, örneğin açılışta ve bir hesap değiştiğinde, Instagram hiç yanıt vermez. Android de onu, kaydırıp kapatsan bile 15 dakikaya kadar çalışır durumda tutar. Bu ayar hemen yanıt verir, böylece Instagram kapanabilir. Oturum açman etkilenmez.
 Haptic style	Haptik stili
 Short tick	Kısa tık
 System tick	Sistem tıkı
@@ -1922,6 +1930,21 @@ Seek bar button on feed videos	Akış videolarında ilerleme çubuğu düğmesi
 Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	Akış videosunun sol altına ilerleme çubuğunu gösteren veya gizleyen küçük bir düğme ekler. Akış videolarında ilerleme çubuğu açık da olsa kapalı da olsa çalışır.
 Seek bar	İlerleme çubuğu
 Tint intensity	Renk tonu yoğunluğu
+# context: Tab bar: the Tint color list under Tint intensity that picks the glass tab bar's color, its choices' descriptions, the Custom tint color field under it with its dialog message and empty summary, and what both say while another switch is in the way (#875). Light, Dark and AMOLED black are choices in the list; Tint intensity, Custom tint color, Glass tab bar and Material look are rows' names
+Tint color	Cam rengi
+Light	Açık
+Dark	Koyu
+AMOLED black	AMOLED siyahı
+The glass takes Instagram's own colors, dark or light with its theme.	Cam, Instagram'ın kendi renklerini alır ve Instagram nasılsa koyu ya da açık olur.
+Frosted white glass whatever Instagram's theme, with the tab icons dark on it.	Instagram koyu da olsa açık da olsa buzlu beyaz cam, üzerinde koyu sekme simgeleriyle.
+Dark gray glass whatever Instagram's theme, with the tab icons white on it.	Instagram koyu da olsa açık da olsa koyu gri cam, üzerinde beyaz sekme simgeleriyle.
+A black pill with no sheen, for AMOLED screens. A lower Tint intensity lets what's behind it show through.	AMOLED ekranlar için parlaklığı olmayan siyah bir hap. Renk tonu yoğunluğu düşükken arkasındakiler görünür.
+The glass takes the accent color Android picks from your wallpaper. Android 12 and newer. Older phones keep Instagram's colors.	Cam, Android'in duvar kâğıdınızdan seçtiği vurgu rengini alır. Android 12 ve üzeri. Eski telefonlar Instagram renklerinde kalır.
+The glass takes the color you type under Custom tint color.	Cam, Özel cam rengi alanına yazdığınız rengi alır.
+Custom tint color	Özel cam rengi
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Tint color.	Altı onaltılık basamaklı bir renk, örneğin #4A6B82. Kaydetmek Cam rengi altında Özel'i seçer.
+Turn on Glass tab bar to use this choice.	Bu seçimi kullanmak için Cam sekme çubuğu seçeneğini açın.
+Turn off Material look to use this choice.	Bu seçimi kullanmak için Material görünümü seçeneğini kapatın.
 Refraction intensity	Kırılma yoğunluğu
 Preview of the tab bar	Sekme çubuğu önizlemesi
 Keep stories playing while zooming	Yakınlaştırırken hikâyeler oynamaya devam etsin
@@ -2334,6 +2357,9 @@ Instagram's small window for reels gets a button to pause the reel and play it a
 # context: a switch on the Playback page under Pause button in the reels window; the buttons are Instagram's own Previous and Next buttons in its small picture in picture window for reels
 Previous and next in the reels window	Reels penceresinde önceki ve sonraki
 Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.	Instagram'ın reels için küçük penceresine, önceki reel'e dönmek ya da sonrakine geçmek için kendi düğmeleri eklenir.
+# context: a switch on the Playback page under Previous and next in the reels window; photo and carousel reels go in Instagram's small picture in picture window for reels, a carousel shows a dot per page, and the window's Previous and Next buttons turn its pages before moving to another reel (#873)
+Photos and carousels in the reels window	Reels penceresinde fotoğraflar ve karuseller
+Photo and carousel reels go in Instagram's small window for reels too. A carousel shows a dot for each page, and Previous and Next go through its pages first.	Fotoğraf ve karusel reels'leri de Instagram'ın reels için küçük penceresine girer. Bir karusel her sayfa için bir nokta gösterir, önceki ve sonraki önce onun sayfalarında gezinir.
 # context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
 Picture in picture for stories	Hikayeler için pencere içinde pencere
 Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	Bir hikaye oynarken Instagram'dan çıkınca, diğer uygulamalarının üstünde küçük bir pencereye dönüşür ve orada hikayeler devam eder.
@@ -2781,6 +2807,9 @@ HushGram's own files take up %1$s.	HushGram'ın kendi dosyaları %1$s yer kaplı
 # context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
 Glass lens under your finger	Parmağının altında cam mercek
 Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	Sıvı cam hapın kabarcığına parmağını basılı tut ya da sekmeler boyunca kaydır, kabarcık büyür ve arkasındakini parmak ucunun altındaki cam gibi daha güçlü kırar. Bıraktığında eski haline döner. Kırılma için Sekme çubuğunun arkasında bulanıklık ve Android 13 ya da daha yenisi gerekir. Değiştirdikten sonra Instagram'ı yeniden başlat.
+# context: Tab bar: switch under Glass lens under your finger that keeps Instagram's Search tab inside the liquid pill with the other tabs instead of in a glass circle of its own, and its description (#875). Search is Instagram's tab, named as it is there; Liquid glass look is another switch's name
+Keep Search in the pill	Ara'yı hapın içinde tut
+With Liquid glass look on, Search stays in the pill with the other tabs instead of a glass circle of its own. Restart Instagram after changing it.	Sıvı cam görünümü açıkken Ara, kendi cam dairesi yerine diğer sekmelerle birlikte hapın içinde kalır. Değiştirdikten sonra Instagram'ı yeniden başlat.
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	Hikaye görüntüleyenleri tut
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	Hikayelerinden birini kimin gördüğünü her açtığında liste bu telefonda tutulur ve takipçilerinin yanına konur. Instagram'dan fazladan bir şey istenmez. Kapatırsan hemen durur.
@@ -3087,3 +3116,11 @@ Settings page logo set.	Ayarlar logosu ayarlandı.
 HushGram shows at the top of this page.	Bu sayfanın üstünde HushGram görünür.
 # context: Settings entry > summary of Settings page name; %1$s is the typed name (#872)
 The top of this page says %1$s.	Bu sayfanın üstünde %1$s yazıyor.
+# context: Settings > Downloads > switch title, under Name saves by account and post time (#792)
+Date saves by when they were posted	Kaydedilenleri paylaşım zamanına göre tarihle
+# context: Settings > Downloads > summary of Date saves by when they were posted (#792)
+Gives each saved photo and video the time its post went up, so your gallery sorts saves by the post instead of the day you saved them. A save that doesn't know when it was posted keeps the time it was saved.	Kaydedilen her fotoğrafa ve videoya gönderisinin paylaşıldığı zamanı verir, böylece galerin kaydedilenleri kaydettiğin güne göre değil gönderiye göre sıralar. Ne zaman paylaşıldığını bilmeyen bir kayıt kaydedildiği zamanı korur.
+# context: Profiles > title of the switch that adds a Select all button beside Instagram's own Select on the grids in Your activity (#762); Your activity is Instagram's own page in the profile menu, use the name Instagram shows for it in this language
+Select all in Your activity	Hareketlerin'de tümünü seç
+# context: Profiles > summary of Select all in Your activity (#762). Select, Delete and Unlike are Instagram's own buttons on those grids; use the words Instagram shows there in this language
+Adds Select all beside Select on the photo and video grids in Your activity, like your posts, reels and likes. Tick one first and it shows. It only ticks them. Nothing goes until you press Delete or Unlike yourself.	Hareketlerin'deki fotoğraf ve video ızgaralarında, örneğin gönderilerin, Reels videoların ve beğenilerinde, Seç'in yanına Tümünü seç ekler. Birini işaretleyince görünür. Yalnızca işaretler. Sil'e ya da Beğenmekten Vazgeç'e kendin basana kadar hiçbir şey gitmez.

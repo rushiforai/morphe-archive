@@ -68,7 +68,7 @@ final class SettingsPage extends Dialog {
         Class<?> headerType = NativeLine.type("jp.naver.line.android.common.view.header.Header");
         View header = (View) headerType.getConstructor(Context.class).newInstance(context);
         heading = (TextView) headerType.getMethod("getTitleTextView").invoke(header);
-        headerType.getMethod("setUpButtonVisibility$LINE_Android_migrant_common_libs", boolean.class).invoke(header, true);
+        headerType.getMethod("setUpButtonVisibility$common_libs", boolean.class).invoke(header, true);
         headerType.getMethod("setUpButtonImageResource", int.class).invoke(header, id("drawable", "navi_top_back"));
         View back = (View) headerType.getMethod("getUpButtonBackgroundLayout").invoke(header);
         back.setOnClickListener(v -> onBackPressed());
@@ -234,7 +234,10 @@ final class SettingsPage extends Dialog {
         text(hidden, "setting_title", str("line_notify_hidden_chats_title", "Completely hidden chats"));
         text(hidden, "setting_description",
                 str("line_notify_hidden_chats_desc", "Manage chats that should not show even silent notifications."));
-        hidden.findViewById(id("id", "setting_item_container")).setOnClickListener(v -> showMuted());
+        View hiddenContainer = hidden.findViewById(id("id", "setting_item_container"));
+        hidden.setDuplicateParentStateEnabled(false);
+        hiddenContainer.setDuplicateParentStateEnabled(false);
+        hiddenContainer.setOnClickListener(v -> showMuted());
         feature("More Chat Info",
                 str("line_notify_desc_info", "Expands recent unread messages in conversation style and shows the total unread count."),
                 Settings.INFO, Settings.infoIncluded());
@@ -344,6 +347,9 @@ final class SettingsPage extends Dialog {
         text(row, "setting_title", title);
         text(row, "setting_description", text);
         View container = row.findViewById(id("id", "setting_item_container"));
+        row.setDuplicateParentStateEnabled(false);
+        container.setDuplicateParentStateEnabled(false);
+        row.setEnabled(available);
         container.setEnabled(available);
         container.setFocusable(available);
         row.setAlpha(available ? 1f : 0.45f);

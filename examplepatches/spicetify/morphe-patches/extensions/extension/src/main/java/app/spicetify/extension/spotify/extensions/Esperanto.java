@@ -11,8 +11,8 @@ import java.util.TreeMap;
 /**
  * The esperanto messages the extensions send and receive over {@code sp://esperanto/<service>/
  * <method>}: request builders, response parsers and the player state value. The field numbers
- * were read from Spotify 9.1.80.2221's protobuf classes, and the extensions patch checks them
- * again against the APK it patches.
+ * were read from Spotify 9.1.80.2221's protobuf classes and are the same in 9.2.4.2644, and the
+ * extensions patch checks them again against the APK it patches.
  */
 final class Esperanto {
     static final String CONTEXT_PLAYER = "spotify.player.esperanto.proto.ContextPlayer";
@@ -289,7 +289,7 @@ final class Esperanto {
         return request.toByteArray();
     }
 
-    /** The four uris the app treats as Liked Songs ({@code Lp/x46;->E} in 9.1.80.2221). */
+    /** The four uris the app treats as Liked Songs ({@code Lp/p8e0;->a} in 9.2.4.2644). */
     static boolean isLikedSongs(String uri) {
         return LIKED_SONGS.equals(uri)
                 || "spotify:collection:tracks".equals(uri)

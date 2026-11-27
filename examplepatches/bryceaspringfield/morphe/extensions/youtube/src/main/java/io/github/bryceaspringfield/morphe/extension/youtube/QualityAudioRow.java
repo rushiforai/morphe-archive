@@ -22,16 +22,8 @@ import java.util.WeakHashMap;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/**
- * "Audio only" as a row of the video quality sheet, above the resolutions. The sheet's rows are drawn by Litho, so the
- * extension adds a real row to the sheet's own column (its drag handle, header, and list sit in one vertical layout)
- * in the half second after the Litho filter sees the sheet's content: a tap turns YouTube's audio-only mode on
- * ({@link AudioOnly}) and closes the sheet, and the next resolution the user picks (Morphe's userChangedQuality, hooked
- * by the patch) turns it off again.
- */
 public final class QualityAudioRow {
 
-    /** How long after the sheet's content is seen the sheet's window is searched, in ms. */
     private static final long SEARCH_MS = 3000;
     private static final long SEARCH_STEP_MS = 60;
 
@@ -54,7 +46,6 @@ public final class QualityAudioRow {
         }
     }
 
-    /** The Litho filter saw the quality sheet's content: looks for the sheet's window for the next few seconds. */
     static void sheetOpened() {
         if (!XSettings.AUDIO_ONLY_ROW.get() || !AudioOnly.available()) return;
         openedAt = SystemClock.uptimeMillis();
@@ -65,7 +56,6 @@ public final class QualityAudioRow {
         });
     }
 
-    /** Injection point: the user picked a resolution in a quality menu. */
     public static void resolutionPicked() {
         try {
             if (AudioOnly.isOn() && !XSettings.AUDIO_ONLY.get() && !pickedByRow) {
@@ -76,7 +66,6 @@ public final class QualityAudioRow {
         }
     }
 
-    /** True while the row's own tap runs, since a tap may also reach the quality code. */
     private static volatile boolean pickedByRow;
 
     private static void search() {
@@ -109,10 +98,6 @@ public final class QualityAudioRow {
         }
     }
 
-    /**
-     * The sheet's column: a vertical layout that has a list (RecyclerView) and a small clickable image (the drag
-     * handle) among its children, in a window smaller than the activity's.
-     */
     private static ViewGroup findColumn(View v) {
         if (v instanceof ViewGroup g) {
             boolean list = false;
@@ -184,9 +169,6 @@ public final class QualityAudioRow {
             Utils.runOnMainThreadDelayed(() -> pickedByRow = false, 1500);
             close(root);
         });
-        // The resolutions and the footer note are one Litho view. The row takes a slot above the list, then the list
-        // moves up into the slot, the row moves down to where the resolutions end, and the footer note ("This
-        // selection only applies to the current video...") is hidden, since the sheet has no room for both.
         column.setClipChildren(false);
         list.setClipChildren(false);
         column.addView(row, at, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height));
@@ -194,7 +176,6 @@ public final class QualityAudioRow {
         Logger.printDebug(() -> "YouTube Extras: quality sheet row added, audio only " + on);
     }
 
-    /** Waits for the resolutions to be laid out, then moves the row and the footer; tries again every 60 ms for 3 s. */
     private static void placeRow(ViewGroup column, ViewGroup list, View row, int height, int tries) {
         if (!row.isAttachedToWindow() || tries > 50) return;
         try {
@@ -220,7 +201,6 @@ public final class QualityAudioRow {
                         }
                         footer.setVisibility(View.INVISIBLE);
                     }
-                    // Litho may lay the sheet out again (a resize, a rebinding): the offsets are set again each frame.
                     row.getViewTreeObserver().addOnPreDrawListener(() -> {
                         if (row.isAttachedToWindow()) {
                             list.setTranslationY(-height);
@@ -238,7 +218,6 @@ public final class QualityAudioRow {
         Utils.runOnMainThreadDelayed(() -> placeRow(column, list, row, height, tries + 1), 60);
     }
 
-    /** The resolution rows: clickable groups as wide as the list and about 48 dp high. */
     private static void collectRows(View v, java.util.List<View> out, int minWidth, int minHeight, int maxHeight) {
         if (!(v instanceof ViewGroup g)) return;
         if (g.isClickable() && g.getWidth() >= minWidth && g.getHeight() >= minHeight && g.getHeight() <= maxHeight) {
@@ -248,7 +227,6 @@ public final class QualityAudioRow {
         for (int i = 0; i < g.getChildCount(); i++) collectRows(g.getChildAt(i), out, minWidth, minHeight, maxHeight);
     }
 
-    /** The outermost group starting where the last row ends (the footer note with its divider). */
     private static ViewGroup footerBelow(ViewGroup root, int lastBottom, int minHeight) {
         java.util.ArrayDeque<ViewGroup> queue = new java.util.ArrayDeque<>();
         queue.add(root);
@@ -266,7 +244,6 @@ public final class QualityAudioRow {
         return null;
     }
 
-    /** Closes the sheet's window with the back key, which its dialog dismisses on. */
     private static void close(View root) {
         long now = SystemClock.uptimeMillis();
         root.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK, 0));

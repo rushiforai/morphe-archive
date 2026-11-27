@@ -2,6 +2,7 @@ package app.template.patches.orca
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
+import app.template.patches.shared.loadAdapter
 import java.io.ByteArrayInputStream
 import java.security.MessageDigest
 import java.util.Properties
@@ -88,7 +89,8 @@ internal val orcaFontResources = resourcePatch {
 
         val bundle = get("assets/index.android.bundle")
         if (!bundle.isFile) throw PatchException("Orca embedded bundle not found")
-        if (sha256(bundle.readBytes()) != metadata.getProperty("originalSha256"))
+        val original = bundle.readBytes()
+        if (sha256(original) != metadata.getProperty("originalSha256"))
             throw PatchException("Unsupported Orca bundle for $version. Rebuild the adapter from that APK.")
 
         // Verify every artifact before writing any of them.
@@ -103,10 +105,7 @@ internal val orcaFontResources = resourcePatch {
                 throw PatchException("Orca font $name checksum mismatch")
             name to bytes
         }
-        val adapter = bundled("orca/adapters/$version.bundle")?.use { it.readBytes() }
-            ?: throw PatchException("Orca $version font adapter is missing")
-        if (sha256(adapter) != metadata.getProperty("patchedSha256"))
-            throw PatchException("Orca font adapter checksum mismatch")
+        val adapter = loadAdapter("orca/adapters", version, metadata, original)
         val overlay = bundled("orca/adapters/$version.assets.zip")?.use { it.readBytes() }
             ?: throw PatchException("Orca font adapter assets are missing")
         if (sha256(overlay) != metadata.getProperty("assetsSha256"))

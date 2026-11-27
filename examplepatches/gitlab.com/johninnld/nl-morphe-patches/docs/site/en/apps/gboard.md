@@ -8,13 +8,15 @@ Select Google's armeabi-v7a APK (build 176124765) or arm64-v8a APK (build 176124
 
 [Read how to use and test every Gboard patch](../guides/gboard.md) · [Make Frosted Glass visible](../guides/gboard.md#frosted-glass)
 
+[Set up Local AI writing, images and shared speech](../guides/local-ai.md). [Set up Gboard for private local AI](../guides/gboard-privacy.md). The companion requires Android 11+ and arm64; ordinary Gboard patch compatibility remains separate.
+
 ## Patches
 
 | Patch | Default | What it does |
 | --- | --- | --- |
 | **Enable Inline Autofill Suggestions** | On | Enables Gboard's Android inline autofill receiver so a password manager such as Bitwarden can offer login chips in the keyboard. Requires Android 11+, an enabled autofill provider and its inline display setting. Works through the Bitwarden client when using Vaultwarden. |
 | **Smart Compose** | On | Exposes **Text correction → Smart Compose** and enables the client-side text completion gate. Google's language, model and app eligibility still apply. Separate from password autofill. |
-| **Parakeet voice typing** | On | Adds **Parakeet voice typing** to Gboard settings → Voice typing. Once you download a model there and switch it on, the microphone key transcribes on the phone with NVIDIA Parakeet instead of Google's speech recognition. Each sentence is recognised in the language you speak it in, so Dutch and English work in the same dictation without switching. Until a model is ready, Gboard keeps using Google's voice typing. The patched Gboard gets the Parakeet launcher icon. |
+| **Parakeet voice typing** | On | Adds local dictation through the shared Local AI companion. Choose and download Parakeet TDT v3/Ultra, Nemotron Streaming or Whisper Tiny in the host, wait for speech Ready, then enable shared speech in Gboard. Each profile reports its own languages. The native microphone UI remains Gboard’s; selected local speech does not silently fall back to Google. |
 | **Rambler voice typing** | On | Adds Google's **Rambler** to Gboard settings → Voice typing, as a choice next to Parakeet (Gboard's Standard voice typing). With Rambler picked, the microphone key sends your speech to Google's servers, which return finished text and carry out spoken edits such as "delete the last sentence". Parakeet stays the default. |
 | **Rambler personal dictionary** | On | Adds **Voice dictionary** to Gboard settings → Voice typing, with Gboard's own **Voice correction list**: names and words you add, import or export, which Rambler receives with every dictation so it spells them right. Requires Rambler voice typing. |
 | **Rambler contact names** | On | Fills the voice correction list with your contacts' names once you switch on **Contact names** under Voice dictionary. Names you delete are not added again; new contacts are added the next time Rambler starts. Requires Rambler personal dictionary and contacts access. |
@@ -22,7 +24,7 @@ Select Google's armeabi-v7a APK (build 176124765) or arm64-v8a APK (build 176124
 | **Rambler cursor-aware editing** | On | Rambler also sees the text after the cursor, so spoken edits reach the whole text and dictating in the middle of a text fits in. With text selected, only the selection is sent, so a spoken edit such as "make this more formal" applies to it, and the result is selected again for the next edit. Requires Rambler voice typing. |
 | **Rambler app context** | On | Rambler also receives the name of the app you dictate in and the text field's hint, so it can match the tone of a chat, an e-mail or a search, and custom instructions can depend on the app. This tells Google which app you are typing in. Requires Rambler voice typing. |
 | **Rambler stop after silence** | On | Rambler stops by itself after 3 seconds without speech and keeps the text, as when you tap ✓. Change the time (3, 5, 8 or 10 seconds) or switch it off under Gboard settings → Voice typing → Rambler → **Stop after silence**. Requires Rambler voice typing. |
-| **Parakeet personal dictionary** | On | Lets Parakeet spell the names and words in the **Voice dictionary**'s voice correction list, including contact names added there. Parakeet favours them while listening and corrects a sound-alike spelling only when a second listen agrees. Needs a 2 MB spelling download under Parakeet voice typing. Requires Parakeet voice typing and Rambler personal dictionary. |
+| **Parakeet personal dictionary** | On | Provides the acoustic dictionary option for the legacy embedded Parakeet decoder. Shared Parakeet Ultra supports per-session contact hints through its separate **Use contact names** setting with Local Model Host v0.1.145 or later. |
 | **Change package name** | On | Installs the patched Gboard under its own package name (app.morphe.android.inputmethod.latin by default), so it sits beside the stock Gboard that most phones have built in. Your stock Gboard, its settings and its dictionary are not touched; choose the patched keyboard in Android's keyboard settings. |
 | **Custom branding** | On | Sets the launcher name to **Gboard Parakeet/Rambler** and uses the Parakeet icon by default. Change either in Morphe's patch options. |
 | **Add Gboard Signature Bypass** | On | Lets the patched, re-signed Gboard use the parts that check the app's signature, such as Themes, which otherwise stop with a warning about unrecognized certificates. |
@@ -32,11 +34,17 @@ Select Google's armeabi-v7a APK (build 176124765) or arm64-v8a APK (build 176124
 | **G Logo on Spacebar** | On | Shows a built-in icon or your own PNG, WebP or JPEG on the space bar, in its own colours or a single colour, with an adjustable size. |
 | **Key Shape Selection** | On | Enables Gboard's own Key shape option in theme details, so a theme's keys keep their shape instead of being forced square. |
 | **AMOLED dark keyboard** | On | Turns the dark keyboard background pure black instead of Google's grey, including the dynamic theme that follows your wallpaper, while light mode keeps the light keyboard. There is no separate tile: pick Dynamic Color in Gboard's theme screen — see [AMOLED dark keyboard](#amoled-dark-keyboard). |
-| **Enable OCR / Scan Text** | On | Adds Gboard's Scan Text camera entry point: point the camera at text and it is recognised and inserted at your cursor. The patch ships its own on-device OCR engine, because Play Services refuses the download to a re-signed Gboard. Latin text only. You can also pick an existing screenshot or photo in Gboard settings and have its text copied to the clipboard. |
-| **AI Writing Tools** | On | Exposes Google's rewrite and tone tools for selected text where supported. Proofread / Auto Fix is outside this port. |
+| **Enable OCR / Scan Text** | On | Keeps the Scan Text entry point and adds a selected-image/camera workflow through Gemma when Local AI and vision are ready. Review recognized text before insertion. The separate bundled/Google OCR route retains its own setup when Local AI is off. |
+| **AI Writing Tools** | On | Keeps Google backend choices and adds optional shared Gemma writing, proofreading, translation, replies, style and image actions in the keyboard theme. Smart Compose and inline grammar are separately experimental. Configure the standalone companion under Local AI. |
+| **Block Gboard telemetry** | Off | Suppresses the identified Clearcut, Play services client metrics and Tenor share reports at their submission paths. Hides stock Translate and blocks its cloud request. GIF search, downloads and AI Translate remain available where configured. See [private setup](../guides/gboard-privacy.md). |
 | **Clipboard Enhancements** | On | Controls how long copied snippets stay available, how many are kept, how many preview lines a card shows, and whether cards show a countdown, creation time, order number and column count. |
 | **Web Clipboard** | On | Hosts a small Web Clipboard portal on the phone so a desktop browser on the same local network can exchange clipboard text with Gboard. The portal is protected by a pairing code and can be reached from a Quick Settings tile. |
 | **Toolbar Editing Buttons** | On | Adds Select All, Copy, Cut and Paste to Gboard's menu so they can be dragged onto the top toolbar and used across supported keyboard languages and editors. |
+| **Shift + Backspace Forward Delete** | Off | Turn on the feature in Gboard’s **Keyboard Tools & Shortcuts**. Hold on-screen Shift and tap Backspace to delete the character after the cursor. |
+| **Long-Press Editing Shortcuts** | Off | Adds Select all, Undo, Copy, Cut, Paste and Redo to letter menus. Set a default position and override it for each key. |
+| **Custom Symbols** | Off | Adds a themed toolbar palette with 11 symbol categories for English keyboard layouts. |
+| **Grammar Checker** | Off | Enables Gboard's native grammar-check setting for Android 12 or later. Supported editors underline mistakes and show replacements when tapped. |
+| **Top Toolbar Item Count** | Off | Choose three to eight top toolbar items in Gboard settings. Restart the keyboard after changing the count. |
 | **Cursor trackpad mode** | On | Long-press the space bar to move the cursor more precisely with a trackpad and use the lock mode. |
 | **Incognito Mode Toggle** | On | Adds an Incognito toggle to the Access Point toolbar and lets you choose whether the clipboard and voice typing stay available while Incognito is active. This controls Gboard's own incognito state; it is not a network-wide tracking blocker. |
 | **Simple Calculator** | On | Type an arithmetic expression in a text field and see a scrollable equation with its answer in Gboard's suggestion row, ready to insert. |
@@ -47,7 +55,7 @@ Select Google's armeabi-v7a APK (build 176124765) or arm64-v8a APK (build 176124
 | **Hidden flags (18.8)** | On | Three internal 18.8 flags written through Gboard's own override store: app-specific word biasing, the app-specific suggestion bar and the square normalised search radius. See [Hidden flags](#hidden-flags-188). |
 | **Beta features (18.8)** | On | Enables five features for clipboard, floating keyboard, Emoji2 and suggestion removal. Change each under **Patches → More settings → Beta features**. See [Beta features](#beta-features-188). |
 
-Enable Inline Autofill Suggestions, Smart Compose, Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar and Key Shape Selection are ported from the GPLv3 [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) project and updated for Gboard 18.8.0.
+Enable Inline Autofill Suggestions, Smart Compose, Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar, Key Shape Selection, Shift + Backspace Forward Delete, Long-Press Editing Shortcuts, Custom Symbols and Grammar Checker are ported from the GPLv3 [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) project and updated for Gboard 18.8.0.
 
 
 ### Advanced voice typing (NGA)
@@ -144,12 +152,9 @@ This one is not behind the beta switch: with **Rambler voice typing** applied, R
 
 ## Choosing a model
 
-| Model | Download | Best for |
-| --- | --- | --- |
-| Parakeet Ultra (recommended) | about 630 MB | Moondream's further-trained Parakeet TDT v3. More accurate, especially with background noise. |
-| Parakeet TDT 0.6B v3 | about 670 MB | NVIDIA's original model, as published by the sherpa-onnx project. |
+Choose and download speech models in **Local AI → Speech recognition**. Available choices include Parakeet TDT v3, Parakeet Ultra, Nemotron Streaming and Whisper Tiny. The host shows the exact selected download and language coverage. The supplied Whisper Tiny integration uses an English prefix. Only selected managed model files are retained, and integrating apps share the host rather than loading a second copy.
 
-Both models understand 25 European languages, including Dutch, English, German, French and Spanish, and pick the language per sentence by themselves. Punctuation and capitals are added automatically. The first download also fetches the speech runtime and speech detection (about 40 MB). Every file is checked against a fixed checksum before it is used. After that, voice typing works offline and your audio never leaves the phone.
+Enable **Use shared local speech** in Gboard only after the speech model is Ready. Text and image processing can remain off when you only need dictation. See [Local AI setup](../guides/local-ai.md).
 
 ## Dictating
 

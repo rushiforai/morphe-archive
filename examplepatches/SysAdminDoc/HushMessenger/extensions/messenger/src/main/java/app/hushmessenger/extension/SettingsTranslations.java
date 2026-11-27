@@ -34,6 +34,8 @@ final class SettingsTranslations {
         add("bg", SettingsTextBg.TEXT);
         // Italian is written the same everywhere, so one table covers it-IT, it-CH and any other region.
         add("it", SettingsTextIt.TEXT);
+        // Russian is written the same everywhere, so one table covers ru-RU, ru-UA and any other region.
+        add("ru", SettingsTextRu.TEXT);
     }
 
     /** Refuses a table that gives one id twice, since the later line would quietly replace the earlier one. */

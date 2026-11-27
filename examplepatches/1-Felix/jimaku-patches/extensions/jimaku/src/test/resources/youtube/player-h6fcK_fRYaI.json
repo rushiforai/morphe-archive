@@ -1,0 +1,938 @@
+{
+ "_about": "YouTube's player answer for h6fcK_fRYaI to the ANDROID client on 2026-10-29, cut to what Jimaku reads; the track addresses keep only v, caps, kind, lang and fmt.",
+ "playabilityStatus": {
+  "status": "OK"
+ },
+ "videoDetails": {
+  "videoId": "h6fcK_fRYaI",
+  "title": "The Egg - A Short Story",
+  "lengthSeconds": "486",
+  "isLiveContent": false
+ },
+ "captions": {
+  "playerCaptionsTracklistRenderer": {
+   "captionTracks": [
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ar&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Arabic"
+       }
+      ]
+     },
+     "vssId": ".ar",
+     "languageCode": "ar",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=az&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Azerbaijani"
+       }
+      ]
+     },
+     "vssId": ".az",
+     "languageCode": "az",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=bn&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Bangla"
+       }
+      ]
+     },
+     "vssId": ".bn",
+     "languageCode": "bn",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=be&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Belarusian"
+       }
+      ]
+     },
+     "vssId": ".be",
+     "languageCode": "be",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=bs&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Bosnian"
+       }
+      ]
+     },
+     "vssId": ".bs",
+     "languageCode": "bs",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=bg&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Bulgarian"
+       }
+      ]
+     },
+     "vssId": ".bg",
+     "languageCode": "bg",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=my&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Burmese"
+       }
+      ]
+     },
+     "vssId": ".my",
+     "languageCode": "my",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ca&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Catalan"
+       }
+      ]
+     },
+     "vssId": ".ca",
+     "languageCode": "ca",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=zh&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Chinese"
+       }
+      ]
+     },
+     "vssId": ".zh",
+     "languageCode": "zh",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=zh-CN&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Chinese (China)"
+       }
+      ]
+     },
+     "vssId": ".zh-CN",
+     "languageCode": "zh-CN",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=zh-Hans&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Chinese (Simplified)"
+       }
+      ]
+     },
+     "vssId": ".zh-Hans",
+     "languageCode": "zh-Hans",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=zh-TW&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Chinese (Taiwan)"
+       }
+      ]
+     },
+     "vssId": ".zh-TW",
+     "languageCode": "zh-TW",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=hr&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Croatian"
+       }
+      ]
+     },
+     "vssId": ".hr",
+     "languageCode": "hr",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=cs&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Czech"
+       }
+      ]
+     },
+     "vssId": ".cs",
+     "languageCode": "cs",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=da&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Danish"
+       }
+      ]
+     },
+     "vssId": ".da",
+     "languageCode": "da",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=nl&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Dutch"
+       }
+      ]
+     },
+     "vssId": ".nl",
+     "languageCode": "nl",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&kind=asr&lang=en&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "English (auto-generated)"
+       }
+      ]
+     },
+     "vssId": "a.en",
+     "languageCode": "en",
+     "kind": "asr",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=en-GB&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "English (United Kingdom)"
+       }
+      ]
+     },
+     "vssId": ".en-GB",
+     "languageCode": "en-GB",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=eo&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Esperanto"
+       }
+      ]
+     },
+     "vssId": ".eo",
+     "languageCode": "eo",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=et&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Estonian"
+       }
+      ]
+     },
+     "vssId": ".et",
+     "languageCode": "et",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=fil&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Filipino"
+       }
+      ]
+     },
+     "vssId": ".fil",
+     "languageCode": "fil",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=fi&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Finnish"
+       }
+      ]
+     },
+     "vssId": ".fi",
+     "languageCode": "fi",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=fr&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "French"
+       }
+      ]
+     },
+     "vssId": ".fr",
+     "languageCode": "fr",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=fr-CA&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "French (Canada)"
+       }
+      ]
+     },
+     "vssId": ".fr-CA",
+     "languageCode": "fr-CA",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=fr-FR&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "French (France)"
+       }
+      ]
+     },
+     "vssId": ".fr-FR",
+     "languageCode": "fr-FR",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ka&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Georgian"
+       }
+      ]
+     },
+     "vssId": ".ka",
+     "languageCode": "ka",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=de&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "German"
+       }
+      ]
+     },
+     "vssId": ".de",
+     "languageCode": "de",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=el&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Greek"
+       }
+      ]
+     },
+     "vssId": ".el",
+     "languageCode": "el",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=iw&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Hebrew"
+       }
+      ]
+     },
+     "vssId": ".iw",
+     "languageCode": "iw",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=hi&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Hindi"
+       }
+      ]
+     },
+     "vssId": ".hi",
+     "languageCode": "hi",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=hu&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Hungarian"
+       }
+      ]
+     },
+     "vssId": ".hu",
+     "languageCode": "hu",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=id&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Indonesian"
+       }
+      ]
+     },
+     "vssId": ".id",
+     "languageCode": "id",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=it&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Italian"
+       }
+      ]
+     },
+     "vssId": ".it",
+     "languageCode": "it",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ja&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Japanese"
+       }
+      ]
+     },
+     "vssId": ".ja",
+     "languageCode": "ja",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=kk&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Kazakh"
+       }
+      ]
+     },
+     "vssId": ".kk",
+     "languageCode": "kk",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ko&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Korean"
+       }
+      ]
+     },
+     "vssId": ".ko",
+     "languageCode": "ko",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ku&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Kurdish"
+       }
+      ]
+     },
+     "vssId": ".ku",
+     "languageCode": "ku",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=lv&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Latvian"
+       }
+      ]
+     },
+     "vssId": ".lv",
+     "languageCode": "lv",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=lt&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Lithuanian"
+       }
+      ]
+     },
+     "vssId": ".lt",
+     "languageCode": "lt",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ms&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Malay"
+       }
+      ]
+     },
+     "vssId": ".ms",
+     "languageCode": "ms",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=mn&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Mongolian"
+       }
+      ]
+     },
+     "vssId": ".mn",
+     "languageCode": "mn",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=no&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Norwegian"
+       }
+      ]
+     },
+     "vssId": ".no",
+     "languageCode": "no",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=fa&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Persian"
+       }
+      ]
+     },
+     "vssId": ".fa",
+     "languageCode": "fa",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=fa-IR&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Persian (Iran)"
+       }
+      ]
+     },
+     "vssId": ".fa-IR",
+     "languageCode": "fa-IR",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=pl&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Polish"
+       }
+      ]
+     },
+     "vssId": ".pl",
+     "languageCode": "pl",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=pt&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Portuguese"
+       }
+      ]
+     },
+     "vssId": ".pt",
+     "languageCode": "pt",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=pt-BR&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Portuguese (Brazil)"
+       }
+      ]
+     },
+     "vssId": ".pt-BR",
+     "languageCode": "pt-BR",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=pt-PT&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Portuguese (Portugal)"
+       }
+      ]
+     },
+     "vssId": ".pt-PT",
+     "languageCode": "pt-PT",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ro&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Romanian"
+       }
+      ]
+     },
+     "vssId": ".ro",
+     "languageCode": "ro",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ru&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Russian"
+       }
+      ]
+     },
+     "vssId": ".ru",
+     "languageCode": "ru",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=sr&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Serbian"
+       }
+      ]
+     },
+     "vssId": ".sr",
+     "languageCode": "sr",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=sr-Latn&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Serbian (Latin)"
+       }
+      ]
+     },
+     "vssId": ".sr-Latn",
+     "languageCode": "sr-Latn"
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=sk&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Slovak"
+       }
+      ]
+     },
+     "vssId": ".sk",
+     "languageCode": "sk",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=sl&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Slovenian"
+       }
+      ]
+     },
+     "vssId": ".sl",
+     "languageCode": "sl",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=es&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Spanish"
+       }
+      ]
+     },
+     "vssId": ".es",
+     "languageCode": "es",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=es-419&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Spanish (Latin America)"
+       }
+      ]
+     },
+     "vssId": ".es-419",
+     "languageCode": "es-419",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=es-MX&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Spanish (Mexico)"
+       }
+      ]
+     },
+     "vssId": ".es-MX",
+     "languageCode": "es-MX",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=es-ES&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Spanish (Spain)"
+       }
+      ]
+     },
+     "vssId": ".es-ES",
+     "languageCode": "es-ES",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=sv&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Swedish"
+       }
+      ]
+     },
+     "vssId": ".sv",
+     "languageCode": "sv",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=ta&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Tamil"
+       }
+      ]
+     },
+     "vssId": ".ta",
+     "languageCode": "ta",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=th&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Thai"
+       }
+      ]
+     },
+     "vssId": ".th",
+     "languageCode": "th",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=tr&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Turkish"
+       }
+      ]
+     },
+     "vssId": ".tr",
+     "languageCode": "tr",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=uk&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Ukrainian"
+       }
+      ]
+     },
+     "vssId": ".uk",
+     "languageCode": "uk",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=uz&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Uzbek"
+       }
+      ]
+     },
+     "vssId": ".uz",
+     "languageCode": "uz",
+     "isTranslatable": true
+    },
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=h6fcK_fRYaI&caps=asr&lang=vi&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Vietnamese"
+       }
+      ]
+     },
+     "vssId": ".vi",
+     "languageCode": "vi",
+     "isTranslatable": true
+    }
+   ],
+   "audioTracks": [
+    {
+     "captionTrackIndices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      16
+     ],
+     "defaultCaptionTrackIndex": 17,
+     "hasDefaultTrack": true,
+     "captionsInitialState": "CAPTIONS_INITIAL_STATE_OFF_RECOMMENDED"
+    }
+   ],
+   "defaultAudioTrackIndex": 0
+  }
+ }
+}

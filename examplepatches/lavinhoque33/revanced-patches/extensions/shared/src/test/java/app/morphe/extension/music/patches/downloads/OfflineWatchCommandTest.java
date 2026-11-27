@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-08.
  * Modified by lavinhoque33, 2026-11-09.
  */
@@ -53,6 +54,27 @@ public class OfflineWatchCommandTest {
         assertFalse(ProtoFields.has(endpoint, 7));
         assertFalse(ProtoFields.has(config, 5));
         assertFalse(ProtoFields.has(config, 7));
+    }
+
+    @Test public void onlyTheSyntheticPlaylistStartCarriesTheNativeShuffleBit() throws Exception {
+        String source = "PPSVrvx:PLsaved_header";
+        byte[] plain = OfflineWatchCommand.build(VIDEO, source, 0, 2);
+        byte[] shuffled = OfflineWatchCommand.build(VIDEO, source, 0, 2, true);
+        byte[] config = ProtoFields.one(endpoint(shuffled), 10);
+
+        assertFalse(ProtoFields.has(ProtoFields.one(endpoint(plain), 10), 3));
+        assertEquals(1, ProtoFields.varint(config, 3));
+        assertEquals(2, ProtoFields.varint(config, 6));
+        assertTrue(OfflineReplayLogic.isShuffleStart(shuffled, OfflineReplayLogic.offlineWatchOf(shuffled)));
+        assertFalse(OfflineReplayLogic.isShuffleStart(plain, OfflineReplayLogic.offlineWatchOf(plain)));
+
+        for (String other : List.of("PLsaved_header", "PPSVrvx:songs", "PPSVrvx:OLAK5uy_album")) {
+            byte[] nativeOrOther = OfflineWatchCommand.build(VIDEO, other, 0, 2, true);
+            assertFalse(OfflineReplayLogic.isShuffleStart(nativeOrOther,
+                    OfflineReplayLogic.offlineWatchOf(nativeOrOther)));
+        }
+        byte[] later = OfflineWatchCommand.build(VIDEO, source, 1, 2, true);
+        assertFalse(OfflineReplayLogic.isShuffleStart(later, OfflineReplayLogic.offlineWatchOf(later)));
     }
 
     @Test public void indexZeroIsWrittenExplicitly() throws Exception {

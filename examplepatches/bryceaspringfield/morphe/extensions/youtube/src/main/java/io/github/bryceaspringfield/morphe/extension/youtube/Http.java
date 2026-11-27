@@ -1,6 +1,5 @@
 package io.github.bryceaspringfield.morphe.extension.youtube;
 
-
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -14,7 +13,6 @@ import java.util.Map;
 
 import app.morphe.extension.shared.Logger;
 
-/** Requests to YouTube's InnerTube API from the WEB client, signed out, for facts the feed buffers lack. */
 final class Http {
 
     private static final String WEB_VERSION = "2.20251101.00.00";
@@ -22,8 +20,6 @@ final class Http {
     private Http() {
     }
 
-    /** POSTs a body to youtubei/v1/ENDPOINT with the WEB client's context added; null on any failure. */
-    
     static JSONObject innertube(String endpoint, JSONObject body, Map<String, String> headers) {
         try {
             JSONObject client = new JSONObject()

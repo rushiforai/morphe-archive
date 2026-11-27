@@ -16,7 +16,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / ".tools"
 BUILD = ROOT / "build" / "standalone"
-VERSION = "0.1.19-dev"
+VERSION = "0.2.1"
 
 
 def run(args):
@@ -86,7 +86,7 @@ def build(test_only=False):
     (shim_pkg / "NotificationContinuation.java").write_text(
         "package app.linenotifications.extension;\n"
         "import kotlin.coroutines.Continuation;\n"
-        "public final class NotificationContinuation extends dt8.d {\n"
+        "public final class NotificationContinuation extends sm8.c {\n"
         "    public NotificationContinuation(Object completion) { super((Continuation) completion); }\n"
         "    @Override public Object invokeSuspend(Object result) { return result; }\n"
         "}\n",

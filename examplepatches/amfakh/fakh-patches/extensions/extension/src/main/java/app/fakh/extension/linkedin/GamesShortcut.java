@@ -13,6 +13,8 @@ import android.content.pm.ShortcutManager;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 
+import app.fakh.extension.shared.Features;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -33,7 +35,7 @@ final class GamesShortcut {
      * shortcuts while starting up, so it is published again a few seconds later.
      */
     static void schedule(Activity activity) {
-        if (scheduled || !Settings.moreMenu()) return;
+        if (scheduled || !Features.has(Settings.GAMES_SHORTCUT)) return;
         scheduled = true;
         Context context = activity.getApplicationContext();
         activity.getWindow().getDecorView().postDelayed(() -> publish(context), 1000);

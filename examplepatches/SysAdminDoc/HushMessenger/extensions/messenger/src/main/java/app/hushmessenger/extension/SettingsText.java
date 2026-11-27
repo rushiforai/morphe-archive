@@ -132,6 +132,8 @@ final class SettingsText {
         ENGLISH.put("access_help", "Long-press Messenger's home screen icon for Patch controls or Restart Messenger. You can also open HushMessenger settings from your app drawer.");
         ENGLISH.put("hide_drawer_icon", "Hide app drawer icon");
         ENGLISH.put("hide_drawer_icon_help", "Keep access through Messenger's Menu or its home screen icon shortcut.");
+        ENGLISH.put("settings_in_recents", "Keep settings in Recents");
+        ENGLISH.put("settings_in_recents_help", "Leave settings with Home or the Recents button and their card stays in Recents, so you can come back where you were. Close them with Back and they leave no card. With this off, the card goes as soon as you leave.");
         ENGLISH.put("hide_menu_row", "Hide the Menu row");
         ENGLISH.put("hide_menu_row_help", "Takes the HushMessenger row out of Messenger's Menu tab and side menu. Long-press the Messenger logo at the top of Chats to get back here, or long-press Messenger's home screen icon and tap Patch controls. If neither one is left, the row comes back.");
         ENGLISH.put("menu_row_needs_shortcut", "Open these settings once from the long-press shortcut first (long-press Messenger's home screen icon, then Patch controls), so you have a way back without the row.");
@@ -164,8 +166,8 @@ final class SettingsText {
         ENGLISH.put("hide_menu_row_help_plain", "Takes the HushMessenger row out of Messenger's Menu tab and side menu.");
         // #189: Messenger's own rows in the Menu tab, and Log out among them.
         ENGLISH.put("menu_tab", "Menu tab");
-        ENGLISH.put("menu_rows_help", "Rows Messenger puts in its Menu tab, such as Communities or Channel invites. Hide the ones you never open. Each row turns up here once the Menu tab has shown it.");
-        ENGLISH.put("menu_rows_empty", "Open Messenger's Menu tab once, and its rows show up here for you to hide.");
+        ENGLISH.put("menu_rows_help", "Rows Messenger puts in its Menu tab or side menu, such as Communities or Channel invites. Hide the ones you never open. Each row turns up here once Messenger has shown it.");
+        ENGLISH.put("menu_rows_empty", "Open Messenger's Menu tab or side menu once, and its rows show up here for you to hide.");
         ENGLISH.put("menu_log_out", "Log out row in the Menu tab");
         ENGLISH.put("menu_log_out_help", "Puts Log out in Messenger's Menu tab, under Settings. It signs you out the way Messenger's own Log out does.");
         // With the icon shortcuts hidden, the App tab lists what's left, one sentence each.
@@ -281,6 +283,8 @@ final class SettingsText {
         ENGLISH.put("call_captions_no_translator", "Your phone doesn't have on-device translation, so captions stay in the language they're spoken.");
         ENGLISH.put("call_captions_untranslated", "Your phone can't translate this language pair, so captions stay as spoken.");
         ENGLISH.put("call_captions_unavailable", "Your phone can't recognize this language. Pick another one in HushMessenger settings.");
+        ENGLISH.put("call_captions_checking", "Asking your phone about %1$s");
+        ENGLISH.put("call_captions_cant_hear", "Your phone can't make captions in %1$s by itself. Pick another language.");
         ENGLISH.put("call_captions_downloading", "Your phone is downloading this language. Captions start once it's there.");
         ENGLISH.put("call_captions_stopped", "Captions stopped for this call.");
         ENGLISH.put("call_captions_no_voice", "Your phone has no voice for this language, so captions aren't read aloud.");
@@ -297,6 +301,12 @@ final class SettingsText {
         ENGLISH.put("hidden_chats_empty", "Chats you hide from your chat list show up here.");
         ENGLISH.put("hidden_chats_unhide", "Unhide");
         ENGLISH.put("hidden_chats_unnamed", "Chat");
+        ENGLISH.put("chat_preview_taps_open", "Open chat");
+        ENGLISH.put("chat_preview_taps_gone", "Open it from your chat list");
+        ENGLISH.put("confirm_strangers_held", "Not your friend yet. Tap Send again to send.");
+        ENGLISH.put("remove_contact_row", "Remove contact");
+        ENGLISH.put("remove_contact_done", "Removed from your contacts");
+        ENGLISH.put("remove_contact_failed", "Couldn't remove this contact");
         ENGLISH.put("special_contacts_track", "Track this person");
         ENGLISH.put("special_contacts_untrack", "Stop tracking");
         ENGLISH.put("special_contacts_tracked", "Tracking this person now");
@@ -341,6 +351,8 @@ final class SettingsText {
         ENGLISH.put("invisible_buttons_group_other", "Other");
         ENGLISH.put("tab_bar_slide", "Slide along the tab bar");
         ENGLISH.put("tab_bar_slide_help", "Slide your finger along the tab bar at the bottom and a highlight follows it from tab to tab. Let go to open the tab under it. A tap works as before, and this works with Swipe between tabs off too. Restart Messenger after you turn it on.");
+        ENGLISH.put("tab_swipe_follow", "Page follows your finger");
+        ENGLISH.put("tab_swipe_follow_help", "While you swipe between tabs, the page moves with your finger, and when you let go the next tab slides in from the side. A short swipe springs back. The tab bar stays where it is.");
         ENGLISH.put("message_actions_hidden_label", "%1$s (hidden)");
         ENGLISH.put("message_actions_move_up", "Move %1$s up");
         ENGLISH.put("message_actions_move_down", "Move %1$s down");
@@ -439,6 +451,27 @@ final class SettingsText {
         ENGLISH.put("tab_icons_tab_jewel", "Facebook");
         ENGLISH.put("tab_icons_tab_more", "Menu");
         ENGLISH.put("tab_icons_tab_mesetting", "Your profile");
+        ENGLISH.put("tab_icons_size", "Icon size");
+        ENGLISH.put("tab_icons_size_help", "Your pictures and the outlined icons both draw at this size. %1$s fills all the room Messenger gives an icon, and %2$s is about as big as Messenger's own. Restart Messenger to see the change.");
+        ENGLISH.put("tab_icons_size_picked", "Tab icons at %1$s once Messenger restarts");
+        ENGLISH.put("own_chat_sounds_help", "Sending plays as your message goes out, Sent once it has gone through, and In-app message when one comes in while Messenger is open. Pick an .ogg, .mp3, .m4a or .wav file of up to %1$d MB for any of them.");
+        ENGLISH.put("own_chat_sounds_sound_send", "Sending");
+        ENGLISH.put("own_chat_sounds_sound_sent", "Sent");
+        ENGLISH.put("own_chat_sounds_sound_in_app", "In-app message");
+        ENGLISH.put("own_chat_sounds_choose", "Choose");
+        ENGLISH.put("own_chat_sounds_remove", "Remove");
+        ENGLISH.put("own_chat_sounds_stock", "Messenger's sound");
+        ENGLISH.put("own_chat_sounds_yours", "Your sound");
+        ENGLISH.put("own_chat_sounds_copying", "Copying...");
+        ENGLISH.put("own_chat_sounds_saved", "Sound saved.");
+        ENGLISH.put("own_chat_sounds_removed", "Back to Messenger's sound.");
+        ENGLISH.put("own_chat_sounds_remove_failed", "Couldn't remove that sound.");
+        ENGLISH.put("own_chat_sounds_not_sound", "That file won't play as a sound.");
+        ENGLISH.put("own_chat_sounds_too_large", "Sounds can be up to %1$d MB.");
+        ENGLISH.put("own_chat_sounds_unreadable", "Couldn't open that file.");
+        ENGLISH.put("own_chat_sounds_not_saved", "Couldn't save the sound.");
+        ENGLISH.put("own_chat_sounds_busy", "Still copying the last one.");
+        ENGLISH.put("own_chat_sounds_timeout", "The file took too long. Try again.");
         ENGLISH.put("quiet_calls_chosen", "Only chosen chats");
         ENGLISH.put("quiet_calls_chosen_help", "Calls from the chats you turn on below come in quietly. Every other call rings as usual.");
         ENGLISH.put("quiet_calls_recent_empty", "Chats that call you show up here, newest first.");
@@ -880,6 +913,9 @@ final class SettingsText {
         ENGLISH.put("chat_jump_loading_plain", "Loading older messages");
         ENGLISH.put("chat_jump_seeking", "Finding that day");
         ENGLISH.put("chat_jump_cancel", "Cancel");
+        ENGLISH.put("pinned_bar_one", "Pinned message");
+        ENGLISH.put("pinned_bar_many", "%1$d pinned messages");
+        ENGLISH.put("pinned_bar_attachment", "An attachment");
         ENGLISH.put("chat_jump_start", "This is the start of the chat");
         ENGLISH.put("chat_jump_found", "Here's the first message from that day");
         ENGLISH.put("chat_jump_next", "Nothing that day, so here's the next message");

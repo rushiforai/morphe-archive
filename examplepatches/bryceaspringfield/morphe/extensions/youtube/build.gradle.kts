@@ -7,6 +7,5 @@ android {
 }
 
 dependencies {
-    // Morphe Patches dev.12's YouTube extension classes, present in the patched app; compiled against, never bundled.
     compileOnly(fileTree("libs") { include("*.jar") })
 }

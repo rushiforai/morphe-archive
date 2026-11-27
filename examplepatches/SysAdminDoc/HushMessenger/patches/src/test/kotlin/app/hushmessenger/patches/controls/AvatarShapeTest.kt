@@ -86,6 +86,9 @@ new-instance v0, Landroid/graphics/drawable/shapes/RectShape;
 invoke-direct {v0}, Landroid/graphics/drawable/shapes/RectShape;-><init>()V
 goto :set"""
 
+/** A second setShape on the tile's drawable, so which one the shape goes through can't be told. */
+private const val SET_TWICE = "invoke-virtual {v1, v0}, Landroid/graphics/drawable/ShapeDrawable;->setShape(Landroid/graphics/drawable/shapes/Shape;)V"
+
 /** Its setup, cut down: the clip path becomes the photo's PathShape and the placeholder's clip, then the shape is set. */
 private const val TILE_SETUP_BODY = """new-instance v0, Landroid/graphics/drawable/shapes/PathShape;
 const/high16 v1, 0x3f800000
@@ -230,6 +233,7 @@ class AvatarShapeTest {
             "two tile shape setters" to avatarShapeFixture(tile = listOf(tileShape(), tileSetup(), tileShape(id = "$TILE->A0F(Z)V"))),
             "a tile that never draws an oval" to avatarShapeFixture(tile = listOf(tileShape(TILE_SHAPE_BODY.replace("OvalShape", "ArcShape")), tileSetup())),
             "a shape setter that branches on something else" to avatarShapeFixture(tile = listOf(tileShape(TILE_SHAPE_BODY.replace("if-eqz p1", "if-eqz v1")), tileSetup())),
+            "a shape setter that sets its shape twice" to avatarShapeFixture(tile = listOf(tileShape(TILE_SHAPE_BODY.replace("return-void", "$SET_TWICE\nreturn-void")), tileSetup())),
             "no tile setup" to avatarShapeFixture(tile = listOf(tileShape())),
             "a setup without the path shape" to avatarShapeFixture(tile = listOf(tileShape(), tileSetup(TILE_SETUP_BODY
                 .replace("invoke-direct {v0, p1, v1, v1}, Landroid/graphics/drawable/shapes/PathShape;-><init>(Landroid/graphics/Path;FF)V\n", "")))),
@@ -347,10 +351,12 @@ class AvatarShapeTest {
         val shapeBefore = shape.code()
         injectControl(AVATAR_SHAPE, mapOf(AVATAR_SHAPE to listOf(shape)))
         val shapeAfter = shape.code()
-        // p1 is v3 in four registers; the flag is rewritten before the branch reads it.
-        assertEquals(CIRCLE to listOf(3), call(shapeAfter, 0))
-        assertEquals(listOf(Opcode.MOVE_RESULT, 3), (shapeAfter[1] as OneRegisterInstruction).let { listOf(it.opcode, it.registerA) })
-        assertEquals(shapeBefore.map { it.opcode }, shapeAfter.drop(2).map { it.opcode })
+        // The setShape at 4 goes through Settings with the same drawable, v1, and shape, v0, whichever one the flag picked.
+        assertEquals(shapeBefore.size, shapeAfter.size)
+        assertEquals(Opcode.INVOKE_STATIC, shapeAfter[4].opcode)
+        assertEquals(TILE_SHAPE to listOf(1, 0), call(shapeAfter, 4))
+        assertEquals(shapeBefore.filterIndexed { at, _ -> at != 4 }.map { it.opcode }, shapeAfter.filterIndexed { at, _ -> at != 4 }.map { it.opcode })
+        assertTrue(shapeAfter.none { (it as? ReferenceInstruction)?.reference?.toString() == CIRCLE })
 
         val setup = tileSetup()
         val setupBefore = setup.code()
@@ -380,6 +386,7 @@ class AvatarShapeTest {
             "a constructor of another class" to constructor(CONSTRUCTOR_BODY.replace(OPTIONS, "LX/Av5;"), "LX/Av5;-><init>([FFZZZ)V"),
             "a helper with the radii first" to legacy(LEGACY_BODY.replace("iget-boolean v0, p1, $PARAMS->A06:Z", "iget-object v0, p1, $PARAMS->A07:[F")),
             "a shape setter that branches on something else" to tileShape(TILE_SHAPE_BODY.replace("if-eqz p1", "if-eqz v1")),
+            "a shape setter that sets its shape twice" to tileShape(TILE_SHAPE_BODY.replace("return-void", "$SET_TWICE\nreturn-void")),
             "a setup without the path shape" to tileSetup(TILE_SETUP_BODY.replace("PathShape;-><init>", "PathShape;->A00")),
             "a placeholder without an oval" to placeholder(PLACEHOLDER_BODY.replace(DRAW_OVAL, "Landroid/graphics/Canvas;->drawRect(Landroid/graphics/RectF;Landroid/graphics/Paint;)V")),
         )
@@ -452,7 +459,11 @@ class AvatarShapeTest {
                         val calls = after.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
                         assertTrue(DRAW_OVAL !in calls && TILE_OVAL in calls, id)
                     }
-                    hook.hookId() == tileShapeSetter -> { assertEquals(before.size + 2, after.size, id); assertEquals(CIRCLE, asked(0), id) }
+                    hook.hookId() == tileShapeSetter -> {
+                        assertEquals(before.size, after.size, id)
+                        val calls = after.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+                        assertTrue(TILE_SHAPE in calls && CIRCLE !in calls && calls.none { it.endsWith("ShapeDrawable;->setShape(Landroid/graphics/drawable/shapes/Shape;)V") }, id)
+                    }
                     hook.parameterTypes.any { it.toString() == "Landroid/graphics/Path;" } -> {
                         assertEquals(before.size + 2, after.size, id); assertEquals(TILE_PATH, asked(0), id)
                     }

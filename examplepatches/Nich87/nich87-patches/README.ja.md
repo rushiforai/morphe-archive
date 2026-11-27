@@ -43,6 +43,12 @@ Morphe Manager に以下のソース URL を追加してください：
 > `dev` ブランチの最新開発ビルドを利用する場合は、Morphe Manager の設定でプレリリースを有効にしてください。  
 > Apple Music 向けパッチは arm64 スプリットを統合した APK（APKM / XAPK は事前に統合）、Twitter / X 向けパッチは APKM に対応しています。
 
+## プレビュー
+
+Apple Music 向けパッチの主な機能紹介です（オンデバイス・ボーカル分離デモ確認のため、音声オンでの再生を推奨します）：
+
+https://github.com/user-attachments/assets/f6b3bd4a-2e9e-4ee3-a9a2-ca790c3ea782
+
 ## 提供パッチ一覧
 
 > **[最新リリースを確認](https://github.com/Nich87/nich87-patches/releases)**&nbsp;&nbsp;•&nbsp;&nbsp;計 9 パッチ（Apple Music 8 パッチ・Twitter / X 1 パッチ）

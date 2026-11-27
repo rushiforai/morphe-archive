@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Written by lavinhoque33, 2026-11-09.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -110,6 +111,12 @@ final class VideoCopyStore {
         Utils.verifyOffMainThread();
         Storage.files.ensureLoaded();
         return Storage.files.videoOf(songId);
+    }
+
+    /** A saved row's artwork counterpart, without starting or waiting for a library-wide scan. Worker only. */
+    @Nullable
+    static String artworkPartner(String videoId, @Nullable String aliasSong) {
+        return Storage.files.artworkPartner(videoId, aliasSong);
     }
 
     /** The committed pairs for the main thread: none until they are loaded, as {@link #has}. */

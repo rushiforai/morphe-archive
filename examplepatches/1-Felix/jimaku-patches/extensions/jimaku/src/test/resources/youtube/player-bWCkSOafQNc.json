@@ -1,0 +1,40 @@
+{
+ "_about": "YouTube's player answer for bWCkSOafQNc to the ANDROID client on 2026-10-29, cut to what Jimaku reads; the track addresses keep only v, caps, kind, lang and fmt.",
+ "playabilityStatus": {
+  "status": "OK"
+ },
+ "videoDetails": {
+  "videoId": "bWCkSOafQNc",
+  "title": "葬送のフリーレン ミニアニメ「●●の魔法」第10回：「語尾が変なふうになる魔法」",
+  "lengthSeconds": "80",
+  "isLiveContent": false
+ },
+ "captions": {
+  "playerCaptionsTracklistRenderer": {
+   "captionTracks": [
+    {
+     "baseUrl": "https://www.youtube.com/api/timedtext?v=bWCkSOafQNc&caps=asr&kind=asr&lang=ja&fmt=srv3",
+     "name": {
+      "runs": [
+       {
+        "text": "Japanese (auto-generated)"
+       }
+      ]
+     },
+     "vssId": "a.ja",
+     "languageCode": "ja",
+     "kind": "asr",
+     "isTranslatable": true
+    }
+   ],
+   "audioTracks": [
+    {
+     "captionTrackIndices": [
+      0
+     ]
+    }
+   ],
+   "defaultAudioTrackIndex": 0
+  }
+ }
+}

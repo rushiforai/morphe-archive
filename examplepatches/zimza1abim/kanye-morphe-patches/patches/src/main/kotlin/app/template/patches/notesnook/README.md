@@ -53,7 +53,9 @@ redrawn. **Default** restores Inter.
 
 `fontswap/NotesnookAppearanceMenuPatch.kt` swaps in a JS bundle rebuilt from
 the same official tag with one added settings item, chosen by the original
-bundle's SHA-256 (`resources/notesnook/adapters`). Unregistered releases keep
+bundle's SHA-256 (`resources/notesnook/adapters`). The rebuilt bundle ships as a
+delta against the official one (`<version>.bdelta`) and is checked against its
+`patchedSha256` after it is applied. Unregistered releases keep
 their bundle and still get the font. To add a release, check out tag
 `<version>-android`, bootstrap it like CI
 (`npm ci --ignore-scripts && npm run bootstrap -- --scope=mobile && npm run tx mobile:build`),

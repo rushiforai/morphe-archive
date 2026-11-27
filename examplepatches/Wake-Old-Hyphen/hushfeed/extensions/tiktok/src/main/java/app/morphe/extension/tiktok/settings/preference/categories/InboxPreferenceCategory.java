@@ -254,13 +254,6 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Hide suggested replies",
-                    "TikTok's suggested reply cells and their intro banner stop showing in a "
-                            + "chat. Messages you type or receive are untouched.",
-                    Settings.HIDE_CHAT_AI_REPLIES
-            ));
-            addPreference(new TogglePreference(
-                    context,
                     "Turn off double tap to react",
                     "A double tap on a message no longer adds a heart to it. A single tap and "
                             + "a long press work as before.",
@@ -338,8 +331,9 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new TogglePreference(
                     context,
                     "Hide streak pop-ups",
-                    "Stop the streak alerts that slide in over TikTok and the streak "
-                            + "messages and tips it adds to your chats.",
+                    "Stop the streak alerts that slide in over TikTok, the Streak Pet "
+                            + "invite in your Inbox, and the streak messages and tips it "
+                            + "adds to your chats.",
                     Settings.HIDE_STREAK_POPUPS
             ));
         }

@@ -122,6 +122,11 @@ public final class GameReview {
         return enabled() && mode() != Mode.CHESSCOM;
     }
 
+    /** Whether the overview's summary rows are unfolded: always, in a Lichess-style review. */
+    public static boolean tallyExpanded(boolean expanded) {
+        return expanded || lichessStyle();
+    }
+
     /**
      * Whether chess.com's review shows a move type: in a Lichess-style review only Lichess's own,
      * inaccuracies, mistakes and blunders, and chess.com's Book (Lichess's opening), Miss (a lost

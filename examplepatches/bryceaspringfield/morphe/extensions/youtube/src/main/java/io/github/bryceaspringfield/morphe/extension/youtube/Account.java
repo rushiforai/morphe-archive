@@ -9,10 +9,6 @@ import java.util.Map;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.innertube.utils.AuthUtils;
 
-/**
- * InnerTube requests as the signed-in user, with the Authorization and visitor headers Morphe's auth hook saves
- * from the app's own requests (AuthUtils), sent as the Android client the token belongs to.
- */
 final class Account {
 
     private static final String CLIENT_VERSION = "21.44.528";

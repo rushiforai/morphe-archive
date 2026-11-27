@@ -158,6 +158,7 @@ A chat you've scrolled up in stays where you were when you come back from a vide
 A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.,A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.
 A diagnostic report is already being saved,A diagnostic report is already being saved
 "A different account is signed in. Switch back to the one you set this up on, or enter who to message again.","A different account is signed in. Switch back to the one you set this up on, or enter who to message again."
+"A different preset each time TikTok starts, in this order: %1$s","A different preset each time TikTok starts, in this order: %1$s"
 A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.,A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.
 A few seconds,A few seconds
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.,A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.
@@ -193,7 +194,6 @@ A video you paused stays paused when you come back to the app instead of startin
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.,A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.
 "A zone name like Europe/Belgrade, used in place of the country's. Daylight saving follows by itself. Empty means the country's own zone.","A zone name like Europe/Belgrade, used in place of the country's. Daylight saving follows by itself. Empty means the country's own zone."
 AI Self,AI Self
-AI Tako,AI Tako
 AI chat,AI chat
 AI theater,AI theater
 AI-generated posts,AI-generated posts
@@ -253,8 +253,8 @@ Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving t
 "Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.","Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back."
 "Adds a button to the Liked grid's top corner that starts your likes at a year or month you pick, so older ones load without scrolling past newer ones. Pick Newest likes there to go back.","Adds a button to the Liked grid's top corner that starts your likes at a year or month you pick, so older ones load without scrolling past newer ones. Pick Newest likes there to go back."
 "Adds a search box that finds comments already loaded on this video, by words or username. It doesn't search all of TikTok.","Adds a search box that finds comments already loaded on this video, by words or username. It doesn't search all of TikTok."
-"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.","Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that."
-"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.","Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID."
+"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot.","Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that. Tap the line to shrink it to a dot."
+"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.","Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID."
 "Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back.","Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back."
 "Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.","Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen."
 "Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.","Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts."
@@ -331,6 +331,7 @@ As TikTok sent it (M4A or MP3),As TikTok sent it (M4A or MP3)
 "Ask TikTok for search results that aren't personalized to your account. This changes results, not search buttons or suggestions.","Ask TikTok for search results that aren't personalized to your account. This changes results, not search buttons or suggestions."
 Ask for the quality on each save,Ask for the quality on each save
 "Ask for the unlock your phone uses, like a fingerprint or a PIN, when TikTok starts and when you come back to it. A link you open from another app still goes to its video once you unlock. While this is on, TikTok's preview in recent apps stays blank. Needs a screen lock on the phone.","Ask for the unlock your phone uses, like a fingerprint or a PIN, when TikTok starts and when you come back to it. A link you open from another app still goes to its video once you unlock. While this is on, TikTok's preview in recent apps stays blank. Needs a screen lock on the phone."
+Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.,Asks TikTok to clear its caches when its memory nears the point where Android closes the main screen and the feed starts over.
 "At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.","At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it."
 Attention,Attention
 Audience control,Audience control
@@ -456,7 +457,6 @@ Checking your followers: %1$d,Checking your followers: %1$d
 "Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.","Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay."
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.,Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.
 Choose a backup file. Your current settings are kept for Undo.,Choose a backup file. Your current settings are kept for Undo.
-Choose a preset to fill the SIM details.,Choose a preset to fill the SIM details.
 Choose a subfolder under %1$s.,Choose a subfolder under %1$s.
 Choose counts for this signed-in account. Leave a field empty to use TikTok's count. Zero shows zero. Choices stay on this phone.,Choose counts for this signed-in account. Leave a field empty to use TikTok's count. Zero shows zero. Choices stay on this phone.
 Choose the file again after this run to save the other %1$s,Choose the file again after this run to save the other %1$s
@@ -547,6 +547,7 @@ Copy the video link,Copy the video link
 Copy user ID,Copy user ID
 Copy username,Copy username
 Copy video ID,Copy video ID
+Copy-protected videos can't be saved,Copy-protected videos can't be saved
 Couldn't add the caption. Saving without it.,Couldn't add the caption. Saving without it.
 Couldn't add the older seen videos. Try again.,Couldn't add the older seen videos. Try again.
 Couldn't change the Lab settings. Try again.,Couldn't change the Lab settings. Try again.
@@ -656,6 +657,7 @@ Dark,Dark
 Dark Favorites popup,Dark Favorites popup
 Dark LIVE panels in dark mode,Dark LIVE panels in dark mode
 Dark gray,Dark gray
+Dark mode,Dark mode
 Data Saver,Data Saver
 Date instead of age,Date instead of age
 Day before month,Day before month
@@ -716,6 +718,7 @@ Double tap,Double tap
 Double tap by corner,Double tap by corner
 "Download lists the qualities this video comes in, with the size TikTok gives for each, and saves the one you pick. The quality above stays as it is for the next save.","Download lists the qualities this video comes in, with the size TikTok gives for each, and saves the one you pick. The quality above stays as it is for the next save."
 Download original photos,Download original photos
+Download speed,Download speed
 Downloads,Downloads
 Drag handle and jump buttons on grids,Drag handle and jump buttons on grids
 "Drag to move, release to place","Drag to move, release to place"
@@ -859,6 +862,7 @@ Forgotten. Tap to put them back.,Forgotten. Tap to put them back.
 Found %1$s in your chats.,Found %1$s in your chats.
 Frame saved to %1$s,Frame saved to %1$s
 Free data,Free data
+Free memory early,Free memory early
 Free up space,Free up space
 Freeze TikTok's experiments,Freeze TikTok's experiments
 Friends,Friends
@@ -986,6 +990,7 @@ Hide new followers,Hide new followers
 Hide online status,Hide online status
 Hide or reorder profile tabs,Hide or reorder profile tabs
 Hide paid partnerships,Hide paid partnerships
+Hide parts of the room line,Hide parts of the room line
 Hide people and options by name,Hide people and options by name
 Hide photo posts,Hide photo posts
 Hide photo posts from the feed.,Hide photo posts from the feed.
@@ -1027,7 +1032,6 @@ Hide story views,Hide story views
 Hide streak pop-ups,Hide streak pop-ups
 Hide subscriber-only videos,Hide subscriber-only videos
 Hide suggested accounts,Hide suggested accounts
-Hide suggested replies,Hide suggested replies
 Hide suggestions on the search page,Hide suggestions on the search page
 Hide surveys,Hide surveys
 Hide tabs TikTok adds later unless you allow them.,Hide tabs TikTok adds later unless you allow them.
@@ -1326,6 +1330,7 @@ Last change put back. The Feature Gate Lab rules were for another TikTok version
 Last original value,Last original value
 Last recording: %1$d gates.,Last recording: %1$d gates.
 Last recording: 1 gate.,Last recording: 1 gate.
+Latency,Latency
 Latency %1$s s,Latency %1$s s
 Later,Later
 Latest first on Following,Latest first on Following
@@ -1356,6 +1361,7 @@ Let the host see you,Let the host see you
 Let the last video finish,Let the last video finish
 Let the video reach the bottom of the screen on the main feed and show the tabs over it with no bar behind them.,Let the video reach the bottom of the screen on the main feed and show the tabs over it with no bar behind them.
 "Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.","Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are."
+"Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar.","Lets Home's Community grid and other pages that stop above the tabs run on under the see-through bar, so they show through it in place of the black or white band. Their last row still scrolls up clear of the tabs. Needs See-through bottom bar."
 Letting the host see you,Letting the host see you
 Licenses,Licenses
 Lift text length limits,Lift text length limits
@@ -1592,6 +1598,7 @@ Not interested in this video,Not interested in this video
 Not read yet,Not read yet
 Not requested in this process yet,Not requested in this process yet
 Not saved yet,Not saved yet
+Not saved. The file wasn't a playable video.,Not saved. The file wasn't a playable video.
 Not seen,Not seen
 Not seen yet,Not seen yet
 "Nothing has been checked yet, so there's nothing to report.","Nothing has been checked yet, so there's nothing to report."
@@ -1717,6 +1724,7 @@ Overrides are disabled in the Feature Gate Lab.,Overrides are disabled in the Fe
 Overrides disabled. Restart TikTok to apply.,Overrides disabled. Restart TikTok to apply.
 Overrides enabled. Restart TikTok to apply.,Overrides enabled. Restart TikTok to apply.
 Own profile counts,Own profile counts
+Pages under the bar,Pages under the bar
 Paid partnerships,Paid partnerships
 Pass TikTok's install checks,Pass TikTok's install checks
 Pause,Pause
@@ -1762,6 +1770,7 @@ Pick the rows to take off the card a tap on a name opens in a LIVE room. The res
 "Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.","Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this."
 "Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.","Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays."
 Pick videos to save from profile grids,Pick videos to save from profile grids
+Pick what to leave off the small line with the room ID and your connection. The rest stays on it.,Pick what to leave off the small line with the room ID and your connection. The rest stays on it.
 Pick which stories to save,Pick which stories to save
 "Picked %1$s. Save, then tap Pick all for more.","Picked %1$s. Save, then tap Pick all for more."
 Picked videos,Picked videos
@@ -1771,6 +1780,7 @@ Pill corners,Pill corners
 Pill height,Pill height
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.
 Pin more chats,Pin more chats
+Ping,Ping
 Ping %1$s ms,Ping %1$s ms
 "Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.","Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted."
 Places,Places
@@ -1995,6 +2005,7 @@ Reviewed presets for TikTok %1$s,Reviewed presets for TikTok %1$s
 Right away,Right away
 Right column,Right column
 Right edge strip,Right edge strip
+Room ID,Room ID
 Room ID %1$s,Room ID %1$s
 Room ID copied,Room ID copied
 Round the corners on profile grids,Round the corners on profile grids
@@ -2253,6 +2264,7 @@ Show follow status,Show follow status
 Show gates,Show gates
 Show how long a LIVE has been on,Show how long a LIVE has been on
 Show how long each video runs under its view count on profile grids. Photo posts and videos TikTok sent no length for show none.,Show how long each video runs under its view count on profile grids. Photo posts and videos TikTok sent no length for show none.
+Show how many videos a profile has,Show how many videos a profile has
 Show how many were filtered,Show how many were filtered
 Show inbox filters,Show inbox filters
 Show last report,Show last report
@@ -2291,6 +2303,7 @@ Show the picture before saving,Show the picture before saving
 Show the progress bar,Show the progress bar
 Show the progress bar thumbnail,Show the progress bar thumbnail
 Show the room ID and your connection,Show the room ID and your connection
+Show the room line,Show the room line
 Show the save button on videos,Show the save button on videos
 "Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.","Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments."
 Show the switch,Show the switch
@@ -2445,7 +2458,7 @@ Stop the bubble that asks you to share a video with friends after you like it.,S
 Stop the full-screen ad TikTok can show while it starts up.,Stop the full-screen ad TikTok can show while it starts up.
 "Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.","Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through."
 Stop the short vibrations TikTok plays on its own taps and gestures. Your keyboard and your phone's own haptics stay as they are.,Stop the short vibrations TikTok plays on its own taps and gestures. Your keyboard and your phone's own haptics stay as they are.
-Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.
+"Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats.","Stop the streak alerts that slide in over TikTok, the Streak Pet invite in your Inbox, and the streak messages and tips it adds to your chats."
 "Stop the two background tasks TikTok uses to check for updates, one of them when your phone starts. Some in-app update prompts may stop. Play Store updates still work.","Stop the two background tasks TikTok uses to check for updates, one of them when your phone starts. Some in-app update prompts may stop. Play Store updates still work."
 Stop video looping,Stop video looping
 Stop videos at the end instead of replaying them.,Stop videos at the end instead of replaying them.
@@ -2487,6 +2500,7 @@ Stretch the video to the screen,Stretch the video to the screen
 Strong blur,Strong blur
 Structured value observed,Structured value observed
 Subscriber-only posts,Subscriber-only posts
+Subscriber-only posts can't be saved,Subscriber-only posts can't be saved
 Subtitle language,Subtitle language
 Subtitles,Subtitles
 Subtitles: %1$s,Subtitles: %1$s
@@ -2723,6 +2737,7 @@ This video is already saved,This video is already saved
 This video's sound has no title to look for,This video's sound has no title to look for
 Three at once,Three at once
 Thumbs down blocks the commenter,Thumbs down blocks the commenter
+"Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts.","Tick one preset to fill the SIM details, or several to use a different one each time TikTok starts."
 TikTok Beta,TikTok Beta
 TikTok Plus,TikTok Plus
 TikTok account facts,TikTok account facts
@@ -2785,7 +2800,6 @@ TikTok's own value,TikTok's own value
 "TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.","TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter."
 "TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.","TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes."
 TikTok's size,TikTok's size
-TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.,TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.
 TikTok's total: %1$s. Filtered accounts: %2$s.,TikTok's total: %1$s. Filtered accounts: %2$s.
 Time and well-being,Time and well-being
 Time zone,Time zone
@@ -2845,6 +2859,7 @@ Turned off 1 of %2$d gates,Turned off 1 of %2$d gates
 Turned off 1 override. Check it for TikTok %2$s.,Turned off 1 override. Check it for TikTok %2$s.
 "Turns off TikTok's notification service, so nothing it sends reaches your notification shade and it can't wake your phone. You won't hear about new messages until you open TikTok. Notifications hidden while this is on don't come back. Ongoing ones like media controls stay.","Turns off TikTok's notification service, so nothing it sends reaches your notification shade and it can't wake your phone. You won't hear about new messages until you open TikTok. Notifications hidden while this is on don't come back. Ongoing ones like media controls stay."
 Turns off at %1$s,Turns off at %1$s
+Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.,Turns on the dark theme TikTok Lite carries but never lets you pick. Restart TikTok Lite to see the change.
 Two at once,Two at once
 "Two letters, like us, gb or jp.","Two letters, like us, gb or jp."
 Type,Type
@@ -2866,6 +2881,7 @@ Unblock this commenter,Unblock this commenter
 Unblocked %1$s,Unblocked %1$s
 "Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.","Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back."
 "Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.","Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only."
+"Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them.","Under the @username on a profile, yours included, show how many videos it has, as TikTok counts them."
 "Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing.","Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing."
 Undid an interrupted change. Restart TikTok to apply.,Undid an interrupted change. Restart TikTok to apply.
 Undo,Undo
@@ -2909,6 +2925,7 @@ Use system font,Use system font
 Use the preset for the region TikTok reports for your account and its shop too. May affect search.,Use the preset for the region TikTok reports for your account and its shop too. May affect search.
 "Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.","Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again."
 "Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.","Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone."
+Use this date format everywhere,Use this date format everywhere
 Use this phone's own IDs,Use this phone's own IDs
 Use translation,Use translation
 "Use up to 40 letters and numbers. Spaces, dots, dashes and brackets are fine too.","Use up to 40 letters and numbers. Spaces, dots, dashes and brackets are fine too."
@@ -3027,6 +3044,7 @@ Write the username and caption on the video,Write the username and caption on th
 "Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.","Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are."
 "Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.","Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct."
 "Writes the date before the time to the second the short way your language does, like 10/7/25.","Writes the date before the time to the second the short way your language does, like 10/7/25."
+"Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name.","Writes the dates on comments, the date headers in chats and the dates on search results the way the three rows above write the date by the creator's name."
 Writing,Writing
 Writing the caption on the video,Writing the caption on the video
 Writing the caption on the video: %1$s,Writing the caption on the video: %1$s

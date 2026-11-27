@@ -239,6 +239,95 @@
       "enabled": true,
       "description": "Google (Morphe)"
     },
+    "GEMINI_HAPTICS": {
+      "className": "Lbxle;",
+      "methodName": "v",
+      "methodDescriptor": "(Landroidx/preference/PreferenceScreen;Ljava/lang/String;Lbxlh;Ljava/util/Locale;Ljava/util/List;Lavch;Lawul;Ljava/lang/String;Lawuw;Lhgnc;)Ljava/lang/Object;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "RobinSettingsPreferenceFragment: notifications tap listener"
+      ],
+      "methodSignatures": [
+        "Lbsac;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbsca;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbrzk;->a(Lbrzc;)V",
+        "Lbscx;->onScroll(Landroid/view/MotionEvent;Landroid/view/MotionEvent;FF)Z",
+        "Lbscz;->c(Landroid/view/View;Z)V",
+        "Lbsjn;->onScroll(Landroid/view/MotionEvent;Landroid/view/MotionEvent;FF)Z",
+        "Lbnek;->i(Lbneu;Landroid/graphics/Point;Lhgpk;Layii;Lbhhv;)Z",
+        "Lcom/google/android/apps/search/assistant/surfaces/voice/robin/ui/extensions/mediagen/editor/ui/views/EditorCanvasView;->f(Lcom/google/android/apps/search/assistant/surfaces/voice/robin/ui/extensions/mediagen/editor/ui/views/EditorCanvasView;)Lhgke;",
+        "Lbxas;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbwxd;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbwxh;->invoke()Ljava/lang/Object;",
+        "Lbwxp;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbwxw;->invoke()Ljava/lang/Object;",
+        "Lbwyx;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbwyz;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbwza;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbwzk;->invoke()Ljava/lang/Object;"
+      ],
+      "expectedMatches": 28,
+      "integers": {
+        "settingsRegisters": 30,
+        "screenParameter": 1
+      },
+      "values": {
+        "findPreference": "ah",
+        "setKey": "I",
+        "setTitle": "M",
+        "addPreference": "ae",
+        "listenerField": "n",
+        "persistentField": "w",
+        "setChecked": "j"
+      },
+      "enabled": true,
+      "description": "Add the Gemini vibration switch and gate verified Gemini view feedback."
+    },
+    "GEMINI_HAPTICS_VIBRATOR": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Ma-HapticsPlayer-Impl",
+        "Playing haptic feedback"
+      ],
+      "methodSignatures": [
+        "Lauin;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lblcx;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lblda;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lavqw;->b(Lavqm;Lhgnc;)Ljava/lang/Object;"
+      ],
+      "expectedMatches": 4,
+      "integers": {},
+      "values": {
+        "vibrateReference": "Lbv$$ExternalSyntheticApiModelOutline0;->m(Landroid/os/Vibrator;Landroid/os/VibrationEffect;)V"
+      },
+      "enabled": true,
+      "description": "Gate the chat waveform player plus Live and Gemini feedback-report cues."
+    },
+    "GEMINI_HAPTICS_COMPOSE": {
+      "className": "Lbxhu;",
+      "methodName": "onCreateView",
+      "methodDescriptor": "(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {
+        "registers": 11,
+        "viewRegister": 7,
+        "titleRegister": 9,
+        "geminiSettingsTitle": 2132090421,
+        "settingsTitle": 2132090434
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Add the switch when the Compose fragment renders the main settings page."
+    },
     "ACCOUNT_SWITCH_LOCK_BYPASS": {
       "className": null,
       "methodName": null,

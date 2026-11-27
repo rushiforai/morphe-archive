@@ -1,0 +1,23 @@
+# Generated test/build outputs
+fixtures/out/
+*.apk
+*.aab
+*.dex
+*.class
+*.keystore
+*.jks
+*.idsig
+__pycache__/
+*.pyc
+
+# Toolchain fetched by scripts/bootstrap_tools.sh
+/tools/
+
+# Gradle & Morphe build outputs
+.gradle/
+build/
+**/build/
+local.properties
+*.mpp
+*.rve
+*.apks

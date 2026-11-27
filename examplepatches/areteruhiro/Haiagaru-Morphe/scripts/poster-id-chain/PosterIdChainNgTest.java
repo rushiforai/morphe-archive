@@ -1,4 +1,5 @@
 import app.morphe.extension.chmate.PosterIdChainNg;
+import app.morphe.extension.chmate.Haiagaru;
 import jp.syoboi.a2chMate.ng.NGWord.Item;
 import java.util.*;
 
@@ -36,6 +37,48 @@ public class PosterIdChainNgTest {
         Owner.class.getDeclaredField(m.rows).set(owner,rows);
         Owner.class.getDeclaredField(m.word).set(owner,new Matcher(Arrays.asList(items)));
         return owner;
+    }
+    @SuppressWarnings("unchecked")
+    static Map<Object,Object> ruleGroups() throws Exception {
+        var field=PosterIdChainNg.class.getDeclaredField("RULE_GROUPS");field.setAccessible(true);
+        return (Map<Object,Object>)field.get(null);
+    }
+    static int cachedBodies() throws Exception {
+        int total=0;
+        for(Object group:ruleGroups().values()){
+            var field=group.getClass().getDeclaredField("bodyMatches");field.setAccessible(true);
+            total+=((Map<?,?>)field.get(group)).size();
+        }
+        return total;
+    }
+    static void testCrossAdapterCache(Model m) throws Exception {
+        ruleGroups().clear();
+        List<Object> rows=List.of(row(m,"AUTHOR_A","bad phrase"),row(m,"AUTHOR_A","same author"),row(m,"AUTHOR_B","ordinary"));
+        Object target=rows.get(1);
+        Owner listAdapter=owner(m,rows,new Item("bad",0x118));
+        check(PosterIdChainNg.merge(listAdapter,target,0)==1,"optimized scan keeps matching author: "+m.row);
+        int bodiesAfterList=cachedBodies();
+        check(bodiesAfterList==2,"positive and negative body results cached: "+m.row);
+
+        Owner popupAdapter=owner(m,rows,new Item("bad",0x118));
+        check(PosterIdChainNg.merge(popupAdapter,target,0)==1,"popup adapter keeps same result: "+m.row);
+        check(ruleGroups().size()==1,"equivalent board rules share compiled group: "+m.row);
+        check(cachedBodies()==bodiesAfterList,"popup reuses cached body results: "+m.row);
+
+        Owner changedRules=owner(m,rows,new Item("different",0x118));
+        check(PosterIdChainNg.merge(changedRules,target,0)==0,"changed NG rule changes result: "+m.row);
+        check(ruleGroups().size()==2,"changed board rules use separate group: "+m.row);
+
+        int groupsBeforeOff=ruleGroups().size(), bodiesBeforeOff=cachedBodies();
+        Haiagaru.posterOptimization=false;
+        Owner legacy=owner(m,rows,new Item("bad",0x118));
+        check(PosterIdChainNg.merge(legacy,target,0)==1,"OFF keeps original matching behavior: "+m.row);
+        check(ruleGroups().size()==groupsBeforeOff&&cachedBodies()==bodiesBeforeOff,
+                "OFF bypasses optimization caches: "+m.row);
+        Haiagaru.posterOptimization=true;
+
+        for(int i=0;i<6;i++)PosterIdChainNg.merge(owner(m,rows,new Item("rule"+i,0x118)),target,0);
+        check(ruleGroups().size()<=4,"compiled rule groups stay bounded: "+m.row);
     }
     public static void main(String[] args) throws Exception {
         for (Model m : MODELS) {
@@ -76,6 +119,7 @@ public class PosterIdChainNgTest {
             PosterIdChainNg.reset(reused);
             check(PosterIdChainNg.merge(reused,other,0)==0,"rebuild invalidates prior thread/rules");
         }
-        System.out.println("PASS "+assertions+" poster ID chain assertions across 191/226/241/242/243 models");
+        for(Model m:MODELS)testCrossAdapterCache(m);
+        System.out.println("PASS "+assertions+" poster ID chain and cache assertions across 191/226/241/242/243 models");
     }
 }

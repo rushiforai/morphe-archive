@@ -19,6 +19,22 @@ public final class GameReviewExtension {
 
     private GameReviewExtension() {}
 
+    // chess.com's chess classes (obfuscated), filled in by the patch.
+
+    /** The interface every board position implements. */
+    static String positionClass() { return ""; }
+    /** One history entry: (position, move, flag). */
+    static String historyClass() { return ""; }
+    /** MoveConverterKt's (position, move text, flag) -> move. */
+    static String moveFromTextMethod() { return ""; }
+    /** MoveConverterKt's (history entry) -> its move as UCI text. */
+    static String moveTextMethod() { return ""; }
+    /** The PGN parser: (pgn, flag, flag, FenType) -> game. */
+    static String pgnParserClass() { return ""; }
+    static String pgnParserMethod() { return ""; }
+    /** The parsed game's starting position. */
+    static String pgnStartField() { return ""; }
+
     /**
      * Game Review entry point: the repository receives a ComputerAnalysisConfiguration whose
      * PGN is replayed through the local engine.
@@ -106,12 +122,13 @@ public final class GameReviewExtension {
             Constructor<?> infoCtor = AppTypes.primaryCtor(moveInfoClass);
             if (infoCtor == null) return null;
 
-            Class<?> historyClass = Class.forName("com.chess.chessboard.history.i");
+            Class<?> historyClass = Class.forName(historyClass());
             Class<?> classificationClass = Class.forName("com.chess.compengine.AnalysisMoveClassification");
             Class<?> scoreClass = Class.forName("com.chess.entities.Score");
             Class<?> colorClass = Class.forName("com.chess.entities.Color");
 
-            Object position = historyClass.getMethod("e").invoke(positionAndMove);
+            Object position = getPositionFromPositionAndMove(positionAndMove);
+            if (position == null) return null;
             Object side = position.getClass().getMethod("getSideToMove").invoke(position);
             Object companion = scoreClass.getField("Companion").get(null);
             Object score = companion.getClass()
@@ -190,7 +207,7 @@ public final class GameReviewExtension {
     private static Object getPositionFromPositionAndMove(Object pmObj) {
         if (pmObj == null) return null;
         try {
-            Class<?> dClass = Class.forName("com.chess.chessboard.variants.d");
+            Class<?> dClass = Class.forName(positionClass());
             for (Field f : pmObj.getClass().getDeclaredFields()) {
                 if (dClass.isAssignableFrom(f.getType())) {
                     f.setAccessible(true);
@@ -206,8 +223,8 @@ public final class GameReviewExtension {
     private static Object convertMove(Object position, String moveStr) {
         try {
             Class<?> converterClass = Class.forName("com.chess.chessboard.compengine.MoveConverterKt");
-            Class<?> dClass = Class.forName("com.chess.chessboard.variants.d");
-            Method convertMethod = converterClass.getMethod("d", dClass, String.class, boolean.class);
+            Class<?> dClass = Class.forName(positionClass());
+            Method convertMethod = converterClass.getMethod(moveFromTextMethod(), dClass, String.class, boolean.class);
             return convertMethod.invoke(null, position, moveStr, true);
         } catch (Throwable t) {
             Log.e(TAG, "Failed to convert move", t);

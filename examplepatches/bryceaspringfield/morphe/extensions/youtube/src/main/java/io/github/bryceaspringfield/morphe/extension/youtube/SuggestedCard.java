@@ -15,12 +15,6 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.youtube.shared.PlayerType;
 
-/**
- * The player's end screen with autoplay off shows one "Suggested video" ("Video sugerido") card with a close button.
- * When the watched-video option is on and the card's video was watched (the account's history or this app's plays,
- * by title), the card is closed. The card is found by its header text each time the window lays out, at most every
- * 500 ms, with the player maximized.
- */
 final class SuggestedCard {
 
     private static final String[] HEADERS = {"suggested video", "video sugerido", "vídeo sugerido"};
@@ -52,7 +46,6 @@ final class SuggestedCard {
         return false;
     }
 
-    /** The view showing the header text, by a TextView's text or any view's description. */
     private static View findHeader(View v) {
         if (v.getVisibility() != View.VISIBLE) return null;
         if (v instanceof TextView t && oneOf(norm(t.getText()), HEADERS)) return v;
@@ -83,7 +76,6 @@ final class SuggestedCard {
         return null;
     }
 
-    /** Percent watched of the title, read whole or before a " - " (descriptions add the length and channel). */
     private static int watched(String text) {
         if (text.length() < 3) return -1;
         int best = Math.max(AccountHistory.percentByTitle(text), WatchHistory.percentByTitle(text));
@@ -101,7 +93,6 @@ final class SuggestedCard {
         if ("off".equals(mode) || !PlayerType.getCurrent().isMaximizedOrFullscreen()) return;
         View header = findHeader(decor);
         if (header == null) return;
-        // The card is the smallest ancestor of the header which also holds the close button and a title.
         View box = header;
         View close = null;
         for (int up = 0; up < 6 && box.getParent() instanceof View p; up++) {

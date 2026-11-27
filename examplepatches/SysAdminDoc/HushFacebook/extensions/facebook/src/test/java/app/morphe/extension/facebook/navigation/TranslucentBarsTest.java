@@ -81,6 +81,7 @@ public class TranslucentBarsTest {
         Settings.TRANSLUCENT_BARS.resetToDefault();
         Settings.ROUNDED_TAB_BAR.resetToDefault();
         Settings.SEE_THROUGH_OPACITY.resetToDefault();
+        Settings.SEE_THROUGH_BLUR.resetToDefault();
         HookStatus.clear();
     }
 
@@ -694,6 +695,65 @@ public class TranslucentBarsTest {
         assertTrue(statusLine(), statusLine().contains(TranslucentBars.MADE_SEE_THROUGH + " 2"));
     }
 
+    /**
+     * #588: at the top of the feed only the list's empty padding sits under the top bar, so the
+     * page's background showed through it as a plain strip. The top bar's fill keeps Facebook's own
+     * alpha there and goes see-through in proportion to how far the list's highest row reaches
+     * under the bar; the tab bar keeps the usual. A row of stories or reels passing under the bar
+     * isn't the feed, and with no list under it the bar is as before.
+     */
+    @Test
+    public void atTheTopOfTheFeedTheTopBarKeepsItsColorUntilRowsSlideUnderIt() {
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        RecyclerView feed = new RecyclerView(screen.activity, true);
+        View first = new View(screen.activity);
+        FrameLayout.LayoutParams firstRow = new FrameLayout.LayoutParams(720, 400);
+        firstRow.topMargin = 88;
+        feed.addView(first, firstRow);
+        screen.page.addView(feed, new FrameLayout.LayoutParams(720, 1600));
+        screen.layOut();
+
+        screen.bars.update();
+        assertEquals("over the list's padding the top bar keeps Facebook's own alpha", 255,
+                screen.topHolder.getBackground().getAlpha());
+        assertEquals("the tab bar keeps its tint", SEE_THROUGH, screen.tabBar.getBackground().getAlpha());
+
+        firstRow.topMargin = 44;
+        first.setLayoutParams(firstRow);
+        screen.layOut();
+        screen.bars.update();
+        Rect rows = new Rect();
+        screen.topBar.getGlobalVisibleRect(rows);
+        int[] rowTop = new int[2];
+        first.getLocationInWindow(rowTop);
+        float under = (rows.bottom - rowTop[1]) / (float) rows.height();
+        assertTrue("the first row reaches partway under the bar: " + under, under > 0.3f && under < 0.7f);
+        int partway = screen.topHolder.getBackground().getAlpha();
+        int plain = TranslucentBars.PLAIN_ALPHA;
+        int expected = TranslucentBars.seeThrough(255, Math.round(plain + (255 - plain) * (1f - under)));
+        assertTrue("the bar goes see-through as far as the first row reaches under it: " + partway + " for " + expected,
+                Math.abs(partway - expected) <= 2 && partway > SEE_THROUGH && partway < 255);
+
+        firstRow.topMargin = -200;
+        first.setLayoutParams(firstRow);
+        screen.layOut();
+        screen.bars.update();
+        assertEquals("scrolled, the whole tint", SEE_THROUGH, screen.topHolder.getBackground().getAlpha());
+
+        // A row of reels passing under the bar isn't the feed: the tint stays whole.
+        screen.page.removeView(feed);
+        RecyclerView reelsRow = new RecyclerView(screen.activity, false);
+        View tile = new View(screen.activity);
+        FrameLayout.LayoutParams tileRow = new FrameLayout.LayoutParams(720, 400);
+        tileRow.topMargin = 88;
+        reelsRow.addView(tile, tileRow);
+        screen.page.addView(reelsRow, new FrameLayout.LayoutParams(720, 1200));
+        screen.layOut();
+        ShadowLooper.idleMainLooper(TranslucentBars.RESCAN_MS + 1, TimeUnit.MILLISECONDS);
+        screen.bars.update();
+        assertEquals("a row of reels isn't the feed", SEE_THROUGH, screen.topHolder.getBackground().getAlpha());
+    }
+
     @Test
     public void withTheTabBarAtTheTopBothRowsOfTheOneHolderGoSeeThrough() {
         TranslucentBarsForTests.TabBarOnTop screen = new TranslucentBarsForTests.TabBarOnTop();
@@ -1243,5 +1303,39 @@ public class TranslucentBarsTest {
         Settings.TRANSLUCENT_BARS.save(false);
         screen.bars.update();
         assertEquals("Facebook's own alpha comes back", 255, header.getAlpha());
+    }
+
+    @Test
+    public void blurStrengthScalesTheFrostFromNoneToThreeTimes() {
+        // #596: the blur behind the see-through bars was one fixed amount.
+        assertEquals("blank is the stock blur", 100, TranslucentBars.blurPercent(""));
+        assertEquals(100, TranslucentBars.blurPercent(null));
+        assertEquals(100, TranslucentBars.blurPercent("abc"));
+        assertEquals(0, TranslucentBars.blurPercent("0"));
+        assertEquals(300, TranslucentBars.blurPercent("350"));
+        assertEquals(50, TranslucentBars.blurPercent(" 50 "));
+
+        assertEquals("the stock radius", 36f, TranslucentBars.frostRadius(2f), 0f);
+        Settings.SEE_THROUGH_BLUR.save("50");
+        assertEquals(18f, TranslucentBars.frostRadius(2f), 0f);
+        Settings.SEE_THROUGH_BLUR.save("0");
+        assertEquals("no blur at all", 0f, TranslucentBars.frostRadius(2f), 0f);
+        Settings.SEE_THROUGH_BLUR.save("300");
+        assertEquals(108f, TranslucentBars.frostRadius(2f), 0f);
+    }
+
+    @Test
+    @Config(sdk = 34)
+    public void aNewBlurStrengthReachesAFrostAlreadyDrawn() {
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        TranslucentBars.Frost frost = new TranslucentBars.Frost(screen.page, 36f);
+        assertEquals(36f, frost.radius, 0f);
+        frost.radius(0f);
+        assertEquals("a sharp feed behind the bar", 0f, frost.radius, 0f);
+        frost.radius(72f);
+        assertEquals(72f, frost.radius, 0f);
+        frost.update(new Rect(0, 1440, 720, 1600), 1f, 1, 0f);
+        assertEquals("the box is the same at any blur", 160, frost.node.getHeight());
+        frost.remove();
     }
 }

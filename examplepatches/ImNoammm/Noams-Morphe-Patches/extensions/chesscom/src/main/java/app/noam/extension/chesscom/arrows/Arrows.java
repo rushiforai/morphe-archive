@@ -89,7 +89,7 @@ public final class Arrows {
         if (board == null || !layersWanted()) return;
         for (int i = 0; i < board.getChildCount(); i++) {
             View child = board.getChildAt(i);
-            if (child instanceof ViewGroup && BoardViews.V2_PIECES.equals(child.getClass().getName())) {
+            if (child instanceof ViewGroup && BoardViews.isV2Pieces(child)) {
                 attach((ViewGroup) child);
                 return;
             }
@@ -110,7 +110,7 @@ public final class Arrows {
             pieceView.addView(squares, 0);
             pieceView.addView(arrows, BoardViews.indexUnderMovingPieces(pieceView));
             // The v2 board adds its pieces later, on top; a higher Z keeps the arrows over them.
-            if (BoardViews.V2_PIECES.equals(pieceView.getClass().getName())) arrows.setZ(1f);
+            if (BoardViews.isV2Pieces(pieceView)) arrows.setZ(1f);
             BoardViews.fill(pieceView, squares);
             BoardViews.fill(pieceView, arrows);
             marks.layers.add(new WeakReference<>(squares));

@@ -139,6 +139,9 @@ local.properties
 # Generated font UI dev bundle
 dev/dist/
 
+# Local-only tools, input APKs, and signing material
+/dev/tools/
+
 # Captured patch logs
 patch-log*.txt
 

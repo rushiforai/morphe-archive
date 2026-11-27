@@ -16,8 +16,8 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 /**
- * The 18.8 beta gates: one master switch plus a switch per flag, so a single feature can be
- * turned on without dragging the other four along.
+ * The 18.8 beta gates: the master applies only the individual features selected below it.
+ * The individual choices are kept when the master is off.
  *
  * Every switch writes a preference the flag hook reads on each query, which is why the screen
  * marks rows as restart required only where Gboard caches the value in a static initialiser.

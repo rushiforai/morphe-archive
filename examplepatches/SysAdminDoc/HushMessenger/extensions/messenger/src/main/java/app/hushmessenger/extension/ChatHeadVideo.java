@@ -1,6 +1,9 @@
 package app.hushmessenger.extension;
 
+import android.app.Activity;
+import android.app.Service;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.Build;
 
 import java.util.Arrays;
@@ -45,6 +48,21 @@ public final class ChatHeadVideo {
         }
     }
 
+    /**
+     * True when Messenger's newer player, the one that plays videos sent in a chat, should draw into a TextureView. That
+     * player picks a SurfaceView before it knows where it will show, so there's no context to go by, and it only swaps
+     * on the phones in [LAYER_LEAVES_A_BOX], where a sent video left the box behind when its chat shrank to a chat head
+     * and again when the chat head moved (#104).
+     */
+    public static boolean grootTextureView() {
+        try {
+            return Settings.running() && layerLeavesABox();
+        } catch (Throwable error) {
+            Settings.hookFailedPrivately(KEY, "Couldn't pick how a sent video draws", error);
+            return false;
+        }
+    }
+
     /** Whether this phone is one of [LAYER_LEAVES_A_BOX]. */
     static boolean layerLeavesABox() {
         String maker = Build.MANUFACTURER;
@@ -54,9 +72,20 @@ public final class ChatHeadVideo {
     /**
      * Chat heads draw from Messenger's chat head service, so their context leads to no activity. A chat Android opens as
      * a bubble is an activity of its own and keeps Messenger's choice: its video layer draws fine there, and a forced
-     * TextureView left a black box on a link's preview and blanked the bubble when the gallery opened (#221).
+     * TextureView left a black box on a link's preview and blanked the bubble when the gallery opened (#221). A player
+     * built on the app's own context could be in either, and with Android bubbles picked under Allow chat bubbles there
+     * are no chat heads for it to be in, so it keeps Messenger's choice too (#249). Chat heads also hide while any of
+     * Messenger's screens is up, so with one up (a bubble Messenger opened on its own included, whatever is picked) an
+     * app context player isn't in a chat head either (#249).
      */
     static boolean inChatHead(Context context) {
-        return ChatJump.activity(context) == null;
+        Context at = context;
+        while (at instanceof ContextWrapper) {
+            if (at instanceof Activity) return false;
+            if (at instanceof Service) return true;
+            at = ((ContextWrapper) at).getBaseContext();
+        }
+        if (HostScreens.messengerShowing()) return false;
+        return !Settings.enableBubbles();
     }
 }

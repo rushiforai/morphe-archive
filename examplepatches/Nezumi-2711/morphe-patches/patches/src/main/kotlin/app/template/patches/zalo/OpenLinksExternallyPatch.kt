@@ -267,6 +267,7 @@ val openLinksExternallyPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        registerApplied(PatchId.OPEN_LINKS_IN_EXTERNAL_BROWSER)
         // 1. Mode read, Zalo-domain check and browser opener, taken from Zalo's own link opener.
         check(JumpLinkOpenFingerprint.matchAll(1..1).size == 1)
         val gate = JumpLinkOpenFingerprint.instructionMatches
@@ -506,5 +507,9 @@ val openLinksExternallyPatch = bytecodePatch(
                 check-cast v$s2, $STRING
             """.trimIndent(), host = s1, url = s2, result = s1, handled = handled)
         }
+
+        registerHooks(PatchId.OPEN_LINKS_IN_EXTERNAL_BROWSER, domainCheck, *cardTaps.map { it.first }.distinct().toTypedArray(),
+            ZaloVideoCardFingerprint.method, FeedSpanClickFingerprint.method, FeedCallbackSpanClickFingerprint.method,
+            BoardLinkOpenFingerprint.method, QrInvalidLinkFingerprint.method, *dialogs.map { it.method }.toTypedArray())
     }
 }

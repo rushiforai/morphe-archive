@@ -9,21 +9,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/**
- * A keyword list, one rule a line:
- * <ul>
- *     <li>{@code r/name}: posts in the community {@code name}.</li>
- *     <li>{@code u/name}: posts or comments by the account {@code name}.</li>
- *     <li>{@code flair:Text}: posts whose flair is {@code Text}; {@code !flair:Text}: posts without it.</li>
- *     <li>{@code "phrase"}: the phrase as whole words.</li>
- *     <li>Any other text: the text anywhere, case-insensitively.</li>
- * </ul>
- * Any rule may start with communities and a colon ({@code r/pics: cat} or {@code r/pics, r/aww: flair:Meme}),
- * which limits it to posts in those communities; a rule without one applies everywhere.
- */
 final class Rules {
 
-    /** MENTION: text naming a community (r/name) or an account (u/name), wherever the item itself comes from. */
     enum Kind {COMMUNITY, AUTHOR, FLAIR, NOT_FLAIR, MENTION, PHRASE, TEXT}
 
     static final class Rule {
@@ -41,9 +28,6 @@ final class Rules {
                     : kind == Kind.MENTION ? mentionPattern(value) : null;
         }
 
-        /**
-         * Whether the rule applies to an item of these communities and accounts (names without r/ or u/).
-         */
         boolean inScope(Collection<String> communities, Collection<String> accounts) {
             if (scope.isEmpty()) return true;
             for (String community : communities) {
@@ -72,10 +56,6 @@ final class Rules {
         }
     }
 
-    /**
-     * A mention of r/name or u/name as its own word, written with or without a leading slash, or inside a link such as
-     * reddit.com/r/name or reddit.com/user/name; case is ignored.
-     */
     static Pattern mentionPattern(String value) {
         String name = Pattern.quote(value.substring(2));
         String prefix = value.startsWith("r/") ? "r/" : "(?:u|user)/";
@@ -88,7 +68,6 @@ final class Rules {
         String lower = line.toLowerCase(Locale.ROOT);
         Set<String> scope = new HashSet<>();
 
-        // Communities and accounts before a colon limit the rule to them.
         Prefix prefix = prefix(line);
         if (prefix != null) {
             scope = new HashSet<>(prefix.scopes);
@@ -122,9 +101,6 @@ final class Rules {
         return new Rule(Kind.TEXT, lower, scope);
     }
 
-    /**
-     * The communities and accounts a rule line starts with ("r/pics, u/name: cat"), as scope keys.
-     */
     static final class Prefix {
         final List<String> scopes;
         final String rest;
@@ -150,9 +126,6 @@ final class Rules {
         return new Prefix(scopes, line.substring(colon + 1).trim());
     }
 
-    /**
-     * A community or account as a scope key: "r/name" or "u/name", lowercase.
-     */
     static String scopeKey(String name) {
         name = name.trim().toLowerCase(Locale.ROOT);
         if (name.startsWith("u/")) return "u/" + name.substring(2).trim();
@@ -162,10 +135,6 @@ final class Rules {
     private static final Pattern SHORTCODE = Pattern.compile(":[\\p{L}_][\\p{L}\\p{N}_+\\-]*:");
     private static final Pattern SPACES = Pattern.compile("\\s+");
 
-    /**
-     * A flair as stored and shown: lower case, in Unicode's compatibility form (NFKC), without emoji or :emoji:
-     * codes, with single spaces.
-     */
     static String flairKey(String text) {
         if (text == null) return "";
         String s = Normalizer.normalize(text, Normalizer.Form.NFKC).toLowerCase(Locale.ROOT);
@@ -181,9 +150,6 @@ final class Rules {
         return SPACES.matcher(out).replaceAll(" ").trim();
     }
 
-    /**
-     * A flair's letters and digits alone, for matching: "Meme", "MEME :snoo:", and "[Meme]" all give "meme".
-     */
     static String flairMatchKey(String text) {
         String key = flairKey(text);
         StringBuilder out = new StringBuilder(key.length());
@@ -201,9 +167,6 @@ final class Rules {
         return text.trim();
     }
 
-    /**
-     * A community name as compared: lowercase, without the r/ prefix.
-     */
     static String community(String name) {
         name = name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
         return name.startsWith("r/") ? name.substring(2) : name;

@@ -95,7 +95,7 @@ public final class AssetsDownload {
                 ? intent.getParcelableExtra(Intent.EXTRA_INTENT)
                 : intent;
         Uri uri = target == null ? null : target.getData();
-        if (uri == null) {
+        if (uri == null || !Features.on("fakh_download_assets")) {
             startChooser(context, intent);
             return;
         }

@@ -19,30 +19,30 @@ val brandAdsPatch = bytecodePatch(
     name = "Hide Home and Browse ads",
     description = "Hides image and video brand-ad sections on Home and Browse. " +
         "Does not suppress audio ads, player ads, or upgrade prompts. Experimental.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(spotifyCompatibility)
     dependsOn(settingsPatch)
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/ads/9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/ads/9.2.4.2644.properties")!!.use(::load)
         }
         for (type in snapshot.stringPropertyNames()) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify advertising ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify advertising ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify advertising ABI changed: $type. Use the verified Spotify 9.2.4.2644 APK.")
             }
         }
 
         for ((owner, methodName, getter, helper) in listOf(
-            AdsHook(owner = "Lp/jb20;", methodName = "invoke",
-                getter = "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/ih40;", helper = "home"),
-            AdsHook(owner = "Lp/vot;", methodName = "g",
-                getter = "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/ih40;", helper = "home"),
-            AdsHook(owner = "Lp/x7v0;", methodName = "a",
-                getter = "Lcom/spotify/browsita/v1/resolved/BrowseStructure;->o()Lp/ih40;", helper = "browse"),
+            AdsHook(owner = "Lp/yl80;", methodName = "invoke",
+                getter = "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/r0b0;", helper = "home"),
+            AdsHook(owner = "Lp/xir;", methodName = "z",
+                getter = "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/r0b0;", helper = "home"),
+            AdsHook(owner = "Lp/b661;", methodName = "a",
+                getter = "Lcom/spotify/browsita/v1/resolved/BrowseStructure;->o()Lp/r0b0;", helper = "browse"),
         )) {
             val method = mutableClassDefBy(owner).methods.single { it.name == methodName }
             val instructions = method.implementation!!.instructions.toList()

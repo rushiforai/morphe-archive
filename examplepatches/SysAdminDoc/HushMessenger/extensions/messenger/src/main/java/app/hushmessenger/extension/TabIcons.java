@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -23,7 +24,8 @@ import java.util.regex.Pattern;
  * icon and nothing else in the bar moves.
  *
  * <p>An outlined icon takes the color Messenger drew the stock one in, read off that drawable as it arrives, so the
- * selected tab stays the colored one and a dark theme stays dark. A picture of your own keeps its own colors. Off,
+ * selected tab stays the colored one and a dark theme stays dark. A picture of your own keeps its own colors. Both draw
+ * at the size picked under the switch, centered in the room Messenger's own icon takes, so the tab doesn't move. Off,
  * Pause, safe mode, a tab Hush has no icon for and every failure keep Messenger's own icon.
  */
 public final class TabIcons {
@@ -40,6 +42,17 @@ public final class TabIcons {
     static final int FALLBACK_SIDE_DP = 24;
     /** How opaque a pixel has to be to count towards the color an outlined icon takes. */
     private static final int SOLID = 200;
+    /** How opaque a pixel has to be to count as part of what a picture or an outlined icon draws. */
+    private static final int DRAWN = 0x40;
+    /** How big a tab's icon draws, one of [SIZES]. Nothing saved means [STANDARD]. */
+    static final String SIZE = "tab_icons_size";
+    /** The sizes, in percent of the room Messenger gives a tab's icon, the largest first. */
+    static final String[] SIZES = {"100", "90", "80", "70", "60", "50"};
+    /**
+     * Until another is picked. Messenger's own glyphs draw at about 61 to 64 percent of their room (measured off an
+     * S22's bar), and a solid picture looks a little bigger than a line drawing as wide, so 60 sits it beside them.
+     */
+    static final String STANDARD = "60";
 
     /** The outlined icon each tab takes while it has no picture of its own. */
     private static final Map<String, String> PLAIN = new LinkedHashMap<>();
@@ -91,13 +104,14 @@ public final class TabIcons {
     /** The icon for [key], or null to keep Messenger's own. */
     private static Drawable make(Context context, String key, Drawable stock) {
         int side = side(stock);
+        float size = scale(picked());
         Bitmap picture = picture(file(context, key));
-        if (picture != null) return draw(context, picture, side, null);
+        if (picture != null) return draw(context, picture, side, size, null);
         String plain = PLAIN.get(key);
         if (plain == null) return null;
         Integer color = colorOf(stock, side);
         // A drawable that hasn't loaded has no color to take, and a guess would be the wrong one in a dark theme.
-        return color == null ? null : draw(context, SettingsIcons.bitmap(plain), side, color);
+        return color == null ? null : draw(context, SettingsIcons.bitmap(plain), side, size, color);
     }
 
     /** The side Messenger drew its own icon at, so a replacement sits where the stock one did. */
@@ -109,19 +123,54 @@ public final class TabIcons {
         return Math.round(FALLBACK_SIDE_DP * android.content.res.Resources.getSystem().getDisplayMetrics().density);
     }
 
-    /** [source] drawn to a square of [side], whole and centered, in [tint] when there is one. */
-    private static Drawable draw(Context context, Bitmap source, int side, Integer tint) {
+    /**
+     * What [source] draws, fitted whole into [size] of a square of [side] and centered there, in [tint] when there is
+     * one. The see-through edges of a picture or an outlined icon are left out first, so every tab's drawing comes out
+     * the same size whatever room its file left around it, and the square stays the size of Messenger's own icon.
+     */
+    private static Drawable draw(Context context, Bitmap source, int side, float size, Integer tint) {
         Bitmap fit = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888);
-        float scale = Math.min(side / (float) source.getWidth(), side / (float) source.getHeight());
-        int width = Math.max(1, Math.round(source.getWidth() * scale));
-        int height = Math.max(1, Math.round(source.getHeight() * scale));
+        Rect drawn = drawn(source);
+        float room = side * size;
+        float scale = Math.min(room / drawn.width(), room / drawn.height());
+        int width = Math.max(1, Math.round(drawn.width() * scale));
+        int height = Math.max(1, Math.round(drawn.height() * scale));
         int left = (side - width) / 2, top = (side - height) / 2;
-        new Canvas(fit).drawBitmap(source, null, new Rect(left, top, left + width, top + height), null);
+        new Canvas(fit).drawBitmap(source, drawn, new Rect(left, top, left + width, top + height), new Paint(Paint.FILTER_BITMAP_FLAG));
         fit.setDensity(Bitmap.DENSITY_NONE);
         BitmapDrawable made = new BitmapDrawable(context.getResources(), fit);
         made.setTargetDensity(Bitmap.DENSITY_NONE);
         if (tint != null) made.setTint(tint);
         return made;
+    }
+
+    /** The part of [source] that draws anything, or all of it when nothing does. */
+    static Rect drawn(Bitmap source) {
+        int width = source.getWidth(), height = source.getHeight();
+        int[] pixels = new int[width * height];
+        source.getPixels(pixels, 0, width, 0, 0, width, height);
+        int left = width, top = height, right = -1, bottom = -1;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (Color.alpha(pixels[y * width + x]) < DRAWN) continue;
+                left = Math.min(left, x);
+                right = Math.max(right, x);
+                top = Math.min(top, y);
+                bottom = Math.max(bottom, y);
+            }
+        }
+        return right < 0 ? new Rect(0, 0, width, height) : new Rect(left, top, right + 1, bottom + 1);
+    }
+
+    /** The saved size, or [STANDARD] when nothing or something this build doesn't offer is saved. */
+    static String picked() {
+        String saved = Settings.preferences == null ? null : Settings.preferences.getString(SIZE, null);
+        for (String size : SIZES) if (size.equals(saved)) return size;
+        return STANDARD;
+    }
+
+    static float scale(String size) {
+        return Integer.parseInt(size) / 100f;
     }
 
     /**
@@ -207,8 +256,8 @@ public final class TabIcons {
     }
 
     /**
-     * What a restart would draw, for the restart row: every shown tab's picture, in order, while the switch is in
-     * effect. The bar is built once as Messenger opens, so a picked picture waits for a restart.
+     * What a restart would draw, for the restart row: every shown tab's picture, in order, and the size, while the
+     * switch is in effect. The bar is built once as Messenger opens, so a picked picture or size waits for a restart.
      */
     static String inUse(Context context) {
         if (!Settings.wouldUse(KEY)) return "";
@@ -217,7 +266,7 @@ public final class TabIcons {
             String signature = signature(file(context, key));
             line.append(key).append('=').append(signature == null ? "plain" : signature).append('\n');
         }
-        return line.toString();
+        return line.append(SIZE).append('=').append(picked()).append('\n').toString();
     }
 
     /** The tabs the settings page lists, as an ordered list. */

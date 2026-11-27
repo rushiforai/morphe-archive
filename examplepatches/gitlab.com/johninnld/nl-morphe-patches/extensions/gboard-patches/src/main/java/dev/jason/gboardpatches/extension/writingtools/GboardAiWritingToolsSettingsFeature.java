@@ -62,7 +62,8 @@ public final class GboardAiWritingToolsSettingsFeature
         backendTypeValues = new String[]{
                 GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER,
                 GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_AICORE,
-                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA
+                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA,
+                GboardAiWritingToolsSettings.BACKEND_SHARED_LOCAL
         };
         sectionBehavior = GboardSettingsText.get(context,
                 R.string.gboard_patches_ai_writing_tools_section_behavior);
@@ -123,9 +124,23 @@ public final class GboardAiWritingToolsSettingsFeature
             behaviorRows.add(new GboardPatchesSettingsContract.SelectorRow(
                     backendTypeTitle,
                     backendTypeSummary,
-                    backendType,
+                    GboardAiWritingToolsSettings.BACKEND_SHARED_LOCAL.equals(backendType)
+                            ? GboardSettingsText.get(host.getContext(), R.string.gboard_patches_shared_model_label) : backendType,
                     enabled,
                     () -> showBackendTypeDialog(host, preferences, backendType)));
+
+            if (GboardAiWritingToolsSettings.BACKEND_SHARED_LOCAL.equals(backendType)) {
+                behaviorRows.add(new GboardPatchesSettingsContract.ActionRow(
+                        GboardSettingsText.get(host.getContext(), R.string.gboard_patches_shared_context_title),
+                        GboardSettingsText.get(host.getContext(), R.string.gboard_patches_shared_context_summary),
+                        enabled,
+                        () -> host.getContext().startActivity(new android.content.Intent(host.getContext(), dev.jason.gboardpatches.extension.sharedmodel.SharedWritingContextActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))));
+                behaviorRows.add(new GboardPatchesSettingsContract.ActionRow(
+                        GboardSettingsText.get(host.getContext(), R.string.gboard_patches_shared_model_setup_title),
+                        GboardSettingsText.get(host.getContext(), R.string.gboard_patches_shared_model_setup_summary),
+                        enabled,
+                        () -> dev.jason.gboardpatches.extension.sharedmodel.SharedModelSetupActivity.open(host.getContext())));
+            }
 
             return new GboardPatchesSettingsContract.Screen(
                     entryTitle,
@@ -162,16 +177,24 @@ public final class GboardAiWritingToolsSettingsFeature
 
     private void showBackendTypeDialog(GboardPatchesSettingsContract.FeatureHost host,
             SharedPreferences preferences, String currentBackendType) {
+        String[] labels = backendTypeValues.clone();
+        labels[labels.length - 1] = GboardSettingsText.get(host.getContext(), R.string.gboard_patches_shared_model_label);
         GboardPatchesSettingsContract.showChoiceDialog(host,
                 backendTypeDialogTitle,
-                backendTypeValues,
+                labels,
                 backendTypeValues,
                 currentBackendType,
                 VALUE_UNUSED,
                 () -> {
                 },
                 value -> {
-                    GboardAiWritingToolsSettings.writeBackendType(preferences, value);
+                    if(GboardAiWritingToolsSettings.BACKEND_SHARED_LOCAL.equals(value)){
+                        dev.jason.gboardpatches.extension.sharedmodel.SharedLocalAiState.select(preferences,true);
+                        dev.jason.gboardpatches.extension.sharedmodel.SharedModelClient.activate(host.getContext());
+                    }else{
+                        GboardAiWritingToolsSettings.writeBackendType(preferences,value);
+                        dev.jason.gboardpatches.extension.sharedmodel.SharedModelClient.releaseSession();
+                    }
                     GboardPatchesSettingsContract.refresh(host);
                 });
     }

@@ -14,7 +14,8 @@ internal val COMPATIBILITY_GBOARD = Compatibility(
     apkFileType = ApkFileType.APKM,
     appIconColor = 0x1A73E8,
     targets = listOf(
-        AppTarget(version = "18.2.4.969776716-release-arm64-v8a"),
+        AppTarget(version = "18.5.4.993608717-release-arm64-v8a"),
+        AppTarget(version = "18.2.4.969776716-release-arm64-v8a"), // kept for one release while users move to 18.5
         AppTarget(version = null, isExperimental = true),
     ),
 )

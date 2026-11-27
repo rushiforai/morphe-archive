@@ -1,6 +1,7 @@
 package app.hushmessenger.extension;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
@@ -71,6 +72,7 @@ public final class SettingsActivity extends Activity {
     private final HomeHeaderRow homeHeader = new HomeHeaderRow(this);
     private final HiddenWordsRow hiddenWords = new HiddenWordsRow(this);
     private final TabIconsRow tabIcons = new TabIconsRow(this);
+    private final OwnChatSoundsRow ownChatSounds = new OwnChatSoundsRow(this);
     private final MessageActionsRow messageActions = new MessageActionsRow(this);
     private final ChatMenuItemsRow chatMenuItems = new ChatMenuItemsRow(this);
     private final ProfileMenuRow profileMenuItems = new ProfileMenuRow(this);
@@ -135,7 +137,7 @@ public final class SettingsActivity extends Activity {
     static final int UNDO_MILLIS = 10_000;
     static final int SAVE_CHOICES = 7101, READ_CHOICES = 7102, PICK_FONT = 7103, PICK_AUTO_REPLY_PICTURE = 7104, SAVE_MESSAGE_LOG = 7105,
         PICK_HOME_HEADER = 7106, PICK_TAB_ICON = 7107, PICK_RECORDING_FOLDER = 7108, SAVE_THEME = 7109, READ_THEME = 7110,
-        PICK_HOME_HEADER_FONT = 7111;
+        PICK_HOME_HEADER_FONT = 7111, PICK_CHAT_SOUND = 7112;
     /**
      * The switch for each way back in (#22, HushFacebook#146), and the help and reason each was built with. Turning one
      * way off can change what the others say or whether they can turn off, so they're rebuilt when that changes.
@@ -156,7 +158,7 @@ public final class SettingsActivity extends Activity {
     /** The switches that take a way into these settings away, each with a reason when it can't turn on. */
     static final Set<String> WAYS_IN = Set.of("hide_menu_row", Settings.HIDE_ICON_SHORTCUTS, Settings.HIDE_LOGO_PRESS);
     /** Switches whose effect hasn't been confirmed on a phone. Each shows the Experimental badge. */
-    static final Set<String> EXPERIMENTAL = Set.of("pinned_chats", "hidden_chats", "nearby_scans", "phone_id_sync", "mark_read_button", "story_hold", "chat_preview", "chat_preview_size", "chat_menu_items", "quiet_calls", QuietMode.KEY, "save_voice", "gallery_to_chat", PastePhoto.KEY, InstantGallery.KEY, "call_recording", "inbox_search_bar", "inbox_typing", "media_caption", "landscape", "restricted_notify", "tab_bar_scroll_away", "floating_tab_bar", TabSwipe.KEY, StoryEye.KEY, SpecialContacts.KEY, MenuBlur.KEY, CallCaptions.KEY, TabIcons.KEY, LinkPlayer.KEY, "profile_menu_items", "chat_bar_plus", "recovery_code_row", "longer_notes", "refresh_rate", "thin_story_rings", SearchSections.SUGGESTED, SearchSections.REELS, SearchSections.AI_CHATS, StoryTray.KEY, StoryRowSize.KEY, PinnedBar.KEY, OpenChatSound.KEY, Settings.SHOW_INSTANTS_TAB, "mark_read_locally");
+    static final Set<String> EXPERIMENTAL = Set.of("pinned_chats", "hidden_chats", "nearby_scans", "phone_id_sync", "mark_read_button", "story_hold", "chat_preview", "chat_preview_size", PreviewTaps.KEY, "chat_menu_items", "quiet_calls", QuietMode.KEY, "save_voice", "gallery_to_chat", PastePhoto.KEY, InstantGallery.KEY, "call_recording", "inbox_search_bar", "inbox_typing", "media_caption", "landscape", "restricted_notify", "tab_bar_scroll_away", "floating_tab_bar", TabSwipe.KEY, StoryEye.KEY, SpecialContacts.KEY, MenuBlur.KEY, CallCaptions.KEY, TabIcons.KEY, LinkPlayer.KEY, "profile_menu_items", "chat_bar_plus", "recovery_code_row", "longer_notes", "refresh_rate", "thin_story_rings", SearchSections.SUGGESTED, SearchSections.REELS, SearchSections.STRANGERS, SearchSections.AI_CHATS, StoryTray.KEY, StoryRowSize.KEY, PinnedBar.KEY, OpenChatSound.KEY, OwnChatSounds.KEY, Settings.SHOW_INSTANTS_TAB, "mark_read_locally", StrangerSend.KEY, "remove_contact");
     static final String[][] CONTROLS = {
         {"people", "Hide People You May Know", "Hides suggested people in chats, search and stories, and on the People and Notifications tabs. Good if you only want people you know.", "inbox"},
         {"friend_requests", "Hide friend request cards", "Hides friend request cards in your chat list. It doesn't accept or decline anyone.", "inbox"},
@@ -165,21 +167,24 @@ public final class SettingsActivity extends Activity {
         {"inbox_promotions", "Hide inbox promotions", "Hides promotion banners in your chat list.", "inbox"},
         {"stories", "Hide stories and notes", "Hides the row of stories and notes above your chats, and the story rings around profile pictures.", "inbox"},
         {"story_create_tile", "Hide Create story", "Takes the Create story tile off the start of the row of stories and notes above your chats. Your own story and note sit on that tile, so they go with it.", "inbox"},
-        {"instants_button", "Hide the Instants button", "Hides the + button that slides in at the right edge of your chat list and the one under your chat heads. Both open Instants.", "inbox"},
         {"subtabs", "Hide inbox tabs", "Hides the All, Unread and Groups tabs above your chats.", "inbox"},
         {"inbox_typing", "Typing in your chat list", "Writes typing over a chat's last message in your list while the other person types, instead of only showing it once you're in the chat. Messenger carries this already and Meta's server keeps it off. Restart Messenger to see it start.", "inbox"},
         {"inbox_search_bar", "Keep the search bar", "Brings back the search bar at the top of your chat list when Messenger has swapped it for a search icon. Restart Messenger to see the change. Nothing changes if you never got the icon.", "inbox"},
         {"search_suggested", "Hide Suggested in search", "Hides the suggested people at the top of search before you type anything. People still come up when you search for them.", "inbox"},
         {"search_reels", "Hide recent reels in search", "Hides the reels you watched lately from search before you type anything.", "inbox"},
-        {"longer_notes", "Write longer notes", "Lets the note box take up to 2,000 characters instead of 60. Facebook decides whether a long note goes through.", "inbox"},
+        {"search_strangers", "Hide people you don't know in search", "Hides the people you aren't friends with when you type in search, so you don't message a stranger by mistake. Your friends and groups still come up.", "inbox"},
+        {"confirm_strangers", "Ask before messaging people you don't know", "Holds the first Send in a chat with someone you aren't friends with and asks you to tap Send again. A second tap within 5 seconds sends it as a message request. Groups, pages and chats where they've written to you send right away.", "inbox"},
+        {"longer_notes", "Write longer notes", "Lets the note box take up to 600 characters instead of 60. Facebook decides whether a long note goes through.", "inbox"},
         {"chat_preview", "Preview chats on long press", "Press and hold a chat to peek at it in Messenger's own preview, with the chat's menu under it, without opening the chat.", "chat_menu"},
         {"chat_preview_size", "Bigger chat preview", "Gives the chat more room in the preview you get when you press and hold a chat, and lets you scroll back through it there. The menu under it keeps a set height and scrolls when it has more items.", "chat_menu"},
+        {"chat_preview_taps", "Keep taps in the chat preview", "A tap on the chat in the preview you get when you press and hold a chat no longer opens it. Your taps go to the chat itself, so its arrow down to the newest message works, and Open chat at the top of the menu under it opens the chat.", "chat_menu"},
         {"mark_read_action", "Hide Mark as read", "Hides Mark as read in the menu you get when you press and hold a chat in your chat list, so you can't mark a chat read by accident. Mark as unread stays.", "chat_menu"},
         {"pinned_chats", "Pin more chats", "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices.", "chat_menu"},
         {"hidden_chats", "Hide chosen chats", "Adds Hide from chat list to the menu you get when you press and hold a chat. A hidden chat stays off your chat list when new messages come in, and search still finds it. Hiding stays on this phone, and you can unhide chats in HushMessenger settings. It doesn't stop notifications, so mute the chat in Messenger for that.", "chat_menu"},
         {"special_contacts", "Special contacts", "Adds Track this person to the menu you get when you press and hold a chat with one person. HushMessenger then keeps a history of when they come online, go offline, type to you and change their name, from what Messenger already shows you. The history stays on this phone, and you can read it in HushMessenger settings.", "chat_menu"},
         {"chat_menu_items", "Hide chat menu items", "Hides the items you pick from the menu you get when you press and hold a chat in your chat list. Press and hold any chat once, and that menu's items show up under this switch for you to pick.", "chat_menu"},
         {"profile_menu_items", "Hide profile menu items", "Hides the items you pick from the menu you get when you tap someone's picture beside their message in a chat. Tap one picture once, and that menu's items show up under this switch for you to pick.", "chat_menu"},
+        {"remove_contact", "Show Remove contact", "Adds Remove contact back to the menu you get when you press and hold someone in People, your contacts or search, for people you aren't friends with. It takes them out of your Messenger contacts without blocking them.", "chat_menu"},
         {"facebook", "Hide Facebook shortcuts", "Hides Facebook buttons, profile and sharing shortcuts, and the Also from Meta and Subscriptions sections in the Menu tab. Handy if you only use Messenger.", "navigation"},
         {"meta_ai", "Hide Meta AI", "Hides the Meta AI floating button, toolbar button, tab and menu entries, AI in search and in @ suggestions, and the offer to summarize a chat's unread messages. Restart Messenger to see the tab go.", "navigation"},
         {"ai_chat_block", "Block Meta AI chats", "Stops chats with Meta AI and other AI bots from opening, from search, a link or your chat list. A group with an AI in it still opens.", "navigation"},
@@ -191,6 +196,7 @@ public final class SettingsActivity extends Activity {
         {"tab_people_show", "Show People tab", "Puts the People tab back in the bar at the bottom, right after Chats, on accounts where Messenger took it away. Hide People tab wins if both are on. Restart Messenger to see the tab.", "tab_bar"},
         {"tab_settings_show", "Show settings tab", "Puts Messenger's own settings tab at the end of the bar at the bottom, with your picture on it, so your account settings are one tap away. Restart Messenger to see the tab.", "tab_bar"},
         {"tab_instants_show", "Show Instants tab", "Puts Instants in the middle of the bar at the bottom, where Messenger has it on some accounts. Turn on Hide the Instants button too to take the + out of Chats. Restart Messenger to see the tab.", "tab_bar"},
+        {"instants_button", "Hide the Instants button", "Hides the + button that slides in at the right edge of your chat list and the one under your chat heads. Both open Instants.", "tab_bar"},
         {"tab_badges", "Hide tab badges", "Hides the red dots and counts on the tabs at the bottom and on the Facebook button at the top. Turn on Keep for any you still want. Restart Messenger to see the change.", "tab_bar"},
         {"hide_tab_labels", "Hide tab labels", "Takes the words off the tabs at the bottom and leaves the icons on their own. Screen readers still name every tab. Restart Messenger to see the change.", "tab_bar"},
         {"tab_icons", "Your own tab icons", "Swaps the icons in the bar at the bottom for plain outlined ones, and lets you put your own picture on any tab. Restart Messenger to see the change.", "tab_bar"},
@@ -216,12 +222,13 @@ public final class SettingsActivity extends Activity {
         {"text_style", "Bold and italic text", "Select words you typed and pick Bold or Italic in the menu that pops up (it can be behind the three dots). Pick it again to undo. Bold changes the letters A to Z (accents are fine) and digits. Italic changes only the letters, and other alphabets stay as they are. They're special Unicode letters, so they show on any phone, but screen readers may read them oddly.", "conversations"},
         {"local_chat_search", "Search saved messages", "Adds a button to a chat's search results that searches the messages saved on this phone. It helps with old chats Messenger's own search finds nothing in. It works in chats that aren't end-to-end encrypted, and it can only find what the phone has loaded, so scroll up in the chat first.", "conversations"},
         {"chat_jump", "Jump to the first message or a date", "Long press a chat's name at the top of the chat to jump to its first message or to a day you pick. An arrow at the bottom left of a chat goes to its first message, and a long press on the arrow asks for a day. Tapping one of the dates between the messages opens the same day picker on that day. Messenger loads a chat a page at a time, so it scrolls back with a count on screen until it gets there, and Cancel stops it. It can only go as far back as Messenger can load.", "conversations"},
-        {"pinned_bar", "Show pinned messages", "Shows a chat's pinned messages in a bar under its name. Messenger has that bar already, but only turns it on in some chats.", "conversations"},
+        {"pinned_bar", "Show pinned messages", "Shows a bar under the chat's name with its newest pinned message, in end-to-end encrypted chats. Tap it to jump to the message.", "conversations"},
         {"landscape", "Allow landscape", "Lets Messenger turn sideways with your phone, for a wider keyboard and bigger photos and videos. It follows your phone's auto-rotate setting. Calls, the camera, payments and a few other screens stay upright. Restart Messenger after you change it.", "conversations"},
         {"chat_bar_plus", "Chat bar buttons in the + menu", "Only + stays next to the message box. The camera, gallery and mic buttons become rows in the menu + opens, and they work the same from there. Needs Android 10 or newer.", "conversations"},
         {"quiet_mode", "Quiet mode", "A break from Messenger. Pick 15 minutes, an hour, two hours, eight hours or until you end it yourself, and nothing from Messenger makes a sound or vibrates for that long. Messages and calls still arrive and wait in the notification shade, so nothing goes missing while you're away from it. Every night, under it, does the same between two times you pick. Anyone on your Special contacts list still comes through, whether they message you or call.", "notifications"},
         {"restricted_notify", "Notify for restricted chats", "Chats with people you've restricted notify you like your other chats, unless they're end-to-end encrypted. A chat you've muted stays quiet. Restricted people still can't see when you're active or when you've read their messages.", "notifications"},
         {"open_chat_sound", "Sound in the open chat", "Plays Messenger's in-app message sound when a message comes into the chat you have open. Messenger already does that for likes and stickers. A silent phone or Messenger's own In-app sounds switch still keeps it quiet.", "notifications"},
+        {"own_chat_sounds", "Your own chat sounds", "Plays sound files you pick instead of Messenger's sounds as you send a message, once it has gone through, and for a new message while Messenger is open. Choose them below. Any you leave alone stay Messenger's own, and Messenger still decides when each one plays.", "notifications"},
         {"car_messages", "Android Auto messages", "Lets Android Auto read your messages out loud and send the replies you speak, on its own messaging screen. Android Auto only shows apps from the Play Store. Unknown sources in its developer settings opens that up on a desktop head unit, and a real car can still leave Messenger out. Playing a message aloud marks the chat read and shows Seen, even with Hide read receipts on.", "notifications"},
         {"quiet_calls", "Quiet incoming calls", "Calls still come in, but Messenger doesn't ring, vibrate or pop the call up over your screen. The call waits in the notification shade with Answer and Decline. A call you miss still shows in the chat. Only chosen chats keeps this to the chats you pick, and every other call rings. If the Facebook app is on your phone, it can still ring for the same call.", "calls"},
         {"call_recording", "Record calls", "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first.", "calls"},
@@ -445,10 +452,17 @@ public final class SettingsActivity extends Activity {
         messageLog.adopt(getLastNonConfigurationInstance(), root);
         // The top bar's message log button opens straight into the log, and a chat menu's row into that chat's part of it.
         // Coming back from a rotation or a restart keeps whatever was showing.
-        if (state == null && getIntent().getBooleanExtra(MessageLogSheet.OPEN_EXTRA, false)) {
+        if (state == null && onlyForTheLog()) {
             String thread = getIntent().getStringExtra(MessageLogSheet.THREAD_EXTRA);
             root.post(() -> messageLog.showMessageLog(thread));
         }
+        // #248: opened for the log, settings never shows behind it, and closing the log closes this screen too.
+        if (onlyForTheLog()) root.setVisibility(View.INVISIBLE);
+    }
+
+    /** Whether this screen was opened by the clock, the Menu tab row or a chat menu's row, just to show the log. */
+    boolean onlyForTheLog() {
+        return getIntent().getBooleanExtra(MessageLogSheet.OPEN_EXTRA, false);
     }
 
     @Override public Object onRetainNonConfigurationInstance() { return messageLog.retained(); }
@@ -461,6 +475,8 @@ public final class SettingsActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        // Back on screen, so Back can close settings for good without leaving a card (#54).
+        inRecents(this, false);
         refreshChoices();
         if (hiddenChats != null) fillHiddenChats();
         if (quietCallers != null) fillQuietCallers();
@@ -511,6 +527,34 @@ public final class SettingsActivity extends Activity {
         updates.cancelUpdateCheck();
         if (licenses != null) licenses.dialog.dismiss();
         super.onDestroy();
+    }
+
+    /**
+     * #207: settings left open with Home or the Recents button keep their card in Recents, to come back where they were.
+     * The manifest keeps their task out of Recents (#54), which with this off still takes the card away on leaving.
+     */
+    static final String IN_RECENTS = "settings_in_recents";
+
+    @Override protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (Settings.preferences.getBoolean(IN_RECENTS, false)) inRecents(this, true);
+    }
+
+    /** Lets this screen's task into Recents, or keeps it out again. Nothing changes when the task can't be found. */
+    static void inRecents(Activity activity, boolean shown) {
+        try {
+            ActivityManager activities = activity.getSystemService(ActivityManager.class);
+            if (activities == null) return;
+            for (ActivityManager.AppTask task : activities.getAppTasks()) {
+                ActivityManager.RecentTaskInfo info = task.getTaskInfo();
+                @SuppressWarnings("deprecation") int id = Build.VERSION.SDK_INT >= 29 ? info.taskId : info.persistentId;
+                if (id != activity.getTaskId()) continue;
+                task.setExcludeFromRecents(!shown);
+                return;
+            }
+        } catch (RuntimeException gone) {
+            android.util.Log.w("HushMessenger", "Can't change the settings card in Recents", gone);
+        }
     }
 
     /** Kept in the settings file like the other choices, but not a control: backups and Quick setups never carry it. */
@@ -1148,7 +1192,7 @@ public final class SettingsActivity extends Activity {
                     || MessageLog.KEY.equals(spec[0]) || AutoReply.KEY.equals(spec[0]) || Settings.AVATAR_SHAPE.equals(spec[0])
                     || QuietCalls.KEY.equals(spec[0]) || HomeHeader.KEY.equals(spec[0]) || ChatHiding.KEY.equals(spec[0])
                     || HiddenWords.KEY.equals(spec[0])
-                    || TabIcons.KEY.equals(spec[0])
+                    || TabIcons.KEY.equals(spec[0]) || OwnChatSounds.KEY.equals(spec[0])
                     || MessageActions.KEY.equals(spec[0]) || ChatMenuItems.KEY.equals(spec[0]) || ProfileMenu.KEY.equals(spec[0]) || CameraActivity.KEY.equals(spec[0])
                     || InvisibleButtons.KEY.equals(spec[0]) || QuietMode.KEY.equals(spec[0])
                     || StoryEye.OWNER.equals(spec[0]) || SpecialContacts.KEY.equals(spec[0]) || CallCaptions.KEY.equals(spec[0])
@@ -1188,6 +1232,7 @@ public final class SettingsActivity extends Activity {
                 else if (HomeHeader.KEY.equals(spec[0])) homeHeader.addTo(wrapper);
                 else if (HiddenWords.KEY.equals(spec[0])) hiddenWords.addTo(wrapper);
                 else if (TabIcons.KEY.equals(spec[0])) tabIcons.addTo(wrapper);
+                else if (OwnChatSounds.KEY.equals(spec[0])) ownChatSounds.addTo(wrapper);
                 else if (MessageActions.KEY.equals(spec[0])) messageActions.addTo(wrapper);
                 else if (ChatMenuItems.KEY.equals(spec[0])) chatMenuItems.addTo(wrapper);
                 else if (ProfileMenu.KEY.equals(spec[0])) profileMenuItems.addTo(wrapper);
@@ -1199,8 +1244,10 @@ public final class SettingsActivity extends Activity {
                 else if (RefreshRate.KEY.equals(spec[0])) refreshRates.addTo(wrapper);
                 else if (SeeThroughTabBar.KEY.equals(spec[0])) seeThroughLevels.addTo(wrapper);
                 else if (StoryRowSize.KEY.equals(spec[0])) storyRowSizes.addTo(wrapper);
-                else if (TabSwipe.KEY.equals(spec[0])) ui.add(wrapper, controlRow(TabSlide.KEY, text.format(TabSlide.KEY),
-                    text.format("tab_bar_slide_help"), false), 8);
+                else if (TabSwipe.KEY.equals(spec[0])) {
+                    ui.add(wrapper, controlRow(TabFollow.KEY, text.format(TabFollow.KEY), text.format("tab_swipe_follow_help"), false), 8);
+                    ui.add(wrapper, controlRow(TabSlide.KEY, text.format(TabSlide.KEY), text.format("tab_bar_slide_help"), false), 8);
+                }
                 else if (CallRecording.KEY.equals(spec[0])) {
                     callRecording.addScopeTo(wrapper);
                     addRecordCallChats(wrapper);
@@ -1623,7 +1670,7 @@ public final class SettingsActivity extends Activity {
 
     /** A row's icon: one its key's words call for, else its section's. Fixed per key, since some rows are rebuilt later. */
     private static String rowIcon(String key) {
-        if (WAYS_IN.contains(key) || "hide_drawer_icon".equals(key) || MenuRows.LOG_OUT.equals(key))
+        if (WAYS_IN.contains(key) || "hide_drawer_icon".equals(key) || MenuRows.LOG_OUT.equals(key) || IN_RECENTS.equals(key))
             return SettingsIcons.forKey(key, sectionIcon("quick_access"));
         if ("light".equals(key) || SettingsTheme.FOLLOW_PHONE.equals(key) || "material_you_black".equals(key)
                 || MaterialYouTheme.LIGHT_KEY.equals(key) || MaterialYouTheme.LIGHT_GRAYS_KEY.equals(key))
@@ -1741,6 +1788,11 @@ public final class SettingsActivity extends Activity {
         if (Settings.logoOpensSettings()) {
             ui.rule(access, 12);
             ui.add(access, wayControl(Settings.HIDE_LOGO_PRESS), 10);
+        }
+        // A Root Mount install shows settings inside a stock screen, which never hears that it was left.
+        if (!hosted) {
+            ui.rule(access, 12);
+            ui.add(access, controlRow(IN_RECENTS, text.format(IN_RECENTS), text.format(IN_RECENTS + "_help"), false), 10);
         }
         if (drawerAlias && !hosted) {
             // Amber, since uninstalling from there wipes Messenger's data along with the icon.
@@ -2091,6 +2143,10 @@ public final class SettingsActivity extends Activity {
             tabIcons.pictureResult(result, data);
             return;
         }
+        if (request == PICK_CHAT_SOUND) {
+            ownChatSounds.soundResult(result, data);
+            return;
+        }
         if (request == PICK_FONT) {
             // Cancelled: nothing to do and nothing to say.
             if (result != RESULT_OK || data == null || data.getData() == null) return;
@@ -2370,7 +2426,8 @@ public final class SettingsActivity extends Activity {
         List<String> terms = SettingsSearch.terms(query);
         clearQuery.setVisibility(query.isEmpty() ? View.GONE : View.VISIBLE);
         String drawerWords = "hide app drawer icon launcher settings menu row shortcuts " + text.get("hide_drawer_icon") + " "
-            + text.get("hide_menu_row") + " " + text.get("hide_icon_shortcuts") + " " + text.get("hide_logo_press");
+            + text.get("hide_menu_row") + " " + text.get("hide_icon_shortcuts") + " " + text.get("hide_logo_press")
+            + " recents " + text.get(IN_RECENTS);
         // One letter matches almost anything, so the link waits for a second one.
         drawerSearchLink.setVisibility(controlRows.isEmpty() || (query.trim().length() >= 2 && SettingsSearch.matches(terms, drawerWords)) ? View.VISIBLE : View.GONE);
         int visible = 0;
@@ -2387,7 +2444,8 @@ public final class SettingsActivity extends Activity {
             if ("hide_read_receipts".equals(spec[0])) inside = text.get(Settings.HIDE_DELIVERED) + " " + text.get("hide_delivered_help");
             if (ChatJump.KEY.equals(spec[0])) inside = text.get(ChatJump.PAGES) + " " + text.get("chat_page_buttons_help");
             if (InvisibleButtons.KEY.equals(spec[0])) inside = text.get(InvisibleButtonsPick.KEY) + " " + text.get("invisible_buttons_pick_help");
-            if (TabSwipe.KEY.equals(spec[0])) inside = text.get(TabSlide.KEY) + " " + text.get("tab_bar_slide_help");
+            if (TabSwipe.KEY.equals(spec[0])) inside = text.get(TabFollow.KEY) + " " + text.get("tab_swipe_follow_help") + " "
+                + text.get(TabSlide.KEY) + " " + text.get("tab_bar_slide_help");
             if (CallCaptions.KEY.equals(spec[0])) inside = text.get("call_captions_heard_title") + " " + text.get("call_captions_shown_title") + " "
                 + text.get(CallCaptions.SPEAK) + " " + text.get("call_captions_speak_help") + " " + text.get(CallCaptions.DUCK) + " "
                 + text.get("call_captions_duck_help");
@@ -2397,6 +2455,12 @@ public final class SettingsActivity extends Activity {
             if (TabIcons.KEY.equals(spec[0])) {
                 inside = text.get("tab_icons_choose") + " " + text.get("tab_icons_help", HomeHeaderPicture.MAX_MEGABYTES);
                 for (String tab : TabIcons.SHOWN) inside += " " + text.get("tab_icons_tab_" + tab);
+                inside += " " + text.get(TabIcons.SIZE) + " " + text.get("tab_icons_size_help",
+                    text.percent(Integer.parseInt(TabIcons.SIZES[0])), text.percent(Integer.parseInt(TabIcons.STANDARD)));
+            }
+            if (OwnChatSounds.KEY.equals(spec[0])) {
+                inside = text.get("own_chat_sounds_choose") + " " + text.get("own_chat_sounds_help", OwnChatSounds.MAX_MEGABYTES);
+                for (String sound : OwnChatSounds.SOUNDS) inside += " " + text.get("own_chat_sounds_sound_" + sound);
             }
             if (QuietCalls.KEY.equals(spec[0])) {
                 inside = text.get(QuietCalls.CHOSEN_ONLY) + " " + text.get("quiet_calls_chosen_help");

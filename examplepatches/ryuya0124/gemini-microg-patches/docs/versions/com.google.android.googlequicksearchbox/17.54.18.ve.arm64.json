@@ -239,6 +239,71 @@
       "enabled": true,
       "description": "Google (Morphe)"
     },
+    "GEMINI_HAPTICS": {
+      "className": "Lbpot;",
+      "methodName": "r",
+      "methodDescriptor": "(Landroidx/preference/PreferenceScreen;Ljava/lang/String;Lbpow;Ljava/util/Locale;Ljava/util/List;Lataw;Laulg;Lgtij;)Ljava/lang/Object;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "RobinSettingsPreferenceFragment: Interrupt Live responses switch listener"
+      ],
+      "methodSignatures": [
+        "Lblgb;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lblhk;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbles;->a(Lbleo;)V",
+        "Lblig;->onScroll(Landroid/view/MotionEvent;Landroid/view/MotionEvent;FF)Z",
+        "Lblii;->c(Landroid/view/View;Z)V",
+        "Lbhjl;->h(Lbhjv;Landroid/graphics/Point;Lgtks;Lavug;)Z",
+        "Lbpjt;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbpgr;->invoke()Ljava/lang/Object;",
+        "Lbpgz;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbpgd;->invoke()Ljava/lang/Object;",
+        "Lbpig;->a(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbpij;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbpiv;->invoke()Ljava/lang/Object;"
+      ],
+      "expectedMatches": 23,
+      "integers": {
+        "settingsRegisters": 33,
+        "screenParameter": 1
+      },
+      "values": {
+        "findPreference": "ah",
+        "setKey": "I",
+        "setTitle": "M",
+        "addPreference": "ae",
+        "listenerField": "n",
+        "persistentField": "w",
+        "setChecked": "j"
+      },
+      "enabled": true,
+      "description": "Add the Gemini vibration switch and gate verified Gemini view feedback."
+    },
+    "GEMINI_HAPTICS_VIBRATOR": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Ma-HapticsPlayer-Impl",
+        "Playing haptic feedback"
+      ],
+      "methodSignatures": [
+        "Lasko;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbgas;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Lbgav;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "Latnk;->b(Lgtij;)Ljava/lang/Object;"
+      ],
+      "expectedMatches": 4,
+      "integers": {},
+      "values": {
+        "vibrateReference": "Lbq$$ExternalSyntheticApiModelOutline1;->m(Landroid/os/Vibrator;Landroid/os/VibrationEffect;)V"
+      },
+      "enabled": true,
+      "description": "Gate the chat waveform player plus Live and Gemini feedback-report cues."
+    },
     "ACCOUNT_SWITCH_LOCK_BYPASS": {
       "className": null,
       "methodName": null,

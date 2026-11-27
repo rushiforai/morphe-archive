@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.template.extension.zalo.buglog.NezumiLog;
+import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.settings.NezumiPrefs;
 import app.template.extension.zalo.shared.ZaloEnv;
 
@@ -13,7 +14,7 @@ public final class FeedAds {
     private FeedAds() { }
 
     public static List filterFeedAds(List items) {
-        if (!isFeedAdsHidden(ZaloEnv.appContext()) || items == null || items.isEmpty()) return items;
+        if (!isFeedAdsHidden(ZaloEnv.appContext(Patch.HIDE_FEED_ADS)) || items == null || items.isEmpty()) return items;
         ArrayList filtered = new ArrayList(items.size());
         for (Object item : items) {
             if (!isFeedAdItem(item)) filtered.add(item);
@@ -25,7 +26,7 @@ public final class FeedAds {
         try {
             return item != null && item.getClass().getField("c").getInt(item) == 0x51;
         } catch (ReflectiveOperationException | RuntimeException failure) {
-            NezumiLog.swallowedOnce("NezumiFeedAds", "feed item type unavailable (field c)", failure);
+            NezumiLog.swallowedOnce(Patch.HIDE_FEED_ADS, "FeedAds", "feed item type unavailable (field c)", failure);
             return false;
         }
     }

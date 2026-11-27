@@ -145,3 +145,7 @@ morphe-signing.key
 
 # macOS Finder metadata
 .DS_Store
+# Joplin build intermediate; adapters ship as deltas under joplin/adapters.
+patches/src/main/resources/joplin/index.android.bundle
+patches/src/main/resources/joplin/index.android.bundle.map
+patches/src/main/resources/joplin/target.properties

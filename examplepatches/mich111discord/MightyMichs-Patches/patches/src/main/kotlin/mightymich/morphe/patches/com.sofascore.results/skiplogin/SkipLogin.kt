@@ -14,7 +14,7 @@ val skipLoginPatch = bytecodePatch(
     compatibleWith(SofaScoreLoginCompatibility.SOFASCORE_LOGIN)
 
     val isLoggedInFingerprint = Fingerprint(
-        definingClass = "Lcom/sofascore/local_persistence/UserAccount;",
+        definingClass = "Lcom/sofascore/local_persistance/UserAccount;",
         name = "isLoggedIn",
         returnType = "Z"
     )

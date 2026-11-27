@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction20t;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc;
@@ -54,7 +55,7 @@ class VerifySettingsDexTest {
         for (var m : cls.getMethods()) {
             if (m.getName().equals(methodName)
                     && (!methodName.equals("<init>")
-                            || m.getParameterTypes().equals(List.of("I", "Lp/ct71;", "I")))) {
+                            || m.getParameterTypes().equals(List.of("I", "Lp/m0l1;", "B")))) {
                 var code = VerifySettingsDex.code(m);
                 mutation.accept(code);
                 var impl = m.getImplementation();
@@ -96,6 +97,18 @@ class VerifySettingsDexTest {
     static int append(List<Instruction> c) {
         for (int n = 0; n < c.size(); n++) {
             if (VerifySettingsDex.call(c.get(n), B + "SettingsBridge;", "append")) {
+                return n;
+            }
+        }
+        throw new AssertionError();
+    }
+
+    // The copy of the settings root into v44 that the hook makes before the rows are built.
+    static int save(List<Instruction> c) {
+        for (int n = 0; n < c.size(); n++) {
+            if (c.get(n).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                    && c.get(n) instanceof com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction r
+                    && r.getRegisterA() == 44) {
                 return n;
             }
         }
@@ -183,7 +196,7 @@ class VerifySettingsDexTest {
         reject("missing settings screen open",
                 () -> screen(m -> m.getName().equals("open") ? null : m,
                         "Landroid/view/ContextThemeWrapper;"));
-        String app = "Lcom/spotify/music/SpotifyApplication;";
+        String app = "Lp/cve1;";
         // Server files put their track-process gate before the startup hook, so find the hook.
         reject("missing startup", () -> mutate(app, "onCreate", c -> c.remove(startup(c))));
         reject("duplicate startup", () -> mutate(app, "onCreate", c -> c.add(startup(c), c.get(startup(c)))));
@@ -210,12 +223,12 @@ class VerifySettingsDexTest {
                                                                 ((ReferenceInstruction)
                                                                                 c.get(startup(c)))
                                                                         .getReference()))));
-        reject("missing append", () -> mutate("Lp/xlt;", "create", c -> c.remove(append(c))));
+        reject("missing append", () -> mutate("Lp/ec2;", "create", c -> c.remove(append(c))));
         reject(
                 "duplicate append",
                 () ->
                         mutate(
-                                "Lp/xlt;",
+                                "Lp/ec2;",
                                 "create",
                                 c -> {
                                     int n = append(c);
@@ -225,20 +238,16 @@ class VerifySettingsDexTest {
                 "wrong append receiver",
                 () ->
                         mutate(
-                                "Lp/xlt;",
+                                "Lp/ec2;",
                                 "create",
                                 c -> {
                                     int n = append(c);
                                     c.set(
                                             n,
-                                            new ImmutableInstruction35c(
-                                                    Opcode.INVOKE_STATIC,
+                                            new ImmutableInstruction3rc(
+                                                    Opcode.INVOKE_STATIC_RANGE,
+                                                    43,
                                                     2,
-                                                    6,
-                                                    3,
-                                                    0,
-                                                    0,
-                                                    0,
                                                     (MethodReference)
                                                             ((ReferenceInstruction) c.get(n))
                                                                     .getReference()));
@@ -247,12 +256,15 @@ class VerifySettingsDexTest {
                 "misplaced append",
                 () ->
                         mutate(
-                                "Lp/xlt;",
+                                "Lp/ec2;",
                                 "create",
                                 c -> {
                                     int n = append(c);
                                     c.add(n + 1, new ImmutableInstruction10x(Opcode.NOP));
                                 }));
+        reject("missing settings root save", () -> mutate("Lp/ec2;", "create", c -> c.remove(save(c))));
+        reject("settings root saved from the wrong register", () -> mutate("Lp/ec2;", "create",
+                c -> c.set(save(c), new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 44, 1))));
         reject(
                 "capability mismatch",
                 () ->
@@ -264,18 +276,18 @@ class VerifySettingsDexTest {
                 "wrong reserved analytics value",
                 () ->
                         mutate(
-                                "Lp/c3g0;",
+                                "Lp/p6o0;",
                                 "<init>",
                                 c ->
                                         c.set(
                                                 label(c) - 2,
                                                 new ImmutableInstruction11n(
-                                                        Opcode.CONST_4, 7, 0))));
+                                                        Opcode.CONST_4, 13, 0))));
         reject(
                 "inverted analytics branch",
                 () ->
                         mutate(
-                                "Lp/c3g0;",
+                                "Lp/p6o0;",
                                 "<init>",
                                 c -> {
                                     int n = label(c) - 1;
@@ -283,8 +295,8 @@ class VerifySettingsDexTest {
                                             n,
                                             new ImmutableInstruction22t(
                                                     Opcode.IF_EQ,
-                                                    5,
-                                                    7,
+                                                    11,
+                                                    13,
                                                     ((OffsetInstruction) c.get(n))
                                                             .getCodeOffset()));
                                 }));
@@ -292,7 +304,7 @@ class VerifySettingsDexTest {
                 "wrong analytics sink",
                 () ->
                         mutate(
-                                "Lp/c3g0;",
+                                "Lp/p6o0;",
                                 "<init>",
                                 c -> {
                                     int n = label(c) + 1;
@@ -304,15 +316,15 @@ class VerifySettingsDexTest {
         reject("altered menu bridge", () -> mutate(VerifySettingsDex.MENU_BRIDGE + "MenuBridge;", "track",
                 c -> c.addFirst(new ImmutableInstruction10x(Opcode.NOP))));
         // Byte equality can't catch a reference the bundle shares; the link check must.
-        reject("missing menu item type", () -> VerifySettingsDex.classes.remove("Lp/jpj;"));
+        reject("missing menu item type", () -> VerifySettingsDex.classes.remove("Lp/ygn;"));
         reject("missing menu callbacks",
                 () -> VerifySettingsDex.classes.remove(VerifySettingsDex.EXTENSIONS + "ExtensionMenus;"));
-        reject("missing list menu interface", () -> VerifySettingsDex.classes.remove("Lp/spj;"));
-        reject("missing home chip type", () -> VerifySettingsDex.classes.remove("Lp/ztx;"));
+        reject("missing list menu interface", () -> VerifySettingsDex.classes.remove("Lp/hhn;"));
+        reject("missing home chip type", () -> VerifySettingsDex.classes.remove("Lp/fg30;"));
         reject("missing home chip callbacks",
                 () -> VerifySettingsDex.classes.remove(VerifySettingsDex.EXTENSIONS + "HomeChips;"));
         reject("missing Home pins plan", () -> VerifySettingsDex.classes.remove(VerifySettingsDex.HOME + "HomePins;"));
-        reject("missing native target", () -> VerifySettingsDex.classes.remove("Lp/xh0;"));
+        reject("missing native renderer", () -> VerifySettingsDex.classes.remove("Lp/ajp;"));
         reject(
                 "missing navigator method",
                 () -> {

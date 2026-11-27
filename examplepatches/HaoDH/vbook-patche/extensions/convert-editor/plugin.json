@@ -2,9 +2,9 @@
   "metadata": {
     "name": "DeepSeek – Biên tập truyện convert",
     "author": "HaoDH",
-    "version": 11,
+    "version": 16,
     "source": "https://api.deepseek.com",
-    "description": "Biên tập nguyên chương Việt convert bằng nhiều nguồn AI (DeepSeek, Gemini free, OpenRouter, Groq, tùy chỉnh); tự chuyển sang DeepSeek khi nguồn miễn phí hết hạn mức; lưu toàn chương và bộ nhớ tên theo truyện.",
+    "description": "Biên tập nguyên chương Việt convert bằng nhiều nguồn AI (DeepSeek, Gemini free, Cloudflare Workers AI, Groq, OpenRouter, model local trên PC qua LAN/tùy chỉnh); tự thử lại, chuyển nguồn và chia nhỏ chương dài; prompt theo thể loại; bộ nhớ tên theo truyện và dùng chung giữa các truyện.",
     "locale": "vi_VN",
     "regexp": "",
     "type": "translate",

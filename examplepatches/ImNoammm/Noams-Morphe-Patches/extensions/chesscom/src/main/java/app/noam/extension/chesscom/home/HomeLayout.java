@@ -9,20 +9,16 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import app.noam.extension.chesscom.Features;
 import app.noam.extension.chesscom.Utils;
 
 /**
- * chess.com serves one of two Home screens per account (the older list or the redesign), so every
- * switch applies to both. Items are recognised by what their data classes print ("QuickPlay(...").
+ * The Home screen's tiles (its recommended activities) and sections. Items are recognised by what
+ * their data classes print ("QuickPlay(...").
  */
 public final class HomeLayout {
     /** Tiles (the redesign calls them recommended activities). */
@@ -36,74 +32,51 @@ public final class HomeLayout {
     };
 
     public static final String[] SECTIONS = {
-        "header", "daily_games", "challenges", "recommendations", "friends", "stats", "history",
-        "activity_feed", "online_now",
+        "header", "daily_games", "challenges", "friends", "stats", "history", "activity_feed", "online_now",
     };
     public static final String[] SECTION_TITLES = {
-        "Coach message and Chess TV", "Daily games", "Challenges", "Suggested opponents", "Friends",
-        "Stats", "Game history", "Activity feed", "Online now",
+        "Coach message and Chess TV", "Daily games", "Challenges", "Friends", "Stats", "Game history",
+        "Activity feed", "Online now",
     };
 
     private static final String TILE_ORDER = "home_tile_order_v2";
     private static final String HIDDEN_TILES = "home_hidden_tiles_v2";
     private static final String HIDDEN_SECTIONS = "home_hidden_sections_v2";
 
-    private static Map<String, String> sectionsByClass;
-
     private HomeLayout() {}
-
-    /** "binary.class.Name=SectionName;..." for the older Home's section classes; set by the patch. */
-    private static String sectionClasses() {
-        return "";
-    }
 
     private static boolean enabled() {
         return Features.customHomePatched() && Features.isEnabled(Features.CUSTOM_HOME);
     }
 
-    /** The grid's tiles, reordered and filtered as the user chose. */
-    @SuppressWarnings("rawtypes")
-    public static List tiles(List tiles) {
-        if (tiles == null || !enabled()) return tiles;
-        return arrange(tiles);
-    }
-
-    /** The sections map as the screen reads it, without the hidden sections. */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static Map sections(Map sections) {
-        if (sections == null || !enabled()) return sections;
-        Set<String> hidden = hiddenSections();
-        if (hidden.isEmpty()) return sections;
-        Map<String, String> names = sectionNames();
-        Map filtered = new LinkedHashMap(sections);
-        Iterator keys = filtered.keySet().iterator();
-        while (keys.hasNext()) {
-            Object key = keys.next();
-            if (key instanceof Class && hidden.contains(olderSection(names.get(((Class<?>) key).getName())))) keys.remove();
-        }
-        return filtered;
-    }
-
-    /** The recommended activities, filtered and reordered (a new section object when changed). */
+    /**
+     * The recommended activities, filtered and reordered: a copy of the section, made with the
+     * constructor that takes all its fields in order, with the arranged list in place of its own.
+     */
     @SuppressWarnings("rawtypes")
     public static Object recommendedActivities(Object section) {
         if (section == null || !enabled()) return section;
         try {
-            Field listField = null, typeField = null;
+            List<Field> fields = new ArrayList<>();
             for (Field field : section.getClass().getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) continue;
-                if (List.class.isAssignableFrom(field.getType())) listField = field;
-                else if (field.getType().isEnum()) typeField = field;
+                if (!Modifier.isStatic(field.getModifiers())) fields.add(field);
             }
-            if (listField == null || typeField == null) return section;
-            listField.setAccessible(true);
-            typeField.setAccessible(true);
-            List activities = (List) listField.get(section);
-            if (activities == null) return section;
-            List arranged = arrange(activities);
-            if (arranged.equals(activities)) return section;
-            Constructor<?> constructor = section.getClass().getConstructor(List.class, typeField.getType());
-            return constructor.newInstance(arranged, typeField.get(section));
+            Object[] values = new Object[fields.size()];
+            Class<?>[] types = new Class<?>[fields.size()];
+            int list = -1;
+            for (int i = 0; i < fields.size(); i++) {
+                Field field = fields.get(i);
+                field.setAccessible(true);
+                values[i] = field.get(section);
+                types[i] = field.getType();
+                if (List.class.isAssignableFrom(field.getType())) list = i;
+            }
+            if (list < 0 || values[list] == null) return section;
+            List arranged = arrange((List) values[list]);
+            if (arranged.equals(values[list])) return section;
+            values[list] = arranged;
+            Constructor<?> constructor = section.getClass().getConstructor(types);
+            return constructor.newInstance(values);
         } catch (Throwable throwable) {
             Utils.logError("Home activities failed", throwable);
             return section;
@@ -189,29 +162,18 @@ public final class HomeLayout {
     private static String tileId(Object tile) {
         String name = prefix(tile);
         switch (name) {
-            case "QuickGameOnlineFeatureTileItem":
             case "QuickPlay":
                 return "quick_game";
-            case "ClassicPuzzlesFeatureTileItem":
-            case "PathPuzzlesFeatureTileItem":
-            case "OfflinePuzzlesFeatureTileItem":
-            case "GuestPuzzlesFeatureTileItem":
             case "PuzzlePlay":
             case "PuzzlePath":
                 return "puzzles";
-            case "DailyPuzzleFeatureTileItem":
             case "DailyPuzzle":
                 return "daily_puzzle";
-            case "QuickBotGameFeatureTileItem":
-            case "UnfinishedBotGameFeatureTileItem":
             case "Bot":
             case "LocalBot":
                 return "bots";
-            case "QuickCoachGameFeatureTileItem":
-            case "UnfinishedCoachGameFeatureTileItem":
             case "Coach":
                 return "coach";
-            case "LessonsFeatureTileItem":
             case "Learn":
                 return "lessons";
             case "Courses":
@@ -232,29 +194,6 @@ public final class HomeLayout {
                 return "vision";
             default:
                 return name;
-        }
-    }
-
-    private static String olderSection(String name) {
-        if (name == null) return null;
-        switch (name) {
-            case "CurrentDailyGames":
-                return "daily_games";
-            case "Challenges":
-            case "OutgoingChallenges":
-                return "challenges";
-            case "ChallengeRecommendations":
-                return "recommendations";
-            case "FriendsCarousel":
-                return "friends";
-            case "Stats":
-                return "stats";
-            case "FinishedVsPlayerGames":
-            case "FinishedVsBotsGames":
-            case "FinishedCoachGames":
-                return "history";
-            default:
-                return null;
         }
     }
 
@@ -283,18 +222,6 @@ public final class HomeLayout {
     private static int rank(List<String> order, String id) {
         int index = order.indexOf(id);
         return index < 0 ? Integer.MAX_VALUE : index;
-    }
-
-    private static Map<String, String> sectionNames() {
-        if (sectionsByClass == null) {
-            Map<String, String> map = new HashMap<>();
-            for (String pair : sectionClasses().split(";")) {
-                int equals = pair.indexOf('=');
-                if (equals > 0) map.put(pair.substring(0, equals), pair.substring(equals + 1));
-            }
-            sectionsByClass = map;
-        }
-        return sectionsByClass;
     }
 
     private static Set<String> set(String key) {

@@ -1,0 +1,8113 @@
+{
+ "notes": {
+  "_about": "Shared canvas cases (spec/canvas/canvas.md). Every port reads this file. Times in ms unless a field says sec. Ids are placeholders.",
+  "frames": "Grids are 32 x 18 grey values (0..255), row by row. A frame is written as {\"flat\": v} (every cell v), {\"texture\": seed, \"bars\": [left, top, right, bottom] cells, \"barValue\": v} (cell = barValue inside a bar, else 60 + (x*37 + y*11 + seed*53) % 120, the phone ClipJudgeTest frame), or {\"cols\": [32 values]} (each column one value on every row). A timed list is {\"everyMs\": n, \"runs\": [[count, frame], ...]} (frame i at i*everyMs) or {\"fps30\": true, \"runs\": ...} (frame i at floor(i*1000/30)).",
+  "sourceOrder": "canvas.md §1. Metrolist AnimatedCoverSelection.kt:119-143 (selectAnimatedCoverUrl).",
+  "cache": "canvas.md §2. Phone CanvasCache.java:56-93, AnimatedCover.java:438,455-456,469,522; BitChord CanvasRepository.kt:159-160.",
+  "appleScore": "canvas.md §3. BitChord AppleMusicCanvas.kt:178-233 (score), 82-107 (ranking), CanvasArtwork.kt:73-94 (normalizeForMatch, splitArtists). score null = rejected outright; taken = score >= 12 and the hit has motion art.",
+  "appleToken": "canvas.md §3. BitChord AppleMusicCanvas.kt:356-394, 430-445.",
+  "appleMotion": "canvas.md §3. BitChord AppleMusicCanvas.kt:306-330.",
+  "spotifyMatch": "canvas.md §4. Metrolist DirectCanvasProvider.kt:397-436. Durations in ms; 0 or null = unknown.",
+  "spotifyMedia": "canvas.md §4. Metrolist DirectCanvasProvider.kt:378-395 (trustedMedia, Spotify: scdn.co).",
+  "spotifyTotp": "canvas.md §4. spotlib TOTP as SpotifyCanvas.java:257-272: the secret xor (i % 33 + 9) joined as decimal digits (spotlib Totp.kt joinToString), HMAC-SHA1, 30 s steps, 6 digits.",
+  "spotifyCanvas": "canvas.md §4 rule 5. Metrolist 460a3168a DirectCanvasProvider.kt:224-237 (spotifyTrackCanvas). answer: the pathfinder JSON for operationName canvas; expect the canvas URL, or null.",
+  "videoMatch": "canvas.md §5. Prism MusicVideoMatch.kt:19-58 (pick). The song, the search results in order; expect the picked id or null.",
+  "bestPart": "canvas.md §6. Prism BestPart.kt:68-101 (peakMs). intensity = one value per segment of segmentMs; expect startMs or null (nothing stands out). noFrames: FrameJudge.kt:72-76.",
+  "clipJudge": "canvas.md §7. Prism FrameJudge.kt (bars 97-112, isStill 130-140, windows 149-177, choose 203-210, cropX 232-257, judge 59-69) and ClipRefine.kt (cuts 79-91, flashing 94-117, end 123-126, the flash loop 195-198).",
+  "display": "canvas.md §8. Phone AnimatedCover.java:170-174 (tallClip), 190-201 (letterboxZoom); BitChord NowPlayingScreen.kt:1548-1550 (clip fade).",
+  "backdrop": "canvas.md §9-10. Metrolist FullscreenArtworkBleed.kt:120-127, 156-163, 341, 408-411; BitChord ArtworkMeshBackdrop.kt:747-755 (lifted). The bleed cases (blurRadius, bleedRows, coverZoom, stripRows) are phone-only: the bleed is blended onto YouTube's own art, so a player that draws its own backdrop (BitChord's mesh) marks them not applicable.",
+  "badge": "canvas.md §11. BitChord PlayerControls.kt:1911-1913 (band), PlayerChrome.kt:24-33 (chrome alphas; chromeWhite is BitChord's PlayerChrome rule, §11.2).",
+  "settings": "canvas.md §13. Metrolist AnimatedCoverSelection.kt:28-39 (parseOrder, parseEnabled; our ids video, spotify, apple), SettingsFeatureControls.kt:168-171 (all off stored as NONE), AnimatedArtworkService.kt:1195-1245, 1276-1282 (variant pick; cap null = Original). A variant is [width, height, bandwidth]; expect its index."
+ },
+ "sourceOrder": [
+  {
+   "name": "all three: the music video wins",
+   "input": {
+    "spotify": "S",
+    "spotifyAvailable": true,
+    "video": "V",
+    "apple": "A",
+    "canvasEnabled": true,
+    "coversEnabled": true,
+    "failed": [],
+    "pending": []
+   },
+   "expect": "V"
+  },
+  {
+   "name": "no video: Spotify",
+   "input": {
+    "spotify": "S",
+    "spotifyAvailable": true,
+    "video": null,
+    "apple": "A",
+    "canvasEnabled": true,
+    "coversEnabled": true,
+    "failed": [],
+    "pending": []
+   },
+   "expect": "S"
+  },
+  {
+   "name": "no video, Spotify not AVAILABLE: Apple",
+   "input": {
+    "spotify": "S",
+    "spotifyAvailable": false,
+    "video": null,
+    "apple": "A",
+    "canvasEnabled": true,
+    "coversEnabled": true,
+    "failed": [],
+    "pending": []
+   },
+   "expect": "A"
+  },
+  {
+   "name": "the video is still loading: wait (none yet)",
+   "input": {
+    "spotify": "S",
+    "spotifyAvailable": true,
+    "video": null,
+    "apple": "A",
+    "canvasEnabled": true,
+    "coversEnabled": true,
+    "failed": [],
+    "pending": [
+     "YOUTUBE_MUSIC_VIDEO"
+    ]
+   },
+   "expect": null
+  },
+  {
+   "name": "the video failed to play: Spotify",
+   "input": {
+    "spotify": "S",
+    "spotifyAvailable": true,
+    "video": "V",
+    "apple": "A",
+    "canvasEnabled": true,
+    "coversEnabled": true,
+    "failed": [
+     "V"
+    ],
+    "pending": []
+   },
+   "expect": "S"
+  },
+  {
+   "name": "Canvas off: only Apple (animated covers)",
+   "input": {
+    "spotify": "S",
+    "spotifyAvailable": true,
+    "video": "V",
+    "apple": "A",
+    "canvasEnabled": false,
+    "coversEnabled": true,
+    "failed": [],
+    "pending": []
+   },
+   "expect": "A"
+  },
+  {
+   "name": "animated covers off, Canvas finds nothing: none",
+   "input": {
+    "spotify": null,
+    "spotifyAvailable": true,
+    "video": null,
+    "apple": "A",
+    "canvasEnabled": true,
+    "coversEnabled": false,
+    "failed": [],
+    "pending": []
+   },
+   "expect": null
+  },
+  {
+   "name": "nothing found anywhere: none",
+   "input": {
+    "spotify": null,
+    "spotifyAvailable": true,
+    "video": null,
+    "apple": null,
+    "canvasEnabled": true,
+    "coversEnabled": true,
+    "failed": [],
+    "pending": []
+   },
+   "expect": null
+  },
+  {
+   "name": "a custom order puts Apple first",
+   "input": {
+    "spotify": "S",
+    "spotifyAvailable": true,
+    "video": "V",
+    "apple": "A",
+    "canvasEnabled": true,
+    "coversEnabled": true,
+    "failed": [],
+    "pending": [],
+    "order": [
+     "APPLE_MUSIC"
+    ]
+   },
+   "expect": "A"
+  },
+  {
+   "name": "Spotify source disabled",
+   "input": {
+    "spotify": "S",
+    "spotifyAvailable": true,
+    "video": null,
+    "apple": "A",
+    "canvasEnabled": true,
+    "coversEnabled": true,
+    "failed": [],
+    "pending": [],
+    "enabled": [
+     "YOUTUBE_MUSIC_VIDEO",
+     "APPLE_MUSIC"
+    ]
+   },
+   "expect": "A"
+  }
+ ],
+ "cache": [
+  {
+   "name": "a saved clip plays at any age",
+   "kind": "lookup",
+   "input": {
+    "value": "1|/c/clip.mp4",
+    "fileExists": true,
+    "now": 1763400000000
+   },
+   "expect": "clip"
+  },
+  {
+   "name": "a saved clip whose file is gone: look up again",
+   "kind": "lookup",
+   "input": {
+    "value": "1763400000000|/no/such.mp4",
+    "fileExists": false,
+    "now": 1763400000000
+   },
+   "expect": null
+  },
+  {
+   "name": "a miss 1 ms under a day: still a miss",
+   "kind": "lookup",
+   "input": {
+    "value": "1763313600001|",
+    "now": 1763400000000
+   },
+   "expect": "miss"
+  },
+  {
+   "name": "a miss exactly a day old: look up again",
+   "kind": "lookup",
+   "input": {
+    "value": "1763313600000|",
+    "now": 1763400000000
+   },
+   "expect": null
+  },
+  {
+   "name": "damaged: no bar",
+   "kind": "lookup",
+   "input": {
+    "value": "1700000000000",
+    "now": 1763400000000
+   },
+   "expect": null
+  },
+  {
+   "name": "damaged: not a number",
+   "kind": "lookup",
+   "input": {
+    "value": "abc|",
+    "now": 1763400000000
+   },
+   "expect": null
+  },
+  {
+   "name": "damaged: empty",
+   "kind": "lookup",
+   "input": {
+    "value": "",
+    "now": 1763400000000
+   },
+   "expect": null
+  },
+  {
+   "name": "video loop key: the song id",
+   "kind": "key",
+   "input": {
+    "source": "video",
+    "songId": "vid00000001"
+   },
+   "expect": "mv:vid00000001"
+  },
+  {
+   "name": "Spotify key: title and artist",
+   "kind": "key",
+   "input": {
+    "source": "spotify",
+    "title": "Song",
+    "artist": "Artist"
+   },
+   "expect": "sp:Song|Artist"
+  },
+  {
+   "name": "Apple key: title and artist",
+   "kind": "key",
+   "input": {
+    "source": "apple",
+    "title": "Song",
+    "artist": "Artist",
+    "tall": false
+   },
+   "expect": "Song|Artist"
+  },
+  {
+   "name": "Apple key, full-screen art: the tall clip is another answer",
+   "kind": "key",
+   "input": {
+    "source": "apple",
+    "title": "Song",
+    "artist": "Artist",
+    "tall": true
+   },
+   "expect": "Song|Artist|tall"
+  },
+  {
+   "name": "downloaded song: its Spotify canvas by id (phone only)",
+   "kind": "key",
+   "input": {
+    "source": "downloadedSpotify",
+    "songId": "vid00000001"
+   },
+   "expect": "spid:vid00000001"
+  },
+  {
+   "name": "downloaded song: its art clip by id (phone only)",
+   "kind": "key",
+   "input": {
+    "source": "downloaded",
+    "songId": "vid00000001"
+   },
+   "expect": "id:vid00000001"
+  }
+ ],
+ "appleScore": [
+  {
+   "name": "exact title and artist, no album: 10 + 15",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hit": {
+    "name": "Blinding Lights",
+    "artistName": "The Weeknd",
+    "albumName": "After Hours"
+   },
+   "expect": {
+    "score": 25,
+    "taken": true
+   }
+  },
+  {
+   "name": "the same album: + 20",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": "After Hours"
+   },
+   "hit": {
+    "name": "Blinding Lights",
+    "artistName": "The Weeknd",
+    "albumName": "After Hours"
+   },
+   "expect": {
+    "score": 45,
+    "taken": true
+   }
+  },
+  {
+   "name": "the album contains ours: + 10",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": "After Hours"
+   },
+   "hit": {
+    "name": "Blinding Lights",
+    "artistName": "The Weeknd",
+    "albumName": "After Hours (Deluxe)"
+   },
+   "expect": {
+    "score": 35,
+    "taken": true
+   }
+  },
+  {
+   "name": "another album: + 0",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": "After Hours"
+   },
+   "hit": {
+    "name": "Blinding Lights",
+    "artistName": "The Weeknd",
+    "albumName": "The Highlights"
+   },
+   "expect": {
+    "score": 25,
+    "taken": true
+   }
+  },
+  {
+   "name": "a compilation album: rejected",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hit": {
+    "name": "Blinding Lights",
+    "artistName": "The Weeknd",
+    "albumName": "Today's Hits"
+   },
+   "expect": {
+    "score": null,
+    "taken": false
+   }
+  },
+  {
+   "name": "a session in the name: rejected",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hit": {
+    "name": "Blinding Lights (Apple Music Session)",
+    "artistName": "The Weeknd",
+    "albumName": "Blinding Lights"
+   },
+   "expect": {
+    "score": null,
+    "taken": false
+   }
+  },
+  {
+   "name": "a wanted artist missing from the hit: rejected",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd & Daft Punk",
+    "album": null
+   },
+   "hit": {
+    "name": "Blinding Lights",
+    "artistName": "The Weeknd",
+    "albumName": "After Hours"
+   },
+   "expect": {
+    "score": null,
+    "taken": false
+   }
+  },
+  {
+   "name": "another artist: rejected",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hit": {
+    "name": "Blinding Lights",
+    "artistName": "Weeknd Tribute Band",
+    "albumName": "Covers"
+   },
+   "expect": {
+    "score": null,
+    "taken": false
+   }
+  },
+  {
+   "name": "extra credited artists are fine",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hit": {
+    "name": "Blinding Lights",
+    "artistName": "The Weeknd & Rosalía",
+    "albumName": "After Hours"
+   },
+   "expect": {
+    "score": 25,
+    "taken": true
+   }
+  },
+  {
+   "name": "accents fold away",
+   "want": {
+    "title": "Halo",
+    "artist": "Beyonce",
+    "album": null
+   },
+   "hit": {
+    "name": "Halo",
+    "artistName": "Beyoncé",
+    "albumName": "I Am... Sasha Fierce"
+   },
+   "expect": {
+    "score": 25,
+    "taken": true
+   }
+  },
+  {
+   "name": "\"and\" is not a separator",
+   "want": {
+    "title": "The Boxer",
+    "artist": "Simon and Garfunkel",
+    "album": null
+   },
+   "hit": {
+    "name": "The Boxer",
+    "artistName": "Simon & Garfunkel",
+    "albumName": "Bridge"
+   },
+   "expect": {
+    "score": null,
+    "taken": false
+   }
+  },
+  {
+   "name": "a remix of it: contains + 7, remix and mix only in the hit - 6 (brackets are not stripped)",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hit": {
+    "name": "Blinding Lights (Chromatics Remix)",
+    "artistName": "The Weeknd",
+    "albumName": "Blinding Lights"
+   },
+   "expect": {
+    "score": 11,
+    "taken": false
+   }
+  },
+  {
+   "name": "remastered on both sides: + 5",
+   "want": {
+    "title": "Blinding Lights - Remastered",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hit": {
+    "name": "Blinding Lights (Remastered)",
+    "artistName": "The Weeknd",
+    "albumName": "After Hours"
+   },
+   "expect": {
+    "score": 30,
+    "taken": true
+   }
+  },
+  {
+   "name": "another song by the artist: - 10",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hit": {
+    "name": "Save Your Tears",
+    "artistName": "The Weeknd",
+    "albumName": "After Hours"
+   },
+   "expect": {
+    "score": 0,
+    "taken": false
+   }
+  },
+  {
+   "name": "exactly the floor: 10 - 10 + 5 - 3 + 10 = 12, taken",
+   "want": {
+    "title": "Alpha Version",
+    "artist": "Artist",
+    "album": "Greek"
+   },
+   "hit": {
+    "name": "Beta Version Edit",
+    "artistName": "Artist",
+    "albumName": "Greek Letters"
+   },
+   "expect": {
+    "score": 12,
+    "taken": true
+   }
+  },
+  {
+   "name": "under the floor: 12 - 3 (mix) = 9",
+   "want": {
+    "title": "Alpha Version",
+    "artist": "Artist",
+    "album": "Greek"
+   },
+   "hit": {
+    "name": "Beta Version Edit Mix",
+    "artistName": "Artist",
+    "albumName": "Greek Letters"
+   },
+   "expect": {
+    "score": 9,
+    "taken": false
+   }
+  }
+ ],
+ "appleRank": [
+  {
+   "name": "the best score wins, not the first hit",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hits": [
+    {
+     "id": "h1",
+     "name": "Blinding Lights Live",
+     "artistName": "The Weeknd",
+     "albumName": "Live",
+     "albumId": "1",
+     "motion": true
+    },
+    {
+     "id": "h2",
+     "name": "Blinding Lights",
+     "artistName": "The Weeknd",
+     "albumName": "After Hours",
+     "albumId": "2",
+     "motion": true
+    }
+   ],
+   "expect": "h2"
+  },
+  {
+   "name": "equal scores: the first hit",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hits": [
+    {
+     "id": "h1",
+     "name": "Blinding Lights",
+     "artistName": "The Weeknd",
+     "albumName": "A",
+     "albumId": "1",
+     "motion": true
+    },
+    {
+     "id": "h2",
+     "name": "Blinding Lights",
+     "artistName": "The Weeknd",
+     "albumName": "B",
+     "albumId": "2",
+     "motion": true
+    }
+   ],
+   "expect": "h1"
+  },
+  {
+   "name": "inline motion art is taken even when the hit names no album",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hits": [
+    {
+     "id": "h1",
+     "name": "Blinding Lights",
+     "artistName": "The Weeknd",
+     "albumName": "After Hours",
+     "albumId": null,
+     "motion": true
+    }
+   ],
+   "expect": "h1"
+  },
+  {
+   "name": "no hit reaches 12: none",
+   "want": {
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": null
+   },
+   "hits": [
+    {
+     "id": "h1",
+     "name": "Save Your Tears",
+     "artistName": "The Weeknd",
+     "albumName": "After Hours",
+     "albumId": "1",
+     "motion": true
+    }
+   ],
+   "expect": null
+  }
+ ],
+ "appleToken": [
+  {
+   "name": "the web player's own token first (kid)",
+   "now": 1763400000000,
+   "tokens": [
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "Other"
+     },
+     "payload": {
+      "iss": "Other",
+      "exp": 1863400000
+     }
+    },
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "WebPlayKid"
+     },
+     "payload": {
+      "iss": "Other",
+      "exp": 1863400000
+     }
+    }
+   ],
+   "expect": 1
+  },
+  {
+   "name": "the web player's own token first (iss)",
+   "now": 1763400000000,
+   "tokens": [
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "Other"
+     },
+     "payload": {
+      "iss": "Other",
+      "exp": 1863400000
+     }
+    },
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "X"
+     },
+     "payload": {
+      "iss": "AMPWebPlay",
+      "exp": 1863400000
+     }
+    }
+   ],
+   "expect": 1
+  },
+  {
+   "name": "an expired web player token is skipped: the other one",
+   "now": 1763400000000,
+   "tokens": [
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "WebPlayKid"
+     },
+     "payload": {
+      "iss": "AMPWebPlay",
+      "exp": 1763399999
+     }
+    },
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "Other"
+     },
+     "payload": {
+      "iss": "Other",
+      "exp": 1863400000
+     }
+    }
+   ],
+   "expect": 1
+  },
+  {
+   "name": "no web player token: the first unexpired one",
+   "now": 1763400000000,
+   "tokens": [
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "A"
+     },
+     "payload": {
+      "iss": "A",
+      "exp": 1863400000
+     }
+    },
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "B"
+     },
+     "payload": {
+      "iss": "B",
+      "exp": 1863400000
+     }
+    }
+   ],
+   "expect": 0
+  },
+  {
+   "name": "every token expired: none",
+   "now": 1763400000000,
+   "tokens": [
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "WebPlayKid"
+     },
+     "payload": {
+      "iss": "AMPWebPlay",
+      "exp": 1763400000
+     }
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "a token already rejected (401) is skipped",
+   "now": 1763400000000,
+   "tokens": [
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "WebPlayKid"
+     },
+     "payload": {
+      "iss": "AMPWebPlay",
+      "exp": 1863400000
+     }
+    },
+    {
+     "header": {
+      "alg": "ES256",
+      "kid": "Other"
+     },
+     "payload": {
+      "iss": "Other",
+      "exp": 1863400000
+     }
+    }
+   ],
+   "rejected": [
+    0
+   ],
+   "expect": 1
+  }
+ ],
+ "appleMotion": [
+  {
+   "name": "square first, raw as the alternate, the tall one for portrait",
+   "video": {
+    "motionDetailSquare": {
+     "video": "sq.m3u8"
+    },
+    "motionDetailRaw": {
+     "video": "raw.m3u8"
+    },
+    "motionDetailTall": {
+     "video": "tall.m3u8"
+    }
+   },
+   "expect": {
+    "primary": "sq.m3u8",
+    "alternate": "raw.m3u8",
+    "tall": "tall.m3u8"
+   }
+  },
+  {
+   "name": "only a tall clip",
+   "video": {
+    "motionDetailTall": {
+     "video": "tall.m3u8"
+    }
+   },
+   "expect": {
+    "primary": "tall.m3u8",
+    "alternate": null,
+    "tall": "tall.m3u8"
+   }
+  },
+  {
+   "name": "the old key names",
+   "video": {
+    "motionSquareVideo1x1": {
+     "video": "sq.m3u8"
+    },
+    "motionTallVideo3x4": {
+     "video": "tall.m3u8"
+    }
+   },
+   "expect": {
+    "primary": "sq.m3u8",
+    "alternate": "tall.m3u8",
+    "tall": "tall.m3u8"
+   }
+  },
+  {
+   "name": "square without a tall one: no portrait clip",
+   "video": {
+    "motionDetailSquare": {
+     "video": "sq.m3u8"
+    }
+   },
+   "expect": {
+    "primary": "sq.m3u8",
+    "alternate": null,
+    "tall": null
+   }
+  },
+  {
+   "name": "a static still only: no motion art",
+   "video": {
+    "motionDetailStatic": {
+     "video": "still.jpg"
+    }
+   },
+   "expect": null
+  },
+  {
+   "name": "hlsUrl when there is no video field",
+   "video": {
+    "motionDetailSquare": {
+     "hlsUrl": "h.m3u8"
+    }
+   },
+   "expect": {
+    "primary": "h.m3u8",
+    "alternate": null,
+    "tall": null
+   }
+  }
+ ],
+ "spotifyMatch": [
+  {
+   "name": "the same song",
+   "input": {
+    "title": "Poker Face",
+    "artist": "Lady Gaga",
+    "album": null,
+    "durationMs": 0,
+    "foundTitle": "Poker Face",
+    "foundArtist": "Lady Gaga",
+    "foundAlbum": null,
+    "foundDurationMs": 0,
+    "primary": "Lady Gaga",
+    "foundPrimary": "Lady Gaga"
+   },
+   "expect": true
+  },
+  {
+   "name": "the primary artist is enough when the others differ",
+   "input": {
+    "title": "Midnight Sun",
+    "artist": "Zara Larsson & Muni Long",
+    "album": null,
+    "durationMs": 0,
+    "foundTitle": "Midnight Sun",
+    "foundArtist": "Zara Larsson, Muni Long",
+    "foundAlbum": null,
+    "foundDurationMs": 0,
+    "primary": "Zara Larsson",
+    "foundPrimary": "Zara Larsson"
+   },
+   "expect": true
+  },
+  {
+   "name": "another artist's song of the same name",
+   "input": {
+    "title": "Midnight Sun",
+    "artist": "Zara Larsson",
+    "album": null,
+    "durationMs": 0,
+    "foundTitle": "Midnight Sun",
+    "foundArtist": "Nils Frahm",
+    "foundAlbum": null,
+    "foundDurationMs": 0,
+    "primary": "Zara Larsson",
+    "foundPrimary": "Nils Frahm"
+   },
+   "expect": false
+  },
+  {
+   "name": "title words under 75%",
+   "input": {
+    "title": "Poker Face",
+    "artist": "Lady Gaga",
+    "album": null,
+    "durationMs": 0,
+    "foundTitle": "Poker Face - Live at the Arena",
+    "foundArtist": "Lady Gaga",
+    "foundAlbum": null,
+    "foundDurationMs": 0,
+    "primary": "Lady Gaga",
+    "foundPrimary": "Lady Gaga"
+   },
+   "expect": false
+  },
+  {
+   "name": "title words exactly 75%",
+   "input": {
+    "title": "A B C D",
+    "artist": "Artist",
+    "album": null,
+    "durationMs": 0,
+    "foundTitle": "A B C X",
+    "foundArtist": "Artist",
+    "foundAlbum": null,
+    "foundDurationMs": 0,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": true
+  },
+  {
+   "name": "\"official video\" words are left out",
+   "input": {
+    "title": "Poker Face (Official Video)",
+    "artist": "Lady Gaga",
+    "album": null,
+    "durationMs": 0,
+    "foundTitle": "Poker Face",
+    "foundArtist": "Lady Gaga",
+    "foundAlbum": null,
+    "foundDurationMs": 0,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": true
+  },
+  {
+   "name": "lengths more than 10 s apart",
+   "input": {
+    "title": "Poker Face",
+    "artist": "Lady Gaga",
+    "album": null,
+    "durationMs": 237000,
+    "foundTitle": "Poker Face",
+    "foundArtist": "Lady Gaga",
+    "foundAlbum": null,
+    "foundDurationMs": 260000,
+    "primary": "Lady Gaga",
+    "foundPrimary": "Lady Gaga"
+   },
+   "expect": false
+  },
+  {
+   "name": "lengths exactly 10 s apart",
+   "input": {
+    "title": "Song",
+    "artist": "Artist",
+    "album": null,
+    "durationMs": 200000,
+    "foundTitle": "Song",
+    "foundArtist": "Artist",
+    "foundAlbum": null,
+    "foundDurationMs": 210000,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": true
+  },
+  {
+   "name": "lengths 10.001 s apart",
+   "input": {
+    "title": "Song",
+    "artist": "Artist",
+    "album": null,
+    "durationMs": 200000,
+    "foundTitle": "Song",
+    "foundArtist": "Artist",
+    "foundAlbum": null,
+    "foundDurationMs": 210001,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": false
+  },
+  {
+   "name": "lengths 50 s apart (Metrolist test)",
+   "input": {
+    "title": "Song",
+    "artist": "Artist",
+    "album": "Album",
+    "durationMs": 200000,
+    "foundTitle": "Song",
+    "foundArtist": "Artist",
+    "foundAlbum": "Album",
+    "foundDurationMs": 250000,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": false
+  },
+  {
+   "name": "album words exactly 50%",
+   "input": {
+    "title": "Song",
+    "artist": "Artist",
+    "album": "One Two",
+    "durationMs": 0,
+    "foundTitle": "Song",
+    "foundArtist": "Artist",
+    "foundAlbum": "One Three",
+    "foundDurationMs": 0,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": true
+  },
+  {
+   "name": "album words under 50%",
+   "input": {
+    "title": "Song",
+    "artist": "Artist",
+    "album": "One Two Three",
+    "durationMs": 0,
+    "foundTitle": "Song",
+    "foundArtist": "Artist",
+    "foundAlbum": "One Four Five",
+    "foundDurationMs": 0,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": false
+  },
+  {
+   "name": "no album on one side: not checked",
+   "input": {
+    "title": "Song",
+    "artist": "Artist",
+    "album": "One Two Three",
+    "durationMs": 0,
+    "foundTitle": "Song",
+    "foundArtist": "Artist",
+    "foundAlbum": null,
+    "foundDurationMs": 0,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": true
+  },
+  {
+   "name": "someone else",
+   "input": {
+    "title": "Song",
+    "artist": "Artist",
+    "album": null,
+    "durationMs": null,
+    "foundTitle": "Song",
+    "foundArtist": "Someone Else",
+    "foundAlbum": null,
+    "foundDurationMs": null,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": false
+  },
+  {
+   "name": "DJ Snake is not DJ Khaled",
+   "input": {
+    "title": "Song",
+    "artist": "DJ Snake",
+    "album": null,
+    "durationMs": null,
+    "foundTitle": "Song",
+    "foundArtist": "DJ Khaled",
+    "foundAlbum": null,
+    "foundDurationMs": null,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": false
+  },
+  {
+   "name": "accents fold away",
+   "input": {
+    "title": "Song",
+    "artist": "Beyonce",
+    "album": null,
+    "durationMs": null,
+    "foundTitle": "Song",
+    "foundArtist": "Beyoncé",
+    "foundAlbum": null,
+    "foundDurationMs": null,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": true
+  },
+  {
+   "name": "Tyler, the Creator is not Tyler, the Composer",
+   "input": {
+    "title": "Song",
+    "artist": "Tyler, the Creator",
+    "album": null,
+    "durationMs": null,
+    "foundTitle": "Song",
+    "foundArtist": "Tyler, the Composer",
+    "foundAlbum": null,
+    "foundDurationMs": null,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": false
+  },
+  {
+   "name": "a guest missing, no primary given",
+   "input": {
+    "title": "Song",
+    "artist": "DJ Snake, Guest",
+    "album": null,
+    "durationMs": null,
+    "foundTitle": "Song",
+    "foundArtist": "DJ Snake",
+    "foundAlbum": null,
+    "foundDurationMs": null,
+    "primary": null,
+    "foundPrimary": null
+   },
+   "expect": false
+  },
+  {
+   "name": "a guest missing, the primary matches",
+   "input": {
+    "title": "Song",
+    "artist": "DJ Snake, Guest",
+    "album": null,
+    "durationMs": null,
+    "foundTitle": "Song",
+    "foundArtist": "DJ Snake",
+    "foundAlbum": null,
+    "foundDurationMs": null,
+    "primary": "DJ Snake",
+    "foundPrimary": "DJ Snake"
+   },
+   "expect": true
+  },
+  {
+   "name": "primaries that differ",
+   "input": {
+    "title": "Song",
+    "artist": "Tyler, the Creator",
+    "album": null,
+    "durationMs": null,
+    "foundTitle": "Song",
+    "foundArtist": "Tyler, the Composer",
+    "foundAlbum": null,
+    "foundDurationMs": null,
+    "primary": "Tyler, the Creator",
+    "foundPrimary": "Tyler, the Composer"
+   },
+   "expect": false
+  }
+ ],
+ "spotifyMedia": [
+  {
+   "name": "canvaz on scdn.co",
+   "url": "https://canvaz.scdn.co/upload/artist/x/video/y.cnvs.mp4",
+   "expect": true
+  },
+  {
+   "name": "scdn.co itself",
+   "url": "https://scdn.co/a.mp4",
+   "expect": true
+  },
+  {
+   "name": "port 443 written out",
+   "url": "https://canvaz.scdn.co:443/a.mp4",
+   "expect": true
+  },
+  {
+   "name": "http",
+   "url": "http://canvaz.scdn.co/a.mp4",
+   "expect": false
+  },
+  {
+   "name": "a look-alike host",
+   "url": "https://scdn.co.evil.com/a.mp4",
+   "expect": false
+  },
+  {
+   "name": "a look-alike host (Metrolist test)",
+   "url": "https://canvaz.scdn.co.evil.example/file",
+   "expect": false
+  },
+  {
+   "name": "a host ending in scdn.co without the dot",
+   "url": "https://evilscdn.co/a.mp4",
+   "expect": false
+  },
+  {
+   "name": "user info",
+   "url": "https://user@canvaz.scdn.co/a.mp4",
+   "expect": false
+  },
+  {
+   "name": "user and password",
+   "url": "https://user:pass@canvaz.scdn.co/a.mp4",
+   "expect": false
+  },
+  {
+   "name": "another port",
+   "url": "https://canvaz.scdn.co:8443/a.mp4",
+   "expect": false
+  },
+  {
+   "name": "an Apple host",
+   "url": "https://mvod.itunes.apple.com/a.m3u8",
+   "expect": false
+  },
+  {
+   "name": "null",
+   "url": null,
+   "expect": false
+  },
+  {
+   "name": "not a URL",
+   "url": "canvas.mp4",
+   "expect": false
+  }
+ ],
+ "spotifyTotp": [
+  {
+   "name": "a 30 s step",
+   "nowMs": 1763400000000,
+   "expect": "673072"
+  },
+  {
+   "name": "the last ms of the same step",
+   "nowMs": 1763400029999,
+   "expect": "673072"
+  },
+  {
+   "name": "the next step",
+   "nowMs": 1763400030000,
+   "expect": "756072"
+  },
+  {
+   "name": "time 0",
+   "nowMs": 0,
+   "expect": "204513"
+  }
+ ],
+ "spotifyCanvas": [
+  {
+   "name": "a canvas on scdn.co",
+   "answer": {
+    "data": {
+     "trackUnion": {
+      "__typename": "Track",
+      "canvas": {
+       "url": "https://canvaz.scdn.co/upload/artist/0000000000000000000000/video/0000000000000000.cnvs.mp4",
+       "type": "VIDEO_LOOPING_RANDOM"
+      },
+      "uri": "spotify:track:2qSkIjg1o9h3YT9RAgYN75"
+     }
+    }
+   },
+   "expect": "https://canvaz.scdn.co/upload/artist/0000000000000000000000/video/0000000000000000.cnvs.mp4"
+  },
+  {
+   "name": "no canvas for the track",
+   "answer": {
+    "data": {
+     "trackUnion": {
+      "__typename": "Track",
+      "canvas": null,
+      "uri": "spotify:track:2qSkIjg1o9h3YT9RAgYN75"
+     }
+    }
+   },
+   "expect": null
+  },
+  {
+   "name": "a canvas with no url",
+   "answer": {
+    "data": {
+     "trackUnion": {
+      "__typename": "Track",
+      "canvas": {
+       "type": "VIDEO"
+      },
+      "uri": "spotify:track:2qSkIjg1o9h3YT9RAgYN75"
+     }
+    }
+   },
+   "expect": null
+  },
+  {
+   "name": "a canvas on another host is not taken",
+   "answer": {
+    "data": {
+     "trackUnion": {
+      "__typename": "Track",
+      "canvas": {
+       "url": "https://example.com/a.cnvs.mp4"
+      },
+      "uri": "spotify:track:2qSkIjg1o9h3YT9RAgYN75"
+     }
+    }
+   },
+   "expect": null
+  },
+  {
+   "name": "a canvas over http is not taken",
+   "answer": {
+    "data": {
+     "trackUnion": {
+      "__typename": "Track",
+      "canvas": {
+       "url": "http://canvaz.scdn.co/upload/artist/0000000000000000000000/video/0000000000000000.cnvs.mp4"
+      },
+      "uri": "spotify:track:2qSkIjg1o9h3YT9RAgYN75"
+     }
+    }
+   },
+   "expect": null
+  },
+  {
+   "name": "the url not a string",
+   "answer": {
+    "data": {
+     "trackUnion": {
+      "__typename": "Track",
+      "canvas": {
+       "url": 42
+      },
+      "uri": "spotify:track:2qSkIjg1o9h3YT9RAgYN75"
+     }
+    }
+   },
+   "expect": null
+  },
+  {
+   "name": "no trackUnion (an unknown id)",
+   "answer": {
+    "data": {
+     "trackUnion": null
+    }
+   },
+   "expect": null
+  },
+  {
+   "name": "no data",
+   "answer": {},
+   "expect": null
+  }
+ ],
+ "videoMatch": [
+  {
+   "name": "the artist's own music video",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Midnight Sun",
+     "artists": [
+      {
+       "name": "Zara Larsson"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": "v1"
+  },
+  {
+   "name": "VEVO upload with brackets",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Zara Larsson - Midnight Sun (Official Music Video)",
+     "artists": [
+      {
+       "name": "ZaraLarssonVEVO"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": "v1"
+  },
+  {
+   "name": "lyrics upload by someone else",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Zara Larsson - Midnight Sun (Lyrics)",
+     "artists": [
+      {
+       "name": "Ghosts We Carry"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "lyric video on the artist's channel",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Midnight Sun (Lyric Video)",
+     "artists": [
+      {
+       "name": "Zara Larsson"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "a cover in the Live Lounge",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Midnight Sun (Zara Larsson cover) in the Live Lounge",
+     "artists": [
+      {
+       "name": "BBCRadio1VEVO"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "another artist's song",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Stateside + Zara Larsson",
+     "artists": [
+      {
+       "name": "PinkPantheress"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "the first passing result wins",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Midnight Sun (Lyrics)",
+     "artists": [
+      {
+       "name": "Zara Larsson"
+      }
+     ],
+     "durationSec": 0
+    },
+    {
+     "id": "v2",
+     "title": "Midnight Sun",
+     "artists": [
+      {
+       "name": "Zara Larsson"
+      }
+     ],
+     "durationSec": 0
+    },
+    {
+     "id": "v3",
+     "title": "Midnight Sun (Official Video)",
+     "artists": [
+      {
+       "name": "ZaraLarssonVEVO"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": "v2"
+  },
+  {
+   "name": "the artist's upload 150 s longer: still the song",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 200
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Midnight Sun",
+     "artists": [
+      {
+       "name": "Zara Larsson"
+      }
+     ],
+     "durationSec": 350
+    }
+   ],
+   "expect": "v1"
+  },
+  {
+   "name": "the artist's upload 151 s longer: another edit",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 200
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Midnight Sun",
+     "artists": [
+      {
+       "name": "Zara Larsson"
+      }
+     ],
+     "durationSec": 351
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "a piano version is never it",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Midnight Sun (Piano Version)",
+     "artists": [
+      {
+       "name": "Zara Larsson"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "a re-tuned copy (432Hz) is never it",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Midnight Sun (432Hz)",
+     "artists": [
+      {
+       "name": "Zara Larsson"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "the record label's official upload",
+   "song": {
+    "title": "Misery Business",
+    "artists": [
+     {
+      "name": "Paramore"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Paramore: Misery Business [OFFICIAL VIDEO]",
+     "artists": [
+      {
+       "name": "Fueled By Ramen"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": "v1"
+  },
+  {
+   "name": "a session the song names: that recording by whoever posted it (within 4 s)",
+   "song": {
+    "title": "Linger (SiriusXM Session)",
+    "artists": [
+     {
+      "name": "Royel Otis"
+     }
+    ],
+    "durationSec": 200
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Royel Otis — Linger (The Cranberries Cover) [Live @ SiriusXM]",
+     "artists": [
+      {
+       "name": "SiriusXM"
+      }
+     ],
+     "durationSec": 202
+    }
+   ],
+   "expect": "v1"
+  },
+  {
+   "name": "the same session 10 s off: not it",
+   "song": {
+    "title": "Linger (SiriusXM Session)",
+    "artists": [
+     {
+      "name": "Royel Otis"
+     }
+    ],
+    "durationSec": 200
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Royel Otis — Linger (The Cranberries Cover) [Live @ SiriusXM]",
+     "artists": [
+      {
+       "name": "SiriusXM"
+      }
+     ],
+     "durationSec": 210
+    }
+   ],
+   "expect": null
+  },
+  {
+   "name": "a studio song takes nobody else's upload",
+   "song": {
+    "title": "Midnight Sun",
+    "artists": [
+     {
+      "name": "Zara Larsson"
+     }
+    ],
+    "durationSec": 0
+   },
+   "videos": [
+    {
+     "id": "v1",
+     "title": "Zara Larsson - Midnight Sun",
+     "artists": [
+      {
+       "name": "Music Uploads 24"
+      }
+     ],
+     "durationSec": 0
+    }
+   ],
+   "expect": null
+  }
+ ],
+ "bestPart": [
+  {
+   "name": "a bump at 120 s of 200 s: where its rise starts",
+   "segmentMs": 2000,
+   "intensity": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.5333,
+    0.6,
+    0.6667,
+    0.7333,
+    0.8,
+    0.8667,
+    0.9333,
+    1,
+    0.9333,
+    0.8667,
+    0.8,
+    0.7333,
+    0.6667,
+    0.6,
+    0.5333,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "durationMs": 200000,
+   "expect": 110000
+  },
+  {
+   "name": "the length from the curve when none is given",
+   "segmentMs": 2000,
+   "intensity": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.5333,
+    0.6,
+    0.6667,
+    0.7333,
+    0.8,
+    0.8667,
+    0.9333,
+    1,
+    0.9333,
+    0.8667,
+    0.8,
+    0.7333,
+    0.6667,
+    0.6,
+    0.5333,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "durationMs": 0,
+   "expect": 110000
+  },
+  {
+   "name": "a flat curve: nothing stands out",
+   "segmentMs": 2000,
+   "intensity": [
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ],
+   "durationMs": 200000,
+   "expect": null
+  },
+  {
+   "name": "9 segments: too few",
+   "segmentMs": 2000,
+   "intensity": [
+    0.6667,
+    0.7333,
+    0.8,
+    0.8667,
+    0.9333,
+    1,
+    0.9333,
+    0.8667,
+    0.8
+   ],
+   "durationMs": 200000,
+   "expect": null
+  },
+  {
+   "name": "a song 1 ms under 60 s: none",
+   "segmentMs": 2000,
+   "intensity": [
+    0.2,
+    0.2,
+    0.2,
+    0.5333,
+    0.6,
+    0.6667,
+    0.7333,
+    0.8,
+    0.8667,
+    0.9333,
+    1,
+    0.9333,
+    0.8667,
+    0.8,
+    0.7333,
+    0.6667,
+    0.6,
+    0.5333,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "durationMs": 59999,
+   "expect": null
+  },
+  {
+   "name": "a song of exactly 60 s",
+   "segmentMs": 2000,
+   "intensity": [
+    0.2,
+    0.2,
+    0.2,
+    0.5333,
+    0.6,
+    0.6667,
+    0.7333,
+    0.8,
+    0.8667,
+    0.9333,
+    1,
+    0.9333,
+    0.8667,
+    0.8,
+    0.7333,
+    0.6667,
+    0.6,
+    0.5333,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "durationMs": 60000,
+   "expect": 12000
+  },
+  {
+   "name": "two equal bumps: the earlier",
+   "segmentMs": 2000,
+   "intensity": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.6,
+    0.9,
+    0.6,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.6,
+    0.9,
+    0.6,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "durationMs": 200000,
+   "expect": 78000
+  },
+  {
+   "name": "a bump only in the last 30 s: none",
+   "segmentMs": 2000,
+   "intensity": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.5333,
+    0.6,
+    0.6667,
+    0.7333,
+    0.8,
+    0.8667,
+    0.9333,
+    1,
+    0.9333,
+    0.8667,
+    0.8,
+    0.7333
+   ],
+   "durationMs": 200000,
+   "expect": null
+  },
+  {
+   "name": "a peak exactly at the head limit (5 s = 2 segments of 2.5 s) counts",
+   "segmentMs": 2500,
+   "intensity": [
+    0.2,
+    0.2,
+    0.9,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2
+   ],
+   "durationMs": 100000,
+   "expect": 5000
+  },
+  {
+   "name": "a low curve: the trend floor of 0.05 hides a bump of 0.02",
+   "segmentMs": 2000,
+   "intensity": [
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.04,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02,
+    0.02
+   ],
+   "durationMs": 200000,
+   "expect": null
+  }
+ ],
+ "noFrames": [
+  {
+   "name": "a 200 s video: its middle 8 s",
+   "lengthMs": 200000,
+   "expect": [
+    96000,
+    104000
+   ]
+  },
+  {
+   "name": "a 5 s video: all of it",
+   "lengthMs": 5000,
+   "expect": [
+    0,
+    5000
+   ]
+  },
+  {
+   "name": "exactly 8 s",
+   "lengthMs": 8000,
+   "expect": [
+    0,
+    8000
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "name": "letterbox bars, 3 rows each (phone test)",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 1,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 2,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 3,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 4,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 5,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 6,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 7,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 8,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 9,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    }
+   ],
+   "expect": [
+    0,
+    0.166667,
+    0,
+    0.166667
+   ]
+  },
+  {
+   "name": "pillar bars, 4 columns each (4:3 in 16:9)",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 1,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 2,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 3,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 4,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 5,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 6,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 7,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 8,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 9,
+     "bars": [
+      4,
+      0,
+      4,
+      0
+     ],
+     "barValue": 5
+    }
+   ],
+   "expect": [
+    0.125,
+    0,
+    0.125,
+    0
+   ]
+  },
+  {
+   "name": "top and bottom over half the picture: a dark video, not bars",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 1,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 2,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 3,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 4,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 5,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 6,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 7,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 8,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 9,
+     "bars": [
+      0,
+      5,
+      0,
+      5
+     ],
+     "barValue": 5
+    }
+   ],
+   "expect": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "top 4 and bottom 5 rows: exactly half the 18 rows, kept",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 1,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 2,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 3,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 4,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 5,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 6,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 7,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 8,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 9,
+     "bars": [
+      0,
+      4,
+      0,
+      5
+     ],
+     "barValue": 5
+    }
+   ],
+   "expect": [
+    0,
+    0.222222,
+    0,
+    0.277778
+   ]
+  },
+  {
+   "name": "a bar at 24 is black",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 1,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 2,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 3,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 4,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 5,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 6,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 7,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 8,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    },
+    {
+     "texture": 9,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 24
+    }
+   ],
+   "expect": [
+    0,
+    0.111111,
+    0,
+    0.111111
+   ]
+  },
+  {
+   "name": "a bar at 25 is not",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 1,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 2,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 3,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 4,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 5,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 6,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 7,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 8,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    },
+    {
+     "texture": 9,
+     "bars": [
+      0,
+      2,
+      0,
+      2
+     ],
+     "barValue": 25
+    }
+   ],
+   "expect": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "fewer than 3 lit frames: no bars",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 1,
+     "bars": [
+      0,
+      3,
+      0,
+      3
+     ],
+     "barValue": 5
+    },
+    {
+     "flat": 47
+    },
+    {
+     "flat": 47
+    }
+   ],
+   "expect": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "still": [
+  {
+   "name": "a still upload (phone test)",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": true
+  },
+  {
+   "name": "a moving video (phone test)",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 1,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 2,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 3,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 4,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 5,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 6,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 7,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 8,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 9,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": false
+  },
+  {
+   "name": "exactly 60% still steps: still",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": true
+  },
+  {
+   "name": "50% still steps: moving",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": false
+  },
+  {
+   "name": "a step of exactly 3 is movement",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 103
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 103
+    },
+    {
+     "flat": 100
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": false
+  },
+  {
+   "name": "one frame: still",
+   "frames": [
+    {
+     "flat": 100
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": true
+  }
+ ],
+ "windows": [
+  {
+   "name": "a roomy 60 s video: windows off both ends only, scored by movement",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 60000,
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": [
+    [
+     12000,
+     20000,
+     0.5
+    ],
+    [
+     14000,
+     22000,
+     0.625
+    ],
+    [
+     16000,
+     24000,
+     0.75
+    ],
+    [
+     18000,
+     26000,
+     0.875
+    ],
+    [
+     20000,
+     28000,
+     1
+    ],
+    [
+     22000,
+     30000,
+     0.875
+    ],
+    [
+     24000,
+     32000,
+     0.75
+    ],
+    [
+     26000,
+     34000,
+     0.625
+    ],
+    [
+     28000,
+     36000,
+     0.5
+    ],
+    [
+     30000,
+     38000,
+     0.5
+    ],
+    [
+     32000,
+     40000,
+     0.5
+    ],
+    [
+     34000,
+     42000,
+     0.5
+    ],
+    [
+     36000,
+     44000,
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "a 30 s video is not roomy: every window near an end, at half score",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 30000,
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": [
+    [
+     0,
+     8000,
+     0.5
+    ],
+    [
+     2000,
+     10000,
+     0.5
+    ],
+    [
+     4000,
+     12000,
+     0.5
+    ],
+    [
+     6000,
+     14000,
+     0.5
+    ],
+    [
+     8000,
+     16000,
+     0.5
+    ],
+    [
+     10000,
+     18000,
+     0.5
+    ],
+    [
+     12000,
+     20000,
+     0.5
+    ],
+    [
+     14000,
+     22000,
+     0.5
+    ],
+    [
+     16000,
+     24000,
+     0.5
+    ],
+    [
+     18000,
+     26000,
+     0.5
+    ],
+    [
+     20000,
+     28000,
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "3 of 4 steps still: the window has no score (left out)",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 30000,
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": []
+  },
+  {
+   "name": "2 of 4 steps still: scored (9 of 18 movement, near an end)",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 30000,
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": [
+    [
+     0,
+     8000,
+     0.25
+    ]
+   ]
+  },
+  {
+   "name": "movement exactly 3: 3/18 of the score, near an end",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 103
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 103
+    },
+    {
+     "flat": 100
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 30000,
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": [
+    [
+     0,
+     8000,
+     0.08333333333333333
+    ]
+   ]
+  },
+  {
+   "name": "brightness exactly 64: full",
+   "frames": [
+    {
+     "flat": 55
+    },
+    {
+     "flat": 73
+    },
+    {
+     "flat": 55
+    },
+    {
+     "flat": 73
+    },
+    {
+     "flat": 64
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 30000,
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": [
+    [
+     0,
+     8000,
+     0.4375
+    ]
+   ]
+  },
+  {
+   "name": "a dark window: (17.2 - 16)/48 bright, 3 of 5 frames dark",
+   "frames": [
+    {
+     "flat": 10
+    },
+    {
+     "flat": 28
+    },
+    {
+     "flat": 10
+    },
+    {
+     "flat": 28
+    },
+    {
+     "flat": 10
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 30000,
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": [
+    [
+     0,
+     8000,
+     0.005
+    ]
+   ]
+  },
+  {
+   "name": "frantic movement (60 or more): half",
+   "frames": [
+    {
+     "flat": 20
+    },
+    {
+     "flat": 200
+    },
+    {
+     "flat": 20
+    },
+    {
+     "flat": 200
+    },
+    {
+     "flat": 20
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 30000,
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": [
+    [
+     0,
+     8000,
+     0.25
+    ]
+   ]
+  }
+ ],
+ "choose": [
+  {
+   "name": "near the peak (12 s, at the head limit): taken",
+   "windows": [
+    [
+     12000,
+     20000,
+     0.9
+    ],
+    [
+     20000,
+     28000,
+     0.5
+    ],
+    [
+     30000,
+     38000,
+     0.6
+    ]
+   ],
+   "lengthMs": 60000,
+   "peakMs": 12000,
+   "chorusMs": null,
+   "expect": 12000
+  },
+  {
+   "name": "a peak under 12 s is ignored: the middle third",
+   "windows": [
+    [
+     12000,
+     20000,
+     0.9
+    ],
+    [
+     20000,
+     28000,
+     0.5
+    ],
+    [
+     30000,
+     38000,
+     0.6
+    ]
+   ],
+   "lengthMs": 60000,
+   "peakMs": 11999,
+   "chorusMs": null,
+   "expect": 30000
+  },
+  {
+   "name": "near the peak at exactly 0.3 of the best: taken",
+   "windows": [
+    [
+     40000,
+     48000,
+     1
+    ],
+    [
+     24000,
+     32000,
+     0.3
+    ]
+   ],
+   "lengthMs": 90000,
+   "peakMs": 24000,
+   "chorusMs": null,
+   "expect": 24000
+  },
+  {
+   "name": "near the peak under 0.3 of the best: the middle third",
+   "windows": [
+    [
+     40000,
+     48000,
+     1
+    ],
+    [
+     24000,
+     32000,
+     0.29
+    ]
+   ],
+   "lengthMs": 90000,
+   "peakMs": 24000,
+   "chorusMs": null,
+   "expect": 40000
+  },
+  {
+   "name": "the peak window reaches 4 s before and 8 s after",
+   "windows": [
+    [
+     15000,
+     23000,
+     0.5
+    ],
+    [
+     36000,
+     44000,
+     0.9
+    ],
+    [
+     29000,
+     37000,
+     0.4
+    ]
+   ],
+   "lengthMs": 90000,
+   "peakMs": 19000,
+   "chorusMs": null,
+   "expect": 15000
+  },
+  {
+   "name": "no peak: the chorus, within 10 s",
+   "windows": [
+    [
+     40000,
+     48000,
+     1
+    ],
+    [
+     58000,
+     66000,
+     0.5
+    ]
+   ],
+   "lengthMs": 90000,
+   "peakMs": null,
+   "chorusMs": 50000,
+   "expect": 40000
+  },
+  {
+   "name": "no peak: the chorus wins over the middle third",
+   "windows": [
+    [
+     35000,
+     43000,
+     1
+    ],
+    [
+     70000,
+     78000,
+     0.5
+    ]
+   ],
+   "lengthMs": 90000,
+   "peakMs": null,
+   "chorusMs": 61000,
+   "expect": 70000
+  },
+  {
+   "name": "nothing near: the best anywhere",
+   "windows": [
+    [
+     12000,
+     20000,
+     0.4
+    ],
+    [
+     70000,
+     78000,
+     0.2
+    ]
+   ],
+   "lengthMs": 90000,
+   "peakMs": null,
+   "chorusMs": null,
+   "expect": 12000
+  },
+  {
+   "name": "equal scores: the earlier start, whatever the order",
+   "windows": [
+    [
+     30000,
+     38000,
+     0.8
+    ],
+    [
+     20000,
+     28000,
+     0.8
+    ]
+   ],
+   "lengthMs": 60000,
+   "peakMs": null,
+   "chorusMs": null,
+   "expect": 20000
+  },
+  {
+   "name": "every window scores 0: the earliest",
+   "windows": [
+    [
+     20000,
+     28000,
+     0
+    ],
+    [
+     30000,
+     38000,
+     0
+    ]
+   ],
+   "lengthMs": 60000,
+   "peakMs": null,
+   "chorusMs": null,
+   "expect": 20000
+  },
+  {
+   "name": "no windows: none",
+   "windows": [],
+   "lengthMs": 60000,
+   "peakMs": null,
+   "chorusMs": null,
+   "expect": null
+  }
+ ],
+ "cropX": [
+  {
+   "name": "flat frames: centred",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": 0.5
+  },
+  {
+   "name": "detail at the left edge: the band at 0",
+   "frames": [
+    {
+     "cols": [
+      0,
+      255,
+      0,
+      255,
+      0,
+      255,
+      0,
+      255,
+      0,
+      255,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128
+     ]
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": 0
+  },
+  {
+   "name": "detail in columns 6-9: the band nearest the centre that holds it (start 5 of 22)",
+   "frames": [
+    {
+     "cols": [
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      0,
+      255,
+      0,
+      255,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128,
+      128
+     ]
+    }
+   ],
+   "bars": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": 0.227273
+  }
+ ],
+ "loopEnd": [
+  {
+   "name": "the loop ends on the last cut in range (phone test)",
+   "frames": {
+    "fps30": true,
+    "runs": [
+     [
+      180,
+      {
+       "flat": 80
+      }
+     ],
+     [
+      120,
+      {
+       "flat": 180
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 6000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "no cut: 8 s",
+   "frames": {
+    "fps30": true,
+    "runs": [
+     [
+      300,
+      {
+       "flat": 80
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 8000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "no cut, frames end at 6.5 s: there",
+   "frames": {
+    "fps30": true,
+    "runs": [
+     [
+      196,
+      {
+       "flat": 80
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 6500,
+   "expect": {
+    "endMs": 6500,
+    "flashing": false
+   }
+  },
+  {
+   "name": "a cut at exactly 5 s counts",
+   "frames": {
+    "fps30": true,
+    "runs": [
+     [
+      150,
+      {
+       "flat": 80
+      }
+     ],
+     [
+      150,
+      {
+       "flat": 180
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 5000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "a cut at exactly 9 s counts",
+   "frames": {
+    "fps30": true,
+    "runs": [
+     [
+      270,
+      {
+       "flat": 80
+      }
+     ],
+     [
+      30,
+      {
+       "flat": 180
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 9000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "a cut at 9.033 s is out of range: 8 s",
+   "frames": {
+    "fps30": true,
+    "runs": [
+     [
+      271,
+      {
+       "flat": 80
+      }
+     ],
+     [
+      29,
+      {
+       "flat": 180
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 8000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "a change of exactly 22 is a cut",
+   "frames": {
+    "fps30": true,
+    "runs": [
+     [
+      180,
+      {
+       "flat": 80
+      }
+     ],
+     [
+      120,
+      {
+       "flat": 102
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 6000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "a change of 21 is not",
+   "frames": {
+    "fps30": true,
+    "runs": [
+     [
+      180,
+      {
+       "flat": 80
+      }
+     ],
+     [
+      120,
+      {
+       "flat": 101
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 8000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "strobing every frame: never shown (phone test)",
+   "frames": {
+    "everyMs": 100,
+    "runs": [
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 10
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 240
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "flashing": true
+   }
+  },
+  {
+   "name": "7 changes in a second: flashing",
+   "frames": {
+    "everyMs": 100,
+    "runs": [
+     [
+      10,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      83,
+      {
+       "flat": 230
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "flashing": true
+   }
+  },
+  {
+   "name": "6 changes in a second: calm",
+   "frames": {
+    "everyMs": 100,
+    "runs": [
+     [
+      10,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      84,
+      {
+       "flat": 100
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 8000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "flash steps of exactly 26 count",
+   "frames": {
+    "everyMs": 100,
+    "runs": [
+     [
+      10,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 126
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 126
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 126
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 126
+      }
+     ],
+     [
+      83,
+      {
+       "flat": 126
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "flashing": true
+   }
+  },
+  {
+   "name": "flash steps of 25 do not",
+   "frames": {
+    "everyMs": 100,
+    "runs": [
+     [
+      10,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 125
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 125
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 125
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 100
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 125
+      }
+     ],
+     [
+      83,
+      {
+       "flat": 125
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 8000,
+    "flashing": false
+   }
+  },
+  {
+   "name": "a strobe before the last cut: the earlier cut ends it",
+   "frames": {
+    "everyMs": 100,
+    "runs": [
+     [
+      60,
+      {
+       "flat": 80
+      }
+     ],
+     [
+      10,
+      {
+       "flat": 180
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 180
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 180
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 180
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 230
+      }
+     ],
+     [
+      1,
+      {
+       "flat": 180
+      }
+     ],
+     [
+      7,
+      {
+       "flat": 180
+      }
+     ],
+     [
+      15,
+      {
+       "flat": 60
+      }
+     ]
+    ]
+   },
+   "framesEndMs": 10000,
+   "expect": {
+    "endMs": 6000,
+    "flashing": false
+   }
+  }
+ ],
+ "judge": [
+  {
+   "name": "every scoring window is still: a still upload, no loop",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 60000,
+   "peakMs": null,
+   "chorusMs": null,
+   "expect": "still"
+  },
+  {
+   "name": "a still upload overall",
+   "frames": [
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    },
+    {
+     "texture": 0,
+     "bars": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "barValue": 5
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 60000,
+   "peakMs": null,
+   "chorusMs": null,
+   "expect": "still"
+  },
+  {
+   "name": "the 60 s video: the best window in the middle third",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 60000,
+   "peakMs": null,
+   "chorusMs": null,
+   "expect": {
+    "startMs": 20000,
+    "endMs": 28000
+   }
+  },
+  {
+   "name": "the 60 s video with a peak at 30 s: the best near it",
+   "frames": [
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 118
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    },
+    {
+     "flat": 100
+    },
+    {
+     "flat": 109
+    }
+   ],
+   "intervalMs": 2000,
+   "lengthMs": 60000,
+   "peakMs": 30000,
+   "chorusMs": null,
+   "expect": {
+    "startMs": 26000,
+    "endMs": 34000
+   }
+  }
+ ],
+ "display": [
+  {
+   "name": "tall clip? 3:4",
+   "kind": "tallClip",
+   "input": {
+    "width": 600,
+    "height": 800
+   },
+   "expect": true
+  },
+  {
+   "name": "tall clip? 9:16",
+   "kind": "tallClip",
+   "input": {
+    "width": 1080,
+    "height": 1920
+   },
+   "expect": false
+  },
+  {
+   "name": "tall clip? square",
+   "kind": "tallClip",
+   "input": {
+    "width": 720,
+    "height": 720
+   },
+   "expect": false
+  },
+  {
+   "name": "tall clip? 16:9",
+   "kind": "tallClip",
+   "input": {
+    "width": 1920,
+    "height": 1080
+   },
+   "expect": false
+  },
+  {
+   "name": "tall clip? exactly 1.2",
+   "kind": "tallClip",
+   "input": {
+    "width": 1000,
+    "height": 1200
+   },
+   "expect": false
+  },
+  {
+   "name": "tall clip? exactly 1.45",
+   "kind": "tallClip",
+   "input": {
+    "width": 1000,
+    "height": 1450
+   },
+   "expect": false
+  },
+  {
+   "name": "tall clip? just over 1.2",
+   "kind": "tallClip",
+   "input": {
+    "width": 1000,
+    "height": 1201
+   },
+   "expect": true
+  },
+  {
+   "name": "clip fade: banner 400 over a clip ending at 800",
+   "kind": "clipFade",
+   "input": {
+    "heroHeight": 400,
+    "clipBottom": 800
+   },
+   "expect": 0.21
+  },
+  {
+   "name": "clip fade: banner 1000 over a clip ending at 400",
+   "kind": "clipFade",
+   "input": {
+    "heroHeight": 1000,
+    "clipBottom": 400
+   },
+   "expect": 1
+  },
+  {
+   "name": "clip fade: banner 400 over a clip ending at 0",
+   "kind": "clipFade",
+   "input": {
+    "heroHeight": 400,
+    "clipBottom": 0
+   },
+   "expect": 0
+  },
+  {
+   "name": "letterbox zoom: a 2.4:1 picture in 16:9 (phone test)",
+   "kind": "letterboxZoom",
+   "input": {
+    "width": 48,
+    "height": 27,
+    "bar": 3
+   },
+   "expect": 1.285714
+  },
+  {
+   "name": "letterbox zoom: no bars",
+   "kind": "letterboxZoom",
+   "input": {
+    "width": 48,
+    "height": 27,
+    "bar": 0
+   },
+   "expect": 1
+  },
+  {
+   "name": "letterbox zoom: bars over a third are not a letterbox",
+   "kind": "letterboxZoom",
+   "input": {
+    "width": 48,
+    "height": 27,
+    "bar": 10
+   },
+   "expect": 1
+  },
+  {
+   "name": "letterbox zoom: all black (a fade)",
+   "kind": "letterboxZoom",
+   "input": {
+    "width": 48,
+    "height": 27,
+    "bar": -1
+   },
+   "expect": 1
+  }
+ ],
+ "backdrop": [
+  {
+   "name": "bleed blur at 0.7 widths down",
+   "kind": "blurRadius",
+   "input": {
+    "row": 0.7
+   },
+   "expect": {
+    "radius": 0,
+    "lower": 0,
+    "upper": 0
+   }
+  },
+  {
+   "name": "bleed blur at 1 widths down",
+   "kind": "blurRadius",
+   "input": {
+    "row": 1
+   },
+   "expect": {
+    "radius": 38.353439,
+    "lower": 10,
+    "upper": 11
+   }
+  },
+  {
+   "name": "bleed blur at 1.125 widths down",
+   "kind": "blurRadius",
+   "input": {
+    "row": 1.125
+   },
+   "expect": {
+    "radius": 71.793671,
+    "lower": 12,
+    "upper": 13
+   }
+  },
+  {
+   "name": "bleed blur at 1.55 widths down",
+   "kind": "blurRadius",
+   "input": {
+    "row": 1.55
+   },
+   "expect": {
+    "radius": 250,
+    "lower": 17,
+    "upper": 18
+   }
+  },
+  {
+   "name": "bleed blur at 2 widths down",
+   "kind": "blurRadius",
+   "input": {
+    "row": 2
+   },
+   "expect": {
+    "radius": 250,
+    "lower": 17,
+    "upper": 18
+   }
+  },
+  {
+   "name": "bleed rows: 800 wide, art 800 tall",
+   "kind": "bleedRows",
+   "input": {
+    "width": 800,
+    "artHeight": 800
+   },
+   "expect": {
+    "detailTop": 560,
+    "softTop": 880
+   }
+  },
+  {
+   "name": "bleed rows: 32 wide, art 18 tall",
+   "kind": "bleedRows",
+   "input": {
+    "width": 32,
+    "artHeight": 18
+   },
+   "expect": {
+    "detailTop": 0,
+    "softTop": 16
+   }
+  },
+  {
+   "name": "bleed rows: 800 wide, art 450 tall",
+   "kind": "bleedRows",
+   "input": {
+    "width": 800,
+    "artHeight": 450
+   },
+   "expect": {
+    "detailTop": 400,
+    "softTop": 720
+   }
+  },
+  {
+   "name": "bleed rows: 1080 wide, art 1080 tall",
+   "kind": "bleedRows",
+   "input": {
+    "width": 1080,
+    "artHeight": 1080
+   },
+   "expect": {
+    "detailTop": 756,
+    "softTop": 1188
+   }
+  },
+  {
+   "name": "bleed rows: 1404 wide, art 1404 tall",
+   "kind": "bleedRows",
+   "input": {
+    "width": 1404,
+    "artHeight": 1404
+   },
+   "expect": {
+    "detailTop": 980,
+    "softTop": 1544
+   }
+  },
+  {
+   "name": "cover zoom: 1080x2340 player, 1:1 art",
+   "kind": "coverZoom",
+   "input": {
+    "viewportW": 1080,
+    "viewportH": 2340,
+    "artW": 1,
+    "artH": 1
+   },
+   "expect": {
+    "zoom": 1.3,
+    "width": 1404
+   }
+  },
+  {
+   "name": "cover zoom: 1080x3000 player, 1:1 art",
+   "kind": "coverZoom",
+   "input": {
+    "viewportW": 1080,
+    "viewportH": 3000,
+    "artW": 1,
+    "artH": 1
+   },
+   "expect": {
+    "zoom": 1.6,
+    "width": 1728
+   }
+  },
+  {
+   "name": "cover zoom: 1080x1600 player, 1:1 art",
+   "kind": "coverZoom",
+   "input": {
+    "viewportW": 1080,
+    "viewportH": 1600,
+    "artW": 1,
+    "artH": 1
+   },
+   "expect": {
+    "zoom": 1,
+    "width": 1080
+   }
+  },
+  {
+   "name": "cover zoom: 1080x2340 player, 16:9 art",
+   "kind": "coverZoom",
+   "input": {
+    "viewportW": 1080,
+    "viewportH": 2340,
+    "artW": 16,
+    "artH": 9
+   },
+   "expect": {
+    "zoom": 1.6,
+    "width": 1728
+   }
+  },
+  {
+   "name": "bleed source rows of a 1080-row cover",
+   "kind": "stripRows",
+   "input": {
+    "artHeight": 1080
+   },
+   "expect": 194
+  },
+  {
+   "name": "bleed source rows of a 64-row cover",
+   "kind": "stripRows",
+   "input": {
+    "artHeight": 64
+   },
+   "expect": 12
+  },
+  {
+   "name": "bleed source rows of a 8-row cover",
+   "kind": "stripRows",
+   "input": {
+    "artHeight": 8
+   },
+   "expect": 2
+  },
+  {
+   "name": "mesh colour lift of rgb(0,0,0)",
+   "kind": "meshLift",
+   "input": {
+    "rgb": [
+     0,
+     0,
+     0
+    ]
+   },
+   "expect": [
+    11,
+    11,
+    11
+   ]
+  },
+  {
+   "name": "mesh colour lift of rgb(10,10,10)",
+   "kind": "meshLift",
+   "input": {
+    "rgb": [
+     10,
+     10,
+     10
+    ]
+   },
+   "expect": [
+    11,
+    11,
+    11
+   ]
+  },
+  {
+   "name": "mesh colour lift of rgb(200,100,100)",
+   "kind": "meshLift",
+   "input": {
+    "rgb": [
+     200,
+     100,
+     100
+    ]
+   },
+   "expect": [
+    206,
+    94,
+    94
+   ]
+  },
+  {
+   "name": "mesh colour lift of rgb(30,60,90)",
+   "kind": "meshLift",
+   "input": {
+    "rgb": [
+     30,
+     60,
+     90
+    ]
+   },
+   "expect": [
+    26,
+    60,
+    94
+   ]
+  },
+  {
+   "name": "mesh colour lift of rgb(255,255,255)",
+   "kind": "meshLift",
+   "input": {
+    "rgb": [
+     255,
+     255,
+     255
+    ]
+   },
+   "expect": [
+    255,
+    255,
+    255
+   ]
+  }
+ ],
+ "badge": [
+  {
+   "name": "shimmer band centre at 0 of the sweep",
+   "kind": "bandCentre",
+   "input": {
+    "progress": 0,
+    "width": 100
+   },
+   "expect": -60
+  },
+  {
+   "name": "shimmer band centre at 0.5 of the sweep",
+   "kind": "bandCentre",
+   "input": {
+    "progress": 0.5,
+    "width": 100
+   },
+   "expect": 50
+  },
+  {
+   "name": "shimmer band centre at 1 of the sweep",
+   "kind": "bandCentre",
+   "input": {
+    "progress": 1,
+    "width": 100
+   },
+   "expect": 160
+  },
+  {
+   "name": "additive chrome white 0.55",
+   "kind": "chromeWhite",
+   "input": {
+    "alpha": 0.55
+   },
+   "expect": 0.4
+  },
+  {
+   "name": "additive chrome white 0.45",
+   "kind": "chromeWhite",
+   "input": {
+    "alpha": 0.45
+   },
+   "expect": 0.3
+  },
+  {
+   "name": "additive chrome white 0.7",
+   "kind": "chromeWhite",
+   "input": {
+    "alpha": 0.7
+   },
+   "expect": 0.55
+  }
+ ],
+ "settings": [
+  {
+   "name": "order: empty is the default",
+   "kind": "settingsOrder",
+   "input": {
+    "stored": ""
+   },
+   "expect": [
+    "video",
+    "spotify",
+    "apple"
+   ]
+  },
+  {
+   "name": "order: one named, the rest follow in the default order",
+   "kind": "settingsOrder",
+   "input": {
+    "stored": "apple"
+   },
+   "expect": [
+    "apple",
+    "video",
+    "spotify"
+   ]
+  },
+  {
+   "name": "order: unknown names dropped, a repeat counts once",
+   "kind": "settingsOrder",
+   "input": {
+    "stored": "spotify,bogus,spotify,apple"
+   },
+   "expect": [
+    "spotify",
+    "apple",
+    "video"
+   ]
+  },
+  {
+   "name": "sources on: empty is all on",
+   "kind": "settingsEnabled",
+   "input": {
+    "stored": ""
+   },
+   "expect": [
+    "video",
+    "spotify",
+    "apple"
+   ]
+  },
+  {
+   "name": "sources on: NONE is none",
+   "kind": "settingsEnabled",
+   "input": {
+    "stored": "NONE"
+   },
+   "expect": []
+  },
+  {
+   "name": "sources on: the ones named, in the default order",
+   "kind": "settingsEnabled",
+   "input": {
+    "stored": "apple,video"
+   },
+   "expect": [
+    "video",
+    "apple"
+   ]
+  },
+  {
+   "name": "Apple variant: 720p cap takes the 720 one",
+   "kind": "appleVariant",
+   "input": {
+    "cap": 720,
+    "variants": [
+     [
+      360,
+      360,
+      800000
+     ],
+     [
+      720,
+      720,
+      2000000
+     ],
+     [
+      1080,
+      1080,
+      4000000
+     ]
+    ]
+   },
+   "expect": 1
+  },
+  {
+   "name": "Apple variant: Original takes the largest",
+   "kind": "appleVariant",
+   "input": {
+    "cap": null,
+    "variants": [
+     [
+      360,
+      360,
+      800000
+     ],
+     [
+      720,
+      720,
+      2000000
+     ],
+     [
+      1080,
+      1080,
+      4000000
+     ]
+    ]
+   },
+   "expect": 2
+  },
+  {
+   "name": "Apple variant: nothing under the cap takes the smallest",
+   "kind": "appleVariant",
+   "input": {
+    "cap": 360,
+    "variants": [
+     [
+      1080,
+      1080,
+      4000000
+     ],
+     [
+      720,
+      720,
+      2000000
+     ]
+    ]
+   },
+   "expect": 1
+  },
+  {
+   "name": "Apple variant: the shorter side counts (tall 1080x1440 under 1080p)",
+   "kind": "appleVariant",
+   "input": {
+    "cap": 1080,
+    "variants": [
+     [
+      720,
+      960,
+      1500000
+     ],
+     [
+      1080,
+      1440,
+      5000000
+     ]
+    ]
+   },
+   "expect": 1
+  },
+  {
+   "name": "Apple variant: same size, the higher bandwidth",
+   "kind": "appleVariant",
+   "input": {
+    "cap": 720,
+    "variants": [
+     [
+      720,
+      720,
+      2000000
+     ],
+     [
+      720,
+      720,
+      3000000
+     ]
+    ]
+   },
+   "expect": 1
+  }
+ ],
+  "chorus": [
+    {
+      "name": "the most repeated lyric (Prism's test)",
+      "input": {
+        "durationMs": 200000,
+        "lines": [
+          {
+            "timeMs": 2000,
+            "text": "Intro line here"
+          },
+          {
+            "timeMs": 10000,
+            "text": "First verse goes"
+          },
+          {
+            "timeMs": 14000,
+            "text": "Another verse line"
+          },
+          {
+            "timeMs": 30000,
+            "text": "This is the chorus"
+          },
+          {
+            "timeMs": 34000,
+            "text": "Sing it all together"
+          },
+          {
+            "timeMs": 50000,
+            "text": "Second verse now"
+          },
+          {
+            "timeMs": 70000,
+            "text": "This is the chorus"
+          },
+          {
+            "timeMs": 74000,
+            "text": "Sing it all together"
+          },
+          {
+            "timeMs": 100000,
+            "text": "This is the chorus"
+          },
+          {
+            "timeMs": 104000,
+            "text": "Sing it all together"
+          }
+        ]
+      },
+      "expect": 30000
+    },
+    {
+      "name": "nothing repeats: none (Prism's test)",
+      "input": {
+        "durationMs": 200000,
+        "lines": [
+          {
+            "timeMs": 10000,
+            "text": "Line number 1 is different"
+          },
+          {
+            "timeMs": 20000,
+            "text": "Line number 2 is different"
+          },
+          {
+            "timeMs": 30000,
+            "text": "Line number 3 is different"
+          },
+          {
+            "timeMs": 40000,
+            "text": "Line number 4 is different"
+          },
+          {
+            "timeMs": 50000,
+            "text": "Line number 5 is different"
+          },
+          {
+            "timeMs": 60000,
+            "text": "Line number 6 is different"
+          },
+          {
+            "timeMs": 70000,
+            "text": "Line number 7 is different"
+          },
+          {
+            "timeMs": 80000,
+            "text": "Line number 8 is different"
+          }
+        ]
+      },
+      "expect": null
+    },
+    {
+      "name": "a song under 60 s: none",
+      "input": {
+        "durationMs": 50000,
+        "lines": [
+          {
+            "timeMs": 2000,
+            "text": "Intro line here"
+          },
+          {
+            "timeMs": 10000,
+            "text": "First verse goes"
+          },
+          {
+            "timeMs": 14000,
+            "text": "Another verse line"
+          },
+          {
+            "timeMs": 30000,
+            "text": "This is the chorus"
+          },
+          {
+            "timeMs": 34000,
+            "text": "Sing it all together"
+          },
+          {
+            "timeMs": 50000,
+            "text": "Second verse now"
+          },
+          {
+            "timeMs": 70000,
+            "text": "This is the chorus"
+          },
+          {
+            "timeMs": 74000,
+            "text": "Sing it all together"
+          },
+          {
+            "timeMs": 100000,
+            "text": "This is the chorus"
+          },
+          {
+            "timeMs": 104000,
+            "text": "Sing it all together"
+          }
+        ]
+      },
+      "expect": null
+    },
+    {
+      "name": "pulled back over the pre-chorus that repeats (most - 1 times)",
+      "input": {
+        "durationMs": 200000,
+        "lines": [
+          {
+            "timeMs": 10000,
+            "text": "Verse one line"
+          },
+          {
+            "timeMs": 20000,
+            "text": "Pre chorus rises"
+          },
+          {
+            "timeMs": 24000,
+            "text": "Big chorus hook"
+          },
+          {
+            "timeMs": 50000,
+            "text": "Verse two line"
+          },
+          {
+            "timeMs": 60000,
+            "text": "Pre chorus rises"
+          },
+          {
+            "timeMs": 64000,
+            "text": "Big chorus hook"
+          },
+          {
+            "timeMs": 90000,
+            "text": "Big chorus hook"
+          }
+        ]
+      },
+      "expect": 20000
+    },
+    {
+      "name": "a repeat before 5 s is not the start",
+      "input": {
+        "durationMs": 200000,
+        "lines": [
+          {
+            "timeMs": 1000,
+            "text": "Hey hey hey"
+          },
+          {
+            "timeMs": 10000,
+            "text": "Verse line one"
+          },
+          {
+            "timeMs": 20000,
+            "text": "Hey hey hey"
+          },
+          {
+            "timeMs": 40000,
+            "text": "Verse line two"
+          },
+          {
+            "timeMs": 60000,
+            "text": "Hey hey hey"
+          }
+        ]
+      },
+      "expect": 20000
+    }
+  ],
+  "titleGate": [
+    {
+      "name": "a word in the song's own title doesn't count",
+      "input": {
+        "songTitle": "Blue Amber (Live at Nissan Stadium)",
+        "videoTitle": "back number - Blue Amber (Live at Nissan Stadium)"
+      },
+      "expect": false
+    },
+    {
+      "name": "'cover' in the song's title",
+      "input": {
+        "songTitle": "Cover Me",
+        "videoTitle": "Cover Me (Official Video)"
+      },
+      "expect": false
+    },
+    {
+      "name": "a live take of a studio song",
+      "input": {
+        "songTitle": "Blue Amber",
+        "videoTitle": "back number - Blue Amber (Live at Nissan Stadium)"
+      },
+      "expect": true
+    },
+    {
+      "name": "'live' not inside 'alive'",
+      "input": {
+        "songTitle": "Alive",
+        "videoTitle": "Artist - Alive (Official Video)"
+      },
+      "expect": false
+    },
+    {
+      "name": "'stage' not inside 'backstage'",
+      "input": {
+        "songTitle": "Backstage",
+        "videoTitle": "Artist - Backstage (Official Video)"
+      },
+      "expect": false
+    },
+    {
+      "name": "a visualizer is allowed",
+      "input": {
+        "songTitle": "Song",
+        "videoTitle": "Artist - Song (Official Visualizer)"
+      },
+      "expect": false
+    },
+    {
+      "name": "an audio upload",
+      "input": {
+        "songTitle": "Song",
+        "videoTitle": "Artist - Song (Official Audio)"
+      },
+      "expect": true
+    },
+    {
+      "name": "a lyric video",
+      "input": {
+        "songTitle": "Song",
+        "videoTitle": "Artist - Song [Official Lyric Video]"
+      },
+      "expect": true
+    },
+    {
+      "name": "en vivo",
+      "input": {
+        "songTitle": "Canción",
+        "videoTitle": "Artista - Canción (En Vivo)"
+      },
+      "expect": true
+    },
+    {
+      "name": "ao vivo",
+      "input": {
+        "songTitle": "Canção",
+        "videoTitle": "Artista - Canção (Ao Vivo)"
+      },
+      "expect": true
+    },
+    {
+      "name": "letra",
+      "input": {
+        "songTitle": "Canción",
+        "videoTitle": "Artista - Canción (Letra)"
+      },
+      "expect": true
+    },
+    {
+      "name": "'full song' without 'video'",
+      "input": {
+        "songTitle": "Darlingey",
+        "videoTitle": "Darlingey Full Song || Mirchi"
+      },
+      "expect": true
+    },
+    {
+      "name": "'full video song' is the video",
+      "input": {
+        "songTitle": "Seeti Maar",
+        "videoTitle": "Seeti Maar Full Video Song | Allu Arjun"
+      },
+      "expect": false
+    },
+    {
+      "name": "a Korean fancam",
+      "input": {
+        "songTitle": "RUDE!",
+        "videoTitle": "Hearts2Hearts RUDE! 직캠"
+      },
+      "expect": true
+    },
+    {
+      "name": "a Korean stage",
+      "input": {
+        "songTitle": "RUDE!",
+        "videoTitle": "Hearts2Hearts - RUDE! 무대"
+      },
+      "expect": true
+    },
+    {
+      "name": "an MV",
+      "input": {
+        "songTitle": "RUDE!",
+        "videoTitle": "Hearts2Hearts 'RUDE!' MV"
+      },
+      "expect": false
+    },
+    {
+      "name": "Prism's Pleaser lyric video",
+      "input": {
+        "songTitle": "Pleaser",
+        "videoTitle": "Wallows - Pleaser (Lyric Video)"
+      },
+      "expect": true
+    }
+  ],
+  "clipFind": [
+    {
+      "name": "a lyric video found first: the music video one search away",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "lyric",
+        "videos": {
+          "lyric": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Lyric Video)",
+            "status": "OK",
+            "still": false
+          },
+          "real": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": [
+          "real"
+        ]
+      },
+      "expect": {
+        "videoId": "real",
+        "why": null,
+        "otherSearches": 1
+      }
+    },
+    {
+      "name": "an official lyric video and nothing better: that one",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "lyric",
+        "videos": {
+          "lyric": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Lyric Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": "lyric",
+        "why": null,
+        "otherSearches": 1
+      }
+    },
+    {
+      "name": "the second search finds only refused ones: the first as it is",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "lyric",
+        "videos": {
+          "lyric": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Lyric Video)",
+            "status": "OK",
+            "still": false
+          },
+          "audio": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Pleaser (Official Audio)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": [
+          "lyric",
+          "audio"
+        ]
+      },
+      "expect": {
+        "videoId": "lyric",
+        "why": null,
+        "otherSearches": 1
+      }
+    },
+    {
+      "name": "a still lyric video is still a still",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "lyric",
+        "videos": {
+          "lyric": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Lyric Video)",
+            "status": "OK",
+            "still": true
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": null,
+        "why": "STILL",
+        "otherSearches": 1
+      }
+    },
+    {
+      "name": "a live take and nothing better: the live take",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "v",
+        "videos": {
+          "v": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Live at Coachella)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": "v",
+        "why": null,
+        "otherSearches": 1
+      }
+    },
+    {
+      "name": "not marked official and nothing better: still the song's video",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "v",
+        "videos": {
+          "v": {
+            "type": "MUSIC_VIDEO_TYPE_UGC",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": "v",
+        "why": null,
+        "otherSearches": 1
+      }
+    },
+    {
+      "name": "a live take found first, the music video in the second search",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "live",
+        "videos": {
+          "live": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Pleaser (Live)",
+            "status": "OK",
+            "still": false
+          },
+          "real": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": [
+          "real"
+        ]
+      },
+      "expect": {
+        "videoId": "real",
+        "why": null,
+        "otherSearches": 1
+      }
+    },
+    {
+      "name": "a good first video is not searched past",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "v1",
+        "videos": {
+          "v1": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          },
+          "v2": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": [
+          "v2"
+        ]
+      },
+      "expect": {
+        "videoId": "v1",
+        "why": null,
+        "otherSearches": 0
+      }
+    },
+    {
+      "name": "no video found",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": null,
+        "videos": {},
+        "others": []
+      },
+      "expect": {
+        "videoId": null,
+        "why": "NO_VIDEO",
+        "otherSearches": 0
+      }
+    },
+    {
+      "name": "not a song: no search",
+      "input": {
+        "song": {
+          "title": "Pleaser",
+          "notASong": true
+        },
+        "first": "v",
+        "videos": {
+          "v": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": null,
+        "why": "NOT_A_SONG",
+        "otherSearches": 0
+      }
+    },
+    {
+      "name": "a live take that can't be played: none",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "v",
+        "videos": {
+          "v": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Pleaser (Live)",
+            "status": "LOGIN_REQUIRED",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": null,
+        "why": "RESTRICTED",
+        "otherSearches": 1
+      }
+    },
+    {
+      "name": "§15: the listener's picked video, as it is, before any search",
+      "input": {
+        "song": {
+          "title": "Pleaser",
+          "choice": {
+            "picked": "mine"
+          }
+        },
+        "first": "real",
+        "videos": {
+          "mine": {
+            "type": "MUSIC_VIDEO_TYPE_UGC",
+            "title": "Pleaser (live at the Forum)",
+            "status": "OK",
+            "still": false
+          },
+          "real": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": "mine",
+        "why": null,
+        "otherSearches": 0
+      }
+    },
+    {
+      "name": "§15: a picked video that can't make a loop gives way to the search",
+      "input": {
+        "song": {
+          "title": "Pleaser",
+          "choice": {
+            "picked": "mine"
+          }
+        },
+        "first": "real",
+        "videos": {
+          "mine": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Pleaser",
+            "status": "OK",
+            "still": true
+          },
+          "real": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": "real",
+        "why": null,
+        "otherSearches": 0
+      }
+    },
+    {
+      "name": "§15: a pick being tried is only that video",
+      "input": {
+        "song": {
+          "title": "Pleaser",
+          "choice": {
+            "picked": "mine",
+            "only": true
+          }
+        },
+        "first": "real",
+        "videos": {
+          "mine": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Pleaser",
+            "status": "OK",
+            "still": true
+          },
+          "real": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": null,
+        "why": "STILL",
+        "otherSearches": 0
+      }
+    },
+    {
+      "name": "§15: a picked video turned away later is not asked",
+      "input": {
+        "song": {
+          "title": "Pleaser",
+          "choice": {
+            "picked": "mine",
+            "rejected": [
+              "mine"
+            ]
+          }
+        },
+        "first": "real",
+        "videos": {
+          "mine": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Pleaser",
+            "status": "OK",
+            "still": false
+          },
+          "real": {
+            "type": "MUSIC_VIDEO_TYPE_OMV",
+            "title": "Wallows - Pleaser (Official Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": "real",
+        "why": null,
+        "otherSearches": 0
+      }
+    },
+    {
+      "name": "§5 rule 12: no music video, the artist's lyric video as it is",
+      "input": {
+        "song": {
+          "title": "Pleaser"
+        },
+        "first": "lyric",
+        "lyricFirst": true,
+        "videos": {
+          "lyric": {
+            "type": "MUSIC_VIDEO_TYPE_UGC",
+            "title": "Wallows - Pleaser (Lyric Video)",
+            "status": "OK",
+            "still": false
+          }
+        },
+        "others": []
+      },
+      "expect": {
+        "videoId": "lyric",
+        "why": null,
+        "otherSearches": 0
+      }
+    }
+  ],
+  "snap": [
+    {
+      "name": "a lyric line just before (Prism's test)",
+      "input": {
+        "targetMs": 43000,
+        "lineStarts": [
+          20000,
+          42000,
+          50000
+        ],
+        "tempo": null
+      },
+      "expect": 41750
+    },
+    {
+      "name": "a line just after is taken too (Prism's test)",
+      "input": {
+        "targetMs": 43000,
+        "lineStarts": [
+          20000,
+          44000
+        ],
+        "tempo": null
+      },
+      "expect": 43750
+    },
+    {
+      "name": "no line near: the bar before on a steady grid (Prism's test)",
+      "input": {
+        "targetMs": 43000,
+        "lineStarts": [],
+        "tempo": {
+          "bpm": 120,
+          "steady": true,
+          "firstBeatMs": 500
+        }
+      },
+      "expect": 42500
+    },
+    {
+      "name": "no line, no grid: a second before (Prism's test)",
+      "input": {
+        "targetMs": 43000,
+        "lineStarts": [],
+        "tempo": null
+      },
+      "expect": 42000
+    },
+    {
+      "name": "a line after counts 1500 farther",
+      "input": {
+        "targetMs": 43000,
+        "lineStarts": [
+          41000,
+          44000
+        ],
+        "tempo": null
+      },
+      "expect": 40750
+    },
+    {
+      "name": "a line 4.5 s before is too far: a second before",
+      "input": {
+        "targetMs": 43000,
+        "lineStarts": [
+          38500
+        ],
+        "tempo": null
+      },
+      "expect": 42000
+    },
+    {
+      "name": "an unsteady grid is not used",
+      "input": {
+        "targetMs": 43000,
+        "lineStarts": [],
+        "tempo": {
+          "bpm": 120,
+          "steady": false,
+          "firstBeatMs": 500
+        }
+      },
+      "expect": 42000
+    },
+    {
+      "name": "never below 0",
+      "input": {
+        "targetMs": 500,
+        "lineStarts": [],
+        "tempo": null
+      },
+      "expect": 0
+    }
+  ],
+  "bestPartButton": [
+    {
+      "name": "early in the song, the part ahead",
+      "input": {
+        "atMs": 10000,
+        "startMs": 60000,
+        "knownAtMs": 0
+      },
+      "expect": true
+    },
+    {
+      "name": "past 30 s, known at the start",
+      "input": {
+        "atMs": 31000,
+        "startMs": 60000,
+        "knownAtMs": 0
+      },
+      "expect": false
+    },
+    {
+      "name": "known late: 15 s from then",
+      "input": {
+        "atMs": 40000,
+        "startMs": 90000,
+        "knownAtMs": 28000
+      },
+      "expect": true
+    },
+    {
+      "name": "never after 45 s",
+      "input": {
+        "atMs": 46000,
+        "startMs": 90000,
+        "knownAtMs": 40000
+      },
+      "expect": false
+    },
+    {
+      "name": "less than 3 s ahead: gone",
+      "input": {
+        "atMs": 57500,
+        "startMs": 60000,
+        "knownAtMs": 50000
+      },
+      "expect": false
+    },
+    {
+      "name": "exactly 3 s ahead: gone",
+      "input": {
+        "atMs": 27000,
+        "startMs": 30000,
+        "knownAtMs": 0
+      },
+      "expect": false
+    }
+  ],
+  "songReset": [
+    {
+      "name": "a song nobody chose anything for: no Reset",
+      "input": {
+        "choice": {}
+      },
+      "expect": false
+    },
+    {
+      "name": "only a turned-away video: Reset shows",
+      "input": {
+        "choice": {
+          "rejected": [
+            "abc"
+          ]
+        }
+      },
+      "expect": true
+    },
+    {
+      "name": "an empty turned-away list and switches left on: no Reset",
+      "input": {
+        "choice": {
+          "rejected": [],
+          "loopOff": false,
+          "use": null
+        }
+      },
+      "expect": false
+    },
+    {
+      "name": "a picked part: Reset shows",
+      "input": {
+        "choice": {
+          "part": {
+            "video": "abc",
+            "startMs": 64000,
+            "others": []
+          }
+        }
+      },
+      "expect": true
+    },
+    {
+      "name": "Spotify canvas switched off for the song: Reset shows",
+      "input": {
+        "choice": {
+          "spotifyOff": true
+        }
+      },
+      "expect": true
+    },
+    {
+      "name": "a Use and a picked video: Reset shows",
+      "input": {
+        "choice": {
+          "use": "video",
+          "picked": "xyz"
+        }
+      },
+      "expect": true
+    }
+  ],
+  "songMenu": [
+    {
+      "name": "a song with its loop showing: every row",
+      "input": {
+        "canvasOn": true,
+        "useVideos": true,
+        "isSong": true,
+        "hasLoop": true,
+        "loopOff": false,
+        "loopShows": true
+      },
+      "expect": {
+        "canvasSwitch": true,
+        "pickVideo": true,
+        "pickPart": true,
+        "notThisVideo": true
+      }
+    },
+    {
+      "name": "a song with no loop yet: Pick another video only",
+      "input": {
+        "canvasOn": true,
+        "useVideos": true,
+        "isSong": true,
+        "hasLoop": false,
+        "loopOff": false,
+        "loopShows": false
+      },
+      "expect": {
+        "canvasSwitch": false,
+        "pickVideo": true,
+        "pickPart": false,
+        "notThisVideo": false
+      }
+    },
+    {
+      "name": "switched off for the song: the switch stays, nothing else (Prism)",
+      "input": {
+        "canvasOn": true,
+        "useVideos": true,
+        "isSong": true,
+        "hasLoop": true,
+        "loopOff": true,
+        "loopShows": false
+      },
+      "expect": {
+        "canvasSwitch": true,
+        "pickVideo": false,
+        "pickPart": false,
+        "notThisVideo": false
+      }
+    },
+    {
+      "name": "Canvas off: nothing",
+      "input": {
+        "canvasOn": false,
+        "useVideos": true,
+        "isSong": true,
+        "hasLoop": true,
+        "loopOff": false,
+        "loopShows": false
+      },
+      "expect": {
+        "canvasSwitch": false,
+        "pickVideo": false,
+        "pickPart": false,
+        "notThisVideo": false
+      }
+    },
+    {
+      "name": "music video source off: nothing",
+      "input": {
+        "canvasOn": true,
+        "useVideos": false,
+        "isSong": true,
+        "hasLoop": true,
+        "loopOff": false,
+        "loopShows": false
+      },
+      "expect": {
+        "canvasSwitch": false,
+        "pickVideo": false,
+        "pickPart": false,
+        "notThisVideo": false
+      }
+    },
+    {
+      "name": "not a song (a podcast episode): nothing",
+      "input": {
+        "canvasOn": true,
+        "useVideos": true,
+        "isSong": false,
+        "hasLoop": false,
+        "loopOff": false,
+        "loopShows": false
+      },
+      "expect": {
+        "canvasSwitch": false,
+        "pickVideo": false,
+        "pickPart": false,
+        "notThisVideo": false
+      }
+    },
+    {
+      "name": "a loop kept, another source showing (Use): no part or Not this video",
+      "input": {
+        "canvasOn": true,
+        "useVideos": true,
+        "isSong": true,
+        "hasLoop": true,
+        "loopOff": false,
+        "loopShows": false
+      },
+      "expect": {
+        "canvasSwitch": true,
+        "pickVideo": true,
+        "pickPart": false,
+        "notThisVideo": false
+      }
+    }
+  ],
+  "pickPart": [
+    {
+      "name": "a runner-up picked: the old part takes its place (Prism)",
+      "input": {
+        "startMs": 60000,
+        "others": [
+          20000,
+          90000,
+          120000
+        ],
+        "pickMs": 90000
+      },
+      "expect": {
+        "startMs": 90000,
+        "others": [
+          20000,
+          60000,
+          120000
+        ]
+      }
+    },
+    {
+      "name": "the part playing picked: nothing moves",
+      "input": {
+        "startMs": 60000,
+        "others": [
+          20000,
+          90000
+        ],
+        "pickMs": 60000
+      },
+      "expect": {
+        "startMs": 60000,
+        "others": [
+          20000,
+          90000
+        ]
+      }
+    },
+    {
+      "name": "a start not among the others: the old part goes first",
+      "input": {
+        "startMs": 60000,
+        "others": [
+          20000,
+          90000
+        ],
+        "pickMs": 150000
+      },
+      "expect": {
+        "startMs": 150000,
+        "others": [
+          60000,
+          20000,
+          90000
+        ]
+      }
+    },
+    {
+      "name": "no others",
+      "input": {
+        "startMs": 60000,
+        "others": [],
+        "pickMs": 30000
+      },
+      "expect": {
+        "startMs": 30000,
+        "others": [
+          60000
+        ]
+      }
+    }
+  ],
+  "videoArtists": [
+    {
+      "name": "a band name with \"and\" is one artist",
+      "input": {
+        "artist": "The Head and the Heart"
+      },
+      "expect": [
+        "The Head and the Heart"
+      ]
+    },
+    {
+      "name": "\"&\" separates",
+      "input": {
+        "artist": "Lady Gaga & Bruno Mars"
+      },
+      "expect": [
+        "Lady Gaga",
+        "Bruno Mars"
+      ]
+    },
+    {
+      "name": "commas and \"&\"",
+      "input": {
+        "artist": "Ozuna, J Balvin & Chencho Corleone"
+      },
+      "expect": [
+        "Ozuna",
+        "J Balvin",
+        "Chencho Corleone"
+      ]
+    },
+    {
+      "name": "\"x\" and \"×\" separate",
+      "input": {
+        "artist": "Ed Sheeran x Taylor Swift × Khalid"
+      },
+      "expect": [
+        "Ed Sheeran",
+        "Taylor Swift",
+        "Khalid"
+      ]
+    },
+    {
+      "name": "feat., ft., featuring and with separate",
+      "input": {
+        "artist": "Daddy Yankee feat. Snow ft. Nicky Jam featuring Anuel with Bad Bunny"
+      },
+      "expect": [
+        "Daddy Yankee",
+        "Snow",
+        "Nicky Jam",
+        "Anuel",
+        "Bad Bunny"
+      ]
+    },
+    {
+      "name": "\"and\" inside a name next to a real separator",
+      "input": {
+        "artist": "Crosby, Stills, Nash and Young"
+      },
+      "expect": [
+        "Crosby",
+        "Stills",
+        "Nash and Young"
+      ]
+    }
+  ],
+  "videoChoices": [
+    {
+      "name": "the pairing first, then the search's order",
+      "input": {
+        "pairing": "b",
+        "found": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rejected": []
+      },
+      "expect": [
+        "b",
+        "a",
+        "c"
+      ]
+    },
+    {
+      "name": "no pairing (signed out): the search's order",
+      "input": {
+        "pairing": null,
+        "found": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rejected": []
+      },
+      "expect": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "name": "a pairing the search didn't find is not added (Prism)",
+      "input": {
+        "pairing": "z",
+        "found": [
+          "a",
+          "b"
+        ],
+        "rejected": []
+      },
+      "expect": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "name": "turned-away videos are left out",
+      "input": {
+        "pairing": null,
+        "found": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rejected": [
+          "b"
+        ]
+      },
+      "expect": [
+        "a",
+        "c"
+      ]
+    },
+    {
+      "name": "at most 10, before turned-away ones are left out (Prism)",
+      "input": {
+        "pairing": null,
+        "found": [
+          "v00",
+          "v01",
+          "v02",
+          "v03",
+          "v04",
+          "v05",
+          "v06",
+          "v07",
+          "v08",
+          "v09",
+          "v10",
+          "v11"
+        ],
+        "rejected": [
+          "v00"
+        ]
+      },
+      "expect": [
+        "v01",
+        "v02",
+        "v03",
+        "v04",
+        "v05",
+        "v06",
+        "v07",
+        "v08",
+        "v09"
+      ]
+    },
+    {
+      "name": "repeats once",
+      "input": {
+        "pairing": null,
+        "found": [
+          "a",
+          "b",
+          "a"
+        ],
+        "rejected": []
+      },
+      "expect": [
+        "a",
+        "b"
+      ]
+    }
+  ]
+}

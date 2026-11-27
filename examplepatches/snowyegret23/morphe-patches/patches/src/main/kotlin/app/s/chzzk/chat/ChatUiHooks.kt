@@ -9,10 +9,14 @@ import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -21,10 +25,10 @@ internal const val CHAT_UI = "Lapp/s/chzzk/extension/ChatUi;"
 private const val COMMUNITY = "Lcom/navercorp/game/android/community/"
 private const val BUILDER = "Landroidx/compose/ui/text/AnnotatedString${'$'}Builder;"
 private const val SPAN = "Landroidx/compose/ui/text/SpanStyle;"
-private const val STATUS = "${COMMUNITY}data/core/entity/user/streaming/StreamingUserStatus;"
+private val BytecodePatchContext.STATUS get() = chzzkType("${COMMUNITY}data/core/entity/user/streaming/StreamingUserStatus;")
 private const val PROPERTY = "${COMMUNITY}data/core/entity/user/streaming/StreamingProperty"
-private const val MESSAGE = "${COMMUNITY}ui/common/ui/chat/message/streaming/entity/StreamingChatMessage;"
-private const val NICK_STYLE = "${COMMUNITY}ui/common/ui/chat/message/streaming/designstyle/StreamingMessageDesignStyle${'$'}NicknameStyleInfo;"
+private val BytecodePatchContext.MESSAGE get() = chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/entity/StreamingChatMessage;")
+private val BytecodePatchContext.NICK_STYLE get() = chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/designstyle/StreamingMessageDesignStyle${'$'}NicknameStyleInfo;")
 private const val INLINE = "${COMMUNITY}core/ui/ui/text/util/InlineTextContentBox"
 
 internal fun BytecodePatchContext.uiBridge(name: String, registers: Int, body: String) {
@@ -41,9 +45,10 @@ internal fun BytecodePatchContext.uiBridge(name: String, registers: Int, body: S
 }
 
 internal fun BytecodePatchContext.addChatUiHooks() {
-    val current = packageMetadata.versionName in setOf("3.16.0", "3.17.0")
-    val latest = packageMetadata.versionName == "3.17.0"
+    val current = packageMetadata.versionName in setOf("3.16.0", "3.17.0", "3.18.0")
+    val latest = packageMetadata.versionName in setOf("3.17.0", "3.18.0")
     val layoutOwner = when (packageMetadata.versionName) {
+        "3.18.0" -> "Lh14;"
         "3.17.0" -> "Lvo0;"
         "3.16.0" -> "Lo7;"
         "3.15.0", "3.15.2" -> "Lj7;"
@@ -121,7 +126,7 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         :original_width
         nop
     """.trimIndent())
-    val extra = "${COMMUNITY}data/core/entity/chat/extra/StreamingChatMessageExtra;"
+    val extra = chzzkType("${COMMUNITY}data/core/entity/chat/extra/StreamingChatMessageExtra;")
     check(classDefBy(extra).methods.any { it.name == "g" && it.returnType == "Ljava/lang/String;" })
     uiBridge("deviceType", 1, """
         check-cast p0, $MESSAGE
@@ -134,10 +139,13 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         const-string p0, ""
         return-object p0
     """)
+    val nicknameStyle = classDefBy(NICK_STYLE).methods.single {
+        it.parameterTypeNames == listOf("Landroidx/compose/ui/unit/Density;") && it.returnType == "Landroidx/compose/ui/text/TextStyle;"
+    }
     uiBridge("nicknameSize", 4, """
         check-cast p0, $NICK_STYLE
         check-cast p1, Landroidx/compose/ui/unit/Density;
-        invoke-interface {p0, p1}, $NICK_STYLE->e(Landroidx/compose/ui/unit/Density;)Landroidx/compose/ui/text/TextStyle;
+        invoke-interface {p0, p1}, ${nicknameStyle.smaliReference}
         move-result-object v0
         iget-object v0, v0, Landroidx/compose/ui/text/TextStyle;->a:$SPAN
         iget-wide v0, v0, $SPAN->b:J
@@ -171,7 +179,9 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         invoke-virtual {v1, v0}, $BUILDER->${if (latest) "j" else "h"}(I)V
         return-void
     """)
-    val icon = "${COMMUNITY}core/ui/ui/text/util/InlineTextContentIconBox;"
+    val icon = chzzkType("${COMMUNITY}core/ui/ui/text/util/InlineTextContentIconBox;")
+    val inlineType = chzzkType("$INLINE;")
+    val inlineCompanion = chzzkType("$INLINE${'$'}Companion;")
     val iconConstructor = classDefBy(icon).methods.single { it.name == "<init>" }
     check(iconConstructor.parameterTypes.size == if (current) 7 else 6)
     val pcIcon = if (current) "0x7f08049d" else "0x7f080496"
@@ -209,9 +219,9 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         move-object/from16 v1, p0
         check-cast v1, $BUILDER
         move-object/from16 v2, p1
-        invoke-static {v1, v2, v0}, $INLINE${'$'}Companion;->a($BUILDER${"Ljava/util/Map;"}$INLINE;)V
+        invoke-static {v1, v2, v0}, $inlineCompanion->a($BUILDER${"Ljava/util/Map;"}$inlineType)V
         move-wide/from16 v2, p3
-        invoke-static {v1, v2, v3}, $INLINE${'$'}Companion;->b(${BUILDER}J)V
+        invoke-static {v1, v2, v3}, $inlineCompanion->b(${BUILDER}J)V
         return-void
     """)
     uiBridge("resizeModifier", 3, """
@@ -253,7 +263,7 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         const/4 v0, 0x0
         return-object v0
     """)
-    val chatScreen = mutableClassDefBy("${COMMUNITY}app/ui/overlayplayerend/live/streaming/chat/StreamingChatScreenKt;")
+    val chatScreen = mutableClassDefBy(chzzkType("${COMMUNITY}app/ui/overlayplayerend/live/streaming/chat/StreamingChatScreenKt;"))
         .methods.single { it.name == "c" && it.parameterTypes.first().toString() == "Landroidx/compose/ui/Modifier;" }
     chatScreen.addInstructions(0, """
         invoke-static/range {p0 .. p0}, $CHAT_UI->resizeModifier(Ljava/lang/Object;)Ljava/lang/Object;
@@ -261,7 +271,7 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         check-cast p0, Landroidx/compose/ui/Modifier;
     """.trimIndent())
 
-    val nickname = mutableClassDefBy("${COMMUNITY}ui/common/ui/chat/message/streaming/util/StreamingNicknameKt;")
+    val nickname = mutableClassDefBy(chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/util/StreamingNicknameKt;"))
     val header = nickname.methods.single { it.returnType == "V" && MESSAGE in it.parameterTypeNames }
     check(header.localRegisterCount >= 5)
     val args = listOf(BUILDER, MESSAGE, NICK_STYLE, "Landroidx/compose/ui/unit/Density;", "Ljava/util/Map;")
@@ -279,8 +289,8 @@ internal fun BytecodePatchContext.addChatUiHooks() {
     """.trimIndent())
     val getterHooks = mapOf(
         "$STATUS->${if (latest) "u" else if (current) "t" else "m"}" to Pair("roleBadge", "Ljava/lang/String;"),
-        "$PROPERTY${'$'}Subscription;->c" to Pair("subscriptionBadge", "Ljava/lang/Object;"),
-        "$PROPERTY${'$'}DonationRanking;->a" to Pair("donationBadge", "Ljava/lang/Object;"),
+        "${chzzkType("$PROPERTY${'$'}Subscription;")}->c" to Pair("subscriptionBadge", "Ljava/lang/Object;"),
+        "${chzzkType("$PROPERTY${'$'}DonationRanking;")}->a" to Pair("donationBadge", "Ljava/lang/Object;"),
         "$STATUS->${if (latest) "m" else if (current) "i" else "e"}" to Pair("activityBadges", "Ljava/util/List;")
     )
     val getterCalls = badges.implementation!!.instructions.withIndex().mapNotNull { (index, instruction) ->
@@ -304,7 +314,7 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         invoke-static/range {p$verified .. p$verified}, $CHAT_UI->verifiedBadge(Z)Z
         move-result p$verified
     """ else {
-        check(verifiedType == "${COMMUNITY}core/base/entity/VerifiedMarkType;")
+        check(verifiedType == chzzkType("${COMMUNITY}core/base/entity/VerifiedMarkType;"))
         """
         invoke-static/range {p$verified .. p$verified}, $CHAT_UI->verifiedMark(Ljava/lang/Object;)Ljava/lang/Object;
         move-result-object p$verified
@@ -318,15 +328,151 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         check-cast p$channel, Lkotlinx/collections/immutable/ImmutableList;
     """.trimIndent())
     addChatInputButtonHooks()
+    addStreamerHighlightHooks()
+    addChatNavigationHooks()
+}
+
+private fun BytecodePatchContext.addStreamerHighlightHooks() {
+    val builder = classDefBy(BUILDER)
+    val text = builder.fields.single { it.type == "Ljava/lang/StringBuilder;" }
+    uiBridge("textLength", 1, """
+        check-cast p0, $BUILDER
+        iget-object p0, p0, ${text.smaliReference}
+        invoke-virtual {p0}, Ljava/lang/StringBuilder;->length()I
+        move-result p0
+        return p0
+    """)
+    val constructor = classDefBy(SPAN).methods.single { it.name == "<init>" && it.parameterTypes.size == 15 }
+    val addStyle = builder.methods.single { it.parameterTypeNames == listOf(SPAN, "I", "I") && it.returnType == "V" }
+    uiBridge("highlightText", 23, """
+        new-instance v0, $SPAN
+        const-wide/16 v1, 0x0
+        const-wide/16 v3, 0x0
+        const/4 v5, 0x0
+        const/4 v6, 0x0
+        const/4 v7, 0x0
+        const/4 v8, 0x0
+        const/4 v9, 0x0
+        const-wide/16 v10, 0x0
+        const/4 v12, 0x0
+        const/4 v13, 0x0
+        const/4 v14, 0x0
+        const-wide v15, 0x4dffb45400000000L
+        const/16 v17, 0x0
+        const/16 v18, 0x0
+        const v19, 0xf7ff
+        invoke-direct/range {v0 .. v19}, ${constructor.smaliReference}
+        move-object/from16 v1, p0
+        check-cast v1, $BUILDER
+        move/from16 v2, p1
+        move/from16 v3, p2
+        invoke-virtual {v1, v0, v2, v3}, ${addStyle.smaliReference}
+        return-void
+    """)
+    for (name in listOf("StreamingUserMessageKt", "StreamingUserMessagesKt")) {
+        val owner = mutableClassDefBy(chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/$name;"))
+        val calls = owner.methods.flatMap { method ->
+            method.implementation?.instructions?.withIndex()?.mapNotNull { (index, instruction) ->
+                val reference = instruction.getReference<MethodReference>()
+                if (reference?.definingClass == BUILDER && reference.parameterTypes.isEmpty() &&
+                    reference.returnType == "Landroidx/compose/ui/text/AnnotatedString;") {
+                    Triple(method, index, instruction)
+                } else null
+            } ?: emptyList()
+        }
+        val (method, index, instruction) = calls.single()
+        val register = when (instruction) {
+            is FiveRegisterInstruction -> instruction.registerC
+            is RegisterRangeInstruction -> instruction.startRegister
+            else -> error("Unsupported annotated chat builder call")
+        }
+        method.addInstructions(index,
+            "invoke-static/range {v$register .. v$register}, $CHAT_UI->finishMessage(Ljava/lang/Object;)V")
+    }
+}
+
+private fun BytecodePatchContext.addChatNavigationHooks() {
+    val stateType = "Landroidx/compose/foundation/lazy/LazyListState;"
+    val infoType = "Landroidx/compose/foundation/lazy/LazyListLayoutInfo;"
+    val modelType = chzzkType("${COMMUNITY}core/feature/feature/chat/ChatViewModel;")
+    val messageType = chzzkType("${COMMUNITY}data/core/entity/chat/message/BaseLiveChatMessage;")
+    val follow = classDefBy(modelType).methods.single {
+        it.parameterTypeNames == listOf(messageType, "Z") && it.returnType == "V"
+    }
+    val state = classDefBy(stateType)
+    val layout = state.methods.single { it.parameterTypes.isEmpty() && it.returnType == infoType }
+    val request = state.methods.singleOrNull {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypeNames == listOf(stateType, "I") && it.returnType == "V"
+    }
+    val scroll = if (request != null) "invoke-static {p0, v1}, ${request.smaliReference}" else {
+        val reset = state.methods.single {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypeNames == listOf(stateType) && it.returnType == "V"
+        }
+        val snap = state.methods.single { it.parameterTypeNames == listOf("I", "I", "Z") && it.returnType == "V" }
+        // Older builds inline the request's index to zero; retain its fling cancellation before setting the target.
+        """
+            invoke-static {p0}, ${reset.smaliReference}
+            invoke-virtual {p0, v1, v2, v2}, ${snap.smaliReference}
+        """
+    }
+    val measure = mutableClassDefBy("Landroidx/compose/foundation/lazy/LazyListMeasureResult;")
+    val orientation = "Landroidx/compose/foundation/gestures/Orientation;"
+    val constructor = measure.methods.single { it.name == "<init>" && orientation in it.parameterTypeNames }
+    val countIndex = constructor.parameterTypeNames.indexOf(orientation) - 2
+    check(constructor.parameterTypeNames.slice(countIndex..countIndex + 1) == listOf("I", "Z"))
+    val countRegister = constructor.localRegisterCount + constructor.parameterRegister(countIndex)
+    val countField = constructor.implementation!!.instructions.single {
+        it.opcode == Opcode.IPUT && (it as TwoRegisterInstruction).registerA == countRegister
+    }.getReference<FieldReference>()!!
+    val countGetter = measure.methods.single {
+        it.parameterTypes.isEmpty() && it.returnType == "I" && it.implementation!!.instructions.any { instruction ->
+            instruction.getReference<FieldReference>()?.smaliReference == countField.smaliReference
+        }
+    }
+    val count = classDefBy(infoType).methods.single { it.name == countGetter.name && it.parameterTypes.isEmpty() && it.returnType == "I" }
+    uiBridge("jumpChat", 6, """
+        if-eqz p0, :empty
+        if-eqz p1, :empty
+        check-cast p0, $stateType
+        check-cast p1, $modelType
+        invoke-virtual {p0}, ${layout.smaliReference}
+        move-result-object v0
+        invoke-interface {v0}, ${count.smaliReference}
+        move-result v0
+        if-lez v0, :empty
+        const/4 v1, 0x0
+        if-nez p2, :jump
+        add-int/lit8 v1, v0, -0x1
+        :jump
+        const/4 v2, 0x0
+        invoke-virtual {p1, v2, p2}, ${follow.smaliReference}
+        $scroll
+        const/4 v0, 0x1
+        return v0
+        :empty
+        const/4 v0, 0x0
+        return v0
+    """)
+    val screen = mutableClassDefBy(chzzkType("${COMMUNITY}core/feature/feature/chat/LiveChatScreenKt;")).methods.single {
+        it.returnType == "V" && modelType in it.parameterTypeNames && stateType in it.parameterTypeNames
+    }
+    check(screen.localRegisterCount >= 2)
+    val listRegister = screen.parameterRegister(screen.parameterTypeNames.indexOf(stateType))
+    val modelRegister = screen.parameterRegister(screen.parameterTypeNames.indexOf(modelType))
+    screen.addInstructions(0, """
+        move-object/from16 v0, p$listRegister
+        move-object/from16 v1, p$modelRegister
+        invoke-static {v0, v1}, $CHAT_UI->captureChat(Ljava/lang/Object;Ljava/lang/Object;)V
+    """.trimIndent())
 }
 
 private fun BytecodePatchContext.addChatInputButtonHooks() {
-    val owner = mutableClassDefBy("${COMMUNITY}ui/common/ui/overlayplayerend/chat/StreamingChatTextFieldKt;")
+    val owner = mutableClassDefBy(chzzkType("${COMMUNITY}ui/common/ui/overlayplayerend/chat/StreamingChatTextFieldKt;"))
     val input = owner.methods.single { it.name == "a" && it.returnType == "V" }
     val calls = input.implementation!!.instructions.withIndex().mapNotNull { (index, instruction) ->
         instruction.getReference<MethodReference>()?.let { Triple(index, instruction, it) }
     }
-    val semantic = "${COMMUNITY}core/ui/ui/image/SemanticImageKt;"
+    val semantic = chzzkType("${COMMUNITY}core/ui/ui/image/SemanticImageKt;")
     val profile = calls.single { it.third.definingClass == semantic && it.third.name == "e" }
     val emoji = calls.single { it.third.definingClass == semantic && it.third.name == "c" }
     val visibilityName = if (packageMetadata.versionName in listOf("3.14.0", "3.14.10")) "g" else "f"

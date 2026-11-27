@@ -14,12 +14,14 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.21.2](https://github.com/Santodan/santodan-patches/releases/tag/v0.21.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
+> **[v0.21.3](https://github.com/Santodan/santodan-patches/releases/tag/v0.21.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
-**Premium status** supports Car Scanner ELM OBD2 **2.2.42 (arm64 and x86_64)**, with existing **2.2.21** and **2.1.50** support preserved. Select either **Car Scanner - Premium status** or **Car Scanner - Premium status (Experimental)**; both are disabled by default and must be used separately. The experimental alternative has no version-name restriction and retains the reviewed old and new implementations. Exact image validation still rejects unknown or modified binaries, so future updates may need review.
+**Premium status** supports Car Scanner ELM OBD2 **2.2.52 (arm64)** and **2.2.42 (arm64 and x86_64)**, with existing **2.2.21** and **2.1.50** support preserved. Select either **Car Scanner - Premium status** or **Car Scanner - Premium status (Experimental)**; both are disabled by default and must be used separately. The experimental alternative has no version-name restriction: it reuses the reviewed exact implementation for known builds and, for an unknown build, locates the premium getter and ECU predicate structurally (by metadata identity and the Mono AOT method-address table), rebuilds the store generically, and fails safe if any target cannot be found. This is best-effort, not an automatic port — a genuinely changed future binary may still need review.
+
+The 2.2.52 implementation reuses the same managed/compiled premium and ECU transforms. Its guard and decoder libraries are byte-identical to earlier versions, and its assembly block is already four-byte aligned (no padding needed). Host verification, packaged bundle application for both alternatives, and a byte-for-byte proof that the experimental generic fallback reproduces the exact 2.2.52 result all pass; device behaviour and ECU connectivity are unverified. See [2.2.52 implementation and verification details](docs/CarScanner252.md).
 
 The 2.2.42 implementation covers managed and compiled premium/ECU predicates, settings and profile decoding, and the native delayed exit after repackaging. Both alternatives passed host verification, bundle application and unsigned APK rebuilding. The arm64 phone original and the earlier x86_64 emulator original have separate reviewed implementations. The alignment fix in the refreshed v0.18.1 release passes emulator model-selection and restart-persistence checks; ECU connectivity remains unverified. The arm64 correction requires the updated bundle; published 0.18.0 originally covered only x86_64. See [2.2.42 implementation and verification details](docs/CarScanner242.md).
 
@@ -27,13 +29,13 @@ For 2.2.21, the user reported successful device operation including ECU connecti
 
 **🎯 Supported versions:**
 
-| 2.1.50 | 2.2.21 | 2.2.42 |
-| :---: | :---: | :---: |
+| 2.1.50 | 2.2.21 | 2.2.42 | 2.2.52 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Car Scanner - Premium status](#car-scanner-premium-status) | Enables premium status in Car Scanner 2.1.50, 2.2.21 and 2.2.42 (arm64 and x86_64); preserves settings, profiles and ECU initialization. Select only one Car Scanner premium patch. |  |
-| [Car Scanner - Premium status (Experimental)](#car-scanner-premium-status-experimental) | No version restriction. Retains the reviewed legacy and new managed/native methods; rejects unknown or modified images. Future builds may need an update. Select only one Car Scanner premium patch. |  |
+| [Car Scanner - Premium status](#car-scanner-premium-status) | Enables premium status in Car Scanner 2.1.50, 2.2.21, 2.2.42 and 2.2.52 (arm64; 2.2.42 also x86_64); preserves settings, profiles and ECU initialization. Select only one Car Scanner premium patch. |  |
+| [Car Scanner - Premium status (Experimental)](#car-scanner-premium-status-experimental) | No version restriction. Reuses the reviewed exact methods for known builds and, for unknown builds, locates the targets structurally (metadata identity, AOT method-address table) and fails safe if any cannot be found. Future builds may still need an update. Select only one Car Scanner premium patch. |  |
 
 </details>
 
@@ -41,19 +43,19 @@ For 2.2.21, the user reported successful device operation including ECU connecti
 <summary>📦 Fylo — File Manager&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
-**Fylo - Enable Pro** supports Fylo File Manager **2.6 (code 19)**. A separate **Experimental, any version** alternative removes the version restriction while requiring the reviewed bytecode structure. Select **only one** alternative; both are disabled by default. The implementation preserves local Pro access at startup and after billing refresh, and skips the Pairip launch license check for rebuilt APKs. It does not create a purchase or write a fabricated entitlement.
+**Fylo - Enable Pro** supports Fylo File Manager **2.9 (code 22)**. A separate **Experimental, any version** alternative removes the version restriction while requiring the reviewed bytecode structure; because the matcher is structural, it also covers the earlier 2.6 layout and future releases that keep the billing contract. Select **only one** alternative; both are disabled by default. The implementation preserves local Pro access at startup and after billing refresh, and skips the Pairip launch license check for rebuilt APKs. It does not create a purchase or write a fabricated entitlement.
 
-The upstream 1.9 patch is from [Morning Entree's Patches](https://github.com/Entree3k/Morning-Entree-Patches); its debug-unlock class is absent in 2.6. Both new alternatives passed original-DEX, packaged-bundle and rebuilt unsigned-APK checks. Device testing and future-version compatibility remain unverified. See [inputs, behavior and verification](docs/Fylo26.md).
+The upstream 1.9 patch is from [Morning Entree's Patches](https://github.com/Entree3k/Morning-Entree-Patches); its debug-unlock class is absent. Both alternatives passed original-DEX, packaged-bundle and rebuilt unsigned-APK checks on 2.9. Device testing and future-version compatibility remain unverified. See [inputs, behavior and verification](docs/Fylo29.md).
 
 **🎯 Supported versions:**
 
-| 2.6 |
+| 2.9 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Fylo - Enable Pro](docs/Fylo26.md) | Enable local Pro features at startup and after billing refresh. Updated from Morning Entree's Fylo 1.9 approach for 2.6. Disables the Pairip launch license check for rebuilt APKs. Select only one Fylo Pro patch. Verified bytecode target: Fylo 2.6. |  |
-| [Fylo - Enable Pro (Experimental, any version)](docs/Fylo26.md) | Enable local Pro features at startup and after billing refresh. Updated from Morning Entree's Fylo 1.9 approach for 2.6. Disables the Pairip launch license check for rebuilt APKs. Select only one Fylo Pro patch. No version restriction; unsupported bytecode layouts are rejected. |  |
+| [Fylo - Enable Pro](docs/Fylo29.md) | Enable local Pro features at startup and after billing refresh. Updated from Morning Entree's Fylo 1.9 approach. Disables the Pairip launch license check for rebuilt APKs. Select only one Fylo Pro patch. Verified bytecode target: Fylo 2.9. |  |
+| [Fylo - Enable Pro (Experimental, any version)](docs/Fylo29.md) | Enable local Pro features at startup and after billing refresh. Updated from Morning Entree's Fylo 1.9 approach. Disables the Pairip launch license check for rebuilt APKs. Select only one Fylo Pro patch. No version restriction; the shared billing contract also covers earlier releases, and unsupported bytecode layouts are rejected. |  |
 
 </details>
 
@@ -321,7 +323,7 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 
 | App | Package | Supported version | Patch |
 | --- | --- | --- | --- |
-| Car Scanner ELM OBD2 | `com.ovz.carscanner` | `2.2.42` (arm64 and x86_64), `2.2.21`, `2.1.50` | Premium status; unrestricted experimental alternative; settings/profile and ECU compatibility fixes |
+| Car Scanner ELM OBD2 | `com.ovz.carscanner` | `2.2.52` (arm64), `2.2.42` (arm64 and x86_64), `2.2.21`, `2.1.50` | Premium status; unrestricted experimental alternative; settings/profile and ECU compatibility fixes |
 | MEO (Android TV) | `com.alticelabs.meo.androidtv` | `5.7.0` | Side-by-side installation; Spoof supported device |
 | NuvioTV | `com.nuvio.tv` | `1.1.0-beta.8` | Android TV launcher channels; Finale dates in library and collections; Keep airing series in Upcoming; Merge tracking progress; Preload streams for next episode; Preload streams in Continue Watching; Preload streams on detail page; Remaining episodes in Continue Watching; Upcoming movie dates in library and collections; Side-by-side installation |
 | Reddit | `com.reddit.frontpage` | `2026.47.0`, `2026.37.0` | Content filters (Experimental) and Show flairs in home feed (Experimental) on 2026.47.0; Start as guest on 2026.37.0 |

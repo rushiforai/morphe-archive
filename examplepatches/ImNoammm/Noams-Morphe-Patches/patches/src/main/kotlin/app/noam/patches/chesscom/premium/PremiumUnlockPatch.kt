@@ -26,7 +26,7 @@ val premiumUnlockPatch = bytecodePatch(
     execute {
         markFeaturePatched("premiumUnlockPatched")
 
-        // SessionStore.K(): every tier-derived check (isPremium, isAtLeastGold...) reads the
+        // SessionStore's tier getter: every tier-derived check (isPremium, isAtLeastGold...) reads the
         // account's PremiumStatus through here.
         SessionStoreGetPremiumStatusFingerprint.method.apply {
             addInstructionsWithLabels(

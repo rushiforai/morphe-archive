@@ -10,6 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-25.
  *
  * ------------------------------------------------------------------------
@@ -77,6 +78,7 @@ import java.util.Map;
 
 import app.morphe.extension.music.patches.actionbar.ActionBarPatch;
 import app.morphe.extension.music.patches.downloads.LocalDownloadManager;
+import app.morphe.extension.music.patches.downloads.OfflinePlayerActions;
 import app.morphe.extension.music.patches.downloads.SongDownloadRoute;
 import app.morphe.extension.music.patches.utils.MusicLightTheme;
 import app.morphe.extension.music.settings.Settings;
@@ -266,6 +268,8 @@ public class FlyoutPatch {
             if (ActionBarPatch.inAppDownloadButtonOnClick(map)) {
                 return true;
             }
+
+            if (OfflinePlayerActions.staleQueueCommand(command)) return true;
 
             // Menu Download commands have no sender view, and are handled when they reach
             // the offline video endpoint or the offline upsell.

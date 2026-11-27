@@ -8,6 +8,10 @@ public final class User {
     public final boolean A08;
     public final String A1a;
     public final String A1E;
+    /** #207: the friendship with you, what kind of user this is, and their key, each in an obfuscated enum or class. */
+    public Enum<?> A0f;
+    public Enum<?> A0Y;
+    public UserKey A0p;
 
     public User(String name, String typeName, boolean bot) {
         A1E = name;

@@ -1,0 +1,82 @@
+name: Validate
+run-name: "Validate ${{ inputs.ref || format('PR #{0}', github.event.pull_request.number) }}"
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit or pull-request ref to validate'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  validate:
+    name: Validate patches and release configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Include current base in manual validation
+        if: github.event_name == 'workflow_dispatch' && inputs.ref != ''
+        env:
+          BASE_SHA: ${{ github.sha }}
+        run: >-
+          git -c user.name=Snowyegret
+          -c user.email=79635537+snowyegret23@users.noreply.github.com
+          merge --no-commit --no-ff "$BASE_SHA"
+
+      - name: Setup Android compiler
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '27'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          cache: true
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
+        run: pnpm audit
+
+      - name: Verify release configuration
+        run: node .github/scripts/verify-release-notes.mjs
+
+      - name: Verify project compiles
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew clean :patches:buildAndroid --no-daemon
+
+      - name: Upload validation bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: patches-validation
+          path: patches/build/libs/patches-*.mpp
+          if-no-files-found: error
+          retention-days: 7

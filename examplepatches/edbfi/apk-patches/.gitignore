@@ -13,6 +13,9 @@ local.properties
 *.rve
 *.mpp
 *.mpe
+*.reseam
+# Local Reseam bundle signing key
+bundle-signing.key
 # The Morphe bundle signing key (morphe/morphe-signing.pub is public and committed)
 morphe-signing.key
 *.keystore

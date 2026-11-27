@@ -9,6 +9,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -25,6 +26,7 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction51l
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
@@ -71,6 +73,15 @@ internal object StoryRingFixtures {
      * that hands its arrays to the builder never makes one from arrays itself, and with
      * [setterLoops] it ends jumping back to its start. With [elsewhere], a private `drawn(I)V`
      * makes a gradient from arrays as well.
+     *
+     * With [inactiveSetter] it also gets a public `setInactiveColour(I)V`, the setter a seen ring's
+     * gray goes through, shaped like 457's: six registers, the color in v5, read where the ring's
+     * shader is drawn. With [inactiveLoops] it ends jumping back to its start.
+     *
+     *     a0  iget-object v3, v4, A0V        the inactive paint
+     *     a2  move v1, v5                    the color
+     *     a3  return-void
+     *     a4  goto a0                        only with [inactiveLoops]
      */
     fun spinner(
         builders: Int = 1,
@@ -81,6 +92,8 @@ internal object StoryRingFixtures {
         setterMakesItsOwn: Boolean = true,
         setterLoops: Boolean = false,
         elsewhere: Boolean = false,
+        inactiveSetter: Boolean = true,
+        inactiveLoops: Boolean = false,
     ): ClassDef {
         val first = registers - GRADIENT_PARAMETERS.size
         val stops = first + STOPS_PARAMETER
@@ -127,7 +140,19 @@ internal object StoryRingFixtures {
                 AccessFlags.PRIVATE.value or AccessFlags.FINAL.value, null, null,
                 ImmutableMethodImplementation(registers, code(arrays = true, returnsGradient = false, loop = false), null, null),
             ).takeIf { elsewhere },
-        )
+        ) + listOfNotNull(Unit.takeIf { inactiveSetter }).map {
+            val inactive = mutableListOf<Instruction>(
+                ImmutableInstruction22c(Opcode.IGET_OBJECT, 3, 4, ImmutableFieldReference(GRADIENT_SPINNER, "A0V", "Landroid/graphics/Paint;")),
+                ImmutableInstruction12x(Opcode.MOVE, 1, 5),
+                ImmutableInstruction10x(Opcode.RETURN_VOID),
+            )
+            if (inactiveLoops) inactive += ImmutableInstruction10t(Opcode.GOTO, -4)
+            ImmutableMethod(
+                GRADIENT_SPINNER, "setInactiveColour", listOf(ImmutableMethodParameter("I", null, null)), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                ImmutableMethodImplementation(6, inactive, null, null),
+            )
+        }
         return ImmutableClassDef(
             GRADIENT_SPINNER, AccessFlags.PUBLIC.value, "Landroid/view/View;",
             null, null, null, null, methods,
@@ -276,6 +301,158 @@ internal object StoryRingFixtures {
             COMPOSE_RING_TAKER, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;",
             null, null, null, null, listOf(method),
         )
+    }
+
+    const val RING_BRUSH = "Lfixture/RingBrush;"
+
+    /**
+     * A class shaped like 457's `LX/0G9f;`, whose static `A01(List)` makes the chat list's ring brush
+     * (#683): its set-up loads [stops] as floats and keeps a list of them in `A02`, and [builders]
+     * statics taking only a list read it, `A01` then `A03`. Each has fourteen registers, so its list
+     * arrives in v13. With [loops] each ends jumping back to its start.
+     *
+     *     <clinit>  const v0, stop        once for each of [stops]
+     *               const/4 v1, 0
+     *               sput-object v1, A02
+     *               return-void
+     *     A01       a0 sget-object v6, A02
+     *               a2 return-object v13
+     *               a3 goto a0             only with [loops]
+     */
+    fun composeBrush(stops: List<Int> = COMPOSE_RING_STOPS, builders: Int = 1, loops: Boolean = false): ClassDef {
+        val kept = ImmutableFieldReference(RING_BRUSH, "A02", LIST)
+        val setUp = mutableListOf<Instruction>()
+        stops.forEach { setUp += ImmutableInstruction31i(Opcode.CONST, 0, it) }
+        setUp += ImmutableInstruction11n(Opcode.CONST_4, 1, 0)
+        setUp += ImmutableInstruction21c(Opcode.SPUT_OBJECT, 1, kept)
+        setUp += ImmutableInstruction10x(Opcode.RETURN_VOID)
+        val methods = mutableListOf(
+            ImmutableMethod(
+                RING_BRUSH, "<clinit>", emptyList(), "V",
+                AccessFlags.STATIC.value or AccessFlags.CONSTRUCTOR.value, null, null,
+                ImmutableMethodImplementation(2, setUp, null, null),
+            ),
+        )
+        for (name in listOf("A01", "A03").take(builders)) {
+            val code = mutableListOf<Instruction>(
+                ImmutableInstruction21c(Opcode.SGET_OBJECT, 6, kept),
+                ImmutableInstruction11x(Opcode.RETURN_OBJECT, 13),
+            )
+            if (loops) code += ImmutableInstruction10t(Opcode.GOTO, -code.sumOf { it.codeUnits })
+            methods += ImmutableMethod(
+                RING_BRUSH, name, listOf(ImmutableMethodParameter(LIST, null, null)), "Ljava/lang/Object;",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value, null, null,
+                ImmutableMethodImplementation(14, code, null, null),
+            )
+        }
+        return ImmutableClassDef(
+            RING_BRUSH, AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, "Ljava/lang/Object;",
+            null, null, null, null, methods,
+        )
+    }
+
+    const val GROUP_RING = "Lfixture/GroupRing;"
+
+    /** What [groupRing] pairs a stop and a color with, shaped like 457's `LX/0ArC;->A0f(FJ)`. */
+    private val PAIR = ImmutableMethodReference("Lfixture/Stops;", "A0f", listOf("F", "J"), "Lfixture/Stop;")
+
+    /** What [groupRing] pairs a boxed stop and a color with, shaped like 386314341's `LX/089w;->A0t(Ljava/lang/Object;J)`. */
+    private val PAIR_BOXED = ImmutableMethodReference("Lfixture/Stops;", "A0t", listOf("Ljava/lang/Object;", "J"), "Lfixture/Stop;")
+    private val BOX = ImmutableMethodReference("Ljava/lang/Float;", "valueOf", listOf("F"), "Ljava/lang/Float;")
+
+    /**
+     * A class shaped like 457's `LX/0N9F;`, whose `A01` draws the spinning ring around a group of
+     * profile pictures (#187): [rings] statics (`A01`, then `A03`), each pairing a color copied from
+     * v4 with each of [stops] in turn, the first through a range call, the rest through v0. Eight
+     * registers, the last its parameter. With [jumps] each ends jumping onto its second pairing. With
+     * [boxed], as on 386314341, each stop is boxed as a Float before an object and long pairing takes it.
+     *
+     *     const v1, stop                      the first stop (boxed: const v0, then
+     *                                         invoke-static { v0 }, valueOf and move-result-object v1)
+     *     move-wide v2, v4                    its color
+     *     invoke-static/range { v1 .. v3 }, pair
+     *     move-result-object v6
+     *     const v0, stop                      then each other stop (boxed: invoke-static { v0 }, valueOf
+     *                                         and move-result-object v0 after it)
+     *     move-wide v2, v4
+     *     invoke-static { v0, v2, v3 }, pair
+     *     move-result-object v6
+     *     return-void
+     *     goto <the second pairing>           only with [jumps]
+     */
+    fun groupRing(stops: List<Int> = COMPOSE_RING_STOPS, rings: Int = 1, jumps: Boolean = false, boxed: Boolean = false): ClassDef {
+        val pair = if (boxed) PAIR_BOXED else PAIR
+        val methods = listOf("A01", "A03").take(rings).map { name ->
+            val code = mutableListOf<Instruction>()
+            var second = 0
+            stops.forEachIndexed { at, stop ->
+                val holder = if (at == 0) 1 else 0
+                if (boxed) {
+                    code += ImmutableInstruction31i(Opcode.CONST, 0, stop)
+                    code += ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0, BOX)
+                    code += ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, holder)
+                } else {
+                    code += ImmutableInstruction31i(Opcode.CONST, holder, stop)
+                }
+                code += ImmutableInstruction12x(Opcode.MOVE_WIDE, 2, 4)
+                if (at == 1) second = code.sumOf { it.codeUnits }
+                code += if (at == 0) {
+                    ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 1, 3, pair)
+                } else {
+                    ImmutableInstruction35c(Opcode.INVOKE_STATIC, 3, 0, 2, 3, 0, 0, pair)
+                }
+                code += ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 6)
+            }
+            code += ImmutableInstruction10x(Opcode.RETURN_VOID)
+            if (jumps) code += ImmutableInstruction10t(Opcode.GOTO, second - code.sumOf { it.codeUnits })
+            ImmutableMethod(
+                GROUP_RING, name, listOf(ImmutableMethodParameter("Lfixture/Group;", null, null)), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value, null, null,
+                ImmutableMethodImplementation(8, code, null, null),
+            )
+        }
+        return ImmutableClassDef(
+            GROUP_RING, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;",
+            null, null, null, null, methods,
+        )
+    }
+
+    /**
+     * The classes of [bundle] the group ring is looked for in: those with a method other than a set-up
+     * loading the last of [COMPOSE_RING_STOPS].
+     */
+    fun groupRingClasses(bundle: File): List<ClassDef> {
+        val found = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            for (classDef in dex.classes) {
+                val loads = classDef.methods.any { method ->
+                    method.name != "<clinit>" && method.implementation?.instructions?.any {
+                        it.opcode == Opcode.CONST && (it as NarrowLiteralInstruction).narrowLiteral == COMPOSE_RING_STOPS.last()
+                    } == true
+                }
+                if (loads) found += ImmutableClassDef.of(classDef)
+            }
+        }
+        return found
+    }
+
+    /**
+     * The classes of [bundle] the chat list's ring brush is looked for in: those with a static list and a
+     * set-up loading every one of [COMPOSE_RING_STOPS].
+     */
+    fun composeBrushClasses(bundle: File): List<ClassDef> {
+        val found = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            for (classDef in dex.classes) {
+                if (classDef.staticFields.none { it.type == LIST }) continue
+                val setUp = classDef.directMethods.firstOrNull { it.name == "<clinit>" } ?: continue
+                val loaded = setUp.implementation?.instructions?.mapNotNullTo(HashSet()) {
+                    (it as? NarrowLiteralInstruction)?.narrowLiteral
+                } ?: continue
+                if (loaded.containsAll(COMPOSE_RING_STOPS)) found += ImmutableClassDef.of(classDef)
+            }
+        }
+        return found
     }
 
     /**

@@ -69,4 +69,4 @@ repos:
         name: No APKs, bundles or keystores
         language: fail
         entry: "APKs, built bundles and keystores never go in the repo; keep them in tmp/."
-        files: (?i)\.(apk|apks|xapk|apkm|rvp|rve|mpp|mpe|dex|keystore|jks)$
+        files: (?i)\.(apk|apks|xapk|apkm|rvp|rve|mpp|mpe|reseam|dex|keystore|jks)$

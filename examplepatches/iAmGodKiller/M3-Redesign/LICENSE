@@ -1,0 +1,15 @@
+SPDX-License-Identifier: GPL-3.0-only
+
+M3-Redesign — Standalone Material 3 Expressive add-on patch for YouTube Music (Morphe)
+Copyright (C) 2026 iAmGodKiller
+
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0-only),
+matching the upstream Morphe patches ecosystem.
+
+You can read the complete text of the GNU General Public License v3.0 at:
+https://www.gnu.org/licenses/gpl-3.0.txt
+
+Upstream Morphe attribution & Section 7 notice:
+This standalone add-on compiles against and integrates with Morphe
+(https://github.com/MorpheApp/morphe-patches) and follows Morphe's GPLv3 licensing
+and Section 7 attribution terms.

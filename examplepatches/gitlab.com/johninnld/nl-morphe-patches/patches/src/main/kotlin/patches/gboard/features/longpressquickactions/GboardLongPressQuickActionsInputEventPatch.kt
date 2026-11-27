@@ -134,15 +134,16 @@ private fun List<Instruction>.hasLongPressInputStockEntry(
     startIndex: Int,
     eventRegister: Int,
 ): Boolean {
-    if (size < startIndex + 4) return false
+    if (size <= startIndex + 4) return false
     val firstMove = this[startIndex] as? TwoRegisterInstruction
-    val zero = this[startIndex + 1] as? NarrowLiteralInstruction
+    val zero = this[startIndex + 2] as? NarrowLiteralInstruction
     return this[startIndex].isOpcode("MOVE_OBJECT_FROM16") &&
         firstMove?.registerA == 1 && firstMove.registerB == eventRegister &&
-        this[startIndex + 1].isOpcode("CONST_4") &&
-        (this[startIndex + 1] as? OneRegisterInstruction)?.registerA == 2 &&
+        this[startIndex + 1].isRegisterOperation("IF_NEZ", 1) &&
+        hasExactBranchTarget(startIndex + 1, startIndex + 4) &&
+        this[startIndex + 2].isOpcode("CONST_4") &&
+        (this[startIndex + 2] as? OneRegisterInstruction)?.registerA == 2 &&
         zero?.narrowLiteral == 0 &&
-        this[startIndex + 2].isRegisterOperation("IF_NEZ", 1) &&
         this[startIndex + 3].isRegisterOperation("RETURN", 2)
 }
 

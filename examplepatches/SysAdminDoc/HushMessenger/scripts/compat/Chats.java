@@ -566,6 +566,87 @@ final class Chats {
         return encrypted > 0 ? found : List.of();
     }
 
+    static final long CHAT_BAR_MENU_FLAG = 0x10104dc000740e7L;
+    static final long CHAT_BAR_GALLERY_FLAG = 0x10104dc000f40e8L;
+    static final long CHAT_BAR_VOICE_FLAG = 0x10104dc001440ebL;
+    static final Set<Long> CHAT_BAR_MENU_FLAGS = Set.of(CHAT_BAR_MENU_FLAG, CHAT_BAR_GALLERY_FLAG, CHAT_BAR_VOICE_FLAG);
+    static final Set<String> CHAT_BAR_MENU_NOTICES = Set.of("upload_video_interstitial", "upload_audio_interstitial");
+
+    static boolean readsChatBarMenuFlag(Method method) {
+        for (var i : instructions(method))
+            if (i.getOpcode() == Opcode.CONST_WIDE && CHAT_BAR_MENU_FLAGS.contains(((WideLiteralInstruction) i).getWideLiteral())) return true;
+        return false;
+    }
+
+    /**
+     * One reader's reads of the chat bar's + menu flags, in order, or null for any other shape: each const-wide of the
+     * test's, the gallery's or the mic's flag goes through a check-cast into an invoke-interface on the cast register of
+     * the cast type's boolean (…J) check taking the pair last, then move-result, with nothing jumping into the read or
+     * onto the instruction after it. Mirrors ChatBarPlus.kt's chatBarMenuSites.
+     */
+    static List<Long> chatBarMenuReads(Method method) {
+        var code = instructions(method);
+        var targets = mediaTargets(method);
+        var flags = new ArrayList<Long>();
+        for (int at = 0; at < code.size(); at++) {
+            if (code.get(at).getOpcode() != Opcode.CONST_WIDE) continue;
+            long flag = ((WideLiteralInstruction) code.get(at)).getWideLiteral();
+            if (!CHAT_BAR_MENU_FLAGS.contains(flag)) continue;
+            int pair = register(code.get(at));
+            if (at + 4 >= code.size() || code.get(at + 1).getOpcode() != Opcode.CHECK_CAST ||
+                !(code.get(at + 2) instanceof FiveRegisterInstruction call) || call.getOpcode() != Opcode.INVOKE_INTERFACE ||
+                !(((ReferenceInstruction) call).getReference() instanceof MethodReference check)) return null;
+            var args = List.of(call.getRegisterC(), call.getRegisterD(), call.getRegisterE(), call.getRegisterF(), call.getRegisterG()).subList(0, call.getRegisterCount());
+            var params = check.getParameterTypes();
+            if (args.size() < 3 || args.get(0) != register(code.get(at + 1)) ||
+                !((ReferenceInstruction) code.get(at + 1)).getReference().toString().equals(check.getDefiningClass()) ||
+                !"Z".equals(check.getReturnType()) || params.isEmpty() || !"J".equals(params.get(params.size() - 1).toString()) ||
+                !args.subList(args.size() - 2, args.size()).equals(List.of(pair, pair + 1)) || code.get(at + 3).getOpcode() != Opcode.MOVE_RESULT)
+                return null;
+            for (int i = at + 1; i <= at + 4; i++) if (targets.contains(i)) return null;
+            flags.add(flag);
+        }
+        return flags.isEmpty() ? null : flags;
+    }
+
+    static boolean loadsEveryChatBarNotice(Method method) {
+        var strings = new HashSet<String>();
+        for (var i : instructions(method))
+            if (i instanceof ReferenceInstruction r && r.getReference() instanceof StringReference s) strings.add(s.getString());
+        return strings.containsAll(CHAT_BAR_MENU_NOTICES);
+    }
+
+    /**
+     * chat_bar_plus_menu: every method that reads the test's, the gallery's or the mic's flag, when every read passes
+     * chatBarMenuReads, the one reader that loads both upload notices reads the gallery and mic flags once each and never
+     * the test's, and the test's flag is read once, alone, in a method that reader calls. Mirrors ChatBarPlus.kt.
+     */
+    static List<Method> chatBarPlusMenu(List<ClassDef> classes) {
+        var readers = new ArrayList<Method>();
+        var seen = new HashSet<String>();
+        for (var cls : classes) for (var method : cls.getMethods())
+            if (readsChatBarMenuFlag(method) && seen.add(hookId(method))) readers.add(method);
+        var reads = new ArrayList<List<Long>>();
+        for (var reader : readers) {
+            var flags = chatBarMenuReads(reader);
+            if (flags == null) return List.of();
+            reads.add(flags);
+        }
+        int builder = -1, test = -1;
+        for (int i = 0; i < readers.size(); i++) {
+            if (loadsEveryChatBarNotice(readers.get(i))) { if (builder >= 0) return List.of(); builder = i; }
+            if (reads.get(i).contains(CHAT_BAR_MENU_FLAG)) { if (test >= 0) return List.of(); test = i; }
+        }
+        if (builder < 0 || test < 0) return List.of();
+        var built = reads.get(builder);
+        if (Collections.frequency(built, CHAT_BAR_GALLERY_FLAG) != 1 || Collections.frequency(built, CHAT_BAR_VOICE_FLAG) != 1 ||
+            built.contains(CHAT_BAR_MENU_FLAG) || !reads.get(test).equals(List.of(CHAT_BAR_MENU_FLAG))) return List.of();
+        String testId = hookId(readers.get(test));
+        for (var i : instructions(readers.get(builder)))
+            if (i instanceof ReferenceInstruction r && r.getReference().toString().equals(testId)) return readers;
+        return List.of();
+    }
+
     static final long INBOX_TYPING_FLAG = 0x010100eb000013b5L;
     static final String INBOX_TYPING_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;";
 

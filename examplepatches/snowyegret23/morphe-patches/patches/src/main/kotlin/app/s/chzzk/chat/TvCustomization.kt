@@ -10,19 +10,20 @@ import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.rewrite
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.chzzkType
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val COMMUNITY = "Lcom/navercorp/game/android/community/"
-private const val MESSAGE = "${COMMUNITY}ui/common/ui/chat/message/streaming/entity/StreamingChatMessage;"
-private const val BASE_MESSAGE = "${COMMUNITY}data/core/entity/chat/message/BaseLiveChatMessage;"
+private val BytecodePatchContext.MESSAGE get() = chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/entity/StreamingChatMessage;")
+private val BytecodePatchContext.BASE_MESSAGE get() = chzzkType("${COMMUNITY}data/core/entity/chat/message/BaseLiveChatMessage;")
 private const val STYLE = "${COMMUNITY}ui/common/ui/chat/message/streaming/designstyle/StreamingMessageDesignStyle"
-private const val STATUS = "${COMMUNITY}data/core/entity/user/streaming/StreamingUserStatus;"
+private val BytecodePatchContext.STATUS get() = chzzkType("${COMMUNITY}data/core/entity/user/streaming/StreamingUserStatus;")
 
 private fun MutableMethod.mapReturn(hook: String, type: String) {
     val opcode = if (type == "J") Opcode.RETURN_WIDE else Opcode.RETURN
@@ -42,6 +43,7 @@ private fun BytecodePatchContext.bridge(name: String, body: String) {
 }
 
 internal fun BytecodePatchContext.addTvCustomization() {
+    val minified = packageMetadata.versionName == "1.5.0"
     addTvSettingsEntry()
     addTvChatUiHooks()
     addSeekHooks()
@@ -87,7 +89,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
     """)
     val base = classDefBy(BASE_MESSAGE)
     val contentGetter = classDefBy(MESSAGE).methods.single {
-        it.name == "r" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
+        it.name == (if (minified) "n" else "r") && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
     }
     bridge("visibleContent", """
         check-cast p0, $MESSAGE
@@ -108,13 +110,13 @@ internal fun BytecodePatchContext.addTvCustomization() {
         """)
     }
     val messageClass = classDefBy(MESSAGE)
-    val kind = messageClass.fields.single { it.type.endsWith("/StreamingChatMessageType;") }
+    val kind = messageClass.fields.single { it.type == chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/entity/StreamingChatMessageType;") }
     val profile = messageClass.fields.single { it.type == STATUS }
     bridge("messageNickname", """
         check-cast p0, $MESSAGE
         iget-object p0, p0, ${profile.smaliReference}
         if-eqz p0, :empty
-        invoke-virtual {p0}, $STATUS->l()Ljava/lang/String;
+        invoke-virtual {p0}, $STATUS->${if (minified) "k" else "l"}()Ljava/lang/String;
         move-result-object p0
         return-object p0
         :empty
@@ -129,7 +131,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
         return-object p0
     """)
     val roleGetter = classDefBy(STATUS).methods.single {
-        it.parameterTypes.isEmpty() && it.returnType.endsWith("/StreamingUserRole;")
+        it.parameterTypes.isEmpty() && it.returnType == chzzkType("${COMMUNITY}data/core/entity/user/streaming/StreamingUserRole;")
     }
     bridge("messageRole", """
         check-cast p0, $MESSAGE
@@ -146,7 +148,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
         return-object p0
     """)
 
-    val activity = mutableClassDefBy("${COMMUNITY}tv/ui/TvActivity;")
+    val activity = mutableClassDefBy(chzzkType("${COMMUNITY}tv/ui/TvActivity;"))
     for (methodName in listOf("onCreate", "onResume")) {
         val method = activity.methods.single { it.name == methodName }
         val index = method.implementation!!.instructions.indexOfFirst {
@@ -167,7 +169,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
         nop
     """.trimIndent())
 
-    val screen = mutableClassDefBy("${COMMUNITY}tv/ui/overlayplayerend/live/streaming/StreamingLiveEndScreenKt;")
+    val screen = mutableClassDefBy(chzzkType("${COMMUNITY}tv/ui/overlayplayerend/live/streaming/StreamingLiveEndScreenKt;"))
         .methods.single { it.name == "a" }
     val widths = screen.implementation!!.instructions.withIndex().filter {
         (it.value as? NarrowLiteralInstruction)?.narrowLiteral == 330f.toRawBits()
@@ -180,7 +182,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
             move-result v$register
         """.trimIndent())
     }
-    val layout = mutableClassDefBy(if (packageMetadata.versionName == "1.4.0") "Lhv;" else "Ljv;").methods.single { it.name == "invoke" }
+    val layout = mutableClassDefBy(if (minified) "Lcg1;" else if (packageMetadata.versionName == "1.4.0") "Lhv;" else "Ljv;").methods.single { it.name == "invoke" }
     val layoutInstructions = layout.implementation!!.instructions
     val expandedWidth = layoutInstructions.withIndex().single {
         (it.value as? NarrowLiteralInstruction)?.narrowLiteral == 330f.toRawBits()
@@ -188,7 +190,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
     check((layoutInstructions[expandedWidth.index + 2] as? NarrowLiteralInstruction)?.narrowLiteral == 260f.toRawBits())
     val animatedWidth = layoutInstructions.withIndex().drop(expandedWidth.index + 3).first {
         it.value.getReference<MethodReference>()?.let { ref ->
-            ref.definingClass == "${COMMUNITY}core/foundation/util/animation/AnimationV2Kt;" && ref.name == "a"
+            ref.definingClass == chzzkType("${COMMUNITY}core/foundation/util/animation/AnimationV2Kt;") && ref.name == "a"
         } == true
     }
     val widthRegister = (animatedWidth.value as FiveRegisterInstruction).registerC
@@ -197,7 +199,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
         invoke-static/range {v$widthRegister .. v$widthRegister}, $SETTINGS->chatWidth(F)F
         move-result v$widthRegister
     """.trimIndent())
-    val chatState = mutableClassDefBy(if (packageMetadata.versionName == "1.4.0") "Lsk;" else "Luk;").methods.single { it.name == "invoke" }
+    val chatState = mutableClassDefBy(if (minified) "Lpg0;" else if (packageMetadata.versionName == "1.4.0") "Lsk;" else "Luk;").methods.single { it.name == "invoke" }
     val stateInstructions = chatState.implementation!!.instructions
     val wideState = stateInstructions.withIndex().single {
         (it.value as? NarrowLiteralInstruction)?.narrowLiteral == 330f.toRawBits()
@@ -212,7 +214,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
         invoke-static/range {v$stateRegister .. v$stateRegister}, $SETTINGS->chatWidth(F)F
         move-result v$stateRegister
     """.trimIndent())
-    val bounds = mutableClassDefBy("Ly3;").methods.single { it.name == "invoke" }
+    val bounds = mutableClassDefBy(if (minified) "Ljh0;" else "Ly3;").methods.single { it.name == "invoke" }
     val boundInstructions = bounds.implementation!!.instructions
     val halves = boundInstructions.withIndex().filter { it.value.opcode == Opcode.DIV_FLOAT_2ADDR }
     check(halves.size == 3)
@@ -227,22 +229,22 @@ internal fun BytecodePatchContext.addTvCustomization() {
     var fontMethods = 0
     var messageRows = 0
     classDefForEach { original ->
-        if (original.type.startsWith("$STYLE$") &&
-            original.interfaces.any { it == "$STYLE${'$'}ChatStyleInfo;" || it == "$STYLE${'$'}NicknameStyleInfo;" }) {
+        if ((minified || original.type.startsWith("$STYLE$")) &&
+            original.interfaces.any { it == chzzkType("$STYLE${'$'}ChatStyleInfo;") || it == chzzkType("$STYLE${'$'}NicknameStyleInfo;") }) {
             val mutable = mutableClassDefBy(original)
             for (method in mutable.methods.filter { it.parameterTypes.isEmpty() && it.implementation != null }) {
                 when {
-                    method.name == "g" && method.returnType == "J" -> method.mapReturn("scaleTextUnit", "J")
+                    method.name == (if (minified) "i" else "g") && method.returnType == "J" -> method.mapReturn("scaleTextUnit", "J")
                     method.name == "a" && method.returnType == "F" -> method.mapReturn("scaleLine", "F")
-                    method.name in listOf("n", "o") && method.returnType == "F" -> method.mapReturn("scaleFont", "F")
-                    method.name == "p" && method.returnType == "F" -> method.mapReturn("scaleEmoji", "F")
+                    method.name in (if (minified) listOf("p", "q") else listOf("n", "o")) && method.returnType == "F" -> method.mapReturn("scaleFont", "F")
+                    method.name == (if (minified) "r" else "p") && method.returnType == "F" -> method.mapReturn("scaleEmoji", "F")
                     else -> continue
                 }
                 fontMethods++
             }
         }
-        if (original.type.startsWith(COMMUNITY) && original.type.endsWith("MessageKt;") &&
-            (original.type.contains("/chat/message/streaming/") || original.type.contains("/streaming/chat/message/"))) {
+        if (minified || (original.type.startsWith(COMMUNITY) && original.type.endsWith("MessageKt;") &&
+            (original.type.contains("/chat/message/streaming/") || original.type.contains("/streaming/chat/message/")))) {
             val methods = original.methods.filter {
                 it.returnType == "V" && MESSAGE in it.parameterTypeNames &&
                     "Landroidx/compose/runtime/Composer;" in it.parameterTypeNames
@@ -270,8 +272,8 @@ internal fun BytecodePatchContext.addTvCustomization() {
     val changedRevision = classDefBy(composerType).methods.single {
         it.name == "d" && it.parameterTypeNames == listOf("I") && it.returnType == "Z"
     }
-    val styleFactories = mutableClassDefBy("${STYLE}Kt;").methods.filter {
-        it.parameterTypeNames.firstOrNull() in listOf("$STYLE${'$'}ChatStyleInfo;", "$STYLE${'$'}NicknameStyleInfo;")
+    val styleFactories = mutableClassDefBy(chzzkType("${STYLE}Kt;")).methods.filter {
+        it.parameterTypeNames.firstOrNull() in listOf(chzzkType("$STYLE${'$'}ChatStyleInfo;"), chzzkType("$STYLE${'$'}NicknameStyleInfo;"))
     }
     check(styleFactories.size == 2) { "Missing cached chat style factories" }
     for (factory in styleFactories) {
@@ -296,21 +298,24 @@ internal fun BytecodePatchContext.addTvCustomization() {
         """.trimIndent())
     }
 
-    val userRow = mutableClassDefBy("${COMMUNITY}ui/common/ui/chat/message/streaming/StreamingUserMessageKt;")
+    val userRow = mutableClassDefBy(chzzkType("${COMMUNITY}ui/common/ui/chat/message/streaming/StreamingUserMessageKt;"))
         .methods.single { it.returnType == "V" && MESSAGE in it.parameterTypeNames }
-    val contentCalls = userRow.implementation!!.instructions.withIndex().filter {
-        val reference = it.value.getReference<MethodReference>()
-        reference?.name == contentGetter.name && reference.returnType == "Ljava/lang/String;" &&
-            reference.definingClass == MESSAGE
-    }
-    check(contentCalls.size == 1)
-    for ((index, instruction) in contentCalls) {
-        val register = when (instruction) {
-            is FiveRegisterInstruction -> instruction.registerC
-            is RegisterRangeInstruction -> instruction.startRegister
-            else -> error("Unexpected content getter opcode")
+    val userRows = listOf(userRow) + if (minified) listOf(addGroupedMessageFilter("Ldo0;", "Lru2;")) else emptyList()
+    for (row in userRows) {
+        val contentCalls = row.implementation!!.instructions.withIndex().filter {
+            val reference = it.value.getReference<MethodReference>()
+            reference?.name == contentGetter.name && reference.returnType == "Ljava/lang/String;" &&
+                reference.definingClass == MESSAGE
         }
-        userRow.replaceInstruction(index, "invoke-static/range {v$register .. v$register}, $SETTINGS->displayMessage(Ljava/lang/Object;)Ljava/lang/String;")
+        check(contentCalls.size == 1)
+        for ((index, instruction) in contentCalls) {
+            val register = when (instruction) {
+                is FiveRegisterInstruction -> instruction.registerC
+                is RegisterRangeInstruction -> instruction.startRegister
+                else -> error("Unexpected content getter opcode")
+            }
+            row.replaceInstruction(index, "invoke-static/range {v$register .. v$register}, $SETTINGS->displayMessage(Ljava/lang/Object;)Ljava/lang/String;")
+        }
     }
 
     mutableClassDefBy(BASE_MESSAGE).methods.single {

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-26.
  * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-08.
  */
@@ -20,10 +21,9 @@ import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
 /**
- * The entry points the Downloads patch calls from the app's own code. Each one hands over to {@link OfflineReplay}
- * and answers "not ours" when that fails in any way, a class that does not verify or link included: the first failure
- * is logged and turns the replay off for the rest of the process, so the app plays as it did without it. This class
- * must stay small and name nothing but the app's stable types, so that it always loads.
+ * Stable entry points called by injected Music code. These hand off to {@link OfflineReplay} and allow stock
+ * behavior if a hook fails to verify or link. A failure in the shared replay path disables it for the process;
+ * a failure starting an optional local detail load leaves playback hooks in place.
  */
 @SuppressWarnings("unused")
 public final class OfflineReplayHooks {
@@ -34,6 +34,54 @@ public final class OfflineReplayHooks {
     /** Enabled by the patch only after every hook of the version is in place. */
     public static boolean supported() {
         return false;
+    }
+
+    /** Enabled only on versions where the initial native detail dispatch is bridged. */
+    public static boolean localDetailSupported() {
+        return false;
+    }
+
+    /** Enabled only where both native playlist detail and the native queue shuffle commit hook are bridged. */
+    public static boolean localPlaylistShuffleSupported() {
+        return false;
+    }
+
+    /** Non-consuming identity check by the one-shot native queue apply bridge. */
+    public static boolean ownsLocalPlaylistShuffleReply(Object response) {
+        try {
+            return OfflineReplay.ownsLocalPlaylistShuffleReply(response);
+        } catch (Exception | LinkageError failure) {
+            Logger.printException(() -> "OfflineReplay: could not verify the shuffled queue ownership", failure);
+            return false;
+        }
+    }
+
+    /** Called after the exact marked reply has actually committed native local shuffle. */
+    public static void localPlaylistShuffleApplied(Object queue, Object exactMarkedReply) {
+        try {
+            OfflineReplay.localPlaylistShuffleApplied(queue, exactMarkedReply);
+        } catch (Exception | LinkageError failure) {
+            Logger.printException(() -> "OfflineReplay: could not bind the native shuffled queue", failure);
+        }
+    }
+
+    /** Negative drops a stale edited response; zero is the stock row path; positive merges only metadata. */
+    public static int retainQueueRows(Object queue, @Nullable Object continuation, int nativeCursor) {
+        if (continuation instanceof OfflineQueueActions.Continuation edited) {
+            try {
+                return edited.cursor() == nativeCursor && OfflineQueueActions.retains(queue, edited) ? 1 : -1;
+            } catch (Exception | LinkageError failure) {
+                Logger.printException(() -> "OfflineReplay: could not verify the edited queue continuation", failure);
+                return -1;
+            }
+        }
+
+        try {
+            return nativeCursor >= 0 && OfflineReplay.retainLocalPlaylistShuffle(queue, continuation) ? 1 : 0;
+        } catch (Exception | LinkageError failure) {
+            Logger.printException(() -> "OfflineReplay: could not verify the native queue continuation", failure);
+            return 0;
+        }
     }
 
     /** Whether the replay is installed and has not failed in this process. */
@@ -62,12 +110,30 @@ public final class OfflineReplayHooks {
         }
     }
 
+    /** Claims just the first native playlist detail load. False leaves the app's original invocation untouched. */
+    public static boolean openInitialBrowse(Object fragment, Object request) {
+        if (!usable()) return false;
+
+        try {
+            return OfflineReplay.openInitialBrowse(fragment, request);
+        } catch (Throwable failure) {
+            Logger.printException(() -> "OfflineReplay: could not start the saved detail load", failure);
+            return false;
+        }
+    }
+
+    /** Canonical ID for an initial playlist request, excluding explicit edit and refresh commands. */
+    @Nullable
+    public static String initialDetailId(String browseId, @Nullable Map<?, ?> context) {
+        return OfflineReplayLogic.initialDetailId(browseId, context);
+    }
+
     /** Injection point: the success of a page the page fragment shows: a page the user opened. */
-    public static void onBrowseResponse(String browseId, Object result) {
+    public static void onBrowseResponse(String browseId, Object result, boolean captureLegacyDetails) {
         if (!usable()) return;
 
         try {
-            OfflineReplay.onBrowseResponse(browseId, result);
+            OfflineReplay.onBrowseResponse(browseId, result, captureLegacyDetails);
         } catch (Throwable failure) {
             disable("browse capture", failure);
         }
