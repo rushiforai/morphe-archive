@@ -151,6 +151,7 @@ ImNoammm/Noams-Morphe-Patches
 ImNoammm/morphe-spotify-patches
 ImmortalZeus/ImmortalZeus-Morphe-Patches
 Insane96/Pinterest-patch
+JAPofc/japatch
 JCapretta/chessable-patches
 JZ6/Flexboard
 JacksonJones2003/immersive-keyboard-patches
@@ -230,6 +231,7 @@ MrCool-888/mrcool-patches
 MrRaita/Karma-Patches
 Mubelotix/my-morphe-patches
 MuguDEV/ben-thamizha-patches
+Muthu1203-abi/Hushgram
 Nagol12344/patch
 Nai64/Nai64ExtraPatches
 Nai64/Nai64Patches
@@ -286,6 +288,7 @@ RikoDEV/morphed-pl
 Ripthulhu/morphe-google-patches
 RizkLee/morphe-bilibili-danmaku
 RjBiermann/brave-waffle
+RoToR003/lyrics-blur-spotify
 Roboroads/morphe-patches
 RookieEnough/De-Vanced
 Rosaldivo/rosaldivo-morphe-patches
@@ -344,14 +347,17 @@ TorbenStriegel/morphe-patches-custom
 Tornillo2/movistar-block-ads-morphe
 Trimpsuz/morphe-busuu
 Trimpsuz/morphe-patches
+USFHunTer/sabp-eppy-feng
 UnkyBadTouch/plex-morphe-patches
 Utsavrajputt/Modx-patches
+V4inwald/wispr-flow-patches
 V4n1X/morphe-patches
 Vakarux12/raid-judu-patches
 VenusIsJaded/Prathxm-Patches
 VenusIsJaded/Venus-Patches
 VexingVertigo/spicetify-sandbox
 VipinVIP/railone-patches
+VitaTaf/mxplayer
 VoltoxderEchte/waze-gearslip-morphe-patch
 WZSE/aapam-patches
 WZSE/morphe-patches
@@ -441,6 +447,7 @@ bennytsai1234/youtube-thread-ripper
 benzophury/oraimo-health-morphe-patches
 bernardo7894/remove-permaban-banner-patch
 bhashanaliyanage/helakuru-morphe
+big1mosha/ytmusic-selfhost-scrobble
 bigyank/morphe-patches-samsung
 bin0culars/bin0culars-patches
 binarymend/morphe-patches
@@ -463,6 +470,7 @@ c-ardinal/Gboard-patches-jp
 callMeBeyonder/morphe-patches
 canh0chua/Morphe-patches
 catsmoker/anime-witcher-patches
+ccloud-admin/gearhead-patches
 cesbar/zpatches
 cfels/vibe-patches
 ch3thanhs/stylus
@@ -706,6 +714,7 @@ mmenzyns/morphe-patches
 mnhqngl/quang-patches
 mohamedamrnady/anghami-patches
 mormislaw/zeekr-adapt-morphe-patches
+mridwanfirdaus2603/whatsapp
 mrx7014/MRXHalawa-Patches
 muhib-karim/Rambler-Bangla
 murikbmx/yanmus
@@ -786,6 +795,7 @@ romanchukg-cloud/maps-automotive-for-byd-patches
 rubenaaroncalahorra/gospel-library-patches
 rufusin/revanced-patches
 rushiranpise/Ri-Vanced-Universal-Morphe-Patches
+rustybrozen/anhpan-patches
 ryuya0124/gemini-microg-patches
 ryuya0124/morphe-x-video-60fps
 ryykitty/twitch-patched
@@ -814,6 +824,7 @@ serajr/x-twitter-patches
 sevenzip2/books-piko
 seythegamer/sey-morphe-patches
 sftsang/sportsnet-patches
+sharklatan/AirPlayTY
 shaun-the-sheep-patches/morphe-patches
 shini-cell/shini-morphe
 shuili1013/GoogleMap-Morphe
@@ -925,3 +936,4 @@ zeldrisho/morphe-patches
 zenthora/drtv-morphe-patches
 zerobun0/zerobun-morphe-patches
 zimza1abim/kanye-morphe-patches
+zipzopzippy/gboard-morphe-patch

@@ -5883,14 +5883,6 @@
                 "updatedAt": 1795414748416
             },
             {
-                "name": "vbook-patche",
-                "source": "https://raw.githubusercontent.com/HaoDH/vbook-patche/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 838,
-                "createdAt": 1795414749105,
-                "updatedAt": 1795414749105
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/JoFSlash/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -6505,6 +6497,94 @@
                 "sortOrder": 915,
                 "createdAt": 1795763167729,
                 "updatedAt": 1795763167729
+            },
+            {
+                "name": "japatch",
+                "source": "https://raw.githubusercontent.com/JAPofc/japatch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 916,
+                "createdAt": 1795849414422,
+                "updatedAt": 1795849414422
+            },
+            {
+                "name": "Hushgram",
+                "source": "https://raw.githubusercontent.com/Muthu1203-abi/Hushgram/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 917,
+                "createdAt": 1795849416487,
+                "updatedAt": 1795849416487
+            },
+            {
+                "name": "lyrics-blur-spotify",
+                "source": "https://raw.githubusercontent.com/RoToR003/lyrics-blur-spotify/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 918,
+                "createdAt": 1795849417136,
+                "updatedAt": 1795849417136
+            },
+            {
+                "name": "sabp-eppy-feng",
+                "source": "https://raw.githubusercontent.com/USFHunTer/sabp-eppy-feng/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 919,
+                "createdAt": 1795849417665,
+                "updatedAt": 1795849417665
+            },
+            {
+                "name": "mxplayer",
+                "source": "https://raw.githubusercontent.com/VitaTaf/mxplayer/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 920,
+                "createdAt": 1795849418114,
+                "updatedAt": 1795849418114
+            },
+            {
+                "name": "ytmusic-selfhost-scrobble",
+                "source": "https://raw.githubusercontent.com/big1mosha/ytmusic-selfhost-scrobble/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 921,
+                "createdAt": 1795849419972,
+                "updatedAt": 1795849419972
+            },
+            {
+                "name": "gearhead-patches",
+                "source": "https://raw.githubusercontent.com/ccloud-admin/gearhead-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 922,
+                "createdAt": 1795849420247,
+                "updatedAt": 1795849420247
+            },
+            {
+                "name": "whatsapp",
+                "source": "https://raw.githubusercontent.com/mridwanfirdaus2603/whatsapp/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 923,
+                "createdAt": 1795849426377,
+                "updatedAt": 1795849426377
+            },
+            {
+                "name": "anhpan-patches",
+                "source": "https://raw.githubusercontent.com/rustybrozen/anhpan-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 924,
+                "createdAt": 1795849427663,
+                "updatedAt": 1795849427663
+            },
+            {
+                "name": "AirPlayTY",
+                "source": "https://raw.githubusercontent.com/sharklatan/AirPlayTY/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 925,
+                "createdAt": 1795849427867,
+                "updatedAt": 1795849427867
+            },
+            {
+                "name": "gboard-morphe-patch",
+                "source": "https://raw.githubusercontent.com/zipzopzippy/gboard-morphe-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 926,
+                "createdAt": 1795849429915,
+                "updatedAt": 1795849429915
             }
         ]
     }
